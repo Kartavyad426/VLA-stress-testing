@@ -3,6 +3,35 @@
 **Purpose:** who produces which data, who consumes it, and where to look when a
 number is wrong. Companion to `PLAN.md` (what we are building and why).
 
+> **This document describes the code AS BUILT.** Rows and boxes marked
+> **`[PLANNED]`** are agreed in `PLAN.md` but **not yet implemented** — do not
+> debug against them. See §0 for the pending list.
+
+---
+
+## 0. Pending changes — agreed, not yet built
+
+From the 2026-09-11 landscape review (`docs/LANDSCAPE.md` adoption ledger) and
+the `FINDINGS.md` entries. Ordered by when they get more expensive to retrofit.
+
+| # | Change | Where | Why it cannot wait |
+|---|---|---|---|
+| 1 | ~~`sampling_arm` on the `Rollout`~~ → **`runs/<id>/arms.jsonl`, a request log** mapping `(arm, rollout_id)` many-to-many | `runner.py`, store | **Revised after DG-2.** Tagging the rollout de-uniforms the uniform arm: `rollout_id` excludes the arm (correctly — same physics), so one stored rollout gets whichever arm asked first, and the uniform arm silently loses cells to cache hits in adaptive search order. The arm belongs to the **request**. `Rollout` unchanged ⇒ **no schema major bump for this item.** |
+| 2 | **`mujoco` version moves from `runtime` into Env `identity()`** | `schema.py`, env adapters | F2: mujoco does not shift timings, it **changes results** (80% → 28% on one task). A version bump must MISS the cache, not warn. My original placement was wrong. |
+| 3 | **Rendering backend into Env `identity()`** | env adapters | EGL vs osmesa can change rendered observations ⇒ changes results (`PLAN.md` §5.4). |
+| 4 | **Paired statistics in `counterfactual_probe`** | `runner.py` | We run the same seeds in both arms and currently discard the pairing. McNemar on paired per-seed outcomes is free variance reduction. |
+| 5 | `adaptive_sweep()` with a surrogate; `boundary` gains a posterior interval | `runner.py` | `PLAN.md` §5.1. Largest piece; only pays off once there is a real boundary. |
+| 6 | `failure_cost` computed in `classify()` | `mining/classify.py` | `PLAN.md` §7b.3 — rated our most novel contribution, and currently unimplemented. |
+| 7 | `coverage_required` validator rejecting count-shaped strings | `manifest.py` | `PLAN.md` §9.1 — demo counts are the wrong axis (Lin et al.). |
+| 8 | Environment control runs **per task**, not per suite | `experiments/` | F2's lesson: at suite level a task-5 collapse dilutes into noise. |
+| 9 | **`scene_descriptor`** on every rollout — object poses, camera pose, lighting **in physical units**, resolved from the seed at reset | env adapters, `schema.py` | `PLAN.md` §9.2. PPI needs a scene a *person could rebuild on a bench*; `seed`+`spec` is sim-internal by construction and cannot supply it (DG-8). Cheap now, unreconstructable later. |
+| 10 | **`RegressionSet`** as a first-class L0 artifact: own id, `frozen_env` identity, member rollout ids | `schema.py`, new module | It is the comparison basis for all of Phase 5 and currently has no type, no owner and no fingerprint — so it expires invisibly whenever env identity moves (DG-7). Finding #2 one level up, against our headline claim. |
+| 11 | **`PrivilegedProbePolicy`** — full state, stamps `privileged: true`, excluded like `tier3` | `policies/` | §7c discriminator 4 is unrunnable today: `policy_view()` strips `_gt_` and that is enforced. Audited escape hatch, not a weakening (DG-6). |
+| 12 | `semantic_runtime` bucket + promotion policy | `schema.py` | Supersedes item 2's naive "mujoco into identity()" (DG-4). |
+
+**Sequencing:** 1–3 first (correctness + schema, worse to retrofit once real
+traces exist), then 8–9 before Phase 2 accumulates traces, then 4 and 6, then 5.
+
 ---
 
 ## 1. Module map
@@ -29,8 +58,11 @@ import in `mining/`, the signal you want belongs in `Observation.state` instead.
 
 ```
    seed ──┐
-          ├──► Env.reset(seed, spec) ──► Observation ──► .policy_view() ──► Policy
-   spec ──┘                ▲                                                  │
+          ├──► Env.reset(seed, spec) ──► Observation ──┬─► .policy_view() ─► Policy
+   spec ──┘                ▲                           │   (_gt_ stripped)    │
+                           │                           └─► FULL state ────►  │
+                           │                               PrivilegedProbe    │
+                           │                               [PLANNED, audited] │
                            │                                               Action
                            └───────────── Env.step(action) ◄──────────────────┘
                                               │
@@ -38,7 +70,10 @@ import in `mining/`, the signal you want belongs in `Observation.state` instead.
                                               │
                                               ▼
                                          Rollout                    ──► TraceStore
-                                              │                          (jsonl)
+                                    + scene_descriptor [PLANNED]         (jsonl)
+                                    + fingerprint{identity,              + arms.jsonl
+                                       semantic_runtime, runtime}          [PLANNED]
+                                              │
                         nominal reference ────┤
                                               ▼
                                      classify()  ──► rollout.diagnosis
@@ -46,17 +81,61 @@ import in `mining/`, the signal you want belongs in `Observation.state` instead.
                                               ▼
                                         cluster()  ──► [cluster]
                                               │
-   sweep()  ──► [Cell] ──► find_boundary() ──► boundary ──┐
-                                                          ├──► manifest.make_row()
-   counterfactual_probe() ──────────────► probe ──────────┘         │
-                                                                    ▼
-                                                       DATA_GAP_MANIFEST.md
+   sweep()          ──► [Cell] ──► find_boundary() ──► boundary ──┐
+   (uniform arm)         │                                        │
+                         └──► frequency ──► failure_conditional ──┤
+                                                                  ├─► manifest
+   adaptive_sweep()  ──► [Cell] ──► surrogate ──► boundary ───────┤   .make_row()
+   [PLANNED §5.1]                            (posterior interval) │        │
+                                                                  │        ▼
+   counterfactual_probe() ─────────────────► probe ───────────────┘  DATA_GAP_
+        └─ paired per-seed outcomes [PLANNED]                        MANIFEST.md
+
+   RegressionSet [PLANNED] ──► frozen (seed, spec) members + frozen_env identity
+        └─► Phase 5 before/after.  Re-run under a DIFFERENT env identity
+            requires a LOUD explicit override — never a silent pass.
+
+   arms.jsonl [PLANNED] ──► (arm, rollout_id) many-to-many
+        └─► uniform frequency computed over cells the UNIFORM arm ASKED for,
+            each resolved through the cache.  One rollout serves both arms.
 ```
 
-Three things enter a rollout: **seed**, **PerturbationSpec**, **policy**. Nothing
-else. Same three in ⇒ byte-identical trace out (G5). If that ever stops being
-true, counterfactual probes become noise and every attribution in the manifest
-is void. It is the load-bearing invariant.
+### What enters a rollout
+
+**seed**, **PerturbationSpec**, **policy identity** — nothing else. Same three in
+⇒ same *outcome distribution* out. Note this is **distributional, not
+byte-identical**: bit-exactness holds on the toy and will not survive a real VLA
+(GPU nondeterminism, sampling action heads, contact chaos — §5.1). Probes
+therefore compare distributions over N seeds against a measured noise floor,
+never single trajectories.
+
+### Two sampling arms, never mixed
+
+The **uniform** arm feeds anything frequency-weighted; the **adaptive** arm
+feeds boundary estimation. Active sampling optimises for *finding* failures, so
+it biases the discovered failure population.
+
+**The arm belongs to the REQUEST, not the episode (DG-2).** `rollout_id` hashes
+(identity, seed, spec) and correctly excludes the arm — the physics is identical
+either way. Tagging the stored rollout would mean one rollout per cell carrying
+whichever arm asked *first*, so the uniform arm would silently lose cells to
+cache hits in adaptive search order, and its sample would stop being uniform.
+Hence `arms.jsonl`: frequency is computed over the cells the uniform arm
+**asked for**, each resolved through the cache. One rollout legitimately serves
+both arms.
+
+### The manifest does not ship a severity
+
+`cluster()` and the uniform arm produce **`failure_conditional`** —
+P(fail | condition), which we measure and the counterfactual probe establishes.
+**`condition_prevalence` is client-supplied** from their deployment logs;
+severity is computed at delivery as conditional × prevalence × `failure_cost`
+(DG-5b, `PLAN.md` §9.3).
+
+Two consequences visible in the flow: a region the **adaptive** arm found and
+the uniform arm never sampled renders `prevalence: not estimated` — never a low
+severity (I11); and `privileged: true` rollouts from the probe path never enter
+a reported number (I13).
 
 ---
 
@@ -109,6 +188,7 @@ a detector losing a signal is cheap, a policy gaining one invalidates the run.
 | `rollout_id` | `runner.rollout` via `cell_hash` | `TraceStore` | hash of (policy_id, env_id, task, seed, spec), where the ids are **derived from `identity()`** — see §4.1 |
 | `steps[]` | `runner.rollout` | all of `mining/` | full `obs_state` per step, privileged keys included. **The last Step is terminal: `action is None`** — it carries the observation in which success was decided, for which no action was ever requested. Consumers iterating for actions must handle `None`; `series()` picks it up unchanged. |
 | `fingerprint` | `runner.rollout` via `make_fingerprint` | `run_cell` on every cache hit | `{env, policy, runtime}` — **strictly broader than the cache key** (§4.1) |
+| *(no arm field — see `arms.jsonl`)* | `runner.run_cell` writes the request log | every frequency statistic | **DG-2:** the arm is a property of the request, not the episode. Frequency is computed over cells the uniform arm **asked for**, resolved through the cache. |
 | `success` | **env only** | everything | the goal predicate. The only trustworthy signal. |
 | `termination` | env | `mining/phases` | `grasped` / `timeout` |
 | `perturbation` | `PerturbationSpec` | `cluster`, `manifest` | flat knob→value |
@@ -140,6 +220,30 @@ the store) and too weak (a dirty tree keeps the SHA stable while code changes
 underneath it, manufacturing confidence in a stale cache during exactly the phase
 where env config gets nudged most). Hash the values.
 
+> **Revised twice — final form `[PLANNED]` (DG-4).** First I put all library
+> versions in `runtime` (reported, never fatal). Then F2 showed MuJoCo changing
+> a task 80% → 28%, and I proposed the rule *"anything that changes the ANSWER
+> goes in `identity()`"*. **That rule is not decidable**: torch and numpy change
+> answers too, via reduction order → contact chaos (§5.1 says so). Applied
+> honestly it keys torch, every pip upgrade invalidates the store, and we are
+> back at the git-SHA failure mode.
+>
+> **Three buckets, and a promotion policy.** The distinction is epistemic:
+>
+> | Bucket | Holds | Keyed? |
+> |---|---|---|
+> | `identity()` | env/policy **design** | **yes** |
+> | `semantic_runtime` | external components with a **documented, specific** semantic effect: `mujoco`, `MUJOCO_GL`. Enumerated per adapter. | **yes** |
+> | `runtime` | `torch`, `numpy`, `python`, platform | no — reported |
+>
+> `semantic_runtime` is separate from `identity()` because a simulator build is
+> not part of an env's task *design* — `ToyReachEnv.identity()` declaring a
+> MuJoCo version it never loads would be incoherent.
+>
+> **Promotion** from `runtime` → `semantic_runtime` requires documented
+> evidence, and is a deliberate, rare, store-invalidating event logged like a
+> schema bump. MuJoCo qualified (F2). torch has not.
+
 **On mismatch: re-run loudly, don't raise.** Raising kills an overnight sweep at
 hour 8 over a moved threshold; under session caps someone then disables the check,
 and a disabled check is worse than none. The diff of changed fields goes in the
@@ -167,6 +271,7 @@ agreement). Sound on the toy; unavailable on a real VLA — see §5.1.
 | `terminal` | `success` `retry_loop` `failed_grasp_no_retry` `never_reached` | |
 | `final_error_m` | distance to target at end | drives the `visual_grounding` rule |
 | `attempt_spread_m` | spread of grasp attempts | separates recovery from manipulation |
+| `failure_cost` **`[PLANNED]`** | benign / disruptive / safety, from terminal state | `PLAN.md` §7b.3 — severity should weight by consequence, not only frequency |
 | `divergence` | first step outside the nominal envelope | **secondary signal only** — many valid trajectories exist |
 
 ### `Cell` / `boundary` / `probe`
@@ -192,7 +297,12 @@ Violations are bugs, not surprises. Worth asserting in CI.
 | I5 | A cached rollout still contributes its outcome | **resumed cells read 0% — see §6** |
 | I6 | Knob names exist in `LIBERO_PLUS_FACTORS` | axis cannot be mapped to the real benchmark |
 | I7 | A detector missing a state key skips, never crashes | miner dies on LIBERO traces |
-| I8 | Clean policy + perturbation ⇒ near-100% success | perturbation broke the task, not the policy |
+| I8 | Clean policy + perturbation ⇒ near-100% success, checked **per task** | perturbation broke the task, not the policy — at suite level a single-task collapse dilutes into noise (F2) |
+| I9 **`[PLANNED]`** | Frequency statistics are computed over cells the **uniform arm requested** (via `arms.jsonl`), never over stored-rollout tags | the uniform sample silently stops being uniform (DG-2) |
+| I11 **`[PLANNED]`** | A region the uniform arm never sampled renders `prevalence: not estimated`, never a low severity | the manifest silently buries everything the adaptive arm uniquely found (DG-3) |
+| I10 **`[PLANNED]`** | `identity()` = design; `semantic_runtime` = documented semantic effect (keyed); `runtime` = everything else (reported). Promotion requires evidence. | undecidable rule ⇒ either a stale simulator is served from cache, or every pip upgrade invalidates the store (DG-4) |
+| I12 **`[PLANNED]`** | A `RegressionSet` re-run under an env identity different from `frozen_env` requires a loud explicit override | Phase 5's before/after silently compares two different things (DG-7) |
+| I13 **`[PLANNED]`** | Rollouts stamped `privileged: true` are excluded from every headline number | discriminator 4's privileged ablation leaks into reported success rates (DG-6) |
 
 I8 is the environment control from `PLAN.md` §7c and runs in the oracle test as
 `CONTROL`. Run it for every new perturbation axis **before** interpreting any
@@ -254,6 +364,8 @@ would be the single easiest way to put a false claim in a client manifest.
 | Miner flags a clean policy | I8 violated — the perturbation broke the task | the `CONTROL` block |
 | CI absurdly wide | n too small | n=20 screens; go to n=50 near the boundary |
 | Trace won't load | I6/G3 — schema major changed | `schema_version` in the jsonl |
+| One task collapses, suite looks fine | simulator version, or a genuine per-task weakness | run the I8 control **on that task**; check `fingerprint.env.mujoco` (F2) |
+| Severity ordering looks odd | I9 — frequency computed over adaptive samples | filter to `sampling_arm == "uniform"` |
 
 ### Worked example — the resumability bug
 

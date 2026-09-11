@@ -52,9 +52,23 @@ Untested. Stated here as a hypothesis so it is falsifiable, not as a finding.
 - `--env.control_mode` must match the checkpoint's action parameterisation
 - pin `--dataset.revision` when reporting
 
-## Gate
+## Gate — DECIDED 2026-09-11 (D2)
 
-`PLAN.md` §5 wants published ±5 pp. Given two open non-reproductions, treat
-"cannot reproduce" as a *reportable finding*, not a blocker: document our own
-3-seed baseline and state plainly in the readout that the gate is weaker than
-the proposal assumed.
+**10 episodes/task, 400 episodes total**, matching LeRobot's stated protocol.
+
+The proposal's ±5 pp tolerance **does not apply at this n** — the 95% Wilson
+interval at n=100/suite is ~±6–9 pp, wider than the tolerance itself. Replaced
+by a **CI-overlap test** (`PLAN.md` §5.3):
+
+- published **inside** our CI ⇒ *consistent with published* (not "reproduced" —
+  we cannot distinguish). Proceed, and report the interval, never a point.
+- published **outside** ⇒ genuine non-reproduction; a finding. Escalate that
+  suite to 50 eps/task before reporting.
+- CI contains **both** published (~87) and the failed-repro value (~73) ⇒ the
+  measurement is too weak to say anything. Escalate. Report neither.
+
+Given two open non-reproductions upstream, "cannot reproduce" is a *reportable
+finding*, not a blocker.
+
+**The first full run is an ORIENTING run, not a reported result.** Label it so
+in the output so it cannot be quoted as a baseline later.

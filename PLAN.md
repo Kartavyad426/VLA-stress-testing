@@ -14,6 +14,12 @@
 | Diagnosis | Hybrid — deterministic detectors primary, LLM judge for semantic residue only | Measurement path stays reproducible; LLM never overrides a detector. |
 | First step | **Supply-side data analysis** — measure the training distribution before designing experiments | Perturbation axes are chosen from evidence, not from the paper's priors. |
 | Prototype | Full L0–L4 harness against a broken scripted policy | Design is validated against a known answer before any model is involved. |
+| **Subject policy** *(D1, 2026-09-11)* | **VLA-Adapter** (1B, MIT, ~2 GB, LoRA-able) — **not** SmolVLA | SmolVLA has nine unresolved LIBERO reproduction issues and no maintainer diagnosis. VLA-Adapter's known gap has an identified cause. See `FINDINGS.md` F3. |
+| **Reproduction anchor** *(D1)* | **π0.5 — documented, deferred** | See §5.2. Available if the subject's gate cannot be made to pass. |
+| **Episodes per task** *(D2, decided 2026-09-11)* | **10**, per LeRobot docs | n=100/suite. **Consequence: the ±5 pp gate is replaced by a CI-overlap test** — see §5.3. Escalate to 50 only where a result is ambiguous or reported. |
+| **Rendering** *(D3)* | EGL, with `MUJOCO_GL=osmesa` fallback | VRAM contention on 8 GB — see §5.4. |
+| **Second benchmark** *(D4)* | **Deferred** — RoboCasa after the LIBERO gate resolves | Cheapest generality claim available, but a distraction before Phase 2 reproduces anything. |
+| **Sampling split** *(D5)* | 40% uniform / 60% adaptive | §5.1. Revisit once the surrogate's convergence behaviour is known. |
 
 ---
 
@@ -86,6 +92,34 @@ L0  schema.py      canonical Rollout contract + trace store
 ```
 
 **The contract is the product.** Everything above L0 reads and writes the same `Rollout`. A client's real question is "evaluate *my* model", so swapping the policy must be a one-file change. Same for the simulator.
+
+### 2.1 Three provenance buckets, and a promotion policy *(revised after DG-4)*
+
+The earlier rule — *changes the ANSWER ⇒ keyed; changes only TIMING ⇒ reported* —
+**is not decidable.** `torch` and `numpy` change answers too: different BLAS,
+reduction order or kernel selection ⇒ different floats ⇒ different contacts.
+`ARCHITECTURE.md` §5.1 says exactly this. Applied honestly the rule keys torch
+and numpy, every pip upgrade invalidates the store, and we are back at the
+git-SHA position we rejected.
+
+**The real distinction is epistemic, not causal: KNOWN-semantic vs
+POSSIBLY-semantic.**
+
+| Bucket | Holds | In the cache key? |
+|---|---|---|
+| `identity()` | the env's / policy's **design**: constructor kwargs, thresholds affecting the goal predicate, checkpoint revision, control mode, action space | **yes** |
+| `semantic_runtime` | external components with a **documented, specific** semantic effect — `mujoco`, `MUJOCO_GL`. Enumerated per adapter. | **yes** |
+| `runtime` | everything else — `torch`, `numpy`, `python`, platform | no — compared and **reported** |
+
+`semantic_runtime` exists because a simulator build is not part of an env's task
+*design*: `ToyReachEnv.identity()` declaring a MuJoCo version it never loads
+would be incoherent.
+
+**Promotion policy.** Learning that a `runtime` field moves results *promotes*
+it to `semantic_runtime`. That is a deliberate, rare, store-invalidating event,
+recorded like a schema bump. MuJoCo is there because F2 documented a specific
+change moving one task 80% → 28%. `torch` stays in `runtime` because it *might*,
+and reporting a mismatch is the proportionate response to "might."
 
 ### Scalability guarantees — the "no fundamental flaw in month 2" list
 
@@ -196,10 +230,23 @@ savings on real hardware over 2,331 evaluations.
 
 **The trap the source papers do not have to care about and we do:** active
 sampling optimises for *finding* failures, so it biases the discovered failure
-population. Our manifest's `severity` is frequency-weighted. **Estimating
-frequency from adaptive samples silently corrupts every severity score.** Keep
-the arms separately labelled in the trace store — `sampling_arm` is a required
-field on every rollout, and any frequency statistic must filter to `uniform`.
+population. Anything frequency-weighted must therefore be computed over the
+uniform arm only.
+
+**The arm is a property of the REQUEST, not of the episode** *(DG-2)*. Tagging
+the `Rollout` cannot work: `rollout_id` hashes (identity, seed, spec) and
+correctly excludes the arm, since the physics is identical — so the store holds
+one rollout per cell tagged with whichever arm asked *first*. The uniform arm
+then loses cells to cache hits tagged `adaptive`, and *which* cells it loses
+depends on adaptive search order. The uniform sample stops being uniform: the
+exact corruption this split exists to prevent, introduced by the mechanism meant
+to prevent it. Hashing the arm is worse — it duplicates identical physics,
+doubles the campaign, and breaks the seed pairing §9.2 needs.
+
+**Design:** `runs/<id>/arms.jsonl` maps `(arm, rollout_id)` many-to-many.
+Uniform frequency is computed over the cells the uniform arm **asked for**, each
+resolved through the cache. One rollout legitimately serves both arms.
+`Rollout` gains no field, so this needs no schema major bump.
 
 The surrogate is a few hundred lines of CPU code and additionally supplies a
 principled stopping rule, which the grid does not have.
@@ -225,6 +272,139 @@ Gate: reproduce the chosen checkpoint's published task success within a stated t
 
 ---
 
+### 5.2 The reproduction anchor — deferred, not discarded
+
+**The gate's job is to exonerate *our environment*, not to grade a policy.** Once
+that is clear, it does not have to be the same policy we study.
+
+`lerobot/pi05_libero_finetuned` is **the only LIBERO checkpoint LeRobot
+maintainers confirm reproduces** — 97.5% average against OpenPI's own 96.85%.
+A failure to reproduce *it* is unambiguously our fault. That makes it an ideal
+anchor: run it once, and every subsequent number from this harness is measured
+against a setup already cleared of suspicion.
+
+**STATUS: undecided, blocked on a smoke test (DG-5).** The review argues the
+deferral contradicts its own justification: if the gate exists to clear the
+*environment*, running it on a policy whose own reproduction is uncertain
+**cannot clear anything** — a miss is ambiguous between our setup and the
+checkpoint. VLA-Adapter was chosen *because* its gap has an identified cause,
+which is another way of saying it is known not to reproduce cleanly. DG-1
+compounds it: at n=100 the screen is a coin flip at 5 pp, so "lands far from
+published" is a *likely* state, not an edge case.
+
+**Blocking action:** π0.5 is 6–7 GB and lerobot#3098 documents CUDA/EGL VRAM
+contention on this exact hardware class. **Smoke-test whether π0.5 runs here at
+all before relying on it.** If it does not, the anchor is not deferred — it does
+not exist, and this section is promising a fallback that cannot be taken. A
+contingency nobody has smoke-tested is not a contingency.
+
+**Take this option if** the subject's baseline lands far from published and we
+cannot tell whether the cause is ours or the checkpoint's. It converts an
+ambiguous result into a decidable one for roughly a day of work, inference-only,
+no fine-tuning required.
+
+### 5.3 Episodes per task — DECIDED (D2): 10/task
+
+The guidance genuinely conflicts:
+
+| Source | Episodes/task | Implication |
+|---|---|---|
+| LeRobot LIBERO docs | 10 | "matches the protocol used for published results"; 400 episodes total |
+| Original proposal §7.3 / OpenVLA-OFT canonical | **50** | 500 trials per suite, averaged over 3 seeds |
+| `docs/LANDSCAPE.md` §3.1 | — | 10 vs 50 **can swing Spatial/Long by 15–20 points** |
+
+At 10 eps/task, n=100 per suite gives **±6–9 pp** confidence intervals — wide
+enough that a genuine reproduction could read as a failure, and a genuine
+failure as success. The reproduction gate is ±5 pp. **A gate narrower than its
+own measurement error is not a gate.**
+
+Cost, from our calibration (~17 steps/s): 10 eps/task ≈ 1–2 h; 50 eps/task ≈
+5–8 h; 50 eps × 3 seeds ≈ 15–24 h. All are feasible on this hardware; none are
+free of the GPU-sharing arrangement with the peer session.
+
+### DECIDED 2026-09-11: 10 episodes/task, and the gate changes shape
+
+We take LeRobot's protocol: **10 episodes/task, 4 suites, 400 episodes**, which
+is what published numbers were produced under and therefore the like-for-like
+comparison.
+
+**But the ±5 pp gate cannot survive that n, so it is replaced.** At n=100 per
+suite the 95% Wilson interval is roughly ±6–9 pp. A ±5 pp tolerance is narrower
+than the measurement error — it would reject genuine reproductions and accept
+genuine failures, at a rate we could not even quantify.
+
+**10/task is a SCREEN. 50/task is the GATE.** *(revised after DG-1)*
+
+The CI-overlap test at n=100 has almost no power at the effect size we care
+about. Measured operating characteristic, published = 87%:
+
+| True success rate | P(test says "consistent") @ n=100 | @ n=500 |
+|---|---|---|
+| 0.87 — correct environment | 92.4% | 94.7% |
+| **0.82 — a 5 pp break** | **56.2%** | **11.0%** |
+| 0.80 — a 7 pp break | 36.2% | 1.0% |
+| 0.73 — the known failed-repro value | 2.4% | 0.0% |
+
+**A 5 pp break — exactly what the original ±5 pp tolerance existed to catch —
+passes at n=100 more than half the time.** The CI-overlap framing did not make
+the gate more honest than the tolerance; it made it *less sensitive while
+reading as more rigorous*. "Consistent with published" is a true statement about
+a test with no power, and it is the sentence a reader will quote.
+
+**Therefore:**
+
+- **10/task is a screen.** Its job is orienting and deciding where to spend
+  effort. **Publish the table above beside every screen result.** A screen pass
+  means *"screen passed, gate not yet run"* — **never** "consistent with
+  published".
+- **50/task is the gate**, and escalation is **unconditional for anything
+  reported**, not only for ambiguous outcomes.
+- Row 3 ("too weak") fires for exactly one outcome at n=100 (k=81) — effectively
+  unreachable. Define it as a property of the measurement — *CI half-width
+  exceeds half the deviation we care about* — not by reference to the 73%
+  anecdote, which is a single report being used as a fixed hypothesis.
+- **Apply multiple-comparison correction.** Four suites at 5% each ⇒ **18.5%**
+  chance of at least one spurious non-reproduction. §9.2 mandates correction;
+  this section must actually apply it.
+
+**The test itself, used at either n:**
+
+| Outcome | Verdict | What we do |
+|---|---|---|
+| Published value **inside** our 95% CI | **Consistent with published.** Not "reproduced" — we cannot distinguish. | Proceed. State the interval, never a point estimate. |
+| Published **outside** the CI | **Genuine non-reproduction.** A real finding. | Investigate via `FINDINGS.md` F3 causes; escalate that suite to 50 eps/task before reporting. |
+| CI so wide it contains both published and the failed-repro value (~73%) | **Measurement too weak to say anything.** | Escalate to 50 eps/task. Do not report either way. |
+
+The third row is the one that matters and the reason this framing is better than
+a tolerance: at n=100 the interval can be wide enough to contain *both*
+hypotheses at once, and a point-tolerance gate would silently pick one.
+
+**Escalation policy:** 50 eps/task (≈5–8 h) for any suite that lands in row 2 or
+3, and for anything that goes in a client-facing readout. 10 is for orienting
+and for deciding where to spend the 50.
+
+**This means our first full run is an orienting run, not a reported result.**
+Label it as such in the output so it cannot be quoted as a baseline later.
+
+### 5.4 Rendering backend (D3)
+
+**EGL, with `MUJOCO_GL=osmesa` as the documented fallback.**
+
+[lerobot#3098](https://github.com/huggingface/lerobot/issues/3098) was filed on
+an **RTX 3070 Laptop, 8 GB — our exact hardware class**: the PyTorch CUDA
+context and MuJoCo's EGL rendering context contend for VRAM in one process and
+evaluation can fail outright.
+[PR#3235](https://github.com/huggingface/lerobot/pull/3235) adds
+`--eval.process_isolated=true` — open, unmerged.
+
+EGL is verified working here at ~2.8 GB peak. It is the faster path and we keep
+it. If a larger policy (π0.5, §5.2) or a bigger batch triggers OOM, switch to
+`osmesa` — CPU rendering, slower, no VRAM contention. **The backend goes in
+`semantic_runtime`** (§2.1), since it can change rendered observations and
+therefore results.
+
+---
+
 ## 6. Phase 3 — Mining · Phase 4 — Manifest · Phase 5 — Validate
 
 **Mining** runs the L3 stack over real traces: phase localization, deterministic classification, LLM adjudication of the residue, clustering, counterfactual attribution. Double-label 30 traces and report κ.
@@ -235,10 +415,15 @@ Gate: reproduce the chosen checkpoint's published task success within a stated t
 > discovered partition against our seven families. Families that no discovered
 > cluster respects are probably ours, not the data's.
 >
-> **`language_grounding` may be empty by construction.** LIBERO-Plus reports
-> that models largely ignore language. If we report a taxonomy with a family
-> that never fires, say so explicitly rather than leaving a reader to assume we
-> looked and found nothing.
+> **`language_grounding` is OUT OF SCOPE for this campaign** *(DG-11)*.
+> `instruction_variant` is in `LIBERO_PLUS_FACTORS`, but **no env implements the
+> axis and no detector in `classify()` can produce the family** — so it cannot
+> fire. The earlier "reporting rule" could not distinguish *"the policy is
+> insensitive to language"* from *"we never tested language"*, which are very
+> different sentences to put in front of a client.
+>
+> State it as out of scope in the taxonomy, and compute **κ and the E5
+> discovered-taxonomy comparison over 6 families, not 7.**
 
 **Manifest** (see §9 for the schema) — every row carries its evidence.
 
@@ -247,7 +432,8 @@ Gate: reproduce the chosen checkpoint's published task success within a stated t
 ### 6.1 Three-arm remediation comparison — the best novel result available *(added 2026-09-11)*
 
 Rather than validating one remediation, compare **three** on one frozen
-regression set and report **cost per point of recovered success**:
+regression set and report **cost per point of recovered success** — at **one
+budget**, not three *(rescoped after DG-9)*:
 
 | Arm | What | Cost proxy |
 |---|---|---|
@@ -258,6 +444,24 @@ regression set and report **cost per point of recovered success**:
 Nothing in the survey does this. **It converts `fixability` from a judgement
 call into a measurement**, and it is the most defensible novel result available
 to us. It also directly answers the buyer's question in §7c discriminator 7.
+
+**Scope, corrected.** Three arms × discriminator 6's three budgets would be
+**9 fine-tunes plus 9 closed-loop re-evaluations** — several times the whole
+Phase-5 budget. Instead:
+
+- **Three arms at ONE budget** → the fixability comparison.
+- **Data-response curve on arm A only**, for the top manifest row → discriminator 6.
+- **Five fine-tunes, not nine.** Both results preserved.
+
+Two framing corrections that hold regardless of cost:
+
+1. **A vs B is not the contrast that matters.** Re-rendered augmentation *is*
+   targeted data, generated differently — A-vs-B answers "collected vs
+   synthesised". The contrast that converts `fixability` into a measurement is
+   **(A or B) vs C**: data versus not-data.
+2. **Arm C has no budget axis**, so "cost per point recovered" compares a curve
+   against a point. Legitimate — but it must be **stated that way**, or the
+   headline number reads as comparable across arms when it is not.
 
 **Report regression on NON-targeted cells alongside improvement on targeted
 ones.** An industry report *[unverified — vendor blog]* claims 93 targeted
@@ -336,7 +540,7 @@ The manifest's core claim is "collect this data and the failure goes away." That
 | 1 | **Environment control.** Can a scripted expert still solve the perturbed task? | expert succeeds | expert also fails ⇒ the perturbation broke the *task*, not the policy — no gap at all |
 | 2 | **Supply-side density** (Phase 0). Is the failing region represented in training? | sparse there | densely covered and still failing ⇒ capacity/representation |
 | 3 | **In-distribution replay.** Does it succeed on its own training conditions? | yes | fails inside its own training distribution ⇒ underfitting |
-| 4 | **Privileged-input ablation.** Give it ground-truth object pose instead of pixels. | still fails ⇒ control/action gap | succeeds ⇒ failure is perceptual, upstream of control |
+| 4 | **Privileged-input ablation.** Give it ground-truth object pose instead of pixels — via `PrivilegedProbePolicy` (see below). | still fails ⇒ control/action gap | succeeds ⇒ failure is perceptual, upstream of control |
 | 5 | **Cross-policy control.** Do other policies fail in the same region? | only this one fails | all fail ⇒ benchmark artifact or genuinely hard regime |
 | 6 | **Data-response curve.** Fine-tune at escalating budgets. | rises steadily — slope tells you how much more | plateaus below acceptable, or does not move ⇒ capacity limit or wrong trigger hypothesis |
 | **7** | **Literature check: is there a published NON-DATA fix for this failure family?** Mandatory, cheapest of the seven, run it FIRST. | nothing published ⇒ data is plausibly the lever | a published cheap fix exists ⇒ `fixability` is **not** `data` |
@@ -360,6 +564,15 @@ collection. §7b.1 anticipated this failure mode of a data vendor; the survey
 supplies the ammunition.
 
 Notes on the two that carry most of the weight:
+
+**Discriminator 4 needs an audited escape hatch** *(DG-6)*. `policy_view()`
+strips every `_gt_` key and `ARCHITECTURE.md` §3 makes that *enforced*, not
+conventional — which is the architecture's best feature and must not be
+weakened. So the ablation runs through an explicit **`PrivilegedProbePolicy`**
+wrapper that receives full state, stamps `privileged: true` on every rollout it
+produces, and is **excluded from every headline number** by the same filter that
+excludes `tier3` diagnoses. An opt-in audited exception, never a flag on the
+strict path.
 
 **#1 is a control we already have and the proposal does not mention.** Our scripted policy solves the perturbed task at 100% while the faulty one fails — that is proof the perturbation is *solvable*, so a failure is attributable to the policy. Without it, an over-aggressive perturbation that makes the object unreachable looks exactly like a model weakness. Run it for every perturbation cell before drawing any conclusion.
 
@@ -409,10 +622,19 @@ If the OpenVLA-OFT path is ever wanted: the whole campaign is roughly **10–20 
 
 Every row is a falsifiable claim with its evidence attached. Fields marked ✱ are mandatory; a row missing one is a hypothesis, not a manifest row.
 
-| Field | Type | Notes |
-|---|---|---|
-| `row_id` ✱ | str | `DGM-001` |
-| `severity` ✱ | enum | high / medium / low — from frequency × task coverage |
+> **Status (DG-10).** ✱ marks a field mandatory, and the rule below says a row
+> missing one is a hypothesis, not a manifest row. Several ✱ fields are **not
+> yet implemented** — `failure_cost`, `non_data_fix`, `fixability`,
+> `discriminators`. **By the schema's own rule, no row the harness can currently
+> emit is a valid manifest row.** That is a status fact, not a design error, and
+> the implementation status column below says which is which.
+
+| Field | Type | Status | Notes |
+|---|---|---|---|
+| `row_id` ✱ | str | built | `DGM-001` |
+| `failure_conditional` ✱ | float + CI | **P(fail \| condition)** — ours, measured, what the counterfactual probe establishes. Transfers moderately. |
+| `condition_prevalence` | obj \| `"not estimated"` | **CLIENT-SUPPLIED** from deployment logs. In sim this is an artifact of *our own grid*, so we do not ship a number for it. A region the uniform arm never sampled renders `not estimated` — **never** a low severity. |
+| `severity` | computed **at delivery** | conditional × prevalence × `failure_cost`. **We do not ship a cardinal severity.** See §9.3. |
 | `task_scope` ✱ | list[str] | which tasks, and how many of the suite |
 | `failure_family` ✱ | enum | the 7-family taxonomy |
 | `symptom` ✱ | str | observable behaviour, not inferred cause |
@@ -449,6 +671,36 @@ axis, and it should be corrected.
 Our schema's existing wording already had roughly the right shape. This finding
 turns that from a stylistic preference into an **evidence-backed requirement**,
 and the citation belongs in the readout.
+
+### 9.3 Severity is not ours to compute *(added after DG-3 / DG-5b)*
+
+Severity conflates two quantities with opposite transfer properties:
+
+| | What it is | Transfers? |
+|---|---|---|
+| **P(fail \| condition)** | a mechanism claim, measured, established by the counterfactual probe | moderately — it is a property of the policy |
+| **P(condition)** | how often the condition arises | **no** — in sim it is an artifact of the perturbation grid *we chose* |
+
+The old `severity = frequency × task coverage` was dominated by the half that
+cannot transfer and that we invented. That is why the literature reports
+severity *ordering* transferring worst, and it is why the manifest must not ship
+a cardinal severity.
+
+**We ship `failure_conditional`. The client supplies `condition_prevalence` from
+their deployment logs. Severity is computed at delivery.**
+
+Honest — we never claim to know their prevalence — and commercially *stronger*:
+the artifact becomes something the client's own data completes, and the ranking
+becomes theirs to defend. It is structurally identical to `failure_cost`
+(§7b.3), which is already client-specific for exactly this reason. Severity and
+cost have the same shape; only one of them previously admitted it.
+
+**This also fixes a silent demotion.** With frequency filtered to the uniform
+arm, a failure mode found *only* by the adaptive arm had count ≈ 0 and sorted to
+the bottom — so the manifest systematically buried the output of its own most
+novel component. An adaptively-discovered region has an **unknown** prevalence,
+not a low one. Silent demotion and honest abstention look identical in a ranked
+table and are entirely different claims.
 
 ### 9.2 Evaluation statistics *(added 2026-09-11)*
 
@@ -500,5 +752,6 @@ Every phase produces a standalone deliverable. Stopping after any week leaves so
 5. Who is the readout audience — technical, or EXL/iMerit commercial? Changes the demo, not the work.
 6. Is the runtime monitor (§7b.4) in scope as a follow-on, and does that change who we brief?
 7. Recovery diagnosis is unvalidated (see §4). Do we exclude recovery rows from the first client manifest, or validate it against LIBERO first?
-8. Do we switch policy? SmolVLA has nine unresolved LIBERO reproduction issues; VLA-Adapter and MiniVLA are 8 GB-compatible alternatives with better-looking numbers (§5).
+8. ~~Do we switch policy?~~ **Decided 2026-09-11: VLA-Adapter as subject; π0.5 anchor deferred (§5.2).** Remaining: does VLA-Adapter's own gate pass?
+8b. ~~D2 — episodes per task.~~ **Decided 2026-09-11: 10/task, and the ±5 pp gate is replaced by a CI-overlap test (§5.3).**
 9. Sim-to-real rank correlation is contested (Spearman 0.4–0.7) and **severity ordering transfers worst** — which is what we prioritise by. How do we caveat severity in a client-facing manifest?
