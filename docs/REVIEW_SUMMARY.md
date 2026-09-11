@@ -177,6 +177,40 @@ direction-based rather than magnitude-based grounding signal.
 
 ---
 
+## 5. Against the original proposal: ahead on method, behind on artifacts
+
+A full item-by-item diff is in `reviews/2026-09-11-proposal-vs-implementation.md`. The
+net position: everything we added beyond the proposal is about making claims
+trustworthy — privileged-state enforcement, a validated miner, measured determinism,
+verified caching, evidence grading. None of that is in the proposal and it is the right
+place to have spent effort.
+
+What we are behind on is *outputs* — the parts a client sees — and three are explicit
+proposal requirements, not nice-to-haves:
+
+- **The regression set does not exist.** It is build item 7 of 7 in the proposal and
+  §7.3 step 6. There is no code, no schema, and no week in `PLAN.md` §10 that builds
+  one — yet every manifest row we emit promises "re-run the frozen regression set".
+  `grep` finds that phrase exactly once in the codebase: inside that template string.
+  **This is ordering-critical**: the set must be frozen *before* remediation data
+  exists, or Phase 5's before/after comparison is contaminated by the data it is
+  testing.
+- **Confidence intervals are required in every manifest row and are not emitted.** The
+  proposal is explicit ("observed success rate with confidence interval"). `Cell.ci`
+  computes them and the oracle test prints them; they are dropped before the artifact.
+- **Phase detectors stop at `transport`** — no `place`, no `release`, no use of BDDL
+  goal predicates, all three named in the proposal. Defensible while the toy ends at
+  grasp, but it means the **entire second half of a LIBERO task is invisible to the
+  miner**, and LIBERO-Long is where success is lowest. Needed before the first Long
+  campaign.
+
+Also worth a decision rather than drift: the proposal routes human adjudication through
+**Ango Hub**, an iMerit product, and §8 makes trace review a core part of the iMerit
+pitch. We replaced it with a Claude Code skill. Operationally probably faster; it also
+removes the most concrete iMerit hook in the document.
+
+---
+
 ## Recommended sequence
 
 | | Action | Blocks |
@@ -186,7 +220,8 @@ direction-based rather than magnitude-based grounding signal.
 | 3 | Decide the contribution framing (§1) | what Phase 5 measures |
 | 4 | Wire the A/A floor; build the golden reference cell; power state into the fingerprint | any cross-run comparison |
 | 5 | Make the oracle gate able to fail; add the precision criterion | the Phase-1 claim |
-| 6 | Phase 0 supply-side, re-scoped | manifest corroboration |
+| 6 | **Freeze a regression set** and thread CIs into manifest rows | Phase 5 validity; a proposal requirement |
+| 7 | Phase 0 supply-side, re-scoped | manifest corroboration |
 
 Items 2, 4 and 5 are days of work and all three gate expensive things.
 
@@ -200,7 +235,9 @@ Items 2, 4 and 5 are days of work and all three gate expensive things.
    finding for a client?
 3. Is "published VLA numbers do not reproduce" an acceptable deliverable?
 4. Is the no-GPU-budget constraint firm? It removes the only fallback if the gate fails.
-5. Who owns licence clearance across four chains (LIBERO, LIBERO-plus assets, checkpoints,
+5. Should human adjudication route through Ango Hub as the proposal specifies, or stay
+   in-house? It is a positioning call for the iMerit pitch, not a technical one.
+6. Who owns licence clearance across four chains (LIBERO, LIBERO-plus assets, checkpoints,
    generated data)? It is a precondition on anything client-facing.
 
 ---
@@ -213,3 +250,4 @@ Items 2, 4 and 5 are days of work and all three gate expensive things.
 | `reviews/2026-09-11-methodology-and-claims.md` | thesis, gate validity, attribution, novelty (18) |
 | `reviews/2026-09-11-models-and-compute.md` | hardware, model choice, reproduction gate (10) |
 | `reviews/2026-09-11-plan-vs-implementation.md` | plan vs built; experimental control design (8 + §2) |
+| `reviews/2026-09-11-proposal-vs-implementation.md` | proposal vs built: 10 ahead, 7 dropped, 8 deferred |
