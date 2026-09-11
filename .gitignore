@@ -1,0 +1,15 @@
+# Virtualenvs — 8.7 GB, rebuildable from pinned versions in provenance.txt
+.venvs/
+
+# Vendored upstream — clone at the SHA recorded in experiments/repro provenance
+third_party/
+
+__pycache__/
+*.py[cod]
+
+# Generated evidence. rollouts.jsonl is the source of truth for a run but grows
+# without bound (LIBERO episodes carry full per-step obs_state); traces belong
+# in object storage, not git. Manifests and provenance are kept — see below.
+runs/**/rollouts.jsonl
+experiments/repro/runs/**/*.log
+experiments/repro/runs/**/videos/
