@@ -5,6 +5,134 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
+## F3 — Why VLA LIBERO numbers don't reproduce: a catalogue of causes
+
+**Date:** 2026-09-11 · **Status:** compiled from `docs/LANDSCAPE.md`; issue states
+as of the survey. Several items marked where we verified them ourselves.
+
+This is deliverable content, not just background. Nearly every benchmark in this
+field has an open issue where published numbers do not reproduce — RoboCasa,
+CALVIN, RLBench, ManiSkill, SimplerEnv, LIBERO; Meta-World's are unreproducible
+*by construction* after a v1→v2 reward rewrite. **That reframes our reproduction
+gate from pedantry into the thing that separates a measurement from a number**,
+and it is worth saying in the readout.
+
+### The distinction that decides which risks apply to us
+
+| | Affects | Applies to us? |
+|---|---|---|
+| **Evaluation reproduction** — run a *published checkpoint*, get a different number | our Phase 2 | **YES — directly** |
+| **Training reproduction** — retrain from scratch, get a different checkpoint | Phase 5 only | Only when we fine-tune |
+
+Most of the angry GitHub issues conflate these. Sorting them matters: a
+multi-GPU batch-size mismatch cannot affect us while we are only *evaluating*
+someone else's weights.
+
+### Causes affecting EVALUATION — these are our risks
+
+**1. Simulator version changes physics.** MuJoCo 3.4.0's box-box collision fix
+broke LIBERO's stored init states. `libero_spatial` task 5: SmolVLA **80% →
+28%**, OpenVLA-OFT+GRPO 98% → 12–19%; π0.5 comparatively robust (90% → 86%).
+A fresh install resolves to 3.8.1 — the broken side. LeRobot pins
+`mujoco<3.9.0`, which guards API breaks and **not** behavioural ones.
+[lerobot#4390](https://github.com/huggingface/lerobot/issues/4390);
+[PR#4465](https://github.com/huggingface/lerobot/pull/4465) pinning
+`>=3.2.7,<3.4.0` is **open, approved by one reviewer, unmerged**.
+*We verified this ourselves and are now on 3.3.7 — see F2.*
+
+**2. Batch size silently changes the evaluation *sample*, not just its speed.**
+[lerobot#2850](https://github.com/huggingface/lerobot/issues/2850) — **closed,
+genuinely fixed** — `--eval.batch_size` was capping how many unique initial
+states got sampled. Long-horizon `libero_10` was hit hardest. This is the
+subtle one: batch size reads like a throughput knob, and it was determining
+*which episodes ran*. LeRobot's docs now advise setting `--eval.batch_size`
+equal to episodes-per-task and keeping `--env.init_states=true` when comparing
+two policies on the same episodes.
+
+**3. Action-chunk mismatch.** `--policy.n_action_steps` differing from what the
+checkpoint was trained with. Community-attributed as a likely cause of the
+`libero_10`-specific gap. The published `smolvla_libero` config ships
+`n_action_steps: 1` against `chunk_size: 50`, and LeRobot's own π0.5
+reproduction passes `--policy.n_action_steps=10` explicitly on the command line
+— an override that is **not in any config file**.
+*We measured the throughput consequence ourselves: 3.95 vs 17.0 steps/s.*
+
+**4. The dataset moved under people.** `HuggingFaceVLA/libero` has been
+re-uploaded. In [#1369](https://github.com/huggingface/lerobot/issues/1369) a
+maintainer redirected users to re-download a **silently modified** dataset.
+LeRobot's docs now warn: *"Pin `--dataset.revision=<commit-sha>` when reporting
+results."* **Make this policy on every run.** Our `PREDICTIONS.md` already pins
+`a1aaacb7…`.
+
+**5. Too few episodes.** 10 vs the recommended 50 per task can swing
+Spatial/Long by **15–20 points**. At 10 eps/task, n=100 per suite gives ±6–9 pp
+confidence intervals — wide enough to "fail to reproduce" from sampling noise
+alone. LeRobot additionally recommends averaging **3 seeds**. *Decided 2026-09-11: 10/task, with
+the ±5 pp gate replaced by a CI-overlap test — `PLAN.md` §5.3.*
+
+**6. 8 GB VRAM contention — our exact hardware class.**
+[lerobot#3098](https://github.com/huggingface/lerobot/issues/3098) was filed on
+an **RTX 3070 Laptop (8 GB)**: the PyTorch CUDA context and MuJoCo's EGL
+rendering context contend for VRAM inside one process and evaluation can fail
+outright. [PR#3235](https://github.com/huggingface/lerobot/pull/3235) adds
+`--eval.process_isolated=true` (subprocess with `MUJOCO_GL=osmesa`) — **open,
+unmerged**. Workaround today: force CPU rendering via `MUJOCO_GL=osmesa` or
+`glfw`, at a speed cost.
+
+**7. Power state.** Not in any issue, and ours: a laptop on battery throttles
+the GPU to a 15 W cap and ~180 MHz, ~25× slower, while `nvidia-smi` still
+reports `utilization.gpu 100%`. Affects timing, not accuracy — but it caused a
+peer session on this machine to log a run as *"system_failure, cause unknown"*.
+See F2 and the provenance block in `run_repro.sh`.
+
+### Causes affecting TRAINING reproduction — only bite us in Phase 5
+
+**8. Multi-GPU recipes do not transpose to one GPU.** VLA-Adapter
+[#46](https://github.com/OpenHelix-Team/VLA-Adapter/issues/46) reports 94% vs
+~98%, traced to a **batch-size mismatch against the official multi-GPU recipe**.
+Effective batch size is a function of per-device batch × devices × accumulation
+steps, and published recipes usually state only the first. Reproducing a
+multi-GPU recipe on one 8 GB card requires deriving the *effective* batch and
+matching it with gradient accumulation — plus LR scaling, which most papers do
+not specify.
+
+This is instructive rather than damning: **it has an identified cause**, which
+is exactly the class of environment bug our gate is designed to catch. Contrast
+SmolVLA, where nine issues have produced no diagnosis.
+
+**9. Unstated training config generally.** [#3287](https://github.com/huggingface/lerobot/issues/3287)
+asks for learning rate, scheduler, batch size, GPU count and commit hash to
+replicate SmolVLA on LIBERO. **No maintainer answer visible.** The requester's
+numbers: 83.0 / 70.0 / 70.0 / 44.8 against ~90 / ~96 / ~92 / ~71.
+
+### What the maintainers actually say — and don't
+
+| Issue | State | Maintainer response |
+|---|---|---|
+| [#3264](https://github.com/huggingface/lerobot/issues/3264) | **open** since 2026-04-02 | **none** |
+| [#2107](https://github.com/huggingface/lerobot/issues/2107) | **open** | none |
+| [#2354](https://github.com/huggingface/lerobot/issues/2354) | **open**, assigned | none |
+| [#3628](https://github.com/huggingface/lerobot/issues/3628) | **open** | none — A100, official checkpoint, official CLI |
+| [#1316](https://github.com/huggingface/lerobot/issues/1316) | closed "completed" | 55 comments; users still reported 0.672 Spatial in Apr 2026. **Closed, not resolved.** |
+| [#1369](https://github.com/huggingface/lerobot/issues/1369) | closed "completed" | redirected users to a re-uploaded dataset |
+| [#2850](https://github.com/huggingface/lerobot/issues/2850) | closed | **genuinely fixed** (batch-size/init-states) |
+
+**The signal that should change a decision:** LeRobot's LIBERO documentation has
+a *"Reproducing published results"* section written **entirely about π0.5** —
+`lerobot/pi05_libero_finetuned`, 97.5% average, reproducing OpenPI's 96.85%.
+There is **no equivalent SmolVLA claim anywhere in the documentation.** With
+nine open reproduction issues, that absence reads as deliberate.
+
+### What we do about it
+
+- **Subject under test: VLA-Adapter** (1B, MIT, ~2 GB, LoRA-able in 8 GB).
+  Known gap has a diagnosis; SmolVLA's does not.
+- **Deferred but available: π0.5 as a reproduction *anchor*.** See `PLAN.md` §5.2.
+- Every cause above that we can control is now either pinned, recorded in
+  provenance, or an explicit open decision.
+
+---
+
 ## F2 — MuJoCo ≥3.4.0 silently breaks a LIBERO task. We were on the broken side.
 
 **Date:** 2026-09-11 · **Status:** VERIFIED against the upstream issue, and FIXED here
