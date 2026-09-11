@@ -1478,3 +1478,58 @@ of the paper's tables. They are directionally reliable and should not be quoted 
    RoboCasa365.** Marked unverified in §3.3. For a commercial deliverable this must be
    settled before any of them is built on — RLBench's academic-only terms likely propagate to
    COLOSSEUM, which is otherwise one of the most methodologically attractive options here.
+
+---
+
+# ADOPTION LEDGER — what we took, what we didn't, and why
+
+**Added 2026-09-11 by `primary`, after folding this survey into `PLAN.md`.**
+Status of every recommendation. `PLAN.md` is the authority on what we build;
+this table is the audit trail for *why*.
+
+| # | Recommendation | Status | Landed in | Rationale |
+|---|---|---|---|---|
+| **E1** | Surrogate-guided boundary search, with a uniform arm | **ADOPTED** | `PLAN.md` §5.1 | Grid sweep is "redundant and worse". Two arms, never mixed: uniform (~40%) feeds frequency-weighted `severity`, adaptive (~60%) feeds `boundary`. The bias trap is the reason for the split. |
+| **E2** | Diversity axes, not demonstration counts | **ADOPTED** | §9.1, schema | Lin et al. ICLR 2025. Turns an instinct we already had into an evidence-backed requirement. The proposal's own example row ("increasing targeted sample budgets") is now flagged as the wrong axis. |
+| **E3** | "Published non-data fix?" as a discriminator | **ADOPTED, promoted** | §7c row 7 | Made **mandatory and run FIRST** — cheapest of the seven. Our headline prediction (viewpoint) has a 4K-parameter published fix; marking it `fixability: data` would be indefensible. |
+| **E4a** | Paired tests, Bayesian intervals, multiple-comparison correction | **ADOPTED** | §9.2 | We control the seed, so paired tests are free variance reduction, and they relieve the counterfactual-probe budget. |
+| **E4b** | PPI-ready schema for SureSim | **ADOPTED as schema-only** | §9.2 | Costs nothing now, expensive to retrofit. We have no hardware, so this is a *future commercial option* ("give us 30 real trials…"), not current work. |
+| **E5** | Validate taxonomy against a discovered one, not only κ | **ADOPTED** | §6 | κ only measures human agreement, not whether the taxonomy carves at the joints. Added as a second gate. |
+| — | `mujoco<3.4.0` pin | **ADOPTED, urgent** | §5, `FINDINGS.md` F2 | Verified independently against lerobot#4390. We were on the broken side (3.8.1); now 3.3.7. Would have put a physics artifact into a manifest row. |
+| — | Policy risk: nine SmolVLA repro issues | **ADOPTED as a risk + fallbacks** | §5, open Q8 | VLA-Adapter and MiniVLA named as 8 GB-compatible fallbacks. Not switching yet — one day of testing budgeted before committing the campaign. |
+| — | Three-arm remediation comparison | **ADOPTED — best novel result available** | §6.1 | Data vs augmentation vs frozen-policy wrapper, on one regression set, reporting cost per point recovered. Converts `fixability` from judgement into measurement. |
+| — | Report regression on non-targeted cells | **ADOPTED** | §6.1 | Driven by the *[unverified]* vendor claim that 93 targeted demos dropped closed-loop success 73%→43% with no offline signal. Cheap insurance; makes Phase 5 non-negotiable. |
+| — | Honest positioning: integration, not research novelty | **ADOPTED** | §0b | Three things survive as ours. Stated up front rather than left for a reviewer to discover. |
+| — | `language_grounding` may be empty by construction | **ADOPTED as a reporting rule** | §6 | LIBERO-Plus reports models largely ignore language. If the family never fires, say so rather than implying we looked and found nothing. |
+| — | Runtime monitor (§7b.4) is not novel | **ADOPTED as a demotion** | §7b.4 | Sentinel, FIPER, Hide-and-Seek occupy it. Kept as possible productisation; explicitly not pitched as research. |
+| — | Severity ordering transfers worst to real | **LOGGED, unresolved** | open Q9 | Sim-to-real rank correlation is contested (Spearman 0.4–0.7) and severity — the thing we prioritise by — transfers worst. We do not yet know how to caveat this in a client-facing manifest. |
+
+## Deferred — not rejected
+
+| Item | Why deferred | Revisit when |
+|---|---|---|
+| Sampled cache audit (~2% of hits) | Unavailable once traces stop being bit-reproducible on a real VLA | If we ever need to verify a store we cannot re-run |
+| Adopting a published clustering method as a comparison arm | Our differentiator is determinism and auditability, not clustering novelty. Worth a comparison arm, not worth replacing tier 1. | Phase 3, if the discovered-taxonomy check (E5) shows our families are arbitrary |
+| `lerobot/smolvla_robocasa` second benchmark | Cheapest possible generality claim, but a distraction before Phase 2 reproduces *anything* | After the LIBERO gate resolves |
+| SureSim PPI in anger | Requires real hardware trials | If a client brings a robot |
+
+## Rejected
+
+| Item | Why |
+|---|---|
+| Pitching the runtime monitor as novel research | Fully redundant. Would not survive a knowledgeable reviewer. |
+| Replacing our deterministic tier-1 classifier with an LLM-based one | The manifest's claims are quantitative. A non-reproducible component in the measurement path destroys the credibility we are selling. `PLAN.md` §7 already settles this; the survey does not change it. |
+
+## What this survey did NOT change
+
+Worth recording, so silence is not read as agreement-by-omission:
+
+- **The L0–L4 architecture and the model-agnostic rollout contract.** Nothing in
+  the survey argues against it, and the "evaluate *your* model" positioning
+  depends on it.
+- **Phase 0 supply-side analysis first.** Rated as correct ordering.
+- **Treating stress generation as integration, not contribution.** Explicitly
+  confirmed as the right call.
+- **The deterministic-first diagnosis hierarchy** (§7).
+- **Phase 5 as the thing that makes the manifest evidence rather than opinion.**
+  The survey independently reaches this and calls it "rare. Keep this."

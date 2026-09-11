@@ -17,6 +17,34 @@
 
 ---
 
+## 0b. Positioning — what is actually ours *(revised 2026-09-11 after `docs/LANDSCAPE.md`)*
+
+A literature survey (238 sources, `docs/LANDSCAPE.md`) found the core loop —
+perturb, cluster, recommend — is **substantially prior art**. Three things
+survive as genuinely ours:
+
+1. **The Data Gap Manifest as a costed artifact**, with severity, fixability,
+   discriminators and validation status per row. The ideas exist; the artifact
+   does not.
+2. **Counterfactual attribution of policy failures to environment factors.**
+   Formalised for LLM agents (CAR, [arXiv:2606.08275](https://arxiv.org/abs/2606.08275)),
+   essentially unexploited in robot policy evaluation — and our
+   randomised-treatment setting is *methodologically stronger* than theirs.
+   **We currently undersell this.**
+3. **Failure-cost weighting** (§7b.3). No perturbation benchmark found weights
+   failures by consequence.
+
+**Honest positioning is integration and delivery, not research novelty.** Say
+this in the readout rather than letting a reviewer discover it. Specifically,
+do not pitch as novel: perturbation generation (LIBERO-Plus, COLOSSEUM, VLATest),
+failure clustering (2506.06570, RoboFAC, AHA), runtime monitoring (Sentinel,
+FIPER), or demonstration scoring (CUPID, Demo-SCORE, Re-Mix).
+
+Phase 5 — retrain and re-measure — is rated "not redundant, and rare. Keep this."
+It remains the part most likely to be cut and the part that most distinguishes us.
+
+---
+
 ## 1. The constraint, and why it is an opportunity
 
 8 GB of VRAM cannot hold OpenVLA-OFT (7B ≈ 15 GB at bf16). Two options: 4-bit quantize it, or use a smaller policy.
@@ -149,9 +177,51 @@ Two real defects were caught by this gate, both of which would have been expensi
 
 Swap the scripted policy for a real small VLA; swap the toy env for LIBERO. Run the perturbations **Phase 0 predicted**, not the full grid.
 
+### 5.1 Two-arm sampling — replaces the grid sweep *(revised 2026-09-11)*
+
+The original "~20 episodes/cell screening, ~50 near the boundary" grid is a
+hand-rolled version of a formalised method, and it is **redundant and worse**:
+**FATE-VLA** ([arXiv:2606.02307](https://arxiv.org/abs/2606.02307)) fits a
+surrogate over scene parameters and steers sampling toward failure-prone
+regions for **+29.7% more failures at equal budget**; **Liao et al.**
+([arXiv:2607.14439](https://arxiv.org/abs/2607.14439)) report 20–40% trial
+savings on real hardware over 2,331 evaluations.
+
+**Run two arms, and never mix them:**
+
+| Arm | Sampling | Feeds | Budget |
+|---|---|---|---|
+| **Uniform** | fixed grid, unbiased | `severity` (frequency-weighted), cluster sizes | ~40% |
+| **Adaptive** | surrogate-guided (logistic/GP over magnitude → success) | `boundary` — with a posterior interval, not a Wilson interval on whichever cell straddled the transition | ~60% |
+
+**The trap the source papers do not have to care about and we do:** active
+sampling optimises for *finding* failures, so it biases the discovered failure
+population. Our manifest's `severity` is frequency-weighted. **Estimating
+frequency from adaptive samples silently corrupts every severity score.** Keep
+the arms separately labelled in the trace store — `sampling_arm` is a required
+field on every rollout, and any frequency statistic must filter to `uniform`.
+
+The surrogate is a few hundred lines of CPU code and additionally supplies a
+principled stopping rule, which the grid does not have.
+
 Gate: reproduce the chosen checkpoint's published task success within a stated tolerance. If there is no published number (likely for SmolVLA on LIBERO), establish and document our own baseline over 3 seeds and treat *that* as the reference — and say plainly in the readout that this is a weaker gate than the proposal assumed.
 
 **Effort** — 2–3 weeks, dominated by MuJoCo/EGL setup pain, not by science.
+
+> **PIN `mujoco<3.4.0`.** Non-negotiable. MuJoCo 3.4.0's box-box collision fix
+> breaks LIBERO's stored init states: SmolVLA drops **80% → 28%** on
+> `libero_spatial` task 5, OpenVLA-OFT+GRPO 98% → 12%. A fresh install resolves
+> to 3.8.1 — the broken side. See `FINDINGS.md` F2. Uncaught, this is a physics
+> change masquerading as a model failure, straight into a manifest row.
+
+> **Policy risk is worse than §1 assumed.** The survey found **nine** open or
+> unresolved SmolVLA/LIBERO reproduction issues, and LeRobot's "Reproducing
+> published results" section is written entirely about π0.5 with no SmolVLA
+> equivalent. Fallbacks that fit 8 GB with LIBERO checkpoints: **VLA-Adapter
+> (1B, MIT, 97.3%)** and **MiniVLA (1B, MIT, LoRA-native)**. Budget one day to
+> test a fallback before committing the campaign. `lerobot/smolvla_robocasa`
+> also exists — same policy, same stack, the cheapest possible second-benchmark
+> generality claim.
 
 ---
 
@@ -159,9 +229,43 @@ Gate: reproduce the chosen checkpoint's published task success within a stated t
 
 **Mining** runs the L3 stack over real traces: phase localization, deterministic classification, LLM adjudication of the residue, clustering, counterfactual attribution. Double-label 30 traces and report κ.
 
+> **κ alone is too weak a gate.** It measures whether two humans agree, not
+> whether the taxonomy carves the failure space at its joints. Add a second
+> check: run an unsupervised clustering of the failure traces and compare the
+> discovered partition against our seven families. Families that no discovered
+> cluster respects are probably ours, not the data's.
+>
+> **`language_grounding` may be empty by construction.** LIBERO-Plus reports
+> that models largely ignore language. If we report a taxonomy with a family
+> that never fires, say so explicitly rather than leaving a reader to assume we
+> looked and found nothing.
+
 **Manifest** (see §9 for the schema) — every row carries its evidence.
 
 **Validate** — LoRA fine-tune on remediation data for the single top row; re-run the frozen regression set; report the delta. **On this hardware this is achievable, which is the whole argument of §1.** Negative and neutral results are reportable.
+
+### 6.1 Three-arm remediation comparison — the best novel result available *(added 2026-09-11)*
+
+Rather than validating one remediation, compare **three** on one frozen
+regression set and report **cost per point of recovered success**:
+
+| Arm | What | Cost proxy |
+|---|---|---|
+| A | targeted data collection | demos × collection cost |
+| B | re-rendered augmentation of existing demos | GPU-hours |
+| C | frozen-policy wrapper / tiny adapter (e.g. FTM, ~4K params) | GPU-hours, no collection |
+
+Nothing in the survey does this. **It converts `fixability` from a judgement
+call into a measurement**, and it is the most defensible novel result available
+to us. It also directly answers the buyer's question in §7c discriminator 7.
+
+**Report regression on NON-targeted cells alongside improvement on targeted
+ones.** An industry report *[unverified — vendor blog]* claims 93 targeted
+"prescription" demonstrations dropped closed-loop success **73% → 43% while
+offline loss showed no change at all**. If even directionally true: targeted
+data can actively harm, and offline metrics are blind to it. Our closed-loop
+re-measurement is precisely the procedure that catches this — which makes
+Phase 5 non-negotiable rather than desirable.
 
 ---
 
@@ -216,6 +320,11 @@ Having mapped which conditions predict failure, train a detector that flags **at
 
 This turns a post-hoc report into a live safety component, needs no additional data collection, and keeps earning after the report is filed. **It is a second product, not a phase of this one** — scope it separately so it does not inflate the current project.
 
+> **Revised: do NOT pitch this as novel.** The survey rates it "fully redundant
+> as a research idea" — Sentinel, FIPER, Hide-and-Seek and the Agia thesis all
+> occupy it. Viable only as *productisation* of existing methods. This
+> subsection was my addition and the survey demotes it.
+
 ---
 
 ## 7c. Data gap or policy gap?
@@ -230,6 +339,25 @@ The manifest's core claim is "collect this data and the failure goes away." That
 | 4 | **Privileged-input ablation.** Give it ground-truth object pose instead of pixels. | still fails ⇒ control/action gap | succeeds ⇒ failure is perceptual, upstream of control |
 | 5 | **Cross-policy control.** Do other policies fail in the same region? | only this one fails | all fail ⇒ benchmark artifact or genuinely hard regime |
 | 6 | **Data-response curve.** Fine-tune at escalating budgets. | rises steadily — slope tells you how much more | plateaus below acceptable, or does not move ⇒ capacity limit or wrong trigger hypothesis |
+| **7** | **Literature check: is there a published NON-DATA fix for this failure family?** Mandatory, cheapest of the seven, run it FIRST. | nothing published ⇒ data is plausibly the lever | a published cheap fix exists ⇒ `fixability` is **not** `data` |
+
+**Discriminator 7 is the one that protects our credibility**, and our headline
+prediction is the case in point. P1 says camera viewpoint is the most brittle
+axis. The field has largely solved it *without collecting data*:
+
+- **Feature Token Modulation**: viewpoint success **48.5% → 87.1% with 4,000
+  parameters**; Feature Linear Adaptation reaches 90.8% with 4.7M
+  ([arXiv:2512.02902](https://arxiv.org/abs/2512.02902)).
+- **GS-VLA** canonicalises viewpoint in front of a **frozen** policy — zero
+  policy changes ([arXiv:2608.19066](https://arxiv.org/html/2608.19066)).
+- **The Moving Eye** takes the data route but warns that naively increasing
+  viewpoint diversity **induces shortcut learning**
+  ([arXiv:2607.02322](https://arxiv.org/pdf/2607.02322)).
+
+If our top manifest row is viewpoint and we mark it `fixability: data`, a
+competent buyer produces these three papers and asks why we are selling
+collection. §7b.1 anticipated this failure mode of a data vendor; the survey
+supplies the ammunition.
 
 Notes on the two that carry most of the weight:
 
@@ -292,7 +420,9 @@ Every row is a falsifiable claim with its evidence attached. Fields marked ✱ a
 | `boundary` ✱ | obj | axis, units, value, CI, and the boundary *definition* used |
 | `evidence` ✱ | obj | n episodes, success at L0 and at boundary, seeds, run_ids |
 | `supply_side` | obj | training-set coverage on this axis (Phase 0) — the independent corroboration |
-| `coverage_required` ✱ | str | actionable spec: ranges, step sizes, counts of conditions |
+| `coverage_required` ✱ | str | **diversity axes, NEVER demonstration counts** — see below |
+| `sampling_arm` ✱ | enum | uniform / adaptive — frequency stats must filter to `uniform` (§5.1) |
+| `non_data_fix` ✱ | obj | §7c discriminator 7: published cheap fixes for this family, with citations |
 | `validation_plan` ✱ | str | budgets, regression set id, metric |
 | `validation_result` | obj | populated by Phase 5. **Null = untested claim.** |
 | `fixability` ✱ | enum | augmentation / data / architecture / operational — see §7b.1 |
@@ -303,6 +433,46 @@ Every row is a falsifiable claim with its evidence attached. Fields marked ✱ a
 
 Two properties the proposal implies but does not state: a row whose `trigger` lacks a counterfactual is downgraded to "correlational" in the readout; and `validation_result: null` must be visible to the reader, not hidden. Overstating an untested row is the fastest way to lose a client's trust.
 
+### 9.1 `coverage_required`: diversity, not counts *(revised 2026-09-11)*
+
+**Lin et al., ICLR 2025** ([arXiv:2410.18647](https://arxiv.org/abs/2410.18647);
+40,000+ demos, 15,000+ real rollouts) find generalization follows a **power law
+in the number of distinct environments and objects, not in raw demonstration
+count**, with sharp diminishing returns past a per-environment threshold.
+
+So a row reading *"collect 500 more demos in the failing yaw band"* is close to
+the **worst** possible recommendation — it buys depth on an axis with
+diminishing returns instead of breadth on the axis that scales. The proposal's
+own example table says "validate increasing targeted sample budgets": wrong
+axis, and it should be corrected.
+
+Our schema's existing wording already had roughly the right shape. This finding
+turns that from a stylistic preference into an **evidence-backed requirement**,
+and the citation belongs in the readout.
+
+### 9.2 Evaluation statistics *(added 2026-09-11)*
+
+**Now — cheap, do it.** Follow Kress-Gazit et al., *Robot Learning as an
+Empirical Science* (TRI, [arXiv:2409.09491](https://arxiv.org/abs/2409.09491)):
+**paired** statistical tests across perturbation conditions, Bayesian credible
+regions, multiple-comparison correction. We control the seed, so paired tests
+are **free variance reduction** — and they directly relieve the
+counterfactual-probe budget problem.
+
+Context worth quoting: an audit of 13 recent real-robot VLA papers found the
+modal per-condition N is **10–20, and none reported confidence intervals or
+paired tests** *[unverified — read via search summary]*. Our Wilson intervals
+already beat the modal published paper. Say so.
+
+**Later, free if we plan now.** **SureSim**
+([arXiv:2510.04354](https://arxiv.org/abs/2510.04354)) uses prediction-powered
+inference to turn many imperfect-sim evaluations plus a *small* number of paired
+real trials into **statistically valid CIs on real-world performance**. We have
+no hardware — but if per-cell results are recorded in a PPI-consumable form,
+then *"give us 30 real trials and we upgrade this entire sim campaign into
+real-world confidence intervals"* becomes a commercial offer. **A schema
+decision that costs nothing today and is expensive to retrofit.**
+
 ---
 
 ## 10. Schedule
@@ -312,9 +482,9 @@ Two properties the proposal implies but does not state: a row whose `trigger` la
 | 1 | 0 + 1 | Checkpoint survey; harness skeleton; oracle test | **Miner recovers planted triggers** |
 | 2 | 0 | Coverage report + written predictions | Predictions committed before measurement |
 | 3–4 | 2 | LIBERO integration; baseline | Baseline reproduced or documented |
-| 5–6 | 2 + 3 | Targeted stress; mining; κ | κ ≥ 0.5 |
+| 5–6 | 2 + 3 | Two-arm stress (§5.1); mining; κ + discovered-taxonomy check | κ ≥ 0.5 **and** families survive comparison |
 | 7 | 4 | Data Gap Manifest | Top row actionable by an outsider |
-| 8–9 | 5 | LoRA remediation; re-measure | Loop closed (any sign of result) |
+| 8–9 | 5 | **Three-arm** remediation (§6.1); re-measure incl. non-targeted cells | Loop closed (any sign of result) |
 | 10 | — | Readout + demo | |
 
 Every phase produces a standalone deliverable. Stopping after any week leaves something presentable.
@@ -330,3 +500,5 @@ Every phase produces a standalone deliverable. Stopping after any week leaves so
 5. Who is the readout audience — technical, or EXL/iMerit commercial? Changes the demo, not the work.
 6. Is the runtime monitor (§7b.4) in scope as a follow-on, and does that change who we brief?
 7. Recovery diagnosis is unvalidated (see §4). Do we exclude recovery rows from the first client manifest, or validate it against LIBERO first?
+8. Do we switch policy? SmolVLA has nine unresolved LIBERO reproduction issues; VLA-Adapter and MiniVLA are 8 GB-compatible alternatives with better-looking numbers (§5).
+9. Sim-to-real rank correlation is contested (Spearman 0.4–0.7) and **severity ordering transfers worst** — which is what we prioritise by. How do we caveat severity in a client-facing manifest?
