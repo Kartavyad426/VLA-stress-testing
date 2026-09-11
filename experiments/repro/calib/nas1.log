@@ -1,0 +1,309 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-11 13:49:37 ls/_http.py:965 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-11 13:49:37 figs/eval.py:69 No job name provided, using 'libero_smolvla' as job name.
+INFO 2026-09-11 13:49:37 bot_eval.py:741 {'env': {'camera_name': 'agentview_image,robot0_eye_in_hand_image',
+         'camera_name_mapping': None,
+         'control_mode': 'relative',
+         'disable_env_checker': True,
+         'episode_length': None,
+         'features': {'action': {'shape': (7,),
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'pixels/agentview_image': {'shape': (360, 360, 3),
+                                                 'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'pixels/robot0_eye_in_hand_image': {'shape': (360,
+                                                                    360,
+                                                                    3),
+                                                          'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'robot_state/eef/mat': {'shape': (3, 3),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/pos': {'shape': (3,),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/quat': {'shape': (4,),
+                                               'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qpos': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qvel': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/pos': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/vel': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>}},
+         'features_map': {'action': 'action',
+                          'pixels/agentview_image': 'observation.images.image',
+                          'pixels/robot0_eye_in_hand_image': 'observation.images.image2',
+                          'robot_state/eef/mat': 'observation.state.eef_mat',
+                          'robot_state/eef/pos': 'observation.state.eef_pos',
+                          'robot_state/eef/quat': 'observation.state.eef_quat',
+                          'robot_state/gripper/qpos': 'observation.state.gripper_qpos',
+                          'robot_state/gripper/qvel': 'observation.state.gripper_qvel',
+                          'robot_state/joints/pos': 'observation.state.joint_pos',
+                          'robot_state/joints/vel': 'observation.state.joint_vel'},
+         'fps': 20,
+         'hard_reset': True,
+         'init_states': True,
+         'is_libero_plus': False,
+         'max_parallel_tasks': 1,
+         'obs_type': 'pixels_agent_pos',
+         'observation_height': 360,
+         'observation_width': 360,
+         'render_mode': 'rgb_array',
+         'task': 'libero_spatial',
+         'task_ids': [0]},
+ 'eval': {'batch_size': 1,
+          'n_episodes': 1,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'job_name': 'libero_smolvla',
+ 'output_dir': PosixPath('experiments/repro/calib/nas1'),
+ 'policy': {'adapt_to_pi_aloha': False,
+            'add_image_special_tokens': False,
+            'attention_mode': 'cross_attn',
+            'chunk_size': 50,
+            'compile_mode': 'max-autotune',
+            'compile_model': False,
+            'device': 'cuda',
+            'empty_cameras': 0,
+            'expert_width_multiplier': 0.5,
+            'freeze_vision_encoder': True,
+            'input_features': {'observation.images.image': {'shape': (3,
+                                                                      256,
+                                                                      256),
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.image2': {'shape': (3,
+                                                                       256,
+                                                                       256),
+                                                             'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': (8,),
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'load_vlm_weights': True,
+            'max_action_dim': 32,
+            'max_period': 4.0,
+            'max_state_dim': 32,
+            'min_period': 0.004,
+            'n_action_steps': 1,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_expert_layers': -1,
+            'num_steps': 10,
+            'num_vlm_layers': 0,
+            'optimizer_betas': (0.9, 0.95),
+            'optimizer_eps': 1e-08,
+            'optimizer_grad_clip_norm': 10.0,
+            'optimizer_lr': 0.0001,
+            'optimizer_weight_decay': 1e-10,
+            'output_features': {'action': {'shape': (7,),
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'pad_language_to': 'longest',
+            'prefix_length': 0,
+            'pretrained_path': PosixPath('HuggingFaceVLA/smolvla_libero'),
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': True,
+            'repo_id': 'None',
+            'resize_imgs_with_padding': (512, 512),
+            'rtc_config': None,
+            'scheduler_decay_lr': 2.5e-06,
+            'scheduler_decay_steps': 30000,
+            'scheduler_warmup_steps': 1000,
+            'self_attn_every_n_layers': 2,
+            'tags': None,
+            'tokenizer_max_length': 48,
+            'train_expert_only': True,
+            'train_state_proj': True,
+            'use_amp': False,
+            'use_cache': True,
+            'use_delta_joint_actions_aloha': False,
+            'use_peft': False,
+            'vlm_model_name': 'HuggingFaceTB/SmolVLM2-500M-Instruct'},
+ 'rename_map': {},
+ 'seed': 1000,
+ 'trust_remote_code': False}
+INFO 2026-09-11 13:49:37 bot_eval.py:750 Output dir: experiments/repro/calib/nas1
+INFO 2026-09-11 13:49:37 bot_eval.py:752 Making environment (batch_size=1, async=True).
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-09-11 13:49:37 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-09-11 13:49:37 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-09-11 13:49:37 e/__init__.py:9 To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-09-11 13:49:37 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+INFO 2026-09-11 13:49:37 bot_eval.py:760 Making policy.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Creating LIBERO envs | suites=['libero_spatial'] | n_envs(per task)=1 | init_states=True
+Restricting to task_ids=[0]
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_spatial | task_id=0 | n_envs=1
+Loading  HuggingFaceTB/SmolVLM2-500M-Instruct weights ...
+Loading weights:   0%|          | 0/489 [00:00<?, ?it/s]Loading weights: 100%|██████████| 489/489 [00:00<00:00, 5283.79it/s]
+Stepping through eval batches:   0%|          | 0/1 [00:00<?, ?it/s]Local assets not found. Downloading from HuggingFace Hub...
+Assets already downloaded at /home/imerit/.cache/libero/assets
+
+Running rollout with at most 280 steps:   0%|          | 0/280 [00:00<?, ?it/s][A
+Running rollout with at most 280 steps:   0%|          | 0/280 [00:00<?, ?it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   0%|          | 1/280 [00:00<02:59,  1.56it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   0%|          | 1/280 [00:00<02:59,  1.56it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|          | 2/280 [00:00<01:54,  2.42it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|          | 2/280 [00:01<01:54,  2.42it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|          | 3/280 [00:01<01:34,  2.94it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|          | 3/280 [00:01<01:34,  2.94it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|▏         | 4/280 [00:01<01:19,  3.47it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   1%|▏         | 4/280 [00:01<01:19,  3.47it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▏         | 5/280 [00:01<01:13,  3.74it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▏         | 5/280 [00:01<01:13,  3.74it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▏         | 6/280 [00:01<01:09,  3.93it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▏         | 6/280 [00:02<01:09,  3.93it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▎         | 7/280 [00:02<01:07,  4.07it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   2%|▎         | 7/280 [00:02<01:07,  4.07it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   3%|▎         | 8/280 [00:02<01:05,  4.17it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   3%|▎         | 8/280 [00:02<01:05,  4.17it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   3%|▎         | 9/280 [00:02<01:07,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   3%|▎         | 9/280 [00:02<01:07,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▎         | 10/280 [00:02<01:05,  4.15it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▎         | 10/280 [00:03<01:05,  4.15it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▍         | 11/280 [00:03<01:07,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▍         | 11/280 [00:03<01:07,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▍         | 12/280 [00:03<01:08,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   4%|▍         | 12/280 [00:03<01:08,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▍         | 13/280 [00:03<01:06,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▍         | 13/280 [00:03<01:06,  4.01it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▌         | 14/280 [00:03<01:04,  4.13it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▌         | 14/280 [00:04<01:04,  4.13it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▌         | 15/280 [00:04<01:05,  4.04it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   5%|▌         | 15/280 [00:04<01:05,  4.04it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▌         | 16/280 [00:04<01:07,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▌         | 16/280 [00:04<01:07,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▌         | 17/280 [00:04<01:08,  3.84it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▌         | 17/280 [00:04<01:08,  3.84it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▋         | 18/280 [00:04<01:06,  3.95it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   6%|▋         | 18/280 [00:05<01:06,  3.95it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   7%|▋         | 19/280 [00:05<01:07,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   7%|▋         | 19/280 [00:05<01:07,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   7%|▋         | 20/280 [00:05<01:07,  3.83it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   7%|▋         | 20/280 [00:05<01:07,  3.83it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 21/280 [00:05<01:07,  3.85it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 21/280 [00:05<01:07,  3.85it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 22/280 [00:05<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 22/280 [00:06<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 23/280 [00:06<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   8%|▊         | 23/280 [00:06<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▊         | 24/280 [00:06<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▊         | 24/280 [00:06<01:09,  3.69it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▉         | 25/280 [00:06<01:05,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▉         | 25/280 [00:06<01:05,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▉         | 26/280 [00:06<01:04,  3.93it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:   9%|▉         | 26/280 [00:07<01:04,  3.93it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|▉         | 27/280 [00:07<01:01,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|▉         | 27/280 [00:07<01:01,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|█         | 28/280 [00:07<01:00,  4.19it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|█         | 28/280 [00:07<01:00,  4.19it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|█         | 29/280 [00:07<01:01,  4.07it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  10%|█         | 29/280 [00:07<01:01,  4.07it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█         | 30/280 [00:07<01:03,  3.96it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█         | 30/280 [00:08<01:03,  3.96it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█         | 31/280 [00:08<01:03,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█         | 31/280 [00:08<01:03,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█▏        | 32/280 [00:08<01:02,  3.98it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  11%|█▏        | 32/280 [00:08<01:02,  3.98it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▏        | 33/280 [00:08<01:02,  3.95it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▏        | 33/280 [00:08<01:02,  3.95it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▏        | 34/280 [00:08<01:00,  4.06it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▏        | 34/280 [00:09<01:00,  4.06it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▎        | 35/280 [00:09<01:01,  4.00it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  12%|█▎        | 35/280 [00:09<01:01,  4.00it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  13%|█▎        | 36/280 [00:09<01:01,  3.99it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  13%|█▎        | 36/280 [00:09<01:01,  3.99it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  13%|█▎        | 37/280 [00:09<01:02,  3.91it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  13%|█▎        | 37/280 [00:09<01:02,  3.91it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▎        | 38/280 [00:09<01:03,  3.80it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▎        | 38/280 [00:10<01:03,  3.80it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▍        | 39/280 [00:10<01:00,  3.98it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▍        | 39/280 [00:10<01:00,  3.98it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▍        | 40/280 [00:10<00:58,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  14%|█▍        | 40/280 [00:10<00:58,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▍        | 41/280 [00:10<00:59,  3.99it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▍        | 41/280 [00:10<00:59,  3.99it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▌        | 42/280 [00:10<01:01,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▌        | 42/280 [00:11<01:01,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▌        | 43/280 [00:11<01:01,  3.84it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  15%|█▌        | 43/280 [00:11<01:01,  3.84it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▌        | 44/280 [00:11<01:02,  3.81it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▌        | 44/280 [00:11<01:02,  3.81it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▌        | 45/280 [00:11<01:02,  3.75it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▌        | 45/280 [00:11<01:02,  3.75it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▋        | 46/280 [00:11<01:00,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  16%|█▋        | 46/280 [00:12<01:00,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  17%|█▋        | 47/280 [00:12<00:58,  3.96it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  17%|█▋        | 47/280 [00:12<00:58,  3.96it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  17%|█▋        | 48/280 [00:12<00:59,  3.92it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  17%|█▋        | 48/280 [00:12<00:59,  3.92it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 49/280 [00:12<01:00,  3.83it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 49/280 [00:12<01:00,  3.83it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 50/280 [00:12<00:57,  4.02it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 50/280 [00:13<00:57,  4.02it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 51/280 [00:13<00:55,  4.15it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  18%|█▊        | 51/280 [00:13<00:55,  4.15it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▊        | 52/280 [00:13<00:56,  4.00it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▊        | 52/280 [00:13<00:56,  4.00it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▉        | 53/280 [00:13<00:55,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▉        | 53/280 [00:13<00:55,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▉        | 54/280 [00:13<00:53,  4.22it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  19%|█▉        | 54/280 [00:14<00:53,  4.22it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|█▉        | 55/280 [00:14<00:53,  4.18it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|█▉        | 55/280 [00:14<00:53,  4.18it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|██        | 56/280 [00:14<00:52,  4.24it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|██        | 56/280 [00:14<00:52,  4.24it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|██        | 57/280 [00:14<00:52,  4.29it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  20%|██        | 57/280 [00:14<00:52,  4.29it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██        | 58/280 [00:14<00:54,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██        | 58/280 [00:15<00:54,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██        | 59/280 [00:15<00:52,  4.18it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██        | 59/280 [00:15<00:52,  4.18it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██▏       | 60/280 [00:15<00:51,  4.24it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  21%|██▏       | 60/280 [00:15<00:51,  4.24it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▏       | 61/280 [00:15<00:53,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▏       | 61/280 [00:15<00:53,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▏       | 62/280 [00:15<00:55,  3.91it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▏       | 62/280 [00:16<00:55,  3.91it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▎       | 63/280 [00:16<00:56,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  22%|██▎       | 63/280 [00:16<00:56,  3.87it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  23%|██▎       | 64/280 [00:16<00:53,  4.02it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  23%|██▎       | 64/280 [00:16<00:53,  4.02it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  23%|██▎       | 65/280 [00:16<00:52,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  23%|██▎       | 65/280 [00:16<00:52,  4.08it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▎       | 66/280 [00:16<00:52,  4.06it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▎       | 66/280 [00:17<00:52,  4.06it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▍       | 67/280 [00:17<00:51,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▍       | 67/280 [00:17<00:51,  4.12it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▍       | 68/280 [00:17<00:50,  4.21it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  24%|██▍       | 68/280 [00:17<00:50,  4.21it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▍       | 69/280 [00:17<00:50,  4.17it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▍       | 69/280 [00:17<00:50,  4.17it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▌       | 70/280 [00:17<00:52,  3.97it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▌       | 70/280 [00:18<00:52,  3.97it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▌       | 71/280 [00:18<00:53,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  25%|██▌       | 71/280 [00:18<00:53,  3.90it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▌       | 72/280 [00:18<00:53,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▌       | 72/280 [00:18<00:53,  3.89it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▌       | 73/280 [00:18<00:55,  3.75it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▌       | 73/280 [00:18<00:55,  3.75it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▋       | 74/280 [00:18<00:52,  3.93it/s, running_success_rate=0.0%][A
+Running rollout with at most 280 steps:  26%|██▋       | 74/280 [00:19<00:52,  3.93it/s, running_success_rate=100.0%][A
+Running rollout with at most 280 steps:  27%|██▋       | 75/280 [00:19<00:51,  3.95it/s, running_success_rate=100.0%][A
+                                                                                                                     [AStepping through eval batches:   0%|          | 0/1 [00:21<?, ?it/s, running_success_rate=100.0%]Stepping through eval batches: 100%|██████████| 1/1 [00:21<00:00, 21.68s/it, running_success_rate=100.0%]Stepping through eval batches: 100%|██████████| 1/1 [00:21<00:00, 21.68s/it, running_success_rate=100.0%]
+INFO 2026-09-11 13:50:20 bot_eval.py:808 Overall Aggregated Metrics:
+INFO 2026-09-11 13:50:20 bot_eval.py:809 {'avg_sum_reward': 1.0, 'avg_max_reward': 1.0, 'pc_success': 100.0, 'n_episodes': 1, 'eval_s': 21.97460913658142, 'eval_ep_s': 21.97460961341858, 'video_paths': ['experiments/repro/calib/nas1/videos/libero_spatial_0/eval_episode_0.mp4'], 'predicted_video_paths': []}
+INFO 2026-09-11 13:50:20 bot_eval.py:813 
+Aggregated Metrics for per_task:
+INFO 2026-09-11 13:50:20 bot_eval.py:814 [{'task_group': 'libero_spatial', 'task_id': 0, 'metrics': {'sum_rewards': [1.0], 'max_rewards': [1.0], 'successes': [True], 'video_paths': ['experiments/repro/calib/nas1/videos/libero_spatial_0/eval_episode_0.mp4'], 'predicted_video_paths': []}}]
+INFO 2026-09-11 13:50:20 bot_eval.py:813 
+Aggregated Metrics for per_group:
+INFO 2026-09-11 13:50:20 bot_eval.py:814 {'libero_spatial': {'avg_sum_reward': 1.0, 'avg_max_reward': 1.0, 'pc_success': 100.0, 'n_episodes': 1, 'video_paths': ['experiments/repro/calib/nas1/videos/libero_spatial_0/eval_episode_0.mp4'], 'predicted_video_paths': []}}
+INFO 2026-09-11 13:50:20 bot_eval.py:813 
+Aggregated Metrics for overall:
+INFO 2026-09-11 13:50:20 bot_eval.py:814 {'avg_sum_reward': 1.0, 'avg_max_reward': 1.0, 'pc_success': 100.0, 'n_episodes': 1, 'eval_s': 21.97460913658142, 'eval_ep_s': 21.97460961341858, 'video_paths': ['experiments/repro/calib/nas1/videos/libero_spatial_0/eval_episode_0.mp4'], 'predicted_video_paths': []}
+INFO 2026-09-11 13:50:20 bot_eval.py:822 End of eval
