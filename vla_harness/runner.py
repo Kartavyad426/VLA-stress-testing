@@ -295,6 +295,88 @@ def mcnemar(pairs) -> dict:
     return {"b": b, "c": c, "discordant": n, "p_value": round(p, 5)}
 
 
+# --- attribution verdicts (5.1) -------------------------------------------
+# These were ONE string before. A genuine null, an interaction and multiple
+# sufficient causes are three different claims and were rendering identically,
+# which is the bug -- not the arithmetic.
+ATTR_SINGLE = "single_factor"          # one knob, reverting it recovers
+ATTR_SUBSET = "minimal_subset"         # irreducible set; no member suffices alone
+ATTR_MULTIPLE = "multiple_sufficient"  # several knobs each independently cause it
+ATTR_NONE = "no_factor_identified"     # nothing reverted recovers -- genuinely null
+
+
+def ddmin_factors(run_fn, factors, floor_pp=0.0, min_delta_pp=20.0) -> dict:
+    """Delta debugging -- the MINIMAL failure-inducing subset.
+
+    `run_fn(active_factors) -> success_rate`.
+
+    The distinction that matters, and that revert-one-knob collapses:
+
+      SUFFICIENCY  does this factor ALONE cause failure?   -> run_fn([f])
+      NECESSITY    does removing it fix things?            -> run_fn(rest)
+
+    Reverting one at a time answers necessity only. In a conjunctive failure
+    (A and B jointly required) BOTH are necessary, so both reversions recover
+    and it looks like two independent causes -- when in fact neither is
+    sufficient alone. Testing each factor ALONE separates the cases.
+
+    ddmin then narrows to an irreducible set in O(n^2) runs rather than 2^n.
+    Every run is a same-seed rollout we can already do.
+    """
+    thresh = max(min_delta_pp, 3 * floor_pp)
+    nominal = run_fn([])
+    base = run_fn(list(factors))
+
+    def fails(active):
+        """Does this subset drop success by more than the noise floor allows?"""
+        return (nominal - run_fn(list(active))) * 100 >= thresh
+
+    if not fails(list(factors)):
+        return {"verdict": ATTR_NONE, "nominal_rate": nominal,
+                "all_active_rate": base, "threshold_pp": thresh,
+                "reason": "activating every factor does not drop success -- "
+                          "the failure is not attributable to these factors"}
+
+    # SUFFICIENCY: each factor alone
+    alone = {f: run_fn([f]) for f in factors}
+    sufficient = [f for f in factors if (nominal - alone[f]) * 100 >= thresh]
+    deltas = {f: round((nominal - r) * 100, 1) for f, r in alone.items()}
+
+    if len(sufficient) == 1:
+        return {"verdict": ATTR_SINGLE, "factor": sufficient[0],
+                "alone_deltas_pp": deltas, "threshold_pp": thresh}
+    if len(sufficient) > 1:
+        return {"verdict": ATTR_MULTIPLE, "factors": sufficient,
+                "alone_deltas_pp": deltas, "threshold_pp": thresh,
+                "note": "each independently sufficient -- these are separate "
+                        "causes, not a set; remediating one leaves the others"}
+
+    # No factor suffices alone, yet together they fail => INTERACTION. Narrow it.
+    cur, n = list(factors), 2
+    while len(cur) > 1:
+        chunks = [cur[i::n] for i in range(n) if cur[i::n]]
+        moved = False
+        for c in chunks:
+            if fails(c):
+                cur, n, moved = c, 2, True
+                break
+        if not moved:
+            for c in chunks:
+                comp = [x for x in cur if x not in c]
+                if comp and fails(comp):
+                    cur, n, moved = comp, max(n - 1, 2), True
+                    break
+        if not moved:
+            if n >= len(cur):
+                break
+            n = min(len(cur), 2 * n)
+    return {"verdict": ATTR_SUBSET, "subset": cur, "alone_deltas_pp": deltas,
+            "threshold_pp": thresh,
+            "note": "irreducible -- no member causes failure alone. This is an "
+                    "INTERACTION, which revert-one-knob reports as 'no factor "
+                    "responsible'. Remediating any single member will not fix it."}
+
+
 def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
                          store=None, floor_pp: float = 0.0,
                          min_delta_pp: float = 20.0, arms=None) -> dict:
@@ -336,9 +418,26 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
                         "paired": mcnemar(list(zip(full_out, rev_out)))})
     results.sort(key=lambda r: -r["delta_pp"])
     threshold = max(min_delta_pp, 3 * floor_pp)
+
+    # 5.1 -- when no single knob clears the bar, that is ambiguous between a
+    # genuine null and an interaction. ddmin distinguishes them.
+    attribution = None
+    if results and results[0]["delta_pp"] <= threshold and len(results) > 1:
+        active = [k for k, v in spec.knobs if v]
+        vals = dict(spec.knobs)
+
+        def run_fn(on):
+            sp = PerturbationSpec.of(**{k: (vals[k] if k in on else 0.0)
+                                        for k in active})
+            return run_cell(env, policy, sp, seeds, store).rate
+
+        attribution = ddmin_factors(run_fn, active, floor_pp, min_delta_pp)
     top = results[0] if results else None
     return {"full_rate": full.rate, "full_spec": spec.label(),
             "probes": results, "n_per_cell": len(seeds),
             "threshold_pp": threshold, "floor_pp": floor_pp,
             "attributed_knob": top["knob"] if top and
-                               top["delta_pp"] > threshold else None}
+                               top["delta_pp"] > threshold else None,
+            "attribution": attribution or (
+                {"verdict": ATTR_SINGLE, "factor": top["knob"]}
+                if top and top["delta_pp"] > threshold else None)}
