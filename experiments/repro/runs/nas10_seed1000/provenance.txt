@@ -1,0 +1,19 @@
+date:        2026-09-15T14:03:47+05:30
+checkpoint:  HuggingFaceVLA/smolvla_libero
+n_action_steps: 10
+seed:        1000
+suites:      libero_spatial,libero_object,libero_goal,libero_10
+episodes/task: 10
+lerobot_sha: b6ec0060779550c0a157ae34feb89e0cf86012a8
+gpu:         NVIDIA RTX PRO 1000 Blackwell Generation Laptop GPU, 595.84
+gpu_power:   35.00 W, 5.02 W, 180 MHz, P8
+ac_online:   1
+power_profile: performance
+gpu_other_procs: 4016, /home/vst/vst_release/launch_vst, 86 MiB;
+lerobot: 0.6.2
+torch: 2.11.0+cu128
+mujoco: 3.3.7
+robosuite: 1.4.0
+hf-libero: 0.1.4
+transformers: 5.5.4
+numpy: 2.2.6

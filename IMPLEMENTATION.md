@@ -215,6 +215,64 @@ of CPU code.
 
 ---
 
+## Wave E — consequences of F5 (LIBERO-plus is a corpus, not a knob API)
+
+**Added 2026-09-15.** These supersede parts of Wave D and change a contract, so
+they are specified before the LIBERO-plus adapter is written.
+
+### E1. `PerturbationSpec` gains an instance-selection mode
+
+Today a spec is *knob → value* and the env applies it. LIBERO-plus cannot: the
+perturbation is baked into a pre-generated task instance. The contract stays —
+the miner must not care which benchmark produced a rollout — but the adapter
+resolves a spec to **an instance id**, not to simulator parameters.
+
+Consequence: `SUPPORTED_KNOBS` becomes **data-derived** (what the corpus can
+express for this base task) rather than declared.
+
+### E2. Multi-factor instances must be detected, not trusted
+
+Each instance carries **one** `category`, but **3,279 of 10,030 filenames encode
+more than one perturbation** (`..._view_0_0_100_0_0_initstate_13`). Treating
+`category` as the factor set would attribute a combined effect to one factor and
+put that in a manifest row.
+
+**Parse the filename; record every factor present; refuse to report a
+single-factor attribution for a multi-factor instance.**
+
+### E3. `counterfactual_probe()` needs a lookup path
+
+`spec.revert(knob)` currently *constructs* a reverted spec. On LIBERO-plus it
+must **find** the instance with the same base task and the same parameters minus
+one factor. That instance may not exist.
+
+- Found ⇒ interventional claim, as now.
+- Not found ⇒ the row is **correlational** and must say so. The manifest already
+  has that downgrade; the probe must be able to return it.
+
+**And the cheaper half:** ~6,750 instances are already single-factor, so
+*nominal vs perturbed* **is** the intervention and no probe is needed at all.
+Implement that path first — it covers two thirds of the corpus for free.
+
+### E4. `find_boundary()` must not treat L1–L5 as magnitude
+
+The current bracket assumes a continuous axis. **Difficulty level is a
+stratification the benchmark authors chose, not a physical magnitude**, and it
+is not comparable across categories. Plotting success against L1–L5 as if it
+were a dose-response curve would be a chart that reads as physics and is not.
+
+Report boundaries in **physical units parsed from the instance name** where the
+name supplies them, and label a level-based bracket explicitly as ordinal.
+
+### E5. D10's surrogate is affected
+
+A surrogate over *"perturbation magnitude → success"* needs a magnitude. With a
+fixed corpus the search space is **discrete and finite** — the sensible method
+is selection over available instances, not continuous optimisation. Re-scope D10
+before building it.
+
+---
+
 ## Not code — decisions that changed the plan
 
 | | Change | Where |

@@ -1,7 +1,115 @@
 # Findings
 
+> ## ⭐ REFERENCE — re-derive these when the ground moves
+>
+> Several findings below are **measurements of things that can change under
+> us**. They are true of a specific corpus, checkpoint, library version or
+> machine, and they are the kind of fact that is expensive to rediscover and
+> dangerous to assume still holds.
+>
+> **Re-run the analysis behind a finding when any of these change:**
+>
+> | If this changes | Re-derive | Why |
+> |---|---|---|
+> | LIBERO-plus corpus revision | **F5** | Category counts, the multi-factor fraction (3,279/10,030) and single-factor coverage are all properties of *this* corpus. `benchmark_scripts/` may also gain generation tooling, which would restore a real knob API. |
+> | The policy under test | **F1, F3, F4** | VRAM footprint, reproduction status and transfer behaviour are per-checkpoint. π0.5 not fitting says nothing about the next model. |
+> | Dataset revision (`lerobot/libero` SHA) | **Phase 0 predictions** | `HuggingFaceVLA/libero` has been silently re-uploaded before. Coverage histograms and every prediction derived from them are pinned to `a1aaacb7…`. |
+> | MuJoCo, robosuite, or LeRobot version | **F2, F3** | F2 *is* a version-dependent physics change. A bump can fix it or introduce a new one. |
+> | The machine | **F4** and all timings | Power state alone moves wall-clock ~25×. |
+>
+> **How to re-derive F5 specifically** (the most likely to move):
+> ```bash
+> curl -sL https://raw.githubusercontent.com/sylvestf/LIBERO-plus/main/\
+> libero/libero/benchmark/task_classification.json -o tc.json
+> # then: count by category and difficulty_level; and count names encoding
+> # >1 of (_table_, _view_, _light_, _language_, _noise, _add_)
+> ```
+> Takes about a minute and settles whether the attribution design still holds.
+
 Running record of things we've established that aren't in the original proposal.
 Newest first. Each entry says what we know, how we know it, and what it changes.
+
+---
+
+## F5 — LIBERO-plus is a fixed CORPUS, not a knob API. Attribution still works, differently.
+
+**Date:** 2026-09-15 · **Status:** VERIFIED from `task_classification.json` (10,030 rows)
+· Settles `critical`'s AS-3, the highest-value open unknown
+
+### What it is
+
+Not a generator. Perturbations are **baked into pre-generated task instances**,
+with the perturbation encoded in the task *filename*. LeRobot's own loader gives
+it away:
+
+```python
+_LIBERO_PERTURBATION_SUFFIX_RE = re.compile(
+    r"_(?:language|view|light)_[^.]*|_(?:table|tb)_\d+")
+# "LIBERO-plus perturbation variants encode the perturbation in the filename
+#  but on disk only the base `.pruned_init` exists"
+```
+
+**There is no API to say "yaw +15°, everything else nominal".** You select an
+instance that already exists.
+
+### The corpus
+
+10,030 instances, ~2,400–2,600 per suite. Each carries **one** primary
+`category` and a difficulty level:
+
+| Category | n | | L1 | L2 | L3 | L4 | L5 |
+|---|---|---|---|---|---|---|---|
+| Sensor Noise | 1601 | | 177 | 500 | 300 | 383 | 241 |
+| Camera Viewpoints | 1599 | | 199 | 360 | 325 | 228 | 487 |
+| Robot Initial States | 1550 | | 248 | 292 | 374 | 285 | 351 |
+| Language Instructions | 1537 | | 328 | 280 | 259 | 328 | 342 |
+| Objects Layout | 1525 | | 348 | 302 | 329 | 257 | 289 |
+| Light Conditions | 1142 | | 111 | 197 | 244 | 242 | 227 (+121 unlabelled) |
+| Background Textures | 1076 | | 233 | 271 | 263 | 163 | 146 |
+
+**But the single `category` label is not the whole truth.** 3,279 of 10,030
+names encode **more than one** perturbation token, e.g.
+
+```
+..._view_0_0_100_0_0_initstate_13    <- viewpoint AND initial state
+```
+
+So a third of the corpus is multi-factor while being labelled with one primary
+category. Reporting per-category success rates without accounting for that would
+attribute a combined effect to one factor.
+
+### What this does to counterfactual attribution — less than feared
+
+`PLAN.md` §5.1's probe re-runs the same seed with one knob reverted. That was
+specified against a knob API we do not have. But the mechanism survives, in a
+different form:
+
+1. **The ~6,750 single-factor instances are already interventions.** For those,
+   *nominal vs perturbed* **is** the counterfactual, and the `category` label
+   names the factor. No probe needed — the corpus did the intervention for us.
+2. **The parameters are in the filename.** `view_0_0_100_0_0` is parseable, so
+   multi-factor instances can be matched to single-factor ones by string
+   structure. Revert-one-knob becomes a **lookup**, not a generation.
+3. **Coverage is not guaranteed.** Whether the matching single-factor instance
+   exists is an empirical property of the corpus, per base task. Where it does
+   not, that row is **correlational** and must be labelled so — which the
+   manifest already supports.
+
+### Consequences
+
+- The LIBERO-plus adapter is a **task-selection** layer, not a knob-setting one.
+  `PerturbationSpec` maps to *"which instance"*, not *"which parameters"*.
+- `SUPPORTED_KNOBS` for that adapter is the set of factors for which a matching
+  instance can be resolved — determined by parsing the corpus, not declared.
+- **Difficulty level is not magnitude on a single axis** and must not be plotted
+  as though it were. It is a stratification the benchmark authors chose.
+- **`Language Instructions` has 1,537 instances**, so the axis exists in the
+  corpus even though we declared `language_grounding` out of scope (DG-11) for
+  lack of a detector. The constraint is ours, not the benchmark's — worth
+  restating honestly in the readout.
+- Still unchecked: `benchmark_scripts/` in the LIBERO-plus repo may contain
+  generation tooling. If it does, the knob API might be recoverable. Worth one
+  look before building the adapter.
 
 ---
 
