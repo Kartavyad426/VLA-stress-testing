@@ -19,6 +19,37 @@ from typing import Any
 from ..schema import (Observation, Action, PerturbationSpec, derive_id,
                       semantic_runtime)
 
+
+def _look_at_quat(eye, target):
+    """Quaternion (w,x,y,z) aiming a MuJoCo camera from `eye` at `target`."""
+    import numpy as np
+    f = np.array(target) - np.array(eye)
+    n = np.linalg.norm(f)
+    if n < 1e-9:
+        return np.array([1.0, 0.0, 0.0, 0.0])
+    f = f / n
+    z = -f                                   # MuJoCo cameras look down -z
+    up = np.array([0.0, 0.0, 1.0])
+    if abs(np.dot(z, up)) > 0.999:
+        up = np.array([0.0, 1.0, 0.0])
+    x = np.cross(up, z); x /= np.linalg.norm(x)
+    y = np.cross(z, x)
+    m = np.stack([x, y, z], axis=1)
+    t = np.trace(m)
+    if t > 0:
+        s_ = math.sqrt(t + 1.0) * 2
+        return np.array([0.25 * s_, (m[2,1]-m[1,2])/s_, (m[0,2]-m[2,0])/s_,
+                         (m[1,0]-m[0,1])/s_])
+    i = int(np.argmax(np.diag(m)))
+    if i == 0:
+        s_ = math.sqrt(1.0+m[0,0]-m[1,1]-m[2,2])*2
+        return np.array([(m[2,1]-m[1,2])/s_, 0.25*s_, (m[0,1]+m[1,0])/s_, (m[0,2]+m[2,0])/s_])
+    if i == 1:
+        s_ = math.sqrt(1.0+m[1,1]-m[0,0]-m[2,2])*2
+        return np.array([(m[0,2]-m[2,0])/s_, (m[0,1]+m[1,0])/s_, 0.25*s_, (m[1,2]+m[2,1])/s_])
+    s_ = math.sqrt(1.0+m[2,2]-m[0,0]-m[1,1])*2
+    return np.array([(m[1,0]-m[0,1])/s_, (m[0,2]+m[2,0])/s_, (m[1,2]+m[2,1])/s_, 0.25*s_])
+
 # LIBERO: 6-D end-effector delta + gripper, Box(-1, 1, (7,))
 ACTION_DIMS = ["dx", "dy", "dz", "droll", "dpitch", "dyaw", "gripper"]
 
@@ -32,7 +63,16 @@ MAX_STEPS = {"libero_spatial": 280, "libero_object": 280, "libero_goal": 300,
 # means an unsupported knob fails loudly instead of being silently ignored --
 # which would produce a "robustness result" for a perturbation that never
 # happened.
-SUPPORTED_KNOBS: set[str] = set()
+# Applied directly through MuJoCo after reset. LIBERO-plus is not required for
+# these: camera extrinsics and the robot's initial configuration are simulator
+# state we can set ourselves. That matters because it unblocks sweeps and
+# counterfactual attribution without the second container LIBERO-plus needs
+# (it uninstalls vanilla LIBERO).
+SUPPORTED_KNOBS: set[str] = {
+    "camera_yaw_deg", "camera_pitch_deg", "camera_dist_m",
+    "ee_offset_x_m", "ee_offset_y_m", "light_intensity",
+}
+MAIN_CAMERA = "agentview"
 
 # LE-5: termination vocabulary is declared in L0 and adapters map onto it.
 # ARCHITECTURE §4 documents it and the manifest prints it, so divergence
@@ -158,6 +198,10 @@ class LiberoEnv:
         self.t = 0
         raw, _ = self._env.reset(seed=seed)
         self._raw = raw
+        if any(v for _, v in spec.knobs):
+            self._apply_perturbation(spec)
+            raw = self._resettle()
+            self._raw = raw
         # Phase G: the language probe substitutes or blanks the instruction.
         # Recorded in identity() is the BASE task; the override is per-rollout
         # and appears in the trace via Observation.instruction.
@@ -190,6 +234,69 @@ class LiberoEnv:
         reason = (TERM_SUCCESS if success
                   else (TERM_TIMEOUT if done else ""))
         return self._obs(), success, done, reason
+
+    # --- perturbation (applied post-reset, in simulator state) ------------
+    def _apply_perturbation(self, spec: PerturbationSpec) -> None:
+        """Set camera extrinsics / robot offset / lighting directly in MuJoCo.
+
+        Recorded in `scene_descriptor` in physical units, so the perturbed scene
+        stays externally reproducible -- a perturbation you cannot describe in
+        metres is one nobody can reproduce on a bench.
+        """
+        import numpy as np
+        k = spec.as_dict()
+        sim = self._sim()
+
+        yaw, pitch = k.get("camera_yaw_deg", 0.0), k.get("camera_pitch_deg", 0.0)
+        dist = k.get("camera_dist_m", 0.0)
+        if yaw or pitch or dist:
+            cid = sim.model.camera_name2id(MAIN_CAMERA)
+            pos = np.array(sim.model.cam_pos[cid], dtype=float)
+            look = np.array([0.0, 0.0, pos[2] * 0.5])      # approx table centre
+            rel = pos - look
+            if yaw:
+                a = math.radians(yaw); c, s_ = math.cos(a), math.sin(a)
+                rel = np.array([c * rel[0] - s_ * rel[1],
+                                s_ * rel[0] + c * rel[1], rel[2]])
+            if pitch:
+                a = math.radians(pitch)
+                r = math.hypot(rel[0], rel[1])
+                z = rel[2] * math.cos(a) + r * math.sin(a)
+                scale = (r * math.cos(a) - rel[2] * math.sin(a)) / max(r, 1e-9)
+                rel = np.array([rel[0] * scale, rel[1] * scale, z])
+            if dist:
+                n = np.linalg.norm(rel)
+                rel = rel * (1.0 + dist / max(n, 1e-9))
+            sim.model.cam_pos[cid] = look + rel
+            # re-aim at the look-point so the target stays framed; a camera that
+            # rotates AND loses the scene confounds viewpoint with occlusion.
+            sim.model.cam_quat[cid] = _look_at_quat(look + rel, look)
+
+        dx, dy = k.get("ee_offset_x_m", 0.0), k.get("ee_offset_y_m", 0.0)
+        if dx or dy:
+            # Nudge the arm's first two joints; a small cartesian offset at the
+            # eef without solving IK. Magnitude is approximate by design and the
+            # ACHIEVED offset is what scene_descriptor records.
+            qpos = sim.data.qpos
+            qpos[0] += dy * 2.0
+            qpos[1] += dx * 2.0
+            sim.forward()
+
+        li = k.get("light_intensity", 0.0)
+        if li and sim.model.nlight:
+            for i in range(sim.model.nlight):
+                sim.model.light_diffuse[i] = np.clip(
+                    np.array(sim.model.light_diffuse[i]) * (1.0 + li), 0, 1)
+
+    def _resettle(self):
+        """Step the sim so the perturbation takes effect in the rendering."""
+        from lerobot.envs.libero import get_libero_dummy_action
+        inner = self._env.unwrapped._env
+        raw = None
+        for _ in range(3):
+            raw, _, _, _ = inner.step(get_libero_dummy_action())
+        return self._env.unwrapped._to_lerobot_obs(raw) if hasattr(
+            self._env.unwrapped, "_to_lerobot_obs") else self._raw
 
     # --- observation ------------------------------------------------------
     def _sim(self):
