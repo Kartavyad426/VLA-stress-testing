@@ -5,6 +5,80 @@ then the doc it points you at for whatever you are doing.
 
 ---
 
+## 🔴 IN FLIGHT RIGHT NOW — baseline screen
+
+Started 2026-09-15 14:03. SmolVLA on vanilla LIBERO, 4 suites, 10 episodes/task,
+**400 episodes**, `n_action_steps=10`, seed 1000, mujoco 3.3.7 (healthy — F2).
+**First run of this checkpoint on unbroken physics.**
+
+**Check on it:**
+```bash
+cd /home/imerit/Documents/Code/VLA
+D=experiments/repro/runs/nas10_seed1000
+[ -f experiments/repro/logs/baseline.done ] \
+  && echo "DONE rc=$(cat experiments/repro/logs/baseline.done)" || echo RUNNING
+find $D/videos -name '*.mp4' | wc -l          # progress out of 400
+cat $D/eval_info.json                          # results (written ONLY at the end)
+```
+
+**Survives a session close.** SIGHUP is ignored (signal mask `0x1001001`) and it
+already outlived its launching shell. Only an explicit SIGKILL to the process
+group would take it.
+
+**The MONITOR does not survive** — monitors are session-scoped. After a session
+close there is no notification on completion, stall or crash; check manually
+with the commands above.
+
+**If it dies mid-run:** `eval_info.json` is written **once, at the end**, so the
+aggregate is lost — but per-episode videos and `eval.log` survive and the run is
+restartable from scratch (~1–2 h). Nothing else depends on it.
+
+**How to read the result:** it is a **SCREEN, not a gate**. At n=100/suite a
+5 pp break goes unflagged 66% of the time. A pass means *"screen passed, gate
+not yet run"* — never "consistent with published". Compare against ~90 / 96 /
+92 / 71 (spatial/object/goal/long), and note the two upstream non-reproductions
+at 73.25% and ~67% (F3).
+
+**This run is NOT mineable** — it goes through `lerobot-eval`, which stores a
+success bit and an mp4. Accepted deliberately: its job is the reproduction
+question. See the next section.
+
+---
+
+## 💡 PROPOSED — a recording wrapper, before Phase B
+
+**Problem:** `lerobot-eval` output cannot be mined (no per-step state), so the
+plan had us choosing between *their evaluator* and *our traces*.
+
+**The choice is not forced.** LeRobot registers environments:
+
+```python
+@EnvConfig.register_subclass("libero")
+```
+
+Register a **`libero_traced`** subclass that records as it runs, then
+`lerobot-eval --env.type=libero_traced` gives **their loop and protocol AND our
+traces**.
+
+Three wins:
+1. **Removes the one genuine duplication** — `runner.rollout()` currently
+   re-implements LeRobot's loop.
+2. **Captures what LeRobot discards** — the subclass sees robosuite's RAW
+   observation before the 7-key filter, which is where per-object state lives,
+   including `<object>_to_robot0_eef_pos` computed by the simulator. That would
+   replace our fragile `sim.data.body_xpos` name-matching outright.
+3. **Every phase becomes mineable**, including a re-run of the baseline.
+
+**Caveats:** counterfactual probes need same-seed re-runs of a chosen instance,
+which is our access pattern rather than `lerobot-eval`'s — keep a thin direct
+path for those. And it couples us to LeRobot internals, so the LeRobot version
+belongs in `semantic_runtime` (keyed), not `runtime`.
+
+**Sequence it BEFORE Phase B.** Phase B is 5–25 GPU-hours whose traces we want
+to keep; running it first and wrapping later would waste the lot.
+
+---
+
 ## Read in this order
 
 | Doc | What it is |
