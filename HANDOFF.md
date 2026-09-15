@@ -56,6 +56,44 @@ validated on a toy with planted faults.
 
 ---
 
+## ⚠ UNVERIFIED — check before trusting `_gt_` object state
+
+**Raised 2026-09-15**, prompted by a peer session's finding that *the dangerous
+interfaces are not the ones you never touch, but the ones you touch **partially***.
+
+**LeRobot extracts exactly 7 keys from robosuite's raw observation**
+(`envs/libero.py:291-302`): two camera images, `robot0_eef_pos`,
+`robot0_eef_quat`, `robot0_gripper_qpos`, `robot0_gripper_qvel`,
+`robot0_joint_pos`, `robot0_joint_vel`. **Everything else is discarded**, and we
+never see the raw dict — our adapter receives LeRobot's processed observation.
+
+robosuite normally also publishes **per-object state** in that raw observation,
+including `<object>_pos`, `<object>_quat` and **`<object>_to_robot0_eef_pos`**
+computed natively.
+
+We instead re-derive object poses and eef-to-object distances from
+`sim.data.body_xpos` with BDDL name matching. **That is the code path that
+already failed once** (LE-2: a `link` substring filter removed drawers and
+cabinet doors, so `_gt_nearest_object` named the wrong thing and the
+spatial_reasoning rule fired on it).
+
+**To check** (needs a live env — do NOT run while a campaign is using the GPU):
+
+```python
+inner = env._env.unwrapped._env          # OffScreenRenderEnv
+raw = inner._get_observations()          # robosuite's RAW obs, pre-LeRobot
+print(sorted(raw))                       # <- the whole interface, ~4 minutes
+```
+
+**If `<object>_to_robot0_eef_pos` is present**, prefer it over our derivation:
+it is computed by the simulator, needs no name matching, and removes an entire
+class of silent error from every distance-based detector.
+
+**Status: UNVERIFIED.** Deliberately not run while the baseline campaign holds
+the GPU — a second MuJoCo env could OOM an in-flight 400-episode run.
+
+---
+
 ## Highest-value unknown
 
 **Is LIBERO-plus a knob API or a fixed corpus of 10,030 pre-generated
