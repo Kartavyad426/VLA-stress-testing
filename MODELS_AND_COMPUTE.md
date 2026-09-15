@@ -45,7 +45,7 @@ which we already built (G10).
 |---|---|---|---|---|---|---|
 | **Octo-small** | 27 M | <1 GB | **yes** | yes | via LeRobot | 93 M variant also exists. Runs in ~4 GB. Fast, weak. Good smoke test. |
 | **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | *Primary candidate.* ~25 Hz on A100; runs on Jetson Orin NX. |
-| **GR00T N1.7** | 3 B | ~6 GB weights | **tight** — inference maybe, training no | no | `nvidia/GR00T-N1.7-LIBERO` | Flow-matching action head ⇒ **stochastic, must seed** |
+| **GR00T N1.7** | 3 B | ~6 GB weights | **tight — treat as unverified; π0.5 at the same nominal size did NOT fit (F4)** | no | `nvidia/GR00T-N1.7-LIBERO` | Flow-matching action head ⇒ **stochastic, must seed** |
 | **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
 | **OpenVLA** | 7.4 B | ~15 GB bf16 | **no** (4-bit only) | no (8×A100 for full FT) | yes, published | Quantizing voids the ±5 pp gate — see `PLAN.md` §1 |
 | **OpenVLA-OFT** | 7.4 B | ~15 GB | **no** | no | yes, per-suite | The proposal's headline. Needs rented GPU. |

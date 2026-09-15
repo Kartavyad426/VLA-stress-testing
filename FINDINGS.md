@@ -5,6 +5,72 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
+## F4 — π0.5 does not fit on this GPU. The anchor exists, but not here.
+
+**Date:** 2026-09-15 · **Status:** VERIFIED by direct test · settles DG-5
+
+### The test
+
+Three runs, narrowing the cause:
+
+| Test | Result |
+|---|---|
+| `lerobot-eval`, `MUJOCO_GL=egl` | `torch.OutOfMemoryError` — 7.40 GiB in use, 18.75 MiB free |
+| `lerobot-eval`, `MUJOCO_GL=osmesa` + `expandable_segments` | failed earlier: **OSMesa system library absent** (`libosmesa6`, needs sudo) |
+| **Weights only, no simulator, no renderer** | **`WEIGHTS DO NOT FIT ON 8 GB`** — 7.34 GiB free at start, OOM during `.to("cuda")` |
+
+The third test is decisive. **This is not the lerobot#3098 CUDA/EGL contention
+both sessions assumed.** π0.5's parameters alone exceed the card. Freeing the
+rendering context cannot buy back 7 GiB, so `osmesa` was never going to rescue
+it and the missing system library is a side issue.
+
+### What this settles
+
+`PLAN.md` §5.2 offered π0.5 as a deferred *reproduction anchor* — the one LIBERO
+checkpoint LeRobot maintainers confirm reproduces (97.5%), whose job is to
+**exonerate our environment** rather than grade a policy. DG-5 flagged that a
+contingency nobody has smoke-tested is not a contingency. It was right.
+
+**On this machine the anchor does not exist.**
+
+### But the anchor is not dead — it is a different machine
+
+π0.5 needs >7.34 GiB. **Colab and Kaggle free-tier T4s have 16 GB** — roughly
+double this laptop (`MODELS_AND_COMPUTE.md` §6). The anchor is:
+
+- **inference only** — no fine-tuning, so no LoRA memory
+- **one-off** — run once to clear the environment, never repeated
+- **small** — 400 episodes at most, well inside a 9–12 h session cap
+
+So it fits a free tier almost perfectly. Two caveats: `MUJOCO_GL=egl` in hosted
+notebooks is a known pain point and must be verified before planning around it;
+and an environment cleared *on a T4* is not strictly the same environment as
+this laptop — different GPU, different driver, therefore different `runtime`
+fingerprint. That weakens the exoneration but does not void it: the things the
+gate is actually checking (control mode, un-normalisation, action chunking,
+dataset revision, simulator version) are machine-independent.
+
+### Consequences
+
+1. **`PLAN.md` §5.2 must stop offering the anchor as a local contingency.**
+   Rewritten to say: not available on this hardware; available on a 16 GB free
+   tier; verify EGL there first.
+2. **`MODELS_AND_COMPUTE.md` §1 is wrong.** It lists π0.5 inference as "tight"
+   on 8 GB. It is impossible. Corrected.
+3. VLA-Adapter's gate now stands alone locally, with exactly the ambiguity DG-5
+   warned about — unless we spend a free-tier session on the anchor first.
+
+### Process note
+
+The first smoke attempt (Sep 11) reported `exit 0` and I nearly recorded it as a
+pass. That was the **launcher wrapper's** exit code; the real result went to a
+session-scoped scratchpad that a restart cleared, and the checkpoint cache was
+28 KB — it had never downloaded. **Logs for anything whose result matters now go
+to `experiments/repro/logs/` inside the repo.** A result that does not survive a
+session restart is not a result.
+
+---
+
 ## F3 — Why VLA LIBERO numbers don't reproduce: a catalogue of causes
 
 **Date:** 2026-09-11 · **Status:** compiled from `docs/LANDSCAPE.md`; issue states
