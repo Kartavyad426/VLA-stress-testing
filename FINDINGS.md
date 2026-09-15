@@ -31,6 +31,57 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
+## F9 — The 360→256 render mismatch is a REAL defect, and a PARTIAL cause
+
+**Date:** 2026-09-15 · **Status:** MEASURED · `res256_nas10_seed1000`, 400 episodes
+· one variable changed from F8: render resolution 360→256
+
+| Suite | 256×256 | 360×360 | Δ | p | vs published |
+|---|---|---|---|---|---|
+| **libero_spatial** | **73.0%** | 56.0% | **+17.0** | **0.011** | −17 |
+| libero_object | 90.0% | 85.0% | +5.0 | 0.284 | −6 |
+| libero_goal | 68.0% | 69.0% | −1.0 | 0.879 | −24 |
+| libero_10 | 37.0% | 35.0% | +2.0 | 0.768 | −34 |
+| **OVERALL** | **67.0%** | 61.3% | **+5.7** | 0.092 | **−20.3** |
+
+### The hypothesis was right and insufficient
+
+`LiberoEnvConfig` renders at **360×360**; the checkpoint declares **256×256**
+inputs and was trained on a 256×256 dataset. The policy pads to 512 either way,
+so training was a clean 2.00× upscale and our eval was a 1.42× resample.
+
+Fixing it recovered **+17 pp on `libero_spatial`** — the only individually
+significant effect. **It did not fix the problem: ~20 points remain.**
+
+### The pattern supports the mechanism and bounds it
+
+Spatial gained hugely; **goal and long gained nothing** (−1, +2). That is what a
+resampling artifact should do: it degrades *fine visual discrimination*, and
+`libero_spatial` is the suite defined by spatial relations among similar-looking
+objects. Goal (−24) and long (−34) fail for reasons resolution does not touch.
+
+### An upstream defect worth reporting
+
+**`LiberoEnvConfig` defaults to 360 while `LiberoEnv`'s own class default is
+256, and the SmolVLA checkpoint declares 256.** Nothing warns. Anyone running
+`lerobot-eval` on this checkpoint at defaults is evaluating out of distribution
+on every frame — plausibly a contributor to the nine open reproduction issues.
+
+### Statistical caveat
+
+Tests above are **unpaired**, but both runs used `seed=1000` with
+`init_states=true`, so the episodes **are** paired. McNemar would be tighter and
+might push the overall effect under 0.05. Per-episode outcomes are not in
+`eval_info.json` — the same limitation that makes these runs unmineable.
+
+### Next
+
+`n_action_steps=1` (shipped default; we ran 10), ~9 h. Now the leading candidate
+for the residual, and notably `libero_10` — the largest remaining gap — is
+exactly where open-loop horizon should matter most.
+
+---
+
 ## F8 — FIRST REAL RESULT: SmolVLA does not reproduce, and we are lower than anyone
 
 **Date:** 2026-09-15 · **Status:** MEASURED · run `nas10_seed1000`, 400 episodes,

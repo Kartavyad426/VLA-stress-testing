@@ -1,0 +1,13 @@
+date:        2026-09-15T16:37:20+05:30
+purpose:     BASELINE_FORENSICS §1 -- render at 256x256 to match the checkpoint
+checkpoint:  HuggingFaceVLA/smolvla_libero
+delta_vs_nas10_seed1000: observation_{width,height} 360 -> 256. ONE variable.
+n_action_steps: 10 (unchanged, deliberately)
+seed:        1000 (unchanged)
+lerobot_sha: b6ec0060779550c0a157ae34feb89e0cf86012a8
+gpu_power:   35.00 W, 172 MHz, P8
+ac_online:   1
+lerobot: 0.6.2
+torch: 2.11.0+cu128
+mujoco: 3.3.7
+robosuite: 1.4.0
