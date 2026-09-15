@@ -38,6 +38,12 @@ class Observation:
     state: dict[str, Any]                          # proprioception + env-visible state
     image_refs: dict[str, str] = field(default_factory=dict)
     t: int = 0
+    # LIVE pixel arrays for the policy, deliberately NOT serialised. G2 says
+    # pixels never enter the stored trace -- a 300-step episode with two camera
+    # streams is ~90 MB. But a real policy needs the arrays in memory, and
+    # round-tripping them through PNG every step would be absurd. So: present
+    # in memory, absent from `asdict()` output via `to_json`.
+    frames: dict = field(default_factory=dict, repr=False, compare=False)
 
     def get(self, key, default=None):
         return self.state.get(key, default)
@@ -53,7 +59,7 @@ class Observation:
         """
         return Observation(
             instruction=self.instruction, t=self.t,
-            image_refs=dict(self.image_refs),
+            image_refs=dict(self.image_refs), frames=self.frames,
             state={k: v for k, v in self.state.items()
                    if not k.startswith("_gt_")},
         )
@@ -178,7 +184,10 @@ class Rollout:
         return [s.obs_state[key] for s in self.steps if key in s.obs_state]
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self), separators=(",", ":"))
+        d = asdict(self)
+        for st in d.get("steps", []):
+            st.pop("frames", None)          # G2: pixels never persist
+        return json.dumps(d, separators=(",", ":"))
 
 
 # --- G3: a loader that refuses unknown majors -------------------------------

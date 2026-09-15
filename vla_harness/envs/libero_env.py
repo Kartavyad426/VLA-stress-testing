@@ -142,6 +142,7 @@ class LiberoEnv:
             episode_length=self.max_steps,
         )
         task = suite.get_task(self.task_id_idx)
+        self.base_instruction = task.language
         self.instruction = task.language
 
     def reset(self, seed: int, spec: PerturbationSpec) -> Observation:
@@ -157,6 +158,11 @@ class LiberoEnv:
         self.t = 0
         raw, _ = self._env.reset(seed=seed)
         self._raw = raw
+        # Phase G: the language probe substitutes or blanks the instruction.
+        # Recorded in identity() is the BASE task; the override is per-rollout
+        # and appears in the trace via Observation.instruction.
+        ov = getattr(self, "instruction_override", None)
+        self.instruction = self.base_instruction if ov is None else ov
         return self._obs()
 
     def step(self, action: Action) -> tuple[Observation, bool, bool, str]:
@@ -203,8 +209,10 @@ class LiberoEnv:
             "joint_vel": list(map(float, joints["vel"])),
         }
         state.update(self._privileged())
+        px = self._raw.get("pixels", [])
+        frames = {f"cam{i}": img for i, img in enumerate(px)}
         return Observation(instruction=self.instruction, t=self.t, state=state,
-                           image_refs=self._write_images())
+                           image_refs=self._write_images(), frames=frames)
 
     def _privileged(self) -> dict:
         """`_gt_*` -- simulator truth, DETECTORS ONLY.

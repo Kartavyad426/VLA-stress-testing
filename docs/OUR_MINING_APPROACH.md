@@ -279,3 +279,129 @@ reason — not have the check loosened until it passes, which would destroy it.
 **4. The whole layer has never seen a real VLA failure.** Everything above is
 validated on a toy with planted faults. On first contact with LIBERO it
 abstained — correctly, but it abstained.
+
+---
+
+# REVISIONS — 2026-09-15, after the methods survey
+
+`docs/FAILURE_MINING_METHODS.md` completed after the above was written. Four
+changes. **Each says what we did, what it replaced, and why** — the reason
+matters more than the change, because in three of four cases the old version
+was not *wrong* so much as **unable to distinguish situations that need
+distinguishing**.
+
+## R1 — Attribution: revert-one-knob → ddmin
+
+**Was:** revert one perturbation dimension at a time; the one whose reversion
+recovers success is the trigger.
+
+**Problem:** it cannot see interactions, and it renders three different
+situations identically. A failure requiring viewpoint AND initial state
+*jointly* shows a small effect on every single reversion, so we emitted "no
+factor responsible" — the same string we emit for a genuine null and for
+multiple independent causes.
+
+**Now:** `ddmin_factors()` returns four verdicts.
+
+| Verdict | Meaning | Remediation implication |
+|---|---|---|
+| `single_factor` | one factor alone causes it | fix that factor |
+| `multiple_sufficient` | several each cause it independently | **fixing one leaves the others** |
+| `minimal_subset` | irreducible set; no member suffices alone | **fixing any single member fixes nothing** |
+| `no_factor_identified` | genuinely not attributable here | do not write a manifest row |
+
+Those bottom three rows are three different pieces of advice to a client, and we
+were giving all of them the same one.
+
+**A correction worth recording:** the first implementation had the semantics
+inverted. Reverting a factor tests **necessity**; sufficiency requires testing
+each factor **alone**. Under the wrong version a conjunctive failure reported as
+two independent causes — because both reversions recover — which is exactly the
+confusion ddmin exists to remove. Caught by a synthetic four-case test, not by
+review.
+
+**Cost:** O(n²) same-seed re-runs instead of 2ⁿ. Every run is a rollout we could
+already do.
+
+## R2 — Taxonomy validation: supplement κ, do not raise it
+
+**Was:** κ ≥ 0.5 on 30 double-labelled traces.
+
+**Problem:** the survey's answer to "how does anyone validate a taxonomy is
+*correct*" is **negative — nobody does.** And κ is the wrong instrument at any
+threshold: `{failure on a Tuesday, failure not on a Tuesday}` scores **κ = 1.0**.
+That is construct validity, not reliability, and 0.5 → 0.7 addresses the wrong
+axis. κ is also depressed by exactly the class imbalance failure taxonomies
+always have (the kappa paradox).
+
+**Now:** report **percentage agreement and Gwet's AC1 beside κ**, and add
+**name-based re-assignment** — give a held-out judge *only* cluster names and
+descriptions, have them assign held-out episodes, measure agreement with the
+induced partition. Unlike κ on a hand-designed taxonomy, that tests the
+*partition* rather than the raters.
+
+**Reported as partial, deliberately.** It establishes a cluster has a
+communicable common property. It does **not** establish the property is the
+right one. Nothing we found does.
+
+## R3 — `language_grounding` is gated on a probe, not declared out of scope
+
+**Was:** out of scope, because no environment implements the axis and no
+detector produces the family.
+
+**Problem:** that was our limitation, and smaller than we claimed — the corpus
+has 1,537 language instances and the probe is one rollout with one word changed.
+Worse, the survey shows the *interesting* failure is invisible to a
+success-rate-only design: a policy can be **insensitive** to language rather than
+comprehending, and then a classifier carrying a `language_grounding` family will
+**quietly label something else with its name** — which per R2 κ cannot catch.
+
+**Now:** `probes/language.py` runs nominal / blank-instruction / goal-substituted
+and returns one of three verdicts, of which the third is the point:
+
+- **insensitive** — blank instruction costs almost nothing; the policy is a
+  Vision-Action model and the family is inadmissible
+- **comprehending** — substituting the goal moves the endpoint
+- **partial_grounding** — success collapses but the endpoint **does not move**;
+  the policy still goes to the original target. *In aggregate this looks
+  identical to comprehension.*
+
+The probe sets `language_family_admissible`. It runs **early**, because it
+decides whether a taxonomy family may exist at all.
+
+## R4 — LIBERO thresholds are fitted from demonstrations, framed as coverage
+
+**Was:** constants tuned on the toy (`pregrasp_radius = 0.12 m`), meaningless in
+LIBERO.
+
+**Now:** `fit_from_demos()` measures eef-to-object distance at the moment the
+gripper closes, across ~50 human demonstrations per task.
+
+**And the framing is load-bearing.** This is *coverage*: "the region from which
+successful grasps are observed to occur", reported at the 95th percentile. It is
+**not** "the distance separating manipulation failures from grounding failures".
+Demonstrations contain only successes and cannot speak to the second. Fitting a
+boundary on one class and reporting it as discriminative is the error the
+docstring exists to prevent.
+
+`holding` — which LIBERO does not expose — is **derived** from gripper closure
+*plus object lift above rest height*. Closure alone is not holding; closing on
+empty air is precisely the failure we are detecting.
+
+---
+
+## What did NOT change, and why
+
+- **Deterministic tier 1, LLM only for the residue.** The survey strengthens
+  this: no LLM-judge configuration exceeded AUROC 0.65 at detecting false
+  success in the adjacent LLM-agent field, while a plain TF-IDF detector reached
+  0.83–0.95. Build the dumb baseline first.
+- **Detection stays the simulator's goal predicate.** Two independently-built
+  symbolic oracles for LIBERO_10 agree at only F1 0.841, so we do not call it
+  ground truth — but we do not build a better one either.
+- **Clustering stays simple** — group by (family, active factors). Embedding
+  clustering earns its place only if R2's name-based check shows our families
+  are arbitrary.
+- **§2.6 vs `mining/phases.py` is an OPEN INCONSISTENCY.** The survey argues
+  trajectory divergence from a reference should be **dropped, not caveated**. We
+  still compute it as a caveated secondary signal. Flagged, not resolved.
