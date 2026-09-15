@@ -1,8 +1,8 @@
 # Data Gap Manifest
 
-Generated 2026-09-11 · schema v1.0
+Generated 2026-09-15 · schema v1.0
 
-## DGM-001 — visual_grounding [HIGH]
+## DGM-001 — visual_grounding [COMPUTED AT DELIVERY = CONDITIONAL X PREVALENCE X COST]
 
 - **Evidence strength:** causal (counterfactual-confirmed)
 - **Tasks:** pick_bowl
@@ -15,7 +15,7 @@ Generated 2026-09-11 · schema v1.0
 - **Validation:** LoRA fine-tune at three escalating data budgets on the coverage above; re-run the frozen regression set; report the data-response curve. Neutral and negative results are reportable.
 - **Validation result:** `null` — UNTESTED CLAIM
 
-## DGM-002 — manipulation [MEDIUM]
+## DGM-002 — manipulation [COMPUTED AT DELIVERY = CONDITIONAL X PREVALENCE X COST]
 
 - **Evidence strength:** correlational
 - **Tasks:** pick_bowl

@@ -1,0 +1,190 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-15 09:58:30 ls/_http.py:965 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-15 09:58:30 figs/eval.py:69 No job name provided, using 'libero_pi05' as job name.
+INFO 2026-09-15 09:58:30 bot_eval.py:741 {'env': {'camera_name': 'agentview_image,robot0_eye_in_hand_image',
+         'camera_name_mapping': None,
+         'control_mode': 'relative',
+         'disable_env_checker': True,
+         'episode_length': None,
+         'features': {'action': {'shape': (7,),
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'pixels/agentview_image': {'shape': (360, 360, 3),
+                                                 'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'pixels/robot0_eye_in_hand_image': {'shape': (360,
+                                                                    360,
+                                                                    3),
+                                                          'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'robot_state/eef/mat': {'shape': (3, 3),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/pos': {'shape': (3,),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/quat': {'shape': (4,),
+                                               'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qpos': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qvel': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/pos': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/vel': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>}},
+         'features_map': {'action': 'action',
+                          'pixels/agentview_image': 'observation.images.image',
+                          'pixels/robot0_eye_in_hand_image': 'observation.images.image2',
+                          'robot_state/eef/mat': 'observation.state.eef_mat',
+                          'robot_state/eef/pos': 'observation.state.eef_pos',
+                          'robot_state/eef/quat': 'observation.state.eef_quat',
+                          'robot_state/gripper/qpos': 'observation.state.gripper_qpos',
+                          'robot_state/gripper/qvel': 'observation.state.gripper_qvel',
+                          'robot_state/joints/pos': 'observation.state.joint_pos',
+                          'robot_state/joints/vel': 'observation.state.joint_vel'},
+         'fps': 20,
+         'hard_reset': True,
+         'init_states': True,
+         'is_libero_plus': False,
+         'max_parallel_tasks': 1,
+         'obs_type': 'pixels_agent_pos',
+         'observation_height': 360,
+         'observation_width': 360,
+         'render_mode': 'rgb_array',
+         'task': 'libero_spatial',
+         'task_ids': [0]},
+ 'eval': {'batch_size': 1,
+          'n_episodes': 1,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'job_name': 'libero_pi05',
+ 'output_dir': PosixPath('experiments/repro/pi05_smoke'),
+ 'policy': {'action_expert_variant': 'gemma_300m',
+            'action_feature_names': None,
+            'chunk_size': 50,
+            'compile_mode': 'max-autotune',
+            'compile_model': True,
+            'device': 'cuda',
+            'dtype': 'bfloat16',
+            'empty_cameras': 1,
+            'freeze_vision_encoder': False,
+            'gradient_checkpointing': True,
+            'image_resolution': (224, 224),
+            'input_features': {'observation.images.empty_camera_0': {'shape': (3,
+                                                                               224,
+                                                                               224),
+                                                                     'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.image': {'shape': (3,
+                                                                      256,
+                                                                      256),
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.image2': {'shape': (3,
+                                                                       256,
+                                                                       256),
+                                                             'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': (8,),
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'max_action_dim': 32,
+            'max_period': 4.0,
+            'max_state_dim': 32,
+            'memory_frames': 6,
+            'memory_stride': 30,
+            'memory_temporal_attention_every': 4,
+            'min_period': 0.004,
+            'n_action_steps': 10,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_inference_steps': 10,
+            'optimizer_betas': (0.9, 0.95),
+            'optimizer_eps': 1e-08,
+            'optimizer_grad_clip_norm': 1.0,
+            'optimizer_lr': 2.5e-05,
+            'optimizer_weight_decay': 0.01,
+            'output_features': {'action': {'shape': (7,),
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'paligemma_variant': 'gemma_2b',
+            'pretrained_path': PosixPath('lerobot/pi05_libero_finetuned'),
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': True,
+            'relative_exclude_joints': ['gripper'],
+            'repo_id': 'pepijn223/pi05_libero_31_9_non_q',
+            'rtc_config': None,
+            'rtc_training_max_delay': 0,
+            'scheduler_decay_lr': 2.5e-06,
+            'scheduler_decay_steps': 6000,
+            'scheduler_warmup_steps': 1000,
+            'tags': None,
+            'text_tokenizer_name': 'google/paligemma-3b-pt-224',
+            'time_sampling_beta_alpha': 1.5,
+            'time_sampling_beta_beta': 1.0,
+            'time_sampling_offset': 0.001,
+            'time_sampling_scale': 0.999,
+            'tokenizer_max_length': 200,
+            'train_expert_only': False,
+            'use_amp': False,
+            'use_peft': False,
+            'use_proprioceptive_memory': False,
+            'use_relative_actions': False,
+            'use_visual_memory': False},
+ 'rename_map': {},
+ 'seed': 1000,
+ 'trust_remote_code': False}
+INFO 2026-09-15 09:58:30 bot_eval.py:750 Output dir: experiments/repro/pi05_smoke
+INFO 2026-09-15 09:58:30 bot_eval.py:752 Making environment (batch_size=1, async=True).
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-09-15 09:58:30 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-09-15 09:58:30 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-09-15 09:58:30 e/__init__.py:9 To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-09-15 09:58:30 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+INFO 2026-09-15 09:58:30 bot_eval.py:760 Making policy.
+/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+INFO 2026-09-15 09:59:32 ing_pi05.py:575 Enabled gradient checkpointing for PI05Pytorch model
+Creating LIBERO envs | suites=['libero_spatial'] | n_envs(per task)=1 | init_states=True
+Restricting to task_ids=[0]
+[info] using task orders [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Built vec env | suite=libero_spatial | task_id=0 | n_envs=1
+The PI05 model is a direct port of the OpenPI implementation. 
+This implementation follows the original OpenPI structure for compatibility. 
+Original implementation: https://github.com/Physical-Intelligence/openpi
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/bin/lerobot-eval", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/scripts/lerobot_eval.py", line 1111, in main
+    eval_main()
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/configs/parser.py", line 436, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/scripts/lerobot_eval.py", line 762, in eval_main
+    policy = make_policy(
+             ^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/policies/factory.py", line 383, in make_policy
+    policy = policy_cls.from_pretrained(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/policies/pi05/modeling_pi05.py", line 966, in from_pretrained
+    model = cls(config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/policies/pi05/modeling_pi05.py", line 921, in __init__
+    self.model.to(config.device)
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1384, in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  [Previous line repeated 5 more times]
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 965, in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1370, in convert
+    return t.to(
+           ^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 7.53 GiB of which 18.75 MiB is free. Process 4016 has 86.00 MiB memory in use. Including non-PyTorch memory, this process has 7.40 GiB memory in use. Of the allocated memory 7.01 GiB is allocated by PyTorch, and 314.00 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

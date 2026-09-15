@@ -1,0 +1,190 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-15 10:06:10 ls/_http.py:965 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+WARNING 2026-09-15 10:06:10 figs/eval.py:69 No job name provided, using 'libero_pi05' as job name.
+INFO 2026-09-15 10:06:10 bot_eval.py:741 {'env': {'camera_name': 'agentview_image,robot0_eye_in_hand_image',
+         'camera_name_mapping': None,
+         'control_mode': 'relative',
+         'disable_env_checker': True,
+         'episode_length': None,
+         'features': {'action': {'shape': (7,),
+                                 'type': <FeatureType.ACTION: 'ACTION'>},
+                      'pixels/agentview_image': {'shape': (360, 360, 3),
+                                                 'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'pixels/robot0_eye_in_hand_image': {'shape': (360,
+                                                                    360,
+                                                                    3),
+                                                          'type': <FeatureType.VISUAL: 'VISUAL'>},
+                      'robot_state/eef/mat': {'shape': (3, 3),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/pos': {'shape': (3,),
+                                              'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/eef/quat': {'shape': (4,),
+                                               'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qpos': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/gripper/qvel': {'shape': (2,),
+                                                   'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/pos': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>},
+                      'robot_state/joints/vel': {'shape': (7,),
+                                                 'type': <FeatureType.STATE: 'STATE'>}},
+         'features_map': {'action': 'action',
+                          'pixels/agentview_image': 'observation.images.image',
+                          'pixels/robot0_eye_in_hand_image': 'observation.images.image2',
+                          'robot_state/eef/mat': 'observation.state.eef_mat',
+                          'robot_state/eef/pos': 'observation.state.eef_pos',
+                          'robot_state/eef/quat': 'observation.state.eef_quat',
+                          'robot_state/gripper/qpos': 'observation.state.gripper_qpos',
+                          'robot_state/gripper/qvel': 'observation.state.gripper_qvel',
+                          'robot_state/joints/pos': 'observation.state.joint_pos',
+                          'robot_state/joints/vel': 'observation.state.joint_vel'},
+         'fps': 20,
+         'hard_reset': True,
+         'init_states': True,
+         'is_libero_plus': False,
+         'max_parallel_tasks': 1,
+         'obs_type': 'pixels_agent_pos',
+         'observation_height': 360,
+         'observation_width': 360,
+         'render_mode': 'rgb_array',
+         'task': 'libero_spatial',
+         'task_ids': [0]},
+ 'eval': {'batch_size': 1,
+          'n_episodes': 1,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'job_name': 'libero_pi05',
+ 'output_dir': PosixPath('experiments/repro/pi05_smoke_osmesa'),
+ 'policy': {'action_expert_variant': 'gemma_300m',
+            'action_feature_names': None,
+            'chunk_size': 50,
+            'compile_mode': 'max-autotune',
+            'compile_model': True,
+            'device': 'cuda',
+            'dtype': 'bfloat16',
+            'empty_cameras': 1,
+            'freeze_vision_encoder': False,
+            'gradient_checkpointing': True,
+            'image_resolution': (224, 224),
+            'input_features': {'observation.images.empty_camera_0': {'shape': (3,
+                                                                               224,
+                                                                               224),
+                                                                     'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.image': {'shape': (3,
+                                                                      256,
+                                                                      256),
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.image2': {'shape': (3,
+                                                                       256,
+                                                                       256),
+                                                             'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': (8,),
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'max_action_dim': 32,
+            'max_period': 4.0,
+            'max_state_dim': 32,
+            'memory_frames': 6,
+            'memory_stride': 30,
+            'memory_temporal_attention_every': 4,
+            'min_period': 0.004,
+            'n_action_steps': 10,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'STATE': <NormalizationMode.MEAN_STD: 'MEAN_STD'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_inference_steps': 10,
+            'optimizer_betas': (0.9, 0.95),
+            'optimizer_eps': 1e-08,
+            'optimizer_grad_clip_norm': 1.0,
+            'optimizer_lr': 2.5e-05,
+            'optimizer_weight_decay': 0.01,
+            'output_features': {'action': {'shape': (7,),
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'paligemma_variant': 'gemma_2b',
+            'pretrained_path': PosixPath('lerobot/pi05_libero_finetuned'),
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': True,
+            'relative_exclude_joints': ['gripper'],
+            'repo_id': 'pepijn223/pi05_libero_31_9_non_q',
+            'rtc_config': None,
+            'rtc_training_max_delay': 0,
+            'scheduler_decay_lr': 2.5e-06,
+            'scheduler_decay_steps': 6000,
+            'scheduler_warmup_steps': 1000,
+            'tags': None,
+            'text_tokenizer_name': 'google/paligemma-3b-pt-224',
+            'time_sampling_beta_alpha': 1.5,
+            'time_sampling_beta_beta': 1.0,
+            'time_sampling_offset': 0.001,
+            'time_sampling_scale': 0.999,
+            'tokenizer_max_length': 200,
+            'train_expert_only': False,
+            'use_amp': False,
+            'use_peft': False,
+            'use_proprioceptive_memory': False,
+            'use_relative_actions': False,
+            'use_visual_memory': False},
+ 'rename_map': {},
+ 'seed': 1000,
+ 'trust_remote_code': False}
+INFO 2026-09-15 10:06:10 bot_eval.py:750 Output dir: experiments/repro/pi05_smoke_osmesa
+INFO 2026-09-15 10:06:10 bot_eval.py:752 Making environment (batch_size=1, async=True).
+[robosuite WARNING] No private macro file found! (__init__.py:7)
+WARNING 2026-09-15 10:06:10 e/__init__.py:7 No private macro file found!
+[robosuite WARNING] It is recommended to use a private macro file (__init__.py:8)
+WARNING 2026-09-15 10:06:10 e/__init__.py:8 It is recommended to use a private macro file
+[robosuite WARNING] To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py (__init__.py:9)
+WARNING 2026-09-15 10:06:10 e/__init__.py:9 To setup, run: python /home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/scripts/setup_macros.py
+INFO 2026-09-15 10:06:10 pesloader.py:70 Failed to load library ( 'libOSMesa.so.0' ): libOSMesa.so.0: cannot open shared object file: No such file or directory
+INFO 2026-09-15 10:06:10 tesupport.py:24 No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/bin/lerobot-eval", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/scripts/lerobot_eval.py", line 1111, in main
+    eval_main()
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/configs/parser.py", line 436, in wrapper_inner
+    response = fn(cfg, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/scripts/lerobot_eval.py", line 753, in eval_main
+    envs = make_env(
+           ^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/envs/factory.py", line 122, in make_env
+    return cfg.create_envs(n_envs=n_envs, use_async_envs=use_async_envs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/envs/configs.py", line 429, in create_envs
+    from .libero import create_libero_envs
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/envs/libero.py", line 31, in <module>
+    from libero.libero.envs import OffScreenRenderEnv
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/libero/libero/envs/__init__.py", line 1, in <module>
+    from .bddl_base_domain import TASK_MAPPING
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/libero/libero/envs/bddl_base_domain.py", line 3, in <module>
+    import robosuite.utils.transform_utils as T
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/__init__.py", line 11, in <module>
+    from robosuite.environments.base import make
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/environments/__init__.py", line 1, in <module>
+    from .base import REGISTERED_ENVS, MujocoEnv
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/environments/base.py", line 12, in <module>
+    from robosuite.utils.binding_utils import MjRenderContextOffscreen, MjSim
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/robosuite/utils/binding_utils.py", line 12, in <module>
+    import mujoco
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/mujoco/__init__.py", line 62, in <module>
+    from mujoco.gl_context import *
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/mujoco/gl_context.py", line 38, in <module>
+    from mujoco.osmesa import GLContext as _GLContext
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/mujoco/osmesa/__init__.py", line 31, in <module>
+    from OpenGL import GL
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/OpenGL/GL/__init__.py", line 4, in <module>
+    from OpenGL.GL.VERSION.GL_1_1 import *
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/OpenGL/GL/VERSION/GL_1_1.py", line 14, in <module>
+    from OpenGL.raw.GL.VERSION.GL_1_1 import *
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/OpenGL/raw/GL/VERSION/GL_1_1.py", line 7, in <module>
+    from OpenGL.raw.GL import _errors
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/OpenGL/raw/GL/_errors.py", line 4, in <module>
+    _error_checker = _ErrorChecker( _p, _p.GL.glGetError )
+                                        ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'glGetError'

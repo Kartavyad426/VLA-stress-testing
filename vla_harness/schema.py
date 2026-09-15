@@ -12,7 +12,7 @@ import platform
 from dataclasses import dataclass, field, asdict
 from typing import Any, Protocol, runtime_checkable
 
-SCHEMA_VERSION = "2.0"
+SCHEMA_VERSION = "3.0"
 
 
 # --- G1: actions are variable-dimension -------------------------------------
@@ -147,6 +147,15 @@ class Rollout:
     # Stored, not merely hashed, so a cache hit can be VERIFIED rather than
     # trusted, and so a mismatch can say which field moved.
     fingerprint: dict[str, Any] = field(default_factory=dict)
+    # A3/DG-8: the scene in PHYSICAL UNITS, resolved from the seed at reset.
+    # PPI pairs a sim outcome with a real one for the SAME scene, so it needs a
+    # scene a person could rebuild on a bench. `seed` + `spec` is sim-internal
+    # by construction and cannot supply that. Cheap to emit now; unreconstructable
+    # from a trace store later.
+    scene_descriptor: dict[str, Any] = field(default_factory=dict)
+    # B6/DG-6: produced by a PrivilegedProbePolicy, which sees `_gt_` state.
+    # Excluded from every headline number by the same filter as tier3 (I13).
+    privileged: bool = False
     schema_version: str = SCHEMA_VERSION
     meta: dict[str, Any] = field(default_factory=dict)
 
@@ -245,25 +254,72 @@ class Env(Protocol):
         fingerprint must grow to cover detector config.
         """
         ...
+    def semantic_deps(self) -> dict:
+        """KNOWN-semantic externals this env actually depends on. Keyed.
+        Default `semantic_runtime()`; a pure-Python env should return {}."""
+        ...
+    def scene_descriptor(self) -> dict:
+        """The reset scene in PHYSICAL UNITS -- object poses, camera, lighting.
+        Must be reproducible by a person on a physical bench (A3/DG-8)."""
+        ...
     def reset(self, seed: int, spec: PerturbationSpec) -> Observation: ...
     def step(self, action: Action) -> tuple[Observation, bool, bool, str]: ...
 
 
 # --- G7 / G10: append-only trace store, resumable by content hash ------------
 
-def cell_hash(policy_id, env_id, task_id, seed, spec: PerturbationSpec) -> str:
+def cell_hash(policy_id, env_id, task_id, seed, spec: PerturbationSpec,
+              semantic: dict | None = None) -> str:
     """Content-addressed rollout id.
 
     `policy_id` and `env_id` are DERIVED from identity() (see `derive_id`), so
     changing a detector threshold or a checkpoint revision changes the id and
     the cache misses instead of silently serving a rollout from different code.
     """
-    key = f"{policy_id}|{env_id}|{task_id}|{seed}|{sorted(spec.knobs)}"
+    sem = identity_hash(semantic) if semantic else "-"
+    key = f"{policy_id}|{env_id}|{task_id}|{seed}|{sorted(spec.knobs)}|{sem}"
     return hashlib.sha1(key.encode()).hexdigest()[:12]
 
 
+# Components with a DOCUMENTED, SPECIFIC semantic effect. Keyed (A2/DG-4).
+# Promotion into this list requires evidence -- a specific documented change
+# moving results -- and is a deliberate, rare, store-invalidating event.
+#
+#   mujoco: F2 / lerobot#4390. MuJoCo 3.4.0's box-box collision fix broke
+#           LIBERO's stored init states: SmolVLA 80% -> 28% on one task.
+#
+# `torch`/`numpy` are NOT here. They can change answers in principle (reduction
+# order -> float differences -> contact chaos, see ARCHITECTURE.md 5.1), but no
+# specific documented case is known. Keying them would invalidate the whole
+# store on every pip upgrade -- the git-SHA failure mode under another name.
+SEMANTIC_RUNTIME_MODULES = ("mujoco", "robosuite")
+SEMANTIC_RUNTIME_ENV = ("MUJOCO_GL",)
+RUNTIME_MODULES = ("torch", "numpy", "lerobot", "transformers")
+
+
+def semantic_runtime() -> dict:
+    """KNOWN-semantic externals. Inside the cache key.
+
+    Separate from `identity()` because a simulator build is not part of an
+    env's task DESIGN -- ToyReachEnv.identity() declaring a MuJoCo version it
+    never loads would be incoherent. Adapters declare which of these they
+    actually depend on via `Env.semantic_deps()`.
+    """
+    out = {}
+    for mod in SEMANTIC_RUNTIME_MODULES:
+        try:
+            out[mod] = __import__(mod).__version__
+        except Exception:
+            pass
+    for var in SEMANTIC_RUNTIME_ENV:
+        v = os.environ.get(var)
+        if v is not None:
+            out[var] = v
+    return out
+
+
 def runtime_context() -> dict:
-    """Runtime facts that shift the DISTRIBUTION but must not key the cache.
+    """POSSIBLY-semantic facts. Reported on a cache hit, never fatal.
 
     Deliberately outside `cell_hash`. Putting a MuJoCo version or a GPU model
     into the key would invalidate every rollout on every machine, which kills
@@ -277,7 +333,7 @@ def runtime_context() -> dict:
     """
     ctx = {"python": platform.python_version(),
            "platform": f"{platform.system()}-{platform.machine()}"}
-    for mod in ("mujoco", "numpy", "torch", "lerobot", "robosuite"):
+    for mod in RUNTIME_MODULES:
         try:
             ctx[mod] = __import__(mod).__version__
         except Exception:
@@ -288,12 +344,125 @@ def runtime_context() -> dict:
 def make_fingerprint(env, policy) -> dict:
     """Stored on every Rollout; compared on every cache hit.
 
-    Strictly broader than what `cell_hash` keys on: `env`/`policy` identity are
-    in the key (so a change misses the cache), `runtime` is not (so a change is
-    caught and reported rather than silently invalidating the store).
+    Three buckets (A2/DG-4). `identity` and `semantic_runtime` are KEYED, so a
+    change misses the cache. `runtime` is not, so a change is reported rather
+    than silently invalidating the whole store.
     """
+    deps = getattr(env, "semantic_deps", lambda: semantic_runtime())()
     return {"env": env.identity(), "policy": policy.identity(),
-            "runtime": runtime_context()}
+            "semantic_runtime": deps, "runtime": runtime_context()}
+
+
+def keyed_part(fp: dict) -> dict:
+    """The subset of a fingerprint that participates in the cache key."""
+    return {k: fp[k] for k in ("env", "policy", "semantic_runtime") if k in fp}
+
+
+class ArmLog:
+    """A1/DG-2 -- which sampling arm REQUESTED which cell.
+
+    The arm is a property of the REQUEST, not of the episode. `rollout_id`
+    hashes (identity, seed, spec) and correctly excludes the arm, because the
+    physics is identical either way. Tagging the stored Rollout would mean one
+    rollout per cell carrying whichever arm asked FIRST -- so the uniform arm
+    would silently lose cells to cache hits tagged `adaptive`, and WHICH cells
+    it lost would depend on adaptive search order. Its sample would stop being
+    uniform: exactly the corruption the two-arm split exists to prevent.
+
+    Hashing the arm instead is worse -- duplicate identical physics, double the
+    campaign, and it breaks the seed pairing the paired statistics need.
+
+    So: a many-to-many request log. One rollout legitimately serves both arms.
+    """
+
+    def __init__(self, root: str, run_id: str):
+        self.dir = os.path.join(root, run_id)
+        os.makedirs(self.dir, exist_ok=True)
+        self.path = os.path.join(self.dir, "arms.jsonl")
+
+    def record(self, arm: str, rollout_id: str, spec, seed: int) -> None:
+        with open(self.path, "a") as f:
+            f.write(json.dumps({"arm": arm, "rollout_id": rollout_id,
+                                "seed": seed, "spec": spec.as_dict()},
+                               separators=(",", ":")) + "\n")
+
+    def requested_by(self, arm: str) -> set[str]:
+        """Rollout ids the given arm ASKED for -- cache hits included."""
+        out = set()
+        if not os.path.exists(self.path):
+            return out
+        with open(self.path) as f:
+            for line in f:
+                if line.strip():
+                    d = json.loads(line)
+                    if d["arm"] == arm:
+                        out.add(d["rollout_id"])
+        return out
+
+    def arms(self) -> set[str]:
+        out = set()
+        if os.path.exists(self.path):
+            with open(self.path) as f:
+                for line in f:
+                    if line.strip():
+                        out.add(json.loads(line)["arm"])
+        return out
+
+
+@dataclass
+class RegressionSet:
+    """B4/DG-7 -- the frozen comparison basis for Phase 5.
+
+    It is a list of (seed, spec) pairs whose MEANING depends entirely on the
+    env identity it was frozen against. Since env identity now changes whenever
+    a threshold, the simulator or the renderer moves, a set frozen in Phase 3
+    and re-run in Phase 5 can silently be measuring a different thing. That is
+    the rollout-identity bug one level up, against the artifact carrying the
+    project's headline before/after claim -- so the binding is explicit and
+    checked (I12).
+    """
+    set_id: str
+    frozen_env: dict                      # env identity at freeze time
+    frozen_semantic: dict                 # semantic_runtime at freeze time
+    frozen_at: str
+    members: list[dict]                   # [{rollout_id, seed, spec}]
+    note: str = ""
+    schema_version: str = SCHEMA_VERSION
+
+    def check_against(self, env) -> dict:
+        """Is this set still measuring what it was frozen to measure?"""
+        sem = getattr(env, "semantic_deps", lambda: semantic_runtime())()
+        d = {**fingerprint_diff(self.frozen_env, env.identity(), "env."),
+             **fingerprint_diff(self.frozen_semantic, sem, "semantic_runtime.")}
+        return d
+
+    def save(self, path: str) -> None:
+        with open(path, "w") as f:
+            json.dump(asdict(self), f, indent=2)
+
+    @staticmethod
+    def load(path: str) -> "RegressionSet":
+        d = json.load(open(path))
+        got = d.get("schema_version", "0")
+        if got.split(".")[0] != SCHEMA_VERSION.split(".")[0]:
+            raise ValueError(f"incompatible RegressionSet schema {got}")
+        return RegressionSet(**d)
+
+
+class RegressionSetExpired(RuntimeError):
+    """Raised when a regression set is re-run under a different env identity
+    without an explicit override. Loud by design (I12)."""
+
+
+def freeze_regression_set(set_id, env, rollouts, note="") -> RegressionSet:
+    from datetime import date
+    sem = getattr(env, "semantic_deps", lambda: semantic_runtime())()
+    return RegressionSet(
+        set_id=set_id, frozen_env=env.identity(), frozen_semantic=sem,
+        frozen_at=date.today().isoformat(),
+        members=[{"rollout_id": r.rollout_id, "seed": r.seed,
+                  "spec": dict(r.perturbation)} for r in rollouts],
+        note=note)
 
 
 class TraceStore:

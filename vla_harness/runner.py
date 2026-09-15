@@ -18,7 +18,18 @@ import time
 from dataclasses import dataclass, field
 
 from .schema import (Rollout, Step, PerturbationSpec, TraceStore, cell_hash,
-                     make_fingerprint, fingerprint_diff)
+                     make_fingerprint, fingerprint_diff, semantic_runtime,
+                     keyed_part)
+
+
+def _sem(env) -> dict:
+    """KNOWN-semantic externals this env depends on -- part of the cache key."""
+    return getattr(env, "semantic_deps", lambda: semantic_runtime())()
+
+
+def _cell_id(env, policy, seed, spec) -> str:
+    return cell_hash(policy.policy_id, env.env_id, env.task_id, seed, spec,
+                     _sem(env))
 
 
 def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
@@ -29,7 +40,13 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
     steps, fwd = [], 0
 
     while True:
-        action = policy(obs.policy_view())        # privileged keys stripped
+        # B6/DG-6: a PrivilegedProbePolicy opts in to full state for the
+        # §7c discriminator-4 ablation. Everything else gets the stripped view,
+        # and policy_view() itself is unchanged -- a flag on the strict path
+        # would reintroduce the convention-vs-enforcement weakness that caused
+        # the original `_gt_` leak.
+        action = policy(obs if getattr(policy, "privileged", False)
+                        else obs.policy_view())
         fwd += 1
         steps.append(Step(t=obs.t, obs_state=dict(obs.state),
                           action=list(action.values),
@@ -46,7 +63,7 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
                       image_refs=dict(obs.image_refs)))
 
     return Rollout(
-        rollout_id=cell_hash(policy.policy_id, env.env_id, env.task_id, seed, spec),
+        rollout_id=_cell_id(env, policy, seed, spec),
         task_id=env.task_id, instruction=env.instruction,
         policy_id=policy.policy_id, env_id=env.env_id,
         seed=seed, perturbation=spec.as_dict(),
@@ -54,6 +71,9 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
         success=success, termination=reason,
         wall_time_s=time.perf_counter() - t0, forward_passes=fwd,
         fingerprint=make_fingerprint(env, policy),
+        scene_descriptor=(env.scene_descriptor()
+                          if hasattr(env, "scene_descriptor") else {}),
+        privileged=getattr(policy, "privileged", False),
     )
 
 
@@ -99,7 +119,7 @@ class Cell:
 
 
 def run_cell(env, policy, spec, seeds, store: TraceStore | None = None,
-             strict: bool = False) -> Cell:
+             strict: bool = False, arms=None, arm: str = "uniform") -> Cell:
     """G10: resumable, and the resume is VERIFIED rather than trusted.
 
     Two distinct failure modes are guarded here:
@@ -121,10 +141,14 @@ def run_cell(env, policy, spec, seeds, store: TraceStore | None = None,
     current_fp = make_fingerprint(env, policy)
 
     for sd in seeds:
-        rid = cell_hash(policy.policy_id, env.env_id, env.task_id, sd, spec)
+        rid = _cell_id(env, policy, sd, spec)
+        if arms is not None:
+            arms.record(arm, rid, spec, sd)          # A1: request, not episode
         r = cached.get(rid)
 
         if r is not None:
+            # only the REPORTED (non-keyed) part can differ on a hit: a keyed
+            # change alters rollout_id and misses the cache by construction.
             diff = fingerprint_diff(r.fingerprint or {}, current_fp)
             if diff:
                 rec = {"rollout_id": rid, "seed": sd, "diff": diff}
@@ -151,11 +175,33 @@ def run_cell(env, policy, spec, seeds, store: TraceStore | None = None,
 
 
 def sweep(env, policy, knob: str, levels, seeds, base=None,
-          store=None, strict=False) -> list[Cell]:
-    """Vary ONE axis, hold everything else at its base value."""
+          store=None, strict=False, arms=None, arm="uniform") -> list[Cell]:
+    """Vary ONE axis, hold everything else at its base value.
+
+    This is the UNIFORM arm: a fixed grid, unbiased, and therefore the only
+    source frequency statistics may be computed from (PLAN.md 5.1).
+    """
     base = base or {}
     return [run_cell(env, policy, PerturbationSpec.of(**{**base, knob: lv}),
-                     seeds, store, strict) for lv in levels]
+                     seeds, store, strict, arms, arm) for lv in levels]
+
+
+def uniform_frequency(rollouts, arm_log, arm: str = "uniform") -> dict:
+    """A1/DG-2 -- frequency computed over cells the UNIFORM ARM REQUESTED.
+
+    NOT over stored-rollout tags. A rollout the adaptive arm happened to run
+    first is still a legitimate member of the uniform sample if the uniform arm
+    asked for that cell -- the physics is identical. Filtering on who stored it
+    would silently shrink the uniform sample in adaptive search order, which is
+    the corruption this whole mechanism exists to prevent (I9).
+    """
+    requested = arm_log.requested_by(arm)
+    members = [r for r in rollouts if r.rollout_id in requested]
+    fails = [r for r in members if not r.success]
+    return {"arm": arm, "n_requested": len(requested), "n_resolved": len(members),
+            "n_failures": len(fails),
+            "rate": (len(fails) / len(members)) if members else None,
+            "member_ids": {r.rollout_id for r in members}}
 
 
 def resume_summary(cells) -> dict:
@@ -228,9 +274,30 @@ def reproducibility_floor(env, policy, spec, seeds, repeats=2) -> dict:
             "n_per_run": len(seeds), "repeats": repeats}
 
 
+def mcnemar(pairs) -> dict:
+    """C7 -- paired test on per-seed outcomes.
+
+    We run the SAME seeds in both arms, so outcomes are paired and comparing
+    rate-to-rate discards that. Only the discordant pairs carry information:
+    seeds that flip. Exact binomial two-sided test on b vs c.
+
+    Free variance reduction, and it relieves the probe's episode budget.
+    """
+    b = sum(1 for f, r in pairs if not f and r)      # failed full, passed revert
+    c = sum(1 for f, r in pairs if f and not r)      # passed full, failed revert
+    n = b + c
+    if n == 0:
+        return {"b": 0, "c": 0, "discordant": 0, "p_value": 1.0,
+                "note": "no seed changed outcome"}
+    from math import comb
+    k = min(b, c)
+    p = min(1.0, 2 * sum(comb(n, i) for i in range(k + 1)) / (2 ** n))
+    return {"b": b, "c": c, "discordant": n, "p_value": round(p, 5)}
+
+
 def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
                          store=None, floor_pp: float = 0.0,
-                         min_delta_pp: float = 20.0) -> dict:
+                         min_delta_pp: float = 20.0, arms=None) -> dict:
     """Attribution. Re-run the SAME seeds reverting one knob at a time.
 
     Compares DISTRIBUTIONS over `seeds`, not single trajectories -- exact
@@ -239,14 +306,34 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
     threshold and the measured reproducibility floor, so run-to-run jitter
     cannot be mistaken for a cause.
     """
-    full = run_cell(env, policy, spec, seeds, store)
+    def outcomes(sp):
+        """Per-seed success, in seed order -- the pairing C7 needs."""
+        cached = store.by_id() if store else {}
+        out = []
+        for sd in seeds:
+            rid = _cell_id(env, policy, sd, sp)
+            r = cached.get(rid)
+            if r is None:
+                r = rollout(env, policy, sd, sp)
+                if store:
+                    store.append(r)
+            if arms is not None:
+                arms.record("probe", rid, sp, sd)
+            out.append(bool(r.success))
+        return out
+
+    full_out = outcomes(spec)
+    full = Cell(spec, len(seeds), sum(full_out), [])
     results = []
     for knob, val in spec.knobs:
         if val == 0:
             continue
-        rev = run_cell(env, policy, spec.revert(knob), seeds, store)
+        rev_spec = spec.revert(knob)
+        rev_out = outcomes(rev_spec)
+        rev = Cell(rev_spec, len(seeds), sum(rev_out), [])
         results.append({"knob": knob, "reverted_rate": rev.rate,
-                        "delta_pp": (rev.rate - full.rate) * 100})
+                        "delta_pp": (rev.rate - full.rate) * 100,
+                        "paired": mcnemar(list(zip(full_out, rev_out)))})
     results.sort(key=lambda r: -r["delta_pp"])
     threshold = max(min_delta_pp, 3 * floor_pp)
     top = results[0] if results else None

@@ -33,15 +33,49 @@ REMEDIATION = {
 }
 
 
-def severity(cluster, total_failures, boundary) -> str:
-    share = cluster["count"] / max(1, total_failures)
-    if share > 0.30 or (boundary and boundary["upper_rate"] < 0.20):
-        return "high"
-    return "medium" if share > 0.10 else "low"
+NOT_ESTIMATED = "not estimated"
+
+
+def failure_conditional(cluster, cells_at_condition) -> dict:
+    """B5/DG-5b -- P(fail | condition). OURS: measured, and what the
+    counterfactual probe establishes. Transfers moderately, because it is a
+    claim about the POLICY."""
+    n = sum(c.n for c in cells_at_condition) if cells_at_condition else 0
+    k = sum(c.n - c.successes for c in cells_at_condition) if cells_at_condition else 0
+    if not n:
+        return {"value": None, "n": 0, "note": "no uniform-arm cells"}
+    from .runner import wilson_ci
+    lo, hi = wilson_ci(k, n)
+    return {"value": round(k / n, 4), "ci95": [round(lo, 4), round(hi, 4)],
+            "n_episodes": n}
+
+
+def condition_prevalence(cluster, uniform_ids) -> dict | str:
+    """P(condition) -- how often the condition ARISES.
+
+    We do not ship a number for this. In simulation it is an artifact of the
+    perturbation grid WE CHOSE, so it has no reason to transfer to a client's
+    deployment; and it is the half of severity the sim-to-real literature says
+    transfers worst. The client supplies it from their deployment logs.
+
+    The `not estimated` case is load-bearing (I11): a region the ADAPTIVE arm
+    found and the uniform arm never sampled has an UNKNOWN prevalence, not a
+    low one. Rendering it as low severity would systematically bury the output
+    of the adaptive arm -- the most novel component we have. Silent demotion and
+    honest abstention look identical in a ranked table and are different claims.
+    """
+    ids = set(cluster.get("example_rollout_ids", []))
+    if uniform_ids is not None and not (ids & set(uniform_ids)):
+        return NOT_ESTIMATED
+    return {"source": "client", "value": None,
+            "note": "supply from deployment logs; severity computed at delivery"}
 
 
 def make_row(row_id, cluster, boundary, probe, nominal_rate, n_episodes,
-             provenance, supply_side=None, total_failures=1) -> dict:
+             provenance, supply_side=None, total_failures=1,
+             cells_at_condition=None, uniform_ids=None,
+             failure_cost=None, fixability=None, non_data_fix=None,
+             discriminators=None) -> dict:
     axis = (boundary or {}).get("knob") or (
         cluster["active_knobs"][0] if cluster["active_knobs"] else "unknown")
 
@@ -56,9 +90,19 @@ def make_row(row_id, cluster, boundary, probe, nominal_rate, n_episodes,
         trigger = f"{axis} — co-occurs with failure; NOT counterfactual-confirmed"
         strength = "correlational"
 
+    prevalence = condition_prevalence(cluster, uniform_ids)
     return {
         "row_id": row_id,
-        "severity": severity(cluster, total_failures, boundary),
+        # B5/DG-5b: we do NOT ship a cardinal severity. See PLAN.md §9.3.
+        "failure_conditional": failure_conditional(cluster, cells_at_condition or []),
+        "condition_prevalence": prevalence,
+        "failure_cost": failure_cost,          # client-specific, same as prevalence
+        "severity": ("computed at delivery = conditional x prevalence x cost"
+                     if prevalence != NOT_ESTIMATED
+                     else "NOT RANKABLE - prevalence not estimated"),
+        "fixability": fixability,
+        "non_data_fix": non_data_fix,
+        "discriminators": discriminators or {},
         "evidence_strength": strength,
         "task_scope": cluster["tasks"],
         "failure_family": cluster["family"],

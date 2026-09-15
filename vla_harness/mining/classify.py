@@ -56,6 +56,39 @@ def _attempt_spread(r) -> float | None:
     return max(math.dist(a, b) for a in pts for b in pts)
 
 
+# C8/DG-10 -- failure COST, not just failure RATE (PLAN.md §7b.3).
+# The proposal counts failures; buyers care what a failure DOES. A timeout with
+# the gripper open is free; a dropped part stops a line; a collision is a safety
+# event. Same success rate, very different risk. Rated our most novel
+# contribution by the landscape survey, and previously unimplemented -- which
+# meant no row the harness could emit satisfied the schema's own ✱ rule.
+COST_BENIGN, COST_DISRUPTIVE, COST_SAFETY = "benign", "disruptive", "safety"
+
+
+def failure_cost(r, diagnosis) -> dict:
+    """Classify a failure by CONSEQUENCE, from terminal state.
+
+    Env-agnostic: reads only declared state keys, and abstains when it cannot
+    tell (G8) rather than guessing a cost a client would act on.
+    """
+    if r.success:
+        return {"cost": None, "reason": "succeeded"}
+    term = diagnosis.get("terminal")
+    held = r.series("holding")
+    dropped = bool(held) and any(held) and not held[-1]
+
+    if dropped:
+        return {"cost": COST_DISRUPTIVE,
+                "reason": "object was grasped and then released before the goal"}
+    if term in ("retry_loop", "failed_grasp_no_retry"):
+        return {"cost": COST_BENIGN,
+                "reason": f"{term}: ended without acquiring the object"}
+    if term == "never_reached":
+        return {"cost": COST_BENIGN, "reason": "no contact with the scene"}
+    return {"cost": None, "reason": f"no rule for terminal={term!r}",
+            "needs_review": True}
+
+
 def classify(r, nominal=None, segmenter=None) -> dict:
     seg = segmenter or PhaseSegmenter()
     segs, info = seg(r)
@@ -76,6 +109,7 @@ def classify(r, nominal=None, segmenter=None) -> dict:
 
     if r.success:
         d.update(family=None, reason="succeeded")
+        d["failure_cost"] = failure_cost(r, d)
         return d
 
     # --- decision rules, most-specific first --------------------------------
@@ -99,6 +133,7 @@ def classify(r, nominal=None, segmenter=None) -> dict:
                                      if spread else ""))
     else:
         d.update(family="ambiguous", confident=False, reason="no rule matched")
+    d["failure_cost"] = failure_cost(r, d)
     return d
 
 

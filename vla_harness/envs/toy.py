@@ -47,6 +47,36 @@ class ToyReachEnv:
                 "max_steps": self.max_steps, "grasp_radius": self.grasp_radius,
                 "action_dims": list(ACTION_DIMS), "control_mode": "delta"}
 
+    def semantic_deps(self) -> dict:
+        """Pure Python -- no simulator, no renderer. Nothing external can
+        change this env's answers, so nothing external belongs in its key."""
+        return {}
+
+    def scene_descriptor(self) -> dict:
+        """The reset scene in PHYSICAL UNITS (A3/DG-8).
+
+        Reproducible by a person: these are metres in the world frame, not a
+        seed. A real adapter emits object poses, camera extrinsics and lighting
+        the same way, which is what makes a paired real-world trial possible
+        later.
+        """
+        return {
+            "units": "metres",
+            "objects": [
+                {"name": "target_bowl",
+                 "pos_m": [round(self.object_xy[0], 5),
+                           round(self.object_xy[1], 5), 0.0]},
+                *[{"name": f"distractor_{i}",
+                   "pos_m": [round(d[0], 5), round(d[1], 5), 0.0]}
+                  for i, d in enumerate(self.distractors)],
+            ],
+            "robot": {"eef_start_pos_m": [round(self.ee_xy[0], 5),
+                                          round(self.ee_xy[1], 5), 0.0]},
+            "camera": {"yaw_deg": round(math.degrees(self.camera_yaw), 4),
+                       "model": "orthographic-2d"},
+            "sensing": {"pixel_noise_std_m": self.noise},
+        }
+
     def reset(self, seed: int, spec: PerturbationSpec) -> Observation:
         self.rng = random.Random(seed)             # G5: determinism
         self.spec = spec
