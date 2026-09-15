@@ -143,3 +143,119 @@ search.
 7. **D, F** → tighten and validate
 
 Steps 2 and 3 gate everything; neither needs a GPU to write.
+
+---
+
+## 5. Revisions from the methods survey (2026-09-15)
+
+`docs/FAILURE_MINING_METHODS.md` completed after this document was written. Four
+changes, three of which add phases.
+
+### 5.1 Attribution becomes ddmin, not revert-one-knob
+
+**Revert-one-knob structurally cannot see interactions.** A failure requiring
+viewpoint AND initial state *jointly* shows a small effect on every single
+reversion, and we report "no factor responsible" — which today renders
+**identically** to a genuine null and to multiple sufficient causes. Three
+distinct situations, one output string.
+
+**ddmin** (delta debugging) finds the **minimal failure-inducing subset** in
+O(n²) same-seed re-runs rather than 2ⁿ. Every re-run is a rollout we can already
+do, so the cost is episodes, not new machinery.
+
+**Output vocabulary must grow to match:** `single_factor`, `minimal_subset`
+(with the subset), `multiple_sufficient`, `no_factor_identified`. Collapsing
+these is the bug, not the arithmetic.
+
+### 5.2 NEW PHASE G — language sensitivity probe *(run EARLY)*
+
+| | | Episodes | GPU |
+|---|---|---|---|
+| **G** | blank-instruction + directed-substitution | ~2 per instance probed | ~1 h for 1,500 |
+
+**Not optional, and it gates a taxonomy family.** LIBERO-Plus reports
+OpenVLA-OFT "largely unchanged" with **no language input at all** — it
+"degenerates into … a Vision-Action model". Their goal-replacement probe then
+shows success dropping nearly to zero **while the model still executes the
+ORIGINAL target's trajectory**.
+
+Three outcomes, and the third is the one a success-rate-only design misses:
+
+| Probe result | Reading |
+|---|---|
+| blank instruction ⇒ success unchanged | **insensitivity** — the policy is a VA model |
+| goal replaced ⇒ trajectory follows the NEW target | **comprehension** |
+| goal replaced ⇒ success collapses, trajectory follows the **ORIGINAL** target | **partial grounding** — looks like comprehension in aggregate, is not |
+
+**Why it gates:** if the policy is insensitive, a `language_grounding` family is
+near-unpopulated, and a classifier carrying it will either abstain or *quietly
+label something else with its name* — which κ cannot catch. So this probe
+decides whether that family is admissible, and must run **before** any
+language claim reaches a client.
+
+This reverses part of DG-11: we declared the axis out of scope for lack of a
+detector, but the corpus has **1,537 language instances** and the probe is one
+rollout with one word changed. The constraint was ours and smaller than claimed.
+
+### 5.3 NEW PHASE H — taxonomy validation by name-based re-assignment
+
+| | | Cost |
+|---|---|---|
+| **H** | held-out judge assigns episodes from cluster NAMES only | CPU + human time |
+
+**Nobody validates a taxonomy as correct** — that is the survey's negative
+answer to our open problem #2. κ is the wrong instrument *regardless of
+threshold*: `{failure on a Tuesday, failure not on a Tuesday}` scores **κ = 1.0**.
+That is construct validity, not reliability.
+
+So: **supplement, do not raise.**
+
+- report **percentage agreement and Gwet's AC1** beside κ — κ is depressed by
+  exactly the class imbalance failure taxonomies always have (kappa paradox)
+- **name-based re-assignment**: give a held-out judge *only* cluster names and
+  descriptions; have them assign held-out episodes; measure agreement with the
+  induced partition
+
+This genuinely tests the partition rather than the raters. It establishes a
+cluster has a **communicable common property** — *not* that the property is the
+right one. **Report it as partial.**
+
+### 5.4 Every frequency claim carries the selection caveat
+
+The released 10,030 were filtered from 14,000 by **deleting tasks solved by all
+or most of four reference models** (OpenVLA-OFT, π0, π0-fast, UniVLA). A rate
+over that corpus is **not a robustness rate** — it is a rate over a population
+selected to be hard for four specific models, and cross-policy comparison on it
+is confounded with similarity to them.
+
+This is a second, independent reason not to ship a cardinal severity.
+
+### 5.5 Wave E forks on one unanswered question
+
+LIBERO-plus **is a generator** (14,000 candidates; single-dimension perturbation
+is its unit of operation), so revert-one-knob is constructible *in principle*.
+
+**Unverified: whether the generation code is distributed.**
+
+- **If yes** — we get a real knob API, the original probe design works, and
+  Wave E's instance-selection machinery (E1) is largely unnecessary.
+- **If no** — instance selection stands, and attribution is limited to what the
+  released corpus happens to contain.
+
+**This is the highest-value outstanding check and it is a repo question.**
+Answer it before building either version.
+
+### Revised phase table
+
+| Phase | Episodes | GPU | Notes |
+|---|---|---|---|
+| A nominal baseline | 400 | 1–2 h | running |
+| **G language probe** | ~3,000 | **~1 h** | **early — gates a taxonomy family** |
+| B stratified screen | 2,000–10,030 | 5–25 h | ours, mineable |
+| C attribution + **ddmin** | 500–2,000 | 1–5 h | grew; ddmin is O(n²) |
+| D targeted repeats | ~1,000 | 2.5 h | |
+| E mining | — | 0 | CPU |
+| **H taxonomy validation** | — | **0** | CPU + human |
+| F remediation | ~1,500 | 10–15 h | 5 fine-tunes |
+
+**Total ≈ 21–51 GPU-hours.** Still two to three overnight runs.
