@@ -283,20 +283,32 @@ A failure to reproduce *it* is unambiguously our fault. That makes it an ideal
 anchor: run it once, and every subsequent number from this harness is measured
 against a setup already cleared of suspicion.
 
-**STATUS: SETTLED 2026-09-15 — NOT AVAILABLE ON THIS HARDWARE.** π0.5's
-weights alone exceed 8 GB (7.34 GiB free, OOM during load, with no simulator
-running). This is *not* the CUDA/EGL contention we assumed; `osmesa` cannot
-rescue it. See `FINDINGS.md` F4.
+**STATUS: DEFERRED BY DECISION, 2026-09-15.** The user chose to proceed to the
+VLA-Adapter gate and pay for the anchor only if that result lands ambiguous.
+This is a decision, not an oversight, and the residual cost is stated below.
 
-**DECIDED 2026-09-15: the user is arranging anchor compute via a free-tier
-channel (Colab/Kaggle).** π0.5 is inference-only, one-off, and ≤400 episodes,
-which fits a **16 GB T4** comfortably. Verify `MUJOCO_GL=egl` works in a hosted notebook before planning
-around it. An environment cleared on a T4 is not bit-identical to this laptop,
-but what the gate actually checks — control mode, un-normalisation, action
-chunking, dataset revision, simulator version — is machine-independent.
+**The anchor is UNAVAILABLE on this hardware.** π0.5's weights alone exceed
+8 GB: PyTorch held 7.01 GiB of 7.53 before any render context existed, and a
+weights-only load with no simulator running reproduced the OOM. This is *not*
+the lerobot#3098 CUDA/EGL contention we assumed. See `FINDINGS.md` F4.
 
-**Until that is done, VLA-Adapter's gate stands alone with the ambiguity DG-5
-warned about.** Historical reasoning for the original deferral follows.
+**Taking it later costs RENTED COMPUTE, not a day of local work.** Any framing
+of the anchor as a cheap in-house fallback is now false. It needs a ≥16 GB card
+— a free-tier T4 or a rented hour — and it is inference-only, one-off, ≤400
+episodes.
+
+**The residual this deferral buys, stated so it is not discovered later:** if
+the VLA-Adapter gate lands ambiguous, **we cannot attribute the miss between our
+setup and the checkpoint without spending money.** At n=100 a 5 pp break goes
+unflagged 66% of the time (§5.3), so an ambiguous landing is likely rather than
+exceptional. **This belongs in the readout**, not in a footnote.
+
+**A rented anchor is stronger than "we couldn't run it locally" implies.** It
+still exonerates almost everything that matters — harness code, the LIBERO
+adapter, detector configuration, init states, the MuJoCo pin, control mode,
+un-normalisation, dataset revision. Only genuinely machine-specific effects stay
+unexonerated, which is a far smaller residue than the original ambiguity. The
+`runtime` fingerprint bucket exists precisely to make that residue visible.
 
 **(superseded) STATUS: undecided, blocked on a smoke test (DG-5).** The review argues the
 deferral contradicts its own justification: if the gate exists to clear the
@@ -356,12 +368,16 @@ about. Measured operating characteristic, published = 87%:
 | True success rate | P(test says "consistent") @ n=100 | @ n=500 |
 |---|---|---|
 | 0.87 — correct environment | 92.4% | 94.7% |
-| **0.82 — a 5 pp break** | **56.2%** | **11.0%** |
+| **0.82 — a 5 pp break** | **56.2%** (66.0% incl. escalate) | **11.0%** |
 | 0.80 — a 7 pp break | 36.2% | 1.0% |
 | 0.73 — the known failed-repro value | 2.4% | 0.0% |
 
 **A 5 pp break — exactly what the original ±5 pp tolerance existed to catch —
-passes at n=100 more than half the time.** The CI-overlap framing did not make
+passes at n=100 **56.2%** of the time as "consistent", and is **not flagged as a
+non-reproduction 66.0%** of the time. The gap between those two figures is the
+single outcome k=81, which escalates rather than passing; it carries ~10% of the
+mass at p=0.82. **66.0% is the operationally important number** — two times in
+three, a 5 pp break is not caught.** The CI-overlap framing did not make
 the gate more honest than the tolerance; it made it *less sensitive while
 reading as more rigorous*. "Consistent with published" is a true statement about
 a test with no power, and it is the sentence a reader will quote.

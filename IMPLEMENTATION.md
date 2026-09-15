@@ -6,7 +6,27 @@ findings DG-1..DG-11, all adjudicated). `PLAN.md` is the authority on *what we
 build*; `ARCHITECTURE.md` describes the code **as built**; this document is the
 bridge between them.
 
-**Nothing here is built yet.** Everything below is agreed and specified.
+## Status — 2026-09-15
+
+**Waves A, B and C7/C8 are BUILT and VERIFIED** (`experiments/wave_abc_test.py`,
+7/7; oracle gate 3/4 + control PASS). Committed as `ccb0fab` + `5b0b8e5`.
+
+| Item | State |
+|---|---|
+| A1 `arms.jsonl` · A2 `semantic_runtime` · A3 `scene_descriptor` | **DONE** |
+| B4 `RegressionSet` · B5 severity split · B6 `PrivilegedProbePolicy` | **DONE** |
+| C7 paired McNemar · C8 `failure_cost` | **DONE** |
+| **C9 per-task environment control** | **NOT DONE** |
+| **D10 surrogate `adaptive_sweep()`** | **NOT DONE** |
+
+*(Numbering note: an earlier status message said "items 1-8 and 10-12" while
+also listing C9 as outstanding. The prose was right and the numbering was
+wrong. This table is authoritative.)*
+
+Also built since: **`vla_harness/envs/libero_env.py`** — the LIBERO adapter
+(NEXT_STEPS step 1, first half). Verified against `libero_spatial` task 0:
+resets, emits 13 object poses and 7 camera extrinsics in metres, privileged
+keys stripped from `policy_view()`.
 
 ---
 

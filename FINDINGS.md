@@ -16,13 +16,19 @@ Three runs, narrowing the cause:
 | Test | Result |
 |---|---|
 | `lerobot-eval`, `MUJOCO_GL=egl` | `torch.OutOfMemoryError` — 7.40 GiB in use, 18.75 MiB free |
-| `lerobot-eval`, `MUJOCO_GL=osmesa` + `expandable_segments` | failed earlier: **OSMesa system library absent** (`libosmesa6`, needs sudo) |
+| `lerobot-eval`, `MUJOCO_GL=osmesa` + `expandable_segments` | **NOT EVIDENCE ABOUT VRAM.** Died at OpenGL init (`AttributeError: 'NoneType' object has no attribute 'glGetError'`) and never reached the model. It shows osmesa is broken in this venv, nothing more. |
 | **Weights only, no simulator, no renderer** | **`WEIGHTS DO NOT FIT ON 8 GB`** — 7.34 GiB free at start, OOM during `.to("cuda")` |
 
-The third test is decisive. **This is not the lerobot#3098 CUDA/EGL contention
-both sessions assumed.** π0.5's parameters alone exceed the card. Freeing the
-rendering context cannot buy back 7 GiB, so `osmesa` was never going to rescue
-it and the missing system library is a side issue.
+**The finding rests on tests 1 and 3 only.** Test 2 must not be read as
+corroboration — it never loaded the model, so it says nothing about memory. Two
+failures are not two pieces of evidence when one of them failed for an unrelated
+reason.
+
+Tests 1 and 3 are sufficient on their own. **This is not the lerobot#3098
+CUDA/EGL contention both sessions assumed:** PyTorch held 7.01 GiB of 7.53
+*before any render context existed*, and test 3 reproduced the OOM with no
+simulator at all. Freeing the rendering context cannot buy back 7 GiB, so
+`osmesa` was never going to rescue it regardless of whether it worked.
 
 ### What this settles
 

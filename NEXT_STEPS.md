@@ -131,7 +131,7 @@ cell we actually need.
 ### Step 5 — The SCREEN *(GPU, ~1–2 h at full clocks)*
 
 10 eps/task × 4 suites = 400 episodes. **Orienting only.** Label it so in the
-output: at n=100 a 5 pp break passes 56% of the time, so a screen pass means
+output: at n=100 a 5 pp break is not flagged as a non-reproduction 66% of the time (and passes outright 56%), so a screen pass means
 *"screen passed, gate not yet run"* — **never** "consistent with published"
 (DG-1).
 

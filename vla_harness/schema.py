@@ -14,6 +14,14 @@ from typing import Any, Protocol, runtime_checkable
 
 SCHEMA_VERSION = "3.0"
 
+# LE-5 -- termination vocabulary, declared here so adapters map onto ONE set.
+# ARCHITECTURE §4 documents these and the manifest prints them, so divergence
+# between adapters would surface in a client-facing artifact.
+TERM_SUCCESS = "success"          # the env's goal predicate was satisfied
+TERM_TIMEOUT = "timeout"          # step cap reached without success
+TERM_ABORT = "abort"              # env terminated the episode early
+TERMINATIONS = (TERM_SUCCESS, TERM_TIMEOUT, TERM_ABORT)
+
 
 # --- G1: actions are variable-dimension -------------------------------------
 # The toy uses 3 DoF, LIBERO uses 7, a bimanual setup uses 14. Never a tuple.
