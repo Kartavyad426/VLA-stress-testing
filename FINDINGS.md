@@ -31,6 +31,78 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
+## F8 — FIRST REAL RESULT: SmolVLA does not reproduce, and we are lower than anyone
+
+**Date:** 2026-09-15 · **Status:** MEASURED · run `nas10_seed1000`, 400 episodes,
+134 min · mujoco **3.3.7 (healthy)** · `n_action_steps=10` · seed 1000 · 10 eps/task
+
+| Suite | Ours | 95% Wilson CI | Published | [#3264](https://github.com/huggingface/lerobot/issues/3264) | Verdict |
+|---|---|---|---|---|---|
+| libero_spatial | **56.0%** | [46.2, 65.3] | ~90% | 63.0% | published **outside** CI |
+| libero_object | **85.0%** | [76.7, 90.7] | ~96% | 93.0% | published **outside** CI |
+| libero_goal | **69.0%** | [59.4, 77.2] | ~92% | 81.0% | published **outside** CI |
+| libero_10 | **35.0%** | [26.4, 44.7] | ~71% | 56.0% | published **outside** CI |
+| **OVERALL** | **61.3%** | [56.4, 65.9] | **~87.3%** | 73.25% | **outside** |
+
+**Row 2 of the §5.3 gate on every suite: genuine non-reproduction, not a screen
+ambiguity.** And not multiplicity — 18.5% predicts *one* spurious flag across
+four suites, not four.
+
+**We are ~12 points below #3264 and ~6 below #3287.** Three independent parties,
+three different numbers, all far below published, and ours is the lowest.
+
+### What makes it hard to dismiss
+
+- **We ran healthy physics.** mujoco 3.3.7; F2's broken range (3.4.0–3.8.1)
+  takes one spatial task 80% → 28%. Reporters on broken versions should have
+  scored *worse* than us, not better.
+- **`libero_10` has the largest gap** (−36). The long-horizon suite is where
+  compounding error predicts the most damage (F1 §1.4), and it is also where
+  language reportedly matters most even for models that ignore it elsewhere.
+- Only `libero_object` is close-ish (−11), which is the suite the literature
+  calls least ambiguous.
+
+### Caveats that must travel with this number
+
+1. **It is a SCREEN.** 10 episodes/task, **one seed**. LeRobot recommends
+   averaging three. The survey warns 10 vs 50 can swing spatial/long by 15–20 pp.
+2. **`n_action_steps=10`, and nobody knows what the published numbers used.**
+   The shipped config is **1**. This is the single most testable explanation and
+   it is a **~9 h run** to check (3.95 vs 17 steps/s).
+3. `#3264` at 63% on spatial sits **inside our CI** — our disagreement with
+   *them* is not established; our disagreement with *published* is.
+
+### Ranked hypotheses
+
+| # | Hypothesis | Test | Cost |
+|---|---|---|---|
+| 1 | `n_action_steps` mismatch | re-run at 1 | ~9 h |
+| 2 | Seed/sample variance | 3 seeds at 50 eps/task | ~15–24 h |
+| 3 | Published numbers are not reproducible by anyone | nothing we can run — the accumulating evidence *is* the finding | — |
+| 4 | Our environment is wrong | **the π0.5 anchor** — the only test that separates this from 1–3 | rented GPU |
+
+### What it means for the project
+
+**This is exactly the state DG-5 predicted when we deferred the anchor.** A
+subject policy 26 points below its own published numbers makes every downstream
+robustness claim hard to interpret: we cannot tell a policy weakness from a
+setup problem without a reference we trust.
+
+**Two readings, and we cannot currently choose between them:**
+- our setup is wrong ⇒ every subsequent number is about us, not the policy
+- SmolVLA genuinely does not reproduce ⇒ a **reportable finding** corroborating
+  nine open issues that no maintainer has answered
+
+**The anchor is what separates them**, and it needs a ≥16 GB card (F4).
+Alternatively, switch the subject policy to VLA-Adapter, whose known gap has an
+identified cause.
+
+> **This run is NOT mineable** — it went through `lerobot-eval`, which stores a
+> success bit and an mp4. Deliberate (see `EXPERIMENT_PROCEDURE.md` §0), but it
+> means we cannot ask *why* these failed without re-running through our own loop.
+
+---
+
 ## F7 — AS-3 closed; ddmin is validated, not speculative; the language probe must measure target identity
 
 **Date:** 2026-09-15 · Source: `vla-81`, survey §3.3/§5.3/§5.5 · marked [A] where README-level
