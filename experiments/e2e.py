@@ -50,7 +50,11 @@ def main():
     run_id = a.run_id or f"e2e_{a.suite}_{int(time.time())}"
     seeds = list(range(a.seeds))
     store, arms = TraceStore("runs", run_id), ArmLog("runs", run_id)
-    pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.nas)
+    # env_cfg is REQUIRED: LiberoProcessorStep flips both image axes and builds
+    # observation.state. Without it the policy sees upside-down images (~0%).
+    from lerobot.envs.configs import LiberoEnv as LiberoEnvCfg
+    env_cfg = LiberoEnvCfg(task=a.suite)
+    pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.nas, env_cfg=env_cfg)
     seg = LiberoPhaseSegmenter()
     mk = lambda t: LiberoEnv(suite=a.suite, task_id=t)
     nominal = PerturbationSpec.of()

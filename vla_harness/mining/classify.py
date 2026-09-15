@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 
 from .phases import PhaseSegmenter, terminal_behaviour, divergence_point
+from . import signals as sig
 
 FAMILIES = ["visual_grounding", "language_grounding", "spatial_reasoning",
             "planning", "manipulation", "recovery", "distribution_shift",
@@ -23,7 +24,13 @@ LOST_TARGET_M = 0.10       # ended this far from target -> went somewhere else
 REPEAT_SPREAD_M = 0.015    # grasp attempts within this radius -> identical
 
 
-def _wrong_object(r) -> bool:
+def _wrong_object(r, S=None) -> bool:
+    if S is not None:
+        return S.wrong_object(r)
+    return _wrong_object_toy(r)
+
+
+def _wrong_object_toy(r) -> bool:
     """Did it end up at a distractor rather than the named target?
 
     The first version of this classifier inferred object-selection failures
@@ -97,11 +104,18 @@ def classify(r, nominal=None, segmenter=None) -> dict:
                 "reason": info["skipped"], "confident": False}
 
     term = terminal_behaviour(r, segs)
-    final_err = (r.series("_gt_ee_to_obj") or [None])[-1]
-    attempts = (r.series("grasp_attempts") or [0])[-1]
-    spread = _attempt_spread(r)
+    # Signals are resolved per-env. The classifier previously read the toy's
+    # keys directly, so on LIBERO every rule fell through to `ambiguous` while
+    # reporting zero detector abstentions.
+    S = sig.pick(r)
+    if S is None:
+        return {"family": "ambiguous", "source": "tier1", "confident": False,
+                "reason": "no signal set matches this rollout's state keys"}
+    final_err = S.final_error_m(r)
+    attempts = S.grasp_attempts(r)
+    spread = sig.spread_m(S.attempt_points(r))
 
-    d = {"source": "tier1", "confident": True,
+    d = {"source": "tier1", "confident": True, "signals": S.name,
          "phases": [s.phase for s in segs], "terminal": term,
          "divergence": divergence_point(r, nominal),
          "final_error_m": final_err, "grasp_attempts": attempts,
@@ -115,7 +129,7 @@ def classify(r, nominal=None, segmenter=None) -> dict:
     # --- decision rules, most-specific first --------------------------------
     if term == "never_reached":
         d.update(family="planning", reason="never entered pre-grasp")
-    elif _wrong_object(r):
+    elif _wrong_object(r, S):
         d.update(family="spatial_reasoning",
                  reason="terminated at a distractor, not the named target")
     elif final_err is not None and final_err > LOST_TARGET_M:

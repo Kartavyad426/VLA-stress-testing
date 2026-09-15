@@ -1,0 +1,144 @@
+{
+  "set_id": "smoke_e2e-regset",
+  "frozen_env": {
+    "name": "libero:libero_spatial",
+    "suite": "libero_spatial",
+    "task_id": 0,
+    "control_mode": "relative",
+    "use_init_states": true,
+    "init_states_sha": "b8d08b5b0a1b",
+    "bddl_sha": "088abaf74d81",
+    "hard_reset": true,
+    "num_steps_wait": 10,
+    "max_steps": 280,
+    "action_dims": [
+      "dx",
+      "dy",
+      "dz",
+      "droll",
+      "dpitch",
+      "dyaw",
+      "gripper"
+    ]
+  },
+  "frozen_semantic": {
+    "mujoco": "3.3.7",
+    "robosuite": "1.4.0",
+    "MUJOCO_GL": "egl"
+  },
+  "frozen_at": "2026-09-15",
+  "members": [
+    {
+      "rollout_id": "9c215c957f23",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "d614b9440c5a",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "f12b38d2734b",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "e0bb1d8ec313",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "26c9f3d573cf",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "5cb402ae4963",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "42e4b6f2e1c3",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "b0607acf9ca6",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.03,
+        "light_intensity": 0.4
+      }
+    },
+    {
+      "rollout_id": "b99b0ab4c26b",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.03,
+        "light_intensity": 0.4
+      }
+    },
+    {
+      "rollout_id": "8d997d401de7",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 0.0,
+        "ee_offset_x_m": 0.03,
+        "light_intensity": 0.4
+      }
+    },
+    {
+      "rollout_id": "c5eec60fd4a4",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.0,
+        "light_intensity": 0.4
+      }
+    },
+    {
+      "rollout_id": "782252307252",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.0,
+        "light_intensity": 0.4
+      }
+    },
+    {
+      "rollout_id": "abc283d705cf",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.03,
+        "light_intensity": 0.0
+      }
+    },
+    {
+      "rollout_id": "180a2ea630e8",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 15,
+        "ee_offset_x_m": 0.03,
+        "light_intensity": 0.0
+      }
+    }
+  ],
+  "note": "frozen from e2e failures",
+  "schema_version": "3.0"
+}

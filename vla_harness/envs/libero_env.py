@@ -316,8 +316,13 @@ class LiberoEnv:
             "joint_vel": list(map(float, joints["vel"])),
         }
         state.update(self._privileged())
-        px = self._raw.get("pixels", [])
-        frames = {f"cam{i}": img for i, img in enumerate(px)}
+        # LeRobot returns `pixels` as a DICT keyed by its own camera mapping
+        # ("image" = agentview, "image2" = wrist), not a list. Enumerating it
+        # yields the KEYS, which is how the first version handed the policy
+        # strings instead of arrays.
+        px = self._raw.get("pixels", {})
+        frames = dict(px) if isinstance(px, dict) else {
+            f"cam{i}": im for i, im in enumerate(px)}
         return Observation(instruction=self.instruction, t=self.t, state=state,
                            image_refs=self._write_images(), frames=frames)
 
@@ -398,11 +403,13 @@ class LiberoEnv:
         import os
         os.makedirs(self.image_dir, exist_ok=True)
         refs = {}
-        for i, img in enumerate(self._raw.get("pixels", [])):
+        px = self._raw.get("pixels", {})
+        items = px.items() if isinstance(px, dict) else enumerate(px)
+        for i, img in items:
             # LE-4: PNG, not .npy. Lossless and ~3x smaller -- .npy at ~150 KB
             # x ~300 steps x 2 cameras is ~90 MB/episode, i.e. ~36 GB for a
             # 400-episode screen, with nothing reaping it.
-            p = os.path.join(self.image_dir, f"t{self.t:04d}_cam{i}.png")
+            p = os.path.join(self.image_dir, f"t{self.t:04d}_{i}.png")
             try:
                 from PIL import Image
                 Image.fromarray(img).save(p, optimize=True)
