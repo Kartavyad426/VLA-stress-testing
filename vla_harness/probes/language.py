@@ -28,17 +28,34 @@ PARTIAL = "partial_grounding"      # success collapses, trajectory unchanged
 INCONCLUSIVE = "inconclusive"
 
 
-def _endpoint(r):
-    """Where the end-effector finished -- the trajectory's verdict."""
-    s = r.steps[-1].obs_state
-    return s.get("eef_pos") or s.get("ee_xy")
+def approached_object(r, window: int = 20) -> str | None:
+    """WHICH OBJECT the end-effector went to. The instrument that matters.
 
+    A success-rate delta CANNOT separate comprehension from partial grounding:
+    a policy that reads a new instruction and fails, and a policy that ignores
+    it and executes the ORIGINAL target, both give success -> 0. In aggregate
+    they are identical. Endpoint *displacement* is better but still indirect --
+    the endpoint can move for reasons unrelated to target choice.
 
-def _dist(a, b):
-    if not a or not b:
-        return None
-    n = min(len(a), len(b))
-    return sum((a[i] - b[i]) ** 2 for i in range(n)) ** 0.5
+    Target IDENTITY is the measurement that can land in cell (3) at all.
+
+    Taken as the object closest to the end-effector, averaged over the final
+    `window` steps, so a single noisy frame cannot decide it.
+
+    CAVEAT: this runs through the same object-resolution path that failed in
+    LE-2, where a substring filter removed articulated objects and
+    `_gt_nearest_object` then named the wrong thing. Gate target identity on
+    the oracle before trusting a verdict built on it.
+    """
+    tally = {}
+    for s in r.steps[-window:]:
+        d = s.obs_state.get("_gt_eef_to_object") or {}
+        if s.obs_state.get("_gt_object_pos_complete") is False:
+            return None                      # incomplete object list -> abstain
+        if d:
+            near = min(d, key=d.get)
+            tally[near] = tally.get(near, 0) + 1
+    return max(tally, key=tally.get) if tally else None
 
 
 def language_probe(env, policy, seeds, spec: PerturbationSpec | None = None,
@@ -95,23 +112,57 @@ def language_probe(env, policy, seeds, spec: PerturbationSpec | None = None,
         out["reason"] = "blank instruction matters, but no substitution probe run"
         return out
 
-    # It reads the instruction -- but does it FOLLOW it, or just need one present?
+    # It reads the instruction -- but does it FOLLOW it, or merely need one?
+    # Decided on TARGET IDENTITY, not on the success bit.
     r_swap = rate(swapped)
-    moved = [d for d in (_dist(_endpoint(a), _endpoint(b))
-                         for a, b in zip(nominal, swapped)) if d is not None]
-    mean_move = sum(moved) / len(moved) if moved else None
-    out.update({"swapped_rate": r_swap, "mean_endpoint_shift_m": mean_move})
+    pairs = [(approached_object(a), approached_object(b))
+             for a, b in zip(nominal, swapped)]
+    usable = [(x, y) for x, y in pairs if x and y]
+    if not usable:
+        out.update({"swapped_rate": r_swap, "verdict": INCONCLUSIVE,
+                    "reason": "could not resolve target identity (incomplete "
+                              "object list, or no privileged object state)"})
+        return out
+    redirected = sum(1 for x, y in usable if x != y) / len(usable)
+    out.update({"swapped_rate": r_swap, "n_identity_resolved": len(usable),
+                "redirect_fraction": round(redirected, 3),
+                "instrument": "target identity (object approached), not success rate"})
 
-    if mean_move is not None and mean_move > 0.05:
+    if redirected >= 0.5:
         out["verdict"] = COMPREHENDING
-        out["reason"] = (f"substituting the goal moved the endpoint "
-                         f"{mean_move:.3f} m -- the policy followed the new target")
+        out["reason"] = (f"substituting the goal redirected the end-effector to a "
+                         f"different object in {redirected:.0%} of paired episodes "
+                         f"-- the policy followed the new instruction")
         out["language_family_admissible"] = True
     else:
         out["verdict"] = PARTIAL
-        out["reason"] = (f"success fell to {r_swap:.0%} but the endpoint moved only "
-                         f"{mean_move if mean_move is None else round(mean_move,3)} m "
-                         f"-- the policy still went to the ORIGINAL target. This "
-                         f"looks like comprehension in aggregate and is not.")
+        out["reason"] = (f"success fell to {r_swap:.0%} but the end-effector still "
+                         f"approached the ORIGINAL object in {1-redirected:.0%} of "
+                         f"paired episodes. Looks like comprehension in aggregate "
+                         f"and is not -- a success-rate design would misread this.")
         out["language_family_admissible"] = False
     return out
+
+
+def substitute_from_scene(env, instruction: str) -> str | None:
+    """Directed substitution: name a DIFFERENT object that IS in the scene.
+
+    Not a paraphrase. LIBERO-Plus's shipped 1,537 "Language Instructions"
+    instances are LLM rewrites of the SAME goal -- they test surface-form
+    robustness, which is a different question and would read as a grounding
+    result if used here. The probes that separate insensitivity from
+    comprehension are not in the corpus; we generate them.
+
+    Uses the BDDL object list, so the named alternative is guaranteed present
+    and reachable rather than a hallucinated distractor.
+    """
+    names, complete = (env._object_body_names() if hasattr(env, "_object_body_names")
+                       else ([], False))
+    if len(names) < 2:
+        return None
+    def pretty(n):
+        return n.replace("_main", "").replace("_1", "").replace("_", " ").strip()
+    alt = pretty(names[-1])
+    if alt and alt.split()[0].lower() not in instruction.lower():
+        return f"{instruction.rstrip('.')} -- instead, pick up the {alt}"
+    return None

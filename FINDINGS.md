@@ -31,6 +31,109 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
+## F7 — AS-3 closed; ddmin is validated, not speculative; the language probe must measure target identity
+
+**Date:** 2026-09-15 · Source: `vla-81`, survey §3.3/§5.3/§5.5 · marked [A] where README-level
+
+### 7a. Generation code does NOT ship — but the ingredients do
+
+Definitively closing AS-3's second half. The LIBERO-plus repo ships:
+the **10,030 pre-generated instances**, `assets.zip` (articulated objects, new
+objects, scenes, textures, `.xml`/`.stl`), `task_classification.json` mapping
+task ID → category + difficulty, and RLDS/LeRobot training datasets.
+
+**No generation script, knob spec or perturbation config.** *(README-level read;
+a definitive answer means cloning and listing the tree — cheap, not yet done.)*
+
+**Wave E forks toward instance selection — but a better version than feared.**
+The *ingredients* ship even though the generator does not: asset library,
+scenes, textures, and a per-instance label saying which knob produced each one.
+
+**So revert-one-knob becomes: diff a perturbed instance against its nominal
+parent and undo the difference.** We build the reversion from released
+artefacts rather than calling theirs. Recoverable, and it keeps the
+interventional claim intact.
+
+### 7b. ddmin is validated by the benchmark itself
+
+LIBERO-Plus §5 already tested **combined** perturbations — six dimensions, 2,000
+independent trials, OpenVLA-OFT — and found a consistent **negative
+compositionality gap**: combined perturbations are worse than independent
+effects predict, because "co-occurring shifts act as coupled noise sources".
+
+| Pair | Success |
+|---|---|
+| Camera + Robot state | 19.05% |
+| Robot state + Noise | 22.15% |
+| Layout + Camera | 35.95% |
+
+χ² significant. **On the benchmark closest to ours, main-effects-only
+attribution is a DEMONSTRATED inadequacy, not a theoretical one.** ddmin is not
+insurance against a hypothetical; it addresses a measured property of this
+benchmark. *(Marked [A] — HTML render, not the PDF text layer.)*
+
+### 7c. The shipped language instances are the WRONG probe
+
+**Correction to our Phase G plan.** LIBERO-plus's 1,537 "Language Instructions"
+instances are **LLM-based instruction rewriting to increase linguistic richness**
+— *paraphrase*. Same goal, reworded.
+
+**Running against them measures robustness to surface form, and it would read
+as a grounding result.** Three distinct probes, only one of which answers our
+question:
+
+| Probe | Shipped? | Tests |
+|---|---|---|
+| Paraphrase (1,537 instances) | **yes** | surface-form robustness |
+| Blank instruction | no | whether language is consumed at all — but the input is itself OOD, so an unchanged rate is **ambiguous** |
+| **Directed substitution** | no | **the only one separating insensitivity from comprehension** |
+
+We generate the latter two. Substitution needs one other object known to be in
+the scene — available from the BDDL object list.
+
+### 7d. Success rate cannot run this experiment. Target identity can.
+
+**A success-rate delta cannot separate comprehension from partial grounding.**
+A policy that reads a new instruction and fails, and a policy that ignores it
+and executes the original target, **both give success → 0**. In aggregate they
+are identical.
+
+The distinguishing measurement is **which object the end-effector actually
+approaches** — target identity, not the outcome bit. We already derive it from
+object poses and eef-to-object distance.
+
+`probes/language.py` now decides on `redirect_fraction` over paired episodes.
+*Endpoint displacement, which the first version used, is better than success
+rate but still indirect — an endpoint can move for reasons unrelated to target
+choice.*
+
+> **Caveat carried into the code:** target identity runs through the same object
+> resolution path that failed in LE-2. **Gate it on the oracle before trusting a
+> verdict built on it.**
+
+### 7e. The scale hypothesis is unsettled, and worth stating as such
+
+Not a design, a live disagreement, recorded because either outcome is a result:
+
+- **Small models may need language MORE** — if SmolVLA lacks capacity to
+  memorise 40 scene→action mappings, that escape hatch is unavailable.
+- **Small models may ignore language MORE** — ignoring language is a
+  *training-incentive* outcome, not a capability failure: in LIBERO the scene
+  layout already identifies the task, so the instruction carries no information
+  the images do not, and no model of any size gets gradient pressure to build a
+  language pathway. Less capacity makes memorising scene→action *cheaper*.
+
+Weak supporting evidence *[A, secondary]*: language sensitivity tracks task
+**ambiguity**, not scale or architecture — 60–100% success with null/wrong
+prompts on the unambiguous object suite, versus 94% → 10% collapse on the goal
+suite, same models.
+
+**SmolVLA is not among the ten checkpoints LIBERO-Plus tested**, so there is no
+prior on it. And `libero_10` — in our running baseline — is where language
+mattered even for models that ignored it elsewhere.
+
+---
+
 ## F6 — Three consequences from the methods survey
 
 **Date:** 2026-09-15 · Source: `docs/FAILURE_MINING_METHODS.md` §5.3, §7.1, §8.1, §8.5

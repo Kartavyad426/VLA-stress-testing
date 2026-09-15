@@ -1458,7 +1458,7 @@ The literature's category sets, side by side. Sizes are the leaf count.
 | **RoboFAC** ([arXiv:2505.12224](https://arxiv.org/abs/2505.12224)) | 3 levels, **6 leaves** | Task Planning Error → *Step Omission*, *Wrong Object*; Motion Planning Error → *Position Deviation*, *Orientation Deviation*; Execution Control Error → *Grasping Error*, *Timing Error* | Injected by the generator for the deterministic fields; GPT-4o for the semantic fields, then manually reviewed **[F]** |
 | **AHA / FailGen** ([arXiv:2410.00371](https://arxiv.org/abs/2410.00371)) | flat, **7** | No_Grasp, Slip, Translation (misaligned keyframe), Rotation (incorrect), No_Rotation, Wrong Action Sequence, Wrong Target Object | **Injected** — the label *is* the perturbation applied to a successful demo **[A]** |
 | **SO-101 benchmark** ([arXiv:2606.08881](https://arxiv.org/abs/2606.08881)) | flat, **4** | Grasp Instability, Repetition Loop, State Mismatch, Precision Misalignment | Human, replaying logs; **annotators and agreement not reported** **[F]** |
-| **LIBERO-Plus** ([arXiv:2510.13626](https://arxiv.org/abs/2510.13626)) | 2 levels, **7 → 21** | Objects Layout, Camera Viewpoints, Robot Initial States, Language Instructions, Light Conditions, Background Textures, Sensor Noise | **Not a failure taxonomy at all** — a taxonomy of *causes applied*. See §3.3 |
+| **LIBERO-Plus** ([arXiv:2510.13626](https://arxiv.org/abs/2510.13626)) | 2 levels, **7 → 21** | Objects Layout, Camera Viewpoints, Robot Initial States, Language Instructions (**paraphrase only** — see §5.3), Light Conditions, Background Textures, Sensor Noise | **Not a failure taxonomy at all** — a taxonomy of *causes applied*. See §3.3 |
 | **REFLECT / RoboFail** ([arXiv:2306.15724](https://arxiv.org/abs/2306.15724)) | flat | execution / planning failures over a symbolic scene graph | Human, over scripted faults **[A]** |
 
 **Read the first column against the second.** RoboFAC's top level (*planning / motion / execution*)
@@ -1535,12 +1535,26 @@ and 21 sub-dimensions.**
 
 Two things fall out of that paragraph, and both matter more than the headline results.
 
-**(a) It is a generator with a corpus released from it, not a corpus.** The seven dimensions are
-applied as *single-dimension perturbations to an existing task* — which is exactly the
-revert-one-knob structure that counterfactual attribution requires (§5.6). The paper lists
-"Automation: automated task generation" as a stated contribution. So the knob API exists upstream of
-the release; whether it is *distributed* is a separate, checkable question about the repository, not
-about the method.
+**(a) It is a generator with a corpus released from it — but the generator itself does not ship.**
+The seven dimensions are applied as *single-dimension perturbations to an existing task* — exactly
+the revert-one-knob structure that counterfactual attribution requires (§5.5). The paper lists
+"Automation: automated task generation" as a stated contribution, so the knob API exists upstream of
+the release.
+
+It is **not distributed**. The repository ([sylvestf/LIBERO-plus](https://github.com/sylvestf/LIBERO-plus))
+ships the 10,030 pre-generated task instances, an `assets.zip` of *"hundreds of new objects, textures,
+and other required assets"* (`articulated_objects/`, `new_objects/`, `scenes/`, `textures/`, plus
+`.xml`/`.stl` files), a `task_classification.json` mapping task IDs to perturbation category and
+difficulty level, and RLDS/LeRobot training datasets. It installs as a **drop-in replacement for the
+LIBERO repository**. What the README does *not* document is any script, knob specification or config
+for generating new perturbed instances **[A — README-level read; a definitive answer requires cloning
+and listing the tree, which is cheap and has not been done]**.
+
+**The practical consequence is better than that sounds.** The *ingredients* ship even though the
+generator does not: the asset library, the scene and texture sets, and a per-instance label saying
+which knob produced it. Reverting one knob is then a matter of diffing a perturbed instance against
+its nominal parent and undoing the difference — recoverable from released artefacts, at the cost of
+building the reversion ourselves rather than calling theirs.
 
 **(b) The released 10,030 are a difficulty-filtered sample, and that breaks one specific use.** Tasks
 solved by all-or-most of four reference models were **deliberately deleted**. Any success rate
@@ -2040,6 +2054,27 @@ critical features encode object identity** rather than motion commands.
    consistent with redundant encoding, where removing one route leaves an equivalent one intact.
    Ablation establishes sufficiency-of-removal, not the absence of a mechanism.
 
+> **Three probes, not one, and the released corpus supplies none of them.** LIBERO-Plus's *Language
+> Instructions* dimension — 1,537 of the released 10,030 instances — is **LLM-based instruction
+> rewriting for linguistic diversity**: paraphrase. That is a third, weaker probe, testing robustness
+> to *surface form*. The blank-instruction and goal-replacement experiments quoted above are a
+> **separate analysis in the paper's §4, not part of the seven dimensions and not in the corpus**.
+> Anyone planning a grounding experiment off the released instances would get paraphrase robustness
+> and mistake it for grounding. The three probes answer different questions:
+>
+> | Probe | Manipulation | Distinguishes |
+> |---|---|---|
+> | **Paraphrase** (shipped, 1,537) | reword the same goal | robustness to surface form |
+> | **Blank** (not shipped) | empty instruction | whether language is consumed at all — but the input is itself OOD |
+> | **Directed substitution** (not shipped) | name a *different object present in the scene* | **insensitivity vs comprehension** — the only one that does |
+>
+> **The instrument matters as much as the probe.** Success rate alone cannot separate *comprehension*
+> from *partial grounding*: a policy that reads the new instruction and fails, and a policy that
+> ignores it and executes the original target, both show success → 0. The distinguishing measurement
+> is **which object the end-effector actually approaches** — available to us from object poses and
+> eef-to-object distance, i.e. from state we already derive. Report target identity, not just the
+> outcome bit.
+
 > ⚠ **Consequence for our family set.** If contemporary VLAs largely do not consume language, then a
 > **language-grounding failure family is close to unpopulated on nominal LIBERO** — not because
 > grounding is solved but because grounding is barely attempted. A classifier with such a family
@@ -2116,10 +2151,17 @@ per cell.
 
 *Where it breaks*, and these are not small:
 
-1. **Interaction.** Reverting one knob at a time estimates main effects. If a failure requires
-   viewpoint *and* initial-state jointly, every single reversion may show a small effect and the
-   conclusion "no single factor is responsible" is correct but useless. Detecting this needs a
-   factorial or a Shapley-style coalition estimator (§5.4) and costs combinatorially more.
+1. **Interaction, and it is measured rather than hypothetical.** Reverting one knob at a time
+   estimates main effects. If a failure requires viewpoint *and* initial-state jointly, every single
+   reversion may show a small effect and the conclusion "no single factor is responsible" is correct
+   but useless. **LIBERO-Plus §5 tested exactly this** over six dimensions and 2,000 independent
+   trials on OpenVLA-OFT, and found a **consistent *negative* compositionality gap** — combined
+   perturbations are worse than the independent effects predict, because *"co-occurring shifts act
+   as coupled noise sources"*. Pairwise success rates: **Camera+Robot 19.05%, Robot+Noise 22.15%,
+   Layout+Camera 35.95%**, with chi-square testing confirming the interactions are significant
+   **[A]**. So on the benchmark closest to ours, main-effects-only attribution is not a theoretical
+   weakness but a demonstrated one. Detecting interaction needs a factorial or a Shapley-style
+   coalition estimator (§5.4) and costs combinatorially more — or `ddmin` (§7.1), which does not.
 2. **Multiple sufficient causes.** If either of two factors alone would have caused the failure,
    reverting either one individually shows no effect, and revert-one-knob reports **no cause at all**.
    This is the standard counterexample to but-for causation, it is not exotic, and it is invisible in
