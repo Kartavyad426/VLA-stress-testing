@@ -31,7 +31,111 @@ Newest first. Each entry says what we know, how we know it, and what it changes.
 
 ---
 
-## F5 — LIBERO-plus is a fixed CORPUS, not a knob API. Attribution still works, differently.
+## F6 — Three consequences from the methods survey
+
+**Date:** 2026-09-15 · Source: `docs/FAILURE_MINING_METHODS.md` §5.3, §7.1, §8.1, §8.5
+
+### 6a. Nobody validates a taxonomy as correct. κ is the wrong instrument.
+
+Our open problem #2 has a **negative** answer in the literature. Four substitutes
+exist — planted-label recovery (internal correctness only), κ (self-consistency
+only), resemblance to a prior taxonomy (unavailable: manipulation has no
+canonical one), and downstream utility (**the only one that can falsify a
+taxonomy, and nobody runs it**).
+
+Two things that hit our design directly:
+
+- **Raising the κ threshold does not fix it.** κ cannot distinguish a good
+  taxonomy from a merely consistently-applicable one:
+  `{failure on a Tuesday, failure not on a Tuesday}` scores **κ = 1.0**. This is
+  construct validity, not reliability, and 0.5 → 0.7 addresses the wrong axis.
+- **κ is depressed by exactly the class imbalance failure taxonomies always
+  have** (the kappa paradox). Report **percentage agreement and Gwet's AC1**
+  beside it.
+
+**Partial substitute to adopt — name-based re-assignment (§8.5):** give a
+held-out judge *only* the cluster names and descriptions, have them assign
+held-out episodes, and measure agreement with the induced partition. Unlike κ on
+a hand-designed taxonomy, this genuinely tests the partition. It establishes
+that a cluster has a **communicable common property** — not that the property is
+the *right* one. Partial, and must be reported as partial.
+
+### 6b. Delta debugging closes our interaction blind spot
+
+**ddmin** finds the **minimal failure-inducing knob subset** in O(n²) same-seed
+re-runs rather than 2ⁿ. Every re-run is a rollout we can already do.
+
+Revert-one-knob **structurally cannot see interactions**: a failure requiring
+viewpoint AND initial state *jointly* shows a small effect on every single
+reversion, and we currently report "no factor responsible" — which in our output
+is **indistinguishable from a genuinely uninformative case and from multiple
+sufficient causes**. Three different situations, one rendering.
+
+Highest-value import from the survey. Sequence it with Wave E.
+
+### 6c. Test language insensitivity BEFORE a language family reaches a client
+
+LIBERO-Plus's blank-instruction experiment: OpenVLA-OFT on the object suite is
+**"largely unchanged with no language input at all"** — the authors say it
+"degenerates into a form that disregards language, behaving more like a
+Vision-Action model". Their goal-replacement probe then shows success **dropping
+nearly to zero while the model still executes the ORIGINAL target's
+trajectory**.
+
+**So apparent language robustness is insensitivity, not comprehension.** If our
+policy behaves the same, a `language_grounding` family is near-unpopulated on
+nominal LIBERO, and a classifier carrying that family will either abstain or
+**quietly label something else with its name** — which, per 6a, κ will not catch.
+
+The directed-substitution probe is **one extra rollout per instance with one
+word changed**. Cheap, and it should run before any language claim.
+
+> Note this cuts against DG-11, where we declared `language_grounding` out of
+> scope for lack of a detector. The corpus has 1,537 language instances and this
+> probe is nearly free — the constraint was ours, and it is smaller than we said.
+
+---
+
+## F5 — LIBERO-plus: a GENERATOR whose RELEASED CORPUS is difficulty-filtered
+
+> ### ⚠ CORRECTED 2026-09-15 — the original conclusion was wrong
+>
+> I concluded from LeRobot's loader that LIBERO-plus is "a fixed corpus, not a
+> knob API". **That is wrong.** Session `vla-81` read the paper: it is a
+> **generator** — 40 LIBERO tasks × 500 instances per sub-task across 7
+> dimensions = **14,000 candidates**, and its unit of operation is explicitly
+> the **single-dimension perturbation**. So revert-one-knob is *structurally
+> constructible* after all, and Wave E's premise needs revisiting.
+>
+> I inferred a generator's absence from a *consumer's* code path — the same
+> class of error as the interface lesson we had just circulated. Reading the
+> loader told me how LeRobot **consumes** the artifact, not how the artifact is
+> **made**.
+>
+> **Still unverified:** whether the generation code is actually distributed.
+> That is a repo question and the remaining half of AS-3.
+>
+> ### The new finding, which is more consequential than the old one
+>
+> The **released artifact is not the generated population.** The authors deleted
+> every task "solved by all models, or by a large majority", balanced the
+> remainder, and released **10,030 of 14,000** — difficulty-filtered against four
+> reference models (OpenVLA-OFT, π0, π0-fast, UniVLA).
+>
+> **The released corpus is therefore a fine stress corpus and a fine relative
+> comparator, but NOT an unbiased robustness sample.** A policy-vs-policy
+> difference measured on it is confounded with similarity to those four models.
+>
+> **Direct consequence for Phase B:** a frequency estimate over this corpus is
+> not an estimate of "how often this policy fails" — it is an estimate over a
+> population selected to be hard for four specific models. This independently
+> re-justifies DG-5b: it is a second reason we must not ship a cardinal severity
+> and must leave prevalence to the client.
+>
+> The category/difficulty counts below remain accurate **as a description of the
+> released 10,030**; they are not a description of the perturbation space.
+
+
 
 **Date:** 2026-09-15 · **Status:** VERIFIED from `task_classification.json` (10,030 rows)
 · Settles `critical`'s AS-3, the highest-value open unknown

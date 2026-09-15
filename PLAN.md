@@ -1,5 +1,7 @@
 # VLA Stress-Test — Implementation Plan
 
+> **[UNSOURCED — do not cite]** the sim-to-real rank-correlation figure (Spearman 0.4–0.7) and the claim that *severity ordering transfers worst* were carried forward from an early survey and **no primary source has been located** (flagged 2026-09-15). The design decisions they motivated stand on their own reasoning; the numbers must not appear in a readout until sourced.
+
 **Status:** draft v1 · 2026-09-10
 **Companion to:** `VLA Scenario Testing.md` (the proposal)
 **This document:** how we actually build it, on the hardware we actually have.
@@ -787,4 +789,4 @@ Every phase produces a standalone deliverable. Stopping after any week leaves so
 7. Recovery diagnosis is unvalidated (see §4). Do we exclude recovery rows from the first client manifest, or validate it against LIBERO first?
 8. ~~Do we switch policy?~~ **Decided 2026-09-11: VLA-Adapter as subject; π0.5 anchor deferred (§5.2).** Remaining: does VLA-Adapter's own gate pass?
 8b. ~~D2 — episodes per task.~~ **Decided 2026-09-11: 10/task, and the ±5 pp gate is replaced by a CI-overlap test (§5.3).**
-9. Sim-to-real rank correlation is contested (Spearman 0.4–0.7) and **severity ordering transfers worst** — which is what we prioritise by. How do we caveat severity in a client-facing manifest?
+9. Sim-to-real rank correlation is contested (Spearman 0.4–0.7 **[UNSOURCED]**) and **severity ordering transfers worst** — which is what we prioritise by. How do we caveat severity in a client-facing manifest?

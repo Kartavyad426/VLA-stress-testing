@@ -1,5 +1,7 @@
 # LANDSCAPE — prior and concurrent work around "VLA Stress-Test with Failure Mining"
 
+> **[UNSOURCED — do not cite]** the sim-to-real rank-correlation figure (Spearman 0.4–0.7) and the claim that *severity ordering transfers worst* were carried forward from an early survey and **no primary source has been located** (flagged 2026-09-15). The design decisions they motivated stand on their own reasoning; the numbers must not appear in a readout until sourced.
+
 **Compiled:** 2026-09-11 · **Companion to:** `VLA Scenario Testing.md`, `PLAN.md`,
 `experiments/phase0/PREDICTIONS.md`
 **Method:** web search + primary-source fetch. Everything below carries a URL. Claims that
@@ -1502,7 +1504,7 @@ this table is the audit trail for *why*.
 | — | Honest positioning: integration, not research novelty | **ADOPTED** | §0b | Three things survive as ours. Stated up front rather than left for a reviewer to discover. |
 | — | `language_grounding` may be empty by construction | **ADOPTED as a reporting rule** | §6 | LIBERO-Plus reports models largely ignore language. If the family never fires, say so rather than implying we looked and found nothing. |
 | — | Runtime monitor (§7b.4) is not novel | **ADOPTED as a demotion** | §7b.4 | Sentinel, FIPER, Hide-and-Seek occupy it. Kept as possible productisation; explicitly not pitched as research. |
-| — | Severity ordering transfers worst to real | **LOGGED, unresolved** | open Q9 | Sim-to-real rank correlation is contested (Spearman 0.4–0.7) and severity — the thing we prioritise by — transfers worst. We do not yet know how to caveat this in a client-facing manifest. |
+| — | Severity ordering transfers worst to real | **LOGGED, unresolved** | open Q9 | Sim-to-real rank correlation is contested (Spearman 0.4–0.7 **[UNSOURCED]**) and severity — the thing we prioritise by — transfers worst. We do not yet know how to caveat this in a client-facing manifest. |
 
 ## Deferred — not rejected
 

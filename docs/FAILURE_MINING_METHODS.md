@@ -1,29 +1,31 @@
 # FAILURE MINING METHODS — how people actually detect, localise, classify, cluster and attribute failures in robot policy rollouts
 
-> ## ⚠ INCOMPLETE — stopped 2026-09-15 at 1,403 lines
+> ## STATUS — all five stages written
 >
-> Research was halted mid-document to conserve budget. **Stages 1 (Detection)
-> and 2 (Localisation) are complete and usable** — 113 URLs, eleven
-> localisation subsections. The agent had absorbed its source material and was
-> beginning the classification section when stopped.
+> **§0–§2 written 2026-09-15** (detection, localisation; 113 URLs, eleven localisation
+> subsections). **§3–§9 written 2026-09-15 in a second pass** (classification, clustering,
+> attribution, cross-cutting sim-vs-real, adjacent fields, what we could adopt, what could not be
+> verified). 122 distinct URLs.
 >
-> **STILL TO WRITE:**
-> - §3 CLASSIFICATION — published failure taxonomies (category sets, sizes,
->   hand-designed vs discovered), rule/learned/VLM classifiers, inter-annotator
->   agreement figures, **and how anyone validates a taxonomy is correct rather
->   than merely self-consistent** — this is our open problem #2
-> - §4 CLUSTERING — embedding spaces, choosing cluster count, naming clusters,
->   evaluating cluster quality without ground truth
-> - §5 ATTRIBUTION — counterfactual/interventional vs correlational, input
->   ablation, saliency unreliability in VLAs
-> - Cross-cutting: real-robot vs sim (partially covered in §2.10)
-> - Adjacent fields worth stealing from: software fault localisation, driving
->   scenario analysis, LLM agent trajectory analysis
-> - "What we could adopt" and "what could not be verified"
+> The two passes are not of equal depth. §1–§2 drew on 113 sources; §3–§9 cite 12 further URLs from
+> ~20 sources consulted, leaning on full-text readings of four central papers (LIBERO-Plus, RoboFAC,
+> Causal Agent Replay, and the unsupervised-taxonomy paper) rather than on breadth. **§9 lists
+> everything that could not be verified**, and it is longer for the second pass than the first.
 >
-> To resume: re-dispatch with the original brief (recorded in `HANDOFF.md`),
-> scoped to §3–§5 only, telling it §0–§2 already exist here.
-
+> **Three results in §3–§9 bear on decisions currently open in `PLAN.md` / `HANDOFF.md`:**
+> - **§3.5** — nobody validates a failure taxonomy as correct. κ measures self-consistency, not
+>   correctness, and cannot do the job our design assigns it. §8.5 proposes the partial substitute.
+> - **§3.3** — LIBERO-Plus is a **generator** (14,000 candidates from 40 tasks × 7 dimensions)
+>   whose **released 10,030-task corpus is difficulty-filtered**: instances solved by all-or-most of
+>   four reference models were deleted. Revert-one-knob is constructible; the released corpus is not
+>   an unbiased robustness sample. This bears on the open AS-3 question.
+> - **§7.1 / §8.1** — `ddmin` over the perturbation set finds **minimal failure-inducing knob
+>   subsets** in O(n²) re-runs, closing the interaction blind spot that revert-one-knob structurally
+>   cannot see. The highest-value import in the document.
+>
+> **§2.6's argument against trajectory-distance-to-demo remains unresolved in code** —
+> `vla_harness/mining/phases.py` still keeps it as a caveated secondary signal. Flagged in §8, not
+> changed in this pass.
 
 *A methods survey. Compiled 2026-09-15.*
 
@@ -1424,5 +1426,971 @@ segmentation; Evetac and all tactile event detection.
 8. **State the ground-truth problem honestly.** Failure-onset labels are themselves privileged,
    and the circularity — *the same OOD observations that degrade the policy degrade the detector*
    — means Stage-2 accuracy from simulation should be read as an **upper bound**.
+
+---
+
+## 3. CLASSIFICATION — "what kind of failure was it?"
+
+Detection asks a binary question against a checker. Localisation asks *when*, and at least has a
+metric space to be wrong in. Classification asks **which of a set of named categories this failure
+belongs to** — and the set is invented by the people doing the asking. That is the whole
+difficulty. There is no measurement error to bound, because there is nothing being measured; there
+is a *construct*, and constructs are validated differently from estimators.
+
+Three things follow, and the rest of this section is about them:
+
+1. **The taxonomy is a design artefact, not a discovery.** Published taxonomies range from 4 to
+   ~21 categories over the same underlying phenomenon (manipulation failure), and they are not
+   refinements of each other — they cut on different axes.
+2. **Where the label comes from determines what it can be used for.** A label injected by a
+   generator is ground truth about the *injection*, not about the failure. A label applied by a
+   human is an opinion with an agreement rate. A label emitted by a VLM is a prediction with an
+   error rate nobody propagated.
+3. **Almost nobody validates a taxonomy.** They validate *agreement* with it. §3.5 is the
+   important part of this section and the answer it reaches is mostly negative.
+
+### 3.1 Hand-designed taxonomies — the published category sets
+
+The literature's category sets, side by side. Sizes are the leaf count.
+
+| Source | Levels / size | Categories | How labels were produced |
+|---|---|---|---|
+| **RoboFAC** ([arXiv:2505.12224](https://arxiv.org/abs/2505.12224)) | 3 levels, **6 leaves** | Task Planning Error → *Step Omission*, *Wrong Object*; Motion Planning Error → *Position Deviation*, *Orientation Deviation*; Execution Control Error → *Grasping Error*, *Timing Error* | Injected by the generator for the deterministic fields; GPT-4o for the semantic fields, then manually reviewed **[F]** |
+| **AHA / FailGen** ([arXiv:2410.00371](https://arxiv.org/abs/2410.00371)) | flat, **7** | No_Grasp, Slip, Translation (misaligned keyframe), Rotation (incorrect), No_Rotation, Wrong Action Sequence, Wrong Target Object | **Injected** — the label *is* the perturbation applied to a successful demo **[A]** |
+| **SO-101 benchmark** ([arXiv:2606.08881](https://arxiv.org/abs/2606.08881)) | flat, **4** | Grasp Instability, Repetition Loop, State Mismatch, Precision Misalignment | Human, replaying logs; **annotators and agreement not reported** **[F]** |
+| **LIBERO-Plus** ([arXiv:2510.13626](https://arxiv.org/abs/2510.13626)) | 2 levels, **7 → 21** | Objects Layout, Camera Viewpoints, Robot Initial States, Language Instructions, Light Conditions, Background Textures, Sensor Noise | **Not a failure taxonomy at all** — a taxonomy of *causes applied*. See §3.3 |
+| **REFLECT / RoboFail** ([arXiv:2306.15724](https://arxiv.org/abs/2306.15724)) | flat | execution / planning failures over a symbolic scene graph | Human, over scripted faults **[A]** |
+
+**Read the first column against the second.** RoboFAC's top level (*planning / motion / execution*)
+is a **pipeline-stage** cut: it names the module you would go fix. FailGen's seven are a
+**geometric-perturbation** cut: they name the degree of freedom that was wrong. SO-101's four are a
+**symptom** cut: they name what an observer sees. LIBERO-Plus's seven are an **environmental-cause**
+cut: they name what the experimenter changed.
+
+These are four different questions, all called "failure classification". A single episode — the arm
+closes early on a bowl, the bowl slips, the arm continues its scripted approach and knocks the plate
+— is `Execution Control / Grasping Error` to RoboFAC, `Slip` to FailGen, `Grasp Instability` to
+SO-101, and quite possibly `Objects Layout` to LIBERO-Plus. **All four are correct.** None of them
+is more correct. There is no experiment that distinguishes them, because they are answers to
+different questions.
+
+*Why this matters to a client manifest*: the cut you choose determines what the label can be acted
+on. A symptom cut is cheap to annotate and useless as a remediation instruction. A pipeline-stage
+cut is an instruction but presumes the client's system has those stages. A cause cut is the only one
+that is directly actionable *and* the only one that requires you to have controlled the cause — which
+in simulation you did, and on a client's real robot you did not.
+
+### 3.2 Procedurally-generated taxonomies — where the label is the injection
+
+**FailGen** ([arXiv:2410.00371](https://arxiv.org/abs/2410.00371)) is the reference implementation of
+the trick our own toy harness uses. *Mechanism* **[A]**: take a successful demonstration, represented
+as a keyframe sequence; pick one of seven perturbation operators; apply it; re-execute. The operators
+are geometric and trivially parameterisable — offset a keyframe's translation, delete its rotation
+component, widen the gripper at the grasp keyframe so the grasp does not close (`No_Grasp`), weaken
+it so contact is lost mid-transport (`Slip`), permute two keyframes (`Wrong Action Sequence`),
+retarget the grasp keyframe to a distractor (`Wrong Target Object`). The resulting trajectory is a
+failure **whose category is known by construction**, because you chose it before running anything.
+
+This buys the one thing the whole stage otherwise lacks: **ground truth with zero annotation cost and
+zero annotator disagreement.** AHA is trained on it and transfers — beating GPT-4o in-context by
+10.3% and six-model average by 35.3% on real failure data **[A]**.
+
+**And here is the cost, which is structural and not fixable by scale.** The taxonomy is now *the set
+of perturbations somebody was able to write*, not the set of failures that occur. Every category is,
+by construction, a failure a scripted operator can produce from a success — which biases the entire
+category set toward **single-keyframe, geometric, discrete** faults, and away from everything that is
+distributed over time, emergent from closed-loop interaction, or a consequence of the policy's own
+compounding error. `Repetition Loop` (SO-101's second category, and one of the most commonly observed
+VLA failures in practice) **cannot be produced by perturbing a demonstration keyframe at all.** It is
+a closed-loop pathology. It is absent from FailGen's seven for exactly that reason.
+
+This is the same structural blindness §2 identified for demo-referenced localisers (§2.1, and the
+header finding of §2), arriving one stage later by a different route: *methods built by perturbing
+nominal executions inherit the nominal execution's structure, and are blind wherever real failure
+does not respect it.*
+
+The counterweight number is from FailBench (§1): **75% of its 2,197 pooled failures occurred
+naturally** rather than being synthetically induced **[F]**. A synthetic taxonomy has never been
+checked against that 75% — no published work maps FailGen's seven onto a corpus of natural failures
+and reports the residual. **That residual is the single most useful unpublished number in this
+section**, and it is cheap for us to produce (§8).
+
+> ⚠ **Direct consequence for us.** Our oracle gate plants faults and checks the classifier recovers
+> them, which is precisely FailGen's construction and inherits precisely its limitation: it can only
+> ever validate the classifier on the fault families we were able to plant. **A passing oracle gate
+> is evidence of implementation correctness, not of taxonomy coverage.** Those are different claims
+> and `ARCHITECTURE.md` §8 should not be read as establishing the second.
+
+### 3.3 Cause taxonomies vs failure taxonomies — and LIBERO-Plus as the worked example
+
+LIBERO-Plus is worth a subsection because it is the closest published thing to what we are building,
+and because reading it carefully answers a question that has been open in our own planning.
+
+*Mechanism* **[F]**, read from the paper directly: start from LIBERO's 40 evaluation tasks; for each
+of the four suites (Spatial, Object, Goal, Long), generate **500 instances per generalization
+dimension** across seven dimensions — **14,000 candidate tasks**. Then filter: *"Tasks that were
+solved by all models, or by a large majority, were removed to avoid ceiling effects"*, and the
+remainder balanced across sub-dimensions. **The released benchmark is 10,030 tasks over 7 dimensions
+and 21 sub-dimensions.**
+
+Two things fall out of that paragraph, and both matter more than the headline results.
+
+**(a) It is a generator with a corpus released from it, not a corpus.** The seven dimensions are
+applied as *single-dimension perturbations to an existing task* — which is exactly the
+revert-one-knob structure that counterfactual attribution requires (§5.6). The paper lists
+"Automation: automated task generation" as a stated contribution. So the knob API exists upstream of
+the release; whether it is *distributed* is a separate, checkable question about the repository, not
+about the method.
+
+**(b) The released 10,030 are a difficulty-filtered sample, and that breaks one specific use.** Tasks
+solved by all-or-most of four reference models were **deliberately deleted**. Any success rate
+computed over the released corpus is therefore an estimate over a population that was selected, after
+the fact, for being hard for OpenVLA-OFT, π₀, π₀-fast and UniVLA. It is a perfectly good *stress*
+corpus and a perfectly good relative comparator. It is **not** an unbiased estimate of robustness
+under perturbation, and a difference between two policies measured on it is confounded with how
+similar each policy is to those four. Nothing in the paper misuses it this way; a downstream user
+easily could.
+
+*Numbers* **[F]**: Finding 1 — fragility across all seven. Finding 2 — worst on **camera viewpoint**
+and **robot initial state** ("require a high-level understanding of spatial geometry and
+proprioception"), most resilient to **lighting and background** ("superficial, low-level visual
+changes"). Background drop for one tabulated model: 73.8 (↓23.7); another 76.5 (↓21.0).
+
+**Finding 3 is the one to read.** Language perturbation produces *the second smallest* average drop
+(−25.3). The authors do not accept this as linguistic robustness and go looking, which produces the
+material in §5.4 below. Note also the decomposition of Objects Layout into **confounding objects**
+(adding distractors — most models barely move) versus **target displacement** (moving the target —
+large drops), and the authors' reading: the models *"may have merely learned the positional
+information of the target objects"* **[F]**.
+
+> That decomposition is a methodological lesson independent of its result. A single "objects layout"
+> factor would have shown a moderate drop and supported a bland conclusion. Splitting it into two
+> sub-factors that move in opposite directions is what produced the finding. **The granularity of
+> your cause taxonomy is not a presentational choice; it is the resolution limit of every conclusion
+> you can draw from the sweep.** Cf. F2, where suite-level aggregation hid an 80% → 28% collapse on
+> a single task.
+
+### 3.4 Discovered taxonomies — letting the corpus name its own categories
+
+The alternative to designing a category set is inducing one. Two mechanisms, from different fields.
+
+**Unsupervised Discovery of Failure Taxonomies from Deployment Logs**
+([arXiv:2506.06570](https://arxiv.org/abs/2506.06570)). *Mechanism* **[F]**, four stages: (i)
+**semantic downsampling** of the rollout video; (ii) **failure reasoning** — a VLM (Gemini 2.5 Pro)
+produces a free-text chain-of-thought explanation per episode; (iii) **taxonomy discovery** — and
+here is the departure from convention: *the clustering is not done in an embedding space at all*. An
+LLM is used as the optimiser over the set of explanations, generating several independent candidate
+taxonomies and then reconciling them ("ensemble-and-refine") to damp prompt sensitivity. **The
+cluster count L is never specified**; it is implicitly optimised against stated criteria — semantic
+coherence, minimal inter-cluster overlap, coverage. (iv) each cluster gets a name, a description and
+keywords; then every trajectory is assigned to one.
+
+*Numbers* **[F]**, against RoboFail's expert annotations: Cluster Precision **0.920** (vs 0.875 for a
+BERTopic+LLM baseline), Taxonomy Coverage **1.0**, Semantic Alignment Score **0.958** (harmonic mean
+of the two). Trajectory assignment F1 **85.53%** versus **32.41%** for an embedding-similarity
+baseline — a 2.6× gap that is the strongest published argument against naive embedding clustering of
+failures. The BERTopic clusters were *"broad and overlapping, merging conceptually distinct
+categories"* **[F]**.
+
+*Where it breaks*: the authors state plainly that **"there is no single canonical failure
+taxonomy"**, and that discovered structures may be sensitive to the clustering strategy **[F]**. For
+the two domains without expert annotations (driving, navigation) the evaluation is *qualitative
+coherence* — the driving taxonomy "aligned with the U.S. DoT Volpe Center's pre-crash typology", the
+navigation clusters "matched failure types previously identified manually". That is validation by
+resemblance to a prior human taxonomy, which is §3.5's problem restated.
+
+**TnT-LLM** ([arXiv:2403.12173](https://arxiv.org/abs/2403.12173), KDD'24). *Mechanism* **[A]**: a
+two-phase pipeline — (1) summarise each document, then build the taxonomy by a *pseudo-gradient*
+loop: show the LLM a batch of summaries plus the current taxonomy, ask for an update, iterate over
+batches; (2) use the LLM as a **labeller** to produce training data for a *lightweight supervised
+classifier* that is what actually ships. The second phase is the transferable idea: the expensive
+model builds the category set and labels a sample, and a cheap deterministic model does the
+production labelling. That is auditable and re-runnable in a way an LLM call is not — which is
+directly relevant to our own open tier-3-LLM decision.
+
+### 3.5 **How anyone validates that a taxonomy is correct** — the honest answer
+
+This is the section the rest of §3 exists to set up, and the finding is largely negative: **no
+published work in this space validates that its taxonomy is correct. Four weaker things are done in
+its place, and it is worth being precise about what each one actually establishes.**
+
+**(1) Recovery of planted labels.** Inject a known fault, check the classifier returns it. FailGen,
+our own oracle gate, and — in the adjacent slice-discovery literature — Domino's evaluation framework
+([arXiv:2203.14960](https://arxiv.org/abs/2203.14960)) do this. Domino is the most rigorous instance
+anyone has built: **1,235 slice-discovery settings across three input domains with ground-truth
+planted slices**, on which the best method (Domino itself) *"accurately identifies 36% of the 1,235
+slices"* — a 12-point improvement on prior work **[S]**.
+
+> **Sit with that number.** In the field that has built the most careful planted-ground-truth
+> evaluation of "find the coherent subpopulation where the model fails", the state of the art
+> recovers **roughly one in three** planted structures. Our own stage-3/4 machinery is doing the same
+> job on a harder input domain with a far smaller evaluation. Any implied accuracy above Domino's 36%
+> is a claim that needs its own evidence.
+>
+> *What this establishes*: internal correctness — the pipeline can find what is there.
+> *What it does not establish*: that the planted categories are the categories that occur.
+
+**(2) Inter-annotator agreement.** Two humans label independently under a shared rubric; report
+Cohen's κ (mutually exclusive categories) or Jaccard (multi-label); resolve disagreements by
+discussion **[S]**. Landis–Koch bands: 0.21–0.40 fair, 0.41–0.60 moderate, 0.61–0.80 substantial,
+0.81–1.00 almost perfect **[S]**. The reference points already in this document: **97.0%** human–human
+agreement on *outcome*, **91%** on *primary failure phase* **[S]** — and those are the same annotators
+getting monotonically worse as the question gets deeper. No robot-failure paper surveyed here reports
+κ on *category* at all; SO-101 does not report who annotated **[F]**, RoboFAC reports none **[F]**.
+
+Two cautions. First, **κ measures whether the rubric can be applied consistently, not whether it
+carves the phenomenon correctly.** A taxonomy of {*failure on a Tuesday*, *failure not on a Tuesday*}
+achieves κ = 1.0. High agreement is necessary and nowhere near sufficient. Second, the **kappa
+paradox**: under heavy class imbalance κ is depressed even at high raw agreement, so κ should always
+be reported alongside percentage agreement and a paradox-resistant statistic such as Gwet's AC₁ **[S]**.
+Failure categories are *always* heavily imbalanced.
+
+> ⚠ **Directly on our open problem.** Our design makes κ ≥ 0.5 the sole validation of family
+> assignment, because LIBERO offers no family fixture. Two things this section establishes about
+> that: (a) κ ≥ 0.5 is "moderate" — and it is being asked to carry a load that *no surveyed paper
+> asks κ to carry at all*, since they mostly do not measure it; (b) κ is the wrong instrument for
+> the question regardless of threshold, because it cannot distinguish a good taxonomy from a
+> consistently-applicable one. Raising the threshold does not fix a construct-validity problem.
+> §8 proposes what to do instead.
+
+**(3) Agreement with an independently-constructed taxonomy.** The strongest available design, and it
+appears once in this document — MANGO building a second symbolic oracle for the same LIBERO_10 tasks
+by a different process and reporting F1 0.841 against the first (§0) **[F]**. The equivalent for
+categories has not been done for robot failures. The unsupervised-taxonomy paper's appeal to the DoT
+Volpe pre-crash typology is a weak version: resemblance to a prior taxonomy, assessed qualitatively,
+not agreement measured per-episode **[F]**.
+
+**(4) Downstream utility.** Does the label change what anyone does, and does acting on it help? Two
+instances: TnT-LLM explicitly frames taxonomy quality in terms of *downstream classification utility*
+rather than intrinsic quality **[A]**; the unsupervised-taxonomy paper reports that the discovered
+taxonomies *"guide targeted data collection for offline policy refinement and enhance runtime failure
+monitoring"* **[F]**.
+
+**This fourth one is the only validation that survives contact with the objection.** A taxonomy is a
+means to an intervention. If two taxonomies prescribe the same intervention they are equivalent for
+our purposes however differently they carve; if a category never changes an action it is decoration
+regardless of its κ. The test is: **partition the corpus by category, apply the remediation each
+category prescribes, and measure whether the per-category improvement is larger than the improvement
+from the same remediation budget spent uniformly.** That is an experiment, it needs no ground-truth
+labels, and it is the only thing in this section that would falsify a taxonomy.
+
+It is also expensive, and nobody in the surveyed literature has run it.
+
+### 3.6 Classifiers: what actually assigns the label
+
+Three mechanisms, in increasing order of cost and decreasing order of auditability.
+
+**Rules over privileged state.** A decision procedure over `gripper`, `holding`, contact flags and
+eef-to-object distances. Deterministic, auditable, free, and re-runnable — the properties that matter
+for an evidence trail. Breaks in exactly one way, and it is the way that bites: **the rule is bound
+to state-key names and threshold values calibrated on one environment**, and silently mislabels when
+either changes. Our own LE-2 is the canonical instance — a `link` substring filter dropped drawers
+and cabinet doors, `_gt_nearest_object` named the wrong thing, and the spatial-reasoning rule fired
+on it. Note that nothing *errored*: the pipeline produced a confident, wrong category. This is the
+failure mode of rule classifiers generally, and it is invisible without an oracle gate.
+
+**Learned classifiers over trajectory features.** Cheap at inference, need labels to train, and
+inherit the label source's biases wholesale. Nothing surveyed here reports one beating a VLM on
+category assignment for manipulation, but note §1.8's item 5 — in the adjacent LLM-agent field a
+TF-IDF surface detector beat every LLM judge configuration at detecting false success (AUROC
+0.83/0.95 vs ≤0.65/0.54) **[F]**. **Build the dumb baseline before the sophisticated one** applies to
+stage 3 at least as strongly as to stage 1.
+
+**VLM classifiers.** RoboFAC-7B is the best-documented **[F]**: 7B, fine-tuned on 9,440 erroneous
+trajectories (8,960 sim + 480 real) plus 1,282 successes, 78,623 video-QA pairs over 16 tasks and 53
+scenes, with eight question types spanning Task Identification, Task Planning, Failure Detection,
+Failure Identification, Failure Locating, Failure Explanation, and High-/Low-level Correction.
+RoboFAC-Bench results: short-horizon **82.74**, medium **84.92**, long **81.78**, dynamic **83.28**,
+**real-world 68.94**, overall **79.10** — and +34.1% over GPT-4o.
+
+**The real-world row is the finding.** A ~14-point drop from the sim average to the real split,
+within a single model, on its own benchmark, with 480 real trajectories in training. Whatever
+category accuracy we measure in simulation, the corresponding real-robot number is materially lower —
+and note that this is the *optimistic* direction of the comparison, since the model saw real data.
+
+Set this against §1's FailBench result that **RoboFAC-7B scores 0.51 macro balanced accuracy at
+detection** — chance **[F]**. The same model is strong on its own benchmark and at chance on a pooled
+external one. That is not a contradiction; it is the definition of overfitting to a failure
+distribution, and it is §1.8's item 4 recurring at stage 3. **Category accuracy reported on the
+benchmark a model was built around carries almost no information about category accuracy on ours.**
+
+### 3.7 Classification: synthesis
+
+1. **The taxonomy is a design decision with no correct answer.** Four published sets cut on four
+   different axes — pipeline stage (RoboFAC), perturbation geometry (FailGen), symptom (SO-101),
+   environmental cause (LIBERO-Plus). One episode maps to all four. Choose the cut that matches the
+   *intervention* you intend to prescribe, and say which cut it is.
+2. **Nobody validates a taxonomy as correct.** They report planted-label recovery (internal
+   correctness), κ (self-consistency), resemblance to a prior taxonomy (weak), or downstream utility.
+   **Only downstream utility can falsify a taxonomy**, and no surveyed work runs it.
+3. **κ cannot do the job we have assigned it.** It cannot distinguish a good taxonomy from a
+   consistently-applicable one, and it is depressed by the class imbalance that failure categories
+   always have. Report percentage agreement and Gwet's AC₁ alongside it, and stop treating the
+   threshold as the load-bearing check.
+4. **Planted-fault validation tops out lower than intuition suggests.** Domino: 36% recovery over
+   1,235 settings, and that is the careful state of the art **[S]**.
+5. **Procedurally-generated taxonomies are structurally blind to closed-loop pathologies.**
+   `Repetition Loop` cannot be produced by perturbing a demonstration keyframe; it is therefore
+   absent from FailGen's seven. 75% of FailBench's failures were natural **[F]**; the residual
+   against a synthetic taxonomy has never been measured.
+6. **Discovered taxonomies beat embedding clustering by a wide margin** — 85.53% vs 32.41%
+   trajectory-assignment F1, and BERTopic's clusters were broad and overlapping **[F]**. If we
+   cluster, do not cluster raw trajectory embeddings. §4.
+7. **Sub-factor granularity is the resolution limit of every conclusion.** LIBERO-Plus's split of
+   objects-layout into confounding-vs-displacement is what produced its finding; F2 is our own
+   version of the same lesson.
+8. **Category accuracy does not transfer.** RoboFAC-7B: 79.10 on its own benchmark, 68.94 on its own
+   real-world split, **0.51 balanced accuracy on FailBench** **[F]**.
+9. **LIBERO-Plus is a generator whose released corpus is difficulty-filtered.** Single-dimension
+   perturbations are revert-one-knob compatible; the 10,030 released tasks had all-model successes
+   deleted and are not an unbiased robustness sample **[F]**.
+
+---
+
+## 4. CLUSTERING — "which of these are the same failure?"
+
+Classification assigns each episode to a pre-existing category. Clustering asks the corpus to
+produce the categories, and — more importantly for anything shipped to a client — to produce
+**recurring modes with counts**. One failure is an anecdote; forty instances of the same failure
+with a shared trigger is a manifest row. The stage's job is the word *same*.
+
+Everything hinges on a decision made before any clustering algorithm runs: **what object is being
+clustered.** The algorithm choice is nearly irrelevant by comparison, and the published evidence on
+that is unusually clear.
+
+### 4.1 What to embed — the decision that determines the outcome
+
+Five choices appear in the literature, in ascending order of how well they work.
+
+**(a) Raw trajectory embeddings.** Encode the state/action sequence, cluster the vectors. *Where it
+breaks*: the dominant variance in a trajectory corpus is **task identity and object position**, not
+failure mode. Two episodes failing the same way on different tasks are far apart; two episodes on the
+same task failing differently are close. You recover a partition of the *task distribution* and read
+it as a partition of the *failure distribution*. The measured cost is large: **32.41%
+trajectory-assignment F1 for an embedding-similarity baseline against 85.53% for reasoning-space
+clustering on the same corpus** **[F]** ([arXiv:2506.06570](https://arxiv.org/abs/2506.06570)).
+
+**(b) Perceptual embeddings with a distance-to-centroid rule.** Reduce a visual world model's image
+embeddings by PCA, k-means the successes, flag by distance to the nearest centroid **[S]**. This is a
+detector wearing a clustering algorithm's clothes — it produces a scalar novelty score, not a set of
+named modes — and it inherits (a)'s problem that scene appearance dominates.
+
+**(c) Cross-modal embeddings.** Domino ([arXiv:2203.14960](https://arxiv.org/abs/2203.14960))
+embeds inputs in a joint image–text space (CLIP-family), so that a discovered slice can be
+*described* by finding text that lands near its centroid. This is the mechanism that makes a cluster
+nameable rather than merely indexed **[A]**.
+
+**(d) Failure-aware embeddings.** Embed not the input but the **evidence of failure** — the model
+output together with the verifier's outcome, or a description derived from the mismatch between
+output and ground truth — then cluster those, with HDBSCAN marking outliers as noise **[S]**. The
+principle generalises cleanly: *embed the discrepancy, not the episode.*
+
+**(e) Semantic reasoning space.** Have a VLM write a free-text explanation of each failure and
+cluster the **explanations** **[F]**. This is (d) taken to its conclusion, and it is the design that
+produced 0.920 cluster precision and 1.0 coverage against RoboFail's expert annotations.
+
+> **The ordering (a) → (e) is a single idea repeated: cluster the thing that differs between a
+> failure and its success, never the episode.** An episode's representation is dominated by the task;
+> a discrepancy's representation is dominated by the failure. Every method that works has found this
+> route, and the two that have been measured head-to-head on one corpus differ by 2.6×.
+
+There is a cost, and it should be stated plainly: (e) puts a VLM — the component §1 measured at 0.77
+macro balanced accuracy at its *easiest* task **[F]** — upstream of every cluster boundary. The
+clustering is then no better than the explanations, and explanation quality on contact-rich
+manipulation is where VLMs are worst (<0.60 **[F]**). Nobody has propagated that error into a cluster
+purity bound. **A published cluster precision of 0.920 is conditional on explanations the same
+literature elsewhere measures as unreliable**, and the two numbers have never been reconciled.
+
+### 4.2 Algorithms, and the one property that matters
+
+Given a good embedding, the algorithm is close to a free choice — with one exception.
+
+**k-means** partitions exhaustively: every point lands in a cluster. On a failure corpus this is
+actively wrong, because failure corpora have **heavy singleton tails** — one-off, genuinely
+idiosyncratic events — and forcing them into the nearest mode inflates that mode's count. The count
+is the number the client acts on.
+
+**HDBSCAN** is density-based and **labels low-density points as noise** rather than assigning them
+**[S]**. That noise label is not a defect; it is the honest output for a singleton, and it is the
+reason HDBSCAN is the default in the slice-discovery and error-analysis literature. Its cost is that
+"noise" can absorb a real but small mode, so the noise set must itself be inspected, not discarded.
+
+**Error-aware mixture models.** Domino's contribution: fit a mixture over the embedding **jointly
+conditioned on the model's predictions and its errors**, so that components are encouraged to be
+error-homogeneous rather than merely input-homogeneous **[A]**. Reported effect: mean precision@10
+**0.639** on noisy and rare slices in natural images, *"a 105% improvement over the next-best
+method"* **[S]**.
+
+**LLM-as-optimiser.** No embedding space and no distance function at all: show the model the
+explanations and ask for a partition, generate several candidate taxonomies independently, reconcile
+them **[F]**. This is the 0.958-SAS method. It scales badly with corpus size (the whole set must pass
+through context, or be batched with a reconciliation step), and it is not reproducible in the strict
+sense — which for an audit trail is a real cost and is the substance of our open tier-3-LLM decision.
+
+### 4.3 Choosing the number of clusters — where the standard advice is wrong
+
+Three approaches and their failure modes.
+
+**Internal validity indices** (silhouette, Dunn, Calinski–Harabasz). Compute a ratio of within- to
+between-cluster dispersion and pick the k that optimises it. *Where it breaks*: these indices encode
+a **geometric prior — compact, convex, roughly equal-sized clusters** — that failure-mode structure
+does not satisfy. Failure modes are unequal by construction (that is what prevalence means) and often
+non-convex in an embedding. Silhouette is explicitly less reliable for non-convex or intricately
+shaped clusters **[S]**, and Dunn shows very large variance at its optimum **[S]**. Worse, high
+silhouette is achievable by assignments that are **not reproducible between runs** **[S]** — the index
+and the stability of the thing it scores are decoupled.
+
+**Bootstrap stability.** Resample, re-cluster, measure assignment agreement; prefer the k that is
+stable. This is the check most often presented as the rigorous one, and the objection to it is
+sharp: **stability cannot distinguish real clusters from noise.** A k-means run on structureless data
+is highly stable, because k-means is close to deterministic given its initialisation — so high
+stability is *"evidence that your k-means run is deterministic, not that your clusters exist"*
+**[S — secondary source, a practitioner blog; the argument is sound and reproducible in ten lines of
+code, but it is not a peer-reviewed citation and should not be cited as one]**.
+
+**Let the method choose.** The LLM-as-optimiser approach never specifies L; it is implicitly
+optimised against coherence, non-overlap and coverage criteria **[F]**. Honest about what it is — a
+qualitative criterion applied by a stochastic judge — and it sidesteps the geometric prior entirely.
+
+> **The load-bearing check none of the three performs is a null comparison.** Run the identical
+> pipeline on a corpus where no mode structure exists by construction — failures sampled uniformly,
+> or labels permuted — and report the same statistic. If the null corpus yields clusters of
+> comparable silhouette and stability, the statistic is measuring your algorithm, not your data.
+> This is the clustering analogue of the control arm that our oracle gate already runs for stage 3
+> (`ARCHITECTURE.md` §8), and we do not currently run it for stage 4. **Cheap, and it is the
+> difference between a mode and an artefact.**
+
+### 4.4 Naming clusters — and how naming launders incoherence
+
+A cluster with a count is not yet a manifest row; it needs a name a human can act on. Mechanisms:
+nearest-text-neighbour in a cross-modal space (Domino) **[A]**; LLM summarisation of cluster members
+into a name, description and keywords (the unsupervised-taxonomy paper generates exactly this triple
+per cluster) **[F]**; interactive LLM-generated cluster descriptions
+([LangLasso, arXiv:2601.10458](https://arxiv.org/abs/2601.10458)) **[S]**.
+
+**The hazard is specific and under-discussed.** An LLM asked to name a set of items will *always*
+return a fluent name, including for a set with no common property — and the name's fluency is then
+read as evidence that the cluster is coherent. The naming step is the point at which an
+under-determined clustering acquires a false appearance of meaning, and it is downstream of every
+check in §4.3, so no check catches it.
+
+The counter is cheap and nobody reports it: **name-based re-assignment.** Give a held-out annotator
+(or a second model) only the *names and descriptions*, ask them to assign held-out episodes, and
+measure agreement with the cluster assignment. If the name does not reproduce the partition, the
+name is a summary of noise. This is the same instrument as §3.5(2), pointed at the right target —
+and unlike κ on a hand-designed taxonomy it *is* a test of the partition, because the partition was
+induced rather than given.
+
+### 4.5 Evaluating cluster quality without ground truth
+
+Ranked by how much they establish.
+
+| Method | What it establishes | Cost |
+|---|---|---|
+| Internal indices (silhouette, Dunn) | that the geometry matches a convex-compact prior | free |
+| Bootstrap stability | that the algorithm is deterministic | cheap |
+| **Null-corpus comparison** | that the structure is not an artefact of the pipeline | one extra run |
+| **Name-based re-assignment** (§4.4) | that the cluster has a communicable common property | one annotator pass |
+| **Planted slices** (Domino-style) | that the pipeline recovers structure that is there | needs a fixture |
+| **Downstream utility** | that the partition changes what you do, usefully | an experiment |
+
+Domino's framework is the only large-scale planted-ground-truth evaluation of this stage in any
+field: **1,235 settings, 36% recovery for the best method** **[S]**. And the metric it established —
+**precision@10**, how many of the top-10 items in a discovered slice belong to the ground-truth slice
+**[S]** — is the right shape for our use too, because a manifest row is read top-down: what matters
+is whether the *examples shown to the client* are actually the same failure, not whether the cluster
+tail is pure.
+
+**Two further cautions from the adjacent literature.** BERTopic — the obvious off-the-shelf choice —
+underperformed on failure explanations specifically, with clusters *"broad and overlapping, merging
+conceptually distinct categories"* **[F]**. And the same source that reports 0.920 cluster precision
+against expert annotations falls back to **qualitative coherence assessment** for its two domains
+without annotations **[F]**; the honest reading is that the quantitative result exists only where a
+fixture existed, which is the situation we are in on LIBERO.
+
+### 4.6 Clustering: synthesis
+
+1. **Cluster the discrepancy, not the episode.** Embedding-similarity on trajectories: 32.41% F1.
+   Clustering VLM-written failure explanations: 85.53% on the same corpus **[F]**. This is the
+   largest single-decision effect in the stage.
+2. **Prefer density-based methods that can say "noise".** Failure corpora have heavy singleton tails
+   and k-means inflates mode counts by forcing them in — and the count is what the client acts on.
+3. **Do not choose k by silhouette.** It encodes a convex-equal-size prior that failure modes
+   violate, and high silhouette is achievable by non-reproducible assignments **[S]**.
+4. **Bootstrap stability is not evidence of structure.** It largely measures algorithmic determinism
+   **[S, secondary]**.
+5. **Run a null corpus.** The one check that separates a mode from an artefact, and the one nobody
+   reports. We already do the equivalent at stage 3 and should extend it.
+6. **Naming launders incoherence.** An LLM names any set fluently. Validate by name-based
+   re-assignment on held-out episodes.
+7. **Planted-slice recovery is the strongest available fixture and it tops out at 36%** **[S]**.
+   Report precision@10 rather than cluster purity — it matches how a manifest row is read.
+8. **A VLM sits upstream of every cluster boundary in the best-performing designs**, at 0.77 macro
+   balanced accuracy on its easiest task and <0.60 on contact-rich manipulation **[F]**. That error
+   has never been propagated into a cluster-purity bound. Ours should be.
+
+---
+
+## 5. ATTRIBUTION — "what caused it?"
+
+This is the stage where the published numbers collapse. Best step-level attribution on the
+Who&When LLM-agent benchmark: **14.2% accuracy, with some methods below random** **[A]**. Best
+long-context model on TRAIL: **11%** **[S]**. Those are not hard benchmarks being approached; they
+are benchmarks nobody is close to.
+
+It is worth being clear about why, because the reason is not "the models are not good enough yet".
+**Attribution is a causal question, and almost every deployed method answers it with correlational
+evidence.** A judge reading a trajectory and naming a cause is performing post-hoc narration: it
+observes the failure and produces a story consistent with it, and there is no mechanism in that
+procedure by which a *wrong but consistent* story would be penalised. Consistency is what it
+optimises. Causation is what was asked.
+
+The stage divides cleanly on exactly that line.
+
+### 5.1 Correlational attribution — reading the trace and naming a cause
+
+*Mechanism*: give a model the trajectory (frames, actions, tool calls, logs), ask which step or
+factor was responsible. Everything from `RoboFAC`'s Failure Explanation question type **[F]** to the
+LLM-judge baselines on Who&When sits here.
+
+*The benchmark*: **Who&When** ([search-level](https://arxiv.org/abs/2505.00212)) — 184 annotated
+failure tasks from algorithm-generated (CaptainAgent) and hand-crafted (Magnetic-One) multi-agent
+systems, each labelled with the responsible agent, the decisive error step, and a natural-language
+explanation **[S]**. Extended by **Who&When Pro** ([arXiv:2607.09996](https://arxiv.org/abs/2607.09996))
+to 12,326 traces over 26 source benchmarks, 9 task categories, 3 modalities **[S]**.
+
+*The number*: ~**14%** step-level accuracy for correlational baselines **[F, as reported in
+[arXiv:2606.08275](https://arxiv.org/abs/2606.08275)]**.
+
+*Where it breaks*, and this is the structural point: **the benchmark labels one deterministic
+failure-inducing step per trace**. Real failures frequently have no such step — the outcome is
+overdetermined, or committed gradually. So part of the 86% gap is method weakness and part is the
+ground truth being an idealisation. Both parts should make us cautious about promising step-level
+attribution on robot rollouts, where commitment is *continuous* and the notion of "the step that
+caused it" is even less well posed than in a discrete agent trace.
+
+### 5.2 Saliency and attention — why not to use them
+
+*Mechanism*: compute a gradient- or attention-based map over the input, present the high-mass regions
+as the cause.
+
+*Why not*: **Sanity Checks for Saliency Maps** ([arXiv:1810.03292](https://arxiv.org/abs/1810.03292),
+NeurIPS'18) introduced two tests — the **model-parameter randomisation test** (progressively
+randomise the trained weights; a valid attribution must change) and the **data randomisation test**
+(retrain on permuted labels; a valid attribution must change). **Several widely used saliency methods
+are invariant to both** — they are functions of the input's edge structure, not of the model or the
+data **[A]**. They produce maps that look plausible for a model that has learned nothing. Follow-up
+work finds that the *metrics* used to rank saliency methods are themselves statistically unreliable,
+so comparative rankings between methods are untrustworthy **[S]**.
+
+The paper's own conclusion is the operative sentence: methods failing these tests are inadequate for
+*"explaining the relationship between inputs and outputs that the model learned, and debugging the
+model"* **[A]** — which is precisely and only what stage 5 wants them for.
+
+Attention weights inherit the problem without the benefit of having been tested this carefully.
+**Neither belongs in an attribution claim we would defend to a client**, and the alternative in §5.3
+is strictly better, cheap, and interventional.
+
+### 5.3 Input ablation — the cheapest interventional method
+
+*Mechanism*: remove, blank, shuffle or replace one input channel; re-run; measure the change in
+success rate. This is an intervention — you set the value rather than observing it — so the
+resulting claim is causal with respect to that channel, with no identification assumptions beyond
+"nothing else changed".
+
+*Worked example* **[F]**, from LIBERO-Plus:
+
+- **Blank instruction.** Replace the language input with an empty value. OpenVLA-OFT on the object
+  suite: *"remained largely unchanged"*, with significant degradation only on the long suite. The
+  authors' conclusion is unusually blunt for a paper: the model *"degenerates into a form that
+  disregards language, behaving more like a Vision-Action (VA) model"*.
+- **Goal replacement.** Keep the scene, change the instruction to name a *different* object present
+  in it. Success rates *"dropping nearly to zero"* — and the rollouts show the model executing the
+  **original** target's trajectory: instructed to pick up butter, it picks up alphabet soup;
+  instructed to pick up tomato sauce, it executes the butter action. The authors' reading: VLAs here
+  behave as *"visual pattern matchers mapping scene configurations to predetermined action
+  sequences"*.
+
+The pairing is what makes the argument. Blanking language alone would have supported "the model is
+robust to language perturbation" (Finding 3's −25.3, the second *smallest* drop). The replacement
+probe shows that the robustness is insensitivity, not comprehension. **One ablation gives an
+ambiguous number; an ablation plus a directed substitution identifies which way it points.**
+
+*Corroboration from mechanistic work* **[A]**
+([alphaXiv:2603.19233](https://www.alphaxiv.org/abs/2603.19233), a summary source, not the primary
+paper — treat the figures as indicative): injecting visual-backbone activations alone, with no
+language prompt, yields **73–77% task success**; given task A's instruction and task B's visual
+activations in a shared scene, the robot follows the **injected visual signal 93.3%** of the time;
+language sensitivity tracks task *ambiguity* rather than architecture (60–100% success with null or
+wrong prompts on the LIBERO object suite; X-VLA on LIBERO goal collapsing **94% → 10%** under wrong
+prompts); causal ablation shows **28–92% zero-effect rates** across architectures, and **~70% of
+critical features encode object identity** rather than motion commands.
+
+*Where input ablation breaks.* Three ways, all of which matter to us:
+
+1. **The ablated input is itself out of distribution.** A blank instruction is not a neutral control;
+   it is a novel input. A drop could be caused by the OOD-ness rather than by the loss of
+   information. The directed substitution (goal replacement) avoids this — the replacement
+   instruction is perfectly in-distribution — which is a second reason to prefer it.
+2. **Channel-level necessity is not episode-level causation.** "Language contributes little on
+   average" does not license "this episode failed because the language was misread". Ablation
+   attributes to a *channel over a population*; a manifest row attributes to an *instance*. Do not
+   silently convert one into the other.
+3. **Zero effect is not absence of the pathway.** A 28–92% zero-effect rate under ablation is
+   consistent with redundant encoding, where removing one route leaves an equivalent one intact.
+   Ablation establishes sufficiency-of-removal, not the absence of a mechanism.
+
+> ⚠ **Consequence for our family set.** If contemporary VLAs largely do not consume language, then a
+> **language-grounding failure family is close to unpopulated on nominal LIBERO** — not because
+> grounding is solved but because grounding is barely attempted. A classifier with such a family
+> will therefore either abstain on it or capture something else under its name, and κ will not
+> detect the latter (§3.5). The directed-substitution probe is the instrument that tells the two
+> apart, and it is cheap: it is one extra rollout per instance with one word changed.
+
+### 5.4 Step-level counterfactual replay
+
+The most developed interventional method for trace-shaped failures, and worth describing in full
+because its structure transfers to rollouts.
+
+**Causal Agent Replay** ([arXiv:2606.08275](https://arxiv.org/abs/2606.08275)) **[F]**. *Mechanism*:
+model the trajectory as a structural causal model
+`τ = [s₀, (a₁,o₁), …, (aₙ,oₙ), y]` — decision state, stochastic action from policy π, observation,
+outcome `y ∈ [0,1]`. Attribution is then a `do`-operation at step *k* followed by **re-execution of
+the remainder under the unchanged policy**, measuring the shift in the outcome distribution over *K*
+rollouts. Five intervention types: `do_resample` (re-draw the action from the same policy),
+`do_action` (force a specific action), `do_observation` (replace the tool result), `do_context`
+(edit history), `do_policy` (swap the model).
+
+Four design details that are the transferable content:
+
+- **`do_resample` is the null intervention and the foundation.** It changes nothing except re-drawing
+  step *k* from the unchanged policy, which measures *"the intrinsic causal sensitivity of the
+  outcome to that step"*. It is the correct baseline because it holds the policy fixed — any other
+  intervention confounds "this step mattered" with "the thing I substituted was better".
+- **The point-of-commitment rule.** Resampling step *k* also re-rolls every downstream stochastic
+  decision, which confounds the estimate. The resolution: identify *"the latest step whose effect's
+  confidence interval still excludes zero — the last point at which re-deciding still rescues the
+  run; beyond it, the outcome is committed."* This is §2.5's point-of-no-return arriving as an
+  estimator rather than a predictor, and it is a better-posed target than "the step that caused it".
+- **Shapley over steps**, by Monte-Carlo permutation sampling with antithetic reverse-pairing,
+  because single-step methods *structurally cannot* split credit across interacting steps.
+  Deliberately **no caching of coalition values across permutations** — caching would suppress
+  per-step marginal variance and produce *"false confidence"*. Budget-bounded with circuit breakers.
+- **Validation against synthetic SCMs with analytic ground truth.** On a two-step interaction the
+  estimator recovered φ₀=0.44, φ₁=0.45, φ₂≈0, efficiency sum **0.909** against an analytic **0.91**.
+
+*Stated limitations* **[F]**, all of which apply to us verbatim: contrastive effects measure **total**
+effects through stochastic paths, and isolating direct effects needs **common random numbers**, which
+is unimplemented; judge-based outcome functions inject noise, so rule-based scoring is preferred;
+Shapley is worst-case exponential; and — the one to internalise — *"even at temperature 0, hosted
+inference varies because of floating-point non-associativity"*, so faithful replay requires recording
+every nondeterministic input.
+
+> **We are better placed than this method is.** Common random numbers, which CAR lists as unimplemented,
+> is *free* for us: it is the same seed. Rule-based outcome scoring, which CAR prefers, is what a BDDL
+> predicate already is. Deterministic replay, which CAR cannot guarantee, is what a pinned simulator
+> gives (subject to F2 — the pin *is* the guarantee). The methods we would be adopting were developed
+> under constraints we do not have, which is an argument for taking their **structure** and not their
+> **workarounds**.
+
+### 5.5 Interventional attribution in simulation — revert-one-knob
+
+The strongest attribution available to this project, and it is strong for a boring reason: **we
+assign the treatment** (§0).
+
+*Mechanism*: fix the instance and the seed. Run the perturbed configuration; observe failure. Revert
+exactly one factor to its nominal value; re-run at the same seed; observe the outcome. The
+**paired** difference over instances is an estimate of that factor's contribution, and because the
+assignment was ours, there is no confounding to adjust for. The identification assumption is the
+entire content of the claim and it is checkable rather than assumed: *the rest of the simulator was
+held fixed*.
+
+This is why LIBERO-Plus's construction matters to us beyond its results. Its seven dimensions are
+applied as **single-dimension perturbations to an existing task** **[F]** — which is the revert-one-knob
+structure already in place. The reversion is the inverse of an operator the generator already applies.
+
+*What to report*: the paired difference with a paired interval, not two independent success rates
+with overlapping CIs. Pairing at a fixed seed removes instance variance, which is the dominant
+variance component, and it is the difference between needing tens and needing hundreds of episodes
+per cell.
+
+*Where it breaks*, and these are not small:
+
+1. **Interaction.** Reverting one knob at a time estimates main effects. If a failure requires
+   viewpoint *and* initial-state jointly, every single reversion may show a small effect and the
+   conclusion "no single factor is responsible" is correct but useless. Detecting this needs a
+   factorial or a Shapley-style coalition estimator (§5.4) and costs combinatorially more.
+2. **Multiple sufficient causes.** If either of two factors alone would have caused the failure,
+   reverting either one individually shows no effect, and revert-one-knob reports **no cause at all**.
+   This is the standard counterexample to but-for causation, it is not exotic, and it is invisible in
+   the output — the row simply looks uninformative rather than wrong.
+3. **The factor is not the mechanism.** "Camera viewpoint caused it" names the knob we turned, not
+   what broke. The step from knob to mechanism is not interventional and is where the
+   correlational methods of §5.1 quietly re-enter.
+
+### 5.6 Attribution: synthesis
+
+1. **The published numbers are ~11–14% and the gap is partly the ground truth.** Who&When labels one
+   deterministic failure-inducing step; real failures are frequently overdetermined or committed
+   gradually. Be correspondingly careful about promising step-level attribution on rollouts.
+2. **Correlational attribution is post-hoc narration.** Nothing in the procedure penalises a wrong
+   but consistent story, and consistency is what it optimises.
+3. **Do not use saliency or attention.** Several standard methods are invariant to randomising the
+   model's weights *and* to retraining on permuted labels **[A]**, and the metrics that rank saliency
+   methods are themselves unreliable **[S]**.
+4. **Input ablation is the cheapest real intervention** — but pair it with a **directed substitution**,
+   because a blank input is itself OOD and an unchanged success rate is ambiguous between robustness
+   and insensitivity. LIBERO-Plus's blank-instruction / goal-replacement pair is the model to copy
+   **[F]**.
+5. **Contemporary VLAs largely do not consume language.** Blank instruction: little change on the
+   object suite; goal replacement: success *"nearly to zero"* with the original target's trajectory
+   still executed **[F]**. A language-grounding family is therefore near-unpopulated on nominal
+   LIBERO, and κ will not tell us if something else is being labelled with its name.
+6. **Take CAR's structure, not its workarounds.** Null intervention by resampling under the unchanged
+   policy; the point-of-commitment rule as a better-posed target than "the causal step"; Shapley for
+   interacting steps with no coalition caching; validation against an analytic SCM. Common random
+   numbers, rule-based outcomes and deterministic replay — CAR's three stated gaps — are free for us.
+7. **Revert-one-knob at a fixed seed is our strongest instrument**, and its two blind spots are
+   **interaction** and **multiple sufficient causes**. Both present as *"no factor responsible"*,
+   which is indistinguishable in the output from a genuinely uninformative case. Any manifest row
+   reporting no attributable factor should say which of the three it could be.
+8. **Naming the knob is not naming the mechanism**, and the step between them is where correlational
+   reasoning re-enters an otherwise interventional pipeline. Mark it in the output.
+
+---
+
+## 6. CROSS-CUTTING — what survives the move to a real robot
+
+§2.10 tabulated this for localisation. The pattern generalises, and it is not the pattern one would
+guess: **the stages do not degrade uniformly, and the stage that degrades worst is the one we are
+relying on most.**
+
+| Stage | In simulation | On a real robot | Transfer |
+|---|---|---|---|
+| **1 Detection** | BDDL predicate over privileged state — exact, deterministic, free | no predicate exists; a human or a VLM judge at ≤0.77 macro bACC **[F]** | **poor.** The instrument changes entirely |
+| **2 Localisation** | phase segmentation over `_gt_` state; onset labels readable from state | policy-internal signals transfer cleanly; **onset ground truth often cannot be constructed at all** (§2.10) | **mixed.** Methods transfer, evaluation does not |
+| **3 Classification** | rules over privileged state, or a fine-tuned VLM | VLM only. RoboFAC-7B: 79.10 sim-average → **68.94 real**, on its own benchmark, having trained on real data **[F]** | **degrades ~14 points, optimistically measured** |
+| **4 Clustering** | any route | the explanation-clustering route (§4.1e) needs **no state at all** | **good — the best-performing design is also the most portable** |
+| **5 Attribution** | revert-one-knob at a fixed seed; common random numbers free | **cannot re-run the same instance**; no CRN; no reversion | **poor to impossible.** The mechanism does not exist |
+
+Three observations follow.
+
+**The privileged-state stages are the ones that vanish.** Detection and attribution — stages 1 and 5,
+the two ends of the pipeline — are the ones most completely dependent on being able to read and set
+simulator state. A client deploying on real hardware inherits stages 2, 3 and 4 and must reconstruct
+1 and 5 by other means. It is worth saying this out loud in any readout, because the natural client
+reading of "we found the causes of your failures" is that the method comes with them.
+
+**Clustering is the exception, and for an instructive reason.** The design that performs best
+(cluster VLM-written explanations) is the one that touches no environment state, and is therefore the
+one that ports unchanged. That is not a coincidence: the reason it works — that a natural-language
+explanation abstracts away scene and task specifics — is the same reason it is portable. **Where a
+method's mechanism is abstraction rather than privilege, it transfers.**
+
+**The transfer coefficient is itself unmeasured for what we plan to report.** Published Spearman
+correlations for sim-to-real transfer of failure-conditional quantities run **0.4–0.7**, with
+*severity ordering transferring worst* **[? — carried forward from project notes; the primary source
+was not re-verified in this pass and should be before it is cited to a client]**. A rank correlation
+of 0.4 on the quantity a manifest is ordered by is not a caveat, it is a different document. Note
+that this is a further, independent reason not to ship a cardinal severity (DG-5b) — the ordering is
+the part that transfers worst, and a cardinal number implies an ordering.
+
+---
+
+## 7. ADJACENT FIELDS WORTH STEALING FROM
+
+Three fields have been doing versions of this for longer, against harder ground truth, and two of
+them have an algorithm we should take directly.
+
+### 7.1 Software fault localisation
+
+**Spectrum-based fault localisation (SBFL).** *Mechanism* **[S]**: run a test suite; record, per
+test, which program statements it executed (the *spectrum*); for each statement compute a
+**suspiciousness score** from the four counts (executed-and-failed, executed-and-passed,
+not-executed-and-failed, not-executed-and-passed). Tarantula and Ochiai are two such formulas;
+Ochiai is `a_ef / sqrt((a_ef + a_nf) · (a_ef + a_ep))`. Rank statements by suspiciousness; the
+developer reads down the list.
+
+*The mapping to us is exact and the vocabulary is the only thing that changes*: statements → phases
+(or knob settings); tests → episodes; pass/fail → the BDDL predicate. A phase executed by many
+failing episodes and few passing ones is suspicious in precisely Ochiai's sense. **This gives a
+principled, twenty-year-old, zero-parameter ranking for "which phase is implicated", computed from
+data we already have** — and it is a far better default than any threshold we would invent.
+
+*Published failure modes, which transfer too* **[S]**:
+- SBFL **"loses discrimination when passing and failing tests execute the same statements"**. Our
+  analogue: if every episode traverses the same phase sequence, phase-level suspiciousness is
+  uninformative — and on a short manipulation task that is the common case, not the edge case.
+- **Coincidental correctness** — tests that execute the faulty statement but pass — degrades Ochiai.
+  Our analogue is the lucky success, which §0 already documents concretely (MANGO's cabinet door
+  pushing the dropped object in). It is the same statistical nuisance under a different name.
+- Tarantula and Ochiai **"poorly performed as the number of faults increased"**. Our analogue is the
+  multi-cause episode, i.e. §5.5's interaction and multiple-sufficient-cause blind spots, showing up
+  as degradation rather than as an error.
+
+**Delta debugging (`ddmin`).** *Mechanism* **[S]**: given a failing input, systematically partition
+it and re-test subsets to find a **1-minimal failure-inducing subset** — one where removing any
+single element makes the failure go away. `DDMIN-LOC` extends it by feeding the passing and failing
+inputs generated *during* the minimisation into an SBFL formula.
+
+> **This is the direct answer to §5.5's interaction blind spot, and it is the single most valuable
+> import in this section.** Revert-one-knob estimates main effects and reports "no cause" when a
+> failure needs two factors jointly. `ddmin` over the *perturbation set* finds the minimal subset of
+> knobs that still produces the failure — which is exactly the right object — in **O(n²) re-runs
+> worst case, typically far fewer**, rather than the 2ⁿ of a full factorial. Every re-run is a
+> same-seed rollout, which we can already do. A manifest row reading *"fails under {viewpoint yaw
+> +15°, initial state B} together, and under neither alone"* is strictly more actionable than
+> anything main effects can produce, and this is how to compute it.
+>
+> One caveat carried over from the source: `ddmin` needs inputs that **decompose**. The one Siemens
+> program unsuitable for delta debugging was TCAS, whose input is a fixed-size integer vector that
+> *"cannot be easily decomposed"* **[S]**. Our perturbation set is a set of independent knobs, which
+> is the decomposable case — but a single continuous knob's *magnitude* is not, and mixing the two
+> needs care.
+
+### 7.2 Driving scenario analysis
+
+*Mechanism* **[S]**: mine fleet or crash logs for scenarios; cluster them (k-medoids on junction
+crash data, then association-rule mining within each cluster to specify the scenario); score them by
+**criticality metrics** (time-to-collision and relatives); retain the critical tail as a test suite.
+One reported result: new selection methods increase the proportion of critical scenarios by **17.4%
+and 13.6%** over traditional methods **[S]**.
+
+Two things this field has that robotics does not, and both are about the surrounding infrastructure
+rather than the algorithms:
+
+1. **An external, authoritative taxonomy.** The US DoT Volpe Center pre-crash typology exists, is
+   agreed, and predates any of the methods — which is why the unsupervised-taxonomy paper could use
+   alignment with it as evidence its driving clusters were meaningful **[F]**. Robot manipulation has
+   no equivalent, and §3.1 is a picture of what its absence looks like: four groups, four
+   incompatible category sets, no arbiter. **Alignment-with-a-standard is a validation mechanism that
+   is simply unavailable to us**, and it is the one that would most cheaply close §3.5.
+2. **Externally-supplied prevalence.** Crash databases say how often each scenario occurs in the
+   world. No simulation can supply that, and the field does not pretend otherwise. This is exactly
+   DG-5b's position — prevalence is client-supplied, not measured by us — arriving from an
+   independent direction, which is reassuring about the decision.
+
+### 7.3 LLM agent trajectory analysis
+
+The closest adjacent field methodologically, because a trace is trace-shaped whether the actions are
+tool calls or end-effector deltas, and it is roughly two years ahead on stage 5. Its content is
+distributed through §5 above (Who&When, Who&When Pro, TRAIL, CAR) and §1.8 item 5. The three
+importable lessons, none of which are about robots:
+
+- **Build the dumb baseline first.** A TF-IDF surface detector beat every LLM-judge configuration at
+  detecting false success (AUROC 0.83/0.95 vs ≤0.65/0.54) **[F]**. Nothing in that result is specific
+  to text.
+- **Benchmark the attribution, not the narrative.** This field constructed traces with annotated
+  responsible steps and discovered its methods were at 11–14%. Robotics has not done the equivalent,
+  which is why robot-failure-explanation papers report fluency-adjacent metrics and this one reports
+  accuracy.
+- **Model the trace as an SCM and intervene** (§5.4) rather than asking a model to narrate it.
+
+---
+
+## 8. WHAT WE COULD ADOPT
+
+Ranked by (value ÷ cost), with the concrete change named. Nothing here requires the GPU except where
+stated.
+
+**1. `ddmin` over the perturbation set, to find minimal failure-inducing knob subsets.** (§7.1)
+Closes the interaction blind spot that revert-one-knob cannot see, in O(n²) same-seed re-runs instead
+of 2ⁿ. It is the only method surveyed that turns *"no single factor is responsible"* from a dead end
+into a manifest row. **Highest value in this document.** Needs the counterfactual-probe path, so it
+sequences after a perturbable environment exists.
+
+**2. Ochiai suspiciousness over phases.** (§7.1) A zero-parameter, twenty-year-old ranking for "which
+phase is implicated", computable from the pass/fail and phase-traversal data our manifest already
+carries. Replaces an invented threshold with a formula that has a literature and known failure modes.
+Cheap: it is a function over existing columns. Report alongside it the fraction of episodes sharing a
+phase sequence — that fraction is the statistic's own validity check, since SBFL loses discrimination
+exactly when it approaches 1.
+
+**3. The directed-substitution probe.** (§5.3) For every ablation we run, pair it with an
+in-distribution substitution — not just "blank the instruction" but "name a different object that is
+present". It costs one extra rollout per instance and it is the difference between measuring
+*robustness* and measuring *insensitivity*. LIBERO-Plus's two experiments are the template.
+**Sequence this early**: if it shows our policy does not consume language, that fact should be known
+before a language-grounding family is put in front of a client.
+
+**4. A null corpus at stage 4.** (§4.3) Run the clustering pipeline on a corpus with no mode
+structure by construction and report the same statistics. One extra run; it is the only check that
+distinguishes a mode from an artefact of the pipeline, and we already run the analogous control at
+stage 3.
+
+**5. Name-based re-assignment, replacing κ's load-bearing role.** (§3.5, §4.4) Give a held-out judge
+only the cluster *names and descriptions* and have them assign held-out episodes; measure agreement
+with the induced partition. Unlike κ on a hand-designed taxonomy this genuinely tests the partition,
+because the partition was induced rather than given — and it catches the specific hazard that an LLM
+names any set fluently. This is the closest thing this survey found to a fix for our open problem,
+and it is worth being precise that it is a *partial* fix: it establishes that a cluster has a
+communicable common property, not that the property is the right one.
+
+**6. Report percentage agreement and Gwet's AC₁ next to κ.** (§3.5) Failure categories are always
+heavily imbalanced, which is the kappa paradox's regime. Nearly free.
+
+**7. Cluster the discrepancy, not the episode.** (§4.1) If `mining/cluster.py` clusters trajectory
+features, the measured penalty is 32.41% vs 85.53% assignment F1. The portable form is to cluster a
+structured *description* of what differs between the failure and its nominal counterpart — which, for
+counterfactual pairs, we have by construction and without needing a VLM in the loop at all. **We are
+better placed here than the published methods**: they reach for a VLM explanation because they have
+no nominal counterpart; we generate ours.
+
+**8. Take CAR's structure for probe design.** (§5.4) Specifically: `do_resample` as the null
+intervention; the **point-of-commitment** rule (the latest step whose effect interval excludes zero)
+as a better-posed target than "the causal step"; no coalition caching if we ever compute Shapley;
+and validation against an analytic ground truth before trusting the estimator. CAR's three stated
+gaps — common random numbers, rule-based outcomes, deterministic replay — are all free for us.
+
+**9. Distil the LLM tier into a deterministic classifier.** (§3.4, TnT-LLM) If an LLM is used to
+build the category set or label a sample, let it train a cheap deterministic classifier that does the
+production labelling. This is a direct input to our open tier-3 decision and it reframes it:
+the question is not local-vs-API but *which component ships* — an auditable artefact re-runnable
+years later, or a model call.
+
+**10. Measure the residual of a synthetic taxonomy against natural failures.** (§3.2) Take our
+planted-fault family set, apply it to a corpus of *natural* LIBERO failures, and report the fraction
+that fits no family. **No published work reports this number**, it is the direct measure of the
+blind spot that procedural generation creates, and it is a genuine contribution rather than an
+adoption. Cost: one annotation pass over a modest sample.
+
+**11. Report precision@10 rather than cluster purity.** (§4.5) It matches how a manifest row is
+actually read — top-down, by the examples shown — and it is the metric the one rigorous
+planted-ground-truth evaluation in this space established.
+
+**Explicitly not adopted**, with reasons: saliency and attention maps (§5.2 — they fail
+model-randomisation sanity checks); silhouette for choosing k (§4.3); bootstrap stability as evidence
+of structure (§4.3); BERTopic off the shelf for failure explanations (§4.5); and — carried from
+§2 — TAS as a primary localiser (§2.1) and trajectory-distance-to-demo (§2.6, which remains a
+**caveated secondary signal in `vla_harness/mining/phases.py` and is therefore still an open
+inconsistency between this document and the code**; flagged, not resolved, in this pass).
+
+---
+
+## 9. WHAT COULD NOT BE VERIFIED IN THIS PASS
+
+Listed so that nothing above is mistaken for having been read at full text.
+
+| Claim | Mark | Why, and what would settle it |
+|---|---|---|
+| Sim-to-real Spearman 0.4–0.7 for failure-conditional quantities; severity ordering transfers worst | **[?]** | Carried forward from project notes; the primary source was **not located or re-verified in this pass**. It is load-bearing for §6 and for any client readout. **Do not cite until found.** |
+| AHA / FailGen mechanism and the seven operators | **[A]** | The ICLR PDF exceeded the fetch size limit; the seven mode names and headline numbers come from the abstract and from search results. The per-operator injection details in §3.2 are a reconstruction from those names and should be checked against the paper before being relied on |
+| Domino: 36% of 1,235 settings; precision@10 0.639; 105% over George | **[S]** | Search-snippet level. Numbers are consistent across snippets but were not read off the paper |
+| Who&When: 184 tasks, composition, ~14% step accuracy | **[S]/[F]** | The benchmark description is snippet-level; the ~14% figure is **[F]** only as *reported by CAR*, not from the Who&When paper itself. arXiv ID given in §5.1 is unconfirmed |
+| TnT-LLM two-phase mechanism | **[A]** | Abstract only — the ACM full text returned HTTP 403. The "pseudo-gradient over batches" description is from secondary coverage and should be confirmed |
+| Mechanistic VLA figures (73–77%, 93.3%, 28–92%, ~70%) | **[A, secondary]** | From an alphaXiv summary page, **not the primary paper**. Indicative only. The LIBERO-Plus ablation results in §5.3, which make the same point, **are [F]** and should be preferred as the citation |
+| Bootstrap stability cannot distinguish clusters from noise | **[S, secondary]** | A practitioner blog. The argument is sound and reproducible in a few lines, but it is not a peer-reviewed citation. Cite the demonstration, not the source |
+| SBFL / `ddmin` details, Ochiai formula, Siemens/TCAS note | **[S]** | Search-snippet level across several sources, mutually consistent. The Ochiai formula as given is standard but was written from memory of the standard form, not copied from a source — **verify before implementing** |
+| Driving scenario mining: +17.4% / +13.6% critical scenario proportion | **[S]** | Snippet-level, single source, method not inspected |
+| Human–human 97.0% outcome / 91% phase agreement | **[S]** | Carried from §1; unchanged in this pass |
+| LIBERO-Plus per-model per-factor table | **partially [F]** | The PDF was retrieved and read. The text layer of Table 1 did not extract cleanly, so only two background-column figures (73.8 ↓23.7; 76.5 ↓21.0) are quoted, without their model labels. **The findings text, the generation pipeline, the 14,000 → 10,030 filtering, and the language experiments are all [F] and solid.** The per-cell table is not |
+| Whether LIBERO-Plus's generation code is **released** | **unverified** | §3.3 establishes from the paper that a generator exists and that single-dimension perturbations are its unit of operation. Whether it is distributed is a question about the repository, answerable in minutes, and **not answered here** |
+
+**One methodological note on this pass.** Sections 3–9 cite 12 further URLs (122 distinct in the
+document) from roughly 20 sources consulted, against §1–§2's 113, and lean more heavily on **[F]** readings of a few central papers (LIBERO-Plus, RoboFAC, CAR,
+the unsupervised-taxonomy paper) than on breadth. The synthesis items are correspondingly more
+exposed to any one of those four being wrong. The compensating fact is that the four were chosen
+because they are the ones whose *mechanisms* are closest to what we are building, which is what this
+document is for.
 
 ---

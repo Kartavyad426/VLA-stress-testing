@@ -1,5 +1,7 @@
 # HANDOFF — state of the VLA Stress-Test project
 
+> **[UNSOURCED — do not cite]** the sim-to-real rank-correlation figure (Spearman 0.4–0.7) and the claim that *severity ordering transfers worst* were carried forward from an early survey and **no primary source has been located** (flagged 2026-09-15). The design decisions they motivated stand on their own reasoning; the numbers must not appear in a readout until sourced.
+
 **Written 2026-09-15.** For resuming after a context break. Read this first,
 then the doc it points you at for whatever you are doing.
 
@@ -89,7 +91,7 @@ to keep; running it first and wrapping later would waste the lot.
 | `docs/COMPONENTS.md` | Every component, where it lives, **verification status** |
 | `docs/WHAT_OUR_CODE_DOES.md` | Why we wrote any code when `lerobot-eval` exists |
 | `docs/OUR_MINING_APPROACH.md` | The mining layer end to end — the differentiator |
-| `docs/FAILURE_MINING_METHODS.md` | Field survey. **INCOMPLETE — §3–§5 missing** |
+| `docs/FAILURE_MINING_METHODS.md` | Field survey. **COMPLETE — §0–§9, all five stages.** See its status banner: §3.5 (taxonomy validation), §3.3 (LIBERO-Plus answers AS-3), §7.1/§8.1 (`ddmin` for knob interactions) |
 | `docs/LANDSCAPE.md` | Competitive survey, 238 sources, + adoption ledger |
 | `FINDINGS.md` | F1–F4. Things established that are not in the proposal |
 | `IMPLEMENTATION.md` | Build plan, wave by wave, with status |
@@ -212,7 +214,7 @@ remediation arm A by re-rendering existing demos rather than scripting new ones.
 - **Family assignment has no fixture on LIBERO.** Demos cover only the success
   path; degradation gives a known *trigger* but not a known *family*. That makes
   κ the sole validation of the classifier, and **κ ≥ 0.5 is thin for that role**.
-- How well `failure_conditional` transfers sim-to-real (Spearman 0.4–0.7
+- How well `failure_conditional` transfers sim-to-real (Spearman 0.4–0.7 **[UNSOURCED]**
   published; severity ordering transfers worst).
 - Do recovery rows ship in a first client manifest? The family is unvalidated.
 
