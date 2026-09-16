@@ -1,0 +1,146 @@
+{
+  "set_id": "camp_20260916-0015_libero_spatial-regset",
+  "frozen_env": {
+    "name": "libero:libero_spatial",
+    "suite": "libero_spatial",
+    "task_id": 0,
+    "control_mode": "relative",
+    "use_init_states": true,
+    "init_states_sha": "b8d08b5b0a1b",
+    "bddl_sha": "088abaf74d81",
+    "hard_reset": true,
+    "num_steps_wait": 10,
+    "max_steps": 280,
+    "action_dims": [
+      "dx",
+      "dy",
+      "dz",
+      "droll",
+      "dpitch",
+      "dyaw",
+      "gripper"
+    ]
+  },
+  "frozen_semantic": {
+    "mujoco": "3.3.7",
+    "robosuite": "1.4.0",
+    "MUJOCO_GL": "egl"
+  },
+  "frozen_at": "2026-09-16",
+  "members": [
+    {
+      "rollout_id": "bfd7313e2477",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "e89e7ca5f746",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "3cab204c9c72",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "f31ae4bcfb72",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "5d26a7cb2765",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "a83dfe905121",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "e0dadd3dd1b9",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "890b46b7f3d8",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "8b14d9f47130",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "3f3b61a033a8",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "a96a46451e07",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "3d7dbc3bbfcd",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "70ae4235a423",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "7b196c8338d1",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "13a340f8e626",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "3fd714ad9861",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "239cbe85c082",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "e23d6328510a",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "c8f0e293a077",
+      "seed": 4,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "19dcc9aeca39",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 10.0
+      }
+    }
+  ],
+  "note": "frozen from e2e failures",
+  "schema_version": "3.0"
+}

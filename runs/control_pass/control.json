@@ -1,0 +1,261 @@
+{
+  "libero_spatial": {
+    "threshold": 0.3,
+    "spec": "nominal",
+    "per_task": {
+      "0": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "1": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "2": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "3": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "4": {
+        "rate": 0.4,
+        "ci95": [
+          0.1176,
+          0.7693
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "5": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      }
+    },
+    "excluded_tasks": [],
+    "n_excluded": 0,
+    "n_tasks": 6,
+    "verdict": "all tasks solvable"
+  },
+  "libero_object": {
+    "threshold": 0.3,
+    "spec": "nominal",
+    "per_task": {
+      "0": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "1": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "2": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "3": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "4": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "5": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      }
+    },
+    "excluded_tasks": [],
+    "n_excluded": 0,
+    "n_tasks": 6,
+    "verdict": "all tasks solvable"
+  },
+  "libero_goal": {
+    "threshold": 0.3,
+    "spec": "nominal",
+    "per_task": {
+      "0": {
+        "rate": 0.4,
+        "ci95": [
+          0.1176,
+          0.7693
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "1": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "2": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "3": {
+        "rate": 1.0,
+        "ci95": [
+          0.5655,
+          1.0
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "4": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "5": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      }
+    },
+    "excluded_tasks": [],
+    "n_excluded": 0,
+    "n_tasks": 6,
+    "verdict": "all tasks solvable"
+  },
+  "libero_10": {
+    "threshold": 0.3,
+    "spec": "nominal",
+    "per_task": {
+      "0": {
+        "rate": 0.2,
+        "ci95": [
+          0.0362,
+          0.6245
+        ],
+        "n": 5,
+        "solvable": false
+      },
+      "1": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "2": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "3": {
+        "rate": 0.4,
+        "ci95": [
+          0.1176,
+          0.7693
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "4": {
+        "rate": 0.2,
+        "ci95": [
+          0.0362,
+          0.6245
+        ],
+        "n": 5,
+        "solvable": false
+      },
+      "5": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      }
+    },
+    "excluded_tasks": [
+      "0",
+      "4"
+    ],
+    "n_excluded": 2,
+    "n_tasks": 6,
+    "verdict": "2 task(s) NOT solvable by the reference policy -- exclude from policy conclusions, and report the exclusion"
+  }
+}

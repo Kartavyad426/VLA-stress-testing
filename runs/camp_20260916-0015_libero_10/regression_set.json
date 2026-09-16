@@ -1,0 +1,136 @@
+{
+  "set_id": "camp_20260916-0015_libero_10-regset",
+  "frozen_env": {
+    "name": "libero:libero_10",
+    "suite": "libero_10",
+    "task_id": 1,
+    "control_mode": "relative",
+    "use_init_states": true,
+    "init_states_sha": "e6574c940787",
+    "bddl_sha": "bf56af4d7007",
+    "hard_reset": true,
+    "num_steps_wait": 10,
+    "max_steps": 520,
+    "action_dims": [
+      "dx",
+      "dy",
+      "dz",
+      "droll",
+      "dpitch",
+      "dyaw",
+      "gripper"
+    ]
+  },
+  "frozen_semantic": {
+    "mujoco": "3.3.7",
+    "robosuite": "1.4.0",
+    "MUJOCO_GL": "egl"
+  },
+  "frozen_at": "2026-09-16",
+  "members": [
+    {
+      "rollout_id": "2ecd4c72bf01",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "c3e28761b388",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "8e6752e71bc7",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "3a2722342541",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "733db89d4b55",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "963f2464e716",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "047a710a5c4c",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "62ce01031d28",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "9639272c9dee",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "70db11b80e64",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "9c5ea9b998e4",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "9ed285389472",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "82ff223216fd",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "f5dbc3bb96b3",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "f064beb6a0db",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "26cacf4a9f23",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "9aecbe3af422",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "5a677a35acd9",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "6b8b0c6cc2b2",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "8a59011a360c",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    }
+  ],
+  "note": "frozen from e2e failures",
+  "schema_version": "3.0"
+}

@@ -1,0 +1,579 @@
+{
+  "run_id": "camp_20260916-0015_libero_spatial",
+  "suite": "libero_spatial",
+  "tasks": 8,
+  "seeds": 5,
+  "policy": "lerobot:HuggingFaceVLA/smolvla_libero@f88fc831",
+  "control": {
+    "threshold": 0.3,
+    "spec": "nominal",
+    "per_task": {
+      "0": {
+        "rate": 0.4,
+        "ci95": [
+          0.1176,
+          0.7693
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "1": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "2": {
+        "rate": 0.4,
+        "ci95": [
+          0.1176,
+          0.7693
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "3": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "4": {
+        "rate": 0.6,
+        "ci95": [
+          0.2307,
+          0.8824
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "5": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "6": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      },
+      "7": {
+        "rate": 0.8,
+        "ci95": [
+          0.3755,
+          0.9638
+        ],
+        "n": 5,
+        "solvable": true
+      }
+    },
+    "excluded_tasks": [],
+    "n_excluded": 0,
+    "n_tasks": 8,
+    "verdict": "all tasks solvable"
+  },
+  "floor": {
+    "rates": [
+      0.8,
+      0.8
+    ],
+    "floor_pp": 0.0,
+    "n_per_run": 5,
+    "repeats": 2
+  },
+  "sweep": {
+    "0": [
+      {
+        "yaw": 0.0,
+        "rate": 1.0,
+        "ci": [
+          0.5655085052479191,
+          1.0
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      }
+    ],
+    "boundary_0": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.5,
+      "nominal": 1.0,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 1.0,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (100.0%)"
+    },
+    "1": [
+      {
+        "yaw": 0.0,
+        "rate": 0.8,
+        "ci": [
+          0.3755282641185388,
+          0.9637768390302125
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.4,
+        "ci": [
+          0.1176182311592533,
+          0.769280067791163
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      }
+    ],
+    "boundary_1": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.4,
+      "nominal": 0.8,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 0.8,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (80.0%)"
+    },
+    "2": [
+      {
+        "yaw": 0.0,
+        "rate": 0.8,
+        "ci": [
+          0.3755282641185388,
+          0.9637768390302125
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      }
+    ],
+    "boundary_2": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.4,
+      "nominal": 0.8,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 0.8,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (80.0%)"
+    },
+    "3": [
+      {
+        "yaw": 0.0,
+        "rate": 0.8,
+        "ci": [
+          0.3755282641185388,
+          0.9637768390302125
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      }
+    ],
+    "boundary_3": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.4,
+      "nominal": 0.8,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 0.8,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (80.0%)"
+    },
+    "4": [
+      {
+        "yaw": 0.0,
+        "rate": 1.0,
+        "ci": [
+          0.5655085052479191,
+          1.0
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      }
+    ],
+    "boundary_4": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.5,
+      "nominal": 1.0,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 1.0,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (100.0%)"
+    },
+    "5": [
+      {
+        "yaw": 0.0,
+        "rate": 0.8,
+        "ci": [
+          0.3755282641185388,
+          0.9637768390302125
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.8,
+        "ci": [
+          0.3755282641185388,
+          0.9637768390302125
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.6,
+        "ci": [
+          0.23071993220883708,
+          0.8823817688407467
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.6,
+        "ci": [
+          0.23071993220883708,
+          0.8823817688407467
+        ]
+      }
+    ],
+    "boundary_5": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.4,
+      "nominal": 0.8,
+      "lower": 10.0,
+      "upper": 15.0,
+      "lower_rate": 0.6,
+      "upper_rate": 0.2,
+      "definition": "success < 0.5 x nominal (80.0%)"
+    },
+    "6": [
+      {
+        "yaw": 0.0,
+        "rate": 0.6,
+        "ci": [
+          0.23071993220883708,
+          0.8823817688407467
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.2,
+        "ci": [
+          0.03622316096978745,
+          0.6244717358814613
+        ]
+      }
+    ],
+    "boundary_6": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.3,
+      "nominal": 0.6,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 0.6,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (60.0%)"
+    },
+    "7": [
+      {
+        "yaw": 0.0,
+        "rate": 0.6,
+        "ci": [
+          0.23071993220883708,
+          0.8823817688407467
+        ]
+      },
+      {
+        "yaw": 5.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 10.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 15.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      },
+      {
+        "yaw": 20.0,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.43449149475208104
+        ]
+      }
+    ],
+    "boundary_7": {
+      "knob": "camera_yaw_deg",
+      "threshold": 0.3,
+      "nominal": 0.6,
+      "lower": 0.0,
+      "upper": 5.0,
+      "lower_rate": 0.6,
+      "upper_rate": 0.0,
+      "definition": "success < 0.5 x nominal (60.0%)"
+    }
+  },
+  "attribution": {
+    "full_rate": 0.0,
+    "full_spec": "camera_yaw_deg=15, ee_offset_x_m=0.03, light_intensity=0.4",
+    "probes": [
+      {
+        "knob": "camera_yaw_deg",
+        "reverted_rate": 0.6,
+        "delta_pp": 60.0,
+        "paired": {
+          "b": 3,
+          "c": 0,
+          "discordant": 3,
+          "p_value": 0.25
+        }
+      },
+      {
+        "knob": "ee_offset_x_m",
+        "reverted_rate": 0.2,
+        "delta_pp": 20.0,
+        "paired": {
+          "b": 1,
+          "c": 0,
+          "discordant": 1,
+          "p_value": 1.0
+        }
+      },
+      {
+        "knob": "light_intensity",
+        "reverted_rate": 0.0,
+        "delta_pp": 0.0,
+        "paired": {
+          "b": 0,
+          "c": 0,
+          "discordant": 0,
+          "p_value": 1.0,
+          "note": "no seed changed outcome"
+        }
+      }
+    ],
+    "n_per_cell": 5,
+    "threshold_pp": 20.0,
+    "floor_pp": 0.0,
+    "attributed_knob": "camera_yaw_deg",
+    "attribution": {
+      "verdict": "single_factor",
+      "factor": "camera_yaw_deg"
+    }
+  },
+  "mining": {
+    "n_traces": 260,
+    "classified": 260,
+    "abstained": 0,
+    "families": {
+      "visual_grounding": 62,
+      "spatial_reasoning": 19,
+      "planning": 39,
+      "manipulation": 44,
+      "ambiguous": 17
+    }
+  },
+  "manifest_rows": 3,
+  "regression_set": 20,
+  "wall_s": 2670
+}

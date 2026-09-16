@@ -1,6 +1,6 @@
 # Data Gap Manifest
 
-Generated 2026-09-15 · schema v1.0
+Generated 2026-09-16 · schema v1.0
 
 ## DGM-001 — visual_grounding [COMPUTED AT DELIVERY = CONDITIONAL X PREVALENCE X COST]
 

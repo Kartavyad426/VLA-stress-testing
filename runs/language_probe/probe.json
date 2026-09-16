@@ -1,0 +1,107 @@
+{
+  "libero_spatial/task0": {
+    "nominal_rate": 0.6,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 60.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 0.0,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "partial_grounding",
+    "reason": "success fell to 0% but the end-effector still approached the ORIGINAL object in 100% of paired episodes. Looks like comprehension in aggregate and is not -- a success-rate design would misread this.",
+    "language_family_admissible": false
+  },
+  "libero_spatial/task1": {
+    "nominal_rate": 1.0,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 100.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 0.0,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "partial_grounding",
+    "reason": "success fell to 0% but the end-effector still approached the ORIGINAL object in 100% of paired episodes. Looks like comprehension in aggregate and is not -- a success-rate design would misread this.",
+    "language_family_admissible": false
+  },
+  "libero_spatial/task2": {
+    "nominal_rate": 0.8,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 80.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 0.8,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "comprehending",
+    "reason": "substituting the goal redirected the end-effector to a different object in 80% of paired episodes -- the policy followed the new instruction",
+    "language_family_admissible": true
+  },
+  "libero_object/task0": {
+    "nominal_rate": 1.0,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 100.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 1.0,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "comprehending",
+    "reason": "substituting the goal redirected the end-effector to a different object in 100% of paired episodes -- the policy followed the new instruction",
+    "language_family_admissible": true
+  },
+  "libero_object/task1": {
+    "nominal_rate": 1.0,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 100.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 1.0,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "comprehending",
+    "reason": "substituting the goal redirected the end-effector to a different object in 100% of paired episodes -- the policy followed the new instruction",
+    "language_family_admissible": true
+  },
+  "libero_object/task2": {
+    "nominal_rate": 1.0,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 100.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "n_identity_resolved": 5,
+    "redirect_fraction": 1.0,
+    "instrument": "target identity (object approached), not success rate",
+    "verdict": "comprehending",
+    "reason": "substituting the goal redirected the end-effector to a different object in 100% of paired episodes -- the policy followed the new instruction",
+    "language_family_admissible": true
+  },
+  "libero_goal/task0": {
+    "nominal_rate": 0.8,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 80.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "verdict": "inconclusive",
+    "reason": "could not resolve target identity (incomplete object list, or no privileged object state)"
+  },
+  "libero_goal/task1": {
+    "nominal_rate": 0.8,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 80.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "verdict": "inconclusive",
+    "reason": "could not resolve target identity (incomplete object list, or no privileged object state)"
+  },
+  "libero_goal/task2": {
+    "nominal_rate": 0.8,
+    "blank_rate": 0.0,
+    "blank_drop_pp": 80.0,
+    "n_seeds": 5,
+    "swapped_rate": 0.0,
+    "verdict": "inconclusive",
+    "reason": "could not resolve target identity (incomplete object list, or no privileged object state)"
+  }
+}

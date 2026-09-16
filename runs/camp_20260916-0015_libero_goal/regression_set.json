@@ -1,0 +1,150 @@
+{
+  "set_id": "camp_20260916-0015_libero_goal-regset",
+  "frozen_env": {
+    "name": "libero:libero_goal",
+    "suite": "libero_goal",
+    "task_id": 0,
+    "control_mode": "relative",
+    "use_init_states": true,
+    "init_states_sha": "2f74ad520101",
+    "bddl_sha": "042deab69283",
+    "hard_reset": true,
+    "num_steps_wait": 10,
+    "max_steps": 300,
+    "action_dims": [
+      "dx",
+      "dy",
+      "dz",
+      "droll",
+      "dpitch",
+      "dyaw",
+      "gripper"
+    ]
+  },
+  "frozen_semantic": {
+    "mujoco": "3.3.7",
+    "robosuite": "1.4.0",
+    "MUJOCO_GL": "egl"
+  },
+  "frozen_at": "2026-09-16",
+  "members": [
+    {
+      "rollout_id": "2ef8dfaec648",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "0e5ea48f700f",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "710228b22d4d",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "8f4f07f2eca8",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "c91e4206aedd",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "a99645638ba3",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "88d49d4a7e4c",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "d7938f8f2a8b",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "001102a54e2f",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "6904ba912750",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "a790ffbe9ca2",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "16615d43430b",
+      "seed": 4,
+      "spec": {}
+    },
+    {
+      "rollout_id": "ab7513025029",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "00a5c42ab2eb",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "1924656fd6fa",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "6956dbb1de67",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "a2238bea8c57",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "7cc53056e1ef",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "0bb4e35ae185",
+      "seed": 4,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "6c9644705e9c",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 10.0
+      }
+    }
+  ],
+  "note": "frozen from e2e failures",
+  "schema_version": "3.0"
+}

@@ -20,6 +20,46 @@ from ..schema import (Observation, Action, PerturbationSpec, derive_id,
                       semantic_runtime)
 
 
+def _resolve_body(name: str, bodies) -> str | None:
+    """Map a BDDL `obj_of_interest` entry onto a MuJoCo body.
+
+    Two shapes occur and only the first is a plain prefix match:
+
+      free object   'cream_cheese_1'               -> 'cream_cheese_1_main'
+      REGION on a   'wooden_cabinet_1_middle_region'
+      fixture        -> bodies are 'wooden_cabinet_1_cabinet_middle', '..._main'
+
+    The second broke the original matcher and silently cost us six of eight
+    LIBERO-Goal tasks: every articulated task ("open the middle drawer",
+    "turn on the stove") names a REGION, no body starts with it, the object
+    list came back empty, and the miner correctly abstained on 200 traces.
+
+    Region entries are `<fixture>_<part>_region`, so: strip `_region`, then
+    prefer the body carrying BOTH the fixture prefix and the part token --
+    `..._cabinet_middle` over `..._main` -- because the part is what the task
+    acts on. Fall back to progressively shorter prefixes.
+    """
+    exact = [b for b in bodies if b and b.startswith(name)]
+    if exact:
+        return sorted(exact, key=len)[0]
+
+    stem = name[:-len("_region")] if name.endswith("_region") else name
+    toks = stem.split("_")
+    # longest prefix that any body shares, then disambiguate by the remainder
+    for cut in range(len(toks) - 1, 0, -1):
+        prefix = "_".join(toks[:cut])
+        cand = [b for b in bodies if b and b.startswith(prefix)]
+        if not cand:
+            continue
+        rest = toks[cut:]
+        if rest:
+            part = [b for b in cand if all(t in b for t in rest)]
+            if part:
+                return sorted(part, key=len)[0]
+        return sorted(cand, key=len)[0]
+    return None
+
+
 def _look_at_quat(eye, target):
     """Quaternion (w,x,y,z) aiming a MuJoCo camera from `eye` at `target`."""
     import numpy as np
@@ -388,10 +428,9 @@ class LiberoEnv:
             return names, False
         resolved, complete = [], True
         for n in names:
-            # BDDL names the object; MuJoCo suffixes the body (`_main`, `_1`).
-            cand = [b for b in bodies if b and b.startswith(n)]
-            if cand:
-                resolved.append(sorted(cand, key=len)[0])
+            b = _resolve_body(n, bodies)
+            if b:
+                resolved.append(b)
             else:
                 complete = False
         return resolved, complete
