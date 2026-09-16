@@ -45,7 +45,7 @@ which we already built (G10).
 |---|---|---|---|---|---|---|
 | **Octo-small** | 27 M | <1 GB | **yes** | yes | via LeRobot | 93 M variant also exists. Runs in ~4 GB. Fast, weak. Good smoke test. |
 | **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | *Primary candidate.* ~25 Hz on A100; runs on Jetson Orin NX. |
-| **GR00T N1.7** | 3 B | ~6 GB weights | **tight — treat as unverified; π0.5 at the same nominal size did NOT fit (F4)** | no | `nvidia/GR00T-N1.7-LIBERO` | Flow-matching action head ⇒ **stochastic, must seed** |
+| **GR00T N1.7** | 3 B | 6.44 GiB weights (measured) | no | NVIDIA non-comm. N1.5 / N1.7 commercial | **4 LIBERO checkpoints EXIST** (`nvidia/GR00T-N1.7-LIBERO`, one per suite) | **NOT LOADABLE BY LEROBOT — see below** |
 | **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
 | **OpenVLA** | 7.4 B | ~15 GB bf16 | **no** (4-bit only) | no (8×A100 for full FT) | yes, published | Quantizing voids the ±5 pp gate — see `PLAN.md` §1 |
 | **OpenVLA-OFT** | 7.4 B | ~15 GB | **no** | no | yes, per-suite | The proposal's headline. Needs rented GPU. |
@@ -57,6 +57,33 @@ Architecture notes that matter for us:
 - **GR00T N1.7** = NVIDIA Eagle encoder + flow-matching action transformer.
 - **π0** = flow matching. **GR00T and π0 both sample**, so `I1`/§5.1 in
   `ARCHITECTURE.md` applies hard: seed the noise draw or probes are noise.
+
+### GR00T N1.7 — checkpoints exist, but not in a form we can load
+
+**Correction (2026-09-16).** The survey recorded GR00T as having "a SimplerEnv-Bridge
+checkpoint, not LIBERO". **Wrong: four LIBERO checkpoints exist**, one fine-tune per
+suite, at `nvidia/GR00T-N1.7-LIBERO`.
+
+But the blocker is not memory, and not licensing:
+
+| | |
+|---|---|
+| inference weights | **6.44 GiB** (4.65 + 1.79 safetensors) vs 7.34 GiB free — marginal |
+| the 133 GiB repo total | misleading: DeepSpeed optimiser shards (16 × 1.13 GiB/suite), **training artifacts** |
+| **config format** | **NVIDIA-native**: `"architectures": ["Gr00tN1d7"]`, `diffusion_model_cfg`, `backbone_embedding_dim` |
+| what LeRobot expects | `GrootConfig(type="groot", chunk_size, normalization_mapping, …)` |
+| LeRobot-hosted GR00T checkpoint | **none exists** |
+
+LeRobot's `model_type = "Gr00tN1d7"` matches, so the *model class* is right — the
+*config* is not. Using it therefore means either **adopting NVIDIA's Isaac-GR00T
+stack** (separate install, inference path and observation contract, plus a third
+adapter for us) or **hand-translating the config**, which means guessing
+normalisation statistics. That second option is precisely the un-normalisation
+failure the proposal warns "can manufacture apparent model failures", and we would
+have no way to distinguish a bad translation from a weak model.
+
+**Verdict: not now.** `peft`, `diffusers`, `timm`, `dm-tree` are installed, so the
+door is open if a LeRobot-format checkpoint appears.
 
 > **Not yet verified: licences.** Confirm commercial-use terms per checkpoint
 > before anything client-facing. Do not assume Apache-2.0.

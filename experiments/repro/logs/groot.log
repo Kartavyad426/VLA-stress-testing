@@ -1,0 +1,54 @@
+before: free 7.34 / 7.53 GiB
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+ImportError: cannot import name 'GR00TN1_7Policy' from 'lerobot.policies.groot.groot_n1_7' (/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/policies/groot/groot_n1_7.py)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 808, in hf_raise_for_status
+    response.raise_for_status()
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '404 Not Found' for url 'https://huggingface.co/nvidia/GR00T-N1.7-LIBERO/resolve/main/config.json'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/configs/policies.py", line 194, in from_pretrained
+    config_file = hf_hub_download(
+                  ^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1035, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1105, in _hf_hub_download_to_cache_dir
+    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
+                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1728, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1635, in get_hf_file_metadata
+    response = _httpx_follow_hub_redirects_with_backoff(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 733, in _httpx_follow_hub_redirects_with_backoff
+    hf_raise_for_status(response)
+  File "/home/imerit/Documents/Code/VLA/.venvs/lerobot/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 828, in hf_raise_for_status
+    raise _format(RemoteEntryNotFoundError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+huggingface_hub.errors.RemoteEntryNotFoundError: 404 Client Error. (Request ID: Root=1-6aaa3ad1-7c58b41d7f514fe875860d15;2c6e07f4-23df-4d00-ae30-fa4954532349)
+
+Entry Not Found for url: https://huggingface.co/nvidia/GR00T-N1.7-LIBERO/resolve/main/config.json.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+  File "/home/imerit/Documents/Code/VLA/third_party/lerobot/src/lerobot/configs/policies.py", line 206, in from_pretrained
+    raise FileNotFoundError(
+FileNotFoundError: config.json not found on the HuggingFace Hub in nvidia/GR00T-N1.7-LIBERO

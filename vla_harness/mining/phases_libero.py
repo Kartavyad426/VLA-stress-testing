@@ -22,6 +22,10 @@ from .phases import (PhaseSegment, APPROACH, PREGRASP, GRASP, TRANSPORT, RETRY)
 DEFAULT_CLOSED_M = 0.030          # sum of both fingers, below this = closed
 DEFAULT_PREGRASP_M = 0.10         # eef within this of the target = pre-grasp
 DEFAULT_LIFT_M = 0.015            # object risen this far above its resting z
+# Aperture movement below this over a window = the fingers have STOPPED. Free
+# travel moves ~0.005 m per step (0.075 -> 0.030 in ~8 steps), so this is an
+# order of magnitude under the motion it must exclude.
+DEFAULT_STALL_M = 0.004
 
 
 class LiberoPhaseSegmenter:
@@ -37,12 +41,14 @@ class LiberoPhaseSegmenter:
     requires = ["_gt_eef_to_object", "gripper_qpos", "_gt_object_pos"]
 
     def __init__(self, pregrasp_m=DEFAULT_PREGRASP_M, closed_m=DEFAULT_CLOSED_M,
-                 lift_m=DEFAULT_LIFT_M, target_index=0, hold_steps=6):
+                 lift_m=DEFAULT_LIFT_M, target_index=0, hold_steps=6,
+                 stall_m=DEFAULT_STALL_M):
         self.pregrasp_m = pregrasp_m
         self.closed_m = closed_m
         self.lift_m = lift_m
         self.target_index = target_index
         self.hold_steps = hold_steps
+        self.stall_m = stall_m
 
     # --- required-key check, same contract as the toy segmenter (G8) -------
     def missing(self, r) -> list[str]:
@@ -57,12 +63,24 @@ class LiberoPhaseSegmenter:
         return miss
 
     def _target(self, st) -> str | None:
+        """The BDDL manipuland -- insertion order, NOT alphabetical.
+
+        This used to `sorted(d)[i]`, which destroys BDDL order and picks the
+        DESTINATION on any task whose manipuland sorts later than its container
+        (`['cream_cheese_1', 'basket_1']` -> the basket). That was 210/260
+        libero_object episodes and 110/185 libero_10 episodes segmenting against
+        a body that never moves.
+
+        The identical bug was fixed in `signals.py` and left here, because the
+        expression lived in two modules and only one had a failing test on it
+        (O1). `experiments/phase_segmenter_test.py` now asserts the two agree,
+        since that duplication is what let them drift in the first place.
+        """
         d = st.get("_gt_eef_to_object") or {}
         if not d:
             return None
-        names = sorted(d)
-        i = min(self.target_index, len(names) - 1)
-        return names[i]
+        names = list(d)                       # BDDL order; dicts preserve it
+        return names[min(self.target_index, len(names) - 1)]
 
     def _closed(self, st) -> bool:
         q = st.get("gripper_qpos") or []
@@ -72,6 +90,66 @@ class LiberoPhaseSegmenter:
     def _commanded_closed(step) -> bool:
         a = step.action
         return bool(a) and len(a) >= 7 and a[6] > 0.5
+
+    # --- the two holding routes, each callable ALONE --------------------
+    # They are exposed separately because a disjunction cannot be validated by
+    # asking whether the disjunction fired. `holding = by_gripper or by_lift`
+    # passed "every success shows TRANSPORT" at 79/79 in every suite while BOTH
+    # branches were broken -- their failures were complementary, so the OR hid
+    # them (O4). Anything that scores these must score them one at a time.
+
+    def _holding_by_gripper(self, r, i: int) -> bool:
+        """Fingers STALLED while still open -- no privileged state required.
+
+        The premise: the policy commanded the fingers shut and they did not
+        shut, so something is between them. The trap is that "did not shut" is
+        also true while the fingers are still TRAVELLING.
+
+        The first version tested one frame and fired on 258/260. A persistence
+        requirement (`hold_steps=6`) was then added without measuring the
+        transient: free travel to full closure takes ~8 steps, so a 6-step
+        window sits entirely inside it and excluded nothing (O3).
+
+        Persistence is the wrong question anyway -- it asks "has enough time
+        passed?" when the thing meant is "have the fingers STOPPED?". A blocked
+        finger is stationary at an open aperture; a travelling finger is not.
+        So: commanded closed throughout, still open throughout, and the aperture
+        no longer falling.
+        """
+        n = len(r.steps)
+        if i + self.hold_steps > n:
+            return False
+        ap = []
+        for k in range(i, i + self.hold_steps):
+            st = r.steps[k].obs_state
+            q = st.get("gripper_qpos") or []
+            if not q or not self._commanded_closed(r.steps[k]):
+                return False
+            a = sum(abs(x) for x in q)
+            if a < self.closed_m:             # fingers met -- nothing between them
+                return False
+            ap.append(a)
+        return max(ap) - min(ap) < self.stall_m
+
+    def _holding_by_lift(self, r, i: int, tgt: str, z0: float) -> bool:
+        """The target rose off its rest height. Needs simulator truth.
+
+        NOT conjoined with `closed`. It used to be, and `closed` means aperture
+        < closed_m -- which a held object is exactly what prevents. The lift
+        route was therefore switched off precisely on the objects it should
+        detect, reaching 1/79 libero_object successes (O2).
+        """
+        st = r.steps[i].obs_state
+        zs = (st.get("_gt_object_pos", {}).get(tgt) or [0, 0, z0])[2]
+        return (zs - z0) > self.lift_m
+
+    def _holding(self, r, i: int, tgt: str = None, z0: float = 0.0) -> bool:
+        if tgt is None:
+            tgt = self._target(r.steps[0].obs_state)
+            z0 = (r.steps[0].obs_state.get("_gt_object_pos", {}).get(tgt)
+                  or [0, 0, 0])[2]
+        return (self._holding_by_gripper(r, i)
+                or self._holding_by_lift(r, i, tgt, z0))
 
     def __call__(self, r) -> tuple[list[PhaseSegment], dict]:
         miss = self.missing(r)
@@ -89,30 +167,12 @@ class LiberoPhaseSegmenter:
         for i, s in enumerate(r.steps):
             st = s.obs_state
             dist = (st.get("_gt_eef_to_object") or {}).get(tgt)
-            zs = (st.get("_gt_object_pos", {}).get(tgt) or [0, 0, z0])[2]
             commanded = self._commanded_closed(s)
             closed = self._closed(st)
-            # DERIVED `holding`, two independent routes:
-            #   gripper-only  commanded CLOSE but the fingers did not fully
-            #                 close -> something is between them. Works with no
-            #                 privileged state, i.e. on a real robot.
-            #   object-lift   the object rose off its rest height. Needs
-            #                 simulator truth, but is unambiguous.
-            # Either suffices. Closure alone never does -- closing on empty air
-            # is exactly the failure being detected.
-            # PERSISTENCE, not a single frame. The first version tested one
-            # step and fired on 258/260 traces: while the fingers are still
-            # travelling they read "not closed", so every closure produced a
-            # transient that looked like a grasp. A real grasp keeps the
-            # fingers blocked for many consecutive steps; a closing transient
-            # does not.
-            by_gripper = all(
-                self._commanded_closed(r.steps[k])
-                and not self._closed(r.steps[k].obs_state)
-                for k in range(i, min(i + self.hold_steps, len(r.steps)))
-            ) and i + self.hold_steps <= len(r.steps)
-            by_lift = closed and (zs - z0) > self.lift_m
-            holding = bool(by_gripper or by_lift)
+            # DERIVED `holding`, two independent routes -- see _holding_by_*.
+            # Either suffices. Closure alone never does: closing on empty air is
+            # exactly the failure being detected.
+            holding = self._holding(r, i, tgt, z0)
             holding_flags.append(holding)
             closed = closed or commanded
 
@@ -142,7 +202,9 @@ class LiberoPhaseSegmenter:
         return segs, {"target": tgt, "derived_holding_steps": sum(holding_flags),
                       "thresholds": {"pregrasp_m": self.pregrasp_m,
                                      "closed_m": self.closed_m,
-                                     "lift_m": self.lift_m}}
+                                     "lift_m": self.lift_m,
+                                     "stall_m": self.stall_m,
+                                     "hold_steps": self.hold_steps}}
 
 
 def fit_from_demos(demo_rollouts, target_index=0, pct=95):
