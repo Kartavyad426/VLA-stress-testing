@@ -1722,7 +1722,32 @@ category prescribes, and measure whether the per-category improvement is larger 
 from the same remediation budget spent uniformly.** That is an experiment, it needs no ground-truth
 labels, and it is the only thing in this section that would falsify a taxonomy.
 
-It is also expensive, and nobody in the surveyed literature has run it.
+> **CORRECTION (2026-09-16).** An earlier draft of this section stated that nobody had run it. That
+> was wrong, and the paper that runs it is one already cited here.
+> [arXiv:2506.06570](https://arxiv.org/abs/2506.06570) discovers nine failure-mode clusters from
+> deployment logs, collects **40K additional samples inside the identified failure zones**, and
+> fine-tunes. Result **[F]**:
+>
+> | arm | failure rate |
+> |---|---|
+> | before | 46% |
+> | **failure-guided collection** | **18%** |
+> | uniform random collection, *same budget* | 34% |
+>
+> *"The failure rate in sampled trajectories drops from 46% to 18% … whereas fine-tuning with
+> randomly collected additional data only improves the failure rate to 34%."* The discovered clusters
+> carry prevalence — Thin–Protruding Objects 42%, Uniform/Featureless Surface 23%, Narrow-Gap/
+> Clearance Misjudgment 18% — and the authors note several of them ("protruding corners, white walls,
+> glass doors") had **previously been identified independently by HJ-reachability analysis**, which
+> is validation mechanism (3) as well.
+>
+> **This is the template.** Guided beats uniform at equal budget, 28 points against 12. It is the
+> only published experiment in this section that could have come out the other way, and it is the
+> design any claim that our families are *useful* should be held to.
+>
+> The accurate remaining caveat: it was run in **vision-based indoor navigation, not manipulation**,
+> with a CNN policy rather than a VLA. No equivalent exists for robot manipulation failure families —
+> that is where the gap actually is.
 
 ### 3.6 Classifiers: what actually assigns the label
 
@@ -1770,7 +1795,10 @@ benchmark a model was built around carries almost no information about category 
    *intervention* you intend to prescribe, and say which cut it is.
 2. **Nobody validates a taxonomy as correct.** They report planted-label recovery (internal
    correctness), κ (self-consistency), resemblance to a prior taxonomy (weak), or downstream utility.
-   **Only downstream utility can falsify a taxonomy**, and no surveyed work runs it.
+   **Only downstream utility can falsify a taxonomy.** It has been run exactly once in the
+   surveyed literature — guided 46%→18% vs uniform 46%→34% at equal budget **[F]** — in
+   **navigation, not manipulation**. That experiment is the template; the manipulation
+   equivalent does not exist.
 3. **κ cannot do the job we have assigned it.** It cannot distinguish a good taxonomy from a
    consistently-applicable one, and it is depressed by the class imbalance that failure categories
    always have. Report percentage agreement and Gwet's AC₁ alongside it, and stop treating the
