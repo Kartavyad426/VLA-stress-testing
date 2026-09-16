@@ -98,22 +98,35 @@ class LiberoSignals:
         return bool(q) and sum(abs(x) for x in q) < LiberoSignals.CLOSED_M
 
     HOLD_STEPS = 6
+    STALL_M = 0.004
 
     @staticmethod
     def holding_by_gripper(r, i: int) -> bool:
         """Grasp inferred from intent-vs-response alone. No object poses.
 
-        Requires the fingers to stay blocked for HOLD_STEPS consecutive steps.
-        A single frame is not enough: while the fingers are still travelling
-        they read "not closed", so every closure yields a transient that looks
-        like a grasp.
+        Fingers STALLED while still open -- not merely "not closed yet". Free
+        travel to full closure takes ~8 steps, so a 6-step "it hasn't closed"
+        window sits inside the transient and excludes nothing (O3 in
+        IMPLEMENTATION_OVERSIGHTS.md). A blocked finger is stationary at an open
+        aperture; a travelling finger is not.
+
+        Mirrors `LiberoPhaseSegmenter._holding_by_gripper`; the two are asserted
+        equivalent in `experiments/phase_segmenter_test.py`, because this
+        expression living in two modules is exactly how O1 happened.
         """
         n = len(r.steps)
         if i + LiberoSignals.HOLD_STEPS > n:
             return False
-        return all(LiberoSignals.commanded_closed(r.steps[k])
-                   and not LiberoSignals._closed(r.steps[k].obs_state)
-                   for k in range(i, i + LiberoSignals.HOLD_STEPS))
+        ap = []
+        for k in range(i, i + LiberoSignals.HOLD_STEPS):
+            q = r.steps[k].obs_state.get("gripper_qpos") or []
+            if not q or not LiberoSignals.commanded_closed(r.steps[k]):
+                return False
+            a = sum(abs(x) for x in q)
+            if a < LiberoSignals.CLOSED_M:
+                return False
+            ap.append(a)
+        return max(ap) - min(ap) < LiberoSignals.STALL_M
 
     @staticmethod
     def final_error_m(r):

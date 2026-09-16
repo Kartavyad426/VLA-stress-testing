@@ -1550,8 +1550,18 @@ LIBERO repository**. What the README does *not* document is any script, knob spe
 for generating new perturbed instances **[A — README-level read; a definitive answer requires cloning
 and listing the tree, which is cheap and has not been done]**.
 
-**The practical consequence is better than that sounds.** The *ingredients* ship even though the
-generator does not: the asset library, the scene and texture sets, and a per-instance label saying
+**A different group's generator does ship.** **LIBERO-PRO**
+([github.com/Zxy-MLlab/LIBERO-PRO](https://github.com/Zxy-MLlab/LIBERO-PRO)) releases
+`perturbation.py` plus an `evaluation_config.yaml` exposing its dimensions as boolean knobs
+(`use_swap`, `use_object`, `use_language`, `use_task`) with spatial-displacement **intensity levels
+`x0.1` through `x0.5`**, described as *"combinable and configurable via YAML for scalable and
+controlled generalization studies"* **[A — README-level read; not cloned or run]**. That is a knob
+API with a magnitude axis, which is what revert-one-knob and `ddmin` (§7.1) both need, and it covers
+the **object-swap and language dimensions that LIBERO-Plus's released corpus does not** (§5.3).
+Its README nonetheless steers users toward pre-built files from Hugging Face, so the generation path
+may carry undocumented dependencies — **verify by running it before planning around it.**
+
+**And LIBERO-Plus's own ingredients ship even though its generator does not:** the asset library, the scene and texture sets, and a per-instance label saying
 which knob produced it. Reverting one knob is then a matter of diffing a perturbed instance against
 its nominal parent and undoing the difference — recoverable from released artefacts, at the cost of
 building the reversion ourselves rather than calling theirs.
@@ -1565,10 +1575,34 @@ under perturbation, and a difference between two policies measured on it is conf
 similar each policy is to those four. Nothing in the paper misuses it this way; a downstream user
 easily could.
 
-*Numbers* **[F]**: Finding 1 — fragility across all seven. Finding 2 — worst on **camera viewpoint**
-and **robot initial state** ("require a high-level understanding of spatial geometry and
-proprioception"), most resilient to **lighting and background** ("superficial, low-level visual
-changes"). Background drop for one tabulated model: 73.8 (↓23.7); another 76.5 (↓21.0).
+*Numbers* **[F]** — Table 1 in full, success rate (%) per dimension with absolute drop beneath.
+This is the per-dimension sensitivity profile for ten checkpoints and it is the most directly usable
+table in this document:
+
+| Model | Original | Camera | Robot | Language | Light | Background | Noise | Layout |
+|---|---|---|---|---|---|---|---|---|
+| OpenVLA | 76.5 | 1.1 ↓75.4 | 4.1 ↓72.4 | 26.8 ↓49.7 | 4.4 ↓72.1 | 25.3 ↓51.2 | 19.3 ↓57.2 | 31.6 ↓44.9 |
+| OpenVLA-OFT | 97.1 | 59.7 ↓37.4 | 37.2 ↓59.9 | 81.5 ↓15.6 | 85.8 ↓11.3 | 92.4 ↓4.7 | 76.7 ↓20.4 | 77.1 ↓20.0 |
+| OpenVLA-OFT_w *(3rd-person only)* | 95.3 | 16.8 ↓78.5 | 43.7 ↓51.6 | 73.2 ↓22.1 | 68.2 ↓27.1 | 92.5 ↓2.8 | 51.4 ↓43.9 | 72.3 ↓23.0 |
+| OpenVLA-OFT_m *(mix-sft)* | 97.6 | 57.9 ↓39.7 | 30.6 ↓67.0 | 83.6 ↓14.0 | 91.6 ↓6.0 | 83.6 ↓14.0 | 76.3 ↓21.3 | 73.2 ↓24.4 |
+| π₀ | 94.2 | 15.8 ↓78.4 | 6.6 ↓87.6 | 61.0 ↓33.2 | 79.6 ↓14.6 | 78.5 ↓15.7 | 79.4 ↓14.8 | 70.4 ↓23.8 |
+| π₀-fast | 85.5 | 66.4 ↓19.1 | 24.8 ↓60.7 | 63.3 ↓22.2 | 73.0 ↓12.5 | 67.7 ↓17.8 | 75.8 ↓9.7 | 70.3 ↓15.2 |
+| Nora | 87.9 | 4.0 ↓83.9 | 41.1 ↓46.8 | 67.0 ↓20.9 | 31.0 ↓56.9 | 50.5 ↓37.4 | 17.6 ↓70.3 | 63.9 ↓24.0 |
+| WorldVLA | 79.1 | 0.3 ↓78.8 | 30.2 ↓48.9 | 44.2 ↓34.9 | 29.4 ↓49.7 | 14.5 ↓64.6 | 12.2 ↓66.9 | 39.4 ↓39.7 |
+| UniVLA | 95.2 | 4.3 ↓90.9 | 50.3 ↓44.9 | 71.8 ↓23.4 | 59.1 ↓36.1 | 80.0 ↓15.2 | 25.3 ↓69.9 | 34.3 ↓60.9 |
+| RIPT-VLA | 97.5 | 58.3 ↓39.2 | 36.7 ↓60.8 | 80.1 ↓17.4 | 87.9 ↓9.6 | 90.4 ↓7.1 | 73.8 ↓23.7 | 76.5 ↓21.0 |
+
+Finding 1 — fragility across all seven. Finding 2 — worst on **camera viewpoint** and **robot initial
+state** ("require a high-level understanding of spatial geometry and proprioception"), most resilient
+to **lighting and background** ("superficial, low-level visual changes"). Finding 4 — a **first-person
+wrist camera** is the single biggest architectural protection against viewpoint shift: OpenVLA-OFT
+59.7 on Camera versus its third-person-only variant's 16.8, same training otherwise.
+
+**The ordering is stable across ten checkpoints spanning four architectures**, which is what makes it
+usable as an external reference: Camera and Robot dominate; Language is consistently among the
+smallest drops; Background and Light are smallest. A miner whose output inverts that ordering on a
+new policy has either found a genuinely different policy or has a bug, and those are worth
+distinguishing.
 
 **Finding 3 is the one to read.** Language perturbation produces *the second smallest* average drop
 (−25.3). The authors do not accept this as linguistic robustness and go looking, which produces the
@@ -2054,6 +2088,52 @@ critical features encode object identity** rather than motion commands.
    consistent with redundant encoding, where removing one route leaves an equivalent one intact.
    Ablation establishes sufficiency-of-removal, not the absence of a mechanism.
 
+**Two further results, and together they are stronger than anything above.**
+
+**LIBERO-PRO** ([arXiv:2510.03827](https://arxiv.org/abs/2510.03827)) perturbs four dimensions —
+manipulated objects, initial states, task instructions, environments. *"Although existing models
+achieve over 90% accuracy under the standard LIBERO evaluation, their performance collapses to
+**0.0%** under our generalized setting."* Zero. The authors attribute it to *"rote memorization of
+action sequences and environment layouts"*, and report that models *"persist in executing grasping
+actions when the target object is replaced with irrelevant items, and their outputs remain unchanged
+even when given corrupted instructions or even messy tokens"* **[S]**. That is LIBERO-Plus's goal-
+replacement result reproduced independently, by a different group, at a more extreme magnitude.
+
+**MINERVA** ([arXiv:2609.03715](https://arxiv.org/abs/2609.03715)) is the one that settles the
+question, and it does so without perturbing anything. It asks how small a policy can be and still
+solve LIBERO. *Mechanism* **[A]**: a from-scratch CNN encoder, **no language encoder at all** —
+instead a **learned embedding table of 40 entries**, one per task — and a flow-matching action-chunk
+head whose token mixer is an MLP. *Numbers*: **0.54M parameters → 95.05% average** (Spatial 94.4,
+Object 99.6, Goal 96.4, Long 89.8); 0.99M → 96.75%. That is 2.4 points below the reported LeRobot
+π₀.₅ result with **~7,700× fewer parameters**.
+
+The authors' own probe is the decisive part: **permuting the task-ID mapping collapses success from
+96.75% to near chance**, establishing that the embedding drives task selection while visual context
+disambiguates. Their conclusion is that standard LIBERO is *"satisfiable by ~0.5M parameters of
+task-indexed visuomotor memorization"*, and that performance above ~97% is *"unlikely to measure the
+capabilities that motivate large models"* **[A]**.
+
+> **Read the three together.** LIBERO-Plus: blanking the instruction barely hurts. LIBERO-PRO:
+> substituting the target drops success to 0.0% while the model keeps executing the original action.
+> MINERVA: a policy with **no language pathway whatsoever** — a 40-entry lookup table indexed by task
+> — scores 95%. The third is not more evidence that models ignore language; it is evidence that
+> **on standard LIBERO there is nothing for a language pathway to do.** A task ID suffices, because
+> the benchmark never asks the same scene to support two different goals.
+>
+> This is a fact about the *benchmark*, not about the *models*, and that distinction is the whole
+> point. It means a language-grounding failure family is not merely under-populated on nominal
+> LIBERO — it is **not measurable there in principle**, because the benchmark contains no instance
+> where reading the instruction is necessary. Populating that family requires an environment that
+> asks one scene to support two goals, which is exactly what LIBERO-PRO's object-swap and
+> instruction dimensions construct. **No amount of rollout volume on nominal LIBERO substitutes for
+> it.**
+>
+> One caution against over-reading MINERVA in the other direction: under LIBERO-Plus perturbations
+> its accuracy falls to **46–56%**, and the authors report *"photometric robustness remains near
+> zero"* across all scales tested. Small-and-memorising solves the nominal benchmark; it does not
+> solve the perturbed one. The capacity floor is a statement about what LIBERO measures, not a
+> recommendation.
+
 > **Three probes, not one, and the released corpus supplies none of them.** LIBERO-Plus's *Language
 > Instructions* dimension — 1,537 of the released 10,030 instances — is **LLM-based instruction
 > rewriting for linguistic diversity**: paraphrase. That is a third, weaker probe, testing robustness
@@ -2425,7 +2505,7 @@ Listed so that nothing above is mistaken for having been read at full text.
 | SBFL / `ddmin` details, Ochiai formula, Siemens/TCAS note | **[S]** | Search-snippet level across several sources, mutually consistent. The Ochiai formula as given is standard but was written from memory of the standard form, not copied from a source — **verify before implementing** |
 | Driving scenario mining: +17.4% / +13.6% critical scenario proportion | **[S]** | Snippet-level, single source, method not inspected |
 | Human–human 97.0% outcome / 91% phase agreement | **[S]** | Carried from §1; unchanged in this pass |
-| LIBERO-Plus per-model per-factor table | **partially [F]** | The PDF was retrieved and read. The text layer of Table 1 did not extract cleanly, so only two background-column figures (73.8 ↓23.7; 76.5 ↓21.0) are quoted, without their model labels. **The findings text, the generation pipeline, the 14,000 → 10,030 filtering, and the language experiments are all [F] and solid.** The per-cell table is not |
+| LIBERO-Plus per-model per-factor table | **[F]** | ~~Text layer did not extract~~ — **resolved 2026-09-16** by re-extracting with layout preservation (`pdftotext -layout`). Table 1 is now quoted in full in §3.3, all ten models, all seven dimensions. The findings text, generation pipeline, 14,000 → 10,030 filtering and language experiments were already [F] |
 | Whether LIBERO-Plus's generation code is **released** | **unverified** | §3.3 establishes from the paper that a generator exists and that single-dimension perturbations are its unit of operation. Whether it is distributed is a question about the repository, answerable in minutes, and **not answered here** |
 
 **One methodological note on this pass.** Sections 3–9 cite 12 further URLs (122 distinct in the

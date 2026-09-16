@@ -419,11 +419,30 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
     results.sort(key=lambda r: -r["delta_pp"])
     threshold = max(min_delta_pp, 3 * floor_pp)
 
-    # 5.1 -- when no single knob clears the bar, that is ambiguous between a
-    # genuine null and an interaction. ddmin distinguishes them.
+    # --- attribution -------------------------------------------------------
+    # ddmin now runs WHENEVER there are >=2 active factors.
+    #
+    # It used to run only when no single reversion cleared the threshold, on
+    # the reasoning that a clear winner needed no further work. That was wrong,
+    # and the campaign showed it: reverting camera yaw recovered +65 pp, so the
+    # short-circuit fired and reported `single_factor` -- while `ee_offset` was
+    # never tested ALONE. Its measured "+0.0 pp" was taken with camera yaw
+    # still active and success already at the floor, where no reversion except
+    # the dominant one can move anything. That is MASKING, not absence.
+    #
+    # The two tests answer different questions and only one of them is the
+    # question we report:
+    #     revert one  -> NECESSITY  (does removing it help?)  -- masked by a
+    #                    dominant co-factor
+    #     alone       -> SUFFICIENCY (does it cause failure by itself?) -- not
+    #                    masked, and this is what `single_factor` claims
+    #
+    # LIBERO-Plus reports robot initial state as the second most damaging axis
+    # across all ten checkpoints they tested; our short-circuited probe scored
+    # it at zero. That disagreement is what surfaced this.
     attribution = None
-    if results and results[0]["delta_pp"] <= threshold and len(results) > 1:
-        active = [k for k, v in spec.knobs if v]
+    active = [k for k, v in spec.knobs if v]
+    if len(active) >= 2:
         vals = dict(spec.knobs)
 
         def run_fn(on):
@@ -432,12 +451,24 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
             return run_cell(env, policy, sp, seeds, store).rate
 
         attribution = ddmin_factors(run_fn, active, floor_pp, min_delta_pp)
+        # Reversion deltas are still reported, but they measure necessity and
+        # are unreliable when the full perturbation has already bottomed out.
+        attribution["reversion_deltas_pp"] = {
+            r["knob"]: round(r["delta_pp"], 1) for r in results}
+        attribution["reversions_masked"] = full.rate <= 0.05
+        if attribution["reversions_masked"]:
+            attribution["masking_note"] = (
+                f"full perturbation sits at {full.rate:.0%}; reversion deltas "
+                f"for non-dominant factors are uninformative at this floor. "
+                f"The verdict above comes from ALONE tests, which are not "
+                f"masked.")
     top = results[0] if results else None
     return {"full_rate": full.rate, "full_spec": spec.label(),
             "probes": results, "n_per_cell": len(seeds),
             "threshold_pp": threshold, "floor_pp": floor_pp,
             "attributed_knob": top["knob"] if top and
                                top["delta_pp"] > threshold else None,
-            "attribution": attribution or (
-                {"verdict": ATTR_SINGLE, "factor": top["knob"]}
-                if top and top["delta_pp"] > threshold else None)}
+            # No fallback verdict. With <2 active factors there is nothing to
+            # attribute BETWEEN, and inventing `single_factor` from a reversion
+            # delta is the bug this section documents.
+            "attribution": attribution}
