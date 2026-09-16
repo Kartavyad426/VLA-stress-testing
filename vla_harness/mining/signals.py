@@ -56,7 +56,11 @@ class LiberoSignals:
     `gripper` flag or `grasp_attempts` counter -- both are derived here.
     """
     name = "libero"
-    CLOSED_M = 0.030          # sum of both finger positions, below this = closed
+    # Measured on 60 real rollouts, commanded-close steps only: the aperture is
+    # cleanly bimodal two steps after the command --
+    #     fully closed  median 0.0059   (nothing between the fingers)
+    #     blocked open  median 0.0597   (an object is)
+    CLOSED_M = 0.030
 
     @staticmethod
     def available(r) -> bool:
@@ -64,13 +68,52 @@ class LiberoSignals:
 
     @staticmethod
     def _target(r):
+        """First BDDL object -- `obj_of_interest` lists the MANIPULAND first.
+
+        This used to `sorted(d)[0]`, which destroys that order. On task
+        `['cream_cheese_1', 'akita_black_bowl_1']` sorting picks the bowl (the
+        DESTINATION) over the cheese (the thing being moved), so every distance
+        was measured to the wrong object. Dicts preserve insertion order and
+        `_object_body_names()` builds them in BDDL order, so take the first.
+        """
         d = r.steps[0].obs_state.get("_gt_eef_to_object") or {}
-        return sorted(d)[0] if d else None      # BDDL lists the manipuland first
+        return next(iter(d), None)
+
+    # --- gripper: INTENT vs RESPONSE ------------------------------------
+    # `action[6]` is what the policy COMMANDED (+1 close, -1 open, binary in
+    # the demonstrations). `gripper_qpos` is how the hardware RESPONDED. The
+    # disagreement is the signal:
+    #     commanded close + fingers open   -> something is between them = HOLDING
+    #     commanded close + fingers closed -> closed on empty air
+    # Intent has no lag and needs no threshold, and the holding test works with
+    # NO privileged object state -- which is what a real robot has.
+    @staticmethod
+    def commanded_closed(step) -> bool:
+        a = step.action
+        return bool(a) and len(a) >= 7 and a[6] > 0.5
 
     @staticmethod
     def _closed(st) -> bool:
         q = st.get("gripper_qpos") or []
         return bool(q) and sum(abs(x) for x in q) < LiberoSignals.CLOSED_M
+
+    HOLD_STEPS = 6
+
+    @staticmethod
+    def holding_by_gripper(r, i: int) -> bool:
+        """Grasp inferred from intent-vs-response alone. No object poses.
+
+        Requires the fingers to stay blocked for HOLD_STEPS consecutive steps.
+        A single frame is not enough: while the fingers are still travelling
+        they read "not closed", so every closure yields a transient that looks
+        like a grasp.
+        """
+        n = len(r.steps)
+        if i + LiberoSignals.HOLD_STEPS > n:
+            return False
+        return all(LiberoSignals.commanded_closed(r.steps[k])
+                   and not LiberoSignals._closed(r.steps[k].obs_state)
+                   for k in range(i, i + LiberoSignals.HOLD_STEPS))
 
     @staticmethod
     def final_error_m(r):
@@ -82,10 +125,17 @@ class LiberoSignals:
 
     @staticmethod
     def _closure_steps(r):
-        """Rising edges of gripper closure -- one per attempt, not per step."""
+        """Rising edges of COMMANDED closure -- one per attempt, not per step.
+
+        Keyed on intent rather than measured aperture: the response lags by a
+        step and can be blocked by the object, so counting response edges both
+        misses attempts and double-counts settling. Review finding A1 noted the
+        old version was "correct by accident" because a grasp action has
+        dx=dy=0, so the arm had not moved when the lagged value was read.
+        """
         out, prev = [], False
         for s in r.steps:
-            c = LiberoSignals._closed(s.obs_state)
+            c = LiberoSignals.commanded_closed(s)
             if c and not prev:
                 out.append(s)
             prev = c

@@ -37,11 +37,12 @@ class LiberoPhaseSegmenter:
     requires = ["_gt_eef_to_object", "gripper_qpos", "_gt_object_pos"]
 
     def __init__(self, pregrasp_m=DEFAULT_PREGRASP_M, closed_m=DEFAULT_CLOSED_M,
-                 lift_m=DEFAULT_LIFT_M, target_index=0):
+                 lift_m=DEFAULT_LIFT_M, target_index=0, hold_steps=6):
         self.pregrasp_m = pregrasp_m
         self.closed_m = closed_m
         self.lift_m = lift_m
         self.target_index = target_index
+        self.hold_steps = hold_steps
 
     # --- required-key check, same contract as the toy segmenter (G8) -------
     def missing(self, r) -> list[str]:
@@ -67,6 +68,11 @@ class LiberoPhaseSegmenter:
         q = st.get("gripper_qpos") or []
         return bool(q) and sum(abs(x) for x in q) < self.closed_m
 
+    @staticmethod
+    def _commanded_closed(step) -> bool:
+        a = step.action
+        return bool(a) and len(a) >= 7 and a[6] > 0.5
+
     def __call__(self, r) -> tuple[list[PhaseSegment], dict]:
         miss = self.missing(r)
         if miss:
@@ -80,16 +86,35 @@ class LiberoPhaseSegmenter:
         z0 = (r.steps[0].obs_state.get("_gt_object_pos", {}).get(tgt) or [0, 0, 0])[2]
 
         labels, holding_flags = [], []
-        for s in r.steps:
+        for i, s in enumerate(r.steps):
             st = s.obs_state
             dist = (st.get("_gt_eef_to_object") or {}).get(tgt)
             zs = (st.get("_gt_object_pos", {}).get(tgt) or [0, 0, z0])[2]
+            commanded = self._commanded_closed(s)
             closed = self._closed(st)
-            # DERIVED `holding`: gripper closed AND the object has risen off its
-            # rest height. Closure alone is not holding -- closing on empty air
-            # is precisely the failure we are trying to detect.
-            holding = bool(closed and (zs - z0) > self.lift_m)
+            # DERIVED `holding`, two independent routes:
+            #   gripper-only  commanded CLOSE but the fingers did not fully
+            #                 close -> something is between them. Works with no
+            #                 privileged state, i.e. on a real robot.
+            #   object-lift   the object rose off its rest height. Needs
+            #                 simulator truth, but is unambiguous.
+            # Either suffices. Closure alone never does -- closing on empty air
+            # is exactly the failure being detected.
+            # PERSISTENCE, not a single frame. The first version tested one
+            # step and fired on 258/260 traces: while the fingers are still
+            # travelling they read "not closed", so every closure produced a
+            # transient that looked like a grasp. A real grasp keeps the
+            # fingers blocked for many consecutive steps; a closing transient
+            # does not.
+            by_gripper = all(
+                self._commanded_closed(r.steps[k])
+                and not self._closed(r.steps[k].obs_state)
+                for k in range(i, min(i + self.hold_steps, len(r.steps)))
+            ) and i + self.hold_steps <= len(r.steps)
+            by_lift = closed and (zs - z0) > self.lift_m
+            holding = bool(by_gripper or by_lift)
             holding_flags.append(holding)
+            closed = closed or commanded
 
             if holding:
                 labels.append(TRANSPORT)
