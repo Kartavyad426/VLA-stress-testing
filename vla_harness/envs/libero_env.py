@@ -14,6 +14,7 @@ harness stays stdlib-only and testable without MuJoCo.
 from __future__ import annotations
 
 import math
+import re
 from typing import Any
 
 from ..schema import (Observation, Action, PerturbationSpec, derive_id,
@@ -132,7 +133,8 @@ class LiberoEnv:
                  control_mode: str = "relative", init_states: bool = True,
                  hard_reset: bool = True, num_steps_wait: int = 10,
                  max_steps: int | None = None, image_dir: str | None = None,
-                 obs_size: int = 256, libero_plus: bool = False):
+                 obs_size: int = 256, libero_plus: bool = False,
+                 libero_plus_raw_instruction: bool = False):
         if suite not in MAX_STEPS:
             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
         self.suite = suite
@@ -154,6 +156,10 @@ class LiberoEnv:
         # .venvs/libero-plus); LeRobot reads some variants' init states from a
         # different directory, so the flag must reach get_task_init_states too.
         self.libero_plus = bool(libero_plus)
+        # Deliberately reproduce LeRobot's contaminated instruction (the
+        # variant's perturbation parameters appended). Only for measuring how
+        # much that contamination costs; never for a reported result.
+        self.libero_plus_raw_instruction = bool(libero_plus_raw_instruction)
         self._env = None
         self.instruction = ""
         self.task_id = (f"libero_plus/{suite}/task{task_id}" if libero_plus
@@ -173,7 +179,9 @@ class LiberoEnv:
         return {"name": f"{'libero_plus' if self.libero_plus else 'libero'}:{self.suite}",
                 "benchmark": "libero_plus" if self.libero_plus else "libero",
                 # v2: LIBERO-Plus perturbation suffix stripped from the instruction
-                "instruction_source": ("clean_base_scene_v2" if self.libero_plus
+                "instruction_source": ("task.language_RAW_CONTAMINATED"
+                                       if self.libero_plus and self.libero_plus_raw_instruction
+                                       else "clean_base_scene_v2" if self.libero_plus
                                        else "task.language"),
                 "suite": self.suite,
                 "task_id": self.task_id_idx, "control_mode": self.control_mode,
@@ -395,7 +403,17 @@ class LiberoEnv:
 
     # Perturbation parameters LIBERO-Plus appends to variant names. Everything
     # from the first of these tokens onward is not part of the instruction.
-    _LPLUS_SUFFIX_TOKENS = ("_view_", "_light_", "_table_", "_tb_", "_add_", "_level")
+    # Perturbation markers are a SUFFIX grammar, so they are anchored at the end
+    # and stripped repeatedly. Splitting on the first occurrence (what this did
+    # until 2026-09-18) truncated every scene whose own name contains a marker
+    # word: "pick_up_the_black_bowl_from_table_center_..._table_11" became
+    # "pick up the black bowl from" -- 240 of 2,402 libero_spatial variants.
+    _LPLUS_SUFFIX_RE = re.compile(
+        r"(?:_(?:view|initstate|noise|light|table|tb|add|language|distractor)(?:_-?\d+)+"
+        r"|_level\d+(?:_sample\d+)?|_sample\d+|_moved)+$")
+    # libero_10 variant names carry the scene prefix ("KITCHEN_SCENE3_..."), which
+    # the LeRobot datasets the policies trained on do not.
+    _LPLUS_SCENE_PREFIX_RE = re.compile(r"^[A-Z][A-Z0-9_]*SCENE\d+_")
 
     def _clean_instruction(self, task) -> str:
         """The instruction the policy should receive.
@@ -416,11 +434,13 @@ class LiberoEnv:
         read from the BDDL and IS the perturbation.
         """
         lang = task.language
-        if not self.libero_plus or "_language_" in task.name:
+        if (not self.libero_plus or "_language_" in task.name
+                or self.libero_plus_raw_instruction):
             return lang
-        base = task.name
-        for tok in self._LPLUS_SUFFIX_TOKENS:
-            base = base.split(tok)[0]
+        base = self._LPLUS_SCENE_PREFIX_RE.sub("", task.name)
+        prev = None
+        while prev != base:
+            prev, base = base, self._LPLUS_SUFFIX_RE.sub("", base)
         return " ".join(base.split("_"))
 
     def _libero_plus_variant(self) -> dict | None:
