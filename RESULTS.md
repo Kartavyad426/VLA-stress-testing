@@ -140,6 +140,7 @@ Every entry records its expectation and **says when it was written**:
 | R-020 | 09-17 | EVAL | Goal task 5 site-lookup fix | DONE | 30/30 instrumented |
 | R-021 | 09-17 | EVAL | GR00T N1.7 smoke test | DONE | Fits in bf16 (5.87 GiB); 5/5 on spatial t0 |
 | R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
+| R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE | 53/54 at level 1 |
 
 ---
 
@@ -972,6 +973,73 @@ disagree.
   not fit on this GPU.
 
 **Artifacts.** `experiments/repro/runs/groot_parity_spatial/` (reference per task, code state), `runs/groot_harness_parity/`
+
+---
+
+## R-023 — GR00T on basic LIBERO-Plus perturbations (first look)
+
+**Date** 2026-09-17 · **Status** DONE · **Type** EVAL
+
+**Question (why).** First run on LIBERO-Plus, the recommended next benchmark
+(`docs/DATA_AND_BENCHMARKS.md`). It replaces our home-grown perturbations with 7
+published dimensions. Does GR00T hold up at the easiest level, and does the
+pipeline run?
+
+**Expected** *(stated before run, written here before running).*
+- High success at difficulty level 1 overall.
+- LIBERO-Plus's published ordering for ten other models puts camera viewpoint and
+  robot initial state as most damaging, language least. If GR00T follows it,
+  camera and robot-init should be the lowest here.
+- **This run cannot establish an ordering:** 8 variants per type is a CI of
+  roughly ±30 pp. GR00T is not in LIBERO-Plus's published table.
+
+**Configuration.**
+| Field | Value |
+|---|---|
+| checkpoint | `nvidia/gr00t17-lerobot-libero_spatial-640` (bf16 via `groot_eval_bf16.py`, image2→wrist_image) |
+| benchmark | LIBERO-Plus `sylvestf/LIBERO-plus` @ `4976dc3`, libero_spatial (2,402 variants; task_id i = catalogue id i+1, all 2,402 matched by name) |
+| selection | difficulty **level 1** only; 8 per perturbation type, one per distinct scene where possible; Objects Layout has only 6 at level 1 → **54 variants** (`selection.json`) |
+| episodes | 1 per variant (each variant is its own perturbed instance) |
+| MuJoCo / venv | **3.3.2** (not the recipe's 3.7.0, inside the task-5 physics break) / `.venvs/libero-plus` = `.venvs/groot` with hf-libero → LIBERO-Plus fork, robosuite 1.4.0 → 1.4.1, + gym, scikit-image, wand |
+| isolation | own `LIBERO_CONFIG_PATH` (global `~/.libero` untouched); fork on `PYTHONPATH` |
+| runner | lerobot-eval, one invocation per type — **not mineable** (harness lacks LIBERO-Plus support yet) |
+| smoke | 3/3 on camera, sensor-noise and light level-1 variants; ~26 s/variant + ~45 s startup |
+
+**Result.** Ran 14:28–14:58.
+
+| Perturbation type (level 1) | Success |
+|---|---|
+| Camera Viewpoints | 8/8 |
+| Robot Initial States | 8/8 |
+| Light Conditions | 8/8 |
+| Background Textures | 8/8 |
+| Sensor Noise | **7/8** |
+| Objects Layout | 6/6 |
+| Language Instructions | 8/8 |
+| **Total** | **53/54 (98.1%)** |
+
+Failure: Sensor Noise task_id 1563 (`pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_26`).
+
+**What happened vs expected.**
+- High success, as expected.
+- The ordering prediction is **not testable here**: 53 of 54 succeed, so there
+  is no spread to rank. Level 1 is too easy for GR00T.
+
+**Interpretation.**
+- The pipeline works end to end on LIBERO-Plus: isolated venv, own config,
+  MuJoCo 3.3.2, GR00T bf16.
+- GR00T is essentially unaffected by the easiest level of every perturbation
+  type. Sensitivity has to be looked for at higher difficulty levels (2–5).
+
+**Validity & caveats.**
+- n=6–8 per type.
+- Level 1 only.
+- One episode per variant.
+- **Laptop went on battery at 14:51** for the last two batches (Objects Layout,
+  Language). Outcomes are unaffected; timings for those are not comparable.
+- Not mineable: lerobot-eval.
+
+**Artifacts.** `experiments/repro/runs/lplus_basic_groot_spatial/` (selection, per-type eval_info, progress, code state)
 
 ---
 
