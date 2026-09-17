@@ -36,10 +36,26 @@ class LeRobotPolicy:
 
     def __init__(self, checkpoint: str, device: str = "cuda",
                  n_action_steps: int | None = None, state_fn=None,
-                 env_cfg=None):
+                 env_cfg=None, policy_overrides: dict | None = None,
+                 dtype: str | None = None, rename_map: dict | None = None):
         self.checkpoint = checkpoint
         self.device = device
         self.n_action_steps = n_action_steps
+        # Documented eval settings that are not n_action_steps, e.g. MINERVA's
+        # temporal_ensemble_coeff=0.01. Without this the harness could not
+        # express a policy's published eval config, so a harness-vs-lerobot-eval
+        # gap could come from a missing setting rather than a harness bug.
+        self.policy_overrides = dict(policy_overrides or {})
+        # dtype="bfloat16": load on CPU, cast EVERY parameter, then move to the
+        # device. GR00T N1.7 LIBERO checkpoints are stored F32 (3.144B params) and
+        # OOM an 8 GB card at 7.2 GiB on every stock path, including
+        # model_params_fp32=false; this path fits in 5.87 GiB (RESULTS.md R-021).
+        # A departure from the shipped numerics, so it is part of identity().
+        self.dtype = dtype
+        # Observation key renames applied by LeRobot's rename step, e.g. GR00T's
+        # {"observation.images.image2": "observation.images.wrist_image"} -- the
+        # same `--rename_map` lerobot-eval takes.
+        self.rename_map = dict(rename_map or {})
         self.state_fn = state_fn or libero_state
         self.env_cfg = env_cfg
         self._pre = self._post = self._env_pre = self._env_post = None
@@ -61,6 +77,9 @@ class LeRobotPolicy:
                 "checkpoint": self.checkpoint,
                 "checkpoint_revision": self._cfg.get("revision"),
                 "n_action_steps": self.n_action_steps,
+                "policy_overrides": dict(sorted(self.policy_overrides.items())),
+                "dtype": self.dtype,
+                "rename_map": dict(sorted(self.rename_map.items())),
                 "action_dims": list(self.action_dims),
                 "state_fn": getattr(self.state_fn, "__name__", "custom")}
 
@@ -85,8 +104,31 @@ class LeRobotPolicy:
         cfg = PreTrainedConfig.from_pretrained(self.checkpoint)
         if self.n_action_steps is not None:
             cfg.n_action_steps = self.n_action_steps
+        for key, val in self.policy_overrides.items():
+            if not hasattr(cfg, key):
+                raise ValueError(f"{cfg.type} config has no field {key!r}; refusing "
+                                 f"to silently ignore a policy override")
+            setattr(cfg, key, val)
         cfg.pretrained_path = self.checkpoint
-        self._policy = get_policy_class(cfg.type).from_pretrained(self.checkpoint)
+        cast = None
+        if self.dtype:
+            import torch
+            cast = getattr(torch, self.dtype)
+            # from_pretrained places the model on cfg.device; load on CPU so the
+            # cast happens before the full-precision weights ever reach the GPU.
+            cfg.device = "cpu"
+        # config=cfg, as lerobot-eval's make_policy does. Some settings are read
+        # at CONSTRUCTION (tinyflow builds its temporal ensembler in __init__),
+        # so setting them on the loaded policy afterwards would do nothing.
+        self._policy = get_policy_class(cfg.type).from_pretrained(self.checkpoint,
+                                                                  config=cfg)
+        if cast is not None:
+            self._policy = self._policy.to(cast)
+            cfg.device = str(self.device)
+            try:
+                self._policy.config.device = str(self.device)
+            except Exception:
+                pass
         if self.n_action_steps is not None:
             try:
                 self._policy.config.n_action_steps = self.n_action_steps
@@ -98,7 +140,7 @@ class LeRobotPolicy:
             policy_cfg=cfg, pretrained_path=self.checkpoint,
             preprocessor_overrides={
                 "device_processor": {"device": str(self.device)},
-                "rename_observations_processor": {"rename_map": {}},
+                "rename_observations_processor": {"rename_map": dict(self.rename_map)},
             })
         self._env_pre = self._env_post = None
         if self.env_cfg is not None:
