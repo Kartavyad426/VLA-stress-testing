@@ -42,4 +42,24 @@ for r in cases:
     print(f"  [{'PASS' if ok else 'FAIL'}] task_id {tid:4d} {r['category']:22s} L{r['difficulty_level']}  "
           f"objects={len(names)}" + (f"  FAILED: {bad}" if bad else ""))
 print("ALL PASS" if not failed else f"{failed} FAILED")
-sys.exit(1 if failed else 0)
+
+
+# --- instruction must not carry the perturbation suffix (2026-09-17) ----------
+from lerobot.envs.libero import _get_suite
+suite = _get_suite(SUITE)
+bad_inst = 0
+for r in cases:
+    tid = r["id"] - 1
+    env = LiberoEnv(suite=SUITE, task_id=tid, libero_plus=True)
+    env._build()
+    inst = env.instruction
+    leaked = any(t in inst for t in (" view ", " initstate ", " noise ", " light ", " table ", " tb ", " add ", " level"))
+    if r["category"] == "Language Instructions":
+        ok = inst == suite.get_task(tid).language and not leaked
+    else:
+        base_words = inst.split()
+        ok = not leaked and len(base_words) > 3
+    bad_inst += not ok
+    print(f"  [{'PASS' if ok else 'FAIL'}] instruction task_id {tid:4d} {r['category']:22s}: {inst!r}")
+print("INSTRUCTIONS ALL PASS" if not bad_inst else f"{bad_inst} INSTRUCTION FAILURES")
+sys.exit(1 if (failed or bad_inst) else 0)

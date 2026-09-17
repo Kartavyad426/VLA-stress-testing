@@ -111,6 +111,7 @@ Every entry records its expectation and **says when it was written**:
 | 2026-09-17 | R-005 cross-arm pairing: arms on one env object ran on different init states | R-013 init-state counter bug | Per-arm rates; not paired comparisons |
 | 2026-09-16 | R-005 family counts as originally reported | R-006 segmenter fixes, then R-008 precedence | Raw rollouts (re-mineable) |
 | 2026-09-16 | R-002 framing "SmolVLA does not reproduce 87.3%" | R-011 architecture mismatch | The measured 61.3% itself |
+| 2026-09-17 | **R-023** (all non-language arms) and the 4-variant harness check: policy received the instruction with the perturbation suffix appended ("…view 0 0 100 2 352 initstate 0") | LIBERO-Plus builds instructions from file names; LeRobot forwards them (docs/LIBERO_PLUS_LEVELS.md §0) | Language-perturbation arm; the fact that the pipeline runs |
 
 ---
 
@@ -140,7 +141,8 @@ Every entry records its expectation and **says when it was written**:
 | R-020 | 09-17 | EVAL | Goal task 5 site-lookup fix | DONE | 30/30 instrumented |
 | R-021 | 09-17 | EVAL | GR00T N1.7 smoke test | DONE | Fits in bf16 (5.87 GiB); 5/5 on spatial t0 |
 | R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
-| R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE | 53/54 at level 1 |
+| R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE — PARTIALLY INVALID | 53/54 at level 1; instructions contaminated |
+| R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | RUNNING | — |
 
 ---
 
@@ -1025,6 +1027,20 @@ Failure: Sensor Noise task_id 1563 (`pick_up_the_black_bowl_on_the_ramekin_and_p
 - The ordering prediction is **not testable here**: 53 of 54 succeed, so there
   is no spread to rank. Level 1 is too easy for GR00T.
 
+**Second correction, 2026-09-17: instructions were contaminated.** Every non-language
+variant's instruction reached GR00T with its perturbation parameters appended
+(e.g. "… on the plate view 0 0 100 2 352 initstate 0"), because LIBERO-Plus
+derives instructions from file names and LeRobot forwards them. All six
+non-language arms therefore also perturbed language. The language arm is
+unaffected. See docs/LIBERO_PLUS_LEVELS.md §0.
+
+**Correction added 2026-09-17, after the run.** LIBERO-Plus "difficulty level" is
+the number of four reference models (OpenVLA-OFT, π0, π0-fast, UniVLA) that
+solved a variant (paper §C.3), not perturbation strength. Level 1 = solved by
+all four. So this run tested variants those models already solve; 53/54 was
+expected, and is **not** evidence that GR00T is robust to mild perturbations. See
+`docs/LIBERO_PLUS_LEVELS.md`.
+
 **Interpretation.**
 - The pipeline works end to end on LIBERO-Plus: isolated venv, own config,
   MuJoCo 3.3.2, GR00T bf16.
@@ -1040,6 +1056,40 @@ Failure: Sensor Noise task_id 1563 (`pick_up_the_black_bowl_on_the_ramekin_and_p
 - Not mineable: lerobot-eval.
 
 **Artifacts.** `experiments/repro/runs/lplus_basic_groot_spatial/` (selection, per-type eval_info, progress, code state)
+
+---
+
+## R-024 — GR00T on hard LIBERO-Plus variants, through our harness
+
+**Date** 2026-09-17 · **Status** RUNNING · **Type** EVAL
+
+**Question (why).**
+- R-023 showed only level-1 variants, which the reference models solve, and it
+  produced no mineable traces.
+- This run collects GR00T **failures with full traces** under perturbation, so
+  they can be inspected (episode pages) and mined.
+
+**Expected** *(stated before run).*
+- Materially lower success than R-023, since these are L4–L5 variants that one
+  or none of the four reference models solved.
+- How much lower is unknown: levels encode other models' weaknesses, not GR00T's.
+- n=6 per type, so no ordering claim.
+
+**Restarted 2026-09-17 as run `lplus_hard_groot_v2`** after finding the instruction
+contamination. The first attempt (16 variants, `runs/lplus_hard_groot_CONTAMINATED_instructions`)
+fed perturbation parameters into the instruction and is discarded. v2 uses the
+cleaned instruction (env identity `instruction_source: clean_base_scene_v2`).
+
+**Configuration.**
+| Field | Value |
+|---|---|
+| runner | `experiments/harness_eval.py --libero-plus` (**mineable**) |
+| checkpoint | `nvidia/gr00t17-lerobot-libero_spatial-640`, bf16, rename image2→wrist_image, nas=16, render 360 |
+| selection | libero_spatial, 6 per perturbation type, **L5 first then L4**, one per distinct scene where possible → 42 variants (`experiments/repro/lplus_hard_selection.json`) |
+| episodes | 1 per variant, seed 0 → init state 0 |
+| MuJoCo / venv | 3.3.2 / `.venvs/libero-plus` |
+
+**Result.** *(to fill after running)*
 
 ---
 

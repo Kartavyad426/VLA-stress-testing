@@ -172,6 +172,9 @@ class LiberoEnv:
         """
         return {"name": f"{'libero_plus' if self.libero_plus else 'libero'}:{self.suite}",
                 "benchmark": "libero_plus" if self.libero_plus else "libero",
+                # v2: LIBERO-Plus perturbation suffix stripped from the instruction
+                "instruction_source": ("clean_base_scene_v2" if self.libero_plus
+                                       else "task.language"),
                 "suite": self.suite,
                 "task_id": self.task_id_idx, "control_mode": self.control_mode,
                 "use_init_states": self.init_states,
@@ -239,8 +242,9 @@ class LiberoEnv:
             is_libero_plus=self.libero_plus,
         )
         task = suite.get_task(self.task_id_idx)
-        self.base_instruction = task.language
-        self.instruction = task.language
+        self.raw_task_language = task.language
+        self.base_instruction = self._clean_instruction(task)
+        self.instruction = self.base_instruction
 
     def reset(self, seed: int, spec: PerturbationSpec) -> Observation:
         unsupported = {k for k, v in spec.knobs if v} - SUPPORTED_KNOBS
@@ -389,6 +393,36 @@ class LiberoEnv:
                 sim.model.light_diffuse[i] = np.clip(
                     np.array(sim.model.light_diffuse[i]) * (1.0 + li), 0, 1)
 
+    # Perturbation parameters LIBERO-Plus appends to variant names. Everything
+    # from the first of these tokens onward is not part of the instruction.
+    _LPLUS_SUFFIX_TOKENS = ("_view_", "_light_", "_table_", "_tb_", "_add_", "_level")
+
+    def _clean_instruction(self, task) -> str:
+        """The instruction the policy should receive.
+
+        LIBERO-Plus builds `task.language` from the variant's FILE NAME
+        (`benchmark/__init__.py:grab_language_from_filename`). For every
+        non-language perturbation the name carries its parameters, so the policy
+        was told e.g. "... place it on the plate view 0 0 100 2 352 initstate 0"
+        or "... noise 26". LeRobot forwards that string unchanged
+        (`envs/libero.py:180`), so every LIBERO-Plus run through it perturbed the
+        LANGUAGE as well as the intended factor.
+
+        Fix: for non-language variants, the instruction is the base scene name
+        as words, which is exactly vanilla LIBERO's instruction and the text the
+        policies were trained on. It is NOT the BDDL's own `language_instruction`
+        ("pick the akita black bowl ..."), which is worded differently from the
+        training data. Language variants keep `task.language`: their rewrite is
+        read from the BDDL and IS the perturbation.
+        """
+        lang = task.language
+        if not self.libero_plus or "_language_" in task.name:
+            return lang
+        base = task.name
+        for tok in self._LPLUS_SUFFIX_TOKENS:
+            base = base.split(tok)[0]
+        return " ".join(base.split("_"))
+
     def _libero_plus_variant(self) -> dict | None:
         """Perturbation type and difficulty of this LIBERO-Plus variant.
 
@@ -412,7 +446,9 @@ class LiberoEnv:
                 if r["name"] == name:
                     return {"variant": name, "category": r["category"],
                             "difficulty_level": r["difficulty_level"],
-                            "catalogue_id": r["id"]}
+                            "catalogue_id": r["id"],
+                            "raw_task_language": getattr(self, "raw_task_language", None),
+                            "instruction_given": getattr(self, "base_instruction", None)}
             return {"variant": name, "category": None, "difficulty_level": None,
                     "note": "not found in task_classification.json"}
         except Exception as e:

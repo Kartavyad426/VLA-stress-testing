@@ -13,7 +13,48 @@ agent-view frame the policy sees.
 
 ---
 
-## 1. The single most important fact: level ≠ perturbation strength
+## 0. ⚠ Instruction contamination — read before trusting any LIBERO-Plus result
+
+LIBERO-Plus builds each variant's instruction from its **file name**
+(`benchmark/__init__.py:grab_language_from_filename`). For every **non-language**
+variant, the name carries the perturbation parameters, and LeRobot passes
+`task.language` straight to the policy (`lerobot/envs/libero.py:180`). So the
+policy receives, e.g.:
+
+| Variant | Instruction via LeRobot | Correct |
+|---|---|---|
+| camera 608 | "…place it on the plate **view 0 0 100 2 352 initstate 0**" | "…place it on the plate" |
+| noise 1563 | "…on the plate **view 0 0 100 0 0 initstate 0 noise 26**" | "…on the plate" |
+| layout 1895 | "…on the plate **level1 sample3**" | "…on the plate" |
+| language 988 | "would you mind helping me by picking up…" | same — the rewrite is the perturbation |
+
+**Every non-language LIBERO-Plus variant run through LeRobot perturbs the
+language too.**
+
+- **Our harness is fixed (2026-09-17).** `LiberoEnv(libero_plus=True)` strips the
+  suffix, so the instruction is the base scene name as words: vanilla LIBERO's
+  instruction, which is what the policies were trained on. Language variants keep
+  their rewrite. Traces record both `raw_task_language` and `instruction_given`.
+- **`lerobot-eval` is NOT fixed.** Its LIBERO-Plus reference runs remain
+  contaminated unless LeRobot is patched.
+- **Why not the BDDL's own text?** Its `language_instruction` ("pick the akita
+  black bowl …") is worded differently from the training data, so it is not the
+  right clean text either.
+- **Unverified:** whether LIBERO-Plus's published numbers were produced with the
+  contaminated or the clean instruction. Their eval scripts are not in this repo.
+
+## 0b. Full variant lists
+
+`docs/libero_plus_variants/<suite>.csv` has one row per variant (10,030 total):
+- task_id, category, difficulty level, solved-by-n-of-4
+- base scene and decoded parameters
+- `instruction_clean` and `task_language_raw`
+- variant name
+
+libero_goal has 121 variants with no difficulty level in the upstream catalogue;
+they are left blank.
+
+## 1. The single most important fact about levels: level ≠ perturbation strength
 
 **Difficulty level is how many of four reference models solved the variant**, not
 how strong the perturbation is. [paper §C.3]
