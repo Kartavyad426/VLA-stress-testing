@@ -1,0 +1,163 @@
+{
+  "set_id": "goal_rerun_mj332-regset",
+  "frozen_env": {
+    "name": "libero:libero_goal",
+    "suite": "libero_goal",
+    "task_id": 0,
+    "control_mode": "relative",
+    "use_init_states": true,
+    "init_states_sha": "2f74ad520101",
+    "bddl_sha": "042deab69283",
+    "hard_reset": true,
+    "num_steps_wait": 10,
+    "obs_size": 256,
+    "max_steps": 300,
+    "action_dims": [
+      "dx",
+      "dy",
+      "dz",
+      "droll",
+      "dpitch",
+      "dyaw",
+      "gripper"
+    ]
+  },
+  "frozen_semantic": {
+    "mujoco": "3.3.2",
+    "robosuite": "1.4.0",
+    "MUJOCO_GL": "egl"
+  },
+  "frozen_at": "2026-09-17",
+  "members": [
+    {
+      "rollout_id": "2975e6e3da81",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "a5145fdff9bd",
+      "seed": 2,
+      "spec": {}
+    },
+    {
+      "rollout_id": "13bc4da62fab",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "64fe311d34b7",
+      "seed": 3,
+      "spec": {}
+    },
+    {
+      "rollout_id": "d2223daab20e",
+      "seed": 0,
+      "spec": {}
+    },
+    {
+      "rollout_id": "6548c4178fd4",
+      "seed": 1,
+      "spec": {}
+    },
+    {
+      "rollout_id": "57838e657e17",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "83e0cb21a360",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "33039204ff96",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 10.0
+      }
+    },
+    {
+      "rollout_id": "b90273179027",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 10.0
+      }
+    },
+    {
+      "rollout_id": "e1ef308958e4",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "3a9f7cd74baa",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "616b9ecc5a04",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 15.0
+      }
+    },
+    {
+      "rollout_id": "1f86531553b0",
+      "seed": 0,
+      "spec": {
+        "camera_yaw_deg": 20.0
+      }
+    },
+    {
+      "rollout_id": "82048dfcd797",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 20.0
+      }
+    },
+    {
+      "rollout_id": "2db5611359ce",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 20.0
+      }
+    },
+    {
+      "rollout_id": "fd6c5152a8e0",
+      "seed": 4,
+      "spec": {
+        "camera_yaw_deg": 20.0
+      }
+    },
+    {
+      "rollout_id": "7b9c177d76d5",
+      "seed": 3,
+      "spec": {
+        "camera_yaw_deg": 0.0
+      }
+    },
+    {
+      "rollout_id": "cdf3559d7356",
+      "seed": 1,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    },
+    {
+      "rollout_id": "31b6ebc1fccc",
+      "seed": 2,
+      "spec": {
+        "camera_yaw_deg": 5.0
+      }
+    }
+  ],
+  "note": "frozen from e2e failures",
+  "schema_version": "3.0"
+}

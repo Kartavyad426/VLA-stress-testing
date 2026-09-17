@@ -1,0 +1,680 @@
+diff --git a/IMPLEMENTATION_OVERSIGHTS.md b/IMPLEMENTATION_OVERSIGHTS.md
+index 24bbd60..467b8d2 100644
+--- a/IMPLEMENTATION_OVERSIGHTS.md
++++ b/IMPLEMENTATION_OVERSIGHTS.md
+@@ -137,6 +137,70 @@ confirming both branches. To validate a branch you must score that branch alone.
+ 
+ ---
+ 
++## O5 — RESERVED
++
++Reserved for the `visual_grounding` mislabelling finding, pending the taxonomy
++decision in `PENDING_DECISIONS.md` #4/#5. Short version: the rule is
++`final eef-to-target > 0.10 m`, a POSITIONAL test carrying a SEMANTIC name, and
++only 14 of 333 labelled episodes (4.2%) ended near a different named object —
++0 of 161 on libero_object. Not written up here yet because the fix renames the
++family, and the entry should describe the final name.
++
++---
++
++## O6 — `failure_cost` is bound to a toy-only state key, and is dead on LIBERO
++
++```python
++held = r.series("holding")
++dropped = bool(held) and any(held) and not held[-1]
++```
++
++`holding` is a **toy** state key. The toy env decides it and writes it into
++`obs_state`. LIBERO never emits it — it is DERIVED in the segmenter and never
++written back. Confirmed: **0 of 705 traces** contain a literal `holding` key.
++
++So `dropped` is always `False`, and `COST_DISRUPTIVE` — the branch for "the
++policy grasped the object and then dropped it", the single most consequential
++failure a client cares about — **can never fire on LIBERO**:
++
++```
++failure_cost over 495 LIBERO failures:   benign 492   None 3   disruptive 0
++```
++
++**Why this matters beyond one wrong field.** A manifest row's severity is
++defined as `CONDITIONAL x PREVALENCE x COST`. `condition_prevalence` is
++deliberately `NOT_ESTIMATED` (it is an artifact of the perturbation grid we
++chose, so the client supplies it). That leaves cost as one of only two factors
++we compute — and it is a **constant**. A constant times anything is a constant,
++so **the severity column is currently uninformative by construction**, and
++nothing in the output says so.
++
++**Why it survived.** It fails CLOSED into a plausible value rather than
++abstaining. "benign" is a reasonable-looking label; 492 benign failures reads as
++a finding rather than as a detector that never ran. Compare G8/LE-2, where
++abstention on missing keys is the designed behaviour and did catch the goal-suite
++gap honestly.
++
++**The generalisable error — and this is the third time in this document.**
++O1 (`sorted()` in one of two modules), O2 (`closed` gating `by_lift`), and now
++O6 are all the same shape: **a detector reads a key or condition its environment
++does not supply, and degrades into a constant instead of abstaining.** The
++original signals-layer bug was this too — the classifier read the toy's
++`_gt_ee_to_obj`, `gripper` and `holding` directly, every rule fell through, and
++every trace came back `ambiguous` with zero reported abstentions.
++
++The lesson is not "check for this key". It is that **every detector needs a
++declared `requires` list and must abstain when it is unmet**, the way
++`LiberoPhaseSegmenter.missing()` already does. `failure_cost` has no such
++contract, which is why it could silently answer a question it had no data for.
++
++**Fix:** feed it the derived `holding` (or, better, the `_check_grasp` contact
++signal from `PENDING_DECISIONS.md` #2), and give it the same abstention contract
++as the segmenter — return `cost: None, needs_review: True` when the holding
++history is unavailable, rather than defaulting to "not dropped".
++
++---
++
+ ## Related, not yet acted on
+ 
+ - **`_gt_n_contacts` is captured in every trace and unused.** A direct contact
+diff --git a/MODELS_AND_COMPUTE.md b/MODELS_AND_COMPUTE.md
+index 1fbc06c..7a6a97a 100644
+--- a/MODELS_AND_COMPUTE.md
++++ b/MODELS_AND_COMPUTE.md
+@@ -248,3 +248,263 @@ The laptop stays the dev box; free tiers become the batch runners.
+ - [awesome-vision-language-action](https://github.com/ai4s-research/awesome-vision-language-action)
+ - [NVIDIA NIM free tier](https://freellm.net/providers/nvidia-nim) · [NIM pricing/limits](https://decodethefuture.org/en/nvidia-nim-api-pricing-limits-guide/)
+ - [Colab vs Kaggle free GPU (Clusy)](https://www.clusy.io/compare/colab-vs-kaggle) · [Colab alternatives (Thunder Compute)](https://www.thundercompute.com/blog/colab-alternatives-for-cheap-deep-learning-in-2025) · [Free GPU credits for researchers](https://www.aquanode.io/blog/free-gpu-credits-for-students-and-researchers)
++
++---
++
++# Revision — 2026-09-16
++
++**Source of truth for this section: the official LeRobot docs**
++(`huggingface.co/docs/lerobot/main/en/`), cross-checked against our own
++installed checkout at `third_party/lerobot/src/lerobot` (v0.6.2). Where this
++section and anything above it disagree, **this section wins** — §1 above was
++verified 2026-09-11 by web search and has since gone stale in at least one
++material way (see R1).
++
++Every claim below is tagged **[verified]** (read from the docs or our installed
++source) or **[unverified]** (stated but not yet tested here).
++
++---
++
++## R1. The GR00T entry above is WRONG — corrected
++
++`MODELS_AND_COMPUTE.md` §1 and commit `b198613` both conclude that GR00T LIBERO
++checkpoints exist but "are not LeRobot-loadable", because "LeRobot expects its
++own `GrootConfig`, and no LeRobot-hosted GR00T checkpoint exists".
++
++**Both halves are false.** [verified]
++
++LeRobot has a first-class `groot` policy type, present in OUR installed
++checkout:
++
++```
++third_party/lerobot/src/lerobot/policies/groot/
++    configuration_groot.py      defines GrootConfig
++    modeling_groot.py
++    groot_n1_7.py
++    processor_groot.py
++factory.py:50                   from .groot.configuration_groot import GrootConfig
++```
++
++And NVIDIA publishes **LeRobot-format** LIBERO checkpoints, built against
++LeRobot 0.6.1 (we run 0.6.2), Apache-2.0:
++
++| Suite | Success | Checkpoint |
++|---|---:|---|
++| Spatial | 95% | `nvidia/gr00t17-lerobot-libero_spatial-640` |
++| Object | 100% | `nvidia/gr00t17-lerobot-libero_object-640` |
++| Goal | 98% | `nvidia/gr00t17-lerobot-libero_goal-640` |
++| Long | 93% | `nvidia/gr00t17-lerobot-libero_10-640` |
++| **Average** | **96.5%** | at `eval.n_episodes >= 50` |
++
++```bash
++lerobot-eval --policy.type=groot --policy.base_model_path=$MODEL_ID \
++  --policy.embodiment_tag=libero_sim --env.type=libero \
++  --env.task=libero_spatial --eval.n_episodes=50
++```
++
++**What the old entry got right:** GR00T N1.5 support WAS removed — current
++LeRobot supports N1.7 only, and N1.5 checkpoints are rejected with a migration
++note. Pin `lerobot==0.5.1` for N1.5. The reasoning was correct for NVIDIA's
++*native* Isaac-GR00T format; it missed that LeRobot added a `groot` policy type
++and that NVIDIA published LeRobot-format conversions.
++
++**The real blocker is VRAM, not format.** [unverified] 3B params, HF lists F32
++tensors so bf16 loading is required. `b198613` measured 6.44 GiB inference
++weights against ~7.34 GiB free on our 8 GB card — feasible but marginal, and
++the `-640` checkpoints imply large activations. Needs a ~20 min test.
++
++---
++
++## R2. Correction to the reproducibility story
++
++An earlier reading of this project's evidence — mine included — was that LIBERO
++reproduction is broken ecosystem-wide. **That is too strong.** [verified]
++
++LeRobot **does** reproduce published LIBERO numbers, for at least one model:
++
++| Model | Spatial | Object | Goal | Long | Avg |
++|---|---|---|---|---|---|
++| Pi0.5 (LeRobot) | 97.0 | 99.0 | 98.0 | 96.0 | **97.5** |
++| Pi0.5 (OpenPI, original) | 98.8 | 98.2 | 98.0 | 92.4 | **96.85** |
++
++Checkpoint: `lerobot/pi05_libero_finetuned`, evaluated with
++`--policy.n_action_steps=10` (matching OpenPI).
++
++So the harness is capable of reproducing. That makes our ~67% vs ~87.3%
++**more** likely to be a configuration problem on our side, not less — which is
++good news, because configuration is fixable. The open reproduction reports
++(lerobot#3264 SmolVLA 73.25%, lerobot#2114 pi0/pi0.5, openvla#282) are real but
++do not amount to "the benchmark cannot be reproduced here".
++
++---
++
++## R3. Three concrete config leads on our ~20-point gap
++
++All from the official LIBERO page. None tested yet. [unverified]
++
++**(a) Control mode.** The docs are explicit:
++
++> LIBERO supports two control modes — `relative` (default) and `absolute`.
++> **Different VLA checkpoints are trained with different action
++> parameterizations, so make sure the mode matches your policy.**
++
++We run `relative` (see any `fingerprint.env.control_mode` in our traces). We
++have never verified that `HuggingFaceVLA/smolvla_libero` was trained with
++relative actions. A mismatch here would degrade everything silently and
++uniformly — exactly the shape of our gap.
++
++**(b) Image resolution.** Both official LIBERO datasets ship **2× 256×256×3**
++cameras. This corroborates F9: LeRobot renders 360×360 while the checkpoint
++declares 256×256, already measured as worth +17pp on spatial alone. The
++datasets confirm 256 is the trained-on resolution.
++
++**(c) `n_action_steps`.** LeRobot's own pi0.5 reproduction sets
++`n_action_steps=10` to match the original implementation. We pass `--nas`;
++whether our value matches SmolVLA's training-time chunking is unverified.
++
++Also worth noting for protocol: the docs recommend **10 episodes per task
++across all four suites (400 episodes), averaged over 3 seeds**, with
++`--env.init_states=true` and **hard resets** ("use hard resets when reproducing
++benchmark results"). We already use hard resets.
++
++---
++
++## R4. What LeRobot actually ships, as installed here
++
++19 registered policy types in our checkout [verified]:
++
++```
++act  diffusion  eo1  evo1  fastwam  gaussian_actor  groot  lingbot_va
++molmoact2  multi_task_dit  pi0  pi05  pi0_fast  smolvla  tdmpc
++vla_jepa  vqbet  wall_x  xvla
++```
++
++(Directories also exist for `rtc` and `pi_gemma`.)
++
++**With known LIBERO checkpoints:**
++
++| Policy | Checkpoint | LIBERO avg | Native? |
++|---|---|---|---|
++| `pi05` | `lerobot/pi05_libero_finetuned` | **97.5%** | yes [verified] |
++| `groot` | `nvidia/gr00t17-lerobot-libero_*-640` | **96.5%** | yes [verified] |
++| `smolvla` | `HuggingFaceVLA/smolvla_libero` | 87.3% published / **67% ours** | yes, in use |
++| — | `k1000dai/MINERVA` | 95.75% | LeRobot-format safetensors [verified] |
++
++The remaining 15 policy types have no LIBERO checkpoint we have found. `act`,
++`diffusion`, `vqbet`, `tdmpc` are imitation-learning baselines intended to be
++trained on your own data, not pretrained VLAs.
++
++---
++
++## R5. VRAM — the guide above conflates training with inference
++
++LeRobot's Compute & Hardware Guide gives this table, and it is a **training**
++table (batch size 8, AdamW, which "adds ~30–100% over a forward+backward pass
++alone"):
++
++| Group | Policies | Peak VRAM (BS 8, AdamW) |
++|---|---|---|
++| Light BC | `act`, `vqbet`, `tdmpc` | ~2–6 GB |
++| Diffusion | `diffusion`, `multi_task_dit` | ~8–14 GB |
++| Small VLA | `smolvla` | ~10–16 GB |
++| Large VLA | `pi0`, `pi0_fast`, `pi05`, `xvla`, `wall_x` | ~24–40 GB |
++| Multimodal | `groot`, `eo1` | ~24–40 GB |
++
++**We do inference only.** Every number above overstates our requirement, in
++some cases by an order of magnitude — SmolVLA's "~10–16 GB" training envelope
++runs inference in ~1–2 GB on our 8 GB card today. Do not use this table to rule
++a policy out for *evaluation*; use it to rule one out for *fine-tuning*.
++
++On fine-tuning: the guide puts our 8 GB card below its lowest consumer tier
++(24 GB), so any training we do needs rented or free-tier compute. That part of
++§1 above stands.
++
++---
++
++## R6. What this changes about model selection
++
++Superseding the recommendation in `PENDING_DECISIONS.md` §10:
++
++1. **MINERVA** (`k1000dai/MINERVA`, 0.54M) — still the best *control*.
++   LeRobot-format safetensors, trivially fits, and having no language encoder
++   means there is nothing to misconfigure. Its card pins **MuJoCo 3.3.2 "due to
++   renderer sensitivity"**; we run 3.3.7. [verified]
++2. **pi0.5** (`lerobot/pi05_libero_finetuned`) — the only checkpoint with a
++   *documented LeRobot reproduction* (97.5%). That makes it the best reference
++   for "is our harness configured correctly", though at ~3B it may not fit our
++   card for inference. [unverified]
++3. **GR00T N1.7** — now known to be loadable (R1). Worth the VRAM test.
++4. **VLA-Adapter / MiniVLA / TurboVLA** — deprioritised. None is LeRobot-native
++   as far as we have checked, and R3 suggests our gap is a config problem that a
++   new model would not diagnose.
++
++**Cheapest first move is still not a model.** R3(a) — checking whether
++SmolVLA expects `relative` or `absolute` actions — costs minutes and could
++account for a large share of the gap on its own.
++
++---
++
++## R7. Environment isolation — a standing constraint (user directive, 2026-09-16)
++
++**Every additional policy gets its own virtual environment. No exceptions.**
++
++The existing layout already follows this — `.venvs/lerobot` is separate from the
++stdlib-only harness core — and it extends to every model added from here:
++
++```
++.venvs/lerobot      SmolVLA, pi0/pi05, groot  (shared LeRobot stack)
++.venvs/minerva      MINERVA         — pins MuJoCo 3.3.2, NOT 3.3.7
++.venvs/<model>      one per model with conflicting pins
++```
++
++**Why this is not optional here.** MINERVA pins MuJoCo 3.3.2 "due to renderer
++sensitivity"; we run 3.3.7 for everything else. GR00T N1.5 needs
++`lerobot==0.5.1` while N1.7 needs current. LeRobot's LIBERO extra pins its own
++`robosuite`/`libero` versions. These conflict *directly* — a single shared
++environment would silently resolve to one set of pins and every downstream
++number would be attributable to the wrong cause. That is the un-normalisation
++failure mode the proposal warns manufactures apparent model failures, arriving
++by a different route.
++
++**Plug and play is the other half of the requirement.** Isolation must not leak
++into the harness. The contract:
++
++- **L0 stays stdlib-only.** The harness core imports nothing from any model env.
++  Adapters import lazily, as `envs/libero_env.py` already does.
++- **One adapter per model, behind the existing policy protocol.** Adding a model
++  means adding an adapter and a venv, never editing the miner, the classifier or
++  the runner.
++- **The venv is selected by the runner, not hardcoded.** A model is named; its
++  interpreter path is resolved from a registry, so `--policy minerva` is the
++  whole user-facing change.
++- **Traces stay comparable.** Every rollout already records `policy_id` and a
++  `fingerprint` including env + library identity. Those must keep resolving
++  correctly across venvs — that is what makes cross-model comparison honest
++  rather than assumed. A version difference must show up in the fingerprint, not
++  be discovered later.
++- **`semantic_deps()` must include the rendering backend and MuJoCo version.**
++  R3(b) and the MINERVA pin both say the renderer changes the pixels the policy
++  sees. If MuJoCo version is not in the fingerprint, two runs that differ only
++  by renderer will look identical in the trace store.
++
++**Not yet built.** The registry and per-model interpreter dispatch do not exist;
++today `experiments/e2e.py` hardcodes `.venvs/lerobot`. This is a prerequisite
++for adding the second model, not an afterthought.
++
++---
++
++## R8. Priority and sequencing (user directive, 2026-09-16)
++
++**GR00T N1.7 is the project's priority policy.** The route there is gated:
++
++1. MINERVA reproduces in our harness — a known-good checkpoint with a
++   documented eval proves the harness can hit a published number.
++2. The harness is verified correct (camera perturbation, stale first frame,
++   detector abstention, goal instrumentation — `PENDING_DECISIONS.md`).
++3. Then experimentation moves to GR00T N1.7.
++
++Rationale for the order: GR00T is the most expensive policy to run on our 8 GB
++card and the least documented (no published eval command for its LeRobot
++LIBERO checkpoints). Any result on it is only interpretable once the harness has
++reproduced a documented number, so harness defects are not misattributed to
++GR00T.
+diff --git a/vla_harness/envs/libero_env.py b/vla_harness/envs/libero_env.py
+index a363272..4c3ef32 100644
+--- a/vla_harness/envs/libero_env.py
++++ b/vla_harness/envs/libero_env.py
+@@ -60,35 +60,33 @@ def _resolve_body(name: str, bodies) -> str | None:
+     return None
+ 
+ 
+-def _look_at_quat(eye, target):
+-    """Quaternion (w,x,y,z) aiming a MuJoCo camera from `eye` at `target`."""
++def _quat_axis_angle(axis, angle_rad):
++    """Quaternion (w,x,y,z) for a rotation of `angle_rad` about unit `axis`."""
+     import numpy as np
+-    f = np.array(target) - np.array(eye)
+-    n = np.linalg.norm(f)
+-    if n < 1e-9:
+-        return np.array([1.0, 0.0, 0.0, 0.0])
+-    f = f / n
+-    z = -f                                   # MuJoCo cameras look down -z
+-    up = np.array([0.0, 0.0, 1.0])
+-    if abs(np.dot(z, up)) > 0.999:
+-        up = np.array([0.0, 1.0, 0.0])
+-    x = np.cross(up, z); x /= np.linalg.norm(x)
+-    y = np.cross(z, x)
+-    m = np.stack([x, y, z], axis=1)
+-    t = np.trace(m)
+-    if t > 0:
+-        s_ = math.sqrt(t + 1.0) * 2
+-        return np.array([0.25 * s_, (m[2,1]-m[1,2])/s_, (m[0,2]-m[2,0])/s_,
+-                         (m[1,0]-m[0,1])/s_])
+-    i = int(np.argmax(np.diag(m)))
+-    if i == 0:
+-        s_ = math.sqrt(1.0+m[0,0]-m[1,1]-m[2,2])*2
+-        return np.array([(m[2,1]-m[1,2])/s_, 0.25*s_, (m[0,1]+m[1,0])/s_, (m[0,2]+m[2,0])/s_])
+-    if i == 1:
+-        s_ = math.sqrt(1.0+m[1,1]-m[0,0]-m[2,2])*2
+-        return np.array([(m[0,2]-m[2,0])/s_, (m[0,1]+m[1,0])/s_, 0.25*s_, (m[1,2]+m[2,1])/s_])
+-    s_ = math.sqrt(1.0+m[2,2]-m[0,0]-m[1,1])*2
+-    return np.array([(m[1,0]-m[0,1])/s_, (m[0,2]+m[2,0])/s_, (m[1,2]+m[2,1])/s_, 0.25*s_])
++    a = np.asarray(axis, dtype=float)
++    a = a / max(np.linalg.norm(a), 1e-12)
++    h = angle_rad / 2.0
++    return np.array([math.cos(h), *(math.sin(h) * a)])
++
++
++def _quat_mul(q1, q2):
++    """Hamilton product q1*q2 -- applies q2 first, then q1."""
++    import numpy as np
++    w1, x1, y1, z1 = q1
++    w2, x2, y2, z2 = q2
++    return np.array([w1*w2 - x1*x2 - y1*y2 - z1*z2,
++                     w1*x2 + x1*w2 + y1*z2 - z1*y2,
++                     w1*y2 - x1*z2 + y1*w2 + z1*x2,
++                     w1*z2 + x1*y2 - y1*x2 + z1*w2])
++
++
++def _quat_rotate(q, v):
++    """Rotate vector v by quaternion q."""
++    import numpy as np
++    qv = np.array([0.0, *v])
++    qc = np.array([q[0], -q[1], -q[2], -q[3]])
++    return _quat_mul(_quat_mul(q, qv), qc)[1:]
++
+ 
+ # LIBERO: 6-D end-effector delta + gripper, Box(-1, 1, (7,))
+ ACTION_DIMS = ["dx", "dy", "dz", "droll", "dpitch", "dyaw", "gripper"]
+@@ -133,7 +131,8 @@ class LiberoEnv:
+     def __init__(self, suite: str = "libero_spatial", task_id: int = 0,
+                  control_mode: str = "relative", init_states: bool = True,
+                  hard_reset: bool = True, num_steps_wait: int = 10,
+-                 max_steps: int | None = None, image_dir: str | None = None):
++                 max_steps: int | None = None, image_dir: str | None = None,
++                 obs_size: int = 256):
+         if suite not in MAX_STEPS:
+             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
+         self.suite = suite
+@@ -144,6 +143,11 @@ class LiberoEnv:
+         self.num_steps_wait = num_steps_wait
+         self.max_steps = max_steps or MAX_STEPS[suite]
+         self.image_dir = image_dir
++        # Render resolution. 256 matches the LeRobot gym class default and the
++        # LIBERO datasets. Some documented evals render elsewhere (MINERVA's fork
++        # defaults its env CONFIG to 360), and the harness must be able to match
++        # them, or a harness-vs-lerobot-eval comparison measures the render path.
++        self.obs_size = int(obs_size)
+         self._env = None
+         self.instruction = ""
+         self.task_id = f"{suite}/task{task_id}"
+@@ -170,6 +174,7 @@ class LiberoEnv:
+                 "bddl_sha": self._bddl_sha(),
+                 "hard_reset": self.hard_reset,
+                 "num_steps_wait": self.num_steps_wait,
++                "obs_size": self.obs_size,
+                 "max_steps": self.max_steps, "action_dims": list(ACTION_DIMS)}
+ 
+     def _init_states_sha(self) -> str | None:
+@@ -220,6 +225,7 @@ class LiberoEnv:
+             init_states=self.init_states, hard_reset=self.hard_reset,
+             num_steps_wait=self.num_steps_wait,
+             episode_length=self.max_steps,
++            observation_width=self.obs_size, observation_height=self.obs_size,
+         )
+         task = suite.get_task(self.task_id_idx)
+         self.base_instruction = task.language
+@@ -236,9 +242,29 @@ class LiberoEnv:
+             self._build()
+         self.spec = spec
+         self.t = 0
++        # The init state (object layout) is chosen by LeRobot from a COUNTER that
++        # advances on every reset (`init_state_id += _reset_stride`,
++        # lerobot/envs/libero.py:346) -- the seed does not select it. Two bugs
++        # followed: a resumed cell that skipped cached episodes ran every later
++        # seed on a DIFFERENT layout than its rollout_id claims, and arms sharing
++        # one env object (nominal, then yaw 5, ...) were never on the same layouts
++        # as each other. Pin it: seed N -> init state N, independent of history.
++        # Matches lerobot-eval, where sub-env i of a batch starts at init state i.
++        inner = self._env.unwrapped
++        states = getattr(inner, "_init_states", None)       # ndarray: no `or`
++        n_init = len(states) if states is not None else 0
++        if self.init_states and n_init:
++            inner.init_state_id = seed % n_init
++            self.init_state_index = seed % n_init
++        else:
++            self.init_state_index = None
+         raw, _ = self._env.reset(seed=seed)
+         self._raw = raw
+-        if any(v for _, v in spec.knobs):
++        # Any knob that is PRESENT runs the perturbation path, including a value of
++        # 0. The old guard `any(v for ...)` treated 0.0 as falsy, so a "yaw 0"
++        # control skipped the camera code AND the resettle that every other arm
++        # got, and was not a matched control for them (#22).
++        if spec.knobs:
+             self._apply_perturbation(spec)
+             raw = self._resettle()
+             self._raw = raw
+@@ -289,28 +315,52 @@ class LiberoEnv:
+ 
+         yaw, pitch = k.get("camera_yaw_deg", 0.0), k.get("camera_pitch_deg", 0.0)
+         dist = k.get("camera_dist_m", 0.0)
+-        if yaw or pitch or dist:
++        cam_keys = ("camera_yaw_deg", "camera_pitch_deg", "camera_dist_m")
++        if any(key in k for key in cam_keys):
++            # A camera perturbation MOVES LIBERO's own camera; it never re-aims it.
++            #
++            # The previous version replaced the orientation with a look-at toward
++            # a guessed table centre [0, 0, z*0.5]. That re-aim alone rotated the
++            # view ~12 deg and shifted pitch in OPPOSITE directions for floor vs
++            # tabletop scenes, so "yaw 1e-6" rendered the same as "yaw 5" and
++            # every yaw arm of the 20260916-0015 campaign measured the re-aim,
++            # not yaw (#22; found by vla-7f, confirmed by vla-81 from stored
++            # extrinsics). Now every knob is a RIGID motion of the original pose
++            # about the point that camera actually looks at, so 0 is the trained
++            # view exactly and small angles are small.
+             cid = sim.model.camera_name2id(MAIN_CAMERA)
+-            pos = np.array(sim.model.cam_pos[cid], dtype=float)
+-            look = np.array([0.0, 0.0, pos[2] * 0.5])      # approx table centre
+-            rel = pos - look
+-            if yaw:
+-                a = math.radians(yaw); c, s_ = math.cos(a), math.sin(a)
+-                rel = np.array([c * rel[0] - s_ * rel[1],
+-                                s_ * rel[0] + c * rel[1], rel[2]])
+-            if pitch:
+-                a = math.radians(pitch)
+-                r = math.hypot(rel[0], rel[1])
+-                z = rel[2] * math.cos(a) + r * math.sin(a)
+-                scale = (r * math.cos(a) - rel[2] * math.sin(a)) / max(r, 1e-9)
+-                rel = np.array([rel[0] * scale, rel[1] * scale, z])
++            if int(sim.model.cam_bodyid[cid]) != 0:
++                # cam_pos/cam_quat are parent-relative; the geometry below
++                # assumes the world frame. Fail rather than silently mis-rotate.
++                raise NotImplementedError(
++                    f"{MAIN_CAMERA} is attached to body "
++                    f"{int(sim.model.cam_bodyid[cid])}, not the world")
++            pos0 = np.array(sim.model.cam_pos[cid], dtype=float)
++            q0 = np.array(sim.model.cam_quat[cid], dtype=float)
++            fwd = _quat_rotate(q0, [0.0, 0.0, -1.0])       # MuJoCo cams look down -z
++            pivot = self._camera_pivot(sim, pos0, fwd)
++
++            pos, q = pos0.copy(), q0.copy()
+             if dist:
+-                n = np.linalg.norm(rel)
+-                rel = rel * (1.0 + dist / max(n, 1e-9))
+-            sim.model.cam_pos[cid] = look + rel
+-            # re-aim at the look-point so the target stays framed; a camera that
+-            # rotates AND loses the scene confounds viewpoint with occlusion.
+-            sim.model.cam_quat[cid] = _look_at_quat(look + rel, look)
++                rel = pos - pivot
++                pos = pivot + rel * (1.0 + dist / max(np.linalg.norm(rel), 1e-9))
++            if pitch:
++                # positive pitch raises the camera over the pivot (looks more
++                # steeply down), about the horizontal axis across the view
++                rel = pos - pivot
++                axis = np.cross(rel, [0.0, 0.0, 1.0])
++                if np.linalg.norm(axis) > 1e-9:
++                    qp = _quat_axis_angle(axis, math.radians(pitch))
++                    pos = pivot + _quat_rotate(qp, rel)
++                    q = _quat_mul(qp, q)
++            if yaw:
++                # orbit about the world vertical through the pivot
++                qy = _quat_axis_angle([0.0, 0.0, 1.0], math.radians(yaw))
++                pos = pivot + _quat_rotate(qy, pos - pivot)
++                q = _quat_mul(qy, q)
++            sim.model.cam_pos[cid] = pos
++            sim.model.cam_quat[cid] = q / np.linalg.norm(q)
++            sim.forward()
+ 
+         dx, dy = k.get("ee_offset_x_m", 0.0), k.get("ee_offset_y_m", 0.0)
+         if dx or dy:
+@@ -328,15 +378,46 @@ class LiberoEnv:
+                 sim.model.light_diffuse[i] = np.clip(
+                     np.array(sim.model.light_diffuse[i]) * (1.0 + li), 0, 1)
+ 
++    def _camera_pivot(self, sim, cam_pos, fwd):
++        """The point the camera actually looks at.
++
++        The optical axis intersected with the horizontal plane through the task
++        objects. Falls back to 1 m along the axis if there are no objects or the
++        axis never descends to them.
++        """
++        import numpy as np
++        names, _ = self._object_body_names()
++        zs = []
++        for n in names:
++            try:
++                zs.append(float(sim.data.body_xpos[sim.model.body_name2id(n)][2]))
++            except Exception:
++                continue
++        if zs and fwd[2] < -1e-6:
++            t = (float(np.mean(zs)) - cam_pos[2]) / fwd[2]
++            if t > 0:
++                return cam_pos + t * np.asarray(fwd)
++        return cam_pos + np.asarray(fwd)
++
+     def _resettle(self):
+-        """Step the sim so the perturbation takes effect in the rendering."""
++        """Step the sim so the perturbation takes effect, and RETURN THAT FRAME.
++
++        This used to call `_to_lerobot_obs`, which LeRobot's LiberoEnv does not
++        have; a `hasattr` fallback then returned `self._raw` -- the frame rendered
++        BEFORE the perturbation. So the policy's first observation of every
++        perturbed episode showed the unperturbed scene, with no error (#22).
++        The formatter is `_format_raw_obs`, and its absence is now an error.
++        """
+         from lerobot.envs.libero import get_libero_dummy_action
+-        inner = self._env.unwrapped._env
++        outer = self._env.unwrapped
++        if not hasattr(outer, "_format_raw_obs"):
++            raise RuntimeError(
++                "LeRobot LiberoEnv has no _format_raw_obs; cannot return the "
++                "post-perturbation frame. Refusing to hand back a stale one.")
+         raw = None
+         for _ in range(3):
+-            raw, _, _, _ = inner.step(get_libero_dummy_action())
+-        return self._env.unwrapped._to_lerobot_obs(raw) if hasattr(
+-            self._env.unwrapped, "_to_lerobot_obs") else self._raw
++            raw, _, _, _ = outer._env.step(get_libero_dummy_action())
++        return outer._format_raw_obs(raw)
+ 
+     # --- observation ------------------------------------------------------
+     def _sim(self):
+@@ -497,6 +578,9 @@ class LiberoEnv:
+         return {
+             "units": "metres", "frame": "world",
+             "suite": self.suite, "task_id": self.task_id_idx,
++            # which stored LIBERO init state this episode started from; pinned
++            # to seed % n_init_states so it no longer depends on reset history
++            "init_state_index": getattr(self, "init_state_index", None),
+             "instruction": self.instruction,
+             "objects": objects, "objects_complete": complete,
+             "robot": {"eef_start_pos_m":
+diff --git a/vla_harness/mining/classify.py b/vla_harness/mining/classify.py
+index eb30980..2187db1 100644
+--- a/vla_harness/mining/classify.py
++++ b/vla_harness/mining/classify.py
+@@ -100,6 +100,14 @@ def classify(r, nominal=None, segmenter=None) -> dict:
+     seg = segmenter or PhaseSegmenter()
+     segs, info = seg(r)
+     if info.get("skipped"):
++        # A SUCCESS needs no failure diagnosis, instrumented or not. Checking
++        # abstention first labelled successful episodes with missing state keys
++        # `ambiguous` -- e.g. libero_goal/task2 c3560775c39c, a clean pick-and-place
++        # shown as an undiagnosable failure. Abstention is about failures only.
++        if r.success:
++            return {"family": None, "source": "tier1", "confident": True,
++                    "reason": "succeeded (detectors abstained: "
++                              f"{info['skipped']})"}
+         return {"family": "ambiguous", "source": "tier1",
+                 "reason": info["skipped"], "confident": False}
+ 
+diff --git a/vla_harness/policies/lerobot_policy.py b/vla_harness/policies/lerobot_policy.py
+index 9766ae4..c4bc3de 100644
+--- a/vla_harness/policies/lerobot_policy.py
++++ b/vla_harness/policies/lerobot_policy.py
+@@ -36,10 +36,15 @@ class LeRobotPolicy:
+ 
+     def __init__(self, checkpoint: str, device: str = "cuda",
+                  n_action_steps: int | None = None, state_fn=None,
+-                 env_cfg=None):
++                 env_cfg=None, policy_overrides: dict | None = None):
+         self.checkpoint = checkpoint
+         self.device = device
+         self.n_action_steps = n_action_steps
++        # Documented eval settings that are not n_action_steps, e.g. MINERVA's
++        # temporal_ensemble_coeff=0.01. Without this the harness could not
++        # express a policy's published eval config, so a harness-vs-lerobot-eval
++        # gap could come from a missing setting rather than a harness bug.
++        self.policy_overrides = dict(policy_overrides or {})
+         self.state_fn = state_fn or libero_state
+         self.env_cfg = env_cfg
+         self._pre = self._post = self._env_pre = self._env_post = None
+@@ -61,6 +66,7 @@ class LeRobotPolicy:
+                 "checkpoint": self.checkpoint,
+                 "checkpoint_revision": self._cfg.get("revision"),
+                 "n_action_steps": self.n_action_steps,
++                "policy_overrides": dict(sorted(self.policy_overrides.items())),
+                 "action_dims": list(self.action_dims),
+                 "state_fn": getattr(self.state_fn, "__name__", "custom")}
+ 
+@@ -85,8 +91,17 @@ class LeRobotPolicy:
+         cfg = PreTrainedConfig.from_pretrained(self.checkpoint)
+         if self.n_action_steps is not None:
+             cfg.n_action_steps = self.n_action_steps
++        for key, val in self.policy_overrides.items():
++            if not hasattr(cfg, key):
++                raise ValueError(f"{cfg.type} config has no field {key!r}; refusing "
++                                 f"to silently ignore a policy override")
++            setattr(cfg, key, val)
+         cfg.pretrained_path = self.checkpoint
+-        self._policy = get_policy_class(cfg.type).from_pretrained(self.checkpoint)
++        # config=cfg, as lerobot-eval's make_policy does. Some settings are read
++        # at CONSTRUCTION (tinyflow builds its temporal ensembler in __init__),
++        # so setting them on the loaded policy afterwards would do nothing.
++        self._policy = get_policy_class(cfg.type).from_pretrained(self.checkpoint,
++                                                                  config=cfg)
+         if self.n_action_steps is not None:
+             try:
+                 self._policy.config.n_action_steps = self.n_action_steps

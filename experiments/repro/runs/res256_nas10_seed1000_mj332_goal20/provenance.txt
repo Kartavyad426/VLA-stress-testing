@@ -1,0 +1,17 @@
+=== session 2026-09-17T05:59:43+05:30 ===
+purpose:     goal suite at MuJoCo 3.3.2; vs res256_nas10_seed1000 goal=68% (3.3.7)
+delta:       mujoco 3.3.7 -> 3.3.2 ONLY (venv freeze diff verified: one line)
+held:        256x256, nas=10, relative, hard_reset, init_states, seed 1000
+episodes/task: 20 (first 10 paired with baseline init states)
+venv:        .venvs/lerobot-mj332
+lerobot_sha: b6ec0060779550c0a157ae34feb89e0cf86012a8
+gpu_power:   35.00 W, 9.32 W, 1620 MHz, P4
+ac_online:   1
+lerobot: 0.6.2
+torch: 2.11.0+cu128
+mujoco: 3.3.2
+robosuite: 1.4.0
+transformers: 5.5.4
+numpy: 2.2.6
+--- session start ---
+A wall_seconds_this_session: 3566
