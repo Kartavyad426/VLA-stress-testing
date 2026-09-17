@@ -1,8 +1,8 @@
 # Data Gap Manifest
 
-Generated 2026-09-16 · schema v1.0
+Generated 2026-09-17 · schema v1.0
 
-## DGM-001 — visual_grounding [COMPUTED AT DELIVERY = CONDITIONAL X PREVALENCE X COST]
+## DGM-001 — visual_grounding+manipulation [COMPUTED AT DELIVERY = CONDITIONAL X PREVALENCE X COST]
 
 - **Evidence strength:** causal (counterfactual-confirmed)
 - **Tasks:** pick_bowl
@@ -11,7 +11,7 @@ Generated 2026-09-16 · schema v1.0
 - **Boundary:** camera_yaw_deg between 3 and 6 (success 100% → 0%; definition: success < 0.5 x nominal (100.0%))
 - **Evidence:** 180 episodes · nominal 100% · 80 failures in cluster
 - **Supply-side corroboration:** training demos cluster within +/-8 deg yaw (Phase 0 — PLACEHOLDER, not yet measured)
-- **Coverage required:** Demonstrations spanning the measured camera_yaw_deg band in even steps, across multiple object layouts and both target-object classes.
+- **Coverage required:** Demonstrations spanning the measured camera_yaw_deg band in even steps, across multiple object layouts and both target-object classes. Trajectory variants around contact and alignment across the failing camera_yaw_deg band; include successful corrections.
 - **Validation:** LoRA fine-tune at three escalating data budgets on the coverage above; re-run the frozen regression set; report the data-response curve. Neutral and negative results are reportable.
 - **Validation result:** `null` — UNTESTED CLAIM
 

@@ -100,8 +100,17 @@ def classify(r, nominal=None, segmenter=None) -> dict:
     seg = segmenter or PhaseSegmenter()
     segs, info = seg(r)
     if info.get("skipped"):
-        return {"family": "ambiguous", "source": "tier1",
-                "reason": info["skipped"], "confident": False}
+        # A SUCCESS needs no failure diagnosis, instrumented or not. Checking
+        # abstention first labelled successful episodes with missing state keys
+        # `ambiguous` -- e.g. libero_goal/task2 c3560775c39c, a clean pick-and-place
+        # shown as an undiagnosable failure. Abstention is about failures only.
+        if r.success:
+            return {"family": None, "families": [], "predicates": {},
+                    "source": "tier1", "confident": True,
+                    "reason": "succeeded (detectors abstained: "
+                              f"{info['skipped']})"}
+        return {"family": "ambiguous", "families": [], "predicates": {},
+                "source": "tier1", "reason": info["skipped"], "confident": False}
 
     term = terminal_behaviour(r, segs)
     # Signals are resolved per-env. The classifier previously read the toy's
@@ -109,7 +118,8 @@ def classify(r, nominal=None, segmenter=None) -> dict:
     # reporting zero detector abstentions.
     S = sig.pick(r)
     if S is None:
-        return {"family": "ambiguous", "source": "tier1", "confident": False,
+        return {"family": "ambiguous", "families": [], "predicates": {},
+                "source": "tier1", "confident": False,
                 "reason": "no signal set matches this rollout's state keys"}
     final_err = S.final_error_m(r)
     attempts = S.grasp_attempts(r)
@@ -122,31 +132,53 @@ def classify(r, nominal=None, segmenter=None) -> dict:
          "attempt_spread_m": spread}
 
     if r.success:
-        d.update(family=None, reason="succeeded")
+        d.update(family=None, families=[], predicates={}, reason="succeeded")
         d["failure_cost"] = failure_cost(r, d)
         return d
 
-    # --- decision rules, most-specific first --------------------------------
+    # --- rules: ALL are evaluated, none is suppressed -----------------------
+    # This used to be first-match-wins. 76.6% of LIBERO failures satisfy more
+    # than one rule, so the reported family was decided by rule ORDER, and every
+    # family except manipulation could be driven to zero by reordering alone
+    # (RESULTS.md R-008). A family defined by precedence is not meaningful on its
+    # own -- `manipulation` really meant "attempted AND not far AND not at another
+    # object AND not repeating AND did reach pre-grasp".
+    #
+    # So every rule is evaluated independently and the diagnosis reports all that
+    # matched. `family` is kept only as an ORDER-INDEPENDENT key for grouping
+    # (families joined in the fixed FAMILIES order), so clustering and the
+    # manifest keep working. Use `families` / `predicates` for analysis.
+    matched = {}
     if term == "never_reached":
-        d.update(family="planning", reason="never entered pre-grasp")
-    elif _wrong_object(r, S):
-        d.update(family="spatial_reasoning",
-                 reason="terminated at a distractor, not the named target")
-    elif final_err is not None and final_err > LOST_TARGET_M:
-        d.update(family="visual_grounding",
-                 reason=f"went confidently to the wrong place "
-                        f"({final_err*100:.1f} cm from target)")
-    elif attempts >= 2 and spread is not None and spread < REPEAT_SPREAD_M:
-        d.update(family="recovery",
-                 reason=f"{attempts} attempts within {spread*100:.1f} cm — "
-                        f"repeating, not searching")
-    elif attempts >= 1:
-        d.update(family="manipulation",
-                 reason=f"reached target ({final_err*100:.1f} cm) but grasp "
-                        f"failed" + (f"; searched over {spread*100:.1f} cm"
-                                     if spread else ""))
+        matched["planning"] = "never entered pre-grasp"
+    if _wrong_object(r, S):
+        matched["spatial_reasoning"] = ("ended nearer another task object than "
+                                        "the target (may be the destination)")
+    if final_err is not None and final_err > LOST_TARGET_M:
+        matched["visual_grounding"] = (f"ended {final_err*100:.1f} cm from target "
+                                       f"(> {LOST_TARGET_M*100:.0f} cm)")
+    if attempts >= 2 and spread is not None and spread < REPEAT_SPREAD_M:
+        matched["recovery"] = (f"{attempts} attempts within {spread*100:.1f} cm "
+                               f"— repeating, not searching")
+    if attempts >= 1:
+        matched["manipulation"] = (f"{attempts} grasp attempt(s)"
+                                   + (f"; searched over {spread*100:.1f} cm"
+                                      if spread else ""))
+
+    d["predicates"] = {"never_reached": "planning" in matched,
+                       "wrong_object": "spatial_reasoning" in matched,
+                       "lost_target": "visual_grounding" in matched,
+                       "repeat_attempts": "recovery" in matched,
+                       "any_attempt": "manipulation" in matched}
+    families = [f for f in FAMILIES if f in matched]
+    d["families"] = families
+    d["reasons"] = {f: matched[f] for f in families}
+    if families:
+        d["family"] = "+".join(families)
+        d["reason"] = "; ".join(f"{f}: {matched[f]}" for f in families)
     else:
-        d.update(family="ambiguous", confident=False, reason="no rule matched")
+        d.update(family="ambiguous", families=[], confident=False,
+                 reason="no rule matched")
     d["failure_cost"] = failure_cost(r, d)
     return d
 

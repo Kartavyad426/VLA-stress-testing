@@ -118,9 +118,12 @@ def make_row(row_id, cluster, boundary, probe, nominal_rate, n_episodes,
             "example_rollout_ids": cluster["example_rollout_ids"],
         },
         "supply_side": supply_side,
-        "coverage_required": REMEDIATION.get(
-            cluster["family"], "Targeted coverage of the failing region."
-        ).format(axis=axis),
+        # A cluster key may be a conjunction ("manipulation+visual_grounding")
+        # now that every matching rule is reported. Its coverage is each
+        # member's prescription, not a guess at one of them.
+        "coverage_required": " ".join(
+            REMEDIATION.get(f, "Targeted coverage of the failing region.").format(axis=axis)
+            for f in cluster["family"].split("+")),
         "validation_plan": (
             "LoRA fine-tune at three escalating data budgets on the coverage "
             "above; re-run the frozen regression set; report the data-response "

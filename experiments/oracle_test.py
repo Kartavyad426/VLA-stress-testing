@@ -114,7 +114,11 @@ def run_scenario(label, bugs, knob, levels, exp_family, exp_knob, store):
     # --- 4. CHECK AGAINST GROUND TRUTH ------------------------------------
     got_family = clusters[0]["family"] if clusters else None
     got_knob = probe["attributed_knob"]
-    fam_ok = got_family == exp_family
+    # A planted fault must be AMONG the matched families of the largest cluster.
+    # With every rule reported, a recovery fault also matches `manipulation`
+    # (it attempted a grasp); requiring an exact single label would reward
+    # suppression, which is what the precedence audit found wrong.
+    fam_ok = got_family is not None and exp_family in got_family.split("+")
     knob_ok = (got_knob == exp_knob) if exp_knob else True
 
     print(f"\n  [4] VERDICT")
