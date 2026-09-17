@@ -1,0 +1,30 @@
+diff --git a/libero/libero/envs/env_wrapper.py b/libero/libero/envs/env_wrapper.py
+index be94797..5df25e4 100644
+--- a/libero/libero/envs/env_wrapper.py
++++ b/libero/libero/envs/env_wrapper.py
+@@ -102,7 +102,7 @@ def plasma_fractal(mapsize=256, wibbledecay=3):
+     'mapsize' must be a power of two.
+     """
+     assert (mapsize & (mapsize - 1) == 0)
+-    maparray = np.empty((mapsize, mapsize), dtype=np.float_)
++    maparray = np.empty((mapsize, mapsize), dtype=np.float64)
+     maparray[0, 0] = 0
+     stepsize = mapsize
+     wibble = 100
+@@ -150,7 +150,15 @@ def fog(x, severity=1):
+     x = np.array(x) / 255.
+     max_val = x.max()
+     height_x, weight_x = x.shape[0], x.shape[1]
+-    x += c[0] * plasma_fractal(wibbledecay=c[1])[:height_x, :weight_x][..., np.newaxis]
++    # plasma_fractal defaults to a 256x256 map, so fog crashed on any render
++    # larger than 256 ("operands could not be broadcast together with shapes
++    # (360,360,3) (256,256,1)"). mapsize must be a power of two covering the
++    # image; the crop below is unchanged. NOTE: at >256 the fog pattern is
++    # generated at a different scale than upstream's 256 default.
++    mapsize = 1
++    while mapsize < max(height_x, weight_x):
++        mapsize *= 2
++    x += c[0] * plasma_fractal(mapsize=mapsize, wibbledecay=c[1])[:height_x, :weight_x][..., np.newaxis]
+     return np.clip(x * max_val / (max_val + c[0]), 0, 1) * 255
+ 
+ def glass_blur(x, severity=1):
