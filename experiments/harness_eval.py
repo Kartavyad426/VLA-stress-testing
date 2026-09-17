@@ -1,0 +1,92 @@
+"""Evaluate a policy through OUR harness (env adapter + policy adapter + trace store).
+
+The counterpart to running `lerobot-eval` directly. Same checkpoint, seeds and
+init states; any systematic gap between the two paths is a harness defect,
+because the policy and the simulator are identical.
+
+Resumable: traces go to runs/<run_id>/rollouts.jsonl via run_cell (G10), and
+seed N always starts from init state N, so a resumed cell is on the same
+layouts as an uninterrupted one. One summary line per cell is appended to
+runs/<run_id>/cells.jsonl.
+
+    MUJOCO_GL=egl .venvs/minerva/bin/python experiments/harness_eval.py \
+        --checkpoint third_party/MINERVA/ckpt/t05_l1_0.54M --n-action-steps 1 \
+        --override temporal_ensemble_coeff=0.01 --obs-size 360 \
+        --suites libero_object,libero_spatial --episodes 10 --run-id harness_minerva
+"""
+import argparse, json, os, sys, time
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from vla_harness.envs.libero_env import LiberoEnv
+from vla_harness.policies.lerobot_policy import LeRobotPolicy
+from vla_harness.runner import run_cell
+from vla_harness.schema import PerturbationSpec, TraceStore, ArmLog
+
+
+def parse_override(kv: str):
+    k, v = kv.split("=", 1)
+    try:
+        v = json.loads(v)
+    except json.JSONDecodeError:
+        pass
+    return k, v
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--checkpoint", required=True)
+    ap.add_argument("--n-action-steps", type=int, default=None)
+    ap.add_argument("--override", action="append", default=[],
+                    help="policy config override, key=value (repeatable)")
+    ap.add_argument("--obs-size", type=int, default=256)
+    ap.add_argument("--dtype", default=None, help="e.g. bfloat16: load on CPU, cast, move (GR00T on 8 GB)")
+    ap.add_argument("--rename-map", default="{}", help='JSON, e.g. {"observation.images.image2": "observation.images.wrist_image"}')
+    ap.add_argument("--suites", required=True)
+    ap.add_argument("--tasks", default="0,1,2,3,4,5,6,7,8,9")
+    ap.add_argument("--episodes", type=int, default=10)
+    ap.add_argument("--specs", default="[{}]",
+                    help='JSON list of perturbation knob dicts, e.g. [{}, {"camera_yaw_deg": 5}]')
+    ap.add_argument("--run-id", required=True)
+    a = ap.parse_args()
+
+    overrides = dict(parse_override(kv) for kv in a.override)
+    specs = json.loads(a.specs)
+    store, arms = TraceStore("runs", a.run_id), ArmLog("runs", a.run_id)
+    cells_path = os.path.join("runs", a.run_id, "cells.jsonl")
+    done = set()
+    if os.path.exists(cells_path):
+        for line in open(cells_path):
+            c = json.loads(line)
+            done.add((c["suite"], c["task"], json.dumps(c["spec"], sort_keys=True)))
+
+    from lerobot.envs.configs import LiberoEnv as EnvCfg
+    seeds = list(range(a.episodes))
+    for suite in a.suites.split(","):
+        pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.n_action_steps,
+                            env_cfg=EnvCfg(task=suite), policy_overrides=overrides,
+                            dtype=a.dtype, rename_map=json.loads(a.rename_map))
+        for tid in [int(t) for t in a.tasks.split(",")]:
+            env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size)
+            for knobs in specs:
+                key = (suite, tid, json.dumps(knobs, sort_keys=True))
+                if key in done:
+                    print(f"{suite} task{tid} {knobs}: done, skipping", flush=True)
+                    continue
+                t0 = time.time()
+                cell = run_cell(env, pol, PerturbationSpec.of(**knobs), seeds,
+                                store=store, arms=arms, arm="uniform")
+                row = {"suite": suite, "task": tid, "spec": knobs,
+                       "n": cell.n, "successes": cell.successes,
+                       "rate": cell.rate, "ci95": list(cell.ci),
+                       "wall_s": round(time.time() - t0, 1),
+                       "checkpoint": a.checkpoint, "n_action_steps": a.n_action_steps,
+                       "overrides": overrides, "obs_size": a.obs_size,
+                       "dtype": a.dtype, "rename_map": json.loads(a.rename_map)}
+                with open(cells_path, "a") as f:
+                    f.write(json.dumps(row) + "\n")
+                print(f"{suite} task{tid} {knobs}: {cell.successes}/{cell.n} "
+                      f"({row['wall_s']}s)", flush=True)
+
+
+if __name__ == "__main__":
+    main()
