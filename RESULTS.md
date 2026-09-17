@@ -139,7 +139,7 @@ Every entry records its expectation and **says when it was written**:
 | R-019 | 09-17 | EVAL | Goal instrumentation re-run | DONE | 235/265 instrumented |
 | R-020 | 09-17 | EVAL | Goal task 5 site-lookup fix | DONE | 30/30 instrumented |
 | R-021 | 09-17 | EVAL | GR00T N1.7 smoke test | DONE | Fits in bf16 (5.87 GiB); 5/5 on spatial t0 |
-| R-022 | 09-17 | EVAL | GR00T harness parity | PLANNED | — |
+| R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
 
 ---
 
@@ -905,7 +905,7 @@ environment, and does it produce sensible behaviour?
 
 ## R-022 — GR00T harness parity
 
-**Date** 2026-09-17 · **Status** PLANNED · **Type** EVAL
+**Date** 2026-09-17 · **Status** DONE · **Type** EVAL
 
 **Question (why).** Before mining any GR00T failures: does our harness drive GR00T
 the same way lerobot-eval does? Same checkpoint, simulator, settings and init
@@ -939,7 +939,39 @@ here.
 - Preflight done: the harness ran 2/2 on task 0. Its trace fingerprint records
   dtype, rename_map, overrides, obs_size, init_state_index and MuJoCo.
 
-**Result.** *(to fill after running)*
+**Result.** Ran 12:41–13:40, AC throughout. Reference ~4 min/task; harness ~10–14 s/episode.
+
+| task | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | total |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| our harness | 10 | 10 | 10 | 10 | 10 | 9 | 10 | 10 | 10 | 9 | **98/100** |
+| lerobot-eval | 10 | 9 | 10 | 9 | 10 | 10 | 10 | 10 | 10 | 9 | **97/100** |
+
+- +1.0 pp, z=+0.45.
+- **Paired on init states 0–9 per task:** 2 episodes succeed only in the harness,
+  1 only in lerobot-eval, exact McNemar **p=1.00**.
+- Every harness trace records `init_state_index` 0–9, and its fingerprint includes
+  dtype, rename_map and overrides.
+
+**What happened vs expected.** As expected: no gap. Only 3 of 100 paired episodes
+disagree.
+
+**Interpretation.**
+- Our harness drives GR00T equivalently to lerobot-eval, including the two new
+  adapter paths (bf16 load and camera rename). GR00T traces from the harness can
+  be mined.
+- With MINERVA (R-014) and SmolVLA (R-017), all three roster policies now have a
+  harness-parity check.
+- GR00T scores 97–98% on spatial through both paths, consistent with the reported
+  95%, in bf16.
+
+**Validity & caveats.**
+- **Near ceiling.** This excludes a wiring defect (images, state, rename, loading)
+  but cannot detect a bias of a few points.
+- One suite.
+- **bf16 throughout** — not compared against the shipped F32 numerics, which do
+  not fit on this GPU.
+
+**Artifacts.** `experiments/repro/runs/groot_parity_spatial/` (reference per task, code state), `runs/groot_harness_parity/`
 
 ---
 
