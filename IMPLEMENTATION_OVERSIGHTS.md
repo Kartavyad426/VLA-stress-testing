@@ -137,6 +137,70 @@ confirming both branches. To validate a branch you must score that branch alone.
 
 ---
 
+## O5 — RESERVED
+
+Reserved for the `visual_grounding` mislabelling finding, pending the taxonomy
+decision in `PENDING_DECISIONS.md` #4/#5. Short version: the rule is
+`final eef-to-target > 0.10 m`, a POSITIONAL test carrying a SEMANTIC name, and
+only 14 of 333 labelled episodes (4.2%) ended near a different named object —
+0 of 161 on libero_object. Not written up here yet because the fix renames the
+family, and the entry should describe the final name.
+
+---
+
+## O6 — `failure_cost` is bound to a toy-only state key, and is dead on LIBERO
+
+```python
+held = r.series("holding")
+dropped = bool(held) and any(held) and not held[-1]
+```
+
+`holding` is a **toy** state key. The toy env decides it and writes it into
+`obs_state`. LIBERO never emits it — it is DERIVED in the segmenter and never
+written back. Confirmed: **0 of 705 traces** contain a literal `holding` key.
+
+So `dropped` is always `False`, and `COST_DISRUPTIVE` — the branch for "the
+policy grasped the object and then dropped it", the single most consequential
+failure a client cares about — **can never fire on LIBERO**:
+
+```
+failure_cost over 495 LIBERO failures:   benign 492   None 3   disruptive 0
+```
+
+**Why this matters beyond one wrong field.** A manifest row's severity is
+defined as `CONDITIONAL x PREVALENCE x COST`. `condition_prevalence` is
+deliberately `NOT_ESTIMATED` (it is an artifact of the perturbation grid we
+chose, so the client supplies it). That leaves cost as one of only two factors
+we compute — and it is a **constant**. A constant times anything is a constant,
+so **the severity column is currently uninformative by construction**, and
+nothing in the output says so.
+
+**Why it survived.** It fails CLOSED into a plausible value rather than
+abstaining. "benign" is a reasonable-looking label; 492 benign failures reads as
+a finding rather than as a detector that never ran. Compare G8/LE-2, where
+abstention on missing keys is the designed behaviour and did catch the goal-suite
+gap honestly.
+
+**The generalisable error — and this is the third time in this document.**
+O1 (`sorted()` in one of two modules), O2 (`closed` gating `by_lift`), and now
+O6 are all the same shape: **a detector reads a key or condition its environment
+does not supply, and degrades into a constant instead of abstaining.** The
+original signals-layer bug was this too — the classifier read the toy's
+`_gt_ee_to_obj`, `gripper` and `holding` directly, every rule fell through, and
+every trace came back `ambiguous` with zero reported abstentions.
+
+The lesson is not "check for this key". It is that **every detector needs a
+declared `requires` list and must abstain when it is unmet**, the way
+`LiberoPhaseSegmenter.missing()` already does. `failure_cost` has no such
+contract, which is why it could silently answer a question it had no data for.
+
+**Fix:** feed it the derived `holding` (or, better, the `_check_grasp` contact
+signal from `PENDING_DECISIONS.md` #2), and give it the same abstention contract
+as the segmenter — return `cost: None, needs_review: True` when the holding
+history is unavailable, rather than defaulting to "not dropped".
+
+---
+
 ## Related, not yet acted on
 
 - **`_gt_n_contacts` is captured in every trace and unused.** A direct contact

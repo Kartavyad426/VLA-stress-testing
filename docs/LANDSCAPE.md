@@ -941,7 +941,7 @@ can actually pass, at 8 GB.
 | Octo-small / base | 27M / 93M | <1 GB | trivially | MIT | **no official LIBERO checkpoint** from rail-berkeley; the 75.1% figure is a baseline other papers report | — |
 | π0 / π0-FAST | ~3.3B | >8 GB per openpi docs | **no** (openpi: LoRA needs >22.5 GB) | Apache-2.0 | not the primary LIBERO target | — |
 | TinyVLA S/B/H | 400M/700M/1.3B | 0.8–2.6 GB | **yes** (LoRA *is* the method) | MIT | **no LIBERO checkpoint** (ALOHA/MetaWorld) | — |
-| GR00T N1 / N1.5 / N1.7 | 2.2B / 3B / 3B | ~4.4–6 GB | community reports need 16 GB | N1.5 **non-commercial**; N1.7 permits commercial | N1.7 has a **SimplerEnv-Bridge** checkpoint, not LIBERO | — |
+| GR00T N1 / N1.5 / N1.7 | 2.2B / 3B / 3B | ~4.4–6 GB | community reports need 16 GB | N1.5 **non-commercial**; N1.7 permits commercial | ~~N1.7 has a **SimplerEnv-Bridge** checkpoint, not LIBERO~~ **CORRECTED 2026-09-17:** N1.7 also has LeRobot-format LIBERO checkpoints `nvidia/gr00t17-lerobot-libero_{spatial,object,goal,10}-640` (96.5% avg reported) and LeRobot has a first-class `groot` policy type — see MODELS_AND_COMPUTE §R1 | — |
 | SpatialVLA | 4B | ~8 GB | no | MIT | via IPEC-COMMUNITY | — |
 | NORA / NORA-1.5 | 4B | ~8 GB | no | MIT | checkpoints pending at research time — **verify** | — |
 | RynnVLA-002 | large (Chameleon) | — | no | Apache-2.0 | claims **97.4% LIBERO** | **[unverified]** |
