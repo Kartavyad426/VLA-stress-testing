@@ -31,6 +31,12 @@ policy receives, e.g.:
 **Every non-language LIBERO-Plus variant run through LeRobot perturbs the
 language too.**
 
+- **Correction (2026-09-18).** The first version of that fix truncated 10% of
+  instructions — it split the variant name at the FIRST marker token, so scenes
+  whose own name contains one ("...from **table** center...") were cut short.
+  Fixed and validated against the 40 vanilla instructions; see R-028 / O7. The
+  `instruction_clean` column in `docs/libero_plus_variants/*.csv` still carries
+  the truncated strings and needs regenerating.
 - **Our harness is fixed (2026-09-17).** `LiberoEnv(libero_plus=True)` strips the
   suffix, so the instruction is the base scene name as words: vanilla LIBERO's
   instruction, which is what the policies were trained on. Language variants keep

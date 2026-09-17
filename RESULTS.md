@@ -142,7 +142,11 @@ Every entry records its expectation and **says when it was written**:
 | R-021 | 09-17 | EVAL | GR00T N1.7 smoke test | DONE | Fits in bf16 (5.87 GiB); 5/5 on spatial t0 |
 | R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
 | R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE — PARTIALLY INVALID | 53/54 at level 1; instructions contaminated |
-| R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | RUNNING | — |
+| R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | DONE | 33/41; camera and robot-init worst |
+| R-025 | 09-18 | EVAL | Contamination A/B: clean vs LeRobot instruction | PLANNED | — |
+| R-026 | 09-18 | EVAL | GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants | RUNNING | — |
+| R-027 | 09-18 | EVAL | MINERVA on the same variants (non-language) | RUNNING | — |
+| R-028 | 09-18 | BUG | Clean-instruction stripper truncated 10% of variants | FIXED | validated on all 8,493 non-language variants |
 
 ---
 
@@ -1089,7 +1093,170 @@ cleaned instruction (env identity `instruction_source: clean_base_scene_v2`).
 | episodes | 1 per variant, seed 0 → init state 0 |
 | MuJoCo / venv | 3.3.2 / `.venvs/libero-plus` |
 
+**Result.** 41 of 42 variants (the fog variant crashed upstream — see below).
+
+| Perturbation type (L4–L5) | Success |
+|---|---|
+| Background Textures | 6/6 |
+| Language Instructions | 6/6 |
+| Light Conditions | 6/6 |
+| Sensor Noise | 5/5 |
+| Objects Layout | 5/6 |
+| **Camera Viewpoints** | **3/6** |
+| **Robot Initial States** | **2/6** |
+| **Total** | **33/41 (80%)** |
+
+All 8 failures are level 5. Episode pages: `viz/lplus_failures/` (8 pages, every
+replay exact at 0.0 mm).
+
+**What happened vs expected.** Lower than R-023's 53/54, as expected. The two
+worst types — camera viewpoint and robot initial state — are the two the
+LIBERO-Plus paper reports as most damaging across ten other models. With n=6 per
+type this is consistent with that ordering, **not evidence for it**.
+
+**Two upstream bugs found, both patched locally**
+(`experiments/repro/patches/libero_plus_numpy2_fog.patch`):
+1. `np.float_` was removed in NumPy 2.0, so **every fog variant crashed**
+   (`env_wrapper.py:105`).
+2. Fog generates a 256×256 pattern, so it **crashes at any render above 256**
+   ("operands could not be broadcast together with shapes (360,360,3)
+   (256,256,1)"). LeRobot's own LIBERO-Plus default render is 360.
+
+**Validity & caveats.** n=6 per type, one episode each, level 4–5 only, single
+suite, bf16. Levels encode four other models' weaknesses, not GR00T's.
+
+**Artifacts.** `runs/lplus_hard_groot_v2/`, `viz/lplus_failures/`
+
+---
+
+## R-025 — Contamination A/B: clean vs LeRobot's instruction
+
+**Date** 2026-09-18 · **Status** PLANNED · **Type** EVAL
+
+**Question.** LeRobot feeds LIBERO-Plus variants an instruction with the
+perturbation parameters appended (`docs/LIBERO_PLUS_LEVELS.md` §0). What did that
+cost? Every published LIBERO-Plus number obtained through LeRobot carries it.
+
+**Expected** *(stated before run).* Some drop, since the suffix is out of
+distribution for the language encoder. GR00T scored **33/41 clean**. If the
+contaminated arm is much lower, LeRobot-based LIBERO-Plus results are
+systematically pessimistic; if it is the same, GR00T ignores the junk tokens and
+the bug costs little. Either is worth knowing. n=41, so only a large effect is
+detectable.
+
+**Configuration.** Identical to R-024 v2 (same 42 variants, GR00T bf16, 360
+render) except `--raw-instruction`, which restores LeRobot's string. Env identity
+records `instruction_source: task.language_RAW_CONTAMINATED`.
+
 **Result.** *(to fill after running)*
+
+---
+
+## R-026 — GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants
+
+**Date** 2026-09-18 · **Status** RUNNING · **Type** EVAL
+
+**Question.** Not a rate question. The mining layer's family rules
+(`vla_harness/mining/classify.py`) were written against the toy environment and
+have never been judged against a large body of real VLA failures. This run
+exists to **produce those failures** — many, of many kinds — so the taxonomy can
+be adjudicated by hand against rendered episodes (user directive, 2026-09-18:
+*"I need a lot of failure cases … we'll see if our rules for taxonomies are
+accurate or maybe need more tightness"*).
+
+**Expected** *(stated before run).*
+- **Failure yield is the metric.** R-024 got 8 failures from 41 hard variants
+  (20%). At that rate 623 variants give ~120 failures; if GR00T is weaker on the
+  full L5 set the yield is higher. Either is a usable corpus.
+- Camera viewpoint and robot initial state worst, per R-024 and the paper's
+  ordering for other models.
+- **`manipulation` will fire on nearly every failure** and `any_attempt` on all
+  of them by construction (PENDING #15). That is the finding to confirm and then
+  act on, not a surprise.
+- The design is **deliberately unbalanced** — L5 first, then L4, interleaved by
+  type — so a run cut short by the deadline is still type-balanced, but no
+  cross-level comparison from it is valid.
+
+**Configuration.** 623 variants = every libero_spatial level-5 (191) and level-4
+(432) variant, all 7 types, order in `experiments/repro/lplus_fail_selection.json`
+(seed 7). GR00T bf16, nas=16, render 360, clean instructions, 1 episode each,
+MuJoCo 3.3.2, mineable. Wall-clock deadline 05:40; resumable.
+
+**Result.** *(to fill after running)*
+
+---
+
+## R-027 — MINERVA on the same variants: a policy that cannot read
+
+**Date** 2026-09-18 · **Status** RUNNING · **Type** EVAL
+
+**Question.** Do two policies fail on the same variants, and do they fail the
+same *way*? The second half is what the taxonomy work needs: if the family
+distribution is identical across two very different policies, the families are
+describing the perturbation, not the policy — or they are too coarse to tell
+them apart.
+
+**Why MINERVA and not SmolVLA.** SmolVLA was dropped at the user's direction
+(2026-09-18: *"no smol VLA, not reproducible"*) — our SmolVLA number has never
+matched its published one. MINERVA reproduces exactly (R-016: 95.3% vs a
+published 95.75%), which is the property that makes a comparison mean anything.
+
+**MINERVA is not language-conditioned.** `TinyflowTaskToIndexStep` maps the
+instruction through a fixed 40-entry table recorded at training time and raises
+`KeyError` on anything else. Two consequences, one useful and one limiting:
+- **Useful:** it is a control for *visual* sensitivity. Where GR00T and MINERVA
+  both fail on a camera or noise variant, language cannot be the cause.
+- **Limiting:** the 117 language variants **cannot be given to it at all**. Its
+  arm is the 506 non-language variants
+  (`experiments/repro/lplus_fail_ids_nolang.txt`).
+
+**Expected** *(stated before run).* MINERVA is a 0.54 M-parameter policy trained
+on these scenes and is near-ceiling nominally, but has far less visual capacity
+than GR00T's 3 B; on strong visual perturbation it should collapse harder. If it
+instead tracks GR00T variant-for-variant, the variants are hard for reasons
+intrinsic to the scene (an unreachable pose, say), which would be a finding about
+LIBERO-Plus rather than about either policy.
+
+**Configuration.** 506 non-language L5+L4 variants, same harness and order.
+MINERVA `t05_l1_0.54M`, nas=1, `temporal_ensemble_coeff=0.01`, render 360, MuJoCo
+3.3.2, new venv `.venvs/minerva-lplus`. Wall-clock deadline 07:50; resumable.
+
+**Result.** *(to fill after running)*
+
+---
+
+## R-028 — The clean-instruction stripper truncated 10% of variants
+
+**Date** 2026-09-18 · **Status** FIXED · **Type** BUG
+
+**What was wrong.** The fix for LIBERO-Plus instruction contamination (R-023,
+`docs/LIBERO_PLUS_LEVELS.md` §0) stripped perturbation suffixes by splitting the
+variant name on the **first** occurrence of a marker token. Marker words also
+occur inside scene names, so those scenes were cut short:
+
+| Variant name | Instruction sent | Should have been |
+|---|---|---|
+| `pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate_table_11` | "pick up the black bowl from" | "pick up the black bowl from table center and place it on the plate" |
+
+**240 of 2,402 libero_spatial variants (10%)** were affected, and the equivalent
+share in the other suites. The policy received a truncated command — a *worse*
+language perturbation than the contamination the fix was written to remove.
+
+**Fix.** The markers are a suffix grammar, so anchor them at the end and strip
+repeatedly; also drop the `KITCHEN_SCENE3_`-style prefix that libero_10 variant
+names carry but the LeRobot training datasets do not.
+
+**Validation.** Every one of the **8,493 non-language variants across all four
+suites** now strips to a string that is exactly one of the 40 vanilla LIBERO
+instructions, checked against the task table shipped inside MINERVA's checkpoint
+(recorded from the training datasets themselves). Before the fix, 2,321 did not
+match — 240 truncated, the rest from the libero_10 prefix and a `_moved` marker.
+
+**What it invalidates.** R-023 and R-024 ran with the old stripper, so a minority
+of their variants carried a truncated instruction; their numbers stand only as
+provisional. `docs/libero_plus_variants/*.csv` still carries the old
+`instruction_clean` column and needs regenerating. Tonight's R-025/026/027 use
+the fixed path.
 
 ---
 

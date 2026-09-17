@@ -219,3 +219,36 @@ Every number above was measured on the 965 stored traces from
 re-runnable over stored traces is what made this diagnosis possible at all;
 the only reason O1–O4 were arguable before is that nobody had scored the
 branches separately, not that the data was missing.
+
+---
+
+## O7 — The contamination fix itself truncated 10% of instructions
+
+**Where.** `vla_harness/envs/libero_env.py:_clean_instruction()` (as written
+2026-09-17, fixed 2026-09-18).
+
+**What it did.** LIBERO-Plus encodes a variant's perturbation in its file name,
+and LeRobot passes that name to the policy as the instruction. The fix stripped
+the perturbation suffix with `base.split(tok)[0]` for each marker token — the
+**first** occurrence, not the last.
+
+Marker words also appear inside scene names. `..._from_table_center_..._table_11`
+split at the first `_table_` and the policy was told **"pick up the black bowl
+from"**. 240 of 2,402 libero_spatial variants (10%).
+
+**Why it is the interesting kind of bug.** The fix was written to stop the
+language being perturbed by accident, and it perturbed the language by accident,
+more severely — a truncated command is further out of distribution than a
+suffix of junk tokens. Neither a run nor a rendered episode shows it: success
+rates just come out lower, and the failures look like ordinary manipulation
+failures. It surfaced only when the stripped strings were checked against an
+independent list of what the instructions must be.
+
+**Lesson, and the fix's shape.** A string transform whose output has a known
+closed set of legal values should be **validated against that set**, not
+eyeballed on examples. Here every non-language variant must strip to one of the
+40 vanilla LIBERO instructions; that list is shipped inside MINERVA's checkpoint
+(`policy_preprocessor.json:task_to_index`). Checking all 8,493 non-language
+variants across four suites took one script and caught three distinct defects:
+the first-occurrence split, libero_10's `KITCHEN_SCENE3_` prefix, and a `_moved`
+marker in libero_goal. See R-028.
