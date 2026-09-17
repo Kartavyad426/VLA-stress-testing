@@ -41,6 +41,9 @@ def main():
     ap.add_argument("--obs-size", type=int, default=256)
     ap.add_argument("--dtype", default=None, help="e.g. bfloat16: load on CPU, cast, move (GR00T on 8 GB)")
     ap.add_argument("--rename-map", default="{}", help='JSON, e.g. {"observation.images.image2": "observation.images.wrist_image"}')
+    ap.add_argument("--libero-plus", action="store_true",
+                    help="task ids index LIBERO-Plus perturbed variants (needs .venvs/libero-plus, "
+                         "PYTHONPATH=third_party/LIBERO-plus, LIBERO_CONFIG_PATH=third_party/libero-plus-config)")
     ap.add_argument("--suites", required=True)
     ap.add_argument("--tasks", default="0,1,2,3,4,5,6,7,8,9")
     ap.add_argument("--episodes", type=int, default=10)
@@ -59,14 +62,18 @@ def main():
             c = json.loads(line)
             done.add((c["suite"], c["task"], json.dumps(c["spec"], sort_keys=True)))
 
-    from lerobot.envs.configs import LiberoEnv as EnvCfg
+    if a.libero_plus:
+        from lerobot.envs.configs import LiberoPlusEnv as EnvCfg
+    else:
+        from lerobot.envs.configs import LiberoEnv as EnvCfg
     seeds = list(range(a.episodes))
     for suite in a.suites.split(","):
         pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.n_action_steps,
                             env_cfg=EnvCfg(task=suite), policy_overrides=overrides,
                             dtype=a.dtype, rename_map=json.loads(a.rename_map))
         for tid in [int(t) for t in a.tasks.split(",")]:
-            env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size)
+            env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size,
+                            libero_plus=a.libero_plus)
             for knobs in specs:
                 key = (suite, tid, json.dumps(knobs, sort_keys=True))
                 if key in done:
@@ -81,7 +88,8 @@ def main():
                        "wall_s": round(time.time() - t0, 1),
                        "checkpoint": a.checkpoint, "n_action_steps": a.n_action_steps,
                        "overrides": overrides, "obs_size": a.obs_size,
-                       "dtype": a.dtype, "rename_map": json.loads(a.rename_map)}
+                       "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
+                       "libero_plus": a.libero_plus}
                 with open(cells_path, "a") as f:
                     f.write(json.dumps(row) + "\n")
                 print(f"{suite} task{tid} {knobs}: {cell.successes}/{cell.n} "

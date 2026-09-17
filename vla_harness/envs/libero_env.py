@@ -132,7 +132,7 @@ class LiberoEnv:
                  control_mode: str = "relative", init_states: bool = True,
                  hard_reset: bool = True, num_steps_wait: int = 10,
                  max_steps: int | None = None, image_dir: str | None = None,
-                 obs_size: int = 256):
+                 obs_size: int = 256, libero_plus: bool = False):
         if suite not in MAX_STEPS:
             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
         self.suite = suite
@@ -148,9 +148,16 @@ class LiberoEnv:
         # defaults its env CONFIG to 360), and the harness must be able to match
         # them, or a harness-vs-lerobot-eval comparison measures the render path.
         self.obs_size = int(obs_size)
+        # LIBERO-Plus: same scenes and gym interface as LIBERO, but each task_id is
+        # one pre-generated PERTURBED variant (e.g. 2,402 for libero_spatial).
+        # Needs its fork on PYTHONPATH and its own LIBERO_CONFIG_PATH (see
+        # .venvs/libero-plus); LeRobot reads some variants' init states from a
+        # different directory, so the flag must reach get_task_init_states too.
+        self.libero_plus = bool(libero_plus)
         self._env = None
         self.instruction = ""
-        self.task_id = f"{suite}/task{task_id}"
+        self.task_id = (f"libero_plus/{suite}/task{task_id}" if libero_plus
+                        else f"{suite}/task{task_id}")
         self.env_id = derive_id(self.identity())
 
     # --- identity ---------------------------------------------------------
@@ -163,7 +170,9 @@ class LiberoEnv:
         `init_states` and `hard_reset` are here because soft resets are not
         bit-identical and change camera observations.
         """
-        return {"name": f"libero:{self.suite}", "suite": self.suite,
+        return {"name": f"{'libero_plus' if self.libero_plus else 'libero'}:{self.suite}",
+                "benchmark": "libero_plus" if self.libero_plus else "libero",
+                "suite": self.suite,
                 "task_id": self.task_id_idx, "control_mode": self.control_mode,
                 "use_init_states": self.init_states,
                 # LE-1: WHICH init states, not merely whether to use them. F2
@@ -182,7 +191,8 @@ class LiberoEnv:
         try:
             import hashlib, numpy as np
             from lerobot.envs.libero import get_task_init_states, _get_suite
-            arr = get_task_init_states(_get_suite(self.suite), self.task_id_idx)
+            arr = get_task_init_states(_get_suite(self.suite), self.task_id_idx,
+                                       is_libero_plus=self.libero_plus)
             return hashlib.sha1(np.ascontiguousarray(arr).tobytes()).hexdigest()[:12]
         except Exception:
             return None
@@ -226,6 +236,7 @@ class LiberoEnv:
             num_steps_wait=self.num_steps_wait,
             episode_length=self.max_steps,
             observation_width=self.obs_size, observation_height=self.obs_size,
+            is_libero_plus=self.libero_plus,
         )
         task = suite.get_task(self.task_id_idx)
         self.base_instruction = task.language
@@ -377,6 +388,35 @@ class LiberoEnv:
             for i in range(sim.model.nlight):
                 sim.model.light_diffuse[i] = np.clip(
                     np.array(sim.model.light_diffuse[i]) * (1.0 + li), 0, 1)
+
+    def _libero_plus_variant(self) -> dict | None:
+        """Perturbation type and difficulty of this LIBERO-Plus variant.
+
+        From the fork's own task_classification.json, matched by task NAME (not
+        position), so a reordered catalogue cannot silently mislabel a variant.
+        This is what lets mined failures be grouped by perturbation type.
+        """
+        if not self.libero_plus:
+            return None
+        try:
+            import json, os
+            from lerobot.envs.libero import _get_suite
+            from libero.libero import get_libero_path
+            name = _get_suite(self.suite).get_task(self.task_id_idx).name
+            cache = getattr(LiberoEnv, "_lplus_cls", None)
+            if cache is None:
+                path = os.path.join(get_libero_path("benchmark_root"), "benchmark",
+                                    "task_classification.json")
+                cache = LiberoEnv._lplus_cls = json.load(open(path))
+            for r in cache.get(self.suite, []):
+                if r["name"] == name:
+                    return {"variant": name, "category": r["category"],
+                            "difficulty_level": r["difficulty_level"],
+                            "catalogue_id": r["id"]}
+            return {"variant": name, "category": None, "difficulty_level": None,
+                    "note": "not found in task_classification.json"}
+        except Exception as e:
+            return {"error": f"{type(e).__name__}: {e}"}
 
     def _camera_pivot(self, sim, cam_pos, fwd):
         """The point the camera actually looks at.
@@ -601,6 +641,7 @@ class LiberoEnv:
             # which stored LIBERO init state this episode started from; pinned
             # to seed % n_init_states so it no longer depends on reset history
             "init_state_index": getattr(self, "init_state_index", None),
+            "libero_plus": self._libero_plus_variant(),
             "instruction": self.instruction,
             "objects": objects, "objects_complete": complete,
             "robot": {"eef_start_pos_m":
