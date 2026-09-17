@@ -60,35 +60,33 @@ def _resolve_body(name: str, bodies) -> str | None:
     return None
 
 
-def _look_at_quat(eye, target):
-    """Quaternion (w,x,y,z) aiming a MuJoCo camera from `eye` at `target`."""
+def _quat_axis_angle(axis, angle_rad):
+    """Quaternion (w,x,y,z) for a rotation of `angle_rad` about unit `axis`."""
     import numpy as np
-    f = np.array(target) - np.array(eye)
-    n = np.linalg.norm(f)
-    if n < 1e-9:
-        return np.array([1.0, 0.0, 0.0, 0.0])
-    f = f / n
-    z = -f                                   # MuJoCo cameras look down -z
-    up = np.array([0.0, 0.0, 1.0])
-    if abs(np.dot(z, up)) > 0.999:
-        up = np.array([0.0, 1.0, 0.0])
-    x = np.cross(up, z); x /= np.linalg.norm(x)
-    y = np.cross(z, x)
-    m = np.stack([x, y, z], axis=1)
-    t = np.trace(m)
-    if t > 0:
-        s_ = math.sqrt(t + 1.0) * 2
-        return np.array([0.25 * s_, (m[2,1]-m[1,2])/s_, (m[0,2]-m[2,0])/s_,
-                         (m[1,0]-m[0,1])/s_])
-    i = int(np.argmax(np.diag(m)))
-    if i == 0:
-        s_ = math.sqrt(1.0+m[0,0]-m[1,1]-m[2,2])*2
-        return np.array([(m[2,1]-m[1,2])/s_, 0.25*s_, (m[0,1]+m[1,0])/s_, (m[0,2]+m[2,0])/s_])
-    if i == 1:
-        s_ = math.sqrt(1.0+m[1,1]-m[0,0]-m[2,2])*2
-        return np.array([(m[0,2]-m[2,0])/s_, (m[0,1]+m[1,0])/s_, 0.25*s_, (m[1,2]+m[2,1])/s_])
-    s_ = math.sqrt(1.0+m[2,2]-m[0,0]-m[1,1])*2
-    return np.array([(m[1,0]-m[0,1])/s_, (m[0,2]+m[2,0])/s_, (m[1,2]+m[2,1])/s_, 0.25*s_])
+    a = np.asarray(axis, dtype=float)
+    a = a / max(np.linalg.norm(a), 1e-12)
+    h = angle_rad / 2.0
+    return np.array([math.cos(h), *(math.sin(h) * a)])
+
+
+def _quat_mul(q1, q2):
+    """Hamilton product q1*q2 -- applies q2 first, then q1."""
+    import numpy as np
+    w1, x1, y1, z1 = q1
+    w2, x2, y2, z2 = q2
+    return np.array([w1*w2 - x1*x2 - y1*y2 - z1*z2,
+                     w1*x2 + x1*w2 + y1*z2 - z1*y2,
+                     w1*y2 - x1*z2 + y1*w2 + z1*x2,
+                     w1*z2 + x1*y2 - y1*x2 + z1*w2])
+
+
+def _quat_rotate(q, v):
+    """Rotate vector v by quaternion q."""
+    import numpy as np
+    qv = np.array([0.0, *v])
+    qc = np.array([q[0], -q[1], -q[2], -q[3]])
+    return _quat_mul(_quat_mul(q, qv), qc)[1:]
+
 
 # LIBERO: 6-D end-effector delta + gripper, Box(-1, 1, (7,))
 ACTION_DIMS = ["dx", "dy", "dz", "droll", "dpitch", "dyaw", "gripper"]
@@ -133,7 +131,8 @@ class LiberoEnv:
     def __init__(self, suite: str = "libero_spatial", task_id: int = 0,
                  control_mode: str = "relative", init_states: bool = True,
                  hard_reset: bool = True, num_steps_wait: int = 10,
-                 max_steps: int | None = None, image_dir: str | None = None):
+                 max_steps: int | None = None, image_dir: str | None = None,
+                 obs_size: int = 256):
         if suite not in MAX_STEPS:
             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
         self.suite = suite
@@ -144,6 +143,11 @@ class LiberoEnv:
         self.num_steps_wait = num_steps_wait
         self.max_steps = max_steps or MAX_STEPS[suite]
         self.image_dir = image_dir
+        # Render resolution. 256 matches the LeRobot gym class default and the
+        # LIBERO datasets. Some documented evals render elsewhere (MINERVA's fork
+        # defaults its env CONFIG to 360), and the harness must be able to match
+        # them, or a harness-vs-lerobot-eval comparison measures the render path.
+        self.obs_size = int(obs_size)
         self._env = None
         self.instruction = ""
         self.task_id = f"{suite}/task{task_id}"
@@ -170,6 +174,7 @@ class LiberoEnv:
                 "bddl_sha": self._bddl_sha(),
                 "hard_reset": self.hard_reset,
                 "num_steps_wait": self.num_steps_wait,
+                "obs_size": self.obs_size,
                 "max_steps": self.max_steps, "action_dims": list(ACTION_DIMS)}
 
     def _init_states_sha(self) -> str | None:
@@ -220,6 +225,7 @@ class LiberoEnv:
             init_states=self.init_states, hard_reset=self.hard_reset,
             num_steps_wait=self.num_steps_wait,
             episode_length=self.max_steps,
+            observation_width=self.obs_size, observation_height=self.obs_size,
         )
         task = suite.get_task(self.task_id_idx)
         self.base_instruction = task.language
@@ -236,9 +242,29 @@ class LiberoEnv:
             self._build()
         self.spec = spec
         self.t = 0
+        # The init state (object layout) is chosen by LeRobot from a COUNTER that
+        # advances on every reset (`init_state_id += _reset_stride`,
+        # lerobot/envs/libero.py:346) -- the seed does not select it. Two bugs
+        # followed: a resumed cell that skipped cached episodes ran every later
+        # seed on a DIFFERENT layout than its rollout_id claims, and arms sharing
+        # one env object (nominal, then yaw 5, ...) were never on the same layouts
+        # as each other. Pin it: seed N -> init state N, independent of history.
+        # Matches lerobot-eval, where sub-env i of a batch starts at init state i.
+        inner = self._env.unwrapped
+        states = getattr(inner, "_init_states", None)       # ndarray: no `or`
+        n_init = len(states) if states is not None else 0
+        if self.init_states and n_init:
+            inner.init_state_id = seed % n_init
+            self.init_state_index = seed % n_init
+        else:
+            self.init_state_index = None
         raw, _ = self._env.reset(seed=seed)
         self._raw = raw
-        if any(v for _, v in spec.knobs):
+        # Any knob that is PRESENT runs the perturbation path, including a value of
+        # 0. The old guard `any(v for ...)` treated 0.0 as falsy, so a "yaw 0"
+        # control skipped the camera code AND the resettle that every other arm
+        # got, and was not a matched control for them (#22).
+        if spec.knobs:
             self._apply_perturbation(spec)
             raw = self._resettle()
             self._raw = raw
@@ -289,28 +315,52 @@ class LiberoEnv:
 
         yaw, pitch = k.get("camera_yaw_deg", 0.0), k.get("camera_pitch_deg", 0.0)
         dist = k.get("camera_dist_m", 0.0)
-        if yaw or pitch or dist:
+        cam_keys = ("camera_yaw_deg", "camera_pitch_deg", "camera_dist_m")
+        if any(key in k for key in cam_keys):
+            # A camera perturbation MOVES LIBERO's own camera; it never re-aims it.
+            #
+            # The previous version replaced the orientation with a look-at toward
+            # a guessed table centre [0, 0, z*0.5]. That re-aim alone rotated the
+            # view ~12 deg and shifted pitch in OPPOSITE directions for floor vs
+            # tabletop scenes, so "yaw 1e-6" rendered the same as "yaw 5" and
+            # every yaw arm of the 20260916-0015 campaign measured the re-aim,
+            # not yaw (#22; found by vla-7f, confirmed by vla-81 from stored
+            # extrinsics). Now every knob is a RIGID motion of the original pose
+            # about the point that camera actually looks at, so 0 is the trained
+            # view exactly and small angles are small.
             cid = sim.model.camera_name2id(MAIN_CAMERA)
-            pos = np.array(sim.model.cam_pos[cid], dtype=float)
-            look = np.array([0.0, 0.0, pos[2] * 0.5])      # approx table centre
-            rel = pos - look
-            if yaw:
-                a = math.radians(yaw); c, s_ = math.cos(a), math.sin(a)
-                rel = np.array([c * rel[0] - s_ * rel[1],
-                                s_ * rel[0] + c * rel[1], rel[2]])
-            if pitch:
-                a = math.radians(pitch)
-                r = math.hypot(rel[0], rel[1])
-                z = rel[2] * math.cos(a) + r * math.sin(a)
-                scale = (r * math.cos(a) - rel[2] * math.sin(a)) / max(r, 1e-9)
-                rel = np.array([rel[0] * scale, rel[1] * scale, z])
+            if int(sim.model.cam_bodyid[cid]) != 0:
+                # cam_pos/cam_quat are parent-relative; the geometry below
+                # assumes the world frame. Fail rather than silently mis-rotate.
+                raise NotImplementedError(
+                    f"{MAIN_CAMERA} is attached to body "
+                    f"{int(sim.model.cam_bodyid[cid])}, not the world")
+            pos0 = np.array(sim.model.cam_pos[cid], dtype=float)
+            q0 = np.array(sim.model.cam_quat[cid], dtype=float)
+            fwd = _quat_rotate(q0, [0.0, 0.0, -1.0])       # MuJoCo cams look down -z
+            pivot = self._camera_pivot(sim, pos0, fwd)
+
+            pos, q = pos0.copy(), q0.copy()
             if dist:
-                n = np.linalg.norm(rel)
-                rel = rel * (1.0 + dist / max(n, 1e-9))
-            sim.model.cam_pos[cid] = look + rel
-            # re-aim at the look-point so the target stays framed; a camera that
-            # rotates AND loses the scene confounds viewpoint with occlusion.
-            sim.model.cam_quat[cid] = _look_at_quat(look + rel, look)
+                rel = pos - pivot
+                pos = pivot + rel * (1.0 + dist / max(np.linalg.norm(rel), 1e-9))
+            if pitch:
+                # positive pitch raises the camera over the pivot (looks more
+                # steeply down), about the horizontal axis across the view
+                rel = pos - pivot
+                axis = np.cross(rel, [0.0, 0.0, 1.0])
+                if np.linalg.norm(axis) > 1e-9:
+                    qp = _quat_axis_angle(axis, math.radians(pitch))
+                    pos = pivot + _quat_rotate(qp, rel)
+                    q = _quat_mul(qp, q)
+            if yaw:
+                # orbit about the world vertical through the pivot
+                qy = _quat_axis_angle([0.0, 0.0, 1.0], math.radians(yaw))
+                pos = pivot + _quat_rotate(qy, pos - pivot)
+                q = _quat_mul(qy, q)
+            sim.model.cam_pos[cid] = pos
+            sim.model.cam_quat[cid] = q / np.linalg.norm(q)
+            sim.forward()
 
         dx, dy = k.get("ee_offset_x_m", 0.0), k.get("ee_offset_y_m", 0.0)
         if dx or dy:
@@ -328,15 +378,46 @@ class LiberoEnv:
                 sim.model.light_diffuse[i] = np.clip(
                     np.array(sim.model.light_diffuse[i]) * (1.0 + li), 0, 1)
 
+    def _camera_pivot(self, sim, cam_pos, fwd):
+        """The point the camera actually looks at.
+
+        The optical axis intersected with the horizontal plane through the task
+        objects. Falls back to 1 m along the axis if there are no objects or the
+        axis never descends to them.
+        """
+        import numpy as np
+        names, _ = self._object_body_names()
+        zs = []
+        for n in names:
+            try:
+                zs.append(float(self._object_pos(sim, n)[2]))
+            except Exception:
+                continue
+        if zs and fwd[2] < -1e-6:
+            t = (float(np.mean(zs)) - cam_pos[2]) / fwd[2]
+            if t > 0:
+                return cam_pos + t * np.asarray(fwd)
+        return cam_pos + np.asarray(fwd)
+
     def _resettle(self):
-        """Step the sim so the perturbation takes effect in the rendering."""
+        """Step the sim so the perturbation takes effect, and RETURN THAT FRAME.
+
+        This used to call `_to_lerobot_obs`, which LeRobot's LiberoEnv does not
+        have; a `hasattr` fallback then returned `self._raw` -- the frame rendered
+        BEFORE the perturbation. So the policy's first observation of every
+        perturbed episode showed the unperturbed scene, with no error (#22).
+        The formatter is `_format_raw_obs`, and its absence is now an error.
+        """
         from lerobot.envs.libero import get_libero_dummy_action
-        inner = self._env.unwrapped._env
+        outer = self._env.unwrapped
+        if not hasattr(outer, "_format_raw_obs"):
+            raise RuntimeError(
+                "LeRobot LiberoEnv has no _format_raw_obs; cannot return the "
+                "post-perturbation frame. Refusing to hand back a stale one.")
         raw = None
         for _ in range(3):
-            raw, _, _, _ = inner.step(get_libero_dummy_action())
-        return self._env.unwrapped._to_lerobot_obs(raw) if hasattr(
-            self._env.unwrapped, "_to_lerobot_obs") else self._raw
+            raw, _, _, _ = outer._env.step(get_libero_dummy_action())
+        return outer._format_raw_obs(raw)
 
     # --- observation ------------------------------------------------------
     def _sim(self):
@@ -383,8 +464,7 @@ class LiberoEnv:
         objs = {}
         for name in names:
             try:
-                bid = sim.model.body_name2id(name)
-                p = [float(x) for x in sim.data.body_xpos[bid]]
+                p = [float(x) for x in self._object_pos(sim, name)]
                 objs[name] = p
             except Exception:
                 continue
@@ -424,16 +504,33 @@ class LiberoEnv:
         try:
             sim = self._sim()
             bodies = {sim.model.body_id2name(i) for i in range(sim.model.nbody)}
+            sites = {sim.model.site_id2name(i) for i in range(sim.model.nsite)}
         except Exception:
             return names, False
         resolved, complete = [], True
+        self._object_kinds = {}
         for n in names:
             b = _resolve_body(n, bodies)
             if b:
-                resolved.append(b)
+                resolved.append(b); self._object_kinds[b] = "body"
+            elif n in sites:
+                # A table REGION ("main_table_stove_front_region") is a MuJoCo
+                # SITE -- a named, massless location marker -- not a body. It was
+                # unresolvable before, so libero_goal/task5 ("push the plate to
+                # the front of the stove") recorded an incomplete object list
+                # and no distances on every trace. The nearest-named body,
+                # flat_stove_1_main, sits ~35 cm from the region, so resolving to
+                # it by name would have been worse than failing.
+                resolved.append(n); self._object_kinds[n] = "site"
             else:
                 complete = False
         return resolved, complete
+
+    def _object_pos(self, sim, name):
+        """World position of a resolved task object, body or site."""
+        if getattr(self, "_object_kinds", {}).get(name) == "site":
+            return sim.data.site_xpos[sim.model.site_name2id(name)]
+        return sim.data.body_xpos[sim.model.body_name2id(name)]
 
     def _write_images(self) -> dict[str, str]:
         """G2: pixels go to disk, paths go in the trace."""
@@ -475,11 +572,15 @@ class LiberoEnv:
         objects = []
         for name in names:
             try:
-                bid = sim.model.body_name2id(name)
+                kind = getattr(self, "_object_kinds", {}).get(name, "body")
+                quat = None
+                if kind == "body":
+                    bid = sim.model.body_name2id(name)
+                    quat = [round(float(x), 5) for x in sim.data.body_xquat[bid]]
                 objects.append({
-                    "name": name,
-                    "pos_m": [round(float(x), 5) for x in sim.data.body_xpos[bid]],
-                    "quat": [round(float(x), 5) for x in sim.data.body_xquat[bid]],
+                    "name": name, "kind": kind,
+                    "pos_m": [round(float(x), 5) for x in self._object_pos(sim, name)],
+                    "quat": quat,
                 })
             except Exception:
                 continue
@@ -497,6 +598,9 @@ class LiberoEnv:
         return {
             "units": "metres", "frame": "world",
             "suite": self.suite, "task_id": self.task_id_idx,
+            # which stored LIBERO init state this episode started from; pinned
+            # to seed % n_init_states so it no longer depends on reset history
+            "init_state_index": getattr(self, "init_state_index", None),
             "instruction": self.instruction,
             "objects": objects, "objects_complete": complete,
             "robot": {"eef_start_pos_m":
