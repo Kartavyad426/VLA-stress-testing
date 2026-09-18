@@ -508,3 +508,104 @@ card and the least documented (no published eval command for its LeRobot
 LIBERO checkpoints). Any result on it is only interpretable once the harness has
 reproduced a documented number, so harness defects are not misattributed to
 GR00T.
+
+---
+
+## R9. A fourth policy — the roster re-surveyed against measured VRAM (2026-09-18)
+
+R4's roster was written before GR00T actually ran. Now that it has, the fit rule
+is empirical rather than estimated, and the Hugging Face LIBERO landscape has
+moved a long way since.
+
+### The fit rule, measured
+
+GR00T N1.7 is **3,144,016,000 parameters** and occupies **5.87 GiB** on the card
+in bf16 (`experiments/groot_vram_probe.py`, R-020). That is essentially weights
+alone — params × 2 bytes = 5.86 GiB — with activations living in the remaining
+headroom. Our GPU (RTX PRO 1000 Blackwell Laptop) reports **8,151 MiB total,
+~7.53 GiB usable**.
+
+So: **bf16 weights ≈ params × 2 bytes, and the practical ceiling is ~3.2 B
+parameters**, with GR00T's 1.4 GiB of headroom as the reference for what is
+comfortable.
+
+| Candidate | Params | bf16 weights | Fits 7.53 GiB? |
+|---|---|---|---|
+| X-VLA `lerobot/xvla-libero` | 0.88 B | 1.64 GiB | yes, trivially |
+| EVO-1 `zuoxingdong/evo1_libero` | 0.78 B | 1.45 GiB | yes, trivially |
+| **π0-FAST `lerobot/pi0fast-libero-v044`** | **2.92 B** | **5.44 GiB** | **yes, roomier than GR00T** |
+| GR00T N1.7 (in use) | 3.14 B | 5.86 GiB | yes [measured] |
+| VLA-JEPA `lerobot/VLA-JEPA-LIBERO` | 3.08 B | 5.74 GiB | yes |
+| π0 `lerobot/pi0_libero_base` | 3.50 B | 6.52 GiB | borderline |
+| **π0.5 `lerobot/pi05_libero_finetuned_v044`** | **3.62 B** | **6.74 GiB** | **borderline — 0.8 GiB headroom vs GR00T's 1.4** |
+| MolmoAct2 `allenai/MolmoAct2-LIBERO-LeRobot` | 5.44 B | 10.1 GiB | no |
+| FastWAM, LingBot-VA (6 B class) | ~6 B | ~11 GiB | no |
+| OpenVLA-OFT 7B | 7.54 B | 14.0 GiB | no — needs ≥16 GB |
+
+[verified: parameter counts from the Hub's safetensors metadata, 2026-09-18]
+
+### Recommendation, in order
+
+**1. π0-FAST — `lerobot/pi0fast-libero-v044`. Run locally, first.**
+
+Its card documents only **82.5%** on LIBERO, well below GR00T. That is not why it
+is first. **π0-FAST is one of the four reference models LIBERO-Plus used to
+assign its difficulty levels** (with OpenVLA-OFT, π0 and UniVLA). Every level in
+our results is currently an unverified prior about four models we have never run
+— `docs/LIBERO_PLUS_LEVELS.md` §1 says so and we repeat the caveat in every
+entry. Running π0-FAST on R-026's 623 variants tests the prior directly: do the
+L5 variants ("no reference model solved this") in fact fail for a reference
+model on our stack? That turns a caveat into a measurement, and it is the
+cheapest thing on this list that does.
+
+Secondary benefit: **a different architecture family** — autoregressive FAST
+action tokens, against GR00T's flow matching. Where two unrelated architectures
+fail on the same variant, the variant is hard; where only one fails, the policy
+is. Two flow-matching models could not separate those.
+
+Cost to note: autoregressive decoding is slower per step than flow matching, so
+budget more wall-clock per variant than GR00T's ~25 s.
+
+**2. π0.5 — `lerobot/pi05_libero_finetuned_v044`. The frontier one; probe before planning.**
+
+The general, robust, frontier policy the roster is missing: **97.5%**, and the
+only checkpoint with a *documented LeRobot reproduction*, which makes it the best
+available check that our harness is configured correctly. But 6.74 GiB of weights
+against 7.53 GiB usable leaves **0.8 GiB** for activations where GR00T had 1.4.
+Genuinely uncertain — resolve it with a VRAM probe (~10 min) rather than an
+argument. If it OOMs, π0.5 is the single best justification for renting a 16 GB
+GPU.
+
+**3. X-VLA — `lerobot/xvla-libero`. Cheap third architecture.**
+
+0.88 B parameters, LeRobot-native (`type: xvla`, `n_action_steps: 30`), recent
+SOTA-class on LIBERO. Costs almost nothing to add and widens architectural
+coverage. Good to run while a larger model is queued.
+
+**4. With more compute: OpenVLA-OFT 7B (≥16 GB).**
+
+Two reasons it is the best use of rented compute, not just a bigger model:
+- It is the **strongest of the four LIBERO-Plus reference models**, so it
+  completes the level-validation that π0-FAST starts.
+- The LIBERO-Plus authors released
+  `Sylvest/openvla-7b-oft-finetuned-libero-plus-mixdata` — the same model
+  fine-tuned **on** LIBERO-Plus perturbations. Running it beside
+  `moojink/openvla-7b-oft-finetuned-libero-spatial` is a direct test of whether
+  robustness training buys robustness, on the perturbations we already have
+  failure corpora for. No locally-runnable model offers that pairing.
+
+### Ruled out and why
+
+- **π0 base** (3.50 B) — as borderline as π0.5 and strictly weaker. Skip.
+- **MolmoAct2, FastWAM, LingBot-VA, any 7 B** — do not fit; revisit only with
+  rented compute, and then OpenVLA-OFT outranks them for our question.
+- **The long tail of community LIBERO checkpoints** (ACT, diffusion, and the
+  hundreds of SmolVLA fine-tunes) — imitation baselines or single-suite
+  fine-tunes, not general policies. R4's judgment stands.
+
+### Plug-and-play status
+
+Both π0-FAST and X-VLA ship standard LeRobot configs, including the
+`empty_camera_*` placeholder features our conformance gate already recognises
+(`vla_harness/conformance.py:_is_placeholder`). Adding either is the existing
+policy-box workflow from R7 — a venv and a `--rename-map` — not new adapter code.
