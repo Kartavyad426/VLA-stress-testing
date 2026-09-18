@@ -63,6 +63,27 @@ class LeRobotPolicy:
         self._cfg = {}
         self.action_dims = ["dx", "dy", "dz", "droll", "dpitch", "dyaw", "gripper"]
         self.policy_id = derive_id(self.identity())
+        self.model_forwards = 0
+
+    def resolved_config(self) -> dict:
+        """What the loaded policy ACTUALLY uses -- not what was requested.
+
+        identity() hashes the requested settings into an opaque policy_id, so a
+        trace could not be read back to its horizon: vla-81 tried to recover
+        n_action_steps for the GR00T runs by reconstructing the hash over a grid
+        and could not. Requests and defaults diverge silently (LeRobot's
+        GrootConfig auto-migrates an N1.5-era 50 to 40; `--policy.pretrained_path`
+        has been seen to drop n_action_steps back to a default), so the RESOLVED
+        values are what a later reader needs.
+        """
+        cfg = getattr(self._policy, "config", None)
+        out = {"requested_n_action_steps": self.n_action_steps,
+               "dtype": self.dtype, "checkpoint": self.checkpoint,
+               "policy_overrides": dict(sorted(self.policy_overrides.items()))}
+        for k in ("n_action_steps", "chunk_size", "type", "device"):
+            if cfg is not None and hasattr(cfg, k):
+                out[k] = getattr(cfg, k)
+        return out
 
     def identity(self) -> dict:
         """Checkpoint revision and decoding config are load-bearing.
@@ -201,12 +222,22 @@ class LeRobotPolicy:
             batch[STATE_KEY] = torch.from_numpy(st).unsqueeze(0).to(self.device)
         batch["task"] = [obs.instruction]
 
+        # A chunked policy only runs the model when its action queue is empty;
+        # every other call pops a cached action. Counting calls therefore
+        # overstates model invocations by up to n_action_steps (vla-81,
+        # 2026-09-18). A policy with no queue runs the model every call, and
+        # `q is None` gives exactly that.
+        q = getattr(self._policy, "_action_queue", None)
+        ran_model = q is None or len(q) == 0
+
         # LeRobot's own pipelines -- tokenisation and normalisation live here.
         if self._env_pre is not None:
             batch = self._env_pre(batch)
         batch = self._pre(batch)
         with torch.inference_mode():
             a = self._policy.select_action(batch)
+        if ran_model:
+            self.model_forwards += 1
         if self._post is not None:
             a = self._post(a)
         if self._env_post is not None:

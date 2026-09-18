@@ -156,7 +156,17 @@ class Rollout:
     success: bool
     termination: str                                # grasped | timeout | ...
     wall_time_s: float = 0.0
-    forward_passes: int = 0
+    # ENVIRONMENT steps, not model forwards. Until 2026-09-18 this was called
+    # `forward_passes` and incremented once per `policy(obs)` call, which for a
+    # CHUNKED policy is not a forward pass at all: GR00T at n_action_steps=16
+    # runs the model ~8 times in a 118-step episode and pops a cached action on
+    # every other step. Anyone reading the old field as inference cost or as
+    # "how often the policy saw the world" was wrong by up to n_action_steps.
+    # Reported by vla-81, 2026-09-18.
+    env_steps: int = 0
+    # Real model invocations, counted by the adapter (the action queue was empty
+    # when select_action was called). 0 when the adapter cannot tell.
+    model_forwards: int = 0
     # structured identity of the env + policy that produced this rollout.
     # Stored, not merely hashed, so a cache hit can be VERIFIED rather than
     # trusted, and so a mismatch can say which field moved.
@@ -198,6 +208,14 @@ def rollout_from_dict(d: dict) -> Rollout:
         raise ValueError(f"incompatible trace schema {got} (expected "
                          f"{SCHEMA_VERSION}); migrate before loading")
     d = dict(d)
+    # Traces written before 2026-09-18 call env_steps `forward_passes`. The
+    # value was always environment steps; only the name was wrong, so this is a
+    # rename on read, not a reinterpretation. Those traces have no real forward
+    # count and get 0, which `model_forwards` documents as "adapter could not
+    # tell" rather than "the model never ran".
+    if "forward_passes" in d:
+        d.setdefault("env_steps", d.pop("forward_passes"))
+        d.pop("forward_passes", None)
     d["steps"] = [Step(**s) for s in d["steps"]]
     return Rollout(**d)
 

@@ -37,7 +37,8 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
     t0 = time.perf_counter()
     obs = env.reset(seed, spec)
     policy.reset()
-    steps, fwd = [], 0
+    steps, env_steps = [], 0
+    fwd0 = getattr(policy, "model_forwards", 0)   # per-rollout delta
 
     while True:
         # B6/DG-6: a PrivilegedProbePolicy opts in to full state for the
@@ -47,7 +48,7 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
         # the original `_gt_` leak.
         action = policy(obs if getattr(policy, "privileged", False)
                         else obs.policy_view())
-        fwd += 1
+        env_steps += 1
         steps.append(Step(t=obs.t, obs_state=dict(obs.state),
                           action=list(action.values),
                           image_refs=dict(obs.image_refs)))
@@ -69,7 +70,14 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
         seed=seed, perturbation=spec.as_dict(),
         action_dims=list(policy.action_dims), steps=steps,
         success=success, termination=reason,
-        wall_time_s=time.perf_counter() - t0, forward_passes=fwd,
+        wall_time_s=time.perf_counter() - t0, env_steps=env_steps,
+        model_forwards=(policy.model_forwards - fwd0
+                        if hasattr(policy, "model_forwards") else 0),
+        meta={"resolved_policy_config": (policy.resolved_config()
+                                         if hasattr(policy, "resolved_config") else {}),
+              "control_mode": getattr(env, "control_mode", None),
+              "max_steps": getattr(env, "max_steps", None),
+              "obs_size": getattr(env, "obs_size", None)},
         fingerprint=make_fingerprint(env, policy),
         scene_descriptor=(env.scene_descriptor()
                           if hasattr(env, "scene_descriptor") else {}),
