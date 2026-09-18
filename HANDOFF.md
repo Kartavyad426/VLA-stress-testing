@@ -135,3 +135,71 @@ FINDINGS.md), #15 (taxonomy redesign — tomorrow's work bears on this), #13, #6
 #2, #21, #8. R-005's perturbed arms still need re-running.
 
 **Not blocking:** the laptop is on AC now (it was on battery overnight).
+
+---
+
+## 7. Advice, earned the hard way today
+
+Not general principles — each of these cost real time in this session, and each
+will recur in this repo.
+
+**1. The fix is where the next bug lives.** The instruction-truncation bug
+(R-028) was introduced *by* the fix for instruction contamination, and it was
+strictly worse than the problem it solved: a truncated command is further out of
+distribution than a suffix of junk tokens. It survived a code review, a render
+and a full campaign. When you patch something, the patch is now the least-tested
+code in the repo — treat it that way.
+
+**2. Validate a transform against its closed set, not against examples.** That
+same bug was invisible on the three examples I checked and obvious the moment I
+asked "must every output be one of the 40 known instructions?" — 2,321 were not.
+If your output has a finite set of legal values, enumerate it and check all of
+them. It is one script and it catches the cases you did not think to sample.
+
+**3. Prefer what the code consumes over what it declares.** `config.json` for
+the pi0 family describes features the pipeline never sees; the normalisation
+statistics are the truth. The conformance gate was REFUSING a drop-in checkpoint
+on that basis. When a declaration and an artefact disagree, the artefact is what
+runs.
+
+**4. Silence is not progress.** Three times today a job looked healthy and was
+doing nothing: the control run waited 25 minutes on a `pgrep` pattern that
+matched its own launcher; a monitor watched for a sentinel that a dead script
+would never write; a job "completed" in 13 seconds with rc=0 and no rollouts.
+Check that work is *advancing* (rows appearing, GPU busy), not merely that a
+process exists.
+
+**5. A measurement taken under contention is not a measurement.** π0.5's OOM
+looked like a clean verdict — 3.62 B parameters, 7.53 GiB card, of course it
+does not fit. It was measured while an orphaned eval held 6.9 GiB. The number
+agreed with my prediction, which is exactly when you are least likely to check
+it. Record the conditions, or do not record the result.
+
+**6. Know the regime where your control is blind.** R-022's parity check (98 vs
+97 of 100) cannot say anything about bf16's effect under perturbation: both arms
+were bf16, and it sat at ceiling, where precision effects are least visible. A
+passing check answers one question, not the question you now have.
+
+**7. Do not inherit other people's priors as measurements.** LIBERO-Plus
+"difficulty levels" are how many of four *other* models solved a variant. We
+repeat that caveat in every entry and it is still easy to slip into reading L5 as
+"hardest". This is why π0-FAST is worth running: it is one of those four, so it
+turns the prior into something we can check.
+
+**8. Aggregates hide the finding.** GR00T's four families over 155 failures look
+merely coarse in the summary. Grouped by perturbation type, 78 robot-initial-state
+failures are filed under `visual_grounding` — a label the evidence contradicts,
+since nothing about the scene's appearance changed. The taxonomy's problem is not
+that it is coarse; it is that it is confidently wrong in one direction. Group by
+the thing you perturbed.
+
+**9. The user runs big batches and reads the record, not the terminal.** Queue
+work so it survives a disconnect (`setsid`, resumable per cell, wall-clock
+deadlines), and write the result into `RESULTS.md` with the expectation stated
+*before* the run. A number without its expectation is not a result, it is a
+statistic.
+
+**10. Say what failed.** Two runs today produced nothing and one produced a
+contaminated number. All three are in `RESULTS.md` and in this file. The harness
+exists to find other people's silent failures; ours do not get a different
+standard.
