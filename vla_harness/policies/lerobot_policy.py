@@ -37,7 +37,9 @@ class LeRobotPolicy:
     def __init__(self, checkpoint: str, device: str = "cuda",
                  n_action_steps: int | None = None, state_fn=None,
                  env_cfg=None, policy_overrides: dict | None = None,
-                 dtype: str | None = None, rename_map: dict | None = None):
+                 dtype: str | None = None, rename_map: dict | None = None,
+                 preprocessor_overrides: dict | None = None,
+                 capture_dir: str | None = None, capture_k_resample: int = 1):
         self.checkpoint = checkpoint
         self.device = device
         self.n_action_steps = n_action_steps
@@ -56,6 +58,16 @@ class LeRobotPolicy:
         # {"observation.images.image2": "observation.images.wrist_image"} -- the
         # same `--rename_map` lerobot-eval takes.
         self.rename_map = dict(rename_map or {})
+        # A setting can live in BOTH the policy config and the shipped
+        # preprocessor, and the two are read by different code. pi0-FAST's
+        # `action_tokenizer_name` is the case that forced this: overriding it on
+        # the policy config fixes the load and the preprocessor still builds its
+        # own tokenizer from the checkpoint's processor config, failing at the
+        # first rollout rather than at load. Same lesson as the conformance gate
+        # -- prefer what the code consumes over what it declares.
+        # Shape: {"<step_name>": {"<key>": value}}.
+        self.preprocessor_overrides = {
+            k: dict(v) for k, v in (preprocessor_overrides or {}).items()}
         self.state_fn = state_fn or libero_state
         self.env_cfg = env_cfg
         self._pre = self._post = self._env_pre = self._env_post = None
@@ -64,6 +76,16 @@ class LeRobotPolicy:
         self.action_dims = ["dx", "dy", "dz", "droll", "dpitch", "dyaw", "gripper"]
         self.policy_id = derive_id(self.identity())
         self.model_forwards = 0
+        # Embedding capture. DELIBERATELY ABSENT FROM identity(): capture is an
+        # observation OF a rollout, not a property of the policy. Putting it in
+        # identity() would change policy_id, miss the trace cache by
+        # construction, and make captured runs incomparable with every run
+        # already on disk -- which is the reason for capturing them.
+        self.capture_dir = capture_dir
+        self.capture_k_resample = capture_k_resample
+        self._sink = None
+        self._detach_capture = None
+        self._capture_env_steps: list[int] = []
 
     def resolved_config(self) -> dict:
         """What the loaded policy ACTUALLY uses -- not what was requested.
@@ -79,7 +101,9 @@ class LeRobotPolicy:
         cfg = getattr(self._policy, "config", None)
         out = {"requested_n_action_steps": self.n_action_steps,
                "dtype": self.dtype, "checkpoint": self.checkpoint,
-               "policy_overrides": dict(sorted(self.policy_overrides.items()))}
+               "policy_overrides": dict(sorted(self.policy_overrides.items())),
+               "preprocessor_overrides": {k: dict(sorted(v.items()))
+                                          for k, v in sorted(self.preprocessor_overrides.items())}}
         for k in ("n_action_steps", "chunk_size", "type", "device"):
             if cfg is not None and hasattr(cfg, k):
                 out[k] = getattr(cfg, k)
@@ -101,6 +125,8 @@ class LeRobotPolicy:
                 "policy_overrides": dict(sorted(self.policy_overrides.items())),
                 "dtype": self.dtype,
                 "rename_map": dict(sorted(self.rename_map.items())),
+                "preprocessor_overrides": {k: dict(sorted(v.items()))
+                                           for k, v in sorted(self.preprocessor_overrides.items())},
                 "action_dims": list(self.action_dims),
                 "state_fn": getattr(self.state_fn, "__name__", "custom")}
 
@@ -157,12 +183,26 @@ class LeRobotPolicy:
                 pass
         self._policy.to(self.device).eval()
 
+        pre_over = {"device_processor": {"device": str(self.device)}}
+        # Only override the rename step if the caller actually supplied a map.
+        # Overriding it unconditionally passed `{}` whenever --rename-map was
+        # omitted, which SILENTLY DISCARDED the checkpoint's own shipped rename
+        # map. pi0-FAST ships
+        #   observation.images.image  -> observation.images.base_0_rgb
+        #   observation.images.image2 -> observation.images.left_wrist_0_rgb
+        # and without them the policy raises "All image features are missing
+        # from the batch" at the first rollout. GR00T masked this because it
+        # needs an explicit map anyway. Checked 2026-09-18: of the checkpoints
+        # in use, only pi0-FAST ships a non-empty map, so no earlier run is
+        # affected by this fix.
+        if self.rename_map:
+            pre_over["rename_observations_processor"] = {
+                "rename_map": dict(self.rename_map)}
+        for step, kv in self.preprocessor_overrides.items():
+            pre_over.setdefault(step, {}).update(kv)
         self._pre, self._post = make_pre_post_processors(
             policy_cfg=cfg, pretrained_path=self.checkpoint,
-            preprocessor_overrides={
-                "device_processor": {"device": str(self.device)},
-                "rename_observations_processor": {"rename_map": dict(self.rename_map)},
-            })
+            preprocessor_overrides=pre_over)
         self._env_pre = self._env_post = None
         if self.env_cfg is not None:
             from lerobot.envs.factory import make_env_pre_post_processors
@@ -170,12 +210,51 @@ class LeRobotPolicy:
                 env_cfg=self.env_cfg, policy_cfg=cfg)
         self._cfg = {"revision": getattr(self._policy, "revision", None)}
         self.policy_id = derive_id(self.identity())
+        if self.capture_dir is not None:
+            self._attach_capture()
+
+    def _attach_capture(self) -> None:
+        """Attach taps to the loaded model. GR00T only, and it says so loudly.
+
+        The tap points (`action_head.vlln`, `action_head.action_decoder`, the
+        `get_action` method wrap) are GR00T N1.7 structure. Silently capturing
+        nothing for another policy would produce empty .npz files that look like
+        a negative result.
+        """
+        from ..capture import CaptureSink
+        from ..capture.groot_features import attach_groot_capture
+
+        model = getattr(self._policy, "model", None)
+        if model is None or not hasattr(model, "action_head"):
+            raise RuntimeError(
+                f"capture_dir was set, but {type(self._policy).__name__} has no "
+                f"`model.action_head` -- the tap spec in vla_harness/capture/"
+                f"groot_features.py is GR00T N1.7 specific. Refusing to write "
+                f"empty captures that would read as a negative result.")
+        self._sink = CaptureSink()
+        self._detach_capture = attach_groot_capture(
+            model, self._sink, k_resample=self.capture_k_resample)
+
+    def flush_capture(self, r) -> None:
+        """Called by runner.rollout once `rollout_id` exists."""
+        if self._sink is None or not self._sink.current():
+            return
+        self._sink.flush(self.capture_dir, rollout_id=r.rollout_id,
+                         live_dims=len(self.action_dims),
+                         env_steps=self._capture_env_steps,
+                         meta={"task_id": r.task_id, "success": r.success,
+                               "policy_id": r.policy_id, "seed": r.seed})
 
     def reset(self) -> None:
         if self._policy is None:
             self._load()
         if hasattr(self._policy, "reset"):
             self._policy.reset()
+        if self._sink is not None:
+            # Warns and discards if the previous episode never reached
+            # flush_capture -- i.e. it raised part-way through.
+            self._sink.begin_episode()
+            self._capture_env_steps = []
 
     def __call__(self, obs: Observation) -> Action:
         import torch
@@ -238,6 +317,10 @@ class LeRobotPolicy:
             a = self._policy.select_action(batch)
         if ran_model:
             self.model_forwards += 1
+            if self._sink is not None:
+                # forward index -> env step, so a per-forward signal can be
+                # placed on the episode's timeline by the analysis.
+                self._capture_env_steps.append(int(obs.t))
         if self._post is not None:
             a = self._post(a)
         if self._env_post is not None:

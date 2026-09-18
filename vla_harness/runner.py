@@ -63,7 +63,7 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
     steps.append(Step(t=obs.t, obs_state=dict(obs.state), action=None,
                       image_refs=dict(obs.image_refs)))
 
-    return Rollout(
+    r = Rollout(
         rollout_id=_cell_id(env, policy, seed, spec),
         task_id=env.task_id, instruction=env.instruction,
         policy_id=policy.policy_id, env_id=env.env_id,
@@ -83,6 +83,16 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
                           if hasattr(env, "scene_descriptor") else {}),
         privileged=getattr(policy, "privileged", False),
     )
+
+    # Embedding capture, when attached, buffers per-episode and is stamped HERE
+    # because `rollout_id` does not exist until the Rollout above is built.
+    # Joining by episode ORDER instead would touch nothing -- and would break on
+    # resume, where run_cell's cache-skip path means capture order no longer
+    # tracks trace order. A misjoin attaches one episode's embeddings to another
+    # episode's label, which is the one error this measurement cannot survive.
+    if hasattr(policy, "flush_capture"):
+        policy.flush_capture(r)
+    return r
 
 
 # --- statistics --------------------------------------------------------------

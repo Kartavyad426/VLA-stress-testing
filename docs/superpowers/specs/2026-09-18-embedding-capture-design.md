@@ -234,6 +234,55 @@ lying.** Neither substitutes for the other.
 
 ---
 
+## 6b. Review fixes, and one gate that was vacuous
+
+`primary` reviewed this design and required five fixes. Both of their code
+readings were checked against the source before being accepted; both held.
+
+| # | fix | status |
+|---|---|---|
+| **F1** | V8 must assert `model_forwards > 0` BEFORE asserting equality, and run FRESH episodes | done — `experiments/capture_smoke.py`, gate V8a |
+| **F2** | discard an unflushed episode loudly at the next `begin_episode` | done — V13, `taps.py` |
+| **F3** | manifest unique on `rollout_id` across a resume | done — V14, `_append_manifest` replaces rather than appends |
+| **F4** | assert `action_decoder`'s pre-slice shape and that the slice matches the model's | done — V2b |
+| **F5** | report wall-clock per forward at k=1 and k=4 before the full run is scheduled | done — smoke prints s/forward |
+
+**F1 verified, not assumed.** Every run on disk — `groot_control_lplus_stack`,
+`lplus_hard_groot_v2`, `groot_harness_parity` — stores `forward_passes` and has
+no `model_forwards` key; `rollout_from_dict` migrates it into `env_steps` and
+leaves `model_forwards` at 0. A replay-based V8 would compare N rows against 0.
+
+**F4 verified.** `sa_embs = cat(state_features, action_features)` with
+`state_history_length: 1` makes `pred` `(B, 1+H, dim)`, and the model consumes
+`pred[:, -H:]` (`groot_n1_7.py:709`).
+
+### The gate that was green without testing anything
+
+V4 (RNG neutrality) **passed whether or not the restore existed.** In the
+stand-in nothing consumes RNG after the denoise loop's initial draw, so
+restoring the post-call state was a no-op and deleting it changed nothing. The
+gate reported green by not being exercised — the same failure class as F1,
+found in this spec's own test rather than in `primary`'s list.
+
+The fix is a purpose-built stand-in (`_DrawsAfterDenoise`) that consumes RNG
+after the loop. It exists to make the CONTRACT observable — *the generator ends
+where an unwrapped run would leave it, whatever the model does internally* — not
+to claim GR00T draws there; on the read code it does not. Every gate in §6 was
+subsequently **mutation-tested**: the tap was deliberately broken in the way the
+gate names, and the gate was confirmed to fail.
+
+| mutation | gate that caught it |
+|---|---|
+| S1 read from the dict after the in-place overwrite | V1 |
+| `actions_0` drawn fresh instead of replayed | V2 |
+| `decode_path` stored unsliced | V2, V2b |
+| generator left advanced | V4 |
+| returned a rebuilt dict instead of the model's object | V3 |
+| committed a row per Euler step instead of per forward | V6 |
+| `begin_episode` clearing silently | V13 |
+
+---
+
 ## 7. Deliverables
 
 | file | status |
@@ -242,7 +291,7 @@ lying.** Neither substitutes for the other.
 | `vla_harness/capture/groot_features.py` | new |
 | `vla_harness/capture/__init__.py` | new |
 | `tests/test_capture_taps.py` | new — V1–V7 |
-| `experiments/capture_smoke.py` | new — V8–V12, one command for `primary` |
+| `experiments/capture_smoke.py` | new — V8–V12 + F5 cost, one command for `primary` |
 | `vla_harness/policies/lerobot_policy.py` | `capture=` arg; attach in `_load`, mark in `reset` |
 | `vla_harness/runner.py` | 3 lines: flush once `rollout_id` exists |
 
