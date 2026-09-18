@@ -880,3 +880,38 @@ runs (#3, #21).
 - The video visualiser is **built and working** —
   `experiments/visualise_episode_video.py`, output in `viz/`. See #7 for its one
   caveat.
+
+---
+
+## 25. Which fourth policy — and whether to rent a GPU for π0.5 / OpenVLA-OFT
+
+**Open. Needs your call.** Full survey with measured VRAM in
+`MODELS_AND_COMPUTE.md` §R9.
+
+The roster today is GR00T N1.7 (priority), MINERVA (control), SmolVLA
+(vetoed 2026-09-18 — never reproduced). A fourth policy is wanted that is
+frontier, general and robust.
+
+**The recommendation, to accept or override:**
+
+1. **π0-FAST** (`lerobot/pi0fast-libero-v044`, 2.92 B, 5.44 GiB) — **fits
+   locally with more headroom than GR00T.** Scores only 82.5% on LIBERO, but it
+   is one of the four reference models LIBERO-Plus used to assign difficulty
+   levels. Running it on R-026's 623 variants tests whether those levels mean
+   anything on our stack — currently an unverified prior we caveat in every
+   entry. Different architecture family too (autoregressive FAST tokens).
+2. **π0.5** (`lerobot/pi05_libero_finetuned_v044`, 3.62 B, 6.74 GiB) — the
+   frontier choice: 97.5%, the only documented LeRobot reproduction. **Borderline
+   on 8 GB** (0.8 GiB headroom vs GR00T's 1.4). *Decision needed: spend ~10 min
+   on a VRAM probe to settle it?*
+3. **X-VLA** (`lerobot/xvla-libero`, 0.88 B) — cheap third architecture.
+
+**The compute question.** *Decision needed:* if rented compute is available,
+≥16 GB unlocks OpenVLA-OFT 7 B — the strongest LIBERO-Plus reference model, and
+the only pairing that answers "does robustness training buy robustness", since
+the LIBERO-Plus authors released the same model fine-tuned **on** LIBERO-Plus
+(`Sylvest/openvla-7b-oft-finetuned-libero-plus-mixdata`). That experiment cannot
+be run on any model that fits this card.
+
+**Not blocking anything.** The failure corpus and taxonomy work proceed on GR00T
+and MINERVA regardless.
