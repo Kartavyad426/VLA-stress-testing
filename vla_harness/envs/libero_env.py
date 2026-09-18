@@ -134,7 +134,8 @@ class LiberoEnv:
                  hard_reset: bool = True, num_steps_wait: int = 10,
                  max_steps: int | None = None, image_dir: str | None = None,
                  obs_size: int = 256, libero_plus: bool = False,
-                 libero_plus_raw_instruction: bool = False):
+                 libero_plus_raw_instruction: bool = False,
+                 libero_plus_base_instruction: bool = False):
         if suite not in MAX_STEPS:
             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
         self.suite = suite
@@ -160,6 +161,14 @@ class LiberoEnv:
         # variant's perturbation parameters appended). Only for measuring how
         # much that contamination costs; never for a reported result.
         self.libero_plus_raw_instruction = bool(libero_plus_raw_instruction)
+        # Force the base-scene instruction even on a LANGUAGE variant, whose
+        # rewrite is normally the perturbation and is kept. Combined with a
+        # variant whose camera is canonical and whose initstate is 0, this is a
+        # fully UNPERTURBED episode -- the only unperturbed control obtainable on
+        # the LIBERO-Plus stack, which ships no vanilla task suite (the fork
+        # replaces it, so a vanilla run in that venv cannot even find its init
+        # states). That control is what a perturbation delta is measured against.
+        self.libero_plus_base_instruction = bool(libero_plus_base_instruction)
         self._env = None
         self.instruction = ""
         self.task_id = (f"libero_plus/{suite}/task{task_id}" if libero_plus
@@ -181,6 +190,8 @@ class LiberoEnv:
                 # v2: LIBERO-Plus perturbation suffix stripped from the instruction
                 "instruction_source": ("task.language_RAW_CONTAMINATED"
                                        if self.libero_plus and self.libero_plus_raw_instruction
+                                       else "base_scene_FORCED_unperturbed_control"
+                                       if self.libero_plus and self.libero_plus_base_instruction
                                        else "clean_base_scene_v2" if self.libero_plus
                                        else "task.language"),
                 "suite": self.suite,
@@ -434,8 +445,9 @@ class LiberoEnv:
         read from the BDDL and IS the perturbation.
         """
         lang = task.language
-        if (not self.libero_plus or "_language_" in task.name
-                or self.libero_plus_raw_instruction):
+        if (not self.libero_plus or self.libero_plus_raw_instruction
+                or ("_language_" in task.name
+                    and not self.libero_plus_base_instruction)):
             return lang
         base = self._LPLUS_SCENE_PREFIX_RE.sub("", task.name)
         prev = None

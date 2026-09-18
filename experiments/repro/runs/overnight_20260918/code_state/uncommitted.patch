@@ -1,0 +1,273 @@
+diff --git a/.gitignore b/.gitignore
+index bdbaa9b..f7573af 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,3 +15,7 @@ experiments/repro/runs/**/*.log
+ experiments/repro/runs/**/videos/
+ runs/**/frames/
+ runs/**/*.png
++
++# Local-only docs (VLA 101 guide)
++docs/VLA_101.md
++docs/VLA_101.txt
+diff --git a/RESULTS.md b/RESULTS.md
+index 55d35e0..aa331b1 100644
+--- a/RESULTS.md
++++ b/RESULTS.md
+@@ -142,7 +142,10 @@ Every entry records its expectation and **says when it was written**:
+ | R-021 | 09-17 | EVAL | GR00T N1.7 smoke test | DONE | Fits in bf16 (5.87 GiB); 5/5 on spatial t0 |
+ | R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
+ | R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE — PARTIALLY INVALID | 53/54 at level 1; instructions contaminated |
+-| R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | RUNNING | — |
++| R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | DONE | 33/41; camera and robot-init worst |
++| R-025 | 09-18 | EVAL | Contamination A/B: clean vs LeRobot instruction | PLANNED | — |
++| R-026 | 09-18 | EVAL | GR00T LIBERO-Plus sweep, 7 types × levels 2–5 | PLANNED | — |
++| R-027 | 09-18 | EVAL | SmolVLA on the same 515 variants | PLANNED | — |
+ 
+ ---
+ 
+@@ -1089,6 +1092,111 @@ cleaned instruction (env identity `instruction_source: clean_base_scene_v2`).
+ | episodes | 1 per variant, seed 0 → init state 0 |
+ | MuJoCo / venv | 3.3.2 / `.venvs/libero-plus` |
+ 
++**Result.** 41 of 42 variants (the fog variant crashed upstream — see below).
++
++| Perturbation type (L4–L5) | Success |
++|---|---|
++| Background Textures | 6/6 |
++| Language Instructions | 6/6 |
++| Light Conditions | 6/6 |
++| Sensor Noise | 5/5 |
++| Objects Layout | 5/6 |
++| **Camera Viewpoints** | **3/6** |
++| **Robot Initial States** | **2/6** |
++| **Total** | **33/41 (80%)** |
++
++All 8 failures are level 5. Episode pages: `viz/lplus_failures/` (8 pages, every
++replay exact at 0.0 mm).
++
++**What happened vs expected.** Lower than R-023's 53/54, as expected. The two
++worst types — camera viewpoint and robot initial state — are the two the
++LIBERO-Plus paper reports as most damaging across ten other models. With n=6 per
++type this is consistent with that ordering, **not evidence for it**.
++
++**Two upstream bugs found, both patched locally**
++(`experiments/repro/patches/libero_plus_numpy2_fog.patch`):
++1. `np.float_` was removed in NumPy 2.0, so **every fog variant crashed**
++   (`env_wrapper.py:105`).
++2. Fog generates a 256×256 pattern, so it **crashes at any render above 256**
++   ("operands could not be broadcast together with shapes (360,360,3)
++   (256,256,1)"). LeRobot's own LIBERO-Plus default render is 360.
++
++**Validity & caveats.** n=6 per type, one episode each, level 4–5 only, single
++suite, bf16. Levels encode four other models' weaknesses, not GR00T's.
++
++**Artifacts.** `runs/lplus_hard_groot_v2/`, `viz/lplus_failures/`
++
++---
++
++## R-025 — Contamination A/B: clean vs LeRobot's instruction
++
++**Date** 2026-09-18 · **Status** PLANNED · **Type** EVAL
++
++**Question.** LeRobot feeds LIBERO-Plus variants an instruction with the
++perturbation parameters appended (`docs/LIBERO_PLUS_LEVELS.md` §0). What did that
++cost? Every published LIBERO-Plus number obtained through LeRobot carries it.
++
++**Expected** *(stated before run).* Some drop, since the suffix is out of
++distribution for the language encoder. GR00T scored **33/41 clean**. If the
++contaminated arm is much lower, LeRobot-based LIBERO-Plus results are
++systematically pessimistic; if it is the same, GR00T ignores the junk tokens and
++the bug costs little. Either is worth knowing. n=41, so only a large effect is
++detectable.
++
++**Configuration.** Identical to R-024 v2 (same 42 variants, GR00T bf16, 360
++render) except `--raw-instruction`, which restores LeRobot's string. Env identity
++records `instruction_source: task.language_RAW_CONTAMINATED`.
++
++**Result.** *(to fill after running)*
++
++---
++
++## R-026 — GR00T LIBERO-Plus sweep: 7 types × levels 2–5
++
++**Date** 2026-09-18 · **Status** PLANNED · **Type** EVAL
++
++**Question.** The first sensitivity profile with clean instructions: which
++perturbation types does GR00T actually degrade on, and how does that track
++LIBERO-Plus's difficulty levels?
++
++**Expected** *(stated before run).*
++- Camera viewpoint and robot initial state worst, per R-024 and the paper's
++  ordering for other models.
++- Success falling from level 2 to level 5, but **weakly**: levels encode four
++  other models' failures.
++- n≈20 per cell (CI ±~18 pp) and ~80 per type (±~10 pp): enough to rank types,
++  not to rank levels within a type.
++
++**Configuration.** 515 variants: 7 types × levels 2–5, ≤20 each, spread across
++distinct base scenes (`experiments/repro/lplus_sweep_selection.json`; capped
++where LIBERO-Plus has fewer — Background L5 = 1, Light L5 = 6, Sensor Noise
++L5 = 12). GR00T bf16, nas=16, render 360, clean instructions, 1 episode each,
++MuJoCo 3.3.2, **mineable**.
++
++**Result.** *(to fill after running)*
++
++---
++
++## R-027 — SmolVLA on the same 515 variants
++
++**Date** 2026-09-18 · **Status** PLANNED · **Type** EVAL
++
++**Question.** Do two different policies agree on which perturbations hurt most?
++That ordering is the part the sim-to-real evidence says transfers
++(`docs/SIM_TO_REAL_TRANSFER.md`), so agreement across policies is the cheapest
++internal check of whether our sensitivity profile is a property of the
++perturbation or of one policy.
++
++**Expected** *(stated before run).* SmolVLA is much weaker on LIBERO (67% vs
++GR00T's ~97% nominal), so absolute success will be far lower. The interesting
++comparison is the **ordering** of types, not the rates. If the orderings
++disagree, a single-policy sensitivity profile does not generalise even in
++simulation.
++
++**Configuration.** Same 515 variants and same harness. SmolVLA
++`HuggingFaceVLA/smolvla_libero`, nas=10, **render 256** (its declared input;
++F9), clean instructions, 1 episode each.
++
+ **Result.** *(to fill after running)*
+ 
+ ---
+diff --git a/experiments/harness_eval.py b/experiments/harness_eval.py
+index 66ee99c..1914644 100644
+--- a/experiments/harness_eval.py
++++ b/experiments/harness_eval.py
+@@ -44,6 +44,8 @@ def main():
+     ap.add_argument("--libero-plus", action="store_true",
+                     help="task ids index LIBERO-Plus perturbed variants (needs .venvs/libero-plus, "
+                          "PYTHONPATH=third_party/LIBERO-plus, LIBERO_CONFIG_PATH=third_party/libero-plus-config)")
++    ap.add_argument("--raw-instruction", action="store_true",
++                    help="LIBERO-Plus: keep LeRobot's contaminated instruction (measurement only)")
+     ap.add_argument("--suites", required=True)
+     ap.add_argument("--tasks", default="0,1,2,3,4,5,6,7,8,9")
+     ap.add_argument("--episodes", type=int, default=10)
+@@ -73,7 +75,8 @@ def main():
+                             dtype=a.dtype, rename_map=json.loads(a.rename_map))
+         for tid in [int(t) for t in a.tasks.split(",")]:
+             env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size,
+-                            libero_plus=a.libero_plus)
++                            libero_plus=a.libero_plus,
++                            libero_plus_raw_instruction=a.raw_instruction)
+             for knobs in specs:
+                 key = (suite, tid, json.dumps(knobs, sort_keys=True))
+                 if key in done:
+@@ -89,7 +92,8 @@ def main():
+                        "checkpoint": a.checkpoint, "n_action_steps": a.n_action_steps,
+                        "overrides": overrides, "obs_size": a.obs_size,
+                        "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
+-                       "libero_plus": a.libero_plus}
++                       "libero_plus": a.libero_plus,
++                       "raw_instruction": a.raw_instruction}
+                 with open(cells_path, "a") as f:
+                     f.write(json.dumps(row) + "\n")
+                 print(f"{suite} task{tid} {knobs}: {cell.successes}/{cell.n} "
+diff --git a/experiments/visualise_episode_video.py b/experiments/visualise_episode_video.py
+index e3ea53a..0eec1e0 100644
+--- a/experiments/visualise_episode_video.py
++++ b/experiments/visualise_episode_video.py
+@@ -54,7 +54,26 @@ def replay(r, cameras=2):
+     if task_id is None:
+         task_id = int(r.task_id.rsplit("task", 1)[-1])
+ 
+-    env = LiberoEnv(suite=suite, task_id=task_id)
++    fp_env = r.fingerprint.get("env", {})
++    libero_plus = fp_env.get("benchmark") == "libero_plus"
++    if libero_plus:
++        # A LIBERO-Plus trace can only be replayed where its fork is importable
++        # (.venvs/libero-plus + PYTHONPATH + LIBERO_CONFIG_PATH). Replaying it
++        # against vanilla LIBERO would build a different, unperturbed scene and
++        # the fidelity check would be the only thing to notice.
++        try:
++            from lerobot.envs.libero import _get_suite
++            n = _get_suite(suite).get_num_tasks()
++        except Exception as e:
++            raise SystemExit(f"LIBERO-Plus trace: run in .venvs/libero-plus with "
++                             f"PYTHONPATH=third_party/LIBERO-plus and "
++                             f"LIBERO_CONFIG_PATH=third_party/libero-plus-config ({e})")
++        if task_id >= n:
++            raise SystemExit(f"task_id {task_id} >= {n} tasks: this is not the LIBERO-Plus suite")
++    # Rebuild with the trace's own render size and benchmark: a different size
++    # or an unperturbed scene would replay a different episode.
++    env = LiberoEnv(suite=suite, task_id=task_id,
++                    obs_size=int(fp_env.get("obs_size") or 256), libero_plus=libero_plus)
+     spec = PerturbationSpec.of(**(r.perturbation or {}))
+     env.reset(seed=r.seed, spec=spec)
+ 
+@@ -609,6 +628,12 @@ if __name__ == "__main__":
+ 
+     from vla_harness.mining import classify as _cls, phases_libero as _pl
+     _seg = LiberoPhaseSegmenter()
++    lp = (chosen.scene_descriptor or {}).get("libero_plus") or {}
++    if lp.get("category"):
++        pert_label = (f"LIBERO-Plus: {lp['category']} · level {lp['difficulty_level']} "
++                      f"(solved by {5 - int(lp['difficulty_level'])} of 4 reference models)")
++    else:
++        pert_label = json.dumps(D["perturbation"]) if D["perturbation"] else "nominal"
+     thresholds = {"__TH_CLOSED__": _seg.closed_m, "__TH_LIFT__": _seg.lift_m,
+                   "__TH_STALL__": _seg.stall_m, "__TH_HOLD__": _seg.hold_steps,
+                   "__TH_EMPTY__": EMPTY_CLOSED_M, "__TH_PREGRASP__": _seg.pregrasp_m,
+@@ -627,7 +652,7 @@ if __name__ == "__main__":
+                                         D["diag"]["family"] or "success").replace("_", " "))
+                 .replace("__N__", str(D["n"]))
+                 .replace("__TERM__", D["termination"])
+-                .replace("__PERT__", json.dumps(D["perturbation"]) if D["perturbation"] else "nominal")
++                .replace("__PERT__", pert_label)
+                 .replace("__POLICY__", D["policy"].split("@")[0]))
+     open(out, "w").write(html)
+     print(f"wrote {out}  ({os.path.getsize(out)//1024} KB, family={D['diag']['family']})")
+diff --git a/vla_harness/envs/libero_env.py b/vla_harness/envs/libero_env.py
+index 4fb2c76..f0c1606 100644
+--- a/vla_harness/envs/libero_env.py
++++ b/vla_harness/envs/libero_env.py
+@@ -132,7 +132,8 @@ class LiberoEnv:
+                  control_mode: str = "relative", init_states: bool = True,
+                  hard_reset: bool = True, num_steps_wait: int = 10,
+                  max_steps: int | None = None, image_dir: str | None = None,
+-                 obs_size: int = 256, libero_plus: bool = False):
++                 obs_size: int = 256, libero_plus: bool = False,
++                 libero_plus_raw_instruction: bool = False):
+         if suite not in MAX_STEPS:
+             raise ValueError(f"unknown suite {suite!r}; expected {sorted(MAX_STEPS)}")
+         self.suite = suite
+@@ -154,6 +155,10 @@ class LiberoEnv:
+         # .venvs/libero-plus); LeRobot reads some variants' init states from a
+         # different directory, so the flag must reach get_task_init_states too.
+         self.libero_plus = bool(libero_plus)
++        # Deliberately reproduce LeRobot's contaminated instruction (the
++        # variant's perturbation parameters appended). Only for measuring how
++        # much that contamination costs; never for a reported result.
++        self.libero_plus_raw_instruction = bool(libero_plus_raw_instruction)
+         self._env = None
+         self.instruction = ""
+         self.task_id = (f"libero_plus/{suite}/task{task_id}" if libero_plus
+@@ -173,7 +178,9 @@ class LiberoEnv:
+         return {"name": f"{'libero_plus' if self.libero_plus else 'libero'}:{self.suite}",
+                 "benchmark": "libero_plus" if self.libero_plus else "libero",
+                 # v2: LIBERO-Plus perturbation suffix stripped from the instruction
+-                "instruction_source": ("clean_base_scene_v2" if self.libero_plus
++                "instruction_source": ("task.language_RAW_CONTAMINATED"
++                                       if self.libero_plus and self.libero_plus_raw_instruction
++                                       else "clean_base_scene_v2" if self.libero_plus
+                                        else "task.language"),
+                 "suite": self.suite,
+                 "task_id": self.task_id_idx, "control_mode": self.control_mode,
+@@ -416,7 +423,8 @@ class LiberoEnv:
+         read from the BDDL and IS the perturbation.
+         """
+         lang = task.language
+-        if not self.libero_plus or "_language_" in task.name:
++        if (not self.libero_plus or "_language_" in task.name
++                or self.libero_plus_raw_instruction):
+             return lang
+         base = task.name
+         for tok in self._LPLUS_SUFFIX_TOKENS:

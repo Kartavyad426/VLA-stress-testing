@@ -54,7 +54,26 @@ def replay(r, cameras=2):
     if task_id is None:
         task_id = int(r.task_id.rsplit("task", 1)[-1])
 
-    env = LiberoEnv(suite=suite, task_id=task_id)
+    fp_env = r.fingerprint.get("env", {})
+    libero_plus = fp_env.get("benchmark") == "libero_plus"
+    if libero_plus:
+        # A LIBERO-Plus trace can only be replayed where its fork is importable
+        # (.venvs/libero-plus + PYTHONPATH + LIBERO_CONFIG_PATH). Replaying it
+        # against vanilla LIBERO would build a different, unperturbed scene and
+        # the fidelity check would be the only thing to notice.
+        try:
+            from lerobot.envs.libero import _get_suite
+            n = _get_suite(suite).get_num_tasks()
+        except Exception as e:
+            raise SystemExit(f"LIBERO-Plus trace: run in .venvs/libero-plus with "
+                             f"PYTHONPATH=third_party/LIBERO-plus and "
+                             f"LIBERO_CONFIG_PATH=third_party/libero-plus-config ({e})")
+        if task_id >= n:
+            raise SystemExit(f"task_id {task_id} >= {n} tasks: this is not the LIBERO-Plus suite")
+    # Rebuild with the trace's own render size and benchmark: a different size
+    # or an unperturbed scene would replay a different episode.
+    env = LiberoEnv(suite=suite, task_id=task_id,
+                    obs_size=int(fp_env.get("obs_size") or 256), libero_plus=libero_plus)
     spec = PerturbationSpec.of(**(r.perturbation or {}))
     env.reset(seed=r.seed, spec=spec)
 
@@ -609,6 +628,12 @@ if __name__ == "__main__":
 
     from vla_harness.mining import classify as _cls, phases_libero as _pl
     _seg = LiberoPhaseSegmenter()
+    lp = (chosen.scene_descriptor or {}).get("libero_plus") or {}
+    if lp.get("category"):
+        pert_label = (f"LIBERO-Plus: {lp['category']} · level {lp['difficulty_level']} "
+                      f"(solved by {5 - int(lp['difficulty_level'])} of 4 reference models)")
+    else:
+        pert_label = json.dumps(D["perturbation"]) if D["perturbation"] else "nominal"
     thresholds = {"__TH_CLOSED__": _seg.closed_m, "__TH_LIFT__": _seg.lift_m,
                   "__TH_STALL__": _seg.stall_m, "__TH_HOLD__": _seg.hold_steps,
                   "__TH_EMPTY__": EMPTY_CLOSED_M, "__TH_PREGRASP__": _seg.pregrasp_m,
@@ -627,7 +652,7 @@ if __name__ == "__main__":
                                         D["diag"]["family"] or "success").replace("_", " "))
                 .replace("__N__", str(D["n"]))
                 .replace("__TERM__", D["termination"])
-                .replace("__PERT__", json.dumps(D["perturbation"]) if D["perturbation"] else "nominal")
+                .replace("__PERT__", pert_label)
                 .replace("__POLICY__", D["policy"].split("@")[0]))
     open(out, "w").write(html)
     print(f"wrote {out}  ({os.path.getsize(out)//1024} KB, family={D['diag']['family']})")

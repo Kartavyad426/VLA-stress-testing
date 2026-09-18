@@ -44,6 +44,12 @@ def main():
     ap.add_argument("--libero-plus", action="store_true",
                     help="task ids index LIBERO-Plus perturbed variants (needs .venvs/libero-plus, "
                          "PYTHONPATH=third_party/LIBERO-plus, LIBERO_CONFIG_PATH=third_party/libero-plus-config)")
+    ap.add_argument("--base-instruction", action="store_true",
+                    help="force the base-scene instruction even on a LANGUAGE "
+                         "variant; with a canonical-camera initstate-0 variant "
+                         "this is an UNPERTURBED control on the LIBERO-Plus stack")
+    ap.add_argument("--raw-instruction", action="store_true",
+                    help="LIBERO-Plus: keep LeRobot's contaminated instruction (measurement only)")
     ap.add_argument("--suites", required=True)
     ap.add_argument("--tasks", default="0,1,2,3,4,5,6,7,8,9")
     ap.add_argument("--episodes", type=int, default=10)
@@ -73,7 +79,9 @@ def main():
                             dtype=a.dtype, rename_map=json.loads(a.rename_map))
         for tid in [int(t) for t in a.tasks.split(",")]:
             env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size,
-                            libero_plus=a.libero_plus)
+                            libero_plus=a.libero_plus,
+                            libero_plus_raw_instruction=a.raw_instruction,
+                            libero_plus_base_instruction=a.base_instruction)
             for knobs in specs:
                 key = (suite, tid, json.dumps(knobs, sort_keys=True))
                 if key in done:
@@ -89,7 +97,9 @@ def main():
                        "checkpoint": a.checkpoint, "n_action_steps": a.n_action_steps,
                        "overrides": overrides, "obs_size": a.obs_size,
                        "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
-                       "libero_plus": a.libero_plus}
+                       "libero_plus": a.libero_plus,
+                       "raw_instruction": a.raw_instruction,
+                       "base_instruction": a.base_instruction}
                 with open(cells_path, "a") as f:
                     f.write(json.dumps(row) + "\n")
                 print(f"{suite} task{tid} {knobs}: {cell.successes}/{cell.n} "

@@ -16,10 +16,14 @@ export PYTHONPATH=$PWD/third_party/LIBERO-plus LIBERO_CONFIG_PATH=$PWD/third_par
 OUT=experiments/repro/runs/pi0_setup; mkdir -p "$OUT"
 say() { echo "[$(date +%T)] $*" | tee -a "$OUT/progress.log"; }
 
-while pgrep -f "[h]arness_eval.py" >/dev/null || pgrep -f "[f]ollowon_20260918.sh" >/dev/null \
-   || pgrep -f "[b]aseline_same_stack.sh" >/dev/null || pgrep -f "[p]recision_ab.sh" >/dev/null \
-   || pgrep -f "[v]isualise_episode_video.py" >/dev/null; do sleep 60; done
-say "=== pi0 setup start (GPU free) ==="
+exec 9>/tmp/vla_gpu.lock; flock 9   # GPU mutex (see experiments/gpu_lock.sh)
+USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits)
+if [ "$USED" -gt 400 ]; then
+  say "ABORT: $USED MiB already in use on the GPU -- a VRAM probe against a busy"
+  say "card measures contention, not the model. Re-run when it is idle."
+  exit 1
+fi
+say "=== pi0 setup start (GPU idle: $USED MiB used) ==="
 
 probe () {  # name, checkpoint
   say "VRAM probe $1"

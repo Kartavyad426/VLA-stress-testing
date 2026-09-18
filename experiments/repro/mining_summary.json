@@ -1,0 +1,29 @@
+[
+ {
+  "run": "runs/lplus_fail_minerva",
+  "n": 506,
+  "failures": 281,
+  "families": {
+   "manipulation": 59,
+   "visual_grounding+manipulation": 123,
+   "visual_grounding+planning": 42,
+   "visual_grounding+spatial_reasoning+manipulation": 37,
+   "ambiguous": 15,
+   "visual_grounding+spatial_reasoning+planning": 4,
+   "spatial_reasoning+manipulation": 1
+  },
+  "predicates": {
+   "any_attempt": 220,
+   "lost_target": 206,
+   "never_reached": 46,
+   "wrong_object": 42
+  }
+ },
+ {
+  "run": "runs/lplus_fail_minerva_bf16",
+  "n": 0,
+  "failures": 0,
+  "families": {},
+  "predicates": {}
+ }
+]

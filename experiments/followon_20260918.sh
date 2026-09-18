@@ -13,7 +13,10 @@ export PYTHONPATH=$PWD/third_party/LIBERO-plus LIBERO_CONFIG_PATH=$PWD/third_par
 OUT=experiments/repro/runs/overnight_20260918
 say() { echo "[$(date +%T)] $*" | tee -a "$OUT/progress.log"; }
 
-while pgrep -f "[h]arness_eval.py" > /dev/null; do sleep 60; done
+while [ ! -f runs/groot_control_lplus_stack/DONE ]; do sleep 30; done
+# serialise on a real lock, not on a pgrep pattern that also matches
+# the launching shell (that deadlocked the control run twice today)
+exec 9>/tmp/vla_gpu.lock; flock 9
 say "follow-on start"
 
 say "render remaining GR00T failures"

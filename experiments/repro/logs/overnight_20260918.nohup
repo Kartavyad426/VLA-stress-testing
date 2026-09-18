@@ -1,0 +1,13 @@
+[00:36:47] === failure-hunt queue start ac=0 P8, 180 MHz ===
+[00:36:47] contamination_ab start budget=2400s ac=0 P8, 180 MHz
+[00:42:48] contamination_ab done rc=0 rollouts=42 ac=1 P4, 1620 MHz
+[00:42:48] groot_fail start budget=17832s ac=1 P4, 1620 MHz
+[04:41:52] groot_fail done rc=0 rollouts=623 ac=1 P4, 1620 MHz
+[04:42:03] minerva-lplus import OK
+[04:42:03] minerva_fail start budget=11277s ac=1 P8, 180 MHz
+./experiments/overnight_20260918.sh: line 55: runs/lplus_fail_minerva/rollouts.jsonl: No such file or directory
+[04:42:09] minerva_fail done rc=1 rollouts=0 ac=1 P8, 172 MHz
+[04:42:09] mining
+[04:42:15] summarising
+[04:42:17] rendering failure pages
+[05:09:28] === complete ===  mining: experiments/repro/runs/overnight_20260918/mining.txt  summary: experiments/repro/runs/overnight_20260918/summary.txt
