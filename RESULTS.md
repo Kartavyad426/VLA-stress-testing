@@ -143,8 +143,8 @@ Every entry records its expectation and **says when it was written**:
 | R-022 | 09-17 | EVAL | GR00T harness parity | DONE | 98 vs 97, McNemar p=1.00 |
 | R-023 | 09-17 | EVAL | GR00T on basic LIBERO-Plus perturbations | DONE — PARTIALLY INVALID | 53/54 at level 1; instructions contaminated |
 | R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | DONE | 33/41; camera and robot-init worst |
-| R-025 | 09-18 | EVAL | Contamination A/B: clean vs LeRobot instruction | PLANNED | — |
-| R-026 | 09-18 | EVAL | GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants | RUNNING | — |
+| R-025 | 09-18 | EVAL | Contamination A/B: clean vs LeRobot instruction | DONE | 34 vs 33 of 42; no detectable effect |
+| R-026 | 09-18 | EVAL | GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants | DONE | 155 failures; robot init state 32.8% |
 | R-027 | 09-18 | EVAL | MINERVA on the same variants (non-language) | RUNNING | — |
 | R-028 | 09-18 | BUG | Clean-instruction stripper truncated 10% of variants | FIXED | validated on all 8,493 non-language variants |
 
@@ -1148,7 +1148,31 @@ detectable.
 render) except `--raw-instruction`, which restores LeRobot's string. Env identity
 records `instruction_source: task.language_RAW_CONTAMINATED`.
 
-**Result.** *(to fill after running)*
+**Result.** **No detectable effect.** Paired over the same 42 variants:
+
+| Arm | Successes |
+|---|---|
+| clean instruction (R-024 v2) | 34 / 42 |
+| LeRobot's contaminated instruction | 33 / 42 |
+
+7 variants disagreed, and they disagreed in *both directions* — 4 that only the
+clean arm solved, 3 that only the contaminated arm solved. Exact McNemar on
+(4, 3) gives p = 1.0. The difference is noise.
+
+**What happened vs expected.** We expected some drop. There is none we can see.
+The most likely reading is that GR00T's language encoder ignores the appended
+parameter tokens ("… on the plate view 0 0 100 2 352 initstate 0"): the
+instruction is still a complete, correct sentence with junk after it.
+
+**Validity & caveats.** n=42 detects only a large effect — the 95% CI on a
+1/42 difference spans roughly ±20 pp, so a real 10 pp penalty would be invisible
+here. This does **not** clear LeRobot's LIBERO-Plus path for other policies:
+a smaller or more brittle language encoder could be hurt where GR00T is not, and
+R-028 showed that a *truncated* instruction is a far more damaging corruption
+than a suffix of junk. It clears this bug only for this policy, at this size.
+
+**Artifacts.** `runs/lplus_hard_groot_rawinstr/`, summary in
+`experiments/repro/runs/overnight_20260918/summary.txt`.
 
 ---
 
@@ -1182,7 +1206,72 @@ accurate or maybe need more tightness"*).
 (seed 7). GR00T bf16, nas=16, render 360, clean instructions, 1 episode each,
 MuJoCo 3.3.2, mineable. Wall-clock deadline 05:40; resumable.
 
-**Result.** *(to fill after running)*
+**Result.** All 623 ran. **468 successes, 155 failures (24.9%)** — the corpus
+this run existed to produce.
+
+| Perturbation type | L4 | L5 | Overall (95% CI) |
+|---|---|---|---|
+| **Robot Initial States** | 47.8% (46) | **22.9%** (70) | **32.8%** [25, 42] n=116 |
+| **Camera Viewpoints** | 62.5% (40) | 68.2% (22) | **64.5%** [52, 75] n=62 |
+| Objects Layout | 89.5% (153) | 73.3% (45) | 85.9% [80, 90] n=198 |
+| Language Instructions | 87.8% (82) | 82.9% (35) | 86.3% [79, 91] n=117 |
+| Background Textures | 87.5% (16) | 100% (1) | 88.2% [66, 97] n=17 |
+| Light Conditions | 89.5% (38) | 100% (6) | 90.9% [79, 96] n=44 |
+| Sensor Noise | 91.2% (57) | 100% (12) | 92.8% [84, 97] n=69 |
+| **All** | 82.4% (432) | 58.6% (191) | 75.1% n=623 |
+
+Where the failures come from: robot initial state 78, object layout 28, camera
+22, language 16, sensor noise 5, light 4, background 2. Split evenly by level
+(79 at L5, 76 at L4) — L4 has more variants, L5 a higher failure rate.
+
+**What happened vs expected.**
+- **Robot initial state is the dominant failure mode, by a wide margin** —
+  32.8% success, half of it at L5's 22.9%. This is the perturbation that just
+  moves the arm's starting joint configuration; the scene and the instruction are
+  untouched. It confirms R-024's n=6 hint at n=116.
+- Camera viewpoint second (64.5%), also as expected.
+- **Sensor noise, lighting and background barely register** (≥88%). GR00T is
+  robust to appearance perturbation and fragile to *proprioceptive* perturbation.
+- Level ordering holds within every type except camera viewpoint, where L5
+  (68.2%) scored *above* L4 (62.5%) — consistent with §1 of
+  `docs/LIBERO_PLUS_LEVELS.md`: level is four other models' failure rate, not
+  perturbation strength, and the largest camera angles are not at L5.
+
+**What the mining layer said, and why it is the actual point.**
+
+| Family | Count |
+|---|---|
+| visual_grounding + manipulation | 90 |
+| manipulation | 41 |
+| visual_grounding + spatial_reasoning + manipulation | 18 |
+| spatial_reasoning + manipulation | 6 |
+
+| Predicate | Fires on |
+|---|---|
+| `any_attempt` | 155/155 (100%) |
+| `lost_target` | 108/155 (69.7%) |
+| `wrong_object` | 24/155 (15.5%) |
+
+Terminal states: `retry_loop` 146, `failed_grasp_no_retry` 9.
+
+**Four families over 155 failures, and `manipulation` in every one of them.**
+`any_attempt` fires on 100% by construction, so it carries no information; the
+taxonomy is effectively a two-bit code (`lost_target`, `wrong_object`). 78 of the
+failures are robot-initial-state variants and the classifier has no family that
+names *starting pose*, so it files them under visual grounding — a label the
+evidence does not support, since nothing about the scene's appearance changed.
+This is PENDING #15 with data behind it, and it is what tomorrow's hand
+adjudication is for.
+
+**Validity & caveats.** One episode per variant, one suite, level 4–5 only, bf16.
+Per-type CIs are ±6–12 pp, wide enough to rank types but not to separate the
+three appearance types from each other. The L4/L5 restriction means these are
+**not** GR00T's success rates on LIBERO-Plus — they are its rates on the subset
+four other models mostly failed.
+
+**Artifacts.** `runs/lplus_fail_groot/` (rollouts + `diagnoses.jsonl`),
+`experiments/repro/runs/overnight_20260918/{mining,summary}.txt`, 80 rendered
+failure episodes in `viz/lplus_fail_groot/`.
 
 ---
 

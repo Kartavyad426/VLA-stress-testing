@@ -22,8 +22,10 @@ LOG=$OUT/progress.log
 say() { echo "[$(date +%T)] $*" | tee -a "$LOG"; }
 power() { echo "ac=$(cat /sys/class/power_supply/AC/online) $(nvidia-smi --query-gpu=pstate,clocks.sm --format=csv,noheader)"; }
 # wall-clock deadlines, so morning always has mined + summarised results
-DEADLINE_GROOT=$(date -d "05:40" +%s)
-DEADLINE_MINERVA=$(date -d "07:50" +%s)
+# Relative, not wall-clock: a re-run after the original window (e.g. to finish a
+# step that crashed on a missing dep) would otherwise skip every step silently.
+DEADLINE_GROOT=$(( $(date +%s) + 5*3600 ))
+DEADLINE_MINERVA=$(( $(date +%s) + 8*3600 ))
 left() { local d=$1; local n=$(date +%s); echo $(( d > n ? d - n : 0 )); }
 
 GROOT=(--checkpoint nvidia/gr00t17-lerobot-libero_spatial-640 --n-action-steps 16
