@@ -244,6 +244,68 @@ def _visual_keys(cfg):
             if (v or {}).get("type") == "VISUAL" and not _is_placeholder(k)}
 
 
+def load_shipped_preprocessor(checkpoint: str, revision: str | None = None) -> dict:
+    """What the checkpoint's own preprocessor RENAMES and CONSUMES.
+
+    `config.json:input_features` is a declaration, and for the pi0 family it is
+    not what the pipeline actually eats. `lerobot/pi0fast-libero-v044` declares
+    `observation.images.base_0_rgb` and a 32-D state, yet ships a preprocessor
+    whose first step renames `observation.images.image -> base_0_rgb` and whose
+    normalisation statistics are 8-D, keyed by the PRE-rename names. Judged on
+    config.json alone the gate REFUSES a checkpoint that is in fact a drop-in
+    (2026-09-18) -- the same false-positive class as the `empty_camera_*`
+    placeholders and MINERVA's shipped-vs-documented n_action_steps.
+
+    Returns {} when the files are absent, so a checkpoint without a shipped
+    processor (MINERVA's subfolder layout, a local dir) behaves as before.
+    """
+    def _fetch(name):
+        if os.path.isdir(checkpoint):
+            p = os.path.join(checkpoint, name)
+            return p if os.path.isfile(p) else None
+        if os.path.isfile(checkpoint):
+            p = os.path.join(os.path.dirname(checkpoint), name)
+            return p if os.path.isfile(p) else None
+        try:
+            from huggingface_hub import hf_hub_download       # lazy: venv-only
+            repo_id, sub = split_hub_id(checkpoint)
+            return hf_hub_download(repo_id, name, subfolder=sub, revision=revision)
+        except Exception:
+            return None
+
+    path = _fetch("policy_preprocessor.json")
+    if not path:
+        return {}
+    try:
+        with open(path) as f:
+            spec = json.load(f)
+    except Exception:
+        return {}
+    out = {"rename_map": {}, "stat_keys": None, "state_dim": None}
+    stats_file = None
+    for step in spec.get("steps") or []:
+        name, conf = step.get("registry_name"), step.get("config") or {}
+        if name == "rename_observations_processor":
+            out["rename_map"] = conf.get("rename_map") or {}
+        elif name == "normalizer_processor":
+            stats_file = step.get("state_file")
+    # The statistics are the ground truth: they are what normalisation indexes,
+    # so their dimensionality is the state the policy was actually fitted on.
+    if stats_file:
+        p = _fetch(stats_file)
+        if p:
+            try:
+                from safetensors.torch import load_file       # lazy: venv-only
+                stats = load_file(p)
+                out["stat_keys"] = sorted({k.rsplit(".", 1)[0] for k in stats})
+                mean = stats.get("observation.state.mean")
+                if mean is not None:
+                    out["state_dim"] = int(mean.numel())
+            except Exception:
+                pass
+    return out
+
+
 def check(checkpoint: str, cfg: dict, run: dict, env: dict = LIBERO_ENV) -> Report:
     """Compare what the checkpoint DECLARES against what the run WILL DO.
 
@@ -253,6 +315,11 @@ def check(checkpoint: str, cfg: dict, run: dict, env: dict = LIBERO_ENV) -> Repo
     rep = Report(checkpoint)
     add = rep.checks.append
     visual = _visual_keys(cfg)
+    shipped = run.get("shipped") or {}
+    # `k: v` means the pipeline's own first step renames the env's key v to k,
+    # so a declared key the env lacks is satisfied when the checkpoint renames
+    # one the env has.
+    shipped_rename = {v: k for k, v in (shipped.get("rename_map") or {}).items()}
 
     # 1. image keys -- naming is baked into the normalisation stats, so a key
     #    the env does not supply is not a cosmetic difference.
@@ -264,7 +331,10 @@ def check(checkpoint: str, cfg: dict, run: dict, env: dict = LIBERO_ENV) -> Repo
         missing, via = [], []
         for k in sorted(set(visual) - set(env["image_keys"])):
             al = aliases.get(k)
-            if al and al["from"] in env["image_keys"]:
+            src = shipped_rename.get(k)
+            if src and src in env["image_keys"]:
+                via.append(f"{src} -> {k} (checkpoint's own preprocessor)")
+            elif al and al["from"] in env["image_keys"]:
                 via.append(f"{al['from']} -> {k} ({al['source']})")
             else:
                 missing.append(k)
@@ -310,7 +380,17 @@ def check(checkpoint: str, cfg: dict, run: dict, env: dict = LIBERO_ENV) -> Repo
 
     # 3. state and action dimensionality
     st = ((cfg.get("input_features") or {}).get("observation.state") or {}).get("shape")
-    if st is None:
+    fitted = shipped.get("state_dim")
+    if fitted is not None and st is not None and fitted != st[-1]:
+        # The normalisation statistics win: they are what the pipeline indexes.
+        # pi0-FAST declares 32 (openpi's padded width) and ships 8-D stats; the
+        # padding to 32 happens inside the model, after normalisation.
+        add(Check("state_dim", MATCH if fitted == env["state_dim"] else MISMATCH,
+                  ERROR, fitted, env["state_dim"],
+                  f"config.json declares {st[-1]}, but the shipped normalisation "
+                  f"statistics are {fitted}-D -- the stats are what the pipeline "
+                  f"indexes, so they are authoritative"))
+    elif st is None:
         add(Check("state_dim", UNDECLARED, ERROR, None, env["state_dim"]))
     else:
         add(Check("state_dim", MATCH if st[-1] == env["state_dim"] else MISMATCH,
@@ -557,7 +637,8 @@ def main(argv=None) -> int:
            "embodiment_tag": a.embodiment_tag,
            "temporal_ensemble_coeff": a.temporal_ensemble_coeff,
            "fps": a.fps,
-           "max_parallel_tasks": a.max_parallel_tasks}
+           "max_parallel_tasks": a.max_parallel_tasks,
+           "shipped": load_shipped_preprocessor(a.checkpoint, a.revision)}
     rep = check(a.hub_id or a.checkpoint, cfg, run)
     if a.json:
         print(json.dumps({"checkpoint": rep.checkpoint, "ok": rep.ok,
