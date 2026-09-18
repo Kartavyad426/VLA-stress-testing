@@ -17,6 +17,16 @@ while [ ! -f runs/groot_control_lplus_stack/DONE ]; do sleep 30; done
 # serialise on a real lock, not on a pgrep pattern that also matches
 # the launching shell (that deadlocked the control run twice today)
 exec 9>/tmp/vla_gpu.lock; flock 9
+# Holding the lock is not the same as the card being free: CUDA memory is
+# released asynchronously, and the previous holder's EGL render contexts can
+# still be resident. MINERVA is 0.54 M parameters and still hit
+# "CUDA error: out of memory" at 15:12 seconds after the render job exited.
+for _ in $(seq 60); do
+  USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits)
+  [ "$USED" -lt 400 ] && break
+  sleep 10
+done
+
 say "follow-on start"
 
 say "render remaining GR00T failures"
