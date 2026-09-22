@@ -2105,3 +2105,33 @@ reference cloud**. Any cross-run VL comparison must be stated as
 between-condition, never within. Both runs do share the property that matters
 for their own internal comparisons — text token count is constant WITHIN each
 run, which R-037 buys with `--base-instruction` and R-038 gets for free.
+
+### Scope limit on expectation #4, added 2026-09-22 BEFORE this run produced any data
+
+Recorded while the run was still queued behind R-038, 0 episodes captured —
+timestamped because adding it afterwards would be rationalisation rather than
+pre-registration.
+
+`primary`'s null-prompt run moved from 12/12 to **19/22, and the deviation is
+structured by scene**: 10/10 and 9/10 on two scenes, **0/2 on "in the top
+drawer of the wooden cabinet"**, where the control was 10/10. n=2, so it is
+flagged and not claimed.
+
+If that shape survives, the reading is neither "language is unused" nor
+"language is used" but **language is a FALLBACK the policy needs only where
+vision underdetermines the target** — a mechanism claim, not a scalar.
+
+**That weakens what a text-pooled null in R-037 can mean.** This run's arms are
+Camera Viewpoints, Light Conditions, Sensor Noise and Robot Initial States.
+**None of them is the occluded-target case.** So under the fallback reading,
+text-pooled features would be near-inert in THIS sample whether language is dead
+weight or a rarely-used channel — the two hypotheses make the same prediction
+here. A text-pooled null must therefore **not** be read as corroborating the
+null-prompt result; it is consistent with it and does not discriminate.
+
+The adversarial half of expectation #4 still stands and is unchanged: if
+text-pooled features **do** separate anything in these arms, that is evidence
+AGAINST the fallback-or-dead reading, and it will be reported as such rather
+than explained away. The prediction remains falsifiable in one direction and
+uninformative in the other, which is worth stating plainly rather than
+discovering later.
