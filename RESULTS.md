@@ -1349,6 +1349,329 @@ the fixed path.
 
 ---
 
+## R-029 — Unperturbed control on the LIBERO-Plus stack: 100/100
+
+**Date** 2026-09-18 · **Status** DONE · **Run** `runs/groot_control_lplus_stack`
+
+**Expectation stated before the run:** GR00T should be at or near its parity
+ceiling (R-022: 98/100) when nothing is perturbed.
+
+**Result: 100/100.** Ten base scenes x ten episodes, GR00T N1.7 bf16, canonical
+camera `view_0_0_100_0_0`, `initstate 0`, `--base-instruction`.
+
+**Why this run had to exist.** The LIBERO-Plus fork replaces the `libero`
+package, so there is no vanilla suite in that venv at all. A canonical-camera,
+initstate-0 variant run with `--base-instruction` is the only unperturbed
+control obtainable on the same stack the perturbed campaigns ran on. Without it
+every perturbation number was being compared against a baseline measured on a
+*different* software stack.
+
+It also gives every perturbed episode a matched reference: same scene, same
+camera, same instruction, same checkpoint, differing in exactly one parameter.
+R-030 depends on that.
+
+---
+
+## R-030 — Robot initial state is a joint-space perturbation, and nothing else moves
+
+**Date** 2026-09-18 · **Status** DONE · **Type** ANALYSIS
+**Runs** `runs/lplus_fail_groot` vs `runs/groot_control_lplus_stack`
+**Page** `viz/robot_initial_state_vs_canonical.html` (built by
+`experiments/init_state_compare.py`)
+
+**What the perturbation actually changes.** All seven joints, dominated by
+**J6 (wrist pitch, -15 to -18 deg)** and **J2 (shoulder, +6 to +11 deg)**. The
+end-effector offset (83-133 mm, 22-32 deg) is the consequence, not the cause.
+
+**What it does not change: anything else.** Every object pose at t=0 is
+**0.00 mm** from the control's. For scale, two different control rollouts of the
+same base scene differ by ~21 mm, so 0.00 is a real result rather than a broken
+comparison. Base scene, suite, instruction, camera parameters, checkpoint and
+dtype were compared field by field and are identical.
+
+**A measurement error worth recording, because it nearly became a finding.**
+The first version of this comparison read object poses from
+`scene_descriptor.objects` and appeared to show the target bowl displaced by
+167-273 mm. That field is written at the **end** of the episode: on a successful
+control it shows the bowl already sitting on the plate, so every object looks
+"moved" when compared against a failed episode that never touched it. Object
+poses must be read from the t=0 observation (`_gt_object_pos`).
+`experiments/init_state_compare.py` now refuses to build the page unless every
+held-fixed field matches and every object agrees within 1 mm at t=0.
+
+**What the arm does with its 281 steps** (`next to the ramekin`, cm):
+
+| episode | path | closest to bowl | closest to home | steps gripping | outcome |
+|---|---|---|---|---|---|
+| canonical, initstate 0 | 115.1 | 4.6 | 0.0 | 53 | success @113 |
+| initstate 232, L4 | 196.8 | 6.4 | 2.7 | 162 | timeout @281 |
+| initstate 412, L4 | 159.3 | 7.3 | 7.9 | 202 | timeout @281 |
+| initstate 162, L5 | 197.0 | 7.4 | 3.4 | 170 | timeout @281 |
+
+It is not frozen: it travels further than the success does and closes the
+gripper three to four times as often. **It never returns toward the neutral
+pose** — the closest it comes is its own starting offset, and it ends 34-42 cm
+away.
+
+**The failure is not uniform across base scenes.** On the cookie-box scenes the
+arm never gets within 19 cm of the target; on the ramekin scenes it reaches
+6-7 cm and still times out. Any family name that covers both has to describe the
+*outcome* — work without progress, no recovery to the training distribution —
+rather than a single mechanism.
+
+**Bearing on the taxonomy (PENDING #15).** 69 of the 78 rendered
+robot-initial-state failures are labelled `visual_grounding`. Nothing visual
+changed, to 0.00 mm. That label is wrong, and `manipulation` does not fit either
+where the arm never arrives. The predicate that separates these cases —
+*never approached the target* — is already computable from `_gt_eef_to_object`.
+
+**Open, and cheap:** a scripted homing prefix before handing control to the
+policy would make the perturbation a no-op by construction, so it is not a
+benchmark fix. As a **diagnostic** it is worth running: if homing recovers most
+of the 78, the deficiency is precisely "out of distribution at t=0, with no
+mechanism to get back in". `vla_harness/policies/scripted.py` already exists.
+
+---
+
+## R-031 — Our per-category rates against the LIBERO-Plus paper
+
+**Date** 2026-09-18 · **Status** DONE · **Type** COMPARISON
+**Source** LIBERO-Plus, arXiv:2510.13626, Table 1 (read verbatim from the PDF)
+
+**Expectation:** the paper's Finding 2 is that camera viewpoint and robot
+initial state are the two damaging perturbations while lighting, background and
+noise are superficial. If our harness measures what theirs does, GR00T should
+show the same ordering despite being a model they never evaluated.
+
+**It does.** Ours, on the L4+L5 subset:
+
+| category | GR00T | MINERVA |
+|---|---|---|
+| Robot Initial States | **32.8%** | 37.9% |
+| Camera Viewpoints | **64.5%** | **6.5%** |
+| Objects Layout | 85.9% | 69.2% |
+| Language Instructions | 86.3% | — |
+| Background Textures | 88.2% | **0.0%** |
+| Light Conditions | 90.9% | 27.3% |
+| Sensor Noise | 92.8% | 40.6% |
+
+The paper's headline is "95% to below 30% under modest perturbations". Our
+control is **100/100 to 32.8%** on robot initial state.
+
+**A split in Table 1 that our two policies reproduce.** The strong models
+(OpenVLA-OFT 59.7 camera / 37.2 robot, pi0 15.8/6.6, pi0-fast 66.4/24.8,
+RIPT-VLA 58.3/36.7) are hurt more by robot initial state than by camera. The
+weak ones (OpenVLA 1.1, Nora 4.0, WorldVLA 0.3, UniVLA 4.3 on camera) are
+annihilated by camera specifically. **GR00T sits with the strong group**
+(robot 32.8 < camera 64.5); **MINERVA sits with the weak group** (camera 6.5,
+background 0.0). That is a better-grounded version of R-027's claim that visual
+robustness is what the 3 B stack buys.
+
+**Turning the difficulty prior into a baseline.** Table 1's columns are over all
+1,680 variants per category; ours are the hardest two levels only, so the two
+cannot be compared column to column. But L4 means "solved by 1 of 4 reference
+models" and L5 "0 of 4", so on *our exact variants* the four reference models
+(OpenVLA-OFT, pi0, pi0-fast, UniVLA) average **17.3%** by construction:
+
+| | GR00T | ref avg, same variants | gap |
+|---|---|---|---|
+| Robot Initial States | 32.8% | 9.9% | +22.8 pp |
+| Camera Viewpoints | 64.5% | 16.1% | +48.4 pp |
+| Sensor Noise | 92.8% | 20.7% | +72.1 pp |
+| **overall** | **75.1%** | **17.3%** | **+57.8 pp** |
+
+MINERVA is +27.2 pp overall but **negative** on background (-23.5) and camera
+(-9.7).
+
+**Caveats, and the derived baseline is the weakest part.** The 17.3% treats a
+per-instance binary — probably a single trial per model — as a success *rate*,
+so it is a point estimate of something noisy. It is still the only comparison
+that is matched variant-for-variant, which Table 1 is not. Separately, the paper
+does not state whether its evaluations used the contaminated file-name
+instructions (`docs/LIBERO_PLUS_LEVELS.md` §0); that would matter most for its
+Finding 3 on language. And some of our cells are thin — Background Textures is
+n=17.
+
+---
+
+## R-032 — pi0 family: pi0.5 does not fit, pi0-FAST is blocked on its action tokenizer
+
+**Date** 2026-09-18 · **Status** pi0.5 ANSWERED / pi0-FAST OPEN
+
+**pi0.5 does not fit, and this time the measurement counts.** OOM at
+**7.40 GiB in use of 7.53 GiB available**, twice, on a card verified idle
+(<400 MiB) before each probe. The 14:53 probe that produced the same verdict
+does **not** count — an orphaned eval held 6.9 GiB at the time (handoff advice #5). Two clean measurements now agree with the contaminated one, which is
+the outcome that made checking it feel unnecessary and was exactly why it needed
+checking.
+
+**pi0-FAST never reached the GPU.** `RuntimeError: Failed to load required
+tokenizers for PI0FastPolicy initialization`. Two separate causes, one cleared:
+
+1. **`google/paligemma-3b-pt-224` is a gated repo.** `model_info` resolved (a
+   gated repo serves metadata) while file downloads returned 403, so the token
+   looked valid. Cleared 2026-09-18 by accepting the licence.
+2. **The checkpoint's action tokenizer still fails.** `config.json` overrides
+   `action_tokenizer_name` to `jadechoghari/fast-libero-tokenizer-mean-std`; the
+   LeRobot default `lerobot/fast-action-tokenizer` is a different repo and
+   **loads fine**, which is why a standalone check passed and the probe did not.
+
+Ruled out so far: `sentencepiece` is installed (0.2.2), so the reported
+"You need to have sentencepiece or tiktoken installed" is a red herring; both
+repos' `tokenizer.json` load standalone via `PreTrainedTokenizerFast` (1024 and
+2048 vocab, both BPE); `processing_action_tokenizer.py` is byte-identical
+between them. The one structural difference is a **`bpe_tokenizer/`
+subdirectory present only in the working repo**.
+
+**The tokenizers are not interchangeable.** Different vocab (1024 vs 2048),
+different `min_token` (-203 vs -354), and the checkpoint was trained against the
+mean-std one. Substituting the default would silently corrupt action
+detokenisation and produce a plausible wrong number.
+
+**Resolved 2026-09-18.** `UniversalActionProcessor.attributes == ["bpe_tokenizer"]`
+and transformers loads a processor attribute from a **subfolder of that name**.
+The checkpoint's tokenizer repo ships those files at the repo root only. Fix:
+`assets/pi0fast_action_tokenizer/`, a local copy of the checkpoint's own
+tokenizer with the subfolder materialised. Verified to load with the correct
+parameters (vocab 1024, `min_token` -203, scale 10.0). No substitution.
+
+**pi0-FAST then loaded, and still does not run here.** Weights fit; the rollout
+does not:
+
+| | PyTorch allocated |
+|---|---|
+| `--dtype bfloat16` (cast every parameter) | 6.44 GiB |
+| native, no cast | 6.40 GiB |
+
+**The bf16 cast buys ~40 MiB, not headroom.** The checkpoint is already bf16
+(563 BF16 tensors against 40 deliberately F32) and declares `dtype: bfloat16`,
+so the cast only touches the small F32 tensors. It was never a fit-vs-numerics
+trade-off here; it is pure downside.
+
+OOM during the first rollout at **7.36-7.38 GiB of 7.53**. The gap over the
+weights is autoregressive generation — pi0-FAST emits up to
+`max_action_tokens=256` text tokens per step, so there is a KV cache — plus the
+MuJoCo EGL renderer sharing the card. `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`
+cut fragmentation from 302 MiB to 10.41 MiB and **did not fix it**, which rules
+fragmentation out as the cause.
+
+**A hypothesis this run did NOT test.** Under the blanket bf16 cast, generation
+produced garbage — `AssertionError: Token sequence does not start with
+['Action', ':']`, followed by ~200 junk tokens. Flattening the 40 F32 tensors is
+the obvious suspect, but the native-dtype arm OOMed before emitting an action,
+so **native generation was never observed working**. The cast is not established
+as the cause; both remain open.
+
+**Renderer moved to CPU; it still does not fit. 2026-09-21.** `libosmesa6`
+installed, `MUJOCO_GL=osmesa`. Measured on an env-only loop (no policy, so the
+number is the renderer's own footprint):
+
+| backend | GPU held | per env step |
+|---|---|---|
+| `egl` | **633 MiB** | 16.7 ms |
+| `osmesa` | **0 MiB** | 287.2 ms (**17.2x slower**) |
+
+With all 633 MiB freed, the smoke **still OOMed** — and PyTorch's own allocation
+had grown from 6.66 GiB (EGL) to **7.29 GiB**, of 7.53 total. The freed memory
+was consumed entirely by generation and was still not enough.
+
+**A framing error of mine, corrected.** I had read the earlier "64 MiB" from
+`Tried to allocate 64.00 MiB` as the size of the remaining deficit. It is not —
+it is only the size of the *next* allocation attempt at the moment of death. The
+real deficit is **at least 633 MiB and still unmeasured**, because the process
+dies before generation peaks. A failed allocation tells you where it stopped,
+not how far it had to go.
+
+**Also measured wrong the first time:** `nvidia-smi --query-compute-apps` lists
+only CUDA processes, so a MuJoCo EGL graphics context reports as 0 MiB. Total
+device-memory delta is the correct metric.
+
+**Status: pi0-FAST does not fit this card as published.** `max_action_tokens`
+is tunable and would shrink the KV cache, but it is part of the published eval
+config, and changing it to fit our GPU means no longer running the policy as
+published — which is the whole point of the gate. It joins pi0.5 as a
+rented-GPU candidate (PENDING #25). Every local lever that preserves the
+published config has now been tried: native dtype, `expandable_segments`, and a
+CPU renderer. Four configurations, four failures.
+
+**Still untested, and now probably untestable here:** whether the blanket bf16
+cast is what produced the garbage tokens. No native-dtype arm has ever reached
+generation, so the hypothesis in this entry remains open rather than refuted.
+
+**`osmesa` is a useful tool regardless**, now installed and measured: it frees
+633 MiB for any job that is VRAM-bound rather than time-bound. At 17.2x slower
+rendering it is not a default — on the 623-variant campaign it would add roughly
+14 hours.
+
+---
+
+## R-033 — The precision A/B reported rc=0 and produced nothing
+
+**Date** 2026-09-18 · **Status** BUG · **Run** `runs/lplus_fail_minerva_bf16`
+
+`precision_ab.sh` logged `precision A/B done rc=0` **19 seconds** after starting
+and wrote zero rollouts. `arms.jsonl` holds the same `rollout_id` three times —
+three attempts — and `diagnoses.jsonl` is empty.
+
+The real error:
+
+```
+RuntimeError: Input type (float) and bias type (c10::BFloat16) should be the same
+```
+
+MINERVA's image path never casts observations to bf16, so `conv2d` receives
+float input against a bf16 bias. **MINERVA bf16 is broken, not merely untested.**
+
+**Two defects, and the second is the dangerous one.** The cast is a small fix.
+The wrapper exiting 0 after three crashed attempts is the harness telling us a
+run succeeded when it never produced a row — handoff advice #4 with a clean exit
+code on top. A failing eval must fail loudly.
+
+**What stays open.** R-022's question — whether bf16 changes anything under
+perturbation — is still unanswered and cannot be answered this way until the
+cast is fixed.
+
+---
+
+## R-034 — Three harness bugs found by trying to run a drop-in checkpoint
+
+**Date** 2026-09-18 · **Status** FIXED · **Type** BUG
+
+Each of these was invisible until a checkpoint that was not GR00T came through,
+and each is the same disease: **what the code consumes is not what it declares.**
+
+**1. The adapter silently discarded a checkpoint's shipped rename map.**
+`_load()` passed `"rename_observations_processor": {"rename_map": dict(self.rename_map)}`
+unconditionally, so omitting `--rename-map` overwrote the checkpoint's own map
+with `{}`. pi0-FAST ships
+`observation.images.image -> observation.images.base_0_rgb` and
+`observation.images.image2 -> observation.images.left_wrist_0_rgb`; without them
+it raises "All image features are missing from the batch" at the first rollout.
+GR00T masked this because it needs an explicit map anyway. **Blast radius
+checked before fixing:** of the checkpoints in use, only pi0-FAST ships a
+non-empty map (SmolVLA, pi0.5 and GR00T all ship `{}`), so no earlier run is
+affected. Fixed: override only when the caller supplied a map.
+
+**2. A setting can live in both the policy config and the shipped preprocessor.**
+`action_tokenizer_name` is read by both, by different code. `--override` reached
+only the policy config; the preprocessor built its own tokenizer from the
+checkpoint's processor config and failed at `runner.py:39`, at the first
+rollout rather than at load. Fixed: `--preprocessor-override step.key=value`,
+plumbed to `LeRobotPolicy(preprocessor_overrides=...)` and recorded in **both**
+`identity()` and `resolved_config()` — a different action tokenizer decodes
+different actions, so a run under one must miss the cache of a run under
+another. Deliberately generic rather than auto-propagating that one key: other
+checkpoints will declare other settings twice.
+
+**3. `setup_pi0.sh`'s smoke targets the vanilla suite from the LIBERO-Plus venv.**
+The fork replaces the `libero` package, so `--tasks 0,1,2` resolves to
+LIBERO-Plus variant names whose `.pruned_init` files do not exist. It would have
+hit pi0.5 too had its probe ever passed. The smoke should run
+`--libero-plus --base-instruction` against the canonical variants R-029 used, so
+its number is directly comparable to GR00T's on the same scenes.
+
+---
+
 ## Open questions carried forward
 
 - **SmolVLA harness bias under ~10 pp** (R-017): needs ~50 eps/task per side on
@@ -1358,7 +1681,14 @@ the fixed path.
 - **Goal tasks 3 and 9 carry most of goal's deficit** (R-018). Why?
 - **Goal task 2's target resolves to the cabinet base** (R-020).
 - **Failure taxonomy** is to be redesigned with consumer input
-  (`docs/TAXONOMY_FAMILY_GUIDELINES.md`).
+  (`docs/TAXONOMY_FAMILY_GUIDELINES.md`). R-030 gives it a concrete starting
+  point: `visual_grounding` is measurably wrong on 69 of 78 robot-initial-state
+  failures, and *never approached the target* is already computable.
+- **Does a scripted homing prefix recover the robot-initial-state failures?**
+  (R-030). Diagnostic, not a benchmark fix.
+- **pi0-FAST's action tokenizer** (R-032): the `bpe_tokenizer/` subdirectory is
+  the remaining lead.
+- **MINERVA bf16 cast**, and a harness that fails loudly (R-033).
 - **R-005's perturbed arms** need a re-run with fixed code before any manifest
   row ships.
 - **GR00T** (the priority): VRAM fit (#16), then a harness-parity check for GR00T
