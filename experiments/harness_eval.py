@@ -54,6 +54,12 @@ def main():
                          "this is an UNPERTURBED control on the LIBERO-Plus stack")
     ap.add_argument("--raw-instruction", action="store_true",
                     help="LIBERO-Plus: keep LeRobot's contaminated instruction (measurement only)")
+    ap.add_argument("--instruction-override", default=None,
+                    help="Replace the instruction for EVERY episode. Pass an empty "
+                         "string for the null-prompt arm. The env already supports "
+                         "this via instruction_override (libero_env.py:305-309); this "
+                         "exposes it to a campaign. Recorded in the trace, and the "
+                         "per-step Observation.instruction shows what was actually sent.")
     ap.add_argument("--suites", required=True)
     ap.add_argument("--tasks", default="0,1,2,3,4,5,6,7,8,9")
     ap.add_argument("--episodes", type=int, default=10)
@@ -106,6 +112,9 @@ def main():
                             libero_plus=a.libero_plus,
                             libero_plus_raw_instruction=a.raw_instruction,
                             libero_plus_base_instruction=a.base_instruction)
+            if a.instruction_override is not None:
+                # reset() reads this every episode (libero_env.py:308).
+                env.instruction_override = a.instruction_override
             for knobs in specs:
                 key = (suite, tid, json.dumps(knobs, sort_keys=True))
                 if key in done:

@@ -1747,6 +1747,64 @@ This is the cheapest experiment that separates them.
 
 ---
 
+## R-037 — PRE-REGISTERED: GR00T with a NULL PROMPT on libero_spatial
+
+**Date registered** 2026-09-22 · **Status** PRE-REGISTERED, launching now
+
+**Registered before the run because both outcomes are interpretable and it
+would be easy to claim either was expected.**
+
+### The question
+
+LIBERO-Plus Finding 3 reports models are "largely insensitive to language
+variations", and our own R-025 contamination A/B was null (34 vs 33 of 42,
+exact McNemar p=1.0). Both are consistent with the policy **ignoring the
+instruction**. Neither tested the limit: what happens with **no instruction at
+all**.
+
+**`libero_spatial` is the right suite for this and it is not an accident.** The
+suite is built so that language is the *only* disambiguator — several visually
+identical black bowls in one scene, distinguished solely by spatial referent
+("the black bowl **next to the ramekin**" vs "**on the stove**" vs "**between
+the plate and the ramekin**"). A policy that cannot read the instruction has no
+way to know which bowl is meant.
+
+### Design
+
+- **Null arm:** 20 canonical LIBERO-Plus variants (`view_0_0_100_0_0`,
+  `initstate 0`), 2 per base scene across all 10 base scenes, 5 episodes each =
+  **100 episodes**, `--instruction-override ""`.
+- **Control arm:** already measured. `runs/groot_control_lplus_stack`, 100/100,
+  identical stack and settings, and its 10 task ids are the first of each pair
+  here. **No control GPU time is needed.**
+- Held fixed: GR00T N1.7 bf16, nas=16, obs 360, canonical camera,
+  `--base-instruction` on the control arm, MuJoCo 3.3.2.
+
+### Pre-registered outcomes, with what each would mean
+
+| result | reading |
+|---|---|
+| **near 100%** | Language is not merely de-emphasised, it is **unused**. The policy is solving `libero_spatial` from vision and proprioception alone, which means it must be resolving "which bowl" by something other than the instruction — position prior, saliency, or a scene-to-target association memorised in training. Strongest possible version of Finding 3. |
+| **drops toward chance among candidates** | Language **is** being read and used. That would contradict Finding 3 and R-025 — and would mean our null A/B was underpowered rather than correct. |
+| **collapses to ~0** | Neither. An empty string is off-distribution for the tokenizer, and the failure would be about degenerate conditioning rather than about language. **This is the outcome that proves nothing**, and it must not be reported as "language matters". |
+
+**Expectation, stated plainly: near 100%.** R-025, LIBERO-Plus Finding 3, and
+`res`'s survey (VLM4VLA: general VLM competence poorly predicts control) all
+point the same way. Recording it so that if the score drops, the miss is on
+record.
+
+### The trap this design has to survive
+
+The third row above is the one to guard. If the score collapses, the discriminator
+is **which object the arm approaches**, not the success rate —
+`experiments/language_probe_run.py` already makes this argument for substituted
+instructions and it applies here. A policy that ignores language and goes to its
+usual target, and a policy whose conditioning is degenerate and goes nowhere,
+both score 0. `_gt_eef_to_object` and `_gt_nearest_object` are recorded per step
+and separate them.
+
+---
+
 ## Open questions carried forward
 
 - **SmolVLA harness bias under ~10 pp** (R-017): needs ~50 eps/task per side on
