@@ -108,10 +108,25 @@ class FakePolicy(nn.Module):
         super().__init__()
         self.action_head = FakeActionHead()
 
-    def one_forward(self, seed: int | None = None):
+    def one_forward(self, seed: int | None = None, n_text: int = 3):
+        """`backbone_output` carries `image_mask` exactly as the real one does.
+
+        groot_n1_7.py:451 builds it as `input_ids == image_token_id` and returns
+        it alongside `backbone_features` (:453-457). The VL sequence is image
+        AND text tokens interleaved, and the model drives them through separate
+        attention masks -- so a tap that pools the whole sequence averages two
+        channels the model keeps apart.
+
+        `n_text` varies per call because real instruction length varies (14-23
+        words across the de-risk episodes), which is what makes the mixture
+        ratio drift between episodes.
+        """
         if seed is not None:
             torch.manual_seed(seed)
-        backbone_output = {"backbone_features": torch.randn(1, VL_TOKENS, VL_DIM)}
+        mask = torch.zeros(1, VL_TOKENS, dtype=torch.bool)
+        mask[0, :VL_TOKENS - n_text] = True          # image tokens first
+        backbone_output = {"backbone_features": torch.randn(1, VL_TOKENS, VL_DIM),
+                           "image_mask": mask}
         action_input = {"state": torch.randn(1, STATE_TOKENS, STATE_DIM)}
         return self.action_head.get_action(backbone_output, action_input)
 

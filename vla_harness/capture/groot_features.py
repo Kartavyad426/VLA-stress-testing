@@ -153,6 +153,21 @@ def attach_groot_capture(policy, sink: CaptureSink, k_resample: int = 1):
     original_get_action = head.get_action
 
     def wrapped_get_action(*args, **kwargs):
+        # `image_mask` is on the INPUT, not the return: get_action_with_features
+        # returns exactly action_pred / backbone_features / state_features
+        # (groot_n1_7.py:711-715). `backbone_output` carries it from :451-457.
+        #
+        # Stashed BEFORE the original call, because the vlln pre/post hooks fire
+        # INSIDE it (get_action -> _encode_features -> process_backbone_output)
+        # and cannot see their own caller's arguments. Stashing after would give
+        # every hook a stale or absent mask on the first forward.
+        bo = kwargs.get("backbone_output", args[0] if args else None)
+        mask = None
+        if bo is not None:
+            mask = bo["image_mask"] if "image_mask" in bo else getattr(
+                bo, "image_mask", None)
+        sink.set_token_mask(mask)
+
         out = original_get_action(*args, **kwargs)
         sink.stage(Role.VL_ADAPTED, out["backbone_features"].detach())
         sink.stage(Role.STATE_ENCODED, out["state_features"].detach())

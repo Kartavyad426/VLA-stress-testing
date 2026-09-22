@@ -80,6 +80,19 @@ class CaptureSink:
     def __init__(self) -> None:
         self._episode: list[dict] = []
         self._pending: dict = {}
+        self._mask = None
+
+    def set_token_mask(self, mask) -> None:
+        """Which VL tokens are IMAGE tokens, for the forward being assembled.
+
+        Without it the VL roles are pooled across image and text together --
+        two channels the model itself keeps apart (`AlternateVLDiT` drives them
+        through separate attention masks). Worse, text token count varies with
+        instruction length, so the mixture ratio drifts between episodes for
+        reasons unrelated to what the camera saw, injecting variance into the
+        feature that dilutes any real signal.
+        """
+        self._mask = mask
 
     def begin_episode(self) -> None:
         """Start an episode, refusing to inherit the previous one's forwards.
@@ -122,6 +135,8 @@ class CaptureSink:
     def commit_forward(self) -> None:
         """Close the current forward and start the next."""
         if self._pending:
+            if self._mask is not None:
+                self._pending["_image_mask"] = self._mask
             self._episode.append(self._pending)
             self._pending = {}
 
@@ -153,6 +168,37 @@ class CaptureSink:
                 # let the choice be made after seeing which separated better.
                 arrays[f"{role}_mean"] = _store(f"{role}_mean", t.mean(axis=1))
                 arrays[f"{role}_max"] = _store(f"{role}_max", t.max(axis=1))
+
+                # AND separately over image vs text tokens. The combined pool
+                # above is kept so results stay comparable with R-036, but it
+                # mixes two channels the model keeps apart, with a ratio that
+                # drifts with instruction length.
+                if "_image_mask" in rows[0]:
+                    im = [np.asarray(r["_image_mask"][0].cpu()) for r in rows]
+                    # The mask indexes the VL sequence; if its length ever
+                    # disagrees with the token axis (padding handled elsewhere,
+                    # a future caller), refuse rather than index silently wrong
+                    # -- a misaligned mask would pool the wrong tokens into
+                    # "image" and the error would look like a weak signal.
+                    bad = [(i, len(m), t.shape[1]) for i, m in enumerate(im)
+                           if len(m) != t.shape[1]]
+                    if bad:
+                        raise ValueError(
+                            f"capture: image_mask length disagrees with the "
+                            f"{role} token axis at forwards {bad} "
+                            f"(mask, tokens) -- refusing to pool on a "
+                            f"misaligned mask.")
+                    for tag, sel in (("img", lambda m: m), ("txt", lambda m: ~m)):
+                        mean = np.stack([t[i][sel(m)].mean(axis=0)
+                                         for i, m in enumerate(im)])
+                        mx = np.stack([t[i][sel(m)].max(axis=0)
+                                       for i, m in enumerate(im)])
+                        arrays[f"{role}_{tag}_mean"] = _store(f"{role}_{tag}_mean", mean)
+                        arrays[f"{role}_{tag}_max"] = _store(f"{role}_{tag}_max", mx)
+                    arrays["n_image_tokens"] = np.array(
+                        [int(m.sum()) for m in im], dtype=np.int32)
+                    arrays["n_text_tokens"] = np.array(
+                        [int((~m).sum()) for m in im], dtype=np.int32)
 
         if Role.STATE_ENCODED.value in rows[0]:
             arrays["state_encoded"] = _store(

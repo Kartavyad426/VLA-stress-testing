@@ -368,3 +368,60 @@ def test_flush_refuses_to_write_non_finite_features(tmp_path):
 
     with pytest.raises(ValueError, match="non-finite"):
         sink.flush(tmp_path, rollout_id="nan", live_dims=LIVE_DIMS, meta={})
+
+
+# --- modality-aware pooling -------------------------------------------------
+
+def test_vl_roles_are_pooled_separately_over_image_and_text_tokens(policy, tmp_path):
+    """The VL sequence is image AND text tokens interleaved
+    (groot_n1_7.py:451), and the model drives them through separate attention
+    masks. Pooling the whole sequence averages two channels the model keeps
+    apart -- and because instruction length varies, the mixture ratio drifts
+    between episodes for reasons unrelated to what the camera saw."""
+    sink = CaptureSink()
+    attach_groot_capture(policy, sink)
+    sink.begin_episode()
+    policy.one_forward(seed=40)
+    path = sink.flush(tmp_path, rollout_id="m", live_dims=LIVE_DIMS, meta={})
+
+    with numpy.load(path) as z:
+        for k in ("vl_adapted_img_mean", "vl_adapted_txt_mean",
+                  "vl_encoder_img_mean", "vl_encoder_txt_mean"):
+            assert k in z, f"missing {k}"
+        img = z["vl_adapted_img_mean"].astype(numpy.float64)
+        txt = z["vl_adapted_txt_mean"].astype(numpy.float64)
+        assert not numpy.allclose(img, txt), "image and text pools are identical"
+
+
+def test_combined_pool_is_the_token_weighted_mix_of_the_two(policy, tmp_path):
+    """Sanity: the old combined mean must be recoverable from the two new ones,
+    which proves the split is a partition of the same tokens and not a
+    different quantity."""
+    sink = CaptureSink()
+    attach_groot_capture(policy, sink)
+    sink.begin_episode()
+    policy.one_forward(seed=41, n_text=3)
+    path = sink.flush(tmp_path, rollout_id="m", live_dims=LIVE_DIMS, meta={})
+
+    with numpy.load(path) as z:
+        n_img, n_txt = int(z["n_image_tokens"][0]), int(z["n_text_tokens"][0])
+        mix = (z["vl_adapted_img_mean"].astype(numpy.float64) * n_img
+               + z["vl_adapted_txt_mean"].astype(numpy.float64) * n_txt) / (n_img + n_txt)
+        numpy.testing.assert_allclose(mix, z["vl_adapted_mean"].astype(numpy.float64),
+                                      rtol=2e-2, atol=2e-2)
+
+
+def test_token_counts_are_recorded_so_mixture_drift_is_visible(policy, tmp_path):
+    """R-036 could not check this because the capture stored no token count --
+    the modality-mixing defect had to be established from source rather than
+    from the data. It is recorded now."""
+    sink = CaptureSink()
+    attach_groot_capture(policy, sink)
+    sink.begin_episode()
+    policy.one_forward(seed=42, n_text=2)
+    policy.one_forward(seed=43, n_text=5)
+    path = sink.flush(tmp_path, rollout_id="m", live_dims=LIVE_DIMS, meta={})
+
+    with numpy.load(path) as z:
+        assert list(z["n_text_tokens"]) == [2, 5]
+        assert list(z["n_image_tokens"]) == [5, 2]
