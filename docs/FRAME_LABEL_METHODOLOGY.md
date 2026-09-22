@@ -217,6 +217,18 @@ run the ordering on **successful** episodes and confirm no consistent order
 appears. If it does, the ordering is a property of where the taps sit and this
 method is dead.
 
+**And in N1.7 specifically that hazard has a known period.** The config
+instantiates `AlternateVLDiT` — `use_alternate_vl_dit: True`
+(`groot_n1_7.py:113`) — with `attend_text_every_n_blocks: 2` (`:114`, wired at
+`:472-476`) across 32 DiT layers. **The DiT attends to the VL stream only every
+second block.** So any depth-wise onset or ordering analysis across DiT blocks
+will show a period-2 structure that is pure architecture. Reading that as
+evidence about the failure would be an artefact, and it is not a subtle one —
+it is exactly the shape an "information arrives here" result would take. Any
+§4.4 analysis over DiT depth must control for block parity explicitly, or
+restrict itself to the text-attending blocks. (Found by `res` via `vla-dd`;
+verified here against the vendored source.)
+
 ### 4.5 Activation patching — the only causal method here
 
 Our matched pairs (§4.2) are exactly the clean/corrupted structure that
@@ -356,10 +368,21 @@ verified against the primary source. `[D]` = derived from our own data by me.*
 
 ### 8.0 Headline, four claims
 
-1. **The submodule-localisation gap `primary` assumed we were in is closed.**
-   Two 2026 papers do exactly this, cross-architecture, with released code — and
-   one of them supports **GR00T N1.5**. §4.5's activation-patching plan is no
-   longer a first-of-its-kind build; it is a re-run of published method. (§8.2)
+1. **The submodule-localisation gap `primary` assumed we were in is mostly
+   closed.** Two 2026 papers do exactly this, cross-architecture, and one ships a
+   toolkit whose README declares GR00T N1.5 support. §4.5's activation-patching
+   plan is probably not a first-of-its-kind build. (§8.2)
+
+   **Caveat, `primary`'s — and the recon has now settled it against me.**
+   §8.11 read the source: action-atlas supports N1.5 **and N1.6**, and its
+   action-head accessors (VL-SA, 32-block DiT) will likely transfer to N1.7 —
+   but its **input path is pinned to the Eagle processor**, which N1.7 replaced
+   with `Qwen3VLProcessor`, so its episode runner cannot feed our checkpoint.
+   **The "released code we could run" part of this claim is withdrawn.** What
+   survives: the accessors are worth reading as a reference, the *methods* are
+   documented well enough to reimplement, and the *finding* that the visual
+   pathway dominates stands on the papers' own models. We would be
+   reimplementing published method, not adopting published code.
 2. **`primary`'s OpenVLA / OpenVLA-OFT natural experiment survives verification
    and is stronger than claimed** — OFT's vision encoders are not merely shared,
    they are *frozen*. (§8.3)
@@ -382,7 +405,7 @@ verified against the primary source. `[D]` = derived from our own data by me.*
 |---|---|---|
 | [VLA-Trace, arXiv:2605.30117](https://arxiv.org/abs/2605.30117) `[R]` | CKA representation tracing + **attention-knockout** interventions + behavioural probes, on π0.5 and OpenVLA. Localises which modality pathway carries control. | **10/10** — closest published thing to our whole remit |
 | [Not All Features Are Created Equal, arXiv:2603.19233](https://arxiv.org/abs/2603.19233) (ICLR 2026) `[R]` | First cross-architecture mechanistic study: activation injection + SAEs + linear probes, 6 models 80M–7B, 394k rollouts. Finds the **visual pathway dominates action generation**; causal ablation zero-effect rates 28–92%. | **10/10** — the method catalogue we were about to reinvent |
-| [action-atlas](https://github.com/CWRU-AISM/action-atlas) `[R]` | That paper's toolkit. Grid ablation, vision perturbation, counterfactual prompting, cross-task injection, SAE training, concept ablation/steering. **Supports GR00T N1.5** (plus π0.5, OpenVLA-OFT, SmolVLA, X-VLA). | **10/10** — running code, one minor version off our policy |
+| [action-atlas](https://github.com/CWRU-AISM/action-atlas) `[V]` | That paper's toolkit. Grid ablation, vision perturbation, counterfactual prompting, cross-task injection, SAE training, concept ablation/steering. Supports GR00T **N1.5 and N1.6**; action-head accessors likely transfer to N1.7, **input path pinned to the Eagle processor does not** — §8.11. | **6/10** — reference for tap paths; not runnable as-is |
 | [VLM4VLA, arXiv:2601.03309](https://arxiv.org/abs/2601.03309) (ICLR 2026) `[R]` | 17 VLMs → VLA under a fixed minimal adapter. **Vision encoder, not the language model, is the bottleneck**; general VLM competence poorly predicts control. | **9/10** — directly answers the user's "would a better VLM help" |
 | [OpenVLA-OFT, arXiv:2502.19645](https://arxiv.org/abs/2502.19645) `[V]` | Action-side-only changes at a frozen vision backbone. | **9/10** — the natural experiment, verified (§8.3) |
 | [FailureSpot, arXiv:2609.04277](https://arxiv.org/abs/2609.04277) `[R]` | States §1's label problem verbatim; fixes it with action-derived weak supervision + active learning. | **8/10** — confirms §1 is a real, named problem |
@@ -673,6 +696,399 @@ describe the benchmark's design rather than a discovered gap.
    distribution.** It decides whether §8.6 Result 1 is a finding or a
    description of the benchmark's design, and it is a documentation question,
    not a GPU one.
+
+### 8.8 `[D][V]` How LIBERO-Plus generates robot initial states — the blocker, settled
+
+`primary` made this a blocker because §8.6's headline means opposite things
+depending on the answer. **It is now answered, from the fork's own source.**
+
+**The generator** is `third_party/LIBERO-plus/libero/libero/envs/robots/new_init.py`,
+a code-generation script that writes out the variant classes. Its whole method:
+
+```python
+np.random.seed(42)
+original_qpos = np.array([0.0, -1.61037389e-01, 0.00, -2.44459747e00,
+                          0.00, 2.22675220e00, np.pi / 4])   # canonical neutral pose
+perturbation  = np.random.randn(7)
+perturbation /= np.linalg.norm(perturbation)                 # isotropic unit direction
+perturbed_qpos = original_qpos + perturbation * RADIUS
+```
+
+Five blocks of 100, `RADIUS` stepping 0.1 → 0.5 rad. **Verified by parsing the
+500 generated `MountedPanda` classes** in `mounted_panda.py` and recomputing
+‖qpos − original‖: initstate 1–100 = 0.1000, 101–200 = 0.2000, 201–300 = 0.3000,
+301–400 = 0.4000, 401–500 = 0.5000 rad, exactly, no spread.
+
+**The answer to the blocking question: the initial states are NOT drawn from the
+demonstrated distribution.** They are an isotropic random direction in 7-D joint
+space at a fixed radius from the canonical start. Demonstration data plays no
+part. **So §8.6's Result 1 partly describes the benchmark's generation procedure
+rather than discovering a hole** — robot-init states are off-manifold *by
+construction*, and `primary`'s caution was correct. §8.6 Result 1 should be
+reported as *"the perturbation does what it says, and no other perturbation
+touches proprioception"* — a positive control for our measurement — **not** as a
+discovered coverage gap. Results 2 and 3 are unaffected: they compare perturbed
+states against each other and against held-out demonstrations, and neither
+depends on how the states were generated.
+
+**The bonus, and it is worth more than the blocker.** The radius is a genuine,
+benchmark-native measure of **perturbation magnitude** — exactly what
+`docs/LIBERO_PLUS_LEVELS.md` §1 says the difficulty *level* is not. We can now
+ask a dose-response question that was previously unaskable.
+
+**Result — corrected after `primary`'s mediator objection, which was right.**
+My first reading of this was "magnitude carries nothing, level carries
+everything". That over-corrected, for a reason worth recording: **difficulty
+level is a mediator of radius, not an independent covariate.** Level is how many
+of four reference models solved the variant, and whether they solved it depends
+on how far the arm was displaced — so the causal path runs
+`radius → task difficulty → level`, with level *downstream* of the effect being
+estimated. Conditioning on a mediator blocks part of that effect and makes a real
+one look null. **Confirmed in our own data:** radius strongly predicts level
+(26.7% L5 at r=0.2 rising to 72.4% at r=0.4; mean radius 0.413 at L5 vs 0.359 at
+L4, Mann-Whitney **p = 0.0076**). So the stratified rows below do not say radius
+is inert; they say **radius adds nothing once level is known**, which is a
+different and much weaker claim.
+
+GR00T's 116 robot-init variants from R-026:
+
+| radius (rad) | n | success |
+|---|---|---|
+| 0.2 | 15 | 46.7% |
+| 0.3 | 26 | 30.8% |
+| 0.4 | 29 | 31.0% |
+| 0.5 | 46 | 30.4% |
+
+**The marginal table is the total effect**, which is what a dose-response
+question actually asks for: a 16-point drop from 0.2 to 0.3, then flat. That
+shape — **an effect that saturates by ~0.3 rad** — is substantive, not a null.
+But it is *not* separable at this n: 0.2 against pooled 0.3–0.5 gives Fisher
+**p = 0.246, OR 1.98**, and the per-radius Wilson intervals ([21,72] at r=0.2
+against [17,44] at r=0.5) overlap heavily. **The honest statement is that the
+shape is suggestive of saturation and this subset cannot separate it from flat.**
+Neither "composition, not dose" (mine) nor "a real effect then saturation"
+(`primary`'s) is supported by these numbers alone. §8.10 specifies the experiment
+that would settle it.
+
+Within difficulty level — i.e. conditioning on the mediator, so read this as
+"radius adds nothing *beyond level*", not "radius is inert":
+
+| stratum | n | mean radius, failed | mean radius, succeeded | Mann-Whitney |
+|---|---|---|---|---|
+| level 4 | 46 | 0.358 | 0.359 | p = 0.514 |
+| level 5 | 70 | 0.415 | 0.406 | p = 0.346 |
+
+Level, by contrast, is strongly predictive: **L4 47.8% vs L5 22.9%, Fisher exact
+p = 0.0081, OR 3.09.**
+
+**Why this matters more than the blocker it was raised to settle.** Difficulty
+level is defined as *how many of four other VLAs (OpenVLA-OFT, π0, π0-FAST,
+UniVLA) solved that variant* — a property of other models, not of the physics.
+So what predicts GR00T's failure on a robot-init variant is **not how far the
+arm was displaced, but whether other architectures also failed on it.** Beyond
+about 0.2 rad the response saturates at ~30% and stops caring about magnitude.
+
+**Held one notch looser than I first put it, at `primary`'s insistence and
+correctly so.** Co-failure across architectures *constrains*; it does not
+*identify*. It is consistent with the family-C skill gap of §8.6, and equally
+consistent with a shared property of the LIBERO demonstration corpus all five
+models trained on, and with some variants simply being kinematically harder in a
+way no current method handles. That is the same discipline applied to the
+MINERVA claim in `primary`'s (A) correction, and it applies here too. What it
+does do is make a **single-module fault in GR00T specifically** hard to sustain.
+
+**Caveats.** These 116 are the L4+L5 subset of a deliberately unbalanced failure
+hunt (R-026 states no cross-level comparison from it is valid), so radius and
+level are confounded in the marginal table — which is exactly why the stratified
+rows are the ones to read. No radius-0.1 variants are present at all. Per-cell
+n is 15–46. The clean version of this experiment is a **balanced radius sweep at
+fixed scene**, which would need the GPU and is `primary`'s to schedule; it would
+turn a null result on a biased subset into a real dose-response curve.
+
+---
+
+### 8.9 `[D][V]` Does the backbone predict robustness? — LIBERO-Plus Table 1
+
+`primary`'s task (3). **Descriptive only**: n=10 models with correlated design
+choices, so no fitted model and no inference. Table 1 read from the PDF
+(arXiv:2510.13626v3) with `pdftotext`, not from a search summary.
+
+**The decisive fact needs no statistics.** Camera-viewpoint robustness across
+all ten models spans 0.3 → 66.4. The five models sharing **one identical
+Prismatic backbone** (Llama-2 7B, DINOv2+SigLIP: OpenVLA, OFT, OFT_w, OFT_m,
+RIPT-VLA) span **1.1 → 59.7 — 89% of that entire range.** The two PaliGemma-3B
+models span 15.8 → 66.4, another 50.6 pp. **Backbone identity explains
+essentially none of the variance in robustness**, because the within-backbone
+spread is as large as the across-model spread.
+
+**Three fixed-backbone natural experiments — the shape `primary` asked for.**
+
+| pair | what changes | camera | robot init | clean |
+|---|---|---|---|---|
+| OpenVLA → OpenVLA-OFT | action side; encoders **frozen** | 1.1 → 59.7 (**+58.6**) | 4.1 → 37.2 (**+33.1**) | +20.6 |
+| π0 → π0-fast | **action representation only** | 15.8 → 66.4 (**+50.6**) | 6.6 → 24.8 (**+18.2**) | **−8.7** |
+| OpenVLA-OFT → OFT_w | **input channel only** (wrist camera removed) | 59.7 → 16.8 (**−42.9**) | 37.2 → 43.7 (+6.5) | −1.8 |
+
+**π0 → π0-fast is the cleaner of the two `primary` has been working from, and it
+is new to this thread.** Verified: π0-fast "uses the same model backbone and
+training dataset" as π0, differing only in action representation — flow matching
+replaced by FAST (DCT-based discrete tokenisation). So **backbone *and* training
+data are both held fixed**, which the OpenVLA/OFT pair cannot claim, and there is
+no bidirectional-attention or FiLM confound. +50.6 pp on camera from the action
+representation alone.
+
+**And it rules out the obvious story.** OpenVLA→OFT goes discrete → continuous
+and gains; π0→π0-fast goes continuous → discrete and gains. **The two point in
+opposite directions on that axis**, so "continuous actions are more robust" is
+not the lesson. What both share is only that the action side was redesigned.
+
+**π0-fast also gets *more robust while getting less accurate*** (clean 94.2 →
+85.5, camera 15.8 → 66.4). Robustness and clean success rate dissociate — which
+is the whole premise of this project stated in someone else's numbers.
+
+**The finding I did not expect, and it changes what we should do.** Across the
+ten models, camera robustness and robot-init robustness are **uncorrelated**:
+Spearman **ρ = +0.09, p = 0.803**. Clean success predicts neither strongly
+(ρ = +0.59, p = 0.074 for camera; ρ = +0.49, p = 0.150 for robot init). The
+OFT → OFT_w row shows the dissociation directly: removing the wrist camera costs
+**42.9 pp of camera robustness and *gains* 6.5 pp on robot init**.
+
+**So "camera" and "robot initial state" are not one axis of difficulty.**
+Whatever buys viewpoint robustness does not buy proprioceptive robustness, and
+can cost it. This independently supports `primary`'s decision to aim the
+embedding capture at **camera viewpoint**, where §5's upstream-vs-head cut stays
+well posed, and to stop expecting one mechanism story to cover both.
+
+**Scope caveat, raised by `vla-dd` and important enough to state before the
+verdict.** Everything above is a claim about **variance in robustness *across*
+models**. It does not establish that the backbone is causally uninvolved
+*within* one model. A component can be necessary to a behaviour while not being
+what differentiates ten checkpoints — necessity and explanatory variance are
+different properties. So §8.9 is a **strong reason to demand a specific question
+before spending ablation or SAE compute on backbone interpretability**, and a
+**weak reason to conclude backbone interpretability is uninformative**. Do not
+read it as the latter.
+
+**Verdict on "would a stronger VLM help GR00T".** Unchanged and now better
+grounded: **no, and the leverage is action-side.** Three independent lines —
+Table 1's within-backbone spread, the π0/π0-fast pair, and VLM4VLA's finding that
+general VLM competence poorly predicts control — all say the backbone is not
+where robustness lives. **Caveat on scope:** the paper's own Finding 4 credits
+OFT's wrist camera, and the OFT_w row confirms it is worth 42.9 pp on camera. So
+*input channels* matter enormously even though *backbone identity* does not.
+"Better VLM" is the wrong axis; "more/better-placed cameras" is a live one.
+
+**Variant labelling, per `primary`'s caution.** Table 1's rows are OpenVLA-OFT
+(wrist + third-person), OFT_w (third-person only), OFT_m (mix-sft, all four
+suites). The paper does not state which carry FiLM; FiLM is an OFT+ feature and
+none of these rows is labelled OFT+. **So "frozen encoders" is safe for the
+OpenVLA → OFT row as regards the *encoders*, and the bidirectional-attention
+caveat from §8.3 still applies to all three.** RIPT-VLA is an RL post-training
+stage over the same stack, which is why it lands beside OFT.
+
+---
+
+### 8.10 The balanced radius sweep — spec, as requested
+
+`primary` approved this and asked me to spec it. It exists because §8.8 is stuck
+for a structural reason no post-hoc adjustment fixes: radius and level are
+confounded, and level is a *mediator*, so it can be neither ignored nor
+conditioned on. **A balanced design breaks the confound by construction.**
+
+| field | value | why |
+|---|---|---|
+| **Scenes** | **2**: `next_to_the_ramekin` and a cookie-box scene | R-030 found the mechanism is *not uniform* — the arm reaches 6.4–7.4 cm on ramekin scenes and never gets within 19 cm on cookie-box ones. One scene would measure one mechanism and generalise wrongly, which is `primary`'s own measurement error #4. |
+| **Radii** | **0, 0.1, 0.2, 0.3, 0.4, 0.5** | radius 0 = canonical, the anchor `primary` asked about — **include it**. 0.1 is absent from all 116 existing episodes and is exactly where the marginal table suggests the action is. |
+| **Episodes** | **20 per radius per scene = 240 total** | fits the couple-of-hours budget; R-026 ran 623 overnight. |
+| **Init states** | 20 distinct `initstate` indices drawn from each radius block (1–100, 101–200, …) with a **fixed seed, recorded** | direction is isotropic, so sampling 20 of 100 gives direction diversity within a fixed radius. |
+| **Held fixed** | canonical camera `view_0_0_100_0_0`, `--base-instruction`, GR00T bf16, nas=16, render 360, MuJoCo 3.3.2 | only `initstate` varies. Same stack as R-029/R-026 so results are comparable. |
+
+**The analysis must be a trend test, not pairwise.** At n=40 per radius (pooled
+over scenes) the per-cell CI is about ±15 pp, so detecting the ~16 pp drop
+pairwise would need roughly 150 per arm — unaffordable. **Cochran–Armitage across
+all six ordered radii** has far more power against a monotone or saturating
+alternative than any pairwise comparison, and the question is about *shape*.
+Pre-register the three shapes before running: **monotone decline**, **saturating
+by 0.2–0.3** (what §8.8 hints at), or **flat above 0**.
+
+**Report per scene, then pool** (§6 control 3), and expect the two scenes to
+differ — R-030 says they should.
+
+**Why it matters beyond settling an argument.** `primary` is right that if
+saturation is real it has a direct post-training consequence: **corrective data
+would need to cover the whole ball rather than concentrate near neutral**,
+because past ~0.2 rad the policy is equally lost everywhere. If instead the
+decline is monotone, near-neutral corrective data is worth most. Those are
+opposite data-sourcing prescriptions and this is the cheapest experiment that
+distinguishes them.
+
+---
+
+### 8.11 `[V]` action-atlas against N1.7 — recon, from the source
+
+`primary`'s task (2), including its flash-attention question. **Recon only;
+nothing in `vla_harness/` was touched.** I read the repository source rather than
+the README, and it changes the answer in both directions — the version gap is
+*narrower* than the README implies, and there is a **hard blocker the README does
+not mention.**
+
+**First, a structural point about the repo.** `action_atlas/api/*` is a **Flask
+backend that serves pre-baked JSON** (`experiment_results_<model>.json`, cached
+ablation indices). It is a results browser over the paper's precomputed output,
+not instrumentation. The code that actually runs models is `experiments/` —
+`groot_common.py`, `hooks.py`, `model_adapters.py`. Judge usability from those.
+
+**What `experiments/groot_common.py` supports, in its own words:**
+
+```
+N1.5 Eagle: model.backbone.eagle_model.language_model.model.layers[i]
+N1.5 DiT:   model.action_head.diffusion_model.transformer_blocks[i] (16 blocks)
+N1.6 Eagle: model.backbone.model.language_model.model.layers[i]
+N1.6 DiT:   model.action_head.model.transformer_blocks[i] (32 blocks)
+```
+
+**N1.6 is supported, and that matters** — it is one version closer than the
+README's "N1.5" suggests, and its DiT is **32 blocks, exactly our N1.7's depth**.
+My earlier claim that the DiT gap kills layer-indexed taps was **wrong** and is
+withdrawn.
+
+| component | their accessor | our N1.7 | verdict |
+|---|---|---|---|
+| VL-SA | `action_head.vl_self_attention.transformer_blocks` | 4 blocks, 2048 | **likely works unchanged** |
+| DiT | `action_head.model.transformer_blocks[i]` (N1.6 path, 32) | 32 layers, 1.092 B | **likely works unchanged** |
+| VLM backbone | `backbone.{eagle_model,model}.language_model.model.layers` | Cosmos-Reason2-2B (Qwen3-VL) | **unverified** — Qwen3-VL does expose `.language_model`, so it may partially resolve, but nothing in the repo has tested it |
+| input building | `build_eagle_processor()` | `Qwen3VLProcessor` | **hard blocker** |
+
+**Correction to my first pass, after `vla-dd`'s port assessment and my own
+source check.** I called the Eagle processor a hard blocker on the whole path.
+**That is wrong for model loading.** `ModelAdapter.load_model`
+(`experiments/model_adapters.py:437-446`) tries
+`GrootPolicy.from_pretrained(checkpoint, strict=False)` and takes
+`policy._groot_model` **first**, falling back to their own `load_groot_n15` only
+on exception. That primary path is *the same entry point our harness already
+uses* — `vla_harness/capture/groot_features.py` resolves
+`policy._groot_model.action_head`. So loading an N1.7 checkpoint should work.
+
+**But it is 3 of 5 adapter methods clean, not 4 of 5.** `build_eagle_processor()`
+is called **unconditionally at `model_adapters.py:448`**, outside the try/except,
+and `run_episode` passes `self.eagle_processor` straight into
+`run_groot_episode`, which builds `eagle_*`-prefixed inputs. `run_episode` also
+defaults `action_horizon=16`, against N1.7's 40.
+
+| adapter method | transfers to N1.7? |
+|---|---|
+| `load_model` | **yes** — LeRobot `GrootPolicy` path |
+| `setup_suite`, `create_env` | **yes** — LIBERO, not model-specific |
+| `get_layer_groups` | **no** — three accessors, below |
+| `run_episode` | **no** — pinned to the Eagle processor; `action_horizon` 16 vs 40 |
+
+**The three accessors, verified line-by-line against our vendored
+`third_party/lerobot/src/lerobot/policies/groot/groot_n1_7.py`** (I checked these
+rather than accept them):
+
+1. **Backbone LM** — theirs `backbone.eagle_model.language_model.model.layers`;
+   N1.7 has **no `eagle_model` at all**. Ours is the `language_model` property at
+   **`groot_n1_7.py:339-340`**, `getattr(self.model,"model",self.model).language_model`.
+2. **VL self-attention** — `action_head.vl_self_attention.transformer_blocks`,
+   **identical, 4 blocks in both** (`vl_self_attention_cfg.num_layers: 4`,
+   line 128). **Guard before indexing:** it is `nn.Identity()` when
+   `num_layers == 0` (**lines 506-509**).
+3. **DiT** — theirs `action_head.diffusion_model.transformer_blocks` (16);
+   ours `action_head.model.transformer_blocks`, **32** (`num_layers: 32`,
+   line 117).
+
+**The DiT finding that matters beyond the port, and it is `vla-dd`'s.** N1.7
+instantiates **`AlternateVLDiT`** when `use_alternate_vl_dit` — **which defaults
+True** (line 113) — with **`attend_text_every_n_blocks: 2`** (line 114), verified
+at lines 472-476. So the DiT attends text only every second block. **Two
+consequences.** First, DiT block index is *not semantically comparable* to an
+N1.5 block index, so no layer-wise plot inherited from their baked N1.5 results
+is a like-for-like axis. Second — and this is new for **§4.4** — N1.7's DiT has a
+**built-in period-2 structure in when VL information can arrive**. Any cross-tap
+ordering or onset analysis on the DiT must not read that periodicity as evidence
+about the failure; it is architecture. That strengthens the §4.4 hazard already
+recorded and gives it a concrete, checkable form.
+
+**Reading `AlternateVLDiT.forward` directly — it is period 4, not period 2, and
+it is an instrument rather than only a hazard.** `vla-dd` was right that the
+text-attending indices must be read off the construction rather than assumed to
+be the even blocks. Doing so
+(`action_head/cross_attention_dit.py:358-372`) gives a **three-way** structure:
+
+```python
+for idx, block in enumerate(self.transformer_blocks):
+    if idx % 2 == 1:                      # SELF-ATTENTION ONLY - no VL enters at all
+        ...encoder_hidden_states=None...
+    else:
+        curr_encoder_attention_mask = (
+            non_image_attention_mask      # TEXT   <- idx % (2 * attend_text_every_n_blocks) == 0
+            if idx % (2 * self.attend_text_every_n_blocks) == 0
+            else image_attention_mask     # IMAGE
+        )
+```
+
+With `attend_text_every_n_blocks = 2`, over N1.7's 32 blocks:
+
+| block indices | what enters |
+|---|---|
+| 0, 4, 8, 12, 16, 20, 24, 28 (`idx % 4 == 0`) | **TEXT tokens** (8 blocks) |
+| 2, 6, 10, 14, 18, 22, 26, 30 | **IMAGE tokens** (8 blocks) |
+| all 16 odd indices | **nothing** — pure self-attention |
+
+**The config name is misleading:** text is attended every **fourth** block, not
+every second, because the counter runs over even blocks only (`2 * n`). Anyone
+reading `attend_text_every_n_blocks: 2` and inferring period 2 — as both
+`vla-dd` and I initially did — gets the phase wrong.
+
+**Why this is an opportunity.** Image and text enter the DiT at **structurally
+separate, known, non-overlapping block indices**. That means the visual and
+language pathways can be separated *by block index alone*, with no intervention,
+no matched pairs and no patching — the architecture has pre-separated them. For
+§5's question of which pathway carries a failure, this is the cheapest instrument
+in this document, and it exists only because N1.7 happens to be built this way.
+
+**And why it is still a hazard, per `vla-dd`, whose framing is right.** The
+control must be **structural, not statistical**. Detrending or smoothing a
+periodic component out of an onset statistic would also remove any *real*
+periodic signal. The null is not "no periodicity" but **"periodicity at exactly
+the architectural phase"** — so the test is whether observed onset phase aligns
+with the text-attending indices specifically (0, 4, 8, …) as against the
+image-attending ones (2, 6, 10, …), which is a far sharper question than
+"is there an ordering". **This hazard is N1.7-specific:** N1.5's plain `DiT` has
+no such alternation, so the papers' published layer-wise results contain no
+equivalent artefact and **cannot be used to calibrate for it**.
+
+**What cannot be reused, and it is the real cost.** Every baked artifact
+(`groot_ablation_index.json`, `groot_baseline_index.json`,
+`groot_concept_list.json`, `groot_concept_ablation_baked.json`,
+`groot_injection_baked.json`, `layer_connections/groot_libero_*.json`) and every
+SAE dictionary is N1.5 activations over a 16-block DiT and an Eagle LM. Against
+N1.7 these are not stale, they are **meaningless**, and must be regenerated.
+**The ablation and SAE-training compute is the expense; the port is not.**
+(Correcting myself again: their adapter *does* list `libero_spatial`
+— `liorbenhorin-nv/groot-libero_spatial-128_20000`, line 423. My earlier
+"their suites exclude spatial" applied to the baked viz data, not the adapter.)
+
+**Net verdict.** Portable as a *vendored analysis layer over our own loader*,
+not runnable as-is and not worth installing their stack. Their install would be a
+fourth copy of LeRobot that is **not our vendored fork**, so activations from it
+would not be attributable to the `code_state` our runs record, and would bypass
+the conformance gate. `vla-dd`'s recommended shape is right: lift the
+`ModelAdapter` interface and the ablation/perturbation/injection scripts, write a
+`GR00TN17Adapter` supplying the three accessors above plus a Qwen3-VL input path,
+and feed it policies loaded the way we already load them.
+
+**Caveat on the cheap first step.** A CPU stand-in dry-run of
+`get_layer_groups()` is necessary but **not sufficient** — the caveat already
+recorded in `groot_features.py` applies: a stand-in defines its own layout, so a
+path error can survive a green CPU gate and only surface against the real
+checkpoint. Treat a passing dry-run as a precondition, not a verification.
+
+**Ownership:** this is `implementor`'s to build, not mine. `vla-dd` notes the
+same assessment reached `implementor` before being routed here, so the port must
+not be picked up twice.
+
+---
 
 **Reproduction.** §8.6 is
 `/tmp/claude-1000/-home-imerit-Documents-Code-VLA/7213b0d3-eee4-4061-aae9-83476f85ac5e/scratchpad/demo_support2.py`
