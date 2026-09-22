@@ -17,6 +17,29 @@ Caveats this tool cannot fix, and which belong with any number it prints:
   * Direction of causation is not established. A failing episode ends up in odd
     states almost by definition, so OOD may accompany failure rather than cause
     it. The discriminator is onset timing, which this does not measure.
+    R-036 sharpened this: the state signal separated failures at a similar rate
+    in EVERY perturbation category, which is what "unusual because it failed"
+    looks like, and not what a perturbation-specific mechanism looks like.
+
+!! --ref AND --query MUST BE DIFFERENT RUNS. !!
+
+    This is assumed everywhere below and enforced nowhere. Point both at the
+    same run and every success episode is scored against a reference cloud
+    CONTAINING ITS OWN POINTS: nearest-neighbour distance 0, success OOD rate
+    0%, and a separation ratio of x/1e-9. R-036's first pass reported 4.9e7x
+    this way and it would have been published as a spectacular result.
+
+    The tell is an invariant worth applying anywhere a reference cloud is
+    built: TWO NUMBERS THAT DESCRIBE THE SAME EPISODES MUST AGREE. Here that is
+    the reference rate against the success rate -- 5.1% against 0.0% is not a
+    strong result, it is a bug.
+
+    Same-run references are not perverse; they are REQUIRED when the policy is
+    non-deterministic. GR00T's denoising loop draws an unseeded `torch.randn`
+    (groot_n1_7.py:657), so a re-run does not reproduce its own successes and
+    labels must come from the run being scored. If you need that, score the
+    reference leave-one-out as `_calibrate` already does internally -- do not
+    pass the same run to both flags.
 """
 from __future__ import annotations
 
