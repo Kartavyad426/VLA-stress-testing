@@ -15,3 +15,29 @@ experiments/repro/runs/**/*.log
 experiments/repro/runs/**/videos/
 runs/**/frames/
 runs/**/*.png
+
+# Local-only docs (VLA 101 guide)
+docs/VLA_101.md
+docs/VLA_101.txt
+
+Screenshot from 2026-09-18 14-29-52.png
+
+# Rollout traces: 830 MB across runs/ and never tracked (checked 2026-09-22:
+# 0 of them in git). The small per-run metadata beside them IS tracked --
+# arms.jsonl, cells.jsonl, report.json, adjudication.csv -- so this pins the
+# existing convention rather than changing it, and stops a stray `git add -A`
+# putting a 130 MB trace in the history permanently.
+runs/**/rollouts.jsonl
+runs/**/capture/
+
+# Rendered review pages: each embeds its own replay video as base64, 1-11 MB
+# apiece, ~500 MB total. Regenerate with experiments/visualise_episode_video.py
+# or experiments/init_state_compare.py. The small level montages under
+# viz/libero_plus_levels/ stay tracked.
+viz/lplus_fail_groot/
+viz/lplus_fail_minerva/
+viz/lplus_failures/
+viz/robot_initial_state_vs_canonical.html
+viz/canonical_ramekin_initstate0.html
+viz/episode_*_video.html
+episode_video.html
