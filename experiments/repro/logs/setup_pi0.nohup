@@ -1,0 +1,10 @@
+[17:17:33] === pi0 setup start (GPU idle: 106 MiB used) ===
+[17:17:33] VRAM probe pi0fast
+ValueError: Couldn't instantiate the backend tokenizer from one of: 
+    raise RuntimeError("Failed to load required tokenizers for PI0FastPolicy initialization") from e
+RuntimeError: Failed to load required tokenizers for PI0FastPolicy initialization
+[17:17:51] VRAM probe pi05
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 7.53 GiB of which 14.62 MiB is free. Process 4016 has 86.00 MiB memory in use. Including non-PyTorch memory, this process has 7.40 GiB memory in use. Of the allocated memory 7.26 GiB is allocated by PyTorch, and 63.75 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+[17:19:23] pi0-FAST: probe failed, smoke skipped
+[17:19:23] pi0.5: probe failed, smoke skipped
+[17:19:23] === pi0 setup complete ===

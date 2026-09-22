@@ -56,3 +56,19 @@
      wrong_object             42/281   14.9%
 
 ### runs/lplus_fail_minerva_bf16  n=0  failures=0
+
+### runs/lplus_fail_minerva  n=506  failures=281
+    123  visual_grounding+manipulation
+     59  manipulation
+     42  visual_grounding+planning
+     37  visual_grounding+spatial_reasoning+manipulation
+     15  ambiguous
+      4  visual_grounding+spatial_reasoning+planning
+      1  spatial_reasoning+manipulation
+   predicate fire rate over failures:
+     any_attempt             220/281   78.3%
+     lost_target             206/281   73.3%
+     never_reached            46/281   16.4%
+     wrong_object             42/281   14.9%
+
+### runs/lplus_fail_minerva_bf16  n=0  failures=0
