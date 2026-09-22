@@ -38,6 +38,10 @@ def main():
     ap.add_argument("--n-action-steps", type=int, default=None)
     ap.add_argument("--override", action="append", default=[],
                     help="policy config override, key=value (repeatable)")
+    ap.add_argument("--preprocessor-override", action="append", default=[],
+                    help="shipped-preprocessor override, step.key=value (repeatable). "
+                         "A setting can live in both the policy config and the "
+                         "preprocessor; --override only reaches the former.")
     ap.add_argument("--obs-size", type=int, default=256)
     ap.add_argument("--dtype", default=None, help="e.g. bfloat16: load on CPU, cast, move (GR00T on 8 GB)")
     ap.add_argument("--rename-map", default="{}", help='JSON, e.g. {"observation.images.image2": "observation.images.wrist_image"}')
@@ -59,6 +63,13 @@ def main():
     a = ap.parse_args()
 
     overrides = dict(parse_override(kv) for kv in a.override)
+    pre_overrides: dict[str, dict] = {}
+    for item in a.preprocessor_override:
+        path, val = parse_override(item)
+        if "." not in path:
+            raise SystemExit(f"--preprocessor-override needs step.key=value, got {item!r}")
+        step, key = path.split(".", 1)
+        pre_overrides.setdefault(step, {})[key] = val
     specs = json.loads(a.specs)
     store, arms = TraceStore("runs", a.run_id), ArmLog("runs", a.run_id)
     cells_path = os.path.join("runs", a.run_id, "cells.jsonl")
@@ -76,7 +87,8 @@ def main():
     for suite in a.suites.split(","):
         pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.n_action_steps,
                             env_cfg=EnvCfg(task=suite), policy_overrides=overrides,
-                            dtype=a.dtype, rename_map=json.loads(a.rename_map))
+                            dtype=a.dtype, rename_map=json.loads(a.rename_map),
+                            preprocessor_overrides=pre_overrides)
         for tid in [int(t) for t in a.tasks.split(",")]:
             env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size,
                             libero_plus=a.libero_plus,
