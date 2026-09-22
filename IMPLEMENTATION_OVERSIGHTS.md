@@ -252,3 +252,45 @@ eyeballed on examples. Here every non-language variant must strip to one of the
 variants across four suites took one script and caught three distinct defects:
 the first-occurrence split, libero_10's `KITCHEN_SCENE3_` prefix, and a `_moved`
 marker in libero_goal. See R-028.
+
+---
+
+## O8 — A self-referenced OOD tool silently scores its reference against itself
+
+**Where.** `experiments/ood_selfref.py`, and anything reusing its method —
+including `vla_harness/capture/analysis.py` before 2026-09-22.
+
+**What happens.** `ood_selfref.py` takes `--ref` and `--query` as **different
+runs**, so a reference episode is never scored against a cloud containing its
+own points. Nothing in the tool states that assumption or enforces it.
+
+The embedding experiment could not honour it. GR00T's denoise loop starts from
+an unseeded `torch.randn` (`groot_n1_7.py:657`), so a re-run does not reproduce
+its own success/failure split — which means **the reference must come from the
+run being scored**, or "the policy's own successes" silently refers to a
+different policy state than the one under test.
+
+Under that constraint every successful episode was scored against a cloud
+containing its own points. Nearest-neighbour distance 0, success rate 0%,
+separation = x/1e-9. **The first run reported 4.9e7x** and would have been
+published as spectacular rather than crashing.
+
+**The invariant that caught it, and it generalises:**
+
+> **TWO NUMBERS THAT DESCRIBE THE SAME EPISODES MUST AGREE.**
+
+The leave-one-out reference rate (5.1%) and the mean success rate (0.0%) are
+both statements about the same successful episodes. They cannot differ. The
+check costs nothing and belongs anywhere a reference cloud is built from the
+same population being scored.
+
+**Why it is the interesting kind of bug.** The constraint that made the
+experiment *valid* is what broke the method inherited from the tool that did not
+need it. A correctness requirement in one place became a silent corruption in
+another, and the corruption's signature — an impossibly good result — is the one
+people are least inclined to investigate.
+
+**Fixed.** `score_run` scores successes leave-one-out; the invariant is asserted
+in `tests/test_ood_embedding.py`. **`ood_selfref.py` itself is unchanged and
+still carries the unstated assumption** — it is correct for its own two-run
+usage, and the next person to point it at a same-run reference will hit this.

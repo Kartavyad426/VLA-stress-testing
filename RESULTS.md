@@ -1812,9 +1812,62 @@ proprioceptive one, after the per-embodiment encoder.
 successes. Across six signals at n=40 that is multiplicity, not a finding, and
 it is recorded here so it is not later quoted as one.
 
+### ⚠ CORRECTION, 2026-09-22 — THE SAMPLE COULD NOT HAVE TESTED THE HYPOTHESIS
+
+Raised by `primary`, verified independently here against
+`third_party/LIBERO-plus/.../task_classification.json` (2,402 libero_spatial
+variants, task ids index it directly). **The conclusion originally written below
+was broader than the sample supports.**
+
+| category | n | failures |
+|---|---|---|
+| Robot Initial States | 12 | 8 |
+| Objects Layout | 11 | 4 |
+| Language Instructions | 7 | 1 |
+| Sensor Noise | 4 | 2 |
+| Light Conditions | 4 | 2 |
+| **Camera Viewpoints** | **2** | **1** |
+
+**Camera Viewpoints has n=2.** That is the category the capture was specifically
+aimed at, and the one where `res` (§8.9) holds the upstream-vs-action-head
+question to be well posed. The sample contains essentially none of it.
+
+**23 of 40 episodes are Robot Initial States + Objects Layout**, carrying 12 of
+the 18 failures — the two categories where R-030 and `res` give independent
+reason NOT to expect a VL-pathway signal (family-C skill gap: the arm reaches
+the object and cannot close the loop).
+
+**So what was actually measured is: the VL pathway does not separate failures we
+already believed were not VL failures.** That is a much weaker claim than "S2
+does not separate", and it means **the §2.3 gate was neither met nor failed — it
+was never tested.** The seed-0 draw was taken from a corpus that is only ~10%
+camera, and stratifying 40 episodes cannot fix it: the decisive follow-up is a
+CATEGORY-BALANCED de-risk at the same cost (~20 camera-viewpoint against 20
+matched controls), not the 3.5 h full capture.
+
+### Per-category rates, computed from this capture
+
+Cells with n<5 are listed for completeness and carry no weight.
+
+| category | `state_encoded` fail% | `vl_adapted_mean` fail% |
+|---|---|---|
+| Robot Initial States (8 fail) | 60.4% | 7.6% |
+| Objects Layout (4 fail) | 34.7% | 5.6% |
+| Sensor Noise (2 fail) | 52.8% | 2.8% |
+| Light Conditions (2 fail) | 52.8% | 0.0% |
+| Camera Viewpoints (1 fail) | 27.8% | 0.0% |
+
+**This disconfirms a hypothesis `primary` offered when raising the correction** —
+that `state_encoded`'s 12.95x would prove to be carried by the robot-init and
+layout episodes, corroborating the skill-gap reading. It is not: the state signal
+is **broad across every category**, 27.8%–60.4%. That is more consistent with
+the standing causation caveat — a failing episode ends up in an unusual state
+almost by definition — than with a perturbation-specific mechanism. Recorded
+because it was predicted before it was computed and came out the other way.
+
 ### Three things this result is NOT
 
-**1. It is not "the embedding space beats S0's 6.9x".** Different unit (per
+1. It is not "the embedding space beats S0's 6.9x".** Different unit (per
 MODEL FORWARD, ~5-8 per episode, against S0's per env step over whole
 episodes), different run, different reference set. A like-for-like number needs
 S0 recomputed on these episodes and forwards. The analysis tool was changed to
@@ -1824,7 +1877,24 @@ stop printing that comparison.
 `state_encoded` is the STATE pathway. Its winning says proprioception carries
 the signal — it says nothing about vision beyond the VL rows being flat.
 
-**3. ⚠ IT IS BOUNDED BY TOKEN POOLING, AND THIS IS THE MAIN CAVEAT.**
+**3. ⚠ IT IS BOUNDED BY TOKEN POOLING — TWO SEPARATE DEFECTS.**
+
+**3a. The pooled vector is MODALITY-MIXED.** `taps.py` pools with
+`t.mean(axis=1)` over the whole VL sequence, but that sequence is image tokens
+AND text tokens interleaved: `groot_n1_7.py:451` builds
+`image_mask = input_ids == image_token_id` and `AlternateVLDiT` uses it to drive
+the two streams through separate attention masks. The model treats them as
+separate channels; the capture averages them into one vector. Worse, the
+MIXTURE RATIO VARIES BY EPISODE — instruction length ran 14 to 23 words across
+these 40 episodes, so the text share of the mean drifts for reasons unrelated to
+what the camera saw. That injects episode-to-episode variance into the feature
+which is uncorrelated with success, **diluting a real signal rather than
+creating a false one**. Raised by `primary`, verified here at
+`groot_n1_7.py:451/457` and `taps.py`. The fix is cheap and was not done before
+this run: pool separately over image and text tokens using a mask already in
+scope at the tap.
+
+**3b. The pooling discards WHERE.**
 The VL roles are stored mean- and max-pooled across the token axis
 (`taps.py`). Spatial information in a ViT-style encoder is carried by WHICH
 tokens are active, not by the magnitude of a token-averaged vector. **A null on
