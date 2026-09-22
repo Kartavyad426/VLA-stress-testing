@@ -50,6 +50,15 @@ from vla_harness.runner import rollout  # noqa: E402
 from vla_harness.schema import PerturbationSpec  # noqa: E402
 
 FAILURES: list[str] = []
+EXECUTED: set[str] = set()
+
+# Gate-list drift has bitten this workstream TWICE: V8 was written to compare
+# against a field every stored trace leaves at 0, and V1-V6 sat on the tier-2
+# list while the script only ran V8-V12. Both reported green by never being
+# invoked. So the expected gates are declared here and their execution is
+# asserted, rather than trusted from the report.
+EXPECTED = {"V1r", "V2r", "V5r", "V8a", "V8b", "V8c", "V8d",
+            "V9", "V10", "V11", "V12"}
 
 
 def parse_override(kv: str):
@@ -70,6 +79,7 @@ def parse_override(kv: str):
 
 
 def gate(name: str, ok: bool, detail: str = "") -> None:
+    EXECUTED.add(name.split()[0])
     print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail else ""),
           flush=True)
     if not ok:
@@ -312,6 +322,20 @@ def main() -> None:
                         capture_output=True, text=True)
     gate("V12 conformance gate still passes", cf.returncode == 0,
          (cf.stdout or cf.stderr).strip().splitlines()[-1] if (cf.stdout or cf.stderr) else "")
+
+    # A gate that never ran cannot have passed. This is the check that would
+    # have caught both prior drifts at the moment they were introduced.
+    missing = EXPECTED - EXECUTED
+    if missing:
+        FAILURES.append(
+            f"DECLARED GATES NEVER EXECUTED: {sorted(missing)} -- a gate that "
+            f"did not run has not passed, and a report that omits it is not "
+            f"evidence of anything")
+        print(f"\n  [FAIL] gate coverage: {sorted(missing)} declared but never ran",
+              flush=True)
+    else:
+        print(f"\n  [PASS] gate coverage: all {len(EXPECTED)} declared gates ran",
+              flush=True)
 
     print()
     if FAILURES:

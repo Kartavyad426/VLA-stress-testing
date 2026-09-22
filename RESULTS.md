@@ -1768,3 +1768,110 @@ This is the cheapest experiment that separates them.
   row ships.
 - **GR00T** (the priority): VRAM fit (#16), then a harness-parity check for GR00T
   itself.
+
+---
+
+## R-036 — NEGATIVE: GR00T's VL embeddings do not separate its own failures; the state pathway does
+
+**Date** 2026-09-22 · **Status** RUN, 40 episodes · **Run** `runs/embed_derisk`
+· **Spec** `docs/EXP_EMBEDDING_OOD.md` §4A, capture design
+`docs/superpowers/specs/2026-09-18-embedding-capture-design.md`
+
+**This contradicts pre-registered expectation #1, which was held at HIGH
+confidence.** §5 forbids editing expectations after the fact, so it is recorded
+as a miss rather than revised.
+
+### What was run
+
+The §2.3 de-risk gate: 40 LIBERO-Plus `libero_spatial` episodes, GR00T N1.7
+(`gr00t17-lerobot-libero_spatial-640`, `n_action_steps=16`, bf16, obs 360),
+k=4 resampling, embeddings captured per model forward. Task ids were sampled 20
+from ids that failed and 20 from ids that succeeded in `lplus_fail_groot`
+(`experiments/repro/lplus_derisk_ids.txt`, seed 0) — that biases SELECTION
+toward a balanced split and borrows no labels. **Labels come from this run**,
+as required: the denoise loop starts from an unseeded `torch.randn`
+(`groot_n1_7.py:657`), so a re-run does not reproduce its own split.
+
+Outcome: **22 success / 18 fail, 495 model forwards.**
+
+### Result
+
+| signal | ref rate | success | fail | separation | p |
+|---|---|---|---|---|---|
+| `vl_encoder_mean` (S1) | 5.1% | 5.1% | 4.9% | **0.97x** | 0.70 |
+| `vl_encoder_max` (S1) | 5.0% | 5.0% | 1.9% | **0.37x** | 0.83 |
+| `vl_normed_mean` (S1.5) | 5.1% | 5.1% | 2.2% | **0.42x** | 0.70 |
+| `vl_adapted_mean` (S2) | 4.9% | 4.9% | 5.2% | **1.08x** | 0.46 |
+| `vl_adapted_max` (S2) | 5.6% | 5.6% | 0.0% | **0.00x** | 0.035 |
+| `state_encoded` (S0e) | 3.7% | 3.7% | **47.8%** | **12.95x** | **4.1e-06** |
+
+**Every vision-language signal is flat.** The only signal that separates is the
+proprioceptive one, after the per-embodiment encoder.
+
+`vl_adapted_max` at p=0.035 runs the WRONG way — failures score *less* OOD than
+successes. Across six signals at n=40 that is multiplicity, not a finding, and
+it is recorded here so it is not later quoted as one.
+
+### Three things this result is NOT
+
+**1. It is not "the embedding space beats S0's 6.9x".** Different unit (per
+MODEL FORWARD, ~5-8 per episode, against S0's per env step over whole
+episodes), different run, different reference set. A like-for-like number needs
+S0 recomputed on these episodes and forwards. The analysis tool was changed to
+stop printing that comparison.
+
+**2. It is not evidence that vision carries no information about failure.**
+`state_encoded` is the STATE pathway. Its winning says proprioception carries
+the signal — it says nothing about vision beyond the VL rows being flat.
+
+**3. ⚠ IT IS BOUNDED BY TOKEN POOLING, AND THIS IS THE MAIN CAVEAT.**
+The VL roles are stored mean- and max-pooled across the token axis
+(`taps.py`). Spatial information in a ViT-style encoder is carried by WHICH
+tokens are active, not by the magnitude of a token-averaged vector. **A null on
+pooled S2 is equally consistent with "the representation does not encode the
+difference" and with "it does, and pooling discarded it."** This measurement
+cannot separate those. Raised by `primary` against `res`'s probe design (§8.12)
+and it applies with full force here. Storing both poolings before any result
+existed was the right call under §6; the limitation is that neither pooling
+preserves *where*.
+
+### Bugs found while producing it, both of which would have faked a result
+
+**A separation of 4.9e7x on the first pass — a division by epsilon.**
+`ood_selfref.py` takes `--ref` and `--query` as different runs. Here they cannot
+be, because the reference must come from the run being scored (unseeded randn,
+above). So every success episode was scored against a cloud containing its own
+points: nearest-neighbour distance 0, success rate 0%, ratio = x/1e-9. **The
+tell was `ref rate` 5.1% against `success` 0.0% — two numbers describing the
+same episodes.** Successes are now scored leave-one-out, and that invariant is
+asserted in `tests/test_ood_embedding.py`. **The constraint that makes this
+experiment valid is what broke the method inherited from the proprioceptive
+tool.**
+
+**An fp16 overflow that would have manufactured OOD hits in a labelled
+category.** `vl_encoder` is PRE-LayerNorm and its activations are large by
+construction; measured peak 15,296 against the fp16 ceiling of 65,504. Light
+Conditions is one of the seven LIBERO-Plus perturbation categories (44 GR00T
+instances, R-026), so brighter scenes are generated deliberately, not
+hypothetically. An `inf` in a max-pooled feature puts that episode infinitely
+far from the reference cloud — in the exact signal being measured, on episodes
+from a category that would then have been reported as strongly OOD. Now
+promotes to fp32, refuses non-finite values, records per-key dtype.
+
+### What would change the conclusion
+
+**§4C, the signal x perturbation-type table, and it needs no new GPU time** —
+the 40 captured episodes carry LIBERO-Plus category labels. `res` found camera
+and robot-initial-state robustness are uncorrelated across ten published models
+(Spearman +0.09, p=0.803), so a mixed sample can dilute a category-specific VL
+signal to nothing. This null is over a mixed sample and does not rule that out.
+
+A per-token or coarse-spatial summary would be needed to close the pooling
+caveat, and that is a capture change, not an analysis one.
+
+### Status of the full capture
+
+**NOT RUN.** The §2.3 gate was "check that S2 separates at all before spending
+3.5 h". It does not, on a mixed sample. Budget if it is later run, measured not
+estimated: 26.3 KB/forward, 2.208 s/forward at k=4 -> 145 MB and 3.46 h for 723
+episodes.
