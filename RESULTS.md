@@ -1747,7 +1747,7 @@ This is the cheapest experiment that separates them.
 
 ---
 
-## R-037 — PRE-REGISTERED: GR00T with a NULL PROMPT on libero_spatial
+## R-038 — PRE-REGISTERED: GR00T with a NULL PROMPT on libero_spatial
 
 **Date registered** 2026-09-22 · **Status** PRE-REGISTERED, launching now
 
