@@ -1945,3 +1945,81 @@ caveat, and that is a capture change, not an analysis one.
 3.5 h". It does not, on a mixed sample. Budget if it is later run, measured not
 estimated: 26.3 KB/forward, 2.208 s/forward at k=4 -> 145 MB and 3.46 h for 723
 episodes.
+
+---
+
+## R-037 — PRE-REGISTERED, NOT YET RUN: does the perturbation show up at all, and does it separate?
+
+**Date registered** 2026-09-22 · **Status** PRE-REGISTERED · **Spec** this entry
+
+**Registered before the run. §5's convention: expectations written first, and a
+wrong one is the finding.**
+
+### Why it exists — R-036 asked only half the question
+
+R-036 asked, of failures: **does the signal separate pass from fail?** It never
+asked the prior question: **does the perturbation move the signal at all?**
+
+Those are different, and the second gates the first. If a lighting change does
+not move the VL embedding, a null on pass/fail separation in lighting episodes
+says nothing about failure prediction — it says the tap, or the pooling, is
+deaf. R-036 cannot distinguish "VL is blind to appearance" from "VL saw it and
+the modality-mixed mean averaged it away."
+
+### Design — three arms, two questions
+
+| arm | n | composition |
+|---|---|---|
+| **A** nominal | 20 | control ids, canonical camera, initstate 0 |
+| **B** vision | 30 | Camera Viewpoints 16, Light Conditions 8, Sensor Noise 6 |
+| **C** telemetry | 20 | Robot Initial States |
+
+Within B and C, ids are drawn balanced pass/fail from `lplus_fail_groot`
+outcomes. **That biases SELECTION only; labels come from this run**, because the
+unseeded randn means outcomes do not reproduce.
+
+**`--base-instruction` on ALL THREE ARMS.** Not only the control. Two reasons:
+it holds text tokens constant so any VL difference is genuinely visual rather
+than instruction-length drift; and without it LeRobot passes the variant
+FILENAME as the instruction, so the text would encode which perturbation was
+applied (O7, R-025). Language is deliberately held fixed and is therefore NOT
+tested here.
+
+**Q1 — detection.** Distance from arm A's nominal cloud, regardless of outcome.
+**Q2 — discrimination.** Within each arm, pass vs fail, leave-one-out as O8
+requires.
+
+The signal x arm matrix is the point, including the OFF-DIAGONAL: the taps are
+complementary by construction — S1 cannot see robot state, S0e cannot see
+pixels.
+
+### Pre-registered expectations
+
+1. **Arm B will move the VL signals away from nominal (Q1).** *High
+   confidence.* Camera, lighting and sensor noise change pixels. **If this
+   fails, the capture is deaf and R-036's null is uninterpretable rather than
+   negative** — this is the load-bearing prediction of the experiment.
+2. **Arm C will move `state_encoded` away from nominal (Q1).** *High.* Robot
+   initial state is a joint-space perturbation (R-030).
+3. **The off-diagonals will be weak: arm C will barely move the VL signals, and
+   arm B will barely move `state_encoded` at t=0.** *Medium.* Complementary by
+   construction. Arm B may move state LATER in the episode via behaviour, which
+   is a different claim from moving it at the start.
+4. **Image-pooled VL will show a larger arm-B effect than the combined pool.**
+   *Medium-high.* If modality mixing dilutes, removing it should help. **If the
+   two are identical, the mixing was not a material problem and R-036's caveat
+   3a should be downgraded.**
+5. **Q2 within arm B will be weaker than Q1 within arm B.** *Medium.* Detecting
+   that the scene changed is easier than predicting whether the policy will
+   cope.
+6. **`state_encoded` will separate pass/fail in EVERY arm (Q2), including B.**
+   *Medium-high*, and it is the uncomfortable one: R-036's per-category table
+   already shows 27.8%-60.4% across all categories. If it holds, `state_encoded`
+   is measuring "this episode went wrong" rather than any mechanism, and the one
+   positive result in R-036 is a restatement of S0 with the same causation
+   caveat.
+
+### What would make this a failed experiment rather than a negative result
+
+Expectation 1 failing. If a camera-viewpoint change does not move a
+vision-language embedding, the problem is in the instrument, not the model.
