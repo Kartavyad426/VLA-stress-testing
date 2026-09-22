@@ -20,3 +20,43 @@ def test_capture_does_not_change_policy_identity():
 
     assert plain.identity() == capturing.identity()
     assert plain.policy_id == capturing.policy_id
+
+
+# --- where the action head actually lives -----------------------------------
+
+class _Head:
+    pass
+
+
+def test_finds_action_head_under_groot_models_real_attribute_name():
+    """LeRobot's GrootPolicy holds the model as `_groot_model`
+    (modeling_groot.py:82), not `model`. The stand-in in tests/conftest.py
+    defines its own layout, so no tier-1 gate could catch this -- it surfaced
+    only against the real checkpoint."""
+    from vla_harness.capture.groot_features import find_action_head
+
+    class _Real:
+        def __init__(self):
+            self._groot_model = type("M", (), {"action_head": _Head()})()
+
+    p = _Real()
+    assert find_action_head(p) is p._groot_model.action_head
+
+
+def test_finds_action_head_when_the_model_is_the_policy_itself():
+    """The stand-in exposes `.action_head` directly."""
+    from vla_harness.capture.groot_features import find_action_head
+
+    class _Flat:
+        def __init__(self):
+            self.action_head = _Head()
+
+    p = _Flat()
+    assert find_action_head(p) is p.action_head
+
+
+def test_returns_none_when_there_is_no_action_head_anywhere():
+    """So the caller can refuse loudly rather than capture nothing."""
+    from vla_harness.capture.groot_features import find_action_head
+
+    assert find_action_head(object()) is None

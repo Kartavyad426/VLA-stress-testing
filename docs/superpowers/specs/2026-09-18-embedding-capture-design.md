@@ -283,6 +283,64 @@ gate names, and the gate was confirmed to fail.
 
 ---
 
+## 6c. Tier-2 results — run 2026-09-21, ALL GATES GREEN
+
+Run on AC (checked: battery would have been ~25x slower and made F5 worthless),
+under `experiments/gpu_lock.sh`, config taken from the existing runs rather than
+this script's defaults: `nvidia/gr00t17-lerobot-libero_spatial-640`,
+`n_action_steps=16`, bf16, **`obs_size=360`**, `base_model_path` and
+`embodiment_tag` overridden.
+
+| gate | result |
+|---|---|
+| V8a–d forward-count join | PASS — `model_forwards` [5,5,8,7], manifest joins 4/4, counts exact |
+| V9 non-degenerate | PASS — all four signals, variance 2.1e-04 … 9.1e-02 |
+| V10 scene separation | PASS — 1.28x / 1.30x / 1.42x / 3.87x |
+| V11 provenance | PASS — `third_party/` clean |
+| V12 conformance | PASS |
+
+**F5, the number the full capture is budgeted against:** 1.815 s/forward at
+k=1, 2.121 s/forward at k=4 — **S4 costs +0.306 s/forward, +16.9%**. Model load
+(~19 s) is excluded; see below.
+
+### Three defects the real checkpoint found that no CPU gate could
+
+1. **`--override` was missing entirely.** The checkpoint ships a
+   `base_model_path` of `/cache/huggingface/models--nvidia--GR00T-N1.7-3B/...`
+   — a stale absolute path from NVIDIA's build machine. Every GR00T run in this
+   repo overrides it; the smoke could not. Model load failed outright.
+2. **The action head is at `_groot_model.action_head`, not `model.action_head`.**
+   `primary`'s handoff said so and this spec's own §3 quoted it; the adapter was
+   written against the wrong attribute anyway. **No tier-1 gate could catch it**
+   — the stand-in defines its own layout. Now behind `find_action_head()` with
+   its own tests. The refusal guard (§7, "raise rather than capture nothing")
+   is what turned this into a one-line error instead of a run of empty `.npz`
+   files.
+3. **F5 included the one-time model load**, inflating it and making it drift
+   with episode count — 4.344 s/forward over 10 forwards vs 3.111 over 25, same
+   k. A number used to budget a multi-hour run must be marginal. Load is now
+   timed separately and excluded.
+
+### V10 was wrong, and the capture was right
+
+V10 initially **failed on all four signals**. It compared each episode's mean
+against the distance between one episode's first and last forward, over two
+seeds of **one** task.
+
+That is not §6's control. Two seeds of one task is the *same* scene, and an
+episode's endpoints are its *maximally-distant* pair — biased twice over. A
+direct measurement against the real checkpoint settled it: across-task distance
+exceeds across-episode-same-task by **1.35x–2.71x** on all four signals, so the
+encoders do separate scenes. V10 now measures across-task vs
+across-episode-same-task **at matched forward index**, and the smoke captures
+two tasks so the comparison exists at all.
+
+Within an episode the arm moves and the scene moves with it, so consecutive
+forwards are genuinely far apart. That is the encoder working; the old gate read
+it as a defect.
+
+---
+
 ## 7. Deliverables
 
 | file | status |

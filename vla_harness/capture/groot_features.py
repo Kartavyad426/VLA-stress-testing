@@ -26,6 +26,27 @@ def _restore_rng(state: tuple) -> None:
         torch.cuda.set_rng_state(cuda, device)
 
 
+def find_action_head(policy):
+    """Locate the GR00T action head, wherever the wrapper keeps it.
+
+    LeRobot's `GrootPolicy` holds the model as **`_groot_model`**
+    (`modeling_groot.py:82`), and the head is `GR00TN17ActionHead` at
+    `groot_n1_7.py:849`. The obvious guess -- `policy.model` -- is wrong, and no
+    CPU gate could catch that: the stand-in defines its own layout, so this only
+    surfaced against the real checkpoint.
+
+    Returns None rather than raising, so the caller can refuse loudly with a
+    message naming what it looked for.
+    """
+    if hasattr(policy, "action_head"):
+        return policy.action_head
+    for attr in ("_groot_model", "model"):
+        inner = getattr(policy, attr, None)
+        if inner is not None and hasattr(inner, "action_head"):
+            return inner.action_head
+    return None
+
+
 def attach_groot_capture(policy, sink: CaptureSink, k_resample: int = 1):
     """Register taps on a loaded GR00T policy. Returns a detach callable.
 
@@ -40,7 +61,11 @@ def attach_groot_capture(policy, sink: CaptureSink, k_resample: int = 1):
     NOT the 2B backbone, which is already computed. That asymmetry is the main
     reason to intercept at `action_head.get_action` rather than higher up.
     """
-    head = policy.action_head
+    head = find_action_head(policy)
+    if head is None:
+        raise RuntimeError(
+            f"no `action_head` on {type(policy).__name__} or its "
+            f"`_groot_model`/`model` -- this tap spec is GR00T N1.7 specific.")
     handles = []
     # the decoder hook also fires during S4 resamples; only the model's own
     # denoise loop is the signal, so the resamples are gated out explicitly.

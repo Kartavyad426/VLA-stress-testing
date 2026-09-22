@@ -52,6 +52,23 @@ from vla_harness.schema import PerturbationSpec  # noqa: E402
 FAILURES: list[str] = []
 
 
+def parse_override(kv: str):
+    """Same --override contract as harness_eval.py.
+
+    NOT optional for GR00T: the shipped checkpoint's `base_model_path` is a
+    stale absolute path from NVIDIA's own build machine
+    (/cache/huggingface/models--nvidia--GR00T-N1.7-3B/snapshots/...), which does
+    not exist here and makes transformers reject it as a repo id. Every GR00T
+    run in this repo overrides it, so the smoke must be able to as well.
+    """
+    k, v = kv.split("=", 1)
+    try:
+        v = json.loads(v)
+    except json.JSONDecodeError:
+        pass
+    return k, v
+
+
 def gate(name: str, ok: bool, detail: str = "") -> None:
     print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail else ""),
           flush=True)
@@ -63,7 +80,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--suite", default="libero_spatial")
-    ap.add_argument("--task", type=int, default=0)
+    ap.add_argument("--tasks", default="0,1",
+                    help="comma-separated task ids. TWO ARE REQUIRED for V10: "
+                         "the scene-separation control needs two different "
+                         "scenes, and two seeds of one task is the same scene.")
     ap.add_argument("--episodes", type=int, default=2)
     ap.add_argument("--n-action-steps", type=int, default=None)
     ap.add_argument("--dtype", default="bfloat16")
@@ -72,7 +92,14 @@ def main() -> None:
                                             '"observation.images.wrist_image"}')
     ap.add_argument("--run-id", default="capture_smoke")
     ap.add_argument("--k-resample", type=int, default=4)
+    ap.add_argument("--override", action="append", default=[],
+                    help="policy config override, e.g. "
+                         "base_model_path=nvidia/GR00T-N1.7-3B (required for "
+                         "GR00T: see parse_override)")
     a = ap.parse_args()
+
+    # LIBERO renders through EGL; without this the env fails to make a context.
+    os.environ.setdefault("MUJOCO_GL", "egl")
 
     cap_dir = os.path.join("runs", a.run_id, "capture")
 
@@ -84,21 +111,34 @@ def main() -> None:
 
     from lerobot.envs.configs import LiberoEnv as EnvCfg
 
-    print(f"\ncapture smoke: {a.episodes} episodes, {a.suite} task{a.task}", flush=True)
+    print(f"\ncapture smoke: {a.episodes} episodes x tasks {a.tasks}, {a.suite}",
+          flush=True)
     pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.n_action_steps,
                         env_cfg=EnvCfg(task=a.suite), dtype=a.dtype,
                         rename_map=json.loads(a.rename_map),
+                        policy_overrides=dict(parse_override(kv) for kv in a.override),
                         capture_dir=cap_dir, capture_k_resample=a.k_resample)
-    env = LiberoEnv(suite=a.suite, task_id=a.task, obs_size=a.obs_size)
+    task_ids = [int(t) for t in a.tasks.split(",")]
+    rollouts, task_of = [], {}
 
-    rollouts = []
+    # Load the model BEFORE the clock starts. F5 is a per-forward marginal cost
+    # used to budget a multi-hour capture; folding a ~20s one-time load into it
+    # inflates the number and makes it drift with episode count (measured: 4.344
+    # s/forward over 10 forwards vs 3.111 over 25, same k). Same run, same work.
+    t_load = time.perf_counter()
+    pol.reset()
+    load_s = time.perf_counter() - t_load
+
     t_start = time.perf_counter()
-    for seed in range(a.episodes):
-        r = rollout(env, pol, seed=seed, spec=PerturbationSpec.of())
-        rollouts.append(r)
-        print(f"  episode {seed}: success={r.success} "
-              f"env_steps={r.env_steps} model_forwards={r.model_forwards}",
-              flush=True)
+    for tid in task_ids:
+        env = LiberoEnv(suite=a.suite, task_id=tid, obs_size=a.obs_size)
+        for seed in range(a.episodes):
+            r = rollout(env, pol, seed=seed, spec=PerturbationSpec.of())
+            rollouts.append(r)
+            task_of[r.rollout_id] = tid
+            print(f"  task{tid} episode {seed}: success={r.success} "
+                  f"env_steps={r.env_steps} model_forwards={r.model_forwards}",
+                  flush=True)
     wall = time.perf_counter() - t_start
 
     manifest = {}
@@ -150,22 +190,57 @@ def main() -> None:
 
     # A hook that captures a constant is the most likely bug and would look
     # exactly like "no signal" downstream.
-    if len(per_ep) >= 2:
-        ids = list(per_ep)
+    #
+    # V10 MEASURES ACROSS-TASK vs ACROSS-EPISODE-SAME-TASK, at matched forward
+    # index. An earlier version compared each episode's MEAN against the
+    # distance between one episode's FIRST and LAST forward, for two seeds of
+    # ONE task -- and failed on all four signals against a capture that is
+    # correct. Two seeds of one task is the same scene, not the "two visibly
+    # different scenes" EXP_EMBEDDING_OOD.md §6 asks for; and an episode's
+    # endpoints are its maximally-distant pair, so the comparison was biased
+    # twice over. Measured on the real checkpoint, across-task exceeded
+    # across-episode by 1.35x-2.71x while the old form reported FAIL.
+    #
+    # Matched forward index matters: within an episode the arm moves and the
+    # scene changes with it, so consecutive forwards are genuinely far apart.
+    # That is the encoder working, not a defect, and a gate must not read it as
+    # one.
+    by_task: dict[int, list] = {}
+    for r in rollouts:
+        if r.rollout_id in per_ep:
+            by_task.setdefault(task_of[r.rollout_id], []).append(per_ep[r.rollout_id])
+
+    if len(by_task) < 2:
+        gate("V10 scene separation", False,
+             f"needs >=2 tasks, got {sorted(by_task)} -- pass --tasks 0,1")
+    else:
+        (ta, ea), (tb, eb) = sorted(by_task.items())[:2]
         for sig in sigs:
-            if any(sig not in per_ep[i] for i in ids[:2]):
+            if any(sig not in e for e in ea + eb):
                 continue
-            a_, b_ = per_ep[ids[0]][sig], per_ep[ids[1]][sig]
-            within = float(np.linalg.norm(a_[0] - a_[-1])) if len(a_) > 1 else 0.0
-            between = float(np.linalg.norm(a_.mean(0) - b_.mean(0)))
-            gate(f"V10 {sig} separates episodes more than forwards", between > within,
-                 f"between {between:.3f} vs within {within:.3f}")
+            def at(eps, i):
+                return [e[sig][i] for e in eps if len(e[sig]) > i]
+
+            same, cross = [], []
+            for i in range(min(min(len(e[sig]) for e in ea),
+                               min(len(e[sig]) for e in eb))):
+                a_i, b_i = at(ea, i), at(eb, i)
+                if len(a_i) > 1:
+                    same.append(np.linalg.norm(a_i[0] - a_i[1]))
+                cross.append(np.linalg.norm(a_i[0] - b_i[0]))
+            if not same or not cross:
+                continue
+            s_m, c_m = float(np.mean(same)), float(np.mean(cross))
+            gate(f"V10 {sig} separates task{ta} from task{tb}", c_m > s_m,
+                 f"across-task {c_m:.3f} vs across-episode-same-task {s_m:.3f} "
+                 f"({c_m / max(s_m, 1e-9):.2f}x)")
 
     # --- F5: cost, which primary needs before scheduling the full run -------
     total_fwd = sum(r.model_forwards for r in rollouts)
     if total_fwd:
-        print(f"\nF5 cost: {wall:.1f}s wall for {total_fwd} forwards at "
-              f"k={a.k_resample}  ->  {wall / total_fwd:.3f} s/forward", flush=True)
+        print(f"\nF5 cost: {wall:.1f}s for {total_fwd} forwards at "
+              f"k={a.k_resample}  ->  {wall / total_fwd:.3f} s/forward "
+              f"(model load {load_s:.1f}s, EXCLUDED)", flush=True)
         print("     re-run with --k-resample 1 for the baseline; the delta is "
               "the S4 budget for the full capture.", flush=True)
 

@@ -222,18 +222,18 @@ class LeRobotPolicy:
         a negative result.
         """
         from ..capture import CaptureSink
-        from ..capture.groot_features import attach_groot_capture
+        from ..capture.groot_features import attach_groot_capture, find_action_head
 
-        model = getattr(self._policy, "model", None)
-        if model is None or not hasattr(model, "action_head"):
+        if find_action_head(self._policy) is None:
             raise RuntimeError(
-                f"capture_dir was set, but {type(self._policy).__name__} has no "
-                f"`model.action_head` -- the tap spec in vla_harness/capture/"
+                f"capture_dir was set, but {type(self._policy).__name__} exposes "
+                f"no `action_head` (looked at the policy, `_groot_model` and "
+                f"`model`) -- the tap spec in vla_harness/capture/"
                 f"groot_features.py is GR00T N1.7 specific. Refusing to write "
                 f"empty captures that would read as a negative result.")
         self._sink = CaptureSink()
         self._detach_capture = attach_groot_capture(
-            model, self._sink, k_resample=self.capture_k_resample)
+            self._policy, self._sink, k_resample=self.capture_k_resample)
 
     def flush_capture(self, r) -> None:
         """Called by runner.rollout once `rollout_id` exists."""
