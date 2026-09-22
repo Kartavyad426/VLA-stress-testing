@@ -59,6 +59,16 @@ def main():
     ap.add_argument("--episodes", type=int, default=10)
     ap.add_argument("--specs", default="[{}]",
                     help='JSON list of perturbation knob dicts, e.g. [{}, {"camera_yaw_deg": 5}]')
+    ap.add_argument("--capture-dir", default=None,
+                    help="write per-episode embedding sidecars here (GR00T "
+                         "only). Off by default and absent from the policy "
+                         "identity, so policy_id and the trace cache are "
+                         "unchanged and a captured run stays comparable with "
+                         "every run already on disk.")
+    ap.add_argument("--capture-k-resample", type=int, default=1,
+                    help="k>1 measures S4 self-consistency by re-running the "
+                         "denoise loop k-1 extra times. Measured cost: +17%% "
+                         "wall at k=4 (1.815 -> 2.208 s/forward).")
     ap.add_argument("--run-id", required=True)
     a = ap.parse_args()
 
@@ -88,7 +98,9 @@ def main():
         pol = LeRobotPolicy(a.checkpoint, n_action_steps=a.n_action_steps,
                             env_cfg=EnvCfg(task=suite), policy_overrides=overrides,
                             dtype=a.dtype, rename_map=json.loads(a.rename_map),
-                            preprocessor_overrides=pre_overrides)
+                            preprocessor_overrides=pre_overrides,
+                            capture_dir=a.capture_dir,
+                            capture_k_resample=a.capture_k_resample)
         for tid in [int(t) for t in a.tasks.split(",")]:
             env = LiberoEnv(suite=suite, task_id=tid, obs_size=a.obs_size,
                             libero_plus=a.libero_plus,
@@ -110,6 +122,8 @@ def main():
                        "overrides": overrides, "obs_size": a.obs_size,
                        "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
                        "libero_plus": a.libero_plus,
+                       "capture_dir": a.capture_dir,
+                       "capture_k_resample": a.capture_k_resample,
                        "raw_instruction": a.raw_instruction,
                        "base_instruction": a.base_instruction}
                 with open(cells_path, "a") as f:
