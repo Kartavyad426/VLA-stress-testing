@@ -2081,3 +2081,27 @@ pixels.
 
 Expectation 1 failing. If a camera-viewpoint change does not move a
 vision-language embedding, the problem is in the instrument, not the model.
+
+### What this run does NOT test: language
+
+`--base-instruction` holds the text channel constant by design, so **R-037
+provides no evidence on `EXP_EMBEDDING_OOD.md` §5 expectation #2** — the sharp
+prediction that S1/S2 would MISS language perturbations. Nobody should read this
+entry as having tested it.
+
+**R-038 is the complement** and the two were designed independently before the
+overlap was noticed. R-037 holds text constant and content-FULL (the base
+instruction on every episode); R-038 holds it constant and content-FREE (an
+empty string). Between them the vision question and the language question
+separate without either confounding the other, which is more than either run
+yields alone.
+
+**Forward-looking note, not a live risk.** R-038 passes no `--capture-dir`, so
+it produces no embeddings and nothing can currently be pooled across the two
+runs. But the moment a null-prompt CAPTURE is run: an empty string tokenises to
+a handful of tokens against this run's 14-23 words, so the text token COUNT
+differs as well as its content, and the two captures are **not poolable into one
+reference cloud**. Any cross-run VL comparison must be stated as
+between-condition, never within. Both runs do share the property that matters
+for their own internal comparisons — text token count is constant WITHIN each
+run, which R-037 buys with `--base-instruction` and R-038 gets for free.
