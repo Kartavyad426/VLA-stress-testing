@@ -22,7 +22,33 @@ from enum import Enum
 
 import numpy as np
 
-CAPTURE_VERSION = "1.0"
+
+def _store(name: str, a: np.ndarray) -> np.ndarray:
+    """Cast to fp16, but never at the cost of the value.
+
+    fp16 halves the capture (~65 MB vs ~130 MB over 723 episodes) and is ample
+    for everything normalised. It is NOT ample for the PRE-LayerNorm tap: on the
+    real checkpoint `vl_encoder_max` peaked at 15,296 against a 65,504 ceiling,
+    4.3x of headroom, and those activations are large precisely because `vlln`
+    has not run yet. A single brighter-scene excursion over 723 LIBERO-Plus
+    episodes would turn that into `inf`, and an `inf` in a max-pooled feature
+    puts the episode infinitely far from the reference cloud -- a fabricated OOD
+    detection in the exact signal this experiment measures.
+
+    So: fp32 when the value would not survive fp16, fp16 otherwise, and the
+    per-key dtype is recorded in the .npz rather than assumed by the reader.
+    """
+    if not np.isfinite(a).all():
+        raise ValueError(
+            f"capture: {name} contains non-finite values before storage. A NaN "
+            f"or inf reaching the reference cloud poisons every distance "
+            f"computed against it -- refusing to write this episode.")
+    if np.abs(a).max(initial=0.0) > FP16_MAX:
+        return a.astype(np.float32)
+    return a.astype(np.float16)
+
+CAPTURE_VERSION = "1.1"
+FP16_MAX = 65504.0
 MANIFEST = "capture_manifest.jsonl"
 
 # Roles whose tensors are token sequences and are therefore pooled. The others
@@ -125,12 +151,13 @@ class CaptureSink:
                 # BOTH poolings, decided before any result exists (§6): mean
                 # discards spatial structure, max keeps peaks. Storing one would
                 # let the choice be made after seeing which separated better.
-                arrays[f"{role}_mean"] = t.mean(axis=1).astype(np.float16)
-                arrays[f"{role}_max"] = t.max(axis=1).astype(np.float16)
+                arrays[f"{role}_mean"] = _store(f"{role}_mean", t.mean(axis=1))
+                arrays[f"{role}_max"] = _store(f"{role}_max", t.max(axis=1))
 
         if Role.STATE_ENCODED.value in rows[0]:
-            arrays["state_encoded"] = stack(Role.STATE_ENCODED.value).reshape(
-                len(rows), -1).astype(np.float16)
+            arrays["state_encoded"] = _store(
+                "state_encoded",
+                stack(Role.STATE_ENCODED.value).reshape(len(rows), -1))
 
         # Captured UNSLICED at the tap and sliced here, with `sliced_from`
         # recorded, so the slice cannot quietly become the thing measured.
@@ -141,10 +168,14 @@ class CaptureSink:
                 t = torch.stack([r[role] for r in rows]).float().cpu().numpy()
                 t = t.squeeze(1) if role != Role.DECODE_PATH.value else t[:, :, 0]
                 sliced_from = t.shape[-1]
-                arrays[role] = t[..., :live_dims].astype(np.float16)
+                arrays[role] = _store(role, t[..., :live_dims])
         if sliced_from is not None:
             arrays["sliced_from"] = np.int32(sliced_from)
             arrays["live_dims"] = np.int32(live_dims)
+
+        # the reader must not have to assume fp16; _store may promote.
+        arrays["_dtypes"] = np.array(
+            [f"{k}:{v.dtype}" for k, v in sorted(arrays.items())])
 
         path = os.path.join(out_dir, f"{rollout_id}.npz")
         np.savez_compressed(path, **arrays)

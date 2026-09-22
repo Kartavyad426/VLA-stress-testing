@@ -235,6 +235,67 @@ def main() -> None:
                  f"across-task {c_m:.3f} vs across-episode-same-task {s_m:.3f} "
                  f"({c_m / max(s_m, 1e-9):.2f}x)")
 
+    # --- V1r / V2r: tier-1 structural gates, RE-ASSERTED ON THE REAL MODEL ---
+    # Tier 1 proves these against a stand-in whose layout we wrote ourselves.
+    # That is exactly how the `_groot_model.action_head` bug survived to the
+    # first real run, so the structural claims are re-checked here against the
+    # actual checkpoint's tensors.
+    for r in rollouts[:1]:
+        f = os.path.join(cap_dir, f"{r.rollout_id}.npz")
+        if not os.path.exists(f):
+            continue
+        with np.load(f) as z:
+            # V2r: with RTC off (vel_strength == 1) the Euler loop is exactly
+            # actions_0 + dt*sum(pred[:, -H:]). If the decoder hook were on the
+            # wrong module, or actions_0 inferred rather than observed, this
+            # would not close. Tolerance is fp16 STORAGE rounding, not model
+            # error -- the tensors are cast on write.
+            a0 = z["actions_init"].astype(np.float64)
+            dp = z["decode_path"].astype(np.float64)
+            ap = z["action_pred"].astype(np.float64)
+            rel = (np.abs(a0 + 0.25 * dp.sum(axis=1) - ap).max()
+                   / max(np.abs(ap).max(), 1e-9))
+            gate("V2r Euler path reconstructs action_pred on the real model",
+                 rel < 2e-2, f"relative error {rel:.2e}")
+
+            # V1r: vlln is a LayerNorm, so a genuine PRE-vlln tap must be on a
+            # visibly larger scale than the post-vlln one. A hook that captured
+            # the post-attention tensor twice would show no such drop -- which
+            # is the failure mode V1 exists for, seen here in real numbers.
+            s1 = z["vl_encoder_mean"].astype(np.float64)
+            s15 = z["vl_normed_mean"].astype(np.float64)
+            s2 = z["vl_adapted_mean"].astype(np.float64)
+            gate("V1r pre-vlln tap is on a larger scale than post-vlln",
+                 s1.std() > 2 * s15.std(),
+                 f"S1 std {s1.std():.3f} vs S1.5 std {s15.std():.3f} "
+                 f"({s1.std() / max(s15.std(), 1e-9):.1f}x)")
+            gate("V1r the three VL taps are distinct tensors",
+                 not np.allclose(s1, s2) and not np.allclose(s15, s2),
+                 f"||S1-S2|| {np.linalg.norm(s1 - s2):.1f}, "
+                 f"||S1.5-S2|| {np.linalg.norm(s15 - s2):.1f}")
+
+            # V5r: the real dims, which tier 1 cannot assert -- the stand-in
+            # uses small fake ones.
+            shapes = {"vl_encoder_mean": 2048, "vl_normed_mean": 2048,
+                      "vl_adapted_mean": 2048, "state_encoded": 1536}
+            bad = {k: z[k].shape[-1] for k, want in shapes.items()
+                   if k in z and z[k].shape[-1] != want}
+            gate("V5r real embedding widths are 2048/2048/2048/1536", not bad,
+                 "" if not bad else f"wrong: {bad}")
+            gate("V5r action tensors sliced to 7 live dims from 132",
+                 z["action_pred"].shape[-1] == 7 and int(z["sliced_from"]) == 132,
+                 f"action_pred {z['action_pred'].shape}, "
+                 f"sliced_from {int(z['sliced_from'])}")
+
+            # fp16 headroom: vl_encoder is PRE-LayerNorm and runs hot.
+            for k in z.files:
+                if z[k].dtype == np.float16 and z[k].ndim:
+                    peak = float(np.abs(z[k].astype(np.float64)).max())
+                    if peak > 65504 / 4:
+                        gate(f"fp16 headroom on {k}", False,
+                             f"peak {peak:.0f}, only {65504/peak:.1f}x below "
+                             f"the fp16 ceiling -- promote to fp32")
+
     # --- F5: cost, which primary needs before scheduling the full run -------
     total_fwd = sum(r.model_forwards for r in rollouts)
     if total_fwd:

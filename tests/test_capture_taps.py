@@ -17,7 +17,7 @@ import torch
 from conftest import (ACTION_DIM, ACTION_HORIZON, N_TIMESTEPS, LIVE_DIMS, STATE_TOKENS,
                       VL_DIM, FakeActionHead, FakePolicy)
 
-from vla_harness.capture import CaptureSink
+from vla_harness.capture import CaptureSink, Role
 from vla_harness.capture.groot_features import attach_groot_capture
 
 
@@ -331,3 +331,40 @@ def test_writer_stores_resample_spread_sliced_like_the_other_action_tensors(poli
 
     with numpy.load(tmp_path / "r1.npz") as z:
         assert z["resample_spread"].shape == (1, ACTION_HORIZON, LIVE_DIMS)
+
+
+# --- fp16 overflow on the pre-norm tap --------------------------------------
+
+def test_prenorm_tap_survives_values_that_would_overflow_fp16(policy, tmp_path):
+    """vl_encoder is PRE-LayerNorm, so its activations are large by
+    construction -- that is what vlln exists to fix. Measured on the real
+    checkpoint, vl_encoder_max peaked at 15,296 against an fp16 ceiling of
+    65,504: 4.3x headroom. One brighter-scene excursion over 723 LIBERO-Plus
+    episodes turns it into inf, and an inf in a max-pooled feature puts that
+    episode infinitely far from the reference cloud -- a fabricated OOD hit in
+    the signal the whole experiment is about."""
+    sink = CaptureSink()
+    sink.begin_episode()
+    big = torch.full((1, 4, 8), 70000.0)          # over the fp16 ceiling
+    sink.stage(Role.VL_ENCODER, big)
+    sink.stage(Role.VL_ADAPTED, torch.randn(1, 4, 8))
+    sink.commit_forward()
+    path = sink.flush(tmp_path, rollout_id="big", live_dims=LIVE_DIMS, meta={})
+
+    with numpy.load(path) as z:
+        assert numpy.isfinite(z["vl_encoder_max"]).all(), "overflowed to inf"
+        assert z["vl_encoder_max"].max() > 65504, "value was silently clipped"
+
+
+def test_flush_refuses_to_write_non_finite_features(tmp_path):
+    """A NaN or inf reaching the reference cloud poisons every distance computed
+    against it. Better to fail the episode than to write it."""
+    sink = CaptureSink()
+    sink.begin_episode()
+    bad = torch.randn(1, 4, 8)
+    bad[0, 0, 0] = float("nan")
+    sink.stage(Role.VL_ADAPTED, bad)
+    sink.commit_forward()
+
+    with pytest.raises(ValueError, match="non-finite"):
+        sink.flush(tmp_path, rollout_id="nan", live_dims=LIVE_DIMS, meta={})
