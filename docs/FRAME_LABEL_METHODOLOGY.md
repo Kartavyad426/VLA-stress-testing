@@ -217,17 +217,60 @@ run the ordering on **successful** episodes and confirm no consistent order
 appears. If it does, the ordering is a property of where the taps sit and this
 method is dead.
 
-**And in N1.7 specifically that hazard has a known period.** The config
-instantiates `AlternateVLDiT` — `use_alternate_vl_dit: True`
-(`groot_n1_7.py:113`) — with `attend_text_every_n_blocks: 2` (`:114`, wired at
-`:472-476`) across 32 DiT layers. **The DiT attends to the VL stream only every
-second block.** So any depth-wise onset or ordering analysis across DiT blocks
-will show a period-2 structure that is pure architecture. Reading that as
-evidence about the failure would be an artefact, and it is not a subtle one —
-it is exactly the shape an "information arrives here" result would take. Any
-§4.4 analysis over DiT depth must control for block parity explicitly, or
-restrict itself to the text-attending blocks. (Found by `res` via `vla-dd`;
-verified here against the vendored source.)
+**And in N1.7 that hazard has a known period — which turns out to be an
+opportunity. See §4.6.** Briefly: the DiT's conditioning is not uniform across
+depth, so any depth-wise onset analysis inherits an architectural pattern that
+looks exactly like an "information arrives here" finding. The control must be
+*structural*, not statistical: detrending a periodic component out of an onset
+statistic would also remove real periodic signal. The null is not "no
+periodicity" but **"periodicity at exactly the architectural phase"**.
+
+### 4.6 The DiT separates the visual and language pathways by block index
+
+N1.7 instantiates `AlternateVLDiT` (`use_alternate_vl_dit: True`,
+`groot_n1_7.py:113`, wired at `:472-476`) over 32 blocks. From
+`action_head/cross_attention_dit.py:357-380`:
+
+| blocks | what enters |
+|---|---|
+| all 16 **odd** | `encoder_hidden_states=None` — **nothing**, pure self-attention |
+| 0, 4, 8, 12, 16, 20, 24, 28 (`idx % 4 == 0`) | **text** (`non_image_attention_mask`) |
+| 2, 6, 10, 14, 18, 22, 26, 30 (even, `idx % 4 == 2`) | **image** (`image_attention_mask`) |
+
+**The config name is misleading and cost us a wrong commit.**
+`attend_text_every_n_blocks: 2` reads as period 2; text is actually every
+*fourth* block, because the counter runs over even blocks only
+(`idx % (2 * attend_text_every_n_blocks)`). An earlier revision of this section
+said period 2, inferred from the name. `res` and `vla-dd` made the same
+inference independently. **A phase error here silently corrupts any layer-wise
+readout** — take the period from the forward pass, never from the config.
+
+**Why this outranks §4.5.** The architecture has pre-separated the pathways.
+Image-attending and text-attending blocks are distinguishable **by index alone**
+— no intervention, no matched pairs, no patching, no seed control, no token
+alignment. All four of §4.5's problems are bypassed because nothing is being
+intervened on, and the multiple-mediators hazard does not apply because there is
+no patching estimand. **This is §5's question answered by observation rather
+than experiment**, and it should be tried before knockout and long before
+patching.
+
+The sharp version: does the observed onset phase align with the **text**
+indices or the **image** indices? Those are different mechanistic claims and the
+architecture separates them for us.
+
+Aim it at **camera viewpoint**, the failure mode where §5 stays well posed (§8.9:
+camera and robot-initial-state robustness are uncorrelated across ten published
+models, so no single mechanism story should be expected to cover both).
+
+**Capture requirement.** The current taps do not record per-block DiT outputs.
+`AlternateVLDiT.forward` already accepts `return_all_hidden_states` (`:338`) and
+returns all 33 (`:385-386`); the caller never passes it, so wrapping
+`action_head.model.forward` from outside gets them with no hooks and no
+`third_party` edit. **This must be priced before the full capture runs** —
+re-running to add taps costs more than adding them now.
+
+**N1.7-specific.** N1.5's plain DiT has no alternation, so published layer-wise
+results on N1.5 carry no equivalent artefact and cannot calibrate ours.
 
 ### 4.5 Activation patching — the only causal method here
 
@@ -1040,12 +1083,35 @@ every second, because the counter runs over even blocks only (`2 * n`). Anyone
 reading `attend_text_every_n_blocks: 2` and inferring period 2 — as both
 `vla-dd` and I initially did — gets the phase wrong.
 
-**Why this is an opportunity.** Image and text enter the DiT at **structurally
-separate, known, non-overlapping block indices**. That means the visual and
-language pathways can be separated *by block index alone*, with no intervention,
-no matched pairs and no patching — the architecture has pre-separated them. For
-§5's question of which pathway carries a failure, this is the cheapest instrument
-in this document, and it exists only because N1.7 happens to be built this way.
+**What this gives — an entry schedule, not a pathway decomposition. I
+over-claimed and `vla-dd` corrected it.** I wrote that the visual and language
+pathways are "pre-separated by architecture" and distinguishable by block index
+alone. **That is true of where each modality *enters* and false of what any
+block's output *contains*.** `hidden_states` is a **single residual stream**
+threaded sequentially through all 32 blocks
+(`hidden_states = block(hidden_states, ...)`). Text enters at block 0, image
+first at block 2, and **from block 2 onward every block output is a mixture of
+both**, which the 16 self-attention blocks then propagate. **Block 0 is the only
+point in the network where the stream has seen text and not image.**
+
+So what the architecture supplies free is a **known schedule of indices at which
+each modality can *first* influence the stream**. The analysis it supports
+cleanly is **first-onset attribution**: does a departure from the reference
+manifold first appear immediately after a **text-entry** block or an
+**image-entry** block? That is real, cheap and intervention-free, and for that
+one question it is the cheapest instrument in this document. **Its power decays
+with depth** as mixing accumulates, and it says nothing about attribution for a
+departure that first appears at, say, block 19.
+
+**Correct statement of scope:** the entry schedule **replaces patching for
+first-onset attribution, and constrains but does not replace it otherwise.**
+General "which pathway carries this failure" still needs §4.5.
+
+**And it dictates the statistic.** The phase test must be run on the **phase of
+the first departure per episode**, not a phase fitted over the whole depth
+profile — a whole-profile fit would pick up the period-4 architectural rhythm in
+*both* conditions and look like a result. This is the same trap as §6's
+episode-length leakage, one level down.
 
 **And why it is still a hazard, per `vla-dd`, whose framing is right.** The
 control must be **structural, not statistical**. Detrending or smoothing a
@@ -1057,6 +1123,34 @@ image-attending ones (2, 6, 10, …), which is a far sharper question than
 "is there an ordering". **This hazard is N1.7-specific:** N1.5's plain `DiT` has
 no such alternation, so the papers' published layer-wise results contain no
 equivalent artefact and **cannot be used to calibrate for it**.
+
+**Pricing the capture change this would need (`vla-dd`, verified).** Our taps
+record no per-block DiT output. **The return value is not the route:**
+`AlternateVLDiT` does build `all_hidden_states` unconditionally, but the
+**inference** path inside the denoise loop calls `self.model(...)` *without*
+`return_all_hidden_states` (**`groot_n1_7.py:694`**, single return value), while
+only the training/forward path passes it (**line 600**, `model_output, _ =`).
+Using the return would mean patching `third_party/`, which the capture module
+exists specifically not to do — the fork's HEAD is recorded in every run's
+`code_state/`, so patching it retroactively invalidates prior runs' provenance.
+**The route is per-block forward hooks on
+`action_head.model.transformer_blocks[i]`** — the same accessor the port needs —
+which attach from outside and fit the existing `attach_groot_capture` pattern.
+Small change, **two traps that will silently corrupt the data if missed**:
+
+1. **The blocks fire once per Euler step — 4× per `select_action`**
+   (`num_inference_timesteps: 4`, line 134; loop at 683). A naive hook yields
+   32 × 4 = 128 tensors per action, **interleaved by step, not by block**. Step
+   disambiguation needs the same append-order discipline the existing
+   `_post_decoder` tap uses, or block 4 of step 2 is indistinguishable from
+   block 4 of step 1.
+2. **The `live["on"]` gate must cover these hooks**, or `k_resample > 1` draws
+   contaminate every block series exactly as they would the decode path.
+
+Volume at bf16 is roughly 128 × 41 tokens × 1024 ≈ **11 MB per `select_action`**,
+tractable if only the 16 VL-attending blocks are kept. **This should be priced
+before the capture runs**, since re-running it to add taps costs more than adding
+them now. Implementation is `implementor`'s.
 
 **What cannot be reused, and it is the real cost.** Every baked artifact
 (`groot_ablation_index.json`, `groot_baseline_index.json`,
