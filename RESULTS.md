@@ -3052,6 +3052,19 @@ T, I, S.
    contributions add because they are separate token blocks; a large
    shortfall means a cross-camera interaction.
 
+### Correction 2026-09-23, from the one-instance smoke, before any aggregation
+
+`runs/r042_smoke` (task 635, camera viewpoint): IT = 1.000 at every forward,
+A = 0.98, W = −0.001. **The IT value is by construction on the paired-render
+pass**: with the state token identical in P and N, restoring both token
+blocks IS the nominal input, so IT ≡ 1 there and says nothing. Expectation 1
+is therefore tested **only on the 10 Robot Initial States instances**, whose
+source is the recorded control and whose state token differs; on the 30
+vision instances IT is reported as a check that the arithmetic closes (it
+must read 1.000) and not as a result. Expectations 2–5 are unaffected. The
+smoke's A/W split (0.98 / 0.00 on a view variant) is consistent with the
+sanity expectation 2 but is one instance and is not claimed.
+
 ### What would make this a failed experiment rather than a negative result
 
 Expectation 2 failing, or P/N not reproducing R-039's numbers.

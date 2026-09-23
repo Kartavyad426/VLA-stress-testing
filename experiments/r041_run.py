@@ -115,8 +115,11 @@ class Runner:
         is_state = AXES[self.axis][1]
         rec = None
         if m == 0:
+            # record the features for the state axis AND splice against the
+            # paired render so P == N and every arm is recorded: tau needs the
+            # P chunks of the magnitude-0 rollouts (a None source records nothing)
             rec = attach_recorder(self.pol._policy)
-            source = lambda i: None
+            source = lambda i, env=env: self.pol.features_for(env.nominal_observation())
         elif is_state:
             recs = self.recorded[task]
             source = lambda i, recs=recs: recs[i] if i < len(recs) else None
@@ -157,7 +160,11 @@ class Runner:
         with open(self.manifest, "a") as f:
             f.write(json.dumps(row) + "\n")
         self.done[key] = row
-        self.log(f"    {self.axis}={m:.4f} task {task}: success={r.success} F={F} d_pn0={row['d_pn_f0']:.3f} tf0={row['tf_f0']}")
+        d0 = row["d_pn_f0"]
+        self.log(f"    {self.axis}={m:.4f} task {task}: success={r.success} F={F} "
+                 f"d_pn0={'nan' if d0 is None else f'{d0:.3f}'} tf0={row['tf_f0']}")
+        if F == 0:
+            raise RuntimeError(f"no forwards recorded for task {task} at {self.axis}={m}: the splice saw no source")
         del env
         return row
 
