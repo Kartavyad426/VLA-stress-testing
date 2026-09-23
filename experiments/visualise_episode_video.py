@@ -40,11 +40,16 @@ FPS = 20                      # LIBERO control frequency; playback speed only
 
 # --- replay -----------------------------------------------------------------
 
-def replay(r, cameras=2):
+def replay(r, cameras=2, on_step=None):
     """Re-execute the stored actions and collect frames from every camera.
 
     Returns (frames_per_camera, fidelity). `frames_per_camera` is a list of
     per-camera lists of HxWx3 uint8 arrays.
+
+    `on_step(env)`, if given, is called once per recorded step BEFORE that step's
+    action is applied -- i.e. aligned with the frame and with `r.steps[t]`. It is
+    how a caller reads simulator state the trace never stored (visualise_pair.py
+    tracks every object body, not only the BDDL task objects).
     """
     import numpy as np
     from vla_harness.envs.libero_env import LiberoEnv
@@ -99,6 +104,8 @@ def replay(r, cameras=2):
                 # direction: without the processor the policy scores ~0%.
                 cams[i].append(np.asarray(im, dtype=np.uint8)[::-1, ::-1])
         eef_replay.append(list(env._raw["robot_state"]["eef"]["pos"]))
+        if on_step is not None:
+            on_step(env)
         if st.action is None:
             break
         env.step(Action(values=list(st.action), dims=r.action_dims))
