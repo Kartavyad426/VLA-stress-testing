@@ -4,15 +4,15 @@
 <style>
 :root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
  --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;
- --arm-T:#2a78d6;--arm-I:#eb6834;--arm-S:#1baf7a;
+ --arm-T:#2a78d6;--arm-I:#eb6834;--arm-S:#1baf7a;--arm-IT:#eda100;--arm-A:#e87ba4;--arm-W:#4a3aa7;
  --L1:#e8f1fb;--L2:#cfe0f6;--L3:#a9c8ee;--L4:#7ea9e0;--L5:#4f86cf;--Lfg5:#ffffff;
  --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
  --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;
- --arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;
+ --arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;
  --L1:#1a2230;--L2:#1f2f47;--L3:#25405f;--L4:#2c5280;--L5:#3567a5;}}
 :root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;
- --rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;
+ --rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;
  --L1:#1a2230;--L2:#1f2f47;--L3:#25405f;--L4:#2c5280;--L5:#3567a5;}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
 .wrap{max-width:1100px;margin:0 auto;padding:32px 16px 80px}
@@ -36,7 +36,7 @@ code{font-family:var(--mono);font-size:.85em;background:var(--surface-2);padding
 </style></head><body><div class=wrap>
 <h1>R-039 · which pathway carries a perturbation to the action</h1>
 <div class=meta>GR00T N1.7 · LIBERO-Plus libero_spatial · transfer fraction = 1 − ‖patched − N‖ / ‖P − N‖ on the 7 live action dims · anchor = forward containing the closest approach to the target bowl · pre-registration in <code>RESULTS.md</code> R-039</div>
-<div class=legend><span><i class=sw style="background:var(--arm-T)"></i>T · text tokens</span><span><i class=sw style="background:var(--arm-I)"></i>I · image tokens</span><span><i class=sw style="background:var(--arm-S)"></i>S · state token</span><span>level: <span class="lvl L1">L1</span> <span class="lvl L2">L2</span> <span class="lvl L3">L3</span> <span class="lvl L4">L4</span> <span class="lvl L5">L5</span></span></div>
+<div class=legend><span><i class=sw style="background:var(--arm-T)"></i>T · text tokens</span><span><i class=sw style="background:var(--arm-I)"></i>I · image tokens</span><span><i class=sw style="background:var(--arm-S)"></i>S · state token</span><span><i class=sw style="background:var(--arm-IT)"></i>IT · image + text tokens</span><span><i class=sw style="background:var(--arm-A)"></i>A · agent-view pixels</span><span><i class=sw style="background:var(--arm-W)"></i>W · wrist pixels</span><span>level: <span class="lvl L1">L1</span> <span class="lvl L2">L2</span> <span class="lvl L3">L3</span> <span class="lvl L4">L4</span> <span class="lvl L5">L5</span></span></div>
 <div class=note><b>How to read.</b> P is the perturbed run's own chunk, N the chunk from the nominal source. Each arm puts ONE input back to nominal; its transfer says how much of the P→N gap that alone closes. Paired-render pass: the source is the same sim state re-rendered under the trained condition, so the S arm is 0 by construction there. Recorded pass: the source is the scene's control rollout under the same noise, off-manifold after forward 0, reported as a bound.</div>
 <h2>r039 · 40 instances · residual (no arm ≥ 0.9 at anchor): 36 (90%)</h2>
 <h3>By category (medians)</h3><table><thead><tr><th>category</th><th>n</th><th>fail</th><th>‖P−N‖ f0</th><th>T f0</th><th>I f0</th><th>S f0</th><th>T anchor</th><th>I anchor</th><th>S anchor</th><th>S slope</th><th>dominant @anchor</th></tr></thead><tbody><tr><td>Camera Viewpoints</td><td class=num>10</td><td class=num>5</td><td class=num>1.18</td><td class=num>0.19</td><td class=num>0.69</td><td class=num>0.00</td><td class=num>0.17</td><td class=num>0.68</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 2, none 8</td></tr><tr><td>Light Conditions</td><td class=num>10</td><td class=num>1</td><td class=num>0.29</td><td class=num>0.04</td><td class=num>0.73</td><td class=num>0.00</td><td class=num>0.03</td><td class=num>0.81</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 1, none 9</td></tr><tr><td>Sensor Noise</td><td class=num>10</td><td class=num>3</td><td class=num>1.41</td><td class=num>0.18</td><td class=num>0.45</td><td class=num>0.00</td><td class=num>0.07</td><td class=num>0.82</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 1, none 9</td></tr><tr><td>Robot Initial States</td><td class=num>10</td><td class=num>8</td><td class=num>4.04</td><td class=num>0.28</td><td class=num>0.83</td><td class=num>0.04</td><td class=num>0.16</td><td class=num>0.80</td><td class=num>0.05</td><td class=num>-0.009 (0↑)</td><td>none 10</td></tr></tbody></table>
