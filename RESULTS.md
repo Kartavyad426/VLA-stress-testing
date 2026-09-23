@@ -1747,7 +1747,7 @@ This is the cheapest experiment that separates them.
 
 ---
 
-## R-038 — PRE-REGISTERED: GR00T with a NULL PROMPT on libero_spatial
+## R-038 — GR00T with a NULL PROMPT: 50/100, and the expectation was WRONG
 
 **Date registered** 2026-09-22 · **Status** PRE-REGISTERED, launching now
 
@@ -1826,6 +1826,90 @@ and separate them.
   row ships.
 - **GR00T** (the priority): VRAM fit (#16), then a harness-parity check for GR00T
   itself.
+
+### RESULT, 2026-09-22: 50/100 against a 100/100 control
+
+**`runs/groot_nullprompt`.** 100 episodes, instruction verified empty on every
+one. All 50 failures are timeouts.
+
+**The pre-registered expectation of "near 100%" is WRONG and is recorded as a
+miss.** Language is not inert on `libero_spatial`.
+
+| null prompt | scene | closest approach on failures | control |
+|---|---|---|---|
+| **0/10** | on the stove | **25.2 cm** | 4.4 cm |
+| **0/10** | on the wooden cabinet | 19.1 cm | 5.1 cm |
+| **0/10** | in the top drawer of the wooden cabinet | 11.5 cm | 5.4 cm |
+| 2/10 | next to the ramekin | 12.5 cm | 4.6 cm |
+| 6/10 | on the ramekin | 10.2 cm | 5.2 cm |
+| 7/10 | next to the plate | 6.5 cm | 4.7 cm |
+| 8/10 | next to the cookie box | 6.4 cm | 4.6 cm |
+| 8/10 | on the cookie box | 5.7 cm | 4.9 cm |
+| 9/10 | from table center | 7.3 cm | 4.6 cm |
+| **10/10** | between the plate and the ramekin | — | — |
+
+**The mean is not the result. The 43-point spread is.** These scenes differ only
+in which of several visually similar black bowls is the target.
+
+### The pre-registered discriminator answered cleanly
+
+Not a fumbled grasp, and not a wrong-object grab: **the arm does not approach the
+target at all.** Closest approach on failures runs 11-25 cm where the control
+closes to ~5 cm, and on the stove scene **the bowl never moves in any of the ten
+episodes.**
+
+Across the nine scenes with failures, success rate and closest-approach correlate
+at **Pearson r = -0.826**. One mechanism varying in degree, not two failure modes.
+
+This also disposes of the registered trap. A collapse to ~0 everywhere would have
+been uninterpretable — an empty string is off-distribution for the tokenizer, and
+degenerate conditioning cannot be told from language-reading by success rate
+alone. Succeeding at 100% on one scene and 0% on another, with a continuous
+gradient between, is not what degenerate conditioning looks like.
+
+### A hypothesis of mine, raised and then killed by the data
+
+Mid-run I proposed that language is needed where two trained tasks share a visual
+signature and differ only by preposition — *in* the drawer vs *on* the cabinet —
+so the policy defaults to one member of each confusable pair. **Retracted.** It
+predicts one member of each pair should score high. **Both** wooden-cabinet
+scenes are 0/10; the cookie-box pair is 8/10 and 8/10; the stove has no sibling
+at all.
+
+### What survives
+
+Vision alone resolves the target in some scenes and not others. Where it does
+not, the policy **does not approach the target** rather than mistaking it for
+another one. The mechanism behind which scenes fail is not established.
+
+**What the policy actually receives**, which is what makes this interpretable:
+two RGB images (agent view, wrist) and an 8-D state vector — eef position,
+axis-angle orientation, gripper finger positions — plus the tokenised
+instruction. No object list, no goal specification, no BDDL, no task id. The
+BDDL defines the goal for the *simulator*, which checks success; the policy
+never sees it. So with an empty prompt the policy is running on two images and
+eight numbers.
+
+### What it overturns
+
+- **LIBERO-Plus Finding 3** ("models are largely insensitive to language
+  variations") does not hold in its strong form here. Insensitivity to *rewording*
+  is not insensitivity to *having an instruction*.
+- **R-025's null is probably underpowered rather than correct.** A reworded
+  instruction is a far weaker perturbation than no instruction; 34 vs 33 of 42 at
+  p=1.0 could not have detected this.
+- **R-037's expectation #4** rested on language being unused. That premise is
+  false on this suite, so a text-pooled null there no longer corroborates it and
+  a text-pooled signal is no longer evidence against it.
+
+### Scope
+
+One suite, one checkpoint (`gr00t17-lerobot-libero_spatial-640`), and
+`libero_spatial` is built so that language disambiguates — several visually
+identical black bowls per scene. **This is the suite where the effect should be
+largest**, and the result does not transfer to `libero_object` or `libero_goal`
+without running them, which needs their own checkpoints.
+
 
 ---
 

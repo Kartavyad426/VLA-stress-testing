@@ -1,205 +1,212 @@
-# Handoff — 2026-09-18, 15:20 IST
+# Handoff — 2026-09-23
 
 For whoever picks this up next, agent or human. `RESULTS.md` is the experiment
-record and `PENDING_DECISIONS.md` holds what needs the user's call; this file is
-the state of the machine right now and the one job waiting.
+record (R-001..R-038), `PENDING_DECISIONS.md` holds what needs the user's call,
+`docs/FRAME_LABEL_METHODOLOGY.md` holds the method argument. This file is the
+state of the machine and what is worth doing next.
 
 ---
 
-## 1. The job waiting: adjudicate the failure taxonomy
+## 1. The headline: language is NOT inert, and we had it wrong
 
-**436 real failures are on disk.** The family rules in
-`vla_harness/mining/classify.py` were written against a toy environment and have
-never been checked against real VLA failures. The user's instruction
-(2026-09-18): *"we'll see if our rules for taxonomies are accurate or maybe need
-more tightness, I'll maybe even adjudicate or eyeball some of the failure
-scenarios, then maybe we can generalise that insight into a skill"*.
+**R-038. GR00T with an EMPTY prompt scores 50/100 where the same stack with the
+instruction scores 100/100.** The mean is not the finding; the spread is:
 
-**Start here:** `viz/lplus_fail_groot/index.html` — every failure grouped by
-perturbation type, each row showing the classifier's family, the predicates that
-fired, the terminal state, and a link to the episode video (both cameras).
-Record verdicts in `runs/lplus_fail_groot/adjudication.csv` (pre-filled with
-rollout ids and the classifier's label; add `verdict` and `note`). A CSV, not
-browser state, so it survives a re-render.
+| null | scene | closest approach on failures | control |
+|---|---|---|---|
+| **0/10** | on the stove | **25.2 cm** | 4.4 cm |
+| **0/10** | on the wooden cabinet | 19.1 cm | 5.1 cm |
+| **0/10** | in the top drawer | 11.5 cm | 5.4 cm |
+| 2/10 | next to the ramekin | 12.5 cm | 4.6 cm |
+| 6/10 | on the ramekin | 10.2 cm | 5.2 cm |
+| 7/10 | next to the plate | 6.5 cm | 4.7 cm |
+| 8/10 | next to the cookie box | 6.4 cm | 4.6 cm |
+| 8/10 | on the cookie box | 5.7 cm | 4.9 cm |
+| 9/10 | from table center | 7.3 cm | 4.6 cm |
+| **10/10** | between the plate and the ramekin | — | — |
 
-**What the data already says the problem is.** GR00T's 155 failures collapse
-into four families, `manipulation` in every one, `any_attempt` firing on 100% by
-construction — effectively a two-bit code. And 78 of those failures are
-robot-initial-state variants filed under **visual_grounding**, a label the
-evidence contradicts: nothing about the scene's appearance changed. There is no
-family that names *starting pose*. That is PENDING #15 with data behind it.
+The arm **does not approach the target** on the failing scenes — 11-25 cm where
+the control closes to ~5 cm, and on the stove the bowl never moves in any of ten
+episodes. Success and closest-approach correlate at r = -0.826, so it is one
+mechanism varying in degree.
 
-MINERVA's 281 failures are richer — seven families, including `never_reached`
-(16%) and `ambiguous`, which GR00T never triggered. Adjudicate both: the
-disagreement between them is the signal.
+**This overturns two things we believed.** LIBERO-Plus Finding 3 ("largely
+insensitive to language") does not hold in its strong form: insensitivity to
+*rewording* is not insensitivity to *having an instruction*. And **R-025's null
+is probably underpowered rather than correct** — 34 vs 33 of 42 at p=1.0 could
+never have detected this.
 
-| Corpus | Failures | Rendered pages |
-|---|---|---|
-| `runs/lplus_fail_groot` | 155 of 623 | 156 in `viz/lplus_fail_groot/` |
-| `runs/lplus_fail_minerva` | 281 of 506 | 25 in `viz/lplus_fail_minerva/` (more rendering) |
-
----
-
-## 2. What is running right now
-
-Serialised on a `flock` mutex at `/tmp/vla_gpu.lock` (see
-`experiments/gpu_lock.sh` for why — a `pgrep` race cost 25 minutes today).
-
-| Job | Script | State |
-|---|---|---|
-| Unperturbed control | `baseline_same_stack.sh` | RUNNING, 65/100 rollouts, **65/65 so far** |
-| Precision A/B | `precision_ab.sh` | queued behind the lock |
-| π0 VRAM probes + smoke | `setup_pi0.sh` | queued behind the lock |
-
-Everything is resumable: re-running a script continues from its `cells.jsonl`.
-
-**Two process hazards, both now guarded, both of which wasted time today:**
-- Killing a wrapper script **orphans its python child**, which keeps the GPU.
-  Kill the eval too (`pkill -f harness_eval`), or the next job measures
-  contention. This invalidated the first π0.5 VRAM probe.
-- Holding the lock is **not** the same as the card being free: CUDA memory is
-  released asynchronously and EGL render contexts linger. MINERVA (0.54 M
-  parameters) hit `CUDA error: out of memory` seconds after a render job exited.
-  The GPU jobs now wait for `<400 MiB` used before starting.
+**What is NOT established:** why some scenes need language and others do not. A
+confusable-preposition-pair hypothesis was raised mid-run and killed by the data
+(both wooden-cabinet scenes are 0/10; the cookie-box pair is 8/10 and 8/10). The
+mechanism is open and it is the most interesting question on the board.
 
 ---
 
-## 3. Results in, since the last handoff
+## 2. What the policy actually receives
 
-Full entries in `RESULTS.md`; the short version:
+Worth knowing before designing anything, because it is less than people assume:
 
-- **R-026 — GR00T on 623 L5+L4 variants: 468/623.** Robot initial state is the
-  dominant failure mode at **32.8%** (n=116), camera viewpoint second at 64.5%,
-  and every appearance perturbation ≥88%. **GR00T is robust to how the scene
-  looks and fragile to where the arm starts.**
-- **R-027 — MINERVA on the same 506 non-language variants: 225/506.** It
-  collapses where GR00T does not (background 0/12, camera 1/33) but matches
-  GR00T almost exactly on robot initial state (~31% vs ~33%). Suggestive: visual
-  robustness is what the 3 B stack buys; the starting-pose failure may be
-  something neither model's capacity fixes.
-- **R-025 — contamination A/B: no detectable effect.** 34 vs 33 of 42, the 7
-  disagreements running in both directions, exact McNemar p=1.0. Clears the bug
-  for this policy at this n, not for smaller language encoders.
-- **R-028 — the clean-instruction stripper truncated 10% of variants** and is
-  fixed and validated against all 8,493 non-language variants. R-023 and R-024
-  ran with the bug; their numbers are provisional.
+| | |
+|---|---|
+| `observation.images.image` | agent view RGB |
+| `observation.images.image2` -> `wrist_image` | wrist RGB |
+| `observation.state` | **8 numbers** — eef pos (3), axis-angle (3), gripper qpos (2) |
+| `task` | instruction string, tokenised |
+
+No object list, no goal spec, no BDDL, no task id. The BDDL defines the goal for
+the **simulator**, which checks success; the policy never sees it. Privileged
+truth (`_gt_object_pos`, `_gt_eef_to_object`, `_gt_n_contacts`) is recorded into
+our traces for analysis and is **not** in the batch.
+
+---
+
+## 3. Machine state
+
+**Nothing of mine is running. GPU free at 106 MiB.** `implementor` announced it
+was taking the card for R-037 (~70 episodes, ~25 min) — check the flock at
+`/tmp/vla_gpu.lock` before starting anything.
+
+**Announce BEFORE launching, then wait for an ack.** We had a near-miss: both
+sessions announced *while* starting. The mutex held and the second job queued
+correctly, but only by luck of timing.
+
+**Result numbers collide too.** Two sessions pre-registered an `R-037` minutes
+apart in the same working tree. Rule now: `grep '^## R-0' RESULTS.md` on HEAD
+before claiming a number, and **push the pre-registration immediately** rather
+than holding it locally. First commit keeps the number.
 
 ---
 
 ## 4. Policy roster
 
-| # | Policy | State |
-|---|---|---|
-| 1 | GR00T N1.7 | priority, in use, bf16 (fp32 does not fit) |
-| 2 | MINERVA | control, in use, fp32, no language encoder |
-| 3 | SmolVLA | **vetoed** 2026-09-18 — never reproduced its published score |
-| 4 | **π0.5** `lerobot/pi05_libero_finetuned_v044` | downloaded, gate PASS, **VRAM unresolved** |
-| 5 | **π0-FAST** `lerobot/pi0fast-libero-v044` | downloaded, gate PASS, fits (5.44 GiB) |
+| Policy | State |
+|---|---|
+| **GR00T N1.7** | working, the workhorse. bf16, nas=16, obs 360 |
+| **MINERVA** | working as fp32 control. **bf16 is broken** (R-033) |
+| SmolVLA | **vetoed** — never reproduced its published number |
+| π0.5 | **does not fit.** 7.40 of 7.53 GiB, twice, on a verified-idle card |
+| π0-FAST | **does not fit.** Four configurations tried (R-032) |
 
-Both π0 checkpoints are drop-ins: they ship their own rename map and 8-D
-normalisation statistics, so neither needs a `--rename-map` or a state shim.
-π0.5's only question is VRAM — 6.74 GiB of weights against 7.53 usable. **The
-first probe's OOM does not count**: an orphaned eval held the card at the time.
-The re-probe is queued and refuses to run unless the GPU is idle.
-
-Rationale for both choices is `MODELS_AND_COMPUTE.md` §R9; the open questions
-(probe π0.5? rent a GPU for OpenVLA-OFT?) are PENDING #25.
+π0-FAST needed three fixes just to get far enough to prove it does not fit
+(R-034). Both π0 models are rented-GPU candidates; **PENDING #25 is now a budget
+question, not a technical one.**
 
 ---
 
-## 5. Harness changes today
+## 5. The embedding thread: a negative, correctly scoped
 
-- **Instruction stripper** anchored at the end and validated against the 40
-  vanilla instructions (R-028 / O7).
-- **`--base-instruction`**: forces the base-scene text even on a language
-  variant. With a canonical-camera, initstate-0 variant this is the only
-  unperturbed control obtainable on the LIBERO-Plus stack — the fork replaces
-  the libero package, so there is no vanilla suite in that venv at all.
-- **Conformance gate** now reads the checkpoint's shipped preprocessor (rename
-  map + normaliser statistics) instead of trusting `config.json`, which for the
-  pi0 family describes something the pipeline never sees. It was REFUSING a
-  drop-in checkpoint.
-- **`forward_passes` → `env_steps`, plus a real `model_forwards`** (reported by
-  vla-81). The old field counted environment steps; a chunked policy runs the
-  model once per `n_action_steps`. `Rollout.meta` now records the **resolved**
-  policy config, since requests and defaults diverge silently.
-- **`experiments/mine_run.py`** mines any run offline; **`adjudication_index.py`**
-  builds the review page.
+**R-036 is a NEGATIVE and must not be read as "vision carries nothing".** The
+40-episode de-risk had **n=2 camera-viewpoint episodes** and was dominated by
+Robot Initial States (12) and Objects Layout (11) — the two categories we have
+independent reason to believe are *not* VL-pathway phenomena. It tested the VL
+pathway on failures we already believed were not VL failures. The gate was
+**neither met nor failed; it was never tested.**
 
----
+Three reasons the VL rows are weak evidence:
+1. **Sample composition** (above) — the only one a capture change cannot fix.
+2. **Spatial pooling.** `taps.py` pools over the token axis, and object position
+   in a ViT-style encoder lives in *which* tokens are active.
+3. **Modality mixing.** The pool averages image AND text tokens together, and
+   instruction length ran 14-23 words, so the mixture ratio drifts per episode.
 
-## 6. Open, needs the user
-
-`PENDING_DECISIONS.md`: #25 (fourth policy / rented GPU), #20 (apply F8+F10 to
-FINDINGS.md), #15 (taxonomy redesign — tomorrow's work bears on this), #13, #6,
-#2, #21, #8. R-005's perturbed arms still need re-running.
-
-**Not blocking:** the laptop is on AC now (it was on battery overnight).
+`state_encoded` separated at 12.95x — but **broadly across every category**
+(60.4% robot-init, 52.8% noise, 52.8% light, 34.7% layout, 27.8% camera), which
+is what "this episode ended up somewhere unusual because it went wrong" looks
+like, not a mechanism. My prediction that it would concentrate in robot-init and
+layout was **wrong**.
 
 ---
 
-## 7. Advice, earned the hard way today
+## 6. The best unexploited finding
 
-Not general principles — each of these cost real time in this session, and each
-will recur in this repo.
+**N1.7's DiT separates the visual and language pathways by block index**
+(`cross_attention_dit.py:357-380`, over 32 blocks):
 
-**1. The fix is where the next bug lives.** The instruction-truncation bug
-(R-028) was introduced *by* the fix for instruction contamination, and it was
-strictly worse than the problem it solved: a truncated command is further out of
-distribution than a suffix of junk tokens. It survived a code review, a render
-and a full campaign. When you patch something, the patch is now the least-tested
-code in the repo — treat it that way.
+- all 16 **odd** blocks: `encoder_hidden_states=None` — nothing enters
+- `idx % 4 == 0`: **text** (0, 4, 8, ... 28)
+- even, `idx % 4 == 2`: **image** (2, 6, 10, ... 30)
 
-**2. Validate a transform against its closed set, not against examples.** That
-same bug was invisible on the three examples I checked and obvious the moment I
-asked "must every output be one of the 40 known instructions?" — 2,321 were not.
-If your output has a finite set of legal values, enumerate it and check all of
-them. It is one script and it catches the cases you did not think to sample.
+They are distinguishable **by index alone** — no intervention, no matched pairs,
+no patching, no seed control, no token alignment. That makes the upstream-vs-
+action-head question answerable by **observation**, and it is the cheapest
+high-value thing in the document (`FRAME_LABEL_METHODOLOGY.md` §4.6).
 
-**3. Prefer what the code consumes over what it declares.** `config.json` for
-the pi0 family describes features the pipeline never sees; the normalisation
-statistics are the truth. The conformance gate was REFUSING a drop-in checkpoint
-on that basis. When a declaration and an artefact disagree, the artefact is what
-runs.
+`AlternateVLDiT.forward` already accumulates `all_hidden_states` unconditionally
+and `return_all_hidden_states` only controls the *return*, so wrapping
+`action_head.model.forward` from outside costs **zero extra compute** and needs
+no `third_party` edit.
 
-**4. Silence is not progress.** Three times today a job looked healthy and was
-doing nothing: the control run waited 25 minutes on a `pgrep` pattern that
-matched its own launcher; a monitor watched for a sentinel that a dead script
-would never write; a job "completed" in 13 seconds with rc=0 and no rollouts.
-Check that work is *advancing* (rows appearing, GPU busy), not merely that a
-process exists.
+**`attend_text_every_n_blocks: 2` is a lying config name** — the counter runs
+over even blocks only, so text is every FOURTH block. Three of us inferred period
+2 from the name independently and I committed it to git. **Read indices off the
+forward pass, never off config names.**
 
-**5. A measurement taken under contention is not a measurement.** π0.5's OOM
-looked like a clean verdict — 3.62 B parameters, 7.53 GiB card, of course it
-does not fit. It was measured while an orphaned eval held 6.9 GiB. The number
-agreed with my prediction, which is exactly when you are least likely to check
-it. Record the conditions, or do not record the result.
+---
 
-**6. Know the regime where your control is blind.** R-022's parity check (98 vs
-97 of 100) cannot say anything about bf16's effect under perturbation: both arms
-were bf16, and it sat at ceiling, where precision effects are least visible. A
-passing check answers one question, not the question you now have.
+## 7. Open, needs the user
 
-**7. Do not inherit other people's priors as measurements.** LIBERO-Plus
-"difficulty levels" are how many of four *other* models solved a variant. We
-repeat that caveat in every entry and it is still easy to slip into reading L5 as
-"hardest". This is why π0-FAST is worth running: it is one of those four, so it
-turns the prior into something we can check.
+- **R-035** — balanced radius sweep, pre-registered at `1d638dc`, ~2 h GPU, never
+  run. Separates two **opposite** post-training data prescriptions: saturation
+  says corrective data must cover the whole ball, monotone decline says
+  near-neutral is worth most.
+- **Category-balanced de-risk** — ~40 episodes weighted to camera viewpoint.
+  Tests what R-036 could not.
+- **action-atlas port** — **unowned and disputed.** I told `implementor` it was
+  theirs; I had no standing to assign it, and they correctly declined. Only a
+  user can assign it.
+- **PENDING #25** (fourth policy / rent a GPU), #20, #15, #13, #6, #2, #21, #8.
+- **The adjudication CSV is still 0 of 80 verdicts.** It has been the open job
+  for five days.
 
-**8. Aggregates hide the finding.** GR00T's four families over 155 failures look
-merely coarse in the summary. Grouped by perturbation type, 78 robot-initial-state
-failures are filed under `visual_grounding` — a label the evidence contradicts,
-since nothing about the scene's appearance changed. The taxonomy's problem is not
-that it is coarse; it is that it is confidently wrong in one direction. Group by
-the thing you perturbed.
+---
 
-**9. The user runs big batches and reads the record, not the terminal.** Queue
-work so it survives a disconnect (`setsid`, resumable per cell, wall-clock
-deadlines), and write the result into `RESULTS.md` with the expectation stated
-*before* the run. A number without its expectation is not a result, it is a
-statistic.
+## 8. Advice, each earned this session
 
-**10. Say what failed.** Two runs today produced nothing and one produced a
-contaminated number. All three are in `RESULTS.md` and in this file. The harness
-exists to find other people's silent failures; ours do not get a different
-standard.
+**1. A result that agrees with your prior is when you are least likely to check
+it.** Four of my measurement errors this week share that shape: reading object
+poses from a field written at episode *end* (167 mm of movement that was actually
+0.00 mm); measuring GPU with `--query-compute-apps`, which lists only CUDA
+processes and reports 0 MiB for an EGL context; reading a CUDA OOM's "tried to
+allocate 64 MiB" as the remaining deficit rather than the next attempt; and
+generalising "the arm never reaches the object" from one scene family to a whole
+perturbation.
+
+**2. Controls catch bad statistics. Only reading the source catches bad
+structure.** Three claims were overturned this week by reading the forward pass —
+the DiT's period, the modality mixing, the token-count variance. **None would
+have failed a CPU stand-in test.**
+
+**3. A gate that can pass by being skipped is worse than no gate.** Twice on one
+workstream: `model_forwards` reads 0 on every pre-existing trace, so a gate
+asserting equality against it would compare N rows to 0 or silently skip; and
+V1-V6 were never invoked against the real model at all. Assert that every
+registered gate actually executed.
+
+**4. Two numbers that describe the same episodes must agree.** That invariant
+caught a 4.9e7x separation that would have been published — successes scored
+against a reference cloud containing their own points. The trap sits on the path
+a *correct* experiment takes, because a same-run reference is **required** when
+the policy is non-deterministic (unseeded `randn` at `groot_n1_7.py:657`).
+
+**5. Prefer what the code consumes over what it declares.** π0-FAST needed three
+fixes in a row, all this shape: a tokenizer repo missing the subfolder its own
+processor class requires; a setting declared in both the policy config and the
+shipped preprocessor, read by different code; and our adapter silently
+overwriting a checkpoint's shipped rename map with `{}`.
+
+**6. Check blast radius before fixing a shared component.** The rename-map fix
+could have invalidated every past run. Of the checkpoints in use, only π0-FAST
+ships a non-empty map — so nothing was affected. **That check mattered more than
+the fix.**
+
+**7. Register the expectation before the run, and record the miss.** R-038's
+"near 100%" was wrong by 50 points. It is in the record as a miss because it was
+written down first. Two sessions this week also pre-registered *traps* — outcomes
+that would prove nothing — and in both cases that was the most useful line in
+the entry.
+
+**8. Say which claim you are withdrawing.** Four retractions this session, three
+of them mine: the confusable-pair hypothesis, the "option zero sharpens existing
+data" claim, and assigning work to another session. Peers retracted their own
+too. The project is better for each one being stated rather than quietly dropped.
