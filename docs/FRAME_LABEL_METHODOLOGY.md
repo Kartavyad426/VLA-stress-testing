@@ -1034,23 +1034,23 @@ rather than accept them):
    **`groot_n1_7.py:339-340`**, `getattr(self.model,"model",self.model).language_model`.
 2. **VL self-attention** — `action_head.vl_self_attention.transformer_blocks`,
    **identical, 4 blocks in both** (`vl_self_attention_cfg.num_layers: 4`,
-   line 128). **Guard before indexing:** it is `nn.Identity()` when
-   `num_layers == 0` (**lines 506-509**).
+   line 128). An accessor should still guard for the `nn.Identity()` branch taken
+   when `num_layers == 0` (**lines 506-509**) for generality, but **that branch
+   does not fire on our checkpoint** — `implementor`'s taps on the real N1.7
+   checkpoint measure ‖S1.5−S2‖ = 45.7 against ‖S1−S2‖ = 454.3, so the block is
+   live and doing real work.
 3. **DiT** — theirs `action_head.diffusion_model.transformer_blocks` (16);
    ours `action_head.model.transformer_blocks`, **32** (`num_layers: 32`,
    line 117).
 
 **The DiT finding that matters beyond the port, and it is `vla-dd`'s.** N1.7
 instantiates **`AlternateVLDiT`** when `use_alternate_vl_dit` — **which defaults
-True** (line 113) — with **`attend_text_every_n_blocks: 2`** (line 114), verified
-at lines 472-476. So the DiT attends text only every second block. **Two
-consequences.** First, DiT block index is *not semantically comparable* to an
-N1.5 block index, so no layer-wise plot inherited from their baked N1.5 results
-is a like-for-like axis. Second — and this is new for **§4.4** — N1.7's DiT has a
-**built-in period-2 structure in when VL information can arrive**. Any cross-tap
-ordering or onset analysis on the DiT must not read that periodicity as evidence
-about the failure; it is architecture. That strengthens the §4.4 hazard already
-recorded and gives it a concrete, checkable form.
+True** (line 113) — with **`attend_text_every_n_blocks: 2`** (line 114), wired at
+lines 472-476. **One consequence is immediate:** DiT block index is *not*
+semantically comparable to an N1.5 block index, so no layer-wise plot inherited
+from their baked N1.5 results is a like-for-like axis. **The second consequence
+is the subject of the rest of this section, and my first reading of it was
+wrong** — see below.
 
 **Reading `AlternateVLDiT.forward` directly — it is period 4, not period 2, and
 it is an instrument rather than only a hazard.** `vla-dd` was right that the
@@ -1124,6 +1124,18 @@ image-attending ones (2, 6, 10, …), which is a far sharper question than
 no such alternation, so the papers' published layer-wise results contain no
 equivalent artefact and **cannot be used to calibrate for it**.
 
+**A better route than hooks — `primary` checked my hunch and it holds.**
+`AlternateVLDiT.forward` takes `return_all_hidden_states: bool = False` at
+**:338**, accumulates per block at **:354** and **:380**, and returns **all 33**
+at **:385-386**. The caller never passes it — but `implementor` already wraps
+bound methods from outside, so **wrapping `action_head.model.forward` yields
+every block output with no hooks and no `third_party/` edit.** That is cleaner
+than the per-block hook route below and removes trap 1 outright, since one wrap
+per call returns the whole set in block order rather than 128 interleaved
+tensors. The per-block-hook description below is retained as the fallback.
+Three volume options are with `implementor` to price: **all 33**, **the 16 even
+blocks**, or **just the 8 text + 8 image**.
+
 **Pricing the capture change this would need (`vla-dd`, verified).** Our taps
 record no per-block DiT output. **The return value is not the route:**
 `AlternateVLDiT` does build `all_hidden_states` unconditionally, but the
@@ -1178,9 +1190,291 @@ recorded in `groot_features.py` applies: a stand-in defines its own layout, so a
 path error can survive a green CPU gate and only surface against the real
 checkpoint. Treat a passing dry-run as a precondition, not a verification.
 
-**Ownership:** this is `implementor`'s to build, not mine. `vla-dd` notes the
-same assessment reached `implementor` before being routed here, so the port must
-not be picked up twice.
+**Ownership: nobody.** `implementor` has started nothing and **declines** the
+port — their user scoped them to the embedding capture and §4 A–D of
+`EXP_EMBEDDING_OOD.md`, and they are right that a peer routing work to them is
+not their user assigning it. `vla-dd` has withdrawn its earlier "the port is
+`implementor`'s" and is surfacing it as an open decision. **Recorded here as
+unowned, not assigned.**
+
+**Knockout implementation — decided, `primary`'s steer and it is the right
+one.** Use the **attention-mask edit**, not `attn_implementation="eager"`.
+Forcing eager for knockout runs would make the knockout arm and its baseline run
+**different kernels**, putting a numerics difference inside the comparison on top
+of the slowdown. A mask edit keeps the kernel identical and changes only what the
+model may attend to, which is the intervention actually wanted. Decided before
+any code is written.
+
+**⚠ OWNERSHIP IS DISPUTED — do not treat this as settled.** `primary` states the
+port is `implementor`'s, confirmed. `vla-dd` relays that `implementor`
+**declines** it, on the grounds that their user scoped them to the embedding
+capture and §4 A–D of `EXP_EMBEDDING_OOD.md`, and that a peer routing work to
+them is not their user assigning it. **These are directly contradictory and
+neither is mine to resolve.** It needs a human decision. Recorded here so the
+work is neither dropped by both nor picked up by two. What is not in dispute:
+`implementor` has started nothing, `vla-dd` has started nothing, and `res` has
+started nothing and will not.
+
+### 8.11a The conclusion this exchange actually reached — don't port anything
+
+`vla-dd`'s reframing, which I think is right and supersedes the porting question.
+
+**The action-head taps are already green on the real N1.7 checkpoint** as of
+2026-09-22: pre-vlln, post-vlln, post-attention, `state_features`,
+`action_pred`, the four Euler intermediates and k-resample spread, per model
+forward, with sidecars and manifest, at 26.3 KB and 2.208 s per forward at k=4.
+
+Combine that with §8.9 — backbone identity explains essentially none of the
+variance in robustness, so a toolkit whose centre of mass is backbone-side SAE
+and concept work is poorly aimed at our question — and **the action-head-side
+motivation for the port is already satisfied by what exists.**
+
+**For the question in §5, the only thing action-atlas adds that we do not have
+is per-block DiT outputs across the 32 blocks.** And that is a **forward-hook
+change on `action_head.model.transformer_blocks`** — the same accessor the port
+would need — not an adoption of the toolkit.
+
+**So the proposal is not "port action-atlas". It is: add per-block DiT hooks and
+run the first-onset phase test on camera-viewpoint failures.** One change to
+`vla_harness/capture/`, priced above, with the two traps named
+(per-Euler-step interleaving; extending the `live["on"]` gate). Everything else
+in action-atlas stays a reference. That is a far smaller and better-scoped
+proposal, and it is where this section lands.
+
+**The caveats travel with it:** the entry schedule supports **first-onset**
+attribution only, because the residual stream mixes both modalities from block 2
+onward; and the statistic must be **the phase of the first departure per
+episode**, not a fit over the whole depth profile.
+
+### 8.11b Methodological rule earned on this workstream
+
+**Read indices and module paths off the `forward`, not off config names,
+READMEs, or class names.** Three confident structural claims about GR00T's
+layout were overturned by a file read in a single day:
+
+| claim | reality |
+|---|---|
+| `model.action_head` (`implementor`) | `_groot_model.action_head` |
+| 4 of 5 adapter methods transfer (`vla-dd`) | 3 of 5 — `build_eagle_processor()` is outside the try/except |
+| `attend_text_every_n_blocks: 2` ⇒ period 2 (`res` **and** `vla-dd`, independently) | period **4** — the modulus is `2*n` over an index space that already excludes odd blocks |
+
+**All three looked right, and none would have failed a CPU stand-in test.** The
+period misread is the worst of the three because it produces a plausible,
+well-formed, wrong plot rather than a crash. This belongs beside §6's negative
+controls: controls catch bad *statistics*, and only reading the source catches
+bad *structure*.
+
+---
+
+### 8.12 Probe design — what the representation *contains*, not what it predicts
+
+Requested by `primary` as the §8.4 follow-up, designed against **§4.3 and §4.6**.
+**Blocked only on embeddings existing**; everything here is specifiable now.
+
+**The gap this fills.** Every published probe in §8.1 decodes *outcome* — will
+this succeed, how far along is it. They do that because their environments expose
+nothing else. **We hold privileged simulator truth per step**, so we can ask what
+a representation *contains about the world*. That is the novel slice.
+
+#### The target that makes the question sharp
+
+Probe for **target-object position**, not distance-to-target.
+
+The reason is a confound that would otherwise sink the whole design: **eef pose
+is already in the policy's 8-D input**, so `_gt_eef_to_object` is partly
+derivable from proprioception alone, and a probe recovering it from S0e
+(`state_encoded`) would be near-tautological. **Object position is not in the
+proprioceptive state at all.** It is available *only* through vision. So:
+
+> **Can the representation the DiT receives locate the target object — and does
+> that survive a camera perturbation?**
+
+If S2 does not encode object position under a camera perturbation, the action
+head was never told where the object is, and the fault is upstream. If it does,
+the head had the information and failed anyway. **That is §5's cut, made
+measurable on a quantity only vision can supply.**
+
+#### Predictor sets, in ascending order of what they should know
+
+| set | tap | role |
+|---|---|---|
+| set | tap | role |
+|---|---|---|
+| **P0** | raw 8-D state | **baseline — the proprioception-only null** |
+| P1 | S1 `vl_encoder`, S1.5 `vl_normed` | backbone output — **token-pooled, see below** |
+| P2 | S2 `vl_adapted` | what the DiT receives — **token-pooled, see below** |
+| P3 | S0e `state_encoded` | **not** pooled; should be ≈ P0, a pipeline sanity check |
+| **P4** | **per-block DiT at the 8 text / 8 image indices** (§4.6) | **the decisive set — see below** |
+
+#### ⚠ P1 and P2 are a false-negative trap — `primary` caught this, and it is worse than flagged
+
+`vla_harness/capture/taps.py:148-155` reduces the VL roles with
+`t.mean(axis=1)` **and** `t.max(axis=1)` — **pooled across the token axis**,
+stored as F × 2048 with **no per-token structure**. The file says so itself at
+`:152`: *"mean discards spatial structure, max keeps peaks."* And
+`_POOLED = ("vl_encoder", "vl_normed", "vl_adapted")` at `:56` — so **all three
+VL roles are affected, P1 as well as P2**, not P2 alone.
+
+**Why that is fatal to a spatial question.** Object position in a ViT-style
+encoder is carried by *which tokens are active*, not by the magnitude of a
+token-averaged vector. Mean-pooling destroys precisely that; max-pooling retains
+*"the object is present"* far better than *"the object is over there"*. So a null
+on P1/P2 is consistent with two different worlds — the representation does not
+encode object position, or it does and pooling discarded it — and **the design
+cannot tell them apart.** That null is exactly the result one would be most
+tempted to report as the §5 answer, and it is the least safe one available.
+
+**And it is worse than spatial loss: the pooling averages across MODALITIES.**
+`primary` found this and it verifies at source. `backbone_features` is the last
+decoder layer output over the **entire `input_ids` sequence**, which is image
+**and text** tokens interleaved — separable only by
+`image_mask = model_input["input_ids"] == self.model.config.image_token_id`
+(**`groot_n1_7.py:451`**, carried at `:457` and used by `AlternateVLDiT` to split
+`image_attention_mask` from `non_image_attention_mask`). `taps.py:154-155` means
+over **that whole interleaved sequence**.
+
+**The consequence is a nuisance variable nobody would look for.** Instruction
+lengths across the 40 de-risk episodes run **14 to 23 words**, so the fraction of
+the pooled mean contributed by text **drifts episode to episode**. Two episodes
+of the *same scene* with differently worded instructions get different pooled VL
+features **for a reason that has nothing to do with what the camera saw.** Any
+probe or distance computed on pooled VL features has instruction length baked
+into it.
+
+**FIXED — `implementor`, commit `037b5a2`, 2026-09-22.** Verified in the source,
+not taken from the commit message. `taps.py` now stores, per VL role,
+`{role}_img_{mean,max}` and `{role}_txt_{mean,max}` alongside the original
+combined pools, selecting with `image_mask`. Three things it got right that the
+spec did not call for:
+
+- **It solves the S1/S1.5 access problem in one place, not two.** I had flagged
+  that S2 can see the mask but the `vlln` pre/post hooks receive a bare tensor,
+  so this would be two changes priced separately. `groot_features.py:150-169`
+  stashes the mask via `sink.set_token_mask(mask)` at the **top of the
+  `get_action` wrapper, before the original call** — because the `vlln` hooks
+  fire *inside* `get_action` and cannot see their caller's arguments. One
+  well-placed change serves all three taps. Better than what I proposed.
+- **It records `n_image_tokens` / `n_text_tokens` per forward.** That turns the
+  instruction-length confound from something to avoid into something
+  **measurable** — the drift can now be tested for directly rather than assumed
+  away. R-036 could not check this.
+- **It refuses rather than misindexes.** A mask whose length disagrees with the
+  token axis raises, with the offending forward indices named. The comment gives
+  the reason: a misaligned mask would pool the wrong tokens into "image" and
+  **the error would look like a weak signal** — i.e. it would be read as a
+  finding. That is the right failure mode.
+
+The combined pools are retained deliberately so results stay comparable with
+R-036.
+
+**What this does NOT fix, and the distinction matters for §8.12.** The image-side
+pool is still `t[i][image_mask].mean(axis=0)` — **one vector per forward, no
+per-token or grid structure.** So the *modality mixing* is gone and the *spatial
+loss* remains. **P1/P2 still cannot answer "where" questions**, the pre-registered
+asymmetry below still stands unchanged, and **P4 is still the decisive set.**
+What has improved is that a VL-side null is now attributable to spatial pooling
+alone rather than to spatial pooling *or* instruction-length drift — one of the
+two confounds is retired, and the remaining one is named.
+
+**The access wrinkle this fix had to solve (now resolved, kept for the record).** S2 (`VL_ADAPTED`) is staged
+from the `out` BatchFeature (`groot_features.py:157`), which carries `image_mask`
+alongside `backbone_features`, so masking is straightforward there. **S1
+(`VL_ENCODER`) is a pre-hook on `head.vlln` that receives `args[0]` — the tensor
+only, no mask** (`:81`). Supplying the mask at S1 needs it threaded from the
+backbone output rather than read off the hook arguments. Worth knowing before it
+is priced as one uniform change.
+
+**Pre-registered asymmetry, adopted regardless of anything else (`primary`'s
+option 1).** A **positive** on pooled P1/P2 is *strong* evidence — the
+information survived even pooling. A **null is uninformative** and **must be
+reported as uninformative**, never as "S2 does not encode object position".
+Registered here before any result exists.
+
+**Capture change worth pricing (option 2), with an obstacle.** Retaining a small
+per-token summary for the VL roles — top-k token indices by norm, or coarse
+pooling over the token grid instead of a global mean — would fix this, and must
+be priced **alongside** the DiT-block question, not discovered afterwards.
+**Obstacle to check first:** `EXP_EMBEDDING_OOD.md` §2 records that N1.7 encodes
+images in their **native aspect ratio**, so a fixed spatial grid may not be
+well defined in general. LIBERO is always 256×256, so it is likely constant
+*here* — but **verify the token count is constant before assuming grid pooling
+is meaningful**, or this fix silently produces ragged features.
+
+**Bearing on R-036 (the de-risk capture), flagged by `primary`.** The flat VL
+rows in that run now have **three independent reasons to be weak evidence rather
+than one**: (i) spatial pooling discards *where*-ness; (ii) modality mixing
+injects instruction-length variance unrelated to outcome; and (iii) the 40
+episodes contain only **two camera-viewpoint variants** — twelve are Robot
+Initial States and eleven Objects Layout, the two categories §8.6/§8.8 argue are
+**not** VL-pathway phenomena. **R-036 tested the VL pathway on failures we
+already believed were not VL failures.** A flat VL result there is close to
+uninformative and should not be read as evidence that the VL taps carry nothing.
+`primary` has asked `implementor` to restate it to the scope the sample supports.
+
+#### P4 is promoted to decisive, not optional (`primary`'s option 3)
+
+The DiT hidden states are over **`sa_embs` — one state token plus 40 action
+tokens** — not image tokens, so they are not subject to this pooling loss, and at
+41 tokens they are cheap to keep unpooled. More importantly the question is
+better posed: object position can only reach the action stream by being
+**cross-attended in from the VL stream**, so *"does the action representation
+encode where the object is"* asks directly **whether the information crossed the
+bridge.** That is §5's cut stated more precisely than asking it of the pooled VL
+stream. **If per-block DiT lands, P4 is the primary predictor set and P1/P2
+become corroboration.**
+
+**The finding is always a *delta against P0*, never an absolute R².** "S2 predicts
+object position at R²=0.7" means nothing on its own — the question is whether it
+beats what proprioception alone already gives.
+
+#### Five controls, none optional
+
+1. **Proprioception baseline (P0).** If P0 matches P2, the VL taps add nothing
+   and every downstream claim is void. **Run this first**; it can kill the design
+   cheaply.
+2. **Held-out scenes, not held-out episodes.** Train on 8 base scenes, test on
+   2. Within-scene splits let the probe memorise fixed geometry — the object sits
+   in a similar place every episode of a scene. This is §6 control 3 applied to
+   probes, and it is the control most likely to overturn a positive result.
+3. **Fixed timestep.** Compare forward *i* against forward *i*, per §6 and the
+   frozen-VLA literature's own control. Object position correlates with
+   trajectory phase, and phase correlates with episode length, which is a
+   near-perfect success/failure classifier. **Pooling across timesteps
+   reintroduces the §6 leak one level down.**
+4. **Shuffled targets.** Permute object positions across episodes; the probe
+   must collapse to chance. Catches leakage through any structure shared by
+   representation and target.
+5. **Successes only for training.** No episode labels are needed anywhere in
+   this design — consistent with §5. Failures are *scored*, never trained on.
+
+#### The experiment, in three steps
+
+1. **Nominal.** Fit P0…P4 on successful canonical episodes, held-out scenes,
+   fixed timestep. Report each set's delta over P0. *Expectation, pre-registered:
+   P2 beats P0 on object position, because the information is not otherwise
+   available.* If it does not, either the capture is wrong or the representation
+   genuinely does not carry object location — both are major findings.
+2. **Camera-perturbed, matched pairs (§4.2).** Score the *same* probes on
+   camera-perturbed episodes against their canonical counterparts. **Does object
+   decodability degrade, and does the degradation track failure?** This is the
+   §5 cut on the failure mode §8.9 says it is well posed for.
+3. **Pathway-resolved (§4.6), if per-block DiT lands.** Fit the probe at each of
+   the 8 image-entry and 8 text-entry blocks. **Expect object position to be
+   decodable at image-entry blocks and not to improve at text-entry blocks** —
+   LIBERO-Plus Finding 3 and our own R-025 both say language is close to inert
+   here. If text-entry blocks *do* improve object decodability, that contradicts
+   the inert-language finding and would be the most surprising result available.
+
+**Scope limit, inherited from §8.11.** Step 3 reads cleanly at **first** onset
+only. The residual stream mixes both modalities from block 2 onward, so a
+pathway claim at block 19 is not supported by index alone.
+
+**What it cannot do.** Linear decodability is not causal relevance — the standard
+caution, which §4.3 already concedes and which the mech-interp literature states
+plainly. A probe says the information is *present and linearly available*, not
+that the model *uses* it. Establishing use needs §4.6's onset test or §4.5's
+patching. **This design is deliberately correlational and should be labelled so
+wherever its results are quoted.**
 
 ---
 

@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VLA Join Topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* structure, backbone, self-attention */
+    --trigger:#A8481B;      /* where it breaks / what transfers to us */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:780px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600; margin-top:1.9em;}
+  h4{font-size:.95rem; font-weight:600; margin-top:1.5em; color:var(--muted);}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+  em.term{font-style:normal; font-weight:600;}
+
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 3.2em;}
+  .lead-in{color:var(--muted);}
+
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note p:last-child{margin-bottom:0;}
+  .note.repo{border-left:3px solid var(--ok);}
+  .note.ours{border-left:3px solid var(--trigger);}
+  .note.unver{border-left:3px solid var(--warn);}
+
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.84rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.5em;}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted); margin-top:3em;}
+  nav.toc{font-family:var(--sans); font-size:.88rem; border:1px solid var(--rule);
+          border-radius:4px; padding:16px 20px; margin:2em 0; background:var(--surface);}
+  nav.toc ol{margin:0; padding-left:20px;} nav.toc li{margin:.28em 0;}
+  nav.toc a{text-decoration:none;} nav.toc a:hover{text-decoration:underline;}
+
+  /* ---- topology entry chrome ---- */
+  .topo{border-top:1px solid var(--rule); padding-top:30px; margin-top:3em;}
+  .topo-id{font-family:var(--mono); font-size:.8rem; color:var(--trigger); font-weight:500;}
+  .defn{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.4em 0 1.8em;
+        font-size:1.02rem;}
+  .exemplars{display:flex; flex-wrap:wrap; gap:8px; margin:1.3em 0 1.6em;}
+  .chip{font-family:var(--sans); font-size:.79rem; border:1px solid var(--rule);
+        border-radius:3px; padding:4px 9px; background:var(--surface); display:inline-flex;
+        align-items:center; gap:7px;}
+  .chip .dot{width:6px; height:6px; border-radius:50%; flex:none;}
+  .chip .dot.v{background:var(--ok);}
+  .chip .dot.u{background:var(--warn);}
+  .chip .src{color:var(--faint); font-size:.72rem;}
+  .verdict{display:grid; gap:0; margin:1.6em 0;}
+  .verdict > div{border:1px solid var(--rule); border-radius:4px; padding:14px 16px;
+                 margin-bottom:10px; background:var(--surface); font-size:.97rem;}
+  .verdict .vh{font-family:var(--sans); font-size:.73rem; font-weight:600; letter-spacing:.08em;
+               text-transform:uppercase; display:block; margin-bottom:7px;}
+  .verdict .works{border-left:3px solid var(--ok);}
+  .verdict .works .vh{color:var(--ok);}
+  .verdict .breaks{border-left:3px solid var(--trigger);}
+  .verdict .breaks .vh{color:var(--trigger);}
+  .verdict .tap{border-left:3px solid var(--accent);}
+  .verdict .tap .vh{color:var(--accent);}
+  .verdict p:last-child{margin-bottom:0;}
+
+  .stage{display:flex; gap:16px; border:1px solid var(--rule); border-left:3px solid var(--accent);
+         border-radius:4px; background:var(--surface); padding:14px 16px; margin-bottom:10px;}
+  .stage-n{font-family:var(--mono); font-size:.74rem; color:var(--accent); font-weight:500;
+           white-space:nowrap; padding-top:3px;}
+  .stage strong{font-family:var(--sans); font-size:.98rem;}
+  .stage-meta{font-family:var(--sans); font-size:.79rem; color:var(--faint); margin:3px 0 8px;}
+  .stage p{margin:0; font-size:.95rem;}
+
+  /* ---- svg diagram tokens (theme-aware, unlike hardcoded hex) ---- */
+  svg .nb{fill:none; stroke:var(--ink); stroke-width:1.2;}
+  svg .nb.backbone{stroke:var(--accent); stroke-width:1.8;}
+  svg .nb.head{stroke:var(--trigger); stroke-width:1.8;}
+  svg .nb.muted{stroke:var(--faint); stroke-width:1; stroke-dasharray:3 3;}
+  svg .nt{fill:var(--ink); font-weight:500;}
+  svg .nt.muted{fill:var(--faint); font-weight:400;}
+  svg .nt.backbone{fill:var(--accent); font-weight:600;}
+  svg .nt.head{fill:var(--trigger); font-weight:600;}
+  svg .jl{fill:var(--faint); font-size:10px;}
+  svg .el{fill:var(--muted); font-size:10px;}
+  svg .ed{fill:none; stroke:var(--ink); stroke-width:1.2;}
+  svg .ed.cross{stroke:var(--trigger); stroke-width:1.5; stroke-dasharray:6 4;}
+  svg .ed.concat{stroke:var(--ink); stroke-width:1.2;}
+  svg .ed.absent{stroke:var(--faint); stroke-width:1; stroke-dasharray:2 4;}
+  svg .ed.loop{stroke:var(--accent); stroke-width:1.2; stroke-dasharray:4 3;}
+  svg .grp{fill:none; stroke:var(--accent); stroke-width:1.2; stroke-dasharray:5 4; opacity:.75;}
+  svg .grpt{fill:var(--accent); font-size:10.5px; font-weight:600;}
+  svg text{font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:11.5px;}
+
+  @media (max-width:520px){ body{font-size:16px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Mechanism reference · living document</p>
+  <h1>Where the channels meet</h1>
+  <p class="standfirst">Every VLA must join vision, language and telemetry somewhere before it
+  can emit an action. The component lists have converged; the <em>join topology</em> has not.
+  This is the taxonomy that survives that convergence — and the one that says where a failure
+  can live and where a probe can go.</p>
+  <div class="meta">
+    <span>Scope: join topology only — not a model catalogue</span>
+    <span>Started 2026-09-22</span>
+    <span>Extend via the <code>TOPOLOGIES</code> registry</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <ol>
+    <li><a href="#s1">Why the component list stopped discriminating</a></li>
+    <li><a href="#s2">Reading the diagrams</a></li>
+    <li><a href="#s3">The topologies</a></li>
+    <li><a href="#s4">Side by side</a></li>
+    <li><a href="#s5">What actually gets trained</a></li>
+    <li><a href="#s6">What is not yet verified</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s1">
+<p class="part">Part I · The framing</p>
+<h2>Why the component list stopped discriminating</h2>
+
+<p class="lead-in">For essentially every policy released since 2025, the recipe reads the same:
+a SigLIP-family vision encoder, a pretrained LLM backbone, and a chunked continuous action
+decoder trained by flow matching or diffusion. Even OpenVLA-OFT abandoned discrete action
+tokens for parallel continuous decoding. At the resolution of "which ViT, which LLM, which
+head", most of the field is one architecture.</p>
+
+<p>That is precisely why it is the wrong resolution to work at. If the components no longer
+vary, component identity cannot predict whether a failure found on one policy exists on
+another — and transfer of findings is the whole question.</p>
+
+<p>What still varies is structural. Three input channels — pixels, text, proprioception — have
+to be joined before an action comes out, and there are only a few ways to join them. The choice
+determines which internal states exist at all, and therefore which failures are even
+<em class="term">reachable</em>. Two policies can share every component and differ here
+completely.</p>
+
+<div class="note ours">
+<span class="nh">The concrete case this document was written around</span>
+<p>&pi;0 and GR00T&nbsp;N1.7 carry the same family label — VLM plus continuous action expert —
+and have opposite topologies. In N1.7 the robot state <strong>bypasses the vision-language
+backbone entirely</strong> and meets the VL stream only inside the DiT, so no single embedding
+space holds all three channels upstream of System&nbsp;1. In &pi;0 the action expert attends
+within the same stream as the VLM, and state is a token in that stream, so such a space exists.</p>
+<p>Same cluster. Different mechanism. Different answer to "where did this failure come from."</p>
+</div>
+
+<p>A second hazard follows from the same place: published architecture figures routinely
+flatten the join. The GR00T&nbsp;N1 paper figure draws a single merge point where the code
+has three distinct mechanisms — cross-attention for VL, concatenation for state and noised
+actions, and self-attention within the backbone. A diagram that cannot tell those apart cannot
+be used for mechanism reasoning. The diagrams below therefore draw edges by
+<em class="term">join kind</em>, not as undifferentiated arrows.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s2">
+<p class="part">Part II · Notation</p>
+<h2>Reading the diagrams</h2>
+
+<p class="lead-in">Four edge kinds, distinguished by line treatment. The kind is the claim —
+an edge drawn as cross-attention asserts that the source never enters the target's residual
+stream, only conditions it.</p>
+
+<figure>
+<div class="svgbox" id="legend"></div>
+<figcaption><span class="fignum">Legend.</span> Where a box carries a caption beneath it,
+that caption names the join happening <em>inside</em> the box. Faint dotted edges with a cross
+mark a channel that is absent from that topology — an absence is a structural claim, not an
+omission from the drawing.</figcaption>
+</figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s3">
+<p class="part">Part III · The taxonomy</p>
+<h2>The topologies</h2>
+<p class="lead-in">Four of them. Each is defined by where vision meets language, where state
+enters, and whether any single representation holds all three at once.</p>
+
+<div id="topologies"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s4">
+<p class="part">Part IV · Comparison</p>
+<h2>Side by side</h2>
+<div class="tbl-scroll"><table id="matrix"></table></div>
+<p>The column that matters for our work is the last structural one. A nameable bottleneck is
+what makes an intervention experiment possible: you can null it, swap it, or measure distance
+in it. Where there is no bottleneck, the same experiment degenerates into probing arbitrary
+layer activations, which are not modality-separable and do not support a clean claim.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s5">
+<p class="part">Part V &middot; Training</p>
+<h2>What actually gets trained</h2>
+
+<p class="lead-in">The short answer to the reuse question: <strong>no, you cannot drop a
+pretrained VLM into a robot and get actions out of a forward pass.</strong> Something always
+has to be trained on robot data. But far less than people assume, and the part that is reused
+is the expensive part.</p>
+
+<p>Three reasons the free-forward-pass version cannot work. Actions are not in a VLM&rsquo;s
+output distribution &mdash; it emits text, while a robot needs a continuous vector in an
+embodiment-specific space with its own units, frame conventions and gripper semantics, none of
+which web pretraining constrains. The action head is randomly initialised in every topology
+above, so there is no path that avoids fitting it. And the one attempt to dodge this by casting
+actions as text tokens still required co-fine-tuning on robot data: reusing the
+<em>vocabulary</em> is not the same as reusing the <em>behaviour</em>.</p>
+
+<p>What <em>is</em> genuinely free is the perceptual and semantic representation. That is the
+real value of the VLM, and it is why these models work at all given how little robot data
+exists: the robot data only has to learn a mapping from an already-good representation to
+actions, rather than learn to see.</p>
+
+<h3>Component by component</h3>
+<div class="tbl-scroll"><table id="reuse"></table></div>
+
+<div class="note ours">
+<span class="nh">The part that blocks true cross-embodiment reuse</span>
+<p>State and action encoders are <strong>per-embodiment</strong> and have no pretrained
+counterpart &mdash; there is no web corpus of joint angles. So even a model marketed as
+cross-embodiment grows new parameters for a new robot, and those parameters see only that
+robot&rsquo;s data. Whatever generalisation exists lives in the shared middle, not at the edges.</p>
+</div>
+
+<h3>The stages, and why the distinction matters for reading numbers</h3>
+<div id="stages"></div>
+
+<div class="note unver">
+<span class="nh">A comparison trap</span>
+<p>A reported &ldquo;zero-shot&rdquo; number usually means stage&nbsp;2 only; a LIBERO number
+usually means stage&nbsp;3 on LIBERO demonstrations. These are different models with the same
+name. Comparing across that line &mdash; or reproducing one while reading the other&rsquo;s
+published figure &mdash; is the most common way a reproduction silently fails.</p>
+</div>
+
+<h3>The shared data substrate</h3>
+<p>The overlap here is larger than the architectural overlap. Most of the roster pretrains on
+some mixture of the same aggregated corpus, which is worth knowing when asking whether two
+policies would fail on the same inputs.</p>
+<div class="tbl-scroll"><table id="datasets"></table></div>
+
+<div class="note unver">
+<span class="nh">Why &ldquo;both trained on OXE&rdquo; is a weak claim</span>
+<p>Open X-Embodiment is an aggregation, and every paper reweights it &mdash; dropping subsets,
+upweighting Bridge or Fractal, filtering by camera or by success. Two models both described as
+OXE-pretrained can share little effective data. The mixture, not the corpus name, is the thing
+that would predict shared failure, and it is usually reported loosely or not at all.</p>
+</div>
+
+<h3>Objectives</h3>
+<p>The loss follows the action decoder, not the join topology &mdash; which is why it is a
+weaker taxonomy than the one above, and why two structurally opposite policies can share an
+objective.</p>
+<div class="tbl-scroll"><table id="objectives"></table></div>
+
+<div class="note ours">
+<span class="nh">The one thing every objective on this page has in common</span>
+<p>All of it is <strong>behaviour cloning</strong>. No policy on the roster trains against its
+own failures in the base recipe &mdash; there is no reward, no negatives, no contrastive term
+over things that went wrong. Failure is therefore out of distribution with respect to the
+<em>objective</em>, not merely the data.</p>
+<p>That is the structural reason failure mining has something to find: these models have never
+been given a representation of what going wrong looks like, so nothing in training pressures
+them to be calibrated about it.</p>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s6">
+<p class="part">Part VI · Epistemic status</p>
+<h2>What is not yet verified</h2>
+<p class="lead-in">Entries are marked at the exemplar level. A green dot means the claim was
+read from code or from a repo document that cites code; amber means it is from the literature
+or from recall and has not been checked against an implementation.</p>
+<div id="unverified"></div>
+<div class="note unver">
+<span class="nh">Standing rule for this document</span>
+<p>The same rule covers Part&nbsp;V: the dataset scales there are order-of-magnitude recall,
+not counts read from a dataset card, and the stage boundaries are a generalisation that
+individual recipes violate. Neither is safe to quote.</p>
+<p>An amber exemplar may be cited for its shape but not for a number. Before any amber claim
+is used to justify an experimental design, it gets promoted to green by reading the
+implementation — the same bar the rest of the project uses.</p>
+</div>
+</section>
+
+<div class="footer">
+  <p><strong>Extending this document.</strong> Parts III, IV and VI render from the
+  <code>TOPOLOGIES</code> array; Part V renders from <code>COMPONENT_REUSE</code>,
+  <code>TRAINING_STAGES</code>, <code>DATASETS</code> and <code>OBJECTIVES</code>. Adding a
+  topology, or slotting a new policy under an existing one, is one object — the section, the
+  diagram, the comparison row and the verification list all update from it. A commented
+  <code>TEMPLATE</code> entry sits directly above the topology array.</p>
+  <p>Deliberately out of scope for now: per-model depth, training recipes, benchmark numbers.
+  Those land later as their own entries, under the topology they belong to.</p>
+</div>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   REGISTRY
+   ════════════════════════════════════════════════════════════════════
+
+   TEMPLATE — copy this object into TOPOLOGIES to add a new topology.
+
+   {
+     id:      'short-slug',
+     letter:  'E',
+     name:    'Human readable name',
+     defn:    'One sentence. What joins what, and where.',
+     exemplars: [
+       {name:'ModelName', note:'what makes it the exemplar', verified:false,
+        src:'where the claim comes from'}
+     ],
+     vmeetsl:  'cell text for the comparison matrix',
+     stateEnters: 'cell text',
+     sharedSpace: true | false,
+     bottleneck:  'name of the tappable tensor, or null',
+     decoder:  'action decoder family',
+     works:   'Why this topology earns its place. Mechanism, not benchmark scores.',
+     breaks:  'Where it fails, and why the structure makes that failure possible.',
+     tap:     'What this implies for probing and failure localisation.',
+     diagram: {
+       nodes: [ {id, kind:'in'|'enc'|'backbone'|'head'|'out', col, row,
+                 label:'one line' | ['two','lines'], join:'caption under box',
+                 muted:true} ],
+       groups:[ {cols:[a,b], rows:[a,b], label:'container caption'} ],
+       edges: [ {from, to, kind:'feed'|'cross'|'concat'|'absent'|'loop',
+                 label:'edge caption', dy:0} ]
+     }
+   }
+   ════════════════════════════════════════════════════════════════════ */
+
+const TOPOLOGIES = [
+
+{
+  id:'single-stream', letter:'A',
+  name:'Single-stream self-attention',
+  defn:'All channels become tokens in one transformer, and the action is more tokens drawn from that same stream. There is one join, it happens everywhere, and it is implicit.',
+  exemplars:[
+    {name:'RT-2', note:'actions emitted as text tokens by a co-fine-tuned VLM', verified:false, src:'literature'},
+    {name:'OpenVLA', note:'Prismatic VLM; DINOv2+SigLIP fused; no proprioception in the base recipe', verified:false, src:'literature — proprio-free claim needs code check'},
+    {name:'SpatialVLA', note:'adds 3D position encoding and adaptive action grids, same stream', verified:false, src:'literature'},
+    {name:'TraceVLA', note:'OpenVLA-derived; visual trace prompting', verified:false, src:'literature'}
+  ],
+  vmeetsl:'inside the backbone, at every layer',
+  stateEnters:'often nowhere — inferred from pixels',
+  sharedSpace:true,
+  bottleneck:null,
+  decoder:'discrete action tokens, autoregressive',
+  works:'It inherits the backbone&rsquo;s pretrained cross-modal binding wholesale. Vision&ndash;language grounding was already solved by web-scale pretraining and never has to be relearned from robot data, which is the scarcest resource in the stack. Nothing has to be co-designed: the action space is folded into the token vocabulary, so the entire policy is a VLM with a modified output head, and it inherits the backbone&rsquo;s scaling behaviour for free.',
+  breaks:'Three structural costs. Action precision is capped by the discretisation bins, and smooth trajectories become expensive to express. Autoregressive decoding costs one token per degree of freedom per step, which caps the control rate well below what contact-rich manipulation wants. And where proprioception is absent, state must be inferred from pixels &mdash; so a viewpoint perturbation corrupts state estimation and control simultaneously, and the two failures are inseparable by construction. Nothing is factored, so nothing can be attributed.',
+  tap:'Worst case for us. There is no named interface &mdash; only layer activations, which are not modality-separable. Ablating the language channel changes the token sequence itself rather than a conditioning signal, so a null-prompt probe is not measuring the same thing it measures in a factored model.',
+  diagram:{
+    nodes:[
+      {id:'vis', kind:'in',  col:0, row:0,   label:'camera RGB'},
+      {id:'txt', kind:'in',  col:0, row:1,   label:'instruction'},
+      {id:'st',  kind:'in',  col:0, row:2,   label:'proprioception', muted:true},
+      {id:'ve',  kind:'enc', col:1, row:0,   label:['ViT','&rarr; patch tokens']},
+      {id:'te',  kind:'enc', col:1, row:1,   label:'tokeniser'},
+      {id:'bb',  kind:'backbone', col:2, row:0.5, label:['LLM backbone','one token stream'], join:'self-attn over V + L'},
+      {id:'out', kind:'out', col:3, row:0.5, label:['action tokens','de-binned']}
+    ],
+    edges:[
+      {from:'vis', to:'ve', kind:'feed'},
+      {from:'txt', to:'te', kind:'feed'},
+      {from:'ve',  to:'bb', kind:'feed'},
+      {from:'te',  to:'bb', kind:'feed'},
+      {from:'st',  to:'bb', kind:'absent', label:'absent in base recipe'},
+      {from:'bb',  to:'out', kind:'feed'}
+    ]
+  }
+},
+
+{
+  id:'shared-attn', letter:'B',
+  name:'Shared attention, separate expert weights',
+  defn:'The action expert has its own parameters but attends inside the same attention stream as the VLM, and proprioception enters as a token in that stream. One space, two parameter sets.',
+  exemplars:[
+    {name:'&pi;0', note:'flow-matching action expert over PaliGemma; state as a stream token', verified:false, src:'literature — attention sharing needs code check'},
+    {name:'&pi;0.5', note:'hybrid — discrete tokens for the high-level subtask, flow matching below', verified:false, src:'literature'}
+  ],
+  vmeetsl:'inside the backbone, at every layer',
+  stateEnters:'as a token in the shared stream',
+  sharedSpace:true,
+  bottleneck:'attention pattern, not a single tensor',
+  decoder:'flow matching over an action chunk',
+  works:'It keeps one shared embedding space over all three channels &mdash; state can condition on vision and language directly, and the reverse holds too &mdash; while still getting a small continuous expert that emits smooth chunks at high rate without discretisation. It is the combination that A and C each give up half of: A&rsquo;s binding quality with C&rsquo;s control quality.',
+  breaks:'The expert and the backbone have to be co-trained, so the VLM is not swappable and every backbone upgrade is a retraining event. The expert&rsquo;s cost is paid on every forward pass rather than amortised across a slow-fast split. And a shared space propagates corruption in both directions: a bad state token degrades vision&ndash;language attention, not just the action output, so channel-level faults do not stay in their channel.',
+  tap:'Middling. The expert&rsquo;s attention reads are nameable, but there is no single bottleneck vector to null or measure distance in &mdash; the interface is a pattern of attention rather than an activation. Intervention experiments have to target attention masks, which is a heavier instrument than swapping a tensor.',
+  diagram:{
+    nodes:[
+      {id:'vis', kind:'in',  col:0, row:0,   label:'camera RGB'},
+      {id:'txt', kind:'in',  col:0, row:1,   label:'instruction'},
+      {id:'st',  kind:'in',  col:0, row:2.2, label:'proprioception'},
+      {id:'ve',  kind:'enc', col:1, row:0,   label:['SigLIP','&rarr; patch tokens']},
+      {id:'te',  kind:'enc', col:1, row:1,   label:'tokeniser'},
+      {id:'ste', kind:'enc', col:1, row:2.2, label:'state token'},
+      {id:'bb',  kind:'backbone', col:2, row:0.5, label:['VLM weights','(Gemma)']},
+      {id:'exp', kind:'head', col:2, row:2.2, label:['action expert','weights']},
+      {id:'out', kind:'out', col:3, row:1.35, label:['action chunk','continuous']}
+    ],
+    groups:[
+      {cols:[2,2], rows:[0.5,2.2], label:'one attention stream &mdash; V, L, state, action'}
+    ],
+    edges:[
+      {from:'vis', to:'ve', kind:'feed'},
+      {from:'txt', to:'te', kind:'feed'},
+      {from:'st',  to:'ste', kind:'feed'},
+      {from:'ve',  to:'bb', kind:'feed'},
+      {from:'te',  to:'bb', kind:'feed'},
+      {from:'ste', to:'exp', kind:'feed'},
+      {from:'exp', to:'out', kind:'feed'},
+      {from:'out', to:'exp', kind:'loop', label:'iterative denoise'}
+    ]
+  }
+},
+
+{
+  id:'cross-attn', letter:'C',
+  name:'Cross-attention head, state concatenated',
+  defn:'The vision-language stream conditions the action head by cross-attention, while proprioception is concatenated with the noised actions inside that head. Two channels, two different joins, and they never meet upstream.',
+  exemplars:[
+    {name:'GR00T N1.7', note:'Cosmos-Reason2-2B &rarr; vl_embeds [2048] &rarr; cross-attn into a 32-layer DiT; state_features [1536] concatenated with action_features', verified:true, src:'read from installed code + cached checkpoint (EXP_EMBEDDING_OOD.md &sect;2.1)'},
+    {name:'GR00T N1 / N1.5', note:'same topology, different backbone contents (Eagle)', verified:false, src:'paper figure — flattens the join; treat with care'},
+    {name:'Helix / Figure', note:'System 2 / System 1 split at a similar interface', verified:false, src:'vendor communication only — closed weights'}
+  ],
+  vmeetsl:'inside the VLM; then exported as one tensor',
+  stateEnters:'concatenated with noised actions, in the head',
+  sharedSpace:false,
+  bottleneck:'<code>vl_embeds</code> — a real named tensor',
+  decoder:'DiT, iterative denoising over a chunk',
+  works:'Clean frequency separation. System&nbsp;2 runs slow and System&nbsp;1 runs fast, and the entire interface between them is a single tensor &mdash; which is what makes the backbone swappable at all. GR00T changed its VLM between versions precisely because the interface is narrow. That narrowness is also a useful compression: the action head cannot over-attend to irrelevant scene detail, because it only ever sees what survived the export.',
+  breaks:'State never enters the backbone. The VLM reasons about the scene with no knowledge of where the robot actually is, so any behaviour that requires binding what is seen to where the arm is must be constructed inside the head, from a single state token and cross-attended VL. There is no single embedding space holding all three channels upstream of the head &mdash; which means an OOD detector built on &ldquo;the policy&rsquo;s representation&rdquo; has no single representation to build on. The VL&rarr;head bandwidth is also fixed regardless of task difficulty.',
+  tap:'Best case for us, and the reason the null-prompt probe is meaningful here and nowhere else on the roster. <code>vl_embeds</code> is a genuine bottleneck: it can be nulled, swapped, or used as a distance space, and a change measured there is attributable to System&nbsp;2 alone. The state path can be intervened on independently, which makes visual&ndash;proprioceptive binding a testable rather than a rhetorical claim.',
+  diagram:{
+    nodes:[
+      {id:'vis', kind:'in',  col:0, row:0,   label:'camera RGB'},
+      {id:'txt', kind:'in',  col:0, row:1,   label:'instruction'},
+      {id:'st',  kind:'in',  col:0, row:2.5, label:['proprioception','132 &times; 1']},
+      {id:'vlm', kind:'backbone', col:1, row:0.5, label:['Cosmos-Reason2-2B','System 2'], join:'exports vl_embeds [2048]'},
+      {id:'ste', kind:'enc', col:1, row:2.5, label:['state_encoder','&rarr; 1536']},
+      {id:'dit', kind:'head', col:2, row:1.5, label:['DiT &mdash; 32 layers','System 1'], join:'cross-attn(VL) &middot; concat(state 1536, noised action)'},
+      {id:'out', kind:'out', col:3, row:1.5, label:['action chunk','40 &times; 132']}
+    ],
+    edges:[
+      {from:'vis', to:'vlm', kind:'feed'},
+      {from:'txt', to:'vlm', kind:'feed'},
+      {from:'st',  to:'ste', kind:'feed'},
+      {from:'vlm', to:'dit', kind:'cross'},
+      {from:'ste', to:'dit', kind:'concat'},
+      {from:'dit', to:'out', kind:'feed'},
+      {from:'out', to:'dit', kind:'loop', label:'&times;4 Euler steps'}
+    ]
+  }
+},
+
+{
+  id:'no-language', letter:'D',
+  name:'Absent or degenerate language path',
+  defn:'The language channel is either missing by design, or nominally present while carrying no task information. Vision and state join directly in the action head.',
+  exemplars:[
+    {name:'Diffusion Policy', note:'no language channel at all; ResNet vision + DDPM head', verified:false, src:'literature'},
+    {name:'ACT', note:'no language channel; CVAE over action chunks', verified:false, src:'literature'},
+    {name:'MINERVA on LIBERO', note:'95.05% with no language encoder — a 40-entry task-ID lookup', verified:true, src:'TAXONOMY_FAMILY_GUIDELINES.md &sect;; FAILURE_FAMILY_AUDIT.md &sect;5.3'}
+  ],
+  vmeetsl:'never — there is no language stream',
+  stateEnters:'concatenated into the head',
+  sharedSpace:false,
+  bottleneck:'not applicable',
+  decoder:'diffusion or CVAE over a chunk',
+  works:'On a benchmark with a small closed task set and visually distinctive goals, language is redundant with vision: the task is identifiable from pixels alone, so dropping the channel costs nothing measurable and saves the entire VLM. The result is the fastest and smallest policy on the roster, and on those benchmarks it is competitive with policies a hundred times its size. That is a real result about the benchmark, and it should be read as one.',
+  breaks:'Zero compositional generalisation. A novel instruction over familiar objects is unreachable, because there is no channel through which the instruction could act. The sharper consequence is evaluative rather than behavioural: language-grounding failures here are not rare, they are <strong>unreachable by construction</strong> &mdash; so a high score is not evidence of grounding, and a taxonomy that assigns failures to a <code>language_grounding</code> family will find that family dead, and will find it dead for a structural reason rather than a policy-quality one.',
+  tap:'Nothing to tap, and that is the finding rather than a limitation. This topology is the control condition: it isolates what fails with no language path whatsoever, which bounds how much of any other policy&rsquo;s performance the language channel can possibly be responsible for.',
+  diagram:{
+    nodes:[
+      {id:'vis', kind:'in',  col:0, row:0,   label:'camera RGB'},
+      {id:'txt', kind:'in',  col:0, row:1,   label:'instruction', muted:true},
+      {id:'st',  kind:'in',  col:0, row:2,   label:'proprioception'},
+      {id:'ve',  kind:'enc', col:1, row:0,   label:['ResNet / ViT','trained in-domain']},
+      {id:'ste', kind:'enc', col:1, row:2,   label:'state encoder'},
+      {id:'hd',  kind:'head', col:2, row:1,  label:['diffusion / CVAE','action head'], join:'concat(vision, state)'},
+      {id:'out', kind:'out', col:3, row:1,   label:['action chunk','continuous']}
+    ],
+    edges:[
+      {from:'vis', to:'ve', kind:'feed'},
+      {from:'st',  to:'ste', kind:'feed'},
+      {from:'ve',  to:'hd', kind:'concat'},
+      {from:'ste', to:'hd', kind:'concat'},
+      {from:'txt', to:'hd', kind:'absent', label:'task-ID lookup, or nothing'},
+      {from:'hd',  to:'out', kind:'feed'}
+    ]
+  }
+}
+
+];
+
+
+/* ════════════════════════════════════════════════════════════════════
+   TRAINING REGISTRIES
+   Scales are order-of-magnitude and unverified unless marked otherwise.
+   Extend by appending a row; the tables render from these arrays.
+   ════════════════════════════════════════════════════════════════════ */
+
+const COMPONENT_REUSE = [
+  {part:'Vision encoder',      origin:'web-pretrained (SigLIP, DINOv2)', robot:'frozen, or lightly tuned', why:'the expensive part, and the part robot data could never buy'},
+  {part:'LLM backbone',        origin:'web-pretrained (Gemma, Llama, Qwen)', robot:'fine-tuned — full or LoRA; sometimes frozen', why:'carries the semantics of the instruction'},
+  {part:'Modality projector',  origin:'inherited from the VLM', robot:'tuned', why:'already aligns vision to the text space'},
+  {part:'State encoder',       origin:'none — new parameters', robot:'from scratch, per embodiment', why:'no pretrained counterpart exists for joint angles'},
+  {part:'Action head / expert',origin:'none — new parameters', robot:'always from scratch', why:'the action space is not in any pretraining distribution'},
+  {part:'Action de/tokeniser', origin:'none — fitted to the data', robot:'bin edges or normalisation stats', why:'a statistic of the training set, not learned weights'}
+];
+
+const TRAINING_STAGES = [
+  {n:1, name:'VLM pretraining', data:'web image–text, billions of pairs',
+   who:'inherited — nobody in robotics reruns this',
+   note:'This is where vision–language binding comes from. Everything downstream is a much smaller correction on top of it.'},
+  {n:2, name:'Robot pretraining (cross-embodiment)', data:'OXE-style mixtures, ~10⁵–10⁶ trajectories',
+   who:'the lab that releases the base checkpoint',
+   note:'Produces the released "base model". Teaches the action head to exist and gives a generic manipulation prior across many robots.'},
+  {n:3, name:'Post-training / fine-tuning', data:'target embodiment + target task set, ~10²–10⁴ demos',
+   who:'you',
+   note:'The stage actually run in our pipeline, and the one LIBERO numbers report. Usually the only stage where the state and action encoders for a given robot are fitted.'},
+  {n:4, name:'Augmentation (optional, varies)', data:'simulation, or model-generated trajectories',
+   who:'some labs only',
+   note:'GR00T adds neural trajectories from a video model; π0.5 co-trains on heterogeneous non-robot data. Not a standard stage — it is where recipes diverge most.'}
+];
+
+const DATASETS = [
+  {name:'Open X-Embodiment (OXE)', scale:'~1M+ trajectories, 60 datasets, 22 embodiments', emb:'many', role:'the common pretraining substrate — almost everyone uses some mixture of it'},
+  {name:'BridgeData V2',   scale:'~60k trajectories',  emb:'WidowX',          role:'heavily upweighted inside most OXE mixtures'},
+  {name:'RT-1 / Fractal',  scale:'~130k episodes',     emb:'Google mobile manipulator', role:'the other dominant OXE component'},
+  {name:'DROID',           scale:'~76k trajectories',  emb:'Franka',          role:'distributed multi-lab collection; wide scene diversity'},
+  {name:'LIBERO',          scale:'4 suites × 10 tasks, simulation', emb:'Franka (sim)', role:'the standard evaluation benchmark, and our fine-tuning target'},
+  {name:'Ego4D / human video', scale:'thousands of hours', emb:'none — no actions', role:'representation pretraining only; cannot supervise an action head'},
+  {name:'Simulation-generated', scale:'unbounded', emb:'varies', role:'MimicGen, RoboCasa, neural trajectories — augmentation, with a sim-to-real gap attached'}
+];
+
+const OBJECTIVES = [
+  {loss:'Cross-entropy over an action vocabulary', decoder:'discrete action tokens', topo:'A',
+   note:'Identical to language-model next-token training, which is exactly why topology A needs no new machinery. Precision is capped by the bin width.'},
+  {loss:'Flow matching — regress the velocity field', decoder:'continuous action expert', topo:'B, C',
+   note:'Sample noise, interpolate toward the true action, regress the velocity. Few integration steps at inference, so it is cheap to run and cheap to resample.'},
+  {loss:'Denoising MSE (ε-prediction)', decoder:'diffusion head', topo:'C, D',
+   note:'The classic diffusion objective. More inference steps than flow matching for comparable quality.'},
+  {loss:'L1 / L2 on the chunk (+ KL for a CVAE)', decoder:'direct regression', topo:'D',
+   note:'Simplest and fastest. Mode-averages when the demonstrations are multimodal, which is the failure this whole family of losses exists to avoid.'}
+];
+
+/* ════════════════════════════════════════════════════════════════════
+   DIAGRAM RENDERER — grid layout, typed edges
+   ════════════════════════════════════════════════════════════════════ */
+
+const G = {x0:16, colw:182, nw:136, nh:48, y0:26, rowh:78, vw:760};
+
+const box = n => {
+  const x = G.x0 + n.col * G.colw, y = G.y0 + n.row * G.rowh;
+  return {x, y, w:G.nw, h:G.nh, cx:x + G.nw/2, cy:y + G.nh/2, r:x + G.nw, b:y + G.nh};
+};
+
+/* Straight if aligned; otherwise step through a vertical segment. `late` pushes that
+   segment right up against the target, which keeps an edge from cutting through boxes
+   that sit in the columns it passes over. */
+function edgePath(a, b, ty, late){
+  const sx = a.r, sy = a.cy, tx = b.x;
+  if (Math.abs(sy - ty) < 1.5) return {d:`M${sx},${sy} L${tx - 7},${ty}`, mx:(sx + tx)/2, my:sy};
+  const vx = late ? Math.max(sx + 14, tx - 30) : sx + (tx - sx)/2;
+  return {d:`M${sx},${sy} H${vx} V${ty} H${tx - 7}`,
+          mx: late ? (sx + vx)/2 : vx,
+          my: late ? sy : (sy + ty)/2};
+}
+
+function loopPath(a, b){
+  const y = Math.max(a.b, b.b) + 20;
+  return {d:`M${b.cx},${b.b} V${y} H${a.cx} V${a.b + 7}`, mx:(a.cx + b.cx)/2, my:y};
+}
+
+/* A label sits on a plate so that crossings stay legible without hand-tuning. */
+function plated(x, y, text, cls){
+  const w = String(text).replace(/&[a-z]+;|&#\d+;/g, 'x').length * 5.3 + 10;
+  return `<rect x="${x - w/2}" y="${y - 9}" width="${w}" height="13" fill="var(--surface)" stroke="none"/>`
+       + `<text class="${cls}" x="${x}" y="${y}" text-anchor="middle">${text}</text>`;
+}
+
+function renderDiagram(dg, idPrefix){
+  const nodes = {};
+  dg.nodes.forEach(n => nodes[n.id] = {...n, ...box(n)});
+  const edges = (dg.edges || []);
+
+  /* Spread multiple incoming edges across the target's left edge, so two joins of
+     different kinds never land on the same point and stack their labels. */
+  const entry = {};
+  const byTarget = {};
+  edges.forEach((e, i) => { if (e.kind !== 'loop') (byTarget[e.to] = byTarget[e.to] || []).push(i); });
+  Object.keys(byTarget).forEach(tid => {
+    const t = nodes[tid]; if (!t) return;
+    const list = byTarget[tid].sort((p, q) => nodes[edges[p].from].cy - nodes[edges[q].from].cy);
+    list.forEach((ei, k) => { entry[ei] = list.length === 1 ? t.cy : t.y + t.h * (k + 1) / (list.length + 1); });
+  });
+
+  let maxRow = 0;
+  dg.nodes.forEach(n => maxRow = Math.max(maxRow, n.row));
+  const hasLoop = edges.some(e => e.kind === 'loop');
+  const H = G.y0 + maxRow * G.rowh + G.nh + (hasLoop ? 56 : 32);
+
+  let s = '';
+
+  (dg.groups || []).forEach(g => {
+    const a = box({col:g.cols[0], row:g.rows[0]}), b = box({col:g.cols[1], row:g.rows[1]});
+    const pad = 13;
+    const x = Math.min(a.x, b.x) - pad, y = Math.min(a.y, b.y) - pad - 12;
+    const w = Math.max(a.r, b.r) - x + pad, h = Math.max(a.b, b.b) - y + pad;
+    s += `<rect class="grp" x="${x}" y="${y}" width="${w}" height="${h}" rx="5"/>`;
+    s += `<text class="grpt" x="${x + 6}" y="${y - 5}">${g.label}</text>`;
+  });
+
+  const labels = [];
+  edges.forEach((e, i) => {
+    const a = nodes[e.from], b = nodes[e.to];
+    if (!a || !b) return;
+    const ty = entry[i] !== undefined ? entry[i] : b.cy;
+    const p = e.kind === 'loop' ? loopPath(b, a) : edgePath(a, b, ty, e.kind === 'absent');
+    const marker = e.kind === 'cross' ? 'arc' : e.kind === 'absent' ? 'ara' : e.kind === 'loop' ? 'arl' : 'ar';
+    s += `<path class="ed ${e.kind}" d="${p.d}" marker-end="url(#${marker}-${idPrefix})"/>`;
+    if (e.kind === 'concat'){
+      labels.push(`<circle cx="${b.x - 16}" cy="${ty}" r="6.5" fill="var(--surface)" class="ed concat"/>`
+                + `<text class="el" x="${b.x - 16}" y="${ty + 3.5}" text-anchor="middle">&#8853;</text>`);
+    }
+    if (e.kind === 'absent'){
+      // cross-mark near the target, clear of the label at the midpoint
+      const cx = Math.max(p.mx + 16, b.x - 22), cy = ty;
+      labels.push(`<path class="ed absent" d="M${cx - 5},${cy - 5} L${cx + 5},${cy + 5} M${cx + 5},${cy - 5} L${cx - 5},${cy + 5}"/>`);
+    }
+    if (e.label){
+      const ly = (e.kind === 'loop' ? p.my + 14 : p.my - 7) + (e.dy || 0);
+      labels.push(plated(p.mx, ly, e.label, 'el'));
+    }
+  });
+
+  dg.nodes.forEach(n => {
+    const o = nodes[n.id];
+    const cls = [n.kind === 'backbone' ? 'backbone' : '', n.kind === 'head' ? 'head' : '',
+                 n.muted ? 'muted' : ''].filter(Boolean).join(' ');
+    s += `<rect class="nb ${cls}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="4" fill="var(--surface)"/>`;
+    const lines = Array.isArray(n.label) ? n.label : [n.label];
+    const start = o.cy - (lines.length - 1) * 7 + 4;
+    lines.forEach((ln, i) => {
+      s += `<text class="nt ${cls}" x="${o.cx}" y="${start + i * 14}" text-anchor="middle">${ln}</text>`;
+    });
+    if (n.join) s += `<text class="jl" x="${o.cx}" y="${o.b + 14}" text-anchor="middle">${n.join}</text>`;
+  });
+
+  s += labels.join('');   // plates and join glyphs ride above the boxes
+
+  const defs = `<defs>
+    <marker id="ar-${idPrefix}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+    <marker id="arc-${idPrefix}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--trigger)"/></marker>
+    <marker id="ara-${idPrefix}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--faint)"/></marker>
+    <marker id="arl-${idPrefix}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+  </defs>`;
+
+  return `<svg viewBox="0 0 ${G.vw} ${H}" role="img" aria-label="${dg.aria || 'Join topology diagram'}">${defs}${s}</svg>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PAGE RENDER
+   ════════════════════════════════════════════════════════════════════ */
+
+function renderLegend(){
+  const rows = [
+    {kind:'feed',   label:'feed-forward — the source becomes part of the target&rsquo;s input'},
+    {kind:'cross',  label:'cross-attention — conditions the target, never joins its residual stream'},
+    {kind:'concat', label:'concatenation — spliced into one sequence before the target reads it'},
+    {kind:'absent', label:'absent — this channel does not reach the target in this topology'}
+  ];
+  let s = '<defs><marker id="ar-lg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>';
+  rows.forEach((r, i) => {
+    const y = 20 + i * 30;
+    s += `<path class="ed ${r.kind}" d="M14,${y} L104,${y}" marker-end="url(#ar-lg)"/>`;
+    if (r.kind === 'concat'){
+      s += `<circle cx="59" cy="${y}" r="6.5" class="ed concat" style="stroke:var(--bg);stroke-width:3"/>`;
+      s += `<circle cx="59" cy="${y}" r="6.5" class="ed concat"/>`;
+      s += `<text class="el" x="59" y="${y + 3.5}" text-anchor="middle">&#8853;</text>`;
+    }
+    if (r.kind === 'absent'){
+      s += `<path class="ed absent" d="M54,${y - 5} L64,${y + 5} M64,${y - 5} L54,${y + 5}"/>`;
+    }
+    s += `<text class="nt" x="120" y="${y + 4}" style="font-weight:400">${r.label}</text>`;
+  });
+  return `<svg viewBox="0 0 760 130" role="img" aria-label="Legend: four edge kinds — feed-forward, cross-attention, concatenation, and absent channel.">${s}</svg>`;
+}
+
+function renderTopology(t, i){
+  const chips = t.exemplars.map(e =>
+    `<span class="chip"><span class="dot ${e.verified ? 'v' : 'u'}" title="${e.verified ? 'verified from code' : 'unverified'}"></span>
+     <span><strong>${e.name}</strong> — ${e.note}</span></span>`).join('');
+
+  return `
+<div class="topo" id="topo-${t.id}">
+  <p class="topo-id">Topology ${t.letter}</p>
+  <h3 style="margin-top:.3em">${t.name}</h3>
+  <div class="defn">${t.defn}</div>
+
+  <figure>
+    <div class="svgbox">${renderDiagram(t.diagram, t.id)}</div>
+    <figcaption><span class="fignum">Fig. ${i + 1}.</span> ${t.name}. Vision meets language
+    ${t.vmeetsl}; state enters ${t.stateEnters}.
+    ${t.sharedSpace
+      ? 'A single representation holds all three channels at once.'
+      : '<strong>No single representation holds all three channels at once.</strong>'}</figcaption>
+  </figure>
+
+  <h4>Exemplars</h4>
+  <div class="exemplars">${chips}</div>
+
+  <div class="verdict">
+    <div class="works"><span class="vh">Why it works</span><p>${t.works}</p></div>
+    <div class="breaks"><span class="vh">Where it breaks</span><p>${t.breaks}</p></div>
+    <div class="tap"><span class="vh">What it means for probing</span><p>${t.tap}</p></div>
+  </div>
+</div>`;
+}
+
+function renderMatrix(){
+  const cols = [
+    ['', t => `<strong>${t.letter}</strong> &nbsp;${t.name}`],
+    ['V meets L', t => t.vmeetsl],
+    ['State enters', t => t.stateEnters],
+    ['One space over all 3', t => t.sharedSpace ? '<span class="yes">yes</span>' : '<span class="no">no</span>'],
+    ['Nameable bottleneck', t => t.bottleneck ? `<span class="yes">${t.bottleneck}</span>` : '<span class="no">none</span>'],
+    ['Action decoder', t => t.decoder]
+  ];
+  const head = '<thead><tr>' + cols.map(c => `<th>${c[0]}</th>`).join('') + '</tr></thead>';
+  const body = '<tbody>' + TOPOLOGIES.map(t =>
+    '<tr>' + cols.map(c => `<td>${c[1](t)}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  return head + body;
+}
+
+function renderUnverified(){
+  const amber = [];
+  TOPOLOGIES.forEach(t => t.exemplars.forEach(e => {
+    if (!e.verified) amber.push({topo:t, e});
+  }));
+  if (!amber.length) return '<p>Every exemplar currently carries a code-level source.</p>';
+  return `<div class="tbl-scroll"><table>
+    <thead><tr><th>Exemplar</th><th>Topology</th><th>Claim rests on</th></tr></thead>
+    <tbody>${amber.map(({topo, e}) =>
+      `<tr><td><strong>${e.name}</strong></td><td>${topo.letter} — ${topo.name}</td><td>${e.src}</td></tr>`
+    ).join('')}</tbody></table></div>`;
+}
+
+
+function simpleTable(cols, rows){
+  return '<thead><tr>' + cols.map(c => `<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>'
+       + rows.map(r => '<tr>' + cols.map(c => `<td>${c[1](r)}</td>`).join('') + '</tr>').join('')
+       + '</tbody>';
+}
+
+function renderStages(){
+  return TRAINING_STAGES.map(s => `
+    <div class="stage">
+      <span class="stage-n">Stage ${s.n}</span>
+      <div>
+        <strong>${s.name}</strong>
+        <div class="stage-meta">${s.data} &middot; run by: ${s.who}</div>
+        <p>${s.note}</p>
+      </div>
+    </div>`).join('');
+}
+
+document.getElementById('reuse').innerHTML = simpleTable([
+  ['Component', r => `<strong>${r.part}</strong>`],
+  ['Where it comes from', r => r.origin],
+  ['On robot data', r => r.robot],
+  ['Why', r => r.why]
+], COMPONENT_REUSE);
+
+document.getElementById('stages').innerHTML = renderStages();
+
+document.getElementById('datasets').innerHTML = simpleTable([
+  ['Dataset', r => `<strong>${r.name}</strong>`],
+  ['Scale', r => r.scale],
+  ['Embodiment', r => r.emb],
+  ['Role', r => r.role]
+], DATASETS);
+
+document.getElementById('objectives').innerHTML = simpleTable([
+  ['Objective', r => `<strong>${r.loss}</strong>`],
+  ['Decoder', r => r.decoder],
+  ['Topologies', r => r.topo],
+  ['Note', r => r.note]
+], OBJECTIVES);
+
+document.getElementById('legend').innerHTML = renderLegend();
+document.getElementById('topologies').innerHTML = TOPOLOGIES.map(renderTopology).join('');
+document.getElementById('matrix').innerHTML = renderMatrix();
+document.getElementById('unverified').innerHTML = renderUnverified();
+</script>
+</body>
+</html>

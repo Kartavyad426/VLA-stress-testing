@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Sentinel, Worked Through</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* Sentinel's own machinery */
+    --trigger:#A8481B;      /* what transfers to us / what breaks */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:780px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600; margin-top:1.9em;}
+  h4{font-size:.95rem; font-weight:600; margin-top:1.5em; color:var(--muted);}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note p:last-child{margin-bottom:0;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+  .note.ours{border-left:3px solid var(--trigger);}
+
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  tr.hi td{background:var(--surface-2);}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted); margin-top:3em;}
+  .footer a{word-break:break-word;}
+  nav.toc{font-family:var(--sans); font-size:.88rem; border:1px solid var(--rule);
+          border-radius:4px; padding:16px 20px; margin:2em 0; background:var(--surface);}
+  nav.toc ol{margin:0; padding-left:20px;} nav.toc li{margin:.28em 0;}
+  nav.toc a{text-decoration:none;} nav.toc a:hover{text-decoration:underline;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Method teardown · external work</p>
+  <h1>Sentinel, worked through</h1>
+  <p class="standfirst">The full mechanism of <em>Unpacking Failure Modes of Generative
+  Policies</em> — its math, its calibration guarantee, its code — and an honest account of
+  which parts survive contact with our pipeline, where we have the failure cases but not yet
+  the mechanism or the OOD verdict.</p>
+  <div class="meta">
+    <span>Agia, Sinha, Yang, Cao, Antonova, Pavone, Bohg · CoRL 2024</span>
+    <span>arXiv:2410.04640v2</span>
+    <span>github.com/agiachris/sentinel</span>
+    <span>Read 2026-09-22</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <ol>
+    <li><a href="#s1">What Sentinel actually claims</a></li>
+    <li><a href="#s2">Problem setup and notation</a></li>
+    <li><a href="#s3">STAC: the temporal-consistency detector</a></li>
+    <li><a href="#s4">The statistical distances, as implemented</a></li>
+    <li><a href="#s5">Calibration: why the cumulative sum is the whole trick</a></li>
+    <li><a href="#s6">The VLM detector and the OR</a></li>
+    <li><a href="#s7">Baselines — a taxonomy of score functions</a></li>
+    <li><a href="#s8">Results, and the one result that matters most to us</a></li>
+    <li><a href="#s9">Repo map: equation → file → line</a></li>
+    <li><a href="#s10">Where the method is soft</a></li>
+    <li><a href="#s11">Transfer: our pipeline, our two questions</a></li>
+    <li><a href="#s12">A concrete design, and its kill switches</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s1">
+<p class="part">Part I · The claim</p>
+<h2>What Sentinel actually claims</h2>
+
+<p class="lead-in">One sentence: <strong>stop asking whether the state is unusual, and start
+asking whether the policy's own action distribution is contradicting itself over time</strong> —
+then hand everything that contradiction misses to a VLM watching the video.</p>
+
+<p>The paper's organising move is a partition of failure, not a new score. It splits policy
+failure into two categories defined as complements of each other, and assigns a detector to
+each with deliberately mismatched latency budgets:</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Category</th><th>What it looks like</th><th>Detector</th><th>Latency need</th></tr></thead>
+<tbody>
+<tr><td><strong>Erratic failure</strong></td><td>Policy jitters between action modes, thrashes, dives into unrecoverable states</td><td>STAC — statistical temporal action consistency</td><td>Fast. Must fire in seconds; the damage is physical.</td></tr>
+<tr><td><strong>Task-progression failure</strong></td><td>Policy behaves <em>smoothly and confidently</em>, and is simply doing the wrong thing — stalls, drifts, places the object in the wrong spot</td><td>VLM chain-of-thought video QA</td><td>Slow is fine. GPT-4o mean response 14.0 s. Nothing urgent is happening.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Because the second category is <em>defined</em> as "failures that are temporally
+consistent", the two detectors are near-disjoint by construction, and combining them with a
+logical OR is safe: each has a high true-negative rate, so the union's false-alarm cost stays
+bounded. That is the entire system-level argument, and it is why the paper reports
++18% failures detected over either detector alone.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 260" role="img" aria-label="Sentinel splits failure into erratic and task-progression categories, routes each to a detector with a different latency budget, and combines their warnings with a logical OR.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+    <marker id="ar-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#A8481B"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+
+    <!-- policy -->
+    <rect x="10" y="100" width="108" height="58" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="64" y="123" text-anchor="middle" font-weight="600">π(a|s)</text>
+    <text x="64" y="140" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".65">generative policy</text>
+
+    <!-- fan out -->
+    <line x1="118" y1="118" x2="196" y2="62" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+    <line x1="118" y1="140" x2="196" y2="196" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+    <text x="150" y="80" font-size="10.5" opacity=".7">action dists.</text>
+    <text x="146" y="188" font-size="10.5" opacity=".7">image stream</text>
+
+    <!-- STAC -->
+    <rect x="200" y="30" width="200" height="64" rx="4" fill="none" stroke="#2F4A9E" stroke-width="1.6"/>
+    <text x="300" y="52" text-anchor="middle" font-weight="600" fill="#2F4A9E">STAC</text>
+    <text x="300" y="69" text-anchor="middle" font-size="10.5" opacity=".75">D̂(π̄ₜ , π̃ₜ₊ₖ) on overlapping chunks</text>
+    <text x="300" y="84" text-anchor="middle" font-size="10.5" opacity=".75">cumulative ηₜ &gt; γ</text>
+
+    <!-- VLM -->
+    <rect x="200" y="164" width="200" height="64" rx="4" fill="none" stroke="#2F4A9E" stroke-width="1.6"/>
+    <text x="300" y="186" text-anchor="middle" font-weight="600" fill="#2F4A9E">VLM video QA</text>
+    <text x="300" y="203" text-anchor="middle" font-size="10.5" opacity=".75">CoT over I₀, I_νk, … , Iₜ + task text</text>
+    <text x="300" y="218" text-anchor="middle" font-size="10.5" opacity=".75">outputs {ok, failure}</text>
+
+    <!-- latency tags -->
+    <text x="410" y="50" font-size="10.5" fill="#1B6B4F" font-weight="600">fast · ~5–8 s</text>
+    <text x="410" y="184" font-size="10.5" fill="#8A6A12" font-weight="600">slow · ~21 s</text>
+    <text x="410" y="66" font-size="10.5" opacity=".7">catches erratic</text>
+    <text x="410" y="200" font-size="10.5" opacity=".7">catches no-progress</text>
+
+    <!-- OR -->
+    <line x1="400" y1="62" x2="586" y2="112" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+    <line x1="400" y1="196" x2="586" y2="146" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+    <rect x="590" y="104" width="52" height="50" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="616" y="134" text-anchor="middle" font-weight="600">OR</text>
+    <line x1="642" y1="129" x2="700" y2="129" stroke="#A8481B" stroke-width="1.6" marker-end="url(#ar-t)"/>
+    <text x="672" y="118" text-anchor="middle" font-size="10.5" fill="#A8481B" font-weight="600">halt</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F1.</span> The complementary-category architecture. The OR is
+only sound because each branch independently holds a high TNR — the paper's own limitations
+section concedes that in the worst case the union inflates the false-alarm rate. Note what is
+<em>not</em> here: nothing in this picture localises a failure to a component of the policy.</figcaption>
+</figure>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s2">
+<p class="part">Part II · The math</p>
+<h2>Problem setup and notation</h2>
+
+<p>A policy <span class="m">π(a|s)</span> acts in a finite-horizon MDP of length
+<span class="m">H</span>. Rolling it out for <span class="m">t</span> steps gives a trajectory
+<span class="m">τ<sub>t</sub> = (s<sub>0</sub>, a<sub>0</sub>, …, s<sub>t</sub>)</span>. The
+object being built is a detector</p>
+
+<span class="eq"><span class="m">f</span>(<span class="m">τ<sub>t</sub></span>) → {ok, failure}</span>
+
+<p>evaluated at every timestep, using <em>only</em> the past. A true positive is: the detector
+fires at any point in a trajectory that ends in failure, and the detection time is the
+<em>earliest</em> such firing. A true negative is: the detector <em>never</em> fires in a
+trajectory that succeeds. That asymmetry matters — TNR is an any-time property, and it is the
+reason the calibration argument in §5 has to be an any-time argument too.</p>
+
+<h3>Action chunking is the structure everything hangs off</h3>
+
+<p>The policy is a chunked generative policy: at inference step <span class="m">t</span> it
+samples a sequence of <span class="m">h</span> actions,</p>
+
+<span class="eq"><strong>a</strong><sub>t</sub> := (<span class="m">a<sub>t|t</sub></span>, <span class="m">a<sub>t+1|t</sub></span>, …, <span class="m">a<sub>t+h−1|t</sub></span>) ∼ <span class="m">π</span>(·|<span class="m">s<sub>t</sub></span>)</span>
+
+<p>where <span class="m">a<sub>t+i|t</sub></span> is the action predicted <em>for</em> time
+<span class="m">t+i</span> <em>at</em> time <span class="m">t</span>. It executes the first
+<span class="m">k &lt; h</span> of them, then re-plans at <span class="m">t+k</span>. So two
+consecutive chunks make predictions about the same <span class="m">h−k</span> future timesteps.
+<strong>That overlap is the entire signal.</strong></p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 235" role="img" aria-label="Two consecutive action chunks overlap for h minus k timesteps; STAC compares the distributions over those overlapping actions.">
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <!-- time axis -->
+    <line x1="60" y1="200" x2="690" y2="200" stroke="currentColor" stroke-width="1" opacity=".5" marker-end="url(#ar2)"/>
+    <text x="690" y="220" text-anchor="end" font-size="10.5" opacity=".7">timestep</text>
+    <line x1="120" y1="196" x2="120" y2="204" stroke="currentColor" stroke-width="1"/>
+    <text x="120" y="218" text-anchor="middle" font-size="10.5">t</text>
+    <line x1="240" y1="196" x2="240" y2="204" stroke="currentColor" stroke-width="1"/>
+    <text x="240" y="218" text-anchor="middle" font-size="10.5">t+k</text>
+    <line x1="600" y1="196" x2="600" y2="204" stroke="currentColor" stroke-width="1"/>
+    <text x="600" y="218" text-anchor="middle" font-size="10.5">t+h</text>
+
+    <!-- chunk at t -->
+    <rect x="120" y="46" width="480" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <rect x="120" y="46" width="120" height="34" rx="3" fill="currentColor" opacity=".12"/>
+    <text x="180" y="68" text-anchor="middle" font-size="10.5" font-weight="600">executed</text>
+    <text x="420" y="68" text-anchor="middle" font-size="11">predicted, then discarded &amp; re-planned</text>
+    <text x="60" y="68" text-anchor="end" font-size="11" font-weight="600">aₜ ∼ π(·|sₜ)</text>
+
+    <!-- chunk at t+k -->
+    <rect x="240" y="112" width="480" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"
+          stroke-dasharray="0" />
+    <text x="180" y="134" text-anchor="end" font-size="11" font-weight="600">aₜ₊ₖ ∼ π(·|sₜ₊ₖ)</text>
+
+    <!-- overlap band -->
+    <rect x="240" y="40" width="360" height="112" rx="3" fill="#2F4A9E" opacity=".10"/>
+    <line x1="240" y1="34" x2="240" y2="160" stroke="#2F4A9E" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="600" y1="34" x2="600" y2="160" stroke="#2F4A9E" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="420" y="28" text-anchor="middle" font-size="11.5" font-weight="600" fill="#2F4A9E">overlap: h − k timesteps</text>
+    <text x="420" y="176" text-anchor="middle" font-size="11" fill="#2F4A9E">π̄ₜ vs π̃ₜ₊ₖ — two distributions over the SAME future actions</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F2.</span> Receding-horizon execution creates two
+<em>independently sampled</em> beliefs about the same <span class="m">h−k</span> future
+actions: one conditioned on <span class="m">s<sub>t</sub></span>, one on
+<span class="m">s<sub>t+k</sub></span>. If the policy's implicit world model is right, the
+second should already be contained in the first. If <span class="m">h = k</span> there is no
+band, and STAC does not exist. <em>This is precisely our situation — see §11.</em></figcaption>
+</figure>
+
+<p>Formally, write the two marginals over the overlapping slice:</p>
+
+<span class="eq"><span class="m">π̄<sub>t</sub></span> := <span class="m">π</span>(<span class="m">a<sub>t+k:t+h−1|t</sub></span> | <span class="m">s<sub>t</sub></span>) &nbsp;&nbsp;&nbsp; <span class="m">π̃<sub>t+k</sub></span> := <span class="m">π</span>(<span class="m">a<sub>t+k:t+h−1|t+k</sub></span> | <span class="m">s<sub>t+k</sub></span>)</span>
+
+<p>Both live on <span class="m">ℝ<sup>(h−k)×|A|</sup></span>.</p>
+
+<div class="note">
+<span class="nh">Why a distribution and not a vector</span>
+<p>The obvious thing — compare the two sampled chunks directly — fails on multimodal policies.
+A diffusion policy may legitimately plan around an obstacle on the left at
+<span class="m">t</span> and on the right at <span class="m">t+k</span>; both are competent,
+and their L2 distance is enormous. The question is not "did the sample change" but
+<strong>"is the new distribution still covered by the old one"</strong>. That is why the
+comparison is distributional, and it is the difference between STAC and the
+<em>Temporal Non-Distributional Minimum</em> baseline that scores 0.27 TNR out of distribution.</p>
+</div>
+
+<h3>The calibration set</h3>
+
+<p>Sentinel assumes a post-training validation phase yielding
+<span class="m">D<sub>τ</sub></span> = {<span class="m">τ<sup>i</sup></span>}<sup>M</sup>
+of <strong>successful</strong> rollouts only. <span class="m">M</span> = 50 in simulation,
+<span class="m">M</span> = 10 on hardware. No failure data is ever required. This is the same
+reference-from-successes posture our <code>ood_selfref</code> already takes, and it is the
+single most portable idea in the paper.</p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s3">
+<h2>STAC: the temporal-consistency detector</h2>
+
+<p>Define a per-step consistency score as a statistical distance between the two marginals,
+and accumulate it along the trajectory. At inference timestep
+<span class="m">t = jk</span>:</p>
+
+<div class="thm">
+<div class="thm-label">Equation 1 — the STAC score</div>
+<div class="thm-body">
+<span class="eq"><span class="m">η<sub>t</sub></span> := Σ<sub><span class="m">i</span>=0</sub><sup><span class="m">j</span>−1</sup> <span class="m">D̂</span>( <span class="m">π̄<sub>ik</sub></span> , <span class="m">π̃<sub>(i+1)k</sub></span> ) <span class="tag">(1)</span></span>
+<p style="margin:0">Raise a warning the first time <span class="m">η<sub>t</sub> &gt; γ</span>.</p>
+</div>
+</div>
+
+<p>Two properties are being bought here, and the paper states both:</p>
+
+<ul class="tight">
+<li><strong>Sensitivity to chronic, small deviations.</strong> A policy that is marginally more
+inconsistent than nominal at every step — jitter — never trips a per-step threshold but
+accumulates.</li>
+<li><strong>Sensitivity to frequency.</strong> A policy that is badly inconsistent
+<em>more often</em> than nominal also accumulates, even if each individual spike is within
+range.</li>
+</ul>
+
+<p>The third property is not advertised in the body text but is the load-bearing one:
+<strong><span class="m">η<sub>t</sub></span> is monotone non-decreasing</strong>, because every
+summand is a distance and therefore <span class="m">≥ 0</span>. §5 shows that this single fact
+is what converts an ordinary split-conformal quantile into an any-time false-positive bound.</p>
+
+<h3>The hypothesis underneath</h3>
+
+<p>§A.1 states the mechanism the authors believe they are measuring. A predictive policy behaves
+as though it has an internal world model. At <span class="m">t</span> it has a belief about
+what <span class="m">s<sub>t+k</sub></span> will be. If that belief is right — which it should
+be in distribution — then the actions it would choose at <span class="m">s<sub>t+k</sub></span>
+are already well represented in <span class="m">π̄<sub>t</sub></span>, and the distance is
+small. Out of distribution, the implicit world model is wrong, the states diverge from
+prediction, and <span class="m">π̃<sub>t+k</sub></span> lands somewhere
+<span class="m">π̄<sub>t</sub></span> gave little mass.</p>
+
+<p>Read carefully, STAC is a <strong>one-step prediction-error probe on the policy's own latent
+dynamics model</strong>, measured in action space because that is the only place the world model
+is observable. This framing matters for transfer: it means STAC is not really an "action
+statistic", it is a <em>self-consistency</em> statistic, and self-consistency can in principle be
+measured at any tap where a model commits to something it can later be held to.</p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s4">
+<h2>The statistical distances, as implemented</h2>
+
+<p>The true <span class="m">D(π̄<sub>t</sub>, π̃<sub>t+k</sub>)</span> is not computable: it
+would require marginalising out both the non-overlapping actions and every intermediate
+denoising step. So <span class="m">D̂</span> is empirical — sample a batch of
+<span class="m">B</span> chunks from each distribution (parallel on GPU) and compute a two-sample
+statistic.</p>
+
+<h3>MMD with an RBF kernel — the default</h3>
+
+<span class="eq"><span class="m">D̂</span>(<span class="m">π̄<sub>t</sub></span>, <span class="m">π̃<sub>t+k</sub></span>) = 𝔼<sub>a,a′∼π̄</sub>[<span class="m">k</span>(a,a′)] + 𝔼<sub>b,b′∼π̃</sub>[<span class="m">k</span>(b,b′)] − 2·𝔼<sub>a∼π̄, b∼π̃</sub>[<span class="m">k</span>(a,b)]</span>
+
+<p>with <span class="m">k</span>(x,y) = exp(−‖x−y‖² / <span class="m">β</span><sub>1</sub>),
+the kernel acting on whole flattened action <em>sequences</em> in
+<span class="m">ℝ<sup>(h−k)|A|</sup></span> — not on individual actions.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 230" role="img" aria-label="MMD is the squared distance between the two sample sets' mean embeddings, computed from three blocks of pairwise kernel evaluations: within-previous, within-current, and cross.">
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <!-- sample clouds -->
+    <text x="92" y="24" text-anchor="middle" font-size="11.5" font-weight="600">B chunks ∼ π̄ₜ</text>
+    <circle cx="60" cy="54" r="4" fill="currentColor"/><circle cx="82" cy="44" r="4" fill="currentColor"/>
+    <circle cx="104" cy="62" r="4" fill="currentColor"/><circle cx="72" cy="76" r="4" fill="currentColor"/>
+    <circle cx="112" cy="40" r="4" fill="currentColor"/><circle cx="92" cy="90" r="4" fill="currentColor"/>
+
+    <text x="92" y="130" text-anchor="middle" font-size="11.5" font-weight="600" fill="#A8481B">B chunks ∼ π̃ₜ₊ₖ</text>
+    <circle cx="62" cy="158" r="4" fill="#A8481B"/><circle cx="88" cy="150" r="4" fill="#A8481B"/>
+    <circle cx="110" cy="170" r="4" fill="#A8481B"/><circle cx="74" cy="182" r="4" fill="#A8481B"/>
+    <circle cx="118" cy="146" r="4" fill="#A8481B"/><circle cx="96" cy="194" r="4" fill="#A8481B"/>
+
+    <!-- three gram blocks -->
+    <g>
+      <rect x="196" y="36" width="92" height="92" rx="3" fill="currentColor" opacity=".10" stroke="currentColor" stroke-width="1"/>
+      <text x="242" y="20" text-anchor="middle" font-size="11">K(x,x)</text>
+      <text x="242" y="148" text-anchor="middle" font-size="10.5" opacity=".7">mean = a</text>
+    </g>
+    <g>
+      <rect x="306" y="36" width="92" height="92" rx="3" fill="#A8481B" opacity=".16" stroke="#A8481B" stroke-width="1"/>
+      <text x="352" y="20" text-anchor="middle" font-size="11">K(y,y)</text>
+      <text x="352" y="148" text-anchor="middle" font-size="10.5" opacity=".7">mean = b</text>
+    </g>
+    <g>
+      <rect x="416" y="36" width="92" height="92" rx="3" fill="#2F4A9E" opacity=".16" stroke="#2F4A9E" stroke-width="1"/>
+      <text x="462" y="20" text-anchor="middle" font-size="11">K(x,y)</text>
+      <text x="462" y="148" text-anchor="middle" font-size="10.5" opacity=".7">mean = c</text>
+    </g>
+    <!-- diagonal highlight -->
+    <line x1="196" y1="36" x2="288" y2="128" stroke="currentColor" stroke-width="2"/>
+    <line x1="306" y1="36" x2="398" y2="128" stroke="#A8481B" stroke-width="2"/>
+    <text x="242" y="168" text-anchor="middle" font-size="10" fill="#8A6A12">diagonal k(x,x)=1 kept →</text>
+    <text x="298" y="184" text-anchor="middle" font-size="10" fill="#8A6A12">biased V-statistic, guarantees D̂ ≥ 0</text>
+
+    <!-- result -->
+    <text x="560" y="72" font-size="14" font-weight="600">D̂ = a + b − 2c</text>
+    <text x="560" y="94" font-size="11" opacity=".75">= ‖ μ<tspan font-style="italic">π̄</tspan> − μ<tspan font-style="italic">π̃</tspan> ‖²<tspan baseline-shift="sub" font-size="8">ℋ</tspan></text>
+    <text x="560" y="116" font-size="11" opacity=".75">squared RKHS mean-</text>
+    <text x="560" y="131" font-size="11" opacity=".75">embedding distance</text>
+    <line x1="516" y1="82" x2="548" y2="82" stroke="currentColor" stroke-width="1.2"/>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F3.</span> The MMD as computed in
+<code>error_utils.compute_mmd_rbf</code>: three Gram-matrix means. Keeping the self-similarity
+diagonal makes this the <em>biased V-statistic</em>, which is an exact squared norm and therefore
+non-negative. The unbiased U-statistic can go negative — and a negative summand would break the
+monotonicity of <span class="m">η<sub>t</sub></span> and with it Proposition 2. The "bias" is
+load-bearing, not sloppiness.</figcaption>
+</figure>
+
+<h4>Bandwidth</h4>
+<p>Two regimes, chosen per domain:</p>
+<ul class="tight">
+<li><strong>Low multimodality</strong> (Close Box, Cover Object):
+<span class="m">β</span><sub>1</sub> = 1/|A| fixed, <span class="m">B</span> = 32.</li>
+<li><strong>High multimodality</strong> (PushT, Push Chair): the <em>median heuristic</em>,
+<span class="m">B</span> = 256. In code this is
+<code>gamma = 1/(2·median{‖z<sub>i</sub>−z<sub>j</sub>‖² : &gt;0})</code> over the pooled sample
+<span class="m">z</span> = [x; y] — i.e. the bandwidth is re-estimated at every timestep from the
+data being compared.</li>
+</ul>
+
+<div class="note repo">
+<span class="nh">Implementation detail worth knowing</span>
+<p>The docstring in <code>compute_mmd_rbf</code> says the kernel is
+<code>exp(-gamma*||x-y||^2 / 2)</code>, but it calls
+<code>sklearn.metrics.pairwise.rbf_kernel</code>, which computes
+<code>exp(-gamma*||x-y||^2)</code>. The factor of 2 is absorbed into the bandwidth, so results
+are unaffected — but anyone reimplementing from the docstring will get a silently different
+bandwidth. Take the kernel from the call, not the comment.</p>
+</div>
+
+<h3>KL divergence via KDE — the alternatives</h3>
+
+<p>Fit Gaussian KDEs to both sample sets and take a plug-in estimate. Forward:</p>
+
+<span class="eq"><span class="m">D̂</span> = 𝔼<sub>a∼π̃<sub>t+k</sub></sub>[ log <span class="m">p</span>(a) / <span class="m">q</span>(a) ] &nbsp;&nbsp;&nbsp;
+(<span class="m">p</span> = KDE of <span class="m">π̃<sub>t+k</sub></span>, <span class="m">q</span> = KDE of <span class="m">π̄<sub>t</sub></span>)</span>
+
+<p>Reverse swaps which distribution supplies the samples. Bandwidth
+<span class="m">β</span><sub>2</sub> is either 1.0 or
+<span class="m">√λ<sub>max</sub>(Cov(a<sub>t+k:t+h−1|·</sub>))</span> for multimodal domains —
+i.e. scaled to the dominant principal axis of the overlapping actions.</p>
+
+<p>Forward vs reverse is not cosmetic. Forward KL is mode-covering: it explodes when
+<span class="m">π̃<sub>t+k</sub></span> puts mass where <span class="m">π̄<sub>t</sub></span>
+put none — exactly "the policy has discovered an option it previously did not consider", which
+is the erratic signature. Reverse KL is mode-seeking and punishes collapse instead. Empirically
+in Table 1 forward KL takes a higher TPR and a lower TNR than reverse; that asymmetry is the
+expected one.</p>
+
+<div class="note measured">
+<span class="nh">A gap in the guarantee</span>
+<p>Proposition 2's proof asserts <span class="m">D̂(·,·) ≥ 0</span> "because it is a statistical
+distance". That holds for the MMD V-statistic by construction. It does <em>not</em> hold for a
+KDE plug-in KL estimate, which is a difference of two noisy log-density averages and can be
+negative in finite samples. In practice it essentially never is, but with STAC KL the any-time
+bound is empirical rather than proved. If you port one distance, port MMD.</p>
+</div>
+
+<h3>Preprocessing the actions</h3>
+<p>Not incidental. Before any distance is computed
+(<code>compute_temporal_error</code>):</p>
+<ol class="proto">
+<li><strong>Slice to the overlap.</strong> <code>prev[:, k:h]</code> against
+<code>curr[:, :h−k]</code>. An off-by-one here silently compares non-corresponding timesteps and
+the score still looks plausible.</li>
+<li><strong>Drop the binary gripper channel.</strong> A discrete 0/1 dimension inside a
+continuous RBF kernel contributes a fixed quantum whenever it flips and nothing otherwise; it
+degrades the kernel. Optionally drop rotations too.</li>
+<li><strong>Optionally integrate velocities into trajectories</strong> —
+<code>(action·Δt).cumsum(axis=−2)</code> — so the comparison happens in position space, where a
+persistent small velocity offset becomes a growing position gap. This is what the ATE error
+function operates on.</li>
+</ol>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s5">
+<h2>Calibration: why the cumulative sum is the whole trick</h2>
+
+<p class="lead-in">This section is the one piece of Sentinel that is genuinely a theorem rather
+than a heuristic, and it is the piece most worth stealing.</p>
+
+<p>The goal is a threshold <span class="m">γ</span> such that on an in-distribution success the
+detector <em>never</em> fires, with probability <span class="m">≥ 1 − δ</span>. The obstacle:
+split conformal prediction needs i.i.d. calibration and test points, and the per-timestep scores
+within one trajectory are violently autocorrelated. Applying a conformal quantile at each of
+<span class="m">H/k</span> timesteps would need a union bound and cost a factor of
+<span class="m">H/k</span> in <span class="m">δ</span>.</p>
+
+<div class="thm">
+<div class="thm-label">Theorem 1 · split conformal (standard)</div>
+<div class="thm-body">
+<p>For i.i.d. calibration points <span class="m">X<sup>1</sup>…X<sup>M</sup></span> and test
+point <span class="m">X<sub>test</sub></span>, and any score function
+<span class="m">η</span>, setting</p>
+<span class="eq"><span class="m">γ</span> := the ⌈(<span class="m">M</span>+1)(1−<span class="m">δ</span>)⌉ / <span class="m">M</span> empirical quantile of {<span class="m">η</span>(<span class="m">X<sup>i</sup></span>)}</span>
+<p style="margin:0">gives ℙ[<span class="m">η</span>(<span class="m">X<sub>test</sub></span>) ≤ <span class="m">γ</span>] ≥ 1 − <span class="m">δ</span>. Distribution-free; no assumptions on the score.</p>
+</div>
+</div>
+
+<p>Sentinel's move: <strong>calibrate on the terminal score of each trajectory</strong>. Across
+trajectories, <span class="m">η<sup>i</sup><sub>H<sub>i</sub></sub></span> <em>are</em> i.i.d.
+— the correlation lives inside a trajectory, not between them. Then monotonicity converts a
+statement about the endpoint into a statement about the whole path.</p>
+
+<div class="thm trig">
+<div class="thm-label">Proposition 2 · STAC has low FPR</div>
+<div class="thm-body">
+<p>Let <span class="m">D<sub>τ</sub></span> = {<span class="m">τ<sup>i</sup></span>} be i.i.d.
+successful rollouts from the closed-loop nominal distribution
+<span class="m">P<sub>τ</sub></span>, and set <span class="m">γ</span> to the
+⌈(<span class="m">M</span>+1)(1−<span class="m">δ</span>)⌉/<span class="m">M</span> empirical
+quantile of the <strong>terminal</strong> scores
+{<span class="m">η<sup>i</sup><sub>H<sub>i</sub></sub></span>}. Then</p>
+<span class="eq">FPR := ℙ<sub>P<sub>τ</sub></sub>[ ∃ 0 ≤ <span class="m">t</span> ≤ <span class="m">H′</span> s.t. <span class="m">η<sub>t</sub> &gt; γ</span> ] ≤ <span class="m">δ</span></span>
+<p class="proof">Every summand <span class="m">D̂ ≥ 0</span>, so
+<span class="m">η<sub>0</sub> ≤ η<sub>k</sub> ≤ … ≤ η<sub>H′</sub></span>. Therefore the event
+"<span class="m">η</span> crosses <span class="m">γ</span> at some point" is
+<em>identical</em> to the event "<span class="m">η<sub>H′</sub> &gt; γ</span>" — not merely
+implied by it. Theorem 1 applied to the i.i.d. terminal scores bounds the latter by
+<span class="m">δ</span>. <span class="qed">∎</span></p>
+</div>
+</div>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 280" role="img" aria-label="Because the cumulative score only increases, a crossing anywhere along the trajectory is equivalent to the terminal score exceeding the threshold, so a single conformal quantile on terminal scores bounds the any-time false positive rate.">
+  <defs>
+    <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <!-- axes -->
+    <line x1="64" y1="238" x2="470" y2="238" stroke="currentColor" stroke-width="1" marker-end="url(#ar3)"/>
+    <line x1="64" y1="238" x2="64" y2="28" stroke="currentColor" stroke-width="1" marker-end="url(#ar3)"/>
+    <text x="270" y="262" text-anchor="middle" font-size="11" opacity=".75">trajectory time t</text>
+    <text x="56" y="34" text-anchor="end" font-size="11" opacity=".75">ηₜ</text>
+
+    <!-- threshold -->
+    <line x1="64" y1="104" x2="470" y2="104" stroke="#A8481B" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <text x="476" y="101" font-size="11" font-weight="600" fill="#A8481B">γ</text>
+    <text x="476" y="116" font-size="10" fill="#A8481B">⌈(M+1)(1−δ)⌉/M quantile</text>
+
+    <!-- success curves (monotone, stay below) -->
+    <polyline points="64,238 108,226 152,214 196,206 240,196 284,188 328,180 372,172" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".55"/>
+    <polyline points="64,238 108,230 152,220 196,208 240,198 284,184 328,170 372,158" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".55"/>
+    <polyline points="64,238 108,222 152,206 196,192 240,178 284,164 328,150 372,140" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".55"/>
+    <circle cx="372" cy="172" r="3.5" fill="currentColor" opacity=".7"/>
+    <circle cx="372" cy="158" r="3.5" fill="currentColor" opacity=".7"/>
+    <circle cx="372" cy="140" r="3.5" fill="currentColor" opacity=".7"/>
+    <text x="392" y="164" font-size="10.5" opacity=".7">terminal scores</text>
+    <text x="392" y="178" font-size="10.5" opacity=".7">of successes → calibrate γ</text>
+
+    <!-- failure curve -->
+    <polyline points="64,238 108,228 152,212 196,180 240,128 284,74 328,40 372,26" fill="none" stroke="#2F4A9E" stroke-width="2"/>
+    <circle cx="262" cy="100" r="4.5" fill="none" stroke="#2F4A9E" stroke-width="2"/>
+    <line x1="262" y1="104" x2="262" y2="238" stroke="#2F4A9E" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="262" y="254" text-anchor="middle" font-size="10.5" fill="#2F4A9E" font-weight="600">detection time</text>
+    <text x="330" y="24" font-size="11" fill="#2F4A9E" font-weight="600">failing rollout</text>
+
+    <!-- equivalence box -->
+    <rect x="510" y="52" width="196" height="150" rx="4" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
+    <text x="608" y="76" text-anchor="middle" font-size="11" font-weight="600">Monotone ⇒</text>
+    <text x="608" y="100" text-anchor="middle" font-size="11">{ ∃t : ηₜ &gt; γ }</text>
+    <text x="608" y="122" text-anchor="middle" font-size="13" font-weight="600" fill="#A8481B">≡</text>
+    <text x="608" y="144" text-anchor="middle" font-size="11">{ η<tspan baseline-shift="sub" font-size="8">H′</tspan> &gt; γ }</text>
+    <text x="608" y="172" text-anchor="middle" font-size="10.5" opacity=".75">one quantile, no union</text>
+    <text x="608" y="187" text-anchor="middle" font-size="10.5" opacity=".75">bound, any-time valid</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F4.</span> The mechanism of Proposition 2. Monotonicity turns a
+per-timestep multiple-testing problem into a single-endpoint test. Note what this buys and what
+it does not: the bound is on <em>false alarms only</em>. Nothing here promises the failing curve
+crosses at all, and nothing promises it crosses <em>early</em>. Detection power is entirely
+empirical.</figcaption>
+</figure>
+
+<div class="note">
+<span class="nh">The three honest caveats, from the paper's own §D remarks</span>
+<p><strong>(a)</strong> Only FPR is bounded. Detection is not guaranteed, and cannot be without
+failure data or distributional assumptions on the OOD regime. <strong>(b)</strong> The guarantee
+holds for trajectories i.i.d. with <span class="m">D<sub>τ</sub></span>; under distribution
+shift there is no guarantee — which is the point, but also means the bound says nothing about
+false alarms on <em>OOD successes</em>, which is where the embedding baselines die.
+<strong>(c)</strong> Taking the OR of two detectors can, worst case, add their false-alarm
+rates.</p>
+</div>
+
+<h3>What the repo actually calibrates — five variants, only two of which are Proposition 2</h3>
+
+<p><code>metric_utils.compute_detection_results</code> evaluates five calibration schemes for
+every score. This is not in the paper body and is worth knowing, because only the last two
+inherit the guarantee:</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Key</th><th>Calibration pool</th><th>Test score</th><th>Prop. 2 applies?</th></tr></thead>
+<tbody>
+<tr><td><code>t_iid</code></td><td>every per-timestep score in <span class="m">D<sub>τ</sub></span>, pooled</td><td>per-timestep</td><td><span class="no">No</span> — pseudo-replication; frames are not i.i.d.</td></tr>
+<tr><td><code>ep_iid_max</code></td><td>per-episode <em>max</em> of per-timestep scores</td><td>per-timestep</td><td><span class="no">No</span> — max is i.i.d. across episodes, but the score is not monotone, so no any-time equivalence</td></tr>
+<tr><td><code>ep_iid_per_t</code></td><td>as above, restricted to demo frames with timestep ≤ <span class="m">t</span></td><td>per-timestep, at <span class="m">t</span></td><td><span class="no">No</span> — but this is a <em>time-varying</em> threshold, which is the right shape for length-confounded data</td></tr>
+<tr><td class="hi"><code>ep_iid_cum</code></td><td>per-episode terminal cumulative score</td><td>cumulative</td><td><span class="yes">Yes</span> — this is Proposition 2 exactly</td></tr>
+<tr><td class="hi"><code>ep_iid_cum_per_t</code></td><td>terminal cumulative, restricted to timestep ≤ <span class="m">t</span></td><td>cumulative</td><td><span class="yes">Partly</span> — conservative, time-varying variant</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Episode-level roll-up is then: <code>pred = np.any(per-timestep preds)</code>, detection
+time = index of the first <code>True</code>, TN = never fired. Two detector families are
+offered — <code>quantile_detector</code> (the conformal one) and <code>guassian_detector</code>
+(<span class="m">μ + z<sub>1−δ</sub>σ</span>, which assumes normality and carries no guarantee).
+The published numbers use the 95th quantile, i.e. <span class="m">δ</span> = 0.05.</p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s6">
+<h2>The VLM detector and the OR</h2>
+
+<p>Deliberately simple. The formulation is chain-of-thought video question answering:</p>
+
+<ul class="tight">
+<li><strong>Input:</strong> a subsampled image history
+<span class="m">I<sub>0:t</sub></span> = (<span class="m">I<sub>0</sub></span>,
+<span class="m">I<sub>νk</sub></span>, <span class="m">I<sub>2νk</sub></span>, …,
+<span class="m">I<sub>t</sub></span>), where <span class="m">ν</span> sets frame frequency
+relative to the execution horizon <span class="m">k</span>.</li>
+<li><strong>Prompt:</strong> a task description, the VLM's role as runtime monitor, and —
+critically — <strong>the elapsed time <span class="m">t</span> and the time limit
+<span class="m">H</span></strong>. Without this a slow-but-progressing robot is
+indistinguishable from a stalled one.</li>
+<li><strong>Output:</strong> CoT reasoning, then a classification in {ok, failure}.
+<code>temperature = 0.0</code>, <code>max_tokens = 1000</code>. Prompts are YAML templates per
+domain; images may be centre-cropped and resized per domain/model.</li>
+<li><strong>Optional:</strong> a reference video of a successful rollout, and goal images,
+gated by template <code>settings</code> flags.</li>
+</ul>
+
+<p>The measured lesson is blunt and replicated in Table 1: <strong>a single image gives GPT-4o a
+TNR of 0.00</strong>. Given one frame it calls everything a failure. Given the video it reaches
+0.89–0.95 TNR. Temporal context is not an enhancement here, it is the difference between a
+usable detector and a constant.</p>
+
+<p>Combination is a logical OR over the two warnings. Nothing cleverer — and the paper flags
+that as a limitation.</p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s7">
+<p class="part">Part III · Evidence</p>
+<h2>Baselines — a taxonomy of score functions</h2>
+
+<p>All baselines share Sentinel's calibration machinery and differ only in the per-timestep
+score <span class="m">S</span> that gets summed into <span class="m">η<sub>t</sub></span>. That
+uniformity is what makes the comparison informative: it isolates <em>where in the policy you
+read the score from</em>.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 300" role="img" aria-label="Three families of failure score, read from three different points in the policy: the observation embedding, the diffusion process internals, and the output action distribution over time.">
+  <defs>
+    <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <!-- pipeline spine -->
+    <rect x="24" y="118" width="96" height="46" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="72" y="140" text-anchor="middle" font-size="11">observation</text>
+    <text x="72" y="155" text-anchor="middle" font-size="11">sₜ</text>
+
+    <rect x="168" y="118" width="96" height="46" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="216" y="140" text-anchor="middle" font-size="11">encoder</text>
+    <text x="216" y="155" text-anchor="middle" font-size="11">zₜ = E(oₜ)</text>
+
+    <rect x="312" y="118" width="110" height="46" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="367" y="140" text-anchor="middle" font-size="11">denoiser ε</text>
+    <text x="367" y="155" text-anchor="middle" font-size="11">N iterations</text>
+
+    <rect x="470" y="118" width="110" height="46" rx="4" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    <text x="525" y="140" text-anchor="middle" font-size="11">action chunk</text>
+    <text x="525" y="155" text-anchor="middle" font-size="11">aₜ ∈ ℝ^{h×|A|}</text>
+
+    <line x1="120" y1="141" x2="164" y2="141" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <line x1="264" y1="141" x2="308" y2="141" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <line x1="422" y1="141" x2="466" y2="141" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <line x1="580" y1="141" x2="640" y2="141" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <text x="668" y="145" text-anchor="middle" font-size="11">robot</text>
+
+    <!-- family 1: embedding -->
+    <line x1="216" y1="118" x2="216" y2="72" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <rect x="130" y="20" width="180" height="50" rx="4" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".8"/>
+    <text x="220" y="40" text-anchor="middle" font-size="11" font-weight="600">Embedding similarity</text>
+    <text x="220" y="56" text-anchor="middle" font-size="10.5" opacity=".75">Mahalanobis of zₜ vs D_τ</text>
+    <text x="320" y="34" font-size="10.5" fill="#A8481B" font-weight="600">state-aware,</text>
+    <text x="320" y="48" font-size="10.5" fill="#A8481B" font-weight="600">policy-BLIND</text>
+
+    <!-- family 2: diffusion internals -->
+    <line x1="367" y1="164" x2="367" y2="208" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+    <rect x="266" y="212" width="200" height="66" rx="4" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".8"/>
+    <text x="366" y="232" text-anchor="middle" font-size="11" font-weight="600">Diffusion internals</text>
+    <text x="366" y="248" text-anchor="middle" font-size="10.5" opacity=".75">recon. error · DDPM loss</text>
+    <text x="366" y="264" text-anchor="middle" font-size="10.5" opacity=".75">policy-aware, but DP-specific</text>
+
+    <!-- family 3: output -->
+    <line x1="525" y1="164" x2="525" y2="208" stroke="#2F4A9E" stroke-width="1.6" marker-end="url(#ar4)"/>
+    <rect x="482" y="212" width="228" height="66" rx="4" fill="none" stroke="#2F4A9E" stroke-width="1.6"/>
+    <text x="596" y="232" text-anchor="middle" font-size="11" font-weight="600" fill="#2F4A9E">Output distribution</text>
+    <text x="596" y="248" text-anchor="middle" font-size="10.5" opacity=".75">variance at one t  ·  <tspan font-weight="600">STAC across t</tspan></text>
+    <text x="596" y="264" text-anchor="middle" font-size="10.5" opacity=".75">architecture-agnostic</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F5.</span> Where each family reads its score. The vertical
+position of the tap is the real variable in Table 1. Embedding methods never see the policy's
+response to the state — that is the defect that produces their 0.00 out-of-distribution TNR.
+STAC reads the output distribution <em>across</em> time, which is the only family that is both
+policy-aware and architecture-agnostic.</figcaption>
+</figure>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Baseline</th><th>Per-timestep score <span class="m">S</span></th><th>Reads</th></tr></thead>
+<tbody>
+<tr><td>Policy Encoder / CLIP / ResNet Embedding</td><td>Mahalanobis <span class="m">√((z<sub>t</sub>−μ)ᵀΣ⁻¹(z<sub>t</sub>−μ))</span> vs the calibration embedding set, computed <strong>leave-trajectory-out</strong></td><td>observation only</td></tr>
+<tr><td>Temporal Non-Distributional Min.</td><td><span class="m">min<sub>b∈1..B</sub> ‖a<sub>t+k:t+h−1|t</sub> − a<sup>b</sup><sub>t+k:t+h−1|t+k</sub>‖</span></td><td>output, nearest sample</td></tr>
+<tr><td>Diffusion Reconstruction</td><td>𝔼‖<span class="m">a<sub>0</sub> − ε<sub>θ</sub><sup>i:0</sup>(√ᾱ<sub>i</sub>a<sub>0</sub> + √(1−ᾱ<sub>i</sub>)ε<sub>i</sub>, s<sub>t</sub>)</span>‖² over re-noise depths <span class="m">i∈{5,10,25,50}</span></td><td>diffusion internals (≈R× cost)</td></tr>
+<tr><td>Temporal Diffusion Recon.</td><td>same, but reconstructing <span class="m">â<sub>0</sub> = a<sub>t:t+k|t</sub> ⊕ a<sub>t+k:t+h−1|t+k</sub></span> conditioned on <em>s<sub>t</sub></em></td><td>diffusion internals, across time</td></tr>
+<tr><td>DDPM Loss</td><td>𝔼‖<span class="m">ε<sub>i</sub> − ε<sub>θ</sub>(√ᾱ<sub>i</sub>a<sub>0</sub> + √(1−ᾱ<sub>i</sub>)ε<sub>i</sub>, s<sub>t</sub>, i)</span>‖², <span class="m">B</span>=256, 10 sampled <span class="m">i</span></td><td>the training objective itself</td></tr>
+<tr><td>Diffusion Output Variance</td><td><code>actions.var(axis=0).mean()</code> over <span class="m">B</span> samples at one timestep</td><td>output spread, single moment</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The authors' own framing of the failure of the first family is the sentence to remember:
+embedding baselines <em>"are not policy aware: they may raise failure warnings for states that
+are dissimilar from those contained in <span class="m">D<sub>τ</sub></span> without
+understanding how the policy behaves in those states."</em></p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s8">
+<h2>Results, and the one result that matters most to us</h2>
+
+<h3>What the evidence base actually is — sim <em>and</em> hardware</h3>
+
+<p>Three simulated domains plus PushT, and one real robot. The simulation side carries the
+detector comparison; the hardware side carries the existence proof.</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Domain</th><th>Setting</th><th>Chosen to stress</th><th>Demos</th><th><span class="m">h</span> / <span class="m">k</span></th><th>OOD generated by</th></tr></thead>
+<tbody>
+<tr><td>PushT</td><td>sim</td><td>action multimodality</td><td class="num">200</td><td class="num">16 / 8</td><td>object scale &amp; dimensions</td></tr>
+<tr><td>Close Box</td><td>sim</td><td>14-DoF bimanual action space</td><td class="num">50</td><td class="num">16 / 4</td><td>object scale &amp; dimensions</td></tr>
+<tr><td>Cover Object</td><td>sim</td><td>task-progression failures</td><td class="num">50</td><td class="num">16 / 4</td><td>object pose</td></tr>
+<tr class="hi"><td><strong>Push Chair</strong></td><td><strong>real</strong></td><td>dynamic complexity, nonprehensile contact</td><td class="num">15</td><td class="num">16 / 4</td><td>chair initial pose</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The hardware stack for Push Chair: holonomic mobile base with a Kinova Gen3 7-DoF arm, a
+single fixed ZED 2 producing a partial-view point cloud, task-relevant objects segmented by
+Grounded-SAM from a natural-language description, and motion capture tracking the base pose. The
+segmented point cloud <em>is</em> the policy's visual input; the policy is EquiBot rather than
+the vanilla DP used in sim. The 15 demonstrations are not teleop — they are reconstructed from
+<strong>human videos</strong> via hand-pose detection, object segmentation and stereo-to-depth.
+In the repo this side is first-class, not an appendix: <code>envs/real_mobile/</code>,
+<code>utils/zed.py</code>, <code>utils/mocap_client/</code>,
+<code>bc/compute_rollout_actions_real.py</code>, released datasets under
+<code>logs/bc/real_eval</code>, and <code>official_real_world_results.ipynb</code>.</p>
+
+<div class="note measured">
+<span class="nh">How much weight the real-world result can carry</span>
+<p>Twenty episodes (10 success / 10 failure) on one task, against four detectors — not the
+fifteen-row comparison the simulation tables support. It demonstrates that the pipeline runs
+end-to-end on hardware and that the VLM branch transfers <em>better</em> than it does in sim.
+It does not rank detectors. Read Table 2 as an existence proof and Table 1 as the comparison.</p>
+</div>
+
+<h3>The detector comparison</h3>
+
+<p>Close Box, erratic failures, 3 seeds. Split by whether the test scenario is in- or
+out-of-distribution — which is the column pair that carries the argument.</p>
+
+<div class="tbl-scroll">
+<table>
+<thead>
+<tr><th rowspan="2">Detector</th><th colspan="2">In-dist. (91% succ.)</th><th colspan="2">OOD (41% succ.)</th><th colspan="2">Combined</th></tr>
+<tr><th>TPR</th><th>TNR</th><th>TPR</th><th>TNR</th><th>TNR</th><th>Acc.</th></tr>
+</thead>
+<tbody>
+<tr><td>Temporal Non-Distr. Min.</td><td class="num">1.00</td><td class="num">0.97</td><td class="num">1.00</td><td class="num no">0.27</td><td class="num">0.77</td><td class="num">0.85</td></tr>
+<tr><td>Diffusion Recon.</td><td class="num">0.33</td><td class="num">0.95</td><td class="num">0.40</td><td class="num">1.00</td><td class="num">0.96</td><td class="num">0.76</td></tr>
+<tr><td>Temporal Diffusion Recon.</td><td class="num">1.00</td><td class="num">0.96</td><td class="num">0.92</td><td class="num">1.00</td><td class="num">0.97</td><td class="num">0.95</td></tr>
+<tr><td>DDPM Loss</td><td class="num">1.00</td><td class="num">0.90</td><td class="num">1.00</td><td class="num">0.94</td><td class="num">0.91</td><td class="num">0.94</td></tr>
+<tr><td>Temporal DDPM Loss</td><td class="num">1.00</td><td class="num">0.95</td><td class="num">1.00</td><td class="num no">0.37</td><td class="num">0.79</td><td class="num">0.86</td></tr>
+<tr><td>Diffusion Output Variance</td><td class="num no">0.33</td><td class="num">0.94</td><td class="num no">0.28</td><td class="num">1.00</td><td class="num">0.96</td><td class="num">0.72</td></tr>
+<tr><td>Policy Encoder Embed.</td><td class="num">0.25</td><td class="num">0.98</td><td class="num">1.00</td><td class="num no">0.00</td><td class="num">0.70</td><td class="num">0.78</td></tr>
+<tr><td>CLIP Pretrained Embed.</td><td class="num">1.00</td><td class="num">0.95</td><td class="num">1.00</td><td class="num no">0.00</td><td class="num">0.68</td><td class="num">0.79</td></tr>
+<tr><td>ResNet Pretrained Embed.</td><td class="num">1.00</td><td class="num">0.95</td><td class="num">1.00</td><td class="num no">0.00</td><td class="num">0.68</td><td class="num">0.79</td></tr>
+<tr><td>STAC Forward KL</td><td class="num">1.00</td><td class="num">0.90</td><td class="num">0.99</td><td class="num">0.85</td><td class="num">0.89</td><td class="num">0.92</td></tr>
+<tr><td>STAC Reverse KL</td><td class="num">1.00</td><td class="num">0.95</td><td class="num">0.93</td><td class="num">0.97</td><td class="num">0.96</td><td class="num">0.95</td></tr>
+<tr class="hi"><td><strong>STAC MMD</strong></td><td class="num">1.00</td><td class="num">0.94</td><td class="num">0.99</td><td class="num">0.93</td><td class="num">0.94</td><td class="num"><strong>0.96</strong></td></tr>
+<tr><td>GPT-4o Image QA</td><td class="num">1.00</td><td class="num no">0.00</td><td class="num">1.00</td><td class="num no">0.00</td><td class="num">0.00</td><td class="num">0.29</td></tr>
+<tr><td>GPT-4o Video QA</td><td class="num">1.00</td><td class="num">0.89</td><td class="num">0.69</td><td class="num">0.95</td><td class="num">0.91</td><td class="num">0.87</td></tr>
+<tr class="hi"><td><strong>Sentinel</strong> (STAC MMD + Video QA)</td><td class="num">1.00</td><td class="num">0.86</td><td class="num">1.00</td><td class="num">0.90</td><td class="num">0.87</td><td class="num">0.91</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="note ours">
+<span class="nh">The finding that should change what we do</span>
+<p>Look at the OOD TNR column. <strong>All three embedding-similarity detectors score
+0.00.</strong> When the scenario is out of distribution and the policy <em>succeeds anyway</em>,
+they fire every single time. They are not detecting failure; they are detecting novelty, and
+novelty is not failure — a 41% success rate OOD means the policy generalises in four cases out
+of ten, and the embedding detector calls all four a failure.</p>
+<p>This is the same shape as our own R-036 negative: GR00T's VL embeddings did not separate its
+own failures. Sentinel found this in 2024 with three different encoders, including CLIP and
+ResNet, on a domain where the same detector achieves 0.95 TNR in distribution. It is not a
+property of a weak encoder. It is a property of the question.</p>
+</div>
+
+<p>Two more results worth carrying:</p>
+
+<ul class="tight">
+<li><strong>Task-progression failures break STAC and the VLM saves it.</strong> On shifts that
+produce smooth-but-wrong behaviour, STAC gets 44% TPR. The VLM lifts the combination to 93% TPR
+for +7% FPR. The failure <em>category</em> determines which detector works — this is the paper's
+actual thesis and it is well supported.</li>
+<li><strong>Real world, 10 successes / 10 failures, <span class="m">M</span> = 10
+calibration rollouts:</strong> STAC 0.80/0.90, GPT-4o Video QA 0.90/1.00, Sentinel 1.00/0.90,
+95% accuracy. Ten calibration trajectories is a strikingly small budget for a conformal
+threshold — at <span class="m">M</span>=10, <span class="m">δ</span>=0.05, the quantile index
+⌈11·0.95⌉ = 11 &gt; <span class="m">M</span>, so the threshold is effectively the maximum
+observed score and the nominal guarantee is at its boundary.</li>
+</ul>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s9">
+<h2>Repo map: equation → file</h2>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Concept</th><th>Location</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Overlap slicing, filtering, vel→traj</td><td><code>bc/ood_detection/error_utils.py :: compute_temporal_error</code></td><td><code>prev[:, k:h]</code> vs <code>curr[:, :h−k]</code>; asserts <span class="m">h−k &gt; 0</span></td></tr>
+<tr><td>MMD (Eq., RBF)</td><td><code>error_utils :: compute_mmd_rbf</code></td><td>biased V-statistic; <code>gamma ∈ {float, "median", "max_eig"}</code></td></tr>
+<tr><td>KL via KDE</td><td><code>error_utils :: compute_kde_kl</code></td><td><code>sklearn.neighbors.KernelDensity</code>; <code>forward</code> flag selects direction</td></tr>
+<tr><td>Embedding scores (Eq. 3)</td><td><code>error_utils :: mahal_embeddings, topk_embeddings</code></td><td><code>leave_one_out</code> adds <span class="m">∞</span> on the diagonal — the same guard our <code>ood_selfref</code> header warns about</td></tr>
+<tr><td>Output-variance baseline</td><td><code>error_utils :: compute_action_variance</code></td><td><code>actions.var(axis=0).mean()</code></td></tr>
+<tr><td>Thresholds</td><td><code>bc/ood_detection/detectors.py</code></td><td>23 lines. <code>quantile_detector</code> = conformal; <code>guassian_detector</code> = <span class="m">μ+zσ</span>, no guarantee</td></tr>
+<tr><td>Calibration variants, metrics, roll-up</td><td><code>bc/ood_detection/metric_utils.py</code></td><td>the five schemes of §5; TPR/TNR/DT/AUROC/F1</td></tr>
+<tr><td>VLM prompting</td><td><code>bc/ood_detection/prompt_utils.py</code>, <code>models/vlm_models.py</code></td><td>YAML templates per domain; OpenAI / Anthropic / Google backends, <code>temperature=0</code></td></tr>
+<tr><td>Rollout generation + embedding capture</td><td><code>bc/compute_rollout_actions.py</code></td><td>saves encoder/ResNet/CLIP features per step alongside actions</td></tr>
+<tr><td>Detector evaluation entry point</td><td><code>bc/evaluate_ood_detectors.py</code></td><td>offline, on stored rollout datasets</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The repo is structured as <strong>two decoupled stages</strong>: generate offline datasets of
+policy rollouts (optional — they publish ~319 GB of them), then evaluate detectors on those
+stored datasets. Dataset naming encodes the design: <code>ca</code> in-distribution calibration,
+<code>na</code> in-distribution test, <code>hh</code> OOD erratic failures, <code>ss</code> OOD
+task-progression failures. <strong>That separation is exactly our
+trace-store-then-analyse shape</strong>, and it is why their detector code is portable while
+their policy code is not.</p>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s10">
+<h2>Where the method is soft</h2>
+
+<ol class="proto">
+<li><strong>The cumulative score is partly a clock.</strong> <span class="m">η<sub>t</sub></span>
+is a sum of non-negative terms, so it grows with episode length whether or not anything is
+wrong. Calibrating <span class="m">γ</span> on the terminal scores of successes means any
+sufficiently long rollout crosses eventually. Sentinel is protected because its erratic failures
+are fast and its horizons are fixed — detection times of 5–8 s against much longer episodes. It
+is not a defect there. <em>It is a defect for us</em>; see §11.</li>
+<li><strong>The guarantee covers the wrong error.</strong> FPR ≤ <span class="m">δ</span> holds
+only on i.i.d.-with-<span class="m">D<sub>τ</sub></span> trajectories. Every interesting
+deployment is by definition not that. The bound is a statement about nominal operation, not
+about the regime the monitor exists for.</li>
+<li><strong>Batch size is a hidden capacity knob.</strong> <span class="m">B</span> = 32 vs 256
+is chosen per domain by multimodality. MMD's variance scales roughly as
+<span class="m">1/B</span>, and the V-statistic's positive bias as
+<span class="m">O(1/B)</span> — so the score's <em>floor</em> moves with
+<span class="m">B</span>. Comparing scores across settings with different
+<span class="m">B</span> is not meaningful.</li>
+<li><strong>The median heuristic re-estimates bandwidth per timestep.</strong> Convenient, but
+it means <span class="m">D̂</span> is computed under a different kernel at every step, and the
+sum in Eq. 1 adds quantities from different metrics. Defensible in practice; not clean.</li>
+<li><strong>Two detectors, one OR, no arbitration.</strong> The paper says so. There is no
+notion of which detector is more trustworthy in a given context, and no confidence attached to
+either.</li>
+<li><strong>Nothing localises.</strong> STAC says the policy is contradicting itself; the VLM
+says the robot is not progressing. Neither says which part of the policy is responsible. Sentinel
+is a <em>detection</em> paper, full stop — a point worth stating plainly before we try to bend
+it to a mechanism question.</li>
+</ol>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s11">
+<p class="part">Part IV · Transfer</p>
+<h2>Transfer: our pipeline, our two questions</h2>
+
+<p class="lead-in">We already have what Sentinel spends its first stage producing: rollouts with
+labelled outcomes, including failures, in a trace store. What we want is downstream of anything
+the paper does — <strong>localise the failure to a mechanism, and/or decide whether the current
+task is out of distribution</strong>. Here is what survives, what dies, and what changes shape.</p>
+
+<h3>How architecture-agnostic is it, really?</h3>
+
+<p>The paper's claim is narrow and correct: <em>"STAC is agnostic to the generative policy
+formulation, whereas the DDPM loss baseline is specific to diffusion policies."</em> But the
+framework has three layers with different answers, and conflating them overstates what
+transfers.</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Layer</th><th>Depends on</th><th>Agnostic?</th></tr></thead>
+<tbody>
+<tr><td>Calibration (Eq. 1 + Prop. 2)</td><td>only that the per-step score is <span class="m">≥ 0</span></td><td class="yes">Fully — not even robotics-specific</td></tr>
+<tr><td>VLM detector</td><td>images + a task description</td><td class="yes">Fully — never touches the policy</td></tr>
+<tr><td>STAC</td><td>see the three preconditions below</td><td>Architecture-agnostic, <strong>interface-dependent</strong></td></tr>
+<tr><td>DDPM Loss · Diffusion Recon.</td><td>the denoiser <span class="m">ε<sub>θ</sub></span>, the schedule <span class="m">ᾱ<sub>i</sub></span></td><td class="no">No — diffusion-policy only</td></tr>
+<tr><td>Output Variance · CLIP/ResNet embed.</td><td>samples, or an external encoder</td><td class="yes">Fully</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>STAC's three preconditions are easy to mistake for free, and only the first is about the
+model at all:</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Precondition</th><th>Why it bites</th><th>GR00T N1.7</th></tr></thead>
+<tbody>
+<tr><td><strong>Stochastic and samplable</strong> — <span class="m">B</span> draws from <span class="m">π</span>(·|<span class="m">s<sub>t</sub></span>) that actually differ</td><td>A deterministic regression head (ACT without a sampled latent, OpenVLA-OFT's L1 head) gives <span class="m">B</span> identical samples and <span class="m">D̂ ≡ 0</span>. The score degenerates silently.</td><td class="yes">✓ flow-matching DiT; unseeded <code>randn</code> at <code>groot_n1_7.py:657</code></td></tr>
+<tr><td><strong>Continuous action space with a meaningful metric</strong></td><td>The RBF kernel needs ‖x−y‖ to mean something. This is why the binary gripper channel is dropped — and it hides an unstated choice, since linear and angular velocities are concatenated and compared without rescaling.</td><td class="yes">✓ 132-dim, sliced to the 7 live LIBERO dims</td></tr>
+<tr class="hi"><td><strong>Chunked prediction with overlap</strong>, <span class="m">h &gt; k</span></td><td>Not an architecture property — an <em>execution</em> property. A single-action policy has no overlap; a chunked policy that executes the whole chunk has none either.</td><td class="no">✗ RTC off, <span class="m">k = h</span> = 16</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Two of three already hold. That is a materially better position than "STAC does not apply to
+our stack" — it is <em>one missing precondition</em>, and it is the one that can be
+manufactured offline.</p>
+
+<div class="note ours">
+<span class="nh">Nobody has run this on a VLA</span>
+<p>The paper's future work names monitoring "high-capacity policies [2, 23]" — Octo and OpenVLA.
+Every result in it is on a diffusion policy or EquiBot, in domains with 7–14 DoF and
+hand-specified action spaces. Running STAC on GR00T N1.7 is not a reproduction; it is the
+extension the authors flagged and did not do. Worth pricing as such — including the risk that
+it simply does not transfer.</p>
+</div>
+
+<h3>The blocking structural fact: we have no chunk overlap</h3>
+
+<p>GR00T N1.7 on our eval path runs with RTC off and executes all 16 actions of each chunk, so
+<span class="m">k = h = 16</span> and the overlap band in F2 has width zero. STAC's
+<span class="m">D̂(π̄<sub>t</sub>, π̃<sub>t+k</sub>)</span> is undefined — the repo's own
+<code>compute_temporal_error</code> asserts <code>pred_horizon - exec_horizon &gt; 0</code> and
+would refuse to run. <strong>STAC's core signal is not available to us as the pipeline currently
+stands.</strong> Two routes restore it:</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Route</th><th>What it costs</th><th>What it preserves</th></tr></thead>
+<tbody>
+<tr><td><strong>Reduce <span class="m">k</span> at eval</strong> — set <code>n_action_steps</code> to e.g. 4, giving overlap 12</td><td>A new campaign; and it is a <em>different controller</em>, so existing failure cases do not transfer</td><td>True STAC, online, cheapest per episode</td></tr>
+<tr class="hi"><td><strong>Shadow inference on stored traces</strong> — re-query the policy at intermediate steps <span class="m">t+k</span> using the already-stored observation, producing a chunk that overlaps the committed one</td><td>GPU re-run over stored obs; needs seed control because <code>groot_n1_7.py:657</code> draws <code>torch.randn</code> unseeded</td><td><strong>The existing trajectories exactly.</strong> Every failure case we already have stays valid; the overlap is manufactured offline without changing what the robot did</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Shadow inference is the better first move: it is post-hoc forensics on stored traces, which is
+the posture the rest of our programme already takes, and it does not invalidate the failure set.</p>
+
+<div class="note ours">
+<span class="nh">S4 is not STAC — and Sentinel already measured what S4 is worth</span>
+<p>Our S4 tap (call the head <span class="m">k</span> times from the same conditioning, take the
+spread) is not a temporal-consistency statistic. It is <strong>spread across draws at one
+moment</strong>, which is precisely Sentinel's <em>Diffusion Output Variance</em> baseline.</p>
+<p>That baseline is the <strong>worst-performing method in Table 1</strong>: TPR 0.33 in
+distribution, 0.28 OOD, 0.72 combined accuracy. It is beaten by every temporal method and by the
+pretrained-encoder embeddings. This is a direct, published, apples-to-apples measurement of the
+quantity S4 computes, and it says S4 should be budgeted as a weak covariate, not as a detector.
+The ~20–30% capture surcharge for <span class="m">k</span>=4 resampling should be priced against
+that expectation.</p>
+</div>
+
+<h3>What ports unchanged</h3>
+
+<ol class="proto">
+<li><strong>Reference-from-successes-only.</strong> No negative class anywhere. We already do
+this in <code>ood_selfref</code>; Sentinel confirms it is sufficient and standard.</li>
+<li><strong>Split-conformal calibration with <span class="m">δ</span> as a design parameter.</strong>
+Our leave-one-out percentile is the same idea; adopting the exact
+⌈(<span class="m">M</span>+1)(1−<span class="m">δ</span>)⌉/<span class="m">M</span> index makes
+the false-positive rate a stated guarantee rather than an empirical percentile, at no
+cost.</li>
+<li><strong>Leave-trajectory-out, not leave-frame-out.</strong> Sentinel computes calibration
+scores for a frame against trajectories <em>other than its own</em>. This is the same invariant
+our <code>ood_selfref</code> header is shouting about — and Sentinel's version is stricter,
+because it excludes the whole episode, not just the point.</li>
+<li><strong>Episode-level roll-up from per-frame scores.</strong> <code>np.any</code> over
+per-frame predictions, detection time = first firing, TN = never fired. This is
+§3 of our methodology doc — score per frame, aggregate per episode, test where the label was
+measured — implemented.</li>
+<li><strong>The complementary-category architecture.</strong> Not the specific detectors: the
+<em>discipline</em> of defining failure categories as complements and assigning a detector with a
+matched latency budget to each.</li>
+</ol>
+
+<h3>What must be adapted: the length confound</h3>
+
+<p>Our failures time out at 281 steps; our successes finish around 113. Sentinel's
+<span class="m">η<sub>t</sub></span> is monotone increasing by construction. Import it naively
+and we build a detector whose leading signal is duration.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 720 250" role="img" aria-label="A monotone cumulative score calibrated on short successful episodes is crossed by any long episode regardless of behaviour; comparing at a fixed forward index removes the confound.">
+  <defs>
+    <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <text x="16" y="18" font-size="11.5" font-weight="600" fill="#A8481B">The trap</text>
+    <line x1="30" y1="200" x2="330" y2="200" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"/>
+    <line x1="30" y1="200" x2="30" y2="40" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"/>
+    <line x1="30" y1="96" x2="330" y2="96" stroke="#A8481B" stroke-width="1.3" stroke-dasharray="5 4"/>
+    <text x="336" y="93" font-size="10.5" fill="#A8481B" font-weight="600">γ</text>
+    <!-- short success -->
+    <polyline points="30,200 60,186 90,172 120,160 150,150" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"/>
+    <circle cx="150" cy="150" r="3.5" fill="currentColor" opacity=".6"/>
+    <text x="150" y="222" text-anchor="middle" font-size="10">113 steps</text>
+    <text x="150" y="236" text-anchor="middle" font-size="10" opacity=".7">success ends</text>
+    <line x1="150" y1="200" x2="150" y2="206" stroke="currentColor" stroke-width="1"/>
+    <!-- long failure, same slope -->
+    <polyline points="30,200 60,186 90,172 120,160 150,150 180,140 210,131 240,122 270,114 300,106 318,92" fill="none" stroke="#2F4A9E" stroke-width="1.8"/>
+    <circle cx="316" cy="94" r="4" fill="none" stroke="#2F4A9E" stroke-width="2"/>
+    <text x="300" y="222" text-anchor="middle" font-size="10">281 steps</text>
+    <text x="180" y="66" font-size="10.5" fill="#2F4A9E">same per-step behaviour,</text>
+    <text x="180" y="80" font-size="10.5" fill="#2F4A9E">crosses γ on duration alone</text>
+
+    <!-- right: fix the timestep -->
+    <text x="404" y="18" font-size="11.5" font-weight="600" fill="#1B6B4F">The control</text>
+    <line x1="418" y1="200" x2="700" y2="200" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"/>
+    <line x1="418" y1="200" x2="418" y2="40" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"/>
+    <line x1="560" y1="40" x2="560" y2="206" stroke="#1B6B4F" stroke-width="1.3" stroke-dasharray="4 3"/>
+    <text x="560" y="222" text-anchor="middle" font-size="10.5" fill="#1B6B4F" font-weight="600">forward i</text>
+    <text x="560" y="236" text-anchor="middle" font-size="10" fill="#1B6B4F">(same index in both)</text>
+    <polyline points="418,200 460,184 500,170 540,160 580,152 620,146" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"/>
+    <polyline points="418,200 460,180 500,158 540,132 580,104 620,72" fill="none" stroke="#2F4A9E" stroke-width="1.8"/>
+    <circle cx="560" cy="156" r="3.5" fill="currentColor" opacity=".7"/>
+    <circle cx="560" cy="118" r="3.5" fill="#2F4A9E"/>
+    <line x1="560" y1="118" x2="560" y2="156" stroke="#1B6B4F" stroke-width="2.5"/>
+    <text x="574" y="140" font-size="10.5" fill="#1B6B4F" font-weight="600">Δ at matched i</text>
+    <text x="640" y="66" font-size="10.5" fill="#2F4A9E">failure</text>
+    <text x="640" y="150" font-size="10.5" opacity=".7">success</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F6.</span> Left: two rollouts with <em>identical</em> per-step
+consistency; the longer one crosses <span class="m">γ</span> purely because the sum has more
+terms. Right: comparing <span class="m">η</span> at a matched forward index removes the
+confound outright, where length-normalising only dilutes it — the control our methodology doc
+§6 already prescribes and the reason our <code>ood_selfref</code> uses a <em>fraction</em> of
+steps OOD rather than a sum.</figcaption>
+</figure>
+
+<p>So: our existing choice of a per-episode OOD <em>fraction</em> trades Proposition 2's any-time
+guarantee for length-robustness. That is the correct trade for our data, and it should be stated
+as a deliberate departure rather than an oversight. If we want both, the route is
+<code>ep_iid_cum_per_t</code>: a cumulative score with a threshold calibrated separately at each
+forward index — Sentinel's own fifth variant, which exists in the repo and not in the paper.</p>
+
+<div class="note measured">
+<span class="nh">A second caution, from Sentinel's weakest baseline</span>
+<p>The <em>Temporal Non-Distributional Minimum</em> baseline scores a chunk by its distance to
+the <strong>nearest</strong> sample from the comparison set — and collapses to 0.27 TNR out of
+distribution because a min over samples throws away the shape of the distribution. Our
+<code>ood_selfref</code> scores a frame by nearest-neighbour distance to the reference cloud.
+The two are not the same use (ours is a cross-episode manifold distance, theirs a chunk-to-chunk
+comparison), so this is not a refutation. But it is a reason to check the distributional
+alternative — Mahalanobis against the reference cloud, which is Sentinel's Eq. 3 and is
+already implemented in <code>error_utils.mahal_embeddings</code> — as a cheap robustness
+check on the 6.9× number.</p>
+</div>
+</section>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s12">
+<h2>A concrete design, and its kill switches</h2>
+
+<h3>Question A — is the current task OOD?</h3>
+
+<p>Sentinel's answer is uncomfortable and worth taking seriously: <strong>this is the wrong
+question to ask of a detector, because state atypicality and policy failure are different
+events</strong>, and the paper measures a domain where they come apart completely (41% of OOD
+scenarios succeed; the embedding detectors call all of them failures).</p>
+
+<p>The useful reformulation is not a scalar but a 2×2. Keep the state-embedding detector — it is
+a legitimate measurement of novelty — and cross it with the outcome we already have:</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 640 290" role="img" aria-label="A two by two of state novelty against policy outcome: in-distribution success is nominal, out-of-distribution success is generalisation, in-distribution failure is a policy defect, and out-of-distribution failure is a coverage gap.">
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12" fill="currentColor">
+    <text x="30" y="24" font-size="11" font-weight="600" opacity=".75">state novelty (embedding score vs success manifold)</text>
+    <text x="18" y="160" font-size="11" font-weight="600" opacity=".75" transform="rotate(-90 18 160)" text-anchor="middle">policy outcome</text>
+
+    <text x="196" y="52" text-anchor="middle" font-size="11" font-weight="600">in distribution</text>
+    <text x="440" y="52" text-anchor="middle" font-size="11" font-weight="600">out of distribution</text>
+    <text x="70" y="118" text-anchor="middle" font-size="11" font-weight="600">success</text>
+    <text x="70" y="214" text-anchor="middle" font-size="11" font-weight="600">failure</text>
+
+    <rect x="96" y="64" width="200" height="94" rx="4" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
+    <text x="196" y="104" text-anchor="middle" font-size="12" font-weight="600">NOMINAL</text>
+    <text x="196" y="124" text-anchor="middle" font-size="10.5" opacity=".75">the reference manifold</text>
+    <text x="196" y="139" text-anchor="middle" font-size="10.5" opacity=".75">calibrate here</text>
+
+    <rect x="340" y="64" width="200" height="94" rx="4" fill="none" stroke="#1B6B4F" stroke-width="1.6"/>
+    <text x="440" y="104" text-anchor="middle" font-size="12" font-weight="600" fill="#1B6B4F">GENERALISATION</text>
+    <text x="440" y="124" text-anchor="middle" font-size="10.5" opacity=".8">where embedding detectors</text>
+    <text x="440" y="139" text-anchor="middle" font-size="10.5" opacity=".8">score TNR 0.00 — false alarms</text>
+
+    <rect x="96" y="170" width="200" height="94" rx="4" fill="none" stroke="#8A6A12" stroke-width="1.6"/>
+    <text x="196" y="210" text-anchor="middle" font-size="12" font-weight="600" fill="#8A6A12">POLICY DEFECT</text>
+    <text x="196" y="230" text-anchor="middle" font-size="10.5" opacity=".8">novelty explains nothing;</text>
+    <text x="196" y="245" text-anchor="middle" font-size="10.5" opacity=".8">the fault is in the policy</text>
+
+    <rect x="340" y="170" width="200" height="94" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+    <text x="440" y="210" text-anchor="middle" font-size="12" font-weight="600" fill="#A8481B">COVERAGE GAP</text>
+    <text x="440" y="230" text-anchor="middle" font-size="10.5" opacity=".8">the only cell where</text>
+    <text x="440" y="245" text-anchor="middle" font-size="10.5" opacity=".8">&quot;collect more data&quot; is the fix</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">F7.</span> The OOD question, made decision-relevant. A scalar
+OOD score collapses this to one axis and loses the distinction that determines what to do next.
+Sentinel's Table 1 is exactly this 2×2 evaluated per detector, which is why its ID/OOD column
+split carries the argument. Each cell prescribes a different action; only the bottom-right one is
+a data problem.</figcaption>
+</figure>
+
+<p>Concretely: run the embedding detector at each tap, report the 2×2 counts per perturbation
+category, and never report a bare OOD rate without the outcome cross-tabulation beside it.
+R-036's result — that the state signal separated failures at a similar rate in <em>every</em>
+perturbation category — is exactly the signature of a detector living on the wrong axis of
+this table.</p>
+
+<h3>Question B — which mechanism?</h3>
+
+<p>Sentinel does not answer this, but it supplies the one piece of machinery that makes a
+cross-tap comparison legitimate. The mechanism claim in our methodology doc §5 is relative:
+<em>at forward <span class="m">j</span>, are the VLM-side taps inside the manifold while the
+action-side taps are outside?</em> That comparison is only meaningful if every tap's threshold
+was set to the <strong>same</strong> false-positive rate. Otherwise "S1 fired and S3 did not"
+may mean nothing more than that S1's threshold was looser.</p>
+
+<div class="thm trig">
+<div class="thm-label">The design</div>
+<div class="thm-body">
+<p>For each tap <span class="m">s</span> ∈ {S0, S0e, S1, S2, S3}:</p>
+<ol class="proto" style="margin-top:.8em">
+<li><strong>Score.</strong> <span class="m">S<sup>(s)</sup><sub>j</sub></span> = Mahalanobis (or
+top-<span class="m">k</span>) distance of tap <span class="m">s</span> at forward
+<span class="m">j</span> to the success-reference cloud for that tap, built
+leave-trajectory-out. <em>Do not pool across embodiments</em> — S0e comes from a per-embodiment
+<code>CategorySpecificLinear</code>.</li>
+<li><strong>Calibrate.</strong> One threshold per tap, per forward index, at a
+<em>common</em> <span class="m">δ</span>, using the
+⌈(<span class="m">M</span>+1)(1−<span class="m">δ</span>)⌉/<span class="m">M</span> conformal
+index on the reference trajectories. Common <span class="m">δ</span> is what makes step 3
+legible.</li>
+<li><strong>Read the pattern, not the OR.</strong> The output per episode is the indicator
+<em>vector</em> over taps at the earliest forward any of them fires, plus the onset index per
+tap. Sentinel's OR would destroy exactly the information the mechanism question needs.</li>
+<li><strong>Verdict.</strong> First firing in pathway order S1 → S2 → S0e → S3 nominates the
+stage. Upstream fault ⇒ source more diverse scenes. Downstream fault ⇒ source more diverse
+trajectories within existing scenes.</li>
+</ol>
+</div>
+</div>
+
+<p>And if shadow inference (§11) restores chunk overlap, STAC itself becomes a sixth signal in
+that vector — an action-side self-consistency measure that is, per Table 1, substantially
+stronger than anything the embedding taps provide. That would be the single highest-value
+addition to the panel.</p>
+
+<h3>Kill switches — run these before believing any of it</h3>
+
+<ol class="proto">
+<li><strong>Success-vs-success split.</strong> Run the whole panel on two halves of the
+successful episodes. If the taps separate, the method is reading scene identity or episode
+length, not failure. Cheapest possible invalidation; run it first.</li>
+<li><strong>Common-<span class="m">δ</span> audit.</strong> Confirm each tap's threshold fires
+at the nominal rate <em>on the reference itself</em>. Sentinel's leave-trajectory-out
+calibration exists for this; a tap whose reference rate is far from
+<span class="m">δ</span> is mis-calibrated and its cross-tap comparison is void.</li>
+<li><strong>Matched-index comparison.</strong> Never compare aggregates over episodes of
+different length (F6). Fix the forward index.</li>
+<li><strong>Architectural-phase control.</strong> If the onset ordering is computed across DiT
+depth, the <code>AlternateVLDiT</code> block structure imposes a period-4 pattern by
+construction. The null is not "no periodicity" but "periodicity at exactly the architectural
+phase" — and the text-attending blocks are <span class="m">idx % 4 == 0</span> while the
+image-attending ones are <span class="m">idx % 4 == 2</span>. Take the period from the forward
+pass, never from the config.</li>
+<li><strong>Shuffled labels.</strong> Permute episode outcomes; the separation must vanish.
+Catches leakage through duration.</li>
+</ol>
+
+<div class="note repo">
+<span class="nh">Cheapest next steps, in order</span>
+<p><strong>1.</strong> Add a Mahalanobis scorer alongside the existing nearest-neighbour one in
+<code>ood_selfref</code> and check the 6.9× survives the change of score function — an
+afternoon, CPU only, and it directly tests whether a min-over-samples statistic is throwing away
+distributional shape. <strong>2.</strong> Re-express the calibration percentile as the exact
+conformal index so <span class="m">δ</span> becomes a guarantee. <strong>3.</strong> Cross-tabulate
+the existing OOD scores against outcome per perturbation category (F7) before any new capture.
+<strong>4.</strong> Price shadow inference against the 40-episode de-risk; if STAC is reachable
+offline it outranks S4 by a wide, already-measured margin.</p>
+</div>
+</section>
+
+<div class="footer">
+<p><strong>Sources.</strong> Christopher Agia, Rohan Sinha, Jingyun Yang, Zi-ang Cao, Rika
+Antonova, Marco Pavone, Jeannette Bohg. <em>Unpacking Failure Modes of Generative Policies:
+Runtime Monitoring of Consistency and Progress.</em> CoRL 2024 ·
+<a href="https://arxiv.org/abs/2410.04640">arXiv:2410.04640v2</a> ·
+<a href="https://github.com/agiachris/sentinel">github.com/agiachris/sentinel</a> ·
+<a href="https://sites.google.com/stanford.edu/sentinel">project page</a>.
+Equations and results above are read from the v2 PDF (§3, §4, §A.1, §B.3, §D, Tables 1–3) and
+from the repository source at <code>sentinel/bc/ood_detection/</code>.</p>
+<p>Local companions: <code>docs/FRAME_LABEL_METHODOLOGY.md</code> (§3 discipline, §4.1
+reference-from-successes, §4.4 onset ordering, §4.6 DiT block structure, §6 negative controls),
+<code>docs/EXP_EMBEDDING_OOD.md</code> (tap definitions S0–S4),
+<code>experiments/ood_selfref.py</code>.</p>
+</div>
+
+</div>
+</body>
+</html>

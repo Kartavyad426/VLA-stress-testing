@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Trigger Mechanism Calculus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* trigger-independent / structure */
+    --trigger:#A8481B;      /* the perturbed trigger and what it reaches */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:760px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600;}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  /* masthead */
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  /* section numbering that means something: parts, then theorems */
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  /* blocks */
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+
+  /* math */
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  /* figures */
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted);}
+  .footer a{word-break:break-word;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">GR00T N1.7 &middot; failure attribution</p>
+  <h1>Trigger Mechanism Calculus</h1>
+  <p class="standfirst">You perturb one trigger &mdash; an initial condition &mdash; and the policy fails.
+  Eight cases stand between that observation and the sentence &ldquo;mechanism <span class="m">m</span> caused it.&rdquo;
+  Each case is decided below by a theorem, not by a plot.</p>
+  <div class="meta">
+    <span>Worked against GR00T N1.7 &middot; LIBERO-Plus &middot; <span class="mono">runs/embed_derisk</span></span>
+    <span>Reads: Grant, Zhao &amp; Wang, arXiv:2603.19233</span>
+    <span>2026-09-22</span>
+  </div>
+</header>
+
+<section>
+<h2>What is proved here, and what is not</h2>
+<p class="lead-in">The paper you sent is empirical. Its numbers &mdash; 97%&nbsp;&rarr;&nbsp;0% on GR00T under a null prompt,
+0% cross-task injection success, 28&ndash;92% zero-effect ablation rates &mdash; are measurements, and no proof
+makes a measurement true. What <em>is</em> provable is the calculus that turns such measurements into claims
+about mechanism: which inferences are licensed, which are blocked, and what an experiment must look like
+before its null result means anything.</p>
+<p>That calculus is what you need. Your pipeline is: perturb a trigger &rarr; find the dependent mechanisms &rarr;
+locate the failing one &rarr; synthesise refined data &rarr; retrain &rarr; check improvement. Every arrow in that chain
+is an inference that can silently fail. Below, each is a theorem with a proof, and each is anchored to
+a result in the paper it licenses or restricts &mdash; and, where your repo has already run the experiment,
+to what you measured.</p>
+
+<div class="note">
+  <span class="nh">Standing assumption</span>
+  <p style="margin:0">The paper studies GR00T <strong>N1.5</strong>; you run <strong>N1.7</strong>. Theorems&nbsp;1&ndash;10 are
+  architecture-agnostic and hold for both. Every <em>instantiation</em> to N1.7 below is derived from your own
+  reading of <code>action_head/cross_attention_dit.py:357&ndash;380</code>, not from the paper. Where the paper's
+  N1.5 number is used as an anchor it is marked <span class="mono" style="color:var(--warn)">measured</span>, never as a premise.</p>
+</div>
+</section>
+
+<hr>
+
+<section>
+<p class="part">The object</p>
+<h2>Definitions</h2>
+
+<p><strong>D1 (Computation graph).</strong> A policy is a finite DAG <span class="m">G = (M, E)</span> whose nodes
+<span class="m">M</span> are <em>mechanisms</em>. Each node computes
+<span class="m">h<sub>m</sub> = f<sub>m</sub>(h<sub>pa(m)</sub>; &theta;<sub>m</sub>)</span> from its parents.
+Source nodes are input channels; one sink is the action <span class="m">A</span>.</p>
+
+<p><strong>D2 (Trigger).</strong> A trigger <span class="m">T</span> is a variable you control that enters the graph
+at a known set of source nodes. A <em>perturbation</em> is a pair <span class="m">(t, t&prime;)</span> of its values.
+An initial condition enters at the camera and at proprioception; a prompt rewrite enters at the text channel;
+a light change enters at the camera alone.</p>
+
+<p><strong>D3 (Intervention).</strong> <span class="m">A[do(h<sub>S</sub> &larr; v)]</span> is the action obtained by
+running the graph forward with the activations of <span class="m">S &sube; M</span> forced to <span class="m">v</span>.
+<em>Injection</em> (the paper's term) sets <span class="m">v</span> to the activations recorded on another episode;
+<em>ablation</em> sets it to zero or to a dataset mean.</p>
+
+<p><strong>D4 (Dependence).</strong> <span class="m">m</span> is <em>trigger-dependent</em> if
+<span class="m">h<sub>m</sub>(t) &ne; h<sub>m</sub>(t&prime;)</span> for some perturbation. Write
+<span class="m">D(T)</span> for the set of such mechanisms.</p>
+
+<p><strong>D5 (Locus).</strong> <span class="m">m</span> is a <em>locus of failure</em> for <span class="m">(t, t&prime;)</span>
+if there exists <span class="m">v</span> with
+<span class="m">A[do(h<sub>m</sub> &larr; v)]</span> succeeding at <span class="m">t&prime;</span> while the unintervened
+run fails. Write <span class="m">L(T)</span>.</p>
+
+<p><strong>D6 (Cut set).</strong> <span class="m">S</span> is a cut set for <span class="m">T</span> if every directed
+path from a <span class="m">T</span>-source to <span class="m">A</span> contains a node of <span class="m">S</span>.</p>
+
+<p>D4 and D5 are the two things routinely conflated in failure analysis, and Theorem&nbsp;2 shows they are
+different sets. Almost every wasted experiment in this area measures <span class="m">D(T)</span> and reports it
+as <span class="m">L(T)</span>.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 400" role="img" aria-label="GR00T N1.7 mechanism graph: camera and proprioception carry an initial-condition trigger into the Eagle vision-language encoder and the state encoder; the DiT reads text at blocks 0,4,8 and images at blocks 2,6,10, while odd blocks receive nothing; the action chunk closes the loop through the environment.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+    <marker id="art" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#A8481B"/>
+    </marker>
+  </defs>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+
+  <!-- trigger -->
+  <rect x="8" y="150" width="96" height="58" rx="4" fill="none" stroke="#A8481B" stroke-width="2"/>
+  <text x="56" y="172" text-anchor="middle" fill="#A8481B" font-weight="600">TRIGGER T</text>
+  <text x="56" y="190" text-anchor="middle" fill="#A8481B" font-size="11">initial condition</text>
+
+  <!-- input channels -->
+  <rect x="140" y="40" width="112" height="40" rx="4" fill="none" stroke="currentColor"/>
+  <text x="196" y="65" text-anchor="middle" fill="currentColor">instruction</text>
+  <rect x="140" y="128" width="112" height="40" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="196" y="153" text-anchor="middle" fill="#A8481B">camera</text>
+  <rect x="140" y="200" width="112" height="40" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="196" y="225" text-anchor="middle" fill="#A8481B">proprioception</text>
+  <rect x="140" y="272" width="112" height="40" rx="4" fill="none" stroke="currentColor" stroke-dasharray="3 3"/>
+  <text x="196" y="297" text-anchor="middle" fill="currentColor">noise &epsilon;, step &tau;</text>
+
+  <line x1="104" y1="170" x2="136" y2="150" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+  <line x1="104" y1="190" x2="136" y2="220" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+
+  <!-- eagle -->
+  <rect x="292" y="60" width="130" height="122" rx="4" fill="none" stroke="currentColor"/>
+  <text x="357" y="86" text-anchor="middle" fill="currentColor" font-weight="600">Eagle VLM</text>
+  <text x="357" y="108" text-anchor="middle" fill="currentColor" font-size="11">vl_encoder (S1)</text>
+  <text x="357" y="128" text-anchor="middle" fill="currentColor" font-size="11">vl_normed (S1.5)</text>
+  <text x="357" y="148" text-anchor="middle" fill="currentColor" font-size="11">vl_adapted (S2)</text>
+  <text x="357" y="170" text-anchor="middle" fill="currentColor" font-size="10.5" opacity=".7">pooled taps &rarr; ker&thinsp;&phi;</text>
+
+  <!-- state encoder -->
+  <rect x="292" y="200" width="130" height="52" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="357" y="222" text-anchor="middle" fill="#A8481B" font-weight="600">state encoder</text>
+  <text x="357" y="240" text-anchor="middle" fill="#A8481B" font-size="11">state_encoded (S0e)</text>
+
+  <line x1="252" y1="60" x2="288" y2="92" stroke="currentColor" marker-end="url(#ar)"/>
+  <line x1="252" y1="148" x2="288" y2="135" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+  <line x1="252" y1="220" x2="288" y2="224" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+
+  <!-- DiT blocks -->
+  <rect x="470" y="44" width="300" height="270" rx="4" fill="none" stroke="currentColor" stroke-dasharray="4 4"/>
+  <text x="620" y="34" text-anchor="middle" fill="currentColor" font-weight="600">DiT action head &mdash; 32 blocks</text>
+
+  <rect x="492" y="62" width="256" height="26" rx="3" fill="none" stroke="currentColor"/>
+  <text x="504" y="80" fill="currentColor" font-size="11">blk 0</text>
+  <text x="620" y="80" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">TEXT</text>
+  <rect x="492" y="94" width="256" height="20" rx="3" fill="none" stroke="currentColor" opacity=".35"/>
+  <text x="504" y="108" fill="currentColor" font-size="11" opacity=".6">blk 1</text>
+  <text x="620" y="108" text-anchor="middle" fill="currentColor" font-size="11" opacity=".6">&mdash; nothing enters &mdash;</text>
+  <rect x="492" y="120" width="256" height="26" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="504" y="138" fill="#A8481B" font-size="11">blk 2</text>
+  <text x="620" y="138" text-anchor="middle" fill="#A8481B" font-size="11" font-weight="600">IMAGE</text>
+  <rect x="492" y="152" width="256" height="20" rx="3" fill="none" stroke="currentColor" opacity=".35"/>
+  <text x="504" y="166" fill="currentColor" font-size="11" opacity=".6">blk 3</text>
+  <rect x="492" y="178" width="256" height="26" rx="3" fill="none" stroke="currentColor"/>
+  <text x="504" y="196" fill="currentColor" font-size="11">blk 4</text>
+  <text x="620" y="196" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">TEXT</text>
+  <text x="620" y="222" text-anchor="middle" fill="currentColor" font-size="11" opacity=".7">&hellip; period 4, to block 31</text>
+
+  <rect x="492" y="236" width="256" height="30" rx="3" fill="#A8481B" fill-opacity=".1" stroke="#A8481B"/>
+  <text x="620" y="256" text-anchor="middle" fill="#A8481B" font-size="11" font-weight="600">state token enters every block</text>
+
+  <text x="620" y="292" text-anchor="middle" fill="currentColor" font-size="11">B&#8202;<tspan font-size="9" dy="3">L</tspan><tspan dy="-3">&nbsp;= {0,4,&hellip;,28}</tspan>
+    &nbsp;&nbsp; B&#8202;<tspan font-size="9" dy="3">V</tspan><tspan dy="-3">&nbsp;= {2,6,&hellip;,30}</tspan></text>
+
+  <line x1="422" y1="110" x2="466" y2="76" stroke="currentColor" marker-end="url(#ar)"/>
+  <text x="428" y="100" fill="currentColor" font-size="10">text kv</text>
+  <line x1="422" y1="140" x2="466" y2="133" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+  <text x="428" y="158" fill="#A8481B" font-size="10">image kv</text>
+  <line x1="422" y1="232" x2="466" y2="251" stroke="#A8481B" stroke-width="1.6" marker-end="url(#art)"/>
+  <line x1="252" y1="292" x2="466" y2="292" stroke="currentColor" stroke-dasharray="3 3" marker-end="url(#ar)"/>
+
+  <!-- action + loop -->
+  <rect x="800" y="150" width="92" height="58" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <text x="846" y="172" text-anchor="middle" fill="currentColor" font-weight="600">action</text>
+  <text x="846" y="190" text-anchor="middle" fill="currentColor" font-size="11">chunk of 16</text>
+  <line x1="770" y1="179" x2="796" y2="179" stroke="currentColor" stroke-width="1.6" marker-end="url(#ar)"/>
+  <path d="M846,208 L846,352 L196,352 L196,248" fill="none" stroke="#A8481B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#art)"/>
+  <text x="521" y="368" fill="#A8481B" font-size="11">environment &mdash; closes the loop, so T re-enters at every step</text>
+  </g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 1.</span> The graph an initial-condition perturbation actually moves through.
+Oxide marks every edge reachable from <span class="m">T</span>; grey marks what it cannot reach in one forward pass.
+Block indices are read from N1.7's forward pass: odd blocks receive no conditioning at all, text enters at
+<span class="m">idx</span>&nbsp;mod&nbsp;4&nbsp;=&nbsp;0, image at even blocks with <span class="m">idx</span>&nbsp;mod&nbsp;4&nbsp;=&nbsp;2.
+The dashed return edge is why Theorem&nbsp;7 matters: <span class="m">T</span> is not injected once, it is re-injected 500 times.</figcaption>
+</figure>
+</section>
+
+<hr>
+
+<section>
+<p class="part">Part I &mdash; which mechanisms depend on the trigger</p>
+<h2>Cases 1&ndash;5</h2>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 1 &middot; Reachability &mdash; Case 1</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">If no directed path runs from a <span class="m">T</span>-source to <span class="m">m</span>,
+  then <span class="m">h<sub>m</sub>(t) = h<sub>m</sub>(t&prime;)</span> for every perturbation of <span class="m">T</span>.
+  Hence <span class="m">D(T) &sube; desc(T)</span>, and the inclusion is computable from the architecture alone,
+  before a single rollout.</p>
+  <p class="proof">Induct on a topological order of <span class="m">G</span>. If <span class="m">m</span> is a source
+  and not a <span class="m">T</span>-source, <span class="m">h<sub>m</sub></span> is a constant of <span class="m">t</span>.
+  Otherwise every parent <span class="m">p &isin; pa(m)</span> is also outside <span class="m">desc(T)</span>
+  &mdash; else a path through <span class="m">p</span> would reach <span class="m">m</span> &mdash; and by hypothesis each
+  <span class="m">h<sub>p</sub></span> is constant in <span class="m">t</span>. Since
+  <span class="m">f<sub>m</sub></span> is a function of its parents and <span class="m">&theta;<sub>m</sub></span>,
+  <span class="m">h<sub>m</sub></span> is constant in <span class="m">t</span>. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<p>Trivial to prove, and it is the most expensive theorem to ignore, because it prices an experiment before you run it.
+Instantiated on Figure&nbsp;1, for a single forward pass:</p>
+
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>Perturbed trigger</th><th>Reaches Eagle VL</th><th>Reaches state enc.</th><th>Reaches DiT text blocks <span class="m">directly</span></th><th>Cheapest valid probe</th></tr></thead>
+  <tbody>
+  <tr><td>robot initial joint state</td><td class="no">no<sup>&dagger;</sup></td><td class="yes">yes</td><td class="no">no</td><td><code>state_encoded</code></td></tr>
+  <tr><td>object initial pose</td><td class="yes">yes</td><td class="no">no</td><td class="no">no</td><td>per-token VL, blocks <span class="m">B<sub>V</sub></span></td></tr>
+  <tr><td>camera pose / lighting</td><td class="yes">yes</td><td class="no">no</td><td class="no">no</td><td>per-token VL, blocks <span class="m">B<sub>V</sub></span></td></tr>
+  <tr><td>instruction rewrite</td><td class="yes">yes</td><td class="no">no</td><td class="yes">yes</td><td>blocks <span class="m">B<sub>L</sub></span> only</td></tr>
+  </tbody>
+</table>
+</div>
+<p style="font-size:.9rem;color:var(--muted)"><sup>&dagger;</sup> Not in the first forward pass. It reaches the VL encoder from step&nbsp;2 onward
+through the closed loop of Figure&nbsp;1, with the arm in a different place in frame. The distinction is the whole
+content of Corollary&nbsp;1.1.</p>
+
+<div class="note repo">
+  <span class="nh">What R-036 actually measured</span>
+  <p style="margin:0 0 .8em">R-036 found every VL signal flat (0.37&times;&ndash;1.08&times;, none significant) and only
+  <code>state_encoded</code> separating, at 12.95&times;, <span class="m">p</span>&nbsp;=&nbsp;4&times;10<sup>&minus;6</sup>.
+  The 2026-09-22 correction then established that the sample could not have tested the hypothesis: of 40 episodes,
+  <strong>Camera Viewpoints has n&nbsp;=&nbsp;2</strong> &mdash; the category the capture was aimed at &mdash; while
+  Robot Initial States and Objects Layout together carry 23 episodes and 12 of the 18 failures.</p>
+  <p style="margin:0">Theorem&nbsp;1 prices exactly that composition, and splits it in two. Robot-initial-state is
+  adjacent to the state encoder and one closed-loop hop from Eagle, so its VL flatness is predicted <em>a priori</em>
+  at <span class="m">h</span>=1 and carries no information about the VL pathway. Objects Layout, by the same table,
+  <em>does</em> reach the VL encoder &mdash; its flatness is Theorem&nbsp;6's territory, not Theorem&nbsp;1's. The gate
+  was neither met nor failed because the estimand and the sample were disjoint, which is the right call to have made.
+  The category-balanced re-draw is the experiment; Theorem&nbsp;1 says which categories belong in which arm, and
+  Theorems&nbsp;6 and&nbsp;6b say what the readout must be before the arms can be compared.</p>
+</div>
+
+<div class="thm">
+  <div class="thm-label">Corollary 1.1 &middot; The loop defeats static pruning at <span class="m">h &gt; 1</span></div>
+  <div class="thm-body">
+  <p style="margin:0">In the unrolled graph over horizon <span class="m">H</span>, with the environment edge of
+  Figure&nbsp;1 present, <span class="m">desc(T)</span> reaches every mechanism at every step
+  <span class="m">h &ge; 2</span>. Therefore Theorem&nbsp;1 prunes only the <em>first</em> forward pass, and any
+  pruning claim must carry the step index it holds at.</p>
+  <p class="proof">The environment edge makes <span class="m">o<sub>h+1</sub></span> a descendant of
+  <span class="m">A<sub>h</sub></span>, which is a descendant of every conditioning channel. Compose.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 2 &middot; Dependence &ne; locus &mdash; Cases 2 and 3</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">There exist graphs with <span class="m">m &isin; D(T) \ L(T)</span>
+  (activations move, mechanism is innocent) and graphs with <span class="m">m &isin; L(T) \ D(T)</span>
+  (activations are perfectly flat, mechanism is the locus). Neither set contains the other.</p>
+  <p class="proof">For <span class="m">D \ L</span>: let <span class="m">h<sub>1</sub> = T</span> and
+  <span class="m">A = h<sub>2</sub></span> with <span class="m">h<sub>2</sub></span> independent of
+  <span class="m">h<sub>1</sub></span>. Then <span class="m">h<sub>1</sub></span> moves with every perturbation
+  and no intervention on it changes <span class="m">A</span>.
+  For <span class="m">L \ D</span>: let <span class="m">h<sub>1</sub> = T &isin; {0,1}</span>,
+  let <span class="m">h<sub>2</sub> &equiv; c</span> be a constant mechanism, and
+  <span class="m">A = h<sub>2</sub> &middot; (2h<sub>1</sub> &minus; 1)</span>. Perturbing <span class="m">T</span>
+  leaves <span class="m">h<sub>2</sub></span> exactly flat, yet
+  <span class="m">do(h<sub>2</sub> &larr; &minus;c)</span> repairs the sign at <span class="m">t&prime;</span>.
+  So <span class="m">h<sub>2</sub> &isin; L(T)</span> while <span class="m">h<sub>2</sub> &notin; D(T)</span>.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<p>Case&nbsp;3 is the one that bites. A flat probe is <em>not</em> an alibi: a mechanism whose output is constant
+can still be the thing that is wrong, because the failure lives in the <em>interaction</em> between its constant output
+and a trigger-shifted sibling. Concretely on Figure&nbsp;1: an image-block key/value tensor that is identical across
+the perturbation can still be the locus if the state token it is mixed with has moved. Observational probing cannot see this;
+only an intervention that varies <span class="m">h<sub>m</sub></span> can. This is the formal reason the paper's
+<span class="mono" style="color:var(--warn)">measured</span> result that injecting GR00T activations transfers
+57.0% of behaviour overall &mdash; 85.6% on <em>goal</em>, 33.3% on <em>long</em> &mdash; carries information that
+no amount of embedding geometry does.</p>
+
+<div class="thm">
+  <div class="thm-label">Theorem 3 &middot; Exact decomposition of the total effect</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.4em">Fix a perturbation and an ordering <span class="m">&pi;</span> of
+  <span class="m">M = {m<sub>1</sub>,&hellip;,m<sub>n</sub>}</span>. Let
+  <span class="m">F(S) = A[do(h<sub>S</sub> &larr; h<sub>S</sub>(t))]</span> evaluated on the
+  <span class="m">t&prime;</span> run, and <span class="m">S<sub>i</sub> = {m<sub>&pi;(1)</sub>,&hellip;,m<sub>&pi;(i)</sub>}</span>.
+  Then, with no assumptions beyond determinism,</p>
+  <span class="eq"><span class="m">TE</span> = <span class="m">F(M) &minus; F(&empty;)</span> =
+  &sum;<sub style="font-size:.7em"><span class="m">i</span>=1</sub><sup style="font-size:.7em"><span class="m">n</span></sup>
+  [<span class="m">F(S<sub>i</sub>) &minus; F(S<sub>i&minus;1</sub>)</span>] &equiv;
+  &sum;<sub style="font-size:.7em"><span class="m">i</span></sub> &Delta;<sub style="font-size:.7em"><span class="m">i</span></sub><sup style="font-size:.7em"><span class="m">&pi;</span></sup>
+  <span class="tag">(3.1)</span></span>
+  <p class="proof">The sum telescopes. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="note measured">
+  <span class="nh">Precondition &mdash; determinism is not free on N1.7</span>
+  <p style="margin:0 0 .8em">Theorem&nbsp;3 needs <span class="m">F(S)</span> to be a <em>function</em>: the term that
+  enters one increment with a plus sign and the next with a minus sign must be the same number, or nothing cancels.
+  That holds given <span class="m">(o, l, s, &epsilon;)</span> &mdash; the noise draw is an input channel, which is why
+  it appears as a source node in Figure&nbsp;1. It does not hold given <span class="m">(o, l, s)</span> alone, and
+  N1.7's denoise loop starts from an <strong>unseeded</strong> <code>torch.randn</code>
+  (<span class="mono">groot_n1_7.py:657</span>). As written, no patching sweep on this stack satisfies the premise.</p>
+  <p style="margin:0 0 .8em"><strong>Common random numbers.</strong> Fix <span class="m">&epsilon;</span> once and reuse
+  the same draw across source, target and every patched run. Nothing about the model changes; the noise is simply
+  held constant alongside the seed and the initial state, and <span class="m">F(S)</span> is a function again.
+  The alternative &mdash; defining <span class="m">F&#772;(S) = &#120124;<sub>&epsilon;</sub>[F(S)]</span>, which
+  telescopes by linearity &mdash; is true but expensive: each increment becomes a difference of two Monte Carlo
+  estimates, <span class="m">Var(&Delta;<sub>i</sub>) &asymp; 2&sigma;&sup2;/k</span>, and the increments being read
+  are small differences between adjacent prefixes. Shared <span class="m">&epsilon;</span> is the variance reduction
+  that makes the expectation route affordable, not an alternative to it. Theorem&nbsp;7 sharpens the point: under the
+  closed loop a different <span class="m">&epsilon;</span> at step&nbsp;1 diverges the whole trajectory, so two
+  unseeded runs are not noisy copies of one episode &mdash; they are different episodes.</p>
+  <p style="margin:0"><strong>Both modes are needed, on separate paths.</strong> R-036 <em>relies</em> on the unseeded
+  draw: it is what forces labels to come from the run being scored rather than being borrowed. Keep that for the OOD
+  labelling protocol, and add a seeded mode for every intervention. Assert it rather than assume it &mdash; run
+  <span class="m">F(&empty;)</span> twice and require bitwise equality, which also catches the GPU-side
+  nondeterminism a seed alone does not fix (atomics, kernel selection, bf16 reduction order).</p>
+</div>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 3b &middot; The decomposition is order-dependent &mdash; Case 4</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">There is a graph and a perturbation for which
+  <span class="m">&Delta;<sub>i</sub><sup>&pi;</sup></span> assigns the entire total effect to
+  <span class="m">m<sub>1</sub></span> under one ordering and the entire total effect to
+  <span class="m">m<sub>2</sub></span> under another. Therefore a layer-wise patching curve is not an attribution
+  until its ordering is fixed and declared.</p>
+  <p class="proof">Let <span class="m">A = m<sub>1</sub> &and; m<sub>2</sub></span>, target
+  <span class="m">(0,0) &rarr; 0</span>, source <span class="m">(1,1) &rarr; 1</span>, so
+  <span class="m">TE = 1</span>. Under <span class="m">&pi; = (1,2)</span>:
+  <span class="m">F({m<sub>1</sub>}) = 1&and;0 = 0</span>, so <span class="m">&Delta;<sub>1</sub> = 0</span> and
+  <span class="m">&Delta;<sub>2</sub> = 1</span>. Under <span class="m">&pi; = (2,1)</span> the labels swap.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 760 250" role="img" aria-label="An AND gate patched in two different orders assigns the whole effect to the first mechanism in one order and to the second in the other; averaging over both orders splits it evenly.">
+ <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+  <text x="12" y="20" fill="currentColor" font-weight="600">order (m&#8321;, m&#8322;)</text>
+  <g>
+   <rect x="12" y="38" width="60" height="30" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+   <text x="42" y="58" text-anchor="middle" fill="#A8481B">m&#8321;&nbsp;1</text>
+   <rect x="12" y="86" width="60" height="30" rx="3" fill="none" stroke="currentColor"/>
+   <text x="42" y="106" text-anchor="middle" fill="currentColor">m&#8322;&nbsp;0</text>
+   <path d="M72,53 L112,68 M72,101 L112,86" stroke="currentColor" fill="none"/>
+   <path d="M112,48 L112,106 A30,29 0 0 0 112,48 Z" fill="none" stroke="currentColor"/>
+   <path d="M112,48 L128,48 A29,29 0 0 1 128,106 L112,106" fill="none" stroke="currentColor"/>
+   <text x="126" y="82" text-anchor="middle" fill="currentColor" font-size="11">&and;</text>
+   <line x1="158" y1="77" x2="188" y2="77" stroke="currentColor" marker-end="url(#ar2)"/>
+   <text x="212" y="81" text-anchor="middle" fill="currentColor" font-weight="600">0</text>
+   <text x="12" y="146" fill="#A8481B" font-size="11.5">&Delta;&#8321; = 0 &minus; 0 = 0</text>
+   <text x="12" y="166" fill="currentColor" font-size="11.5">&Delta;&#8322; = 1 &minus; 0 = 1</text>
+   <text x="12" y="192" fill="currentColor" font-size="11.5" font-weight="600">all credit &rarr; m&#8322;</text>
+  </g>
+
+  <line x1="262" y1="20" x2="262" y2="210" stroke="currentColor" opacity=".25"/>
+
+  <text x="290" y="20" fill="currentColor" font-weight="600">order (m&#8322;, m&#8321;)</text>
+  <g>
+   <rect x="290" y="38" width="60" height="30" rx="3" fill="none" stroke="currentColor"/>
+   <text x="320" y="58" text-anchor="middle" fill="currentColor">m&#8321;&nbsp;0</text>
+   <rect x="290" y="86" width="60" height="30" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+   <text x="320" y="106" text-anchor="middle" fill="#A8481B">m&#8322;&nbsp;1</text>
+   <path d="M350,53 L390,68 M350,101 L390,86" stroke="currentColor" fill="none"/>
+   <path d="M390,48 L390,106 A30,29 0 0 0 390,48 Z" fill="none" stroke="currentColor"/>
+   <path d="M390,48 L406,48 A29,29 0 0 1 406,106 L390,106" fill="none" stroke="currentColor"/>
+   <text x="404" y="82" text-anchor="middle" fill="currentColor" font-size="11">&and;</text>
+   <line x1="436" y1="77" x2="466" y2="77" stroke="currentColor" marker-end="url(#ar2)"/>
+   <text x="490" y="81" text-anchor="middle" fill="currentColor" font-weight="600">0</text>
+   <text x="290" y="146" fill="#A8481B" font-size="11.5">&Delta;&#8322; = 0 &minus; 0 = 0</text>
+   <text x="290" y="166" fill="currentColor" font-size="11.5">&Delta;&#8321; = 1 &minus; 0 = 1</text>
+   <text x="290" y="192" fill="currentColor" font-size="11.5" font-weight="600">all credit &rarr; m&#8321;</text>
+  </g>
+
+  <line x1="540" y1="20" x2="540" y2="210" stroke="currentColor" opacity=".25"/>
+  <text x="566" y="20" fill="currentColor" font-weight="600">average over orders</text>
+  <text x="566" y="52" fill="currentColor" font-size="11.5">&phi;&#8321; = &frac12;(0 + 1) = 0.5</text>
+  <text x="566" y="74" fill="currentColor" font-size="11.5">&phi;&#8322; = &frac12;(1 + 0) = 0.5</text>
+  <text x="566" y="104" fill="currentColor" font-size="11.5">&sum;&phi; = TE = 1</text>
+  <rect x="560" y="126" width="188" height="70" rx="3" fill="none" stroke="currentColor" stroke-dasharray="4 4"/>
+  <text x="572" y="148" fill="currentColor" font-size="11">unique attribution with</text>
+  <text x="572" y="166" fill="currentColor" font-size="11">efficiency + symmetry +</text>
+  <text x="572" y="184" fill="currentColor" font-size="11">null player + linearity</text>
+ </g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 2.</span> Theorem&nbsp;3b in two gates. The same circuit, the same total effect of&nbsp;1,
+and two opposite attributions. Averaging over all <span class="m">n!</span> orders &mdash; the Shapley value &mdash; is the
+unique fix satisfying the four standard axioms, and it costs <span class="m">2<sup>n</sup></span> forward passes,
+which is why the practical move is to fix one order and pre-register it.</figcaption>
+</figure>
+
+<div class="thm">
+  <div class="thm-label">Theorem 4 &middot; Cut-set sufficiency &mdash; Case 5</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let source and target episodes differ <em>only</em> in <span class="m">T</span>.
+  (i) If <span class="m">S</span> is a cut set for <span class="m">T</span>, then
+  <span class="m">A[do(h<sub>S</sub> &larr; h<sub>S</sub>(t))] = A(t)</span> exactly: injecting at
+  <span class="m">S</span> transfers the whole trigger effect.
+  (ii) Conversely, if injection at <span class="m">S</span> reproduces <span class="m">A(t)</span> for all such
+  pairs, then <span class="m">A &perp; T &vert; h<sub>S</sub></span> &mdash; <span class="m">h<sub>S</sub></span> is a
+  sufficient statistic for the trigger, and everything downstream that is not in <span class="m">S</span>
+  carries no additional trigger information.</p>
+  <p class="proof">(i) Induct downstream of <span class="m">S</span> in topological order. Take
+  <span class="m">m &notin; S</span> with all parents already shown to equal their <span class="m">t</span>-values.
+  Each parent is either in <span class="m">S</span> (forced to its <span class="m">t</span>-value), or outside
+  <span class="m">desc(T)</span> (equal by Theorem&nbsp;1, since the episodes differ only in <span class="m">T</span>),
+  or already handled. So <span class="m">h<sub>m</sub></span> equals its <span class="m">t</span>-value; apply at
+  <span class="m">A</span>. Paths not through <span class="m">S</span> do not exist by D6.
+  (ii) Conditional on <span class="m">h<sub>S</sub></span>, the map to <span class="m">A</span> is by hypothesis
+  invariant to which <span class="m">t</span> produced the rest of the state; invariance of the conditional law is
+  exactly conditional independence. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="thm">
+  <div class="thm-label">Corollary 4.1 &middot; N1.7's language cut set is an index set</div>
+  <div class="thm-body">
+  <p style="margin:0">In N1.7's DiT, text enters only at blocks
+  <span class="m">B<sub>L</sub> = {0,4,8,&hellip;,28}</span> and image only at
+  <span class="m">B<sub>V</sub> = {2,6,&hellip;,30}</span>; odd blocks receive no conditioning.
+  Hence <span class="m">B<sub>L</sub></span> is a cut set for the instruction channel and
+  <span class="m">B<sub>V</sub></span> for the visual channel, <em>within the head</em>. Two consequences:
+  ablating any odd block cannot change the policy's language dependence, and the pathway separation the paper
+  establishes for N1.5 by intervention is available in N1.7 <strong>by index</strong>, with no patching,
+  no matched pairs, no seed control and no token alignment.</p>
+  <p class="proof">Immediate from D6 applied to the block-conditioning schedule; the only route from the text
+  key/value tensor into the residual stream is a cross-attention at a block of <span class="m">B<sub>L</sub></span>.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="note">
+  <span class="nh">Corollary 4.1 is UNVERIFIED &mdash; and its falsifier</span>
+  <p style="margin:0 0 .8em"><strong>Status: derived from a reading of the forward pass, never confirmed by a
+  measurement.</strong> The schedule was read from <span class="mono">action_head/cross_attention_dit.py:357&ndash;380</span>,
+  and an earlier reading of the same code gave period&nbsp;2 &mdash; inferred from the config name
+  <code>attend_text_every_n_blocks: 2</code> rather than from the loop, independently and wrongly, by two people.
+  The current reading is period&nbsp;4 because the counter runs over even blocks only. Until a layer-wise readout
+  confirms it, every cut-set claim resting on it is provisional.</p>
+  <p style="margin:0">The structural null is not &ldquo;no periodicity&rdquo; &mdash; it is
+  <em>periodicity at exactly the architectural phase</em>. If a layer-wise readout shows language structure peaking
+  at phase&nbsp;&ne;&nbsp;0&nbsp;mod&nbsp;4, either the readout is phase-shifted or the cut set is wrong; both are
+  bugs, not findings. A phase error here would have propagated silently, which is precisely what happened twice
+  in your own repo before the forward pass was read.</p>
+</div>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 5 &middot; Redundancy &mdash; Case 6: a null ablation proves nothing</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">For every <span class="m">n &ge; 2</span> and
+  <span class="m">1 &le; k &le; n&minus;1</span> there is a graph in which every one of
+  <span class="m">n</span> mechanisms is fully trigger-dependent, the trigger fully determines the action, and
+  yet <em>every single-mechanism ablation has exactly zero effect</em>. More generally no subset of size
+  <span class="m">&lt; n&minus;k+1</span> has any effect.</p>
+  <p class="proof">Let <span class="m">h<sub>j</sub> = T &isin; {0,1}</span> for
+  <span class="m">j = 1&hellip;n</span> and
+  <span class="m">A = 1[&sum;<sub>j</sub> h<sub>j</sub> &ge; k]</span>. Every
+  <span class="m">h<sub>j</sub> &isin; D(T)</span>, and <span class="m">A = T</span>. Ablate any
+  <span class="m">S</span> with <span class="m">|S| &le; n&minus;k</span>: at
+  <span class="m">T = 1</span> the surviving count is <span class="m">n &minus; |S| &ge; k</span>, so
+  <span class="m">A = 1</span> still; at <span class="m">T = 0</span> the count is 0 either way. Effect zero.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 700 210" role="img" aria-label="Four copies of a trigger-dependent unit feed a two-of-four threshold gate; ablating any one unit leaves the output unchanged, so every single-unit ablation measures zero effect even though all four carry the trigger.">
+ <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+  <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+  <rect x="10" y="80" width="56" height="38" rx="4" fill="none" stroke="#A8481B" stroke-width="2"/>
+  <text x="38" y="104" text-anchor="middle" fill="#A8481B" font-weight="600">T</text>
+  <g stroke="#A8481B" fill="none">
+   <path d="M66,90 L128,30" marker-end="url(#ar3)"/><path d="M66,96 L128,74" marker-end="url(#ar3)"/>
+   <path d="M66,104 L128,122" marker-end="url(#ar3)"/><path d="M66,110 L128,166" marker-end="url(#ar3)"/>
+  </g>
+  <g>
+   <rect x="132" y="14" width="66" height="32" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/><text x="165" y="35" text-anchor="middle" fill="#A8481B">h&#8321;</text>
+   <rect x="132" y="58" width="66" height="32" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/><text x="165" y="79" text-anchor="middle" fill="#A8481B">h&#8322;</text>
+   <rect x="132" y="106" width="66" height="32" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6" stroke-dasharray="4 3"/><text x="165" y="127" text-anchor="middle" fill="#A8481B">h&#8323;</text>
+   <text x="165" y="148" text-anchor="middle" fill="#A8481B" font-size="10">ablated</text>
+   <rect x="132" y="162" width="66" height="32" rx="3" fill="none" stroke="#A8481B" stroke-width="1.6"/><text x="165" y="183" text-anchor="middle" fill="#A8481B">h&#8324;</text>
+  </g>
+  <g stroke="currentColor" fill="none">
+   <path d="M198,30 L282,88" marker-end="url(#ar3)"/><path d="M198,74 L282,96" marker-end="url(#ar3)"/>
+   <path d="M198,122 L282,104" stroke-dasharray="4 3" opacity=".4" marker-end="url(#ar3)"/>
+   <path d="M198,178 L282,112" marker-end="url(#ar3)"/>
+  </g>
+  <rect x="286" y="76" width="110" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <text x="341" y="98" text-anchor="middle" fill="currentColor" font-weight="600">&sum; &ge; 2 ?</text>
+  <text x="341" y="115" text-anchor="middle" fill="currentColor" font-size="11">threshold k = 2</text>
+  <line x1="396" y1="100" x2="436" y2="100" stroke="currentColor" marker-end="url(#ar3)"/>
+  <rect x="440" y="80" width="90" height="40" rx="4" fill="none" stroke="currentColor"/>
+  <text x="485" y="105" text-anchor="middle" fill="currentColor" font-weight="600">A = T</text>
+
+  <text x="556" y="52" fill="currentColor" font-size="11.5" font-weight="600">measured</text>
+  <text x="556" y="72" fill="currentColor" font-size="11.5">ablate h&#8323; &rarr; &Delta; = 0</text>
+  <text x="556" y="92" fill="currentColor" font-size="11.5">ablate any one &rarr; &Delta; = 0</text>
+  <text x="556" y="118" fill="#A8481B" font-size="11.5" font-weight="600">true</text>
+  <text x="556" y="138" fill="#A8481B" font-size="11.5">all four encode T</text>
+  <text x="556" y="158" fill="#A8481B" font-size="11.5">fully and causally</text>
+ </g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 3.</span> Theorem&nbsp;5 drawn at <span class="m">n</span>=4, <span class="m">k</span>=2.
+Every single-unit ablation reads exactly zero while every unit carries the trigger. The paper's
+<span class="mono" style="color:var(--warn)">measured</span> 28&ndash;92% zero-effect rates across 15,096+ concept&ndash;task pairs
+&mdash; 92% on the 4096-dim OpenVLA-OFT, 28% on the 480-dim SmolVLA &mdash; are therefore consistent with full
+encoding, and the width ordering is what redundancy predicts. Single-unit search has a provable blind spot;
+minimal sufficient sets must be searched over sets.</figcaption>
+</figure>
+</section>
+
+<hr>
+
+<section>
+<p class="part">Part II &mdash; what the measurement can see</p>
+<h2>Case 7, and two bounds on the evidence</h2>
+
+<p class="lead-in">Part&nbsp;I is about the network. Part&nbsp;II is about your instrument. Three results here, and the first
+of them settles the caveat you flagged yourself in R-036 &mdash; in your favour, and more sharply than the caveat was stated.</p>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 6 &middot; Case 7: permutation-invariant readouts have exactly zero power against <em>where</em></div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let a role's activation be a token matrix
+  <span class="m">H &isin; &#8477;<sup>n&times;d</sup></span>. Suppose the perturbation acts on tokens by a
+  permutation, <span class="m">H(t&prime;) = P&thinsp;H(t)</span> for some permutation matrix
+  <span class="m">P</span>. Then for <em>every</em> permutation-invariant readout
+  <span class="m">&phi;</span> &mdash; mean-pool, max-pool, sum, any order statistic, any symmetric function, and
+  any statistic <span class="m">&psi;</span> computed downstream of one &mdash;</p>
+  <span class="eq"><span class="m">&psi;(&phi;(H(t&prime;))) = &psi;(&phi;(H(t)))</span> &nbsp;pointwise, &nbsp;hence&nbsp;
+  <span class="m">power = size</span> for any test at any <span class="m">n</span>.<span class="tag">(6.1)</span></span>
+  <p class="proof"><span class="m">&phi;(PH) = &phi;(H)</span> by invariance, so the two random variables are equal
+  as functions on the same sample space, not merely equal in distribution. Any test statistic is a measurable
+  function of them and therefore identical; its rejection probability is the same under both hypotheses, which is
+  the definition of power equal to size. Sample size does not enter. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<p>Move an object across the table, or move the camera, and to first order the patch-token content is unchanged &mdash;
+it is <em>relocated</em>. That is the permutation case. <code>taps.py</code> stores
+<code>vl_encoder</code>, <code>vl_normed</code> and <code>vl_adapted</code> mean- and max-pooled across the token axis,
+and both poolings are permutation-invariant. So for the spatial component of the trigger a flat pooled VL
+signal is close to the only available outcome, and R-036's caveat&nbsp;3 is not a 50/50 ambiguity to be resolved by
+more episodes. The measurement was well-run and correctly reported; the estimand sat largely in the kernel of the
+readout.</p>
+
+<div class="note">
+  <span class="nh">How exact is this?</span>
+  <p style="margin:0">Theorem&nbsp;6 is <em>exactly</em> true for an exact permutation,
+  <span class="m">H(t&prime;) = P&thinsp;H(t)</span>. Whether a real camera move or object displacement <em>is</em> a
+  permutation of patch tokens is a modelling assumption, and an idealisation: real perturbations also change content
+  &mdash; occlusion, shading on the moved object, new background patches. Under an <em>approximate</em> permutation
+  the conclusion weakens from zero power to <strong>attenuation in proportion to how close the perturbation is to a
+  pure relocation</strong>. A pooled null is therefore weak evidence, not no evidence &mdash; and the measured fact
+  that pooled S2 separates at all in the first two forwards shows the non-relocation part of the change is not
+  negligible here.</p>
+</div>
+
+<div class="thm">
+  <div class="thm-label">Corollary 6.1 &middot; The minimal repair &mdash; equivariant readouts</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let <span class="m">w<sub>i</sub> = &Vert;h<sub>i</sub>&Vert;<sub>2</sub></span> over
+  patch tokens at grid positions <span class="m">(r<sub>i</sub>, c<sub>i</sub>)</span>, and define the first spatial moment</p>
+  <span class="eq"><span class="m">&mu; = (&sum;<sub>i</sub> w<sub>i</sub>&thinsp;(r<sub>i</sub>, c<sub>i</sub>)) / (&sum;<sub>i</sub> w<sub>i</sub>)</span>.<span class="tag">(6.2)</span></span>
+  <p style="margin-bottom:.6em">Under a pure translation of content by <span class="m">&delta;</span> on the grid,
+  <span class="m">&mu; &rarr; &mu; + &delta;</span>. So <span class="m">&mu;</span> is equivariant, separates exactly
+  the family Theorem&nbsp;6 annihilates, and costs three extra floats per role per forward pass.</p>
+  <p class="proof">Substituting <span class="m">(r<sub>i</sub>,c<sub>i</sub>) &rarr; (r<sub>i</sub>,c<sub>i</sub>)+&delta;</span>
+  with weights unchanged adds <span class="m">&delta;&thinsp;&sum;w<sub>i</sub> / &sum;w<sub>i</sub> = &delta;</span>.
+  <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 6b &middot; Modality mixing attenuates, and can only attenuate</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Suppose the stored readout pools over a sequence carrying both modalities, so that
+  <span class="m">&phi; = &alpha;&thinsp;u + (1&minus;&alpha;)&thinsp;w</span>, where <span class="m">u</span> is the
+  image component with class means <span class="m">&mu;<sub>0</sub>, &mu;<sub>1</sub></span> and within-class variance
+  <span class="m">&sigma;&sup2;</span>, <span class="m">w</span> is a class-independent text component with mean
+  <span class="m">m</span>, and the mixing ratio <span class="m">&alpha;</span> varies across episodes independently
+  of the class. Write <span class="m">&Delta; = &mu;<sub>1</sub> &minus; &mu;<sub>0</sub></span>. Then the achievable
+  effect size on <span class="m">&phi;</span> is</p>
+  <span class="eq"><span class="m">d&prime; = &#120124;[&alpha;]&thinsp;&Delta; / &radic;(&#120124;[&alpha;]&sup2;&sigma;&sup2; + Var(&alpha;)&thinsp;(&mu;&#772;&minus;m)&sup2;) &nbsp;&le;&nbsp; d = &Delta;/&sigma;</span>,<span class="tag">(6.3)</span></span>
+  <p style="margin-bottom:.6em">with equality iff <span class="m">Var(&alpha;) = 0</span>, and <span class="m">d&prime;</span>
+  strictly decreasing in <span class="m">Var(&alpha;)</span>. The bias is <strong>toward the null</strong>: mixing can
+  dilute a real separation but cannot manufacture one. Hence a <em>positive</em> result measured on a mixed readout is
+  conservative and may be believed; a <em>null</em> is uninterpretable.</p>
+  <p class="proof">By independence, <span class="m">&#120124;[&phi; &vert; c] = &#120124;[&alpha;]&mu;<sub>c</sub> + (1&minus;&#120124;[&alpha;])m</span>,
+  so the between-class gap is <span class="m">&#120124;[&alpha;]&Delta;</span> &mdash; shrunk by
+  <span class="m">&#120124;[&alpha;] &lt; 1</span>. By the law of total variance, conditioning on
+  <span class="m">&alpha;</span> gives <span class="m">Var(&phi;&vert;c) = &#120124;[&alpha;]&sup2;&sigma;&sup2; + Var(&alpha;)(&mu;<sub>c</sub>&minus;m)&sup2;</span>,
+  a sum of the original noise and a strictly non-negative term contributed by the mixing. Divide.
+  The monotonicity and the equality condition are read off (6.3). <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<p>This is the second, independent defect in the same tap, and it is not Theorem&nbsp;6. <code>taps.py</code> pools with
+<code>t.mean(axis=1)</code> over the whole VL sequence, while <code>groot_n1_7.py:451</code> builds an
+<code>image_mask</code> that <code>AlternateVLDiT</code> uses to drive the two streams through <em>separate</em>
+attention masks &mdash; the model treats them as separate channels and the capture averages them into one vector.
+Instruction length ran 14 to 23 words across R-036's 40 episodes, so <span class="m">Var(&alpha;)</span> is not small
+and it varies for reasons uncorrelated with what the camera saw. <strong>The fix is already written and has never been
+run:</strong> <code>CaptureSink.set_token_mask</code> and the <code>_img_</code>/<code>_txt_</code> pooling branch
+landed after the de-risk capture, and the 40 episodes in <span class="mono">runs/embed_derisk/capture</span> carry
+neither those arrays nor <code>n_image_tokens</code>. So this defect costs one re-capture, not a code change. Theorem&nbsp;6b also settles the direction of the error, which
+matters for how the existing numbers should be read &mdash; the flat VL rows are weaker evidence than they look, and
+the 12.95&times; on the state pathway is not inflated by this mechanism.</p>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 6c &middot; Temporal averaging &mdash; the same algebra, on the axis nobody checks</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let an episode-level statistic average a per-forward score over
+  <span class="m">F</span> forwards, <span class="m">S = (1/F)&thinsp;&sum;<sub>j</sub> s<sub>j</sub></span>, and
+  suppose the discriminative content is confined to the first <span class="m">f<sub>0</sub></span> forwards:
+  <span class="m">&#120124;[s<sub>j</sub>&vert;c] = &mu;<sub>c</sub></span> for
+  <span class="m">j &lt; f<sub>0</sub></span> and <span class="m">= m</span> otherwise, with
+  <span class="m">Var(s<sub>j</sub>) = &sigma;&sup2;</span> throughout. Then, against the same statistic computed on
+  the first <span class="m">f<sub>0</sub></span> forwards alone,</p>
+  <span class="eq"><span class="m">d&prime;/d = &radic;(f<sub>0</sub>/F)</span>.<span class="tag">(6.4)</span></span>
+  <p style="margin-bottom:.6em">The forwards beyond <span class="m">f<sub>0</sub></span> contribute no signal and
+  their own variance, and the attenuation is <em>unbounded</em> in <span class="m">F</span>: a long enough episode
+  hides any finite early effect. If moreover <span class="m">F</span> differs systematically by class &mdash;
+  failures running to a step cap while successes terminate on success &mdash; the two classes are attenuated by
+  different factors and <span class="m">S</span> is not merely diluted but <strong>biased</strong>.</p>
+  <p class="proof">The class gap is
+  <span class="m">&#120124;[S&vert;1] &minus; &#120124;[S&vert;0] = (f<sub>0</sub>/F)&thinsp;&Delta;</span> with
+  <span class="m">&Delta; = &mu;<sub>1</sub>&minus;&mu;<sub>0</sub></span>, and
+  <span class="m">Var(S) = &sigma;&sup2;/F</span>, so
+  <span class="m">d&prime; = (f<sub>0</sub>/F)&Delta; &middot; &radic;F/&sigma; = f<sub>0</sub>&Delta;/(&sigma;&radic;F)</span>.
+  Restricting to the first <span class="m">f<sub>0</sub></span> gives gap <span class="m">&Delta;</span> and
+  variance <span class="m">&sigma;&sup2;/f<sub>0</sub></span>, so
+  <span class="m">d = &Delta;&radic;f<sub>0</sub>/&sigma;</span>. Divide. The bias claim follows because
+  <span class="m">f<sub>0</sub>/F</span> is then class-dependent, so the two conditional means are shrunk toward
+  <span class="m">m</span> by different amounts. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="thm">
+  <div class="thm-label">Corollary 6.2 &middot; Report the prefix curve, not the endpoint</div>
+  <div class="thm-body">
+  <p style="margin:0"><span class="m">f<sub>0</sub></span> is not known in advance, so no single
+  <span class="m">F</span> is the right one. The estimand is the statistic <em>as a function of</em>
+  <span class="m">F</span>. Restricting to <span class="m">F &le; min<sub>c</sub> F<sub>c</sub></span> also makes
+  the comparison length-matched, which removes the bias term above at no cost.</p>
+  </div>
+</div>
+
+<div class="note repo">
+  <span class="nh">Measured &mdash; and this was the defect that actually bit</span>
+  <p style="margin:0 0 .8em">Prefix-restricted re-analysis of R-036's 40 episodes
+  (<span class="mono">experiments/ood_prefix.py</span>, pre-registered
+  <span class="mono">2026-09-22-prefix-restricted-reanalysis.md</span>), no new GPU time:</p>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>k (first k forwards)</th><th><code>state_encoded</code></th><th><code>vl_adapted_mean</code> (S2)</th><th><code>vl_normed_mean</code> (S1.5)</th></tr></thead>
+    <tbody>
+      <tr><td>2</td><td>4.48&times; (p=.053)</td><td><strong>5.30&times; (p=.0089)</strong></td><td>0.81&times; ns</td></tr>
+      <tr><td>3</td><td>5.81&times; (p=.0095)</td><td>2.14&times; ns</td><td>0.92&times; ns</td></tr>
+      <tr><td>5</td><td>7.94&times; (p=.00044)</td><td>0.61&times; ns</td><td>0.61&times; ns</td></tr>
+      <tr><td>18 (R-036)</td><td>12.95&times; (p=4e-6)</td><td>1.08&times; ns</td><td>flat</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin:0">Every failure has <em>exactly</em> 18 forwards &mdash; all hit the step cap &mdash; against a
+  success mean of 7.77 (Mann-Whitney <span class="m">p</span>&nbsp;=&nbsp;1.6&times;10<sup>&minus;8</sup>), so the
+  bias clause of Theorem&nbsp;6c is live, not hypothetical. For <span class="m">k &le; 5</span> every episode
+  contributes exactly <span class="m">k</span> points and the comparison is length-matched.
+  <strong>R-036's &ldquo;every VL signal is flat&rdquo; is a property of averaging over 18 forwards, not of the
+  representation.</strong> Two opposite profiles: <code>state_encoded</code> accumulates (Corollary&nbsp;7.1),
+  <code>vl_adapted_mean</code> decays (Theorem&nbsp;6c) &mdash; and only S2 does it, with S1 and S1.5 flat at every
+  <span class="m">k</span>. Status: <strong>exploratory</strong>. This is one result among ~108 correlated tests,
+  found by looking after the fact; Bonferroni on p=.0089 gives 0.96. It is a hypothesis for the
+  category-balanced capture, pre-registered at <span class="m">k</span>=2, not a finding.</p>
+</div>
+
+<div class="note measured">
+  <span class="nh">The paper measured the same theorem from the other side</span>
+  <p style="margin:0">Training SAEs on mean-pooled action-token activations reaches
+  <span class="m">R&sup2;</span>&nbsp;&gt;&nbsp;0.95 reconstruction and <strong>0.4%</strong> rollout success on
+  &pi;<sub>0.5</sub>, against <strong>70%</strong> per-token. On GR00T's VL-SA pathway pooling <em>improves</em>
+  explained variance from 83% to 99% while being the pathway whose ablations matter least.
+  Reconstruction quality and causal power are not the same quantity, and pooling trades the second for the first.
+  Their operational rule &mdash; process VLA activations per token, never mean-pooled &mdash; is Theorem&nbsp;6 as a
+  lab protocol, and it is the single cheapest change to your capture path.</p>
+</div>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 700 260" role="img" aria-label="Two four-by-four token grids with identical mean and identical maximum but content in different positions; mean-pool and max-pool return the same numbers for both, while the weighted centre of mass differs.">
+ <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+  <text x="10" y="18" fill="currentColor" font-weight="600">H(t)</text>
+  <g stroke="currentColor" fill="none" opacity=".45">
+   <rect x="10" y="28" width="132" height="132"/>
+   <line x1="43" y1="28" x2="43" y2="160"/><line x1="76" y1="28" x2="76" y2="160"/><line x1="109" y1="28" x2="109" y2="160"/>
+   <line x1="10" y1="61" x2="142" y2="61"/><line x1="10" y1="94" x2="142" y2="94"/><line x1="10" y1="127" x2="142" y2="127"/>
+  </g>
+  <rect x="12" y="30" width="29" height="29" fill="#A8481B" fill-opacity=".85"/>
+  <rect x="45" y="30" width="29" height="29" fill="#A8481B" fill-opacity=".45"/>
+  <rect x="12" y="63" width="29" height="29" fill="#A8481B" fill-opacity=".45"/>
+  <circle cx="43" cy="61" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="10" y="180" fill="currentColor" font-size="11">&mu; = (0.9, 0.9)</text>
+
+  <text x="196" y="18" fill="currentColor" font-weight="600">H(t&prime;) = P&thinsp;H(t)</text>
+  <g stroke="currentColor" fill="none" opacity=".45">
+   <rect x="196" y="28" width="132" height="132"/>
+   <line x1="229" y1="28" x2="229" y2="160"/><line x1="262" y1="28" x2="262" y2="160"/><line x1="295" y1="28" x2="295" y2="160"/>
+   <line x1="196" y1="61" x2="328" y2="61"/><line x1="196" y1="94" x2="328" y2="94"/><line x1="196" y1="127" x2="328" y2="127"/>
+  </g>
+  <rect x="297" y="129" width="29" height="29" fill="#A8481B" fill-opacity=".85"/>
+  <rect x="264" y="129" width="29" height="29" fill="#A8481B" fill-opacity=".45"/>
+  <rect x="297" y="96" width="29" height="29" fill="#A8481B" fill-opacity=".45"/>
+  <circle cx="295" cy="127" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="196" y="180" fill="currentColor" font-size="11">&mu; = (3.1, 3.1)</text>
+
+  <line x1="368" y1="28" x2="368" y2="200" stroke="currentColor" opacity=".25"/>
+
+  <text x="392" y="40" fill="currentColor" font-size="11.5" font-weight="600">readout</text>
+  <text x="540" y="40" fill="currentColor" font-size="11.5" font-weight="600">H(t)</text>
+  <text x="614" y="40" fill="currentColor" font-size="11.5" font-weight="600">H(t&prime;)</text>
+  <line x1="392" y1="48" x2="686" y2="48" stroke="currentColor" opacity=".3"/>
+  <text x="392" y="68" fill="currentColor" font-size="11.5">mean-pool</text><text x="540" y="68" fill="currentColor" font-size="11.5">0.116</text><text x="614" y="68" fill="currentColor" font-size="11.5">0.116</text>
+  <text x="392" y="90" fill="currentColor" font-size="11.5">max-pool</text><text x="540" y="90" fill="currentColor" font-size="11.5">0.850</text><text x="614" y="90" fill="currentColor" font-size="11.5">0.850</text>
+  <text x="392" y="112" fill="currentColor" font-size="11.5">any symmetric &psi;</text><text x="540" y="112" fill="currentColor" font-size="11.5">equal</text><text x="614" y="112" fill="currentColor" font-size="11.5">equal</text>
+  <line x1="392" y1="124" x2="686" y2="124" stroke="currentColor" opacity=".3"/>
+  <text x="392" y="146" fill="#A8481B" font-size="11.5" font-weight="600">centre of mass &mu;</text>
+  <text x="540" y="146" fill="#A8481B" font-size="11.5">(0.9, 0.9)</text><text x="614" y="146" fill="#A8481B" font-size="11.5">(3.1, 3.1)</text>
+  <text x="392" y="176" fill="currentColor" font-size="11">3 extra floats per role;</text>
+  <text x="392" y="194" fill="currentColor" font-size="11">separates exactly what pooling annihilates</text>
+ </g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 4.</span> Theorem&nbsp;6 in one picture. The circle marks the weighted centre of mass.
+Identical mean, identical max, identical every symmetric function &mdash; and the content is in a different place.
+Against an exact relocation a pooled tap has no power at all; against a realistic, approximate one it retains only
+what the non-relocation part of the change carries.</figcaption>
+</figure>
+
+<div class="thm">
+  <div class="thm-label">Theorem 7 &middot; Horizon amplification (Ross &amp; Bagnell, restated)</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let <span class="m">&pi;</span> disagree with the demonstrator with probability
+  <span class="m">&epsilon;</span> per step under the demonstrator's own state distribution, with per-step cost in
+  <span class="m">[0,1]</span> and horizon <span class="m">T</span>. Then</p>
+  <span class="eq"><span class="m">J(&pi;) &le; J(&pi;*) + T&sup2;&epsilon;</span>,<span class="tag">(7.1)</span></span>
+  <p style="margin-bottom:.6em">and the bound is tight in the worst case. Consequently a trigger that shifts the
+  per-step distribution by a small <span class="m">&epsilon;</span> can drive episode success to zero, and
+  <em>episode-level</em> success differences are a quadratically amplified, saturating readout of a step-level effect.</p>
+  <p class="proof">(Sketch, following the original.) Condition on the first step at which
+  <span class="m">&pi;</span> deviates. Deviation first occurs at step <span class="m">i</span> with probability at
+  most <span class="m">&epsilon;</span>; after a deviation the state distribution is unconstrained and the remaining
+  <span class="m">T &minus; i</span> steps cost at most <span class="m">T &minus; i &le; T</span> more than the
+  demonstrator. Summing over <span class="m">i = 1&hellip;T</span> gives
+  <span class="m">T &middot; &epsilon; &middot; T</span>. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="thm trig">
+  <div class="thm-label">Corollary 7.1 &middot; Post-divergence probes are non-identifying</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let <span class="m">h*</span> be the first step at which the policy diverges from the
+  demonstrator. In the unrolled graph of Figure&nbsp;1, every activation at any step <span class="m">h &gt; h*</span>
+  is a descendant of <span class="m">A<sub>h*</sub></span>. Therefore an out-of-distribution score pooled over a whole
+  episode separates failures from successes <em>whenever failure displaces the state at all</em>, with no
+  trigger-specific mechanism required &mdash; and such a score has exactly zero power to distinguish
+  &ldquo;mechanism <span class="m">m</span> carries the trigger&rdquo; from &ldquo;<span class="m">m</span> sits
+  downstream of a failure that already happened.&rdquo;</p>
+  <p style="margin-bottom:.6em">The remedy is a <em>prefix-restricted</em> score: use only forwards at steps
+  <span class="m">h &le; h*</span>, with <span class="m">h*</span> estimated as the first divergence against the
+  matched control that Theorem&nbsp;8's pairing already gives you.</p>
+  <p class="proof">The environment edge makes <span class="m">o<sub>h+1</sub></span> a descendant of
+  <span class="m">A<sub>h</sub></span>; compose along <span class="m">h &gt; h*</span>. Failure means
+  <span class="m">A<sub>h*</sub></span> left the demonstrator's state manifold, so all subsequent activations are
+  evaluated off the reference distribution the OOD score was built from, and the score is by construction sensitive to
+  that displacement. Since this holds for every failing episode regardless of which trigger caused it, the induced
+  separation is constant across trigger families and carries no trigger information. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="note repo">
+  <span class="nh">R-036's per-category table is this corollary</span>
+  <p style="margin:0"><code>state_encoded</code>'s failure rate is <strong>broad across every category</strong> &mdash;
+  27.8% camera, 34.7% layout, 52.8% noise and light, 60.4% robot-init &mdash; which disconfirmed the hypothesis,
+  offered before the numbers were computed, that the 12.95&times; would prove to be carried by the robot-init and
+  layout episodes. Corollary&nbsp;7.1 predicts exactly that breadth: a failing episode ends up displaced almost by
+  definition, whatever moved it. The standing causation caveat in <span class="mono">RESULTS.md</span> is this
+  theorem, and the prefix restriction is what converts the 12.95&times; into a number that could mean something
+  mechanistic &mdash; at no GPU cost, since the forwards are already captured and timestamped.</p>
+</div>
+
+<p>Two operational consequences. First, attribution must be done at the step level: the failing mechanism is
+identified by where the per-step action diverges, not by the binary at the end. Second, the suite ordering everyone
+observes &mdash; long-horizon suites worst &mdash; is partly a horizon artefact, not extra evidence about mechanism.
+The paper's GR00T cross-task displacement of 85.6% on <em>goal</em> against 33.3% on <em>long</em>
+(<span class="mono" style="color:var(--warn)">measured</span>, 270 pairs) is consistent with an identical per-step
+effect under two different values of <span class="m">T</span>, and your own <span class="mono">libero_10</span>
+sitting 34 points under published is the same shape. Neither licenses a claim that long-horizon tasks use a
+different mechanism until the step-level effect is matched.</p>
+
+<div class="thm">
+  <div class="thm-label">Theorem 8 &middot; Pairing, and what it buys</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">For a continuous per-episode readout with between-episode variance
+  <span class="m">&sigma;&sup2;</span> and correlation <span class="m">&rho;</span> between the two arms of a matched
+  pair, the paired-difference estimator has variance
+  <span class="m">2&sigma;&sup2;(1&minus;&rho;)/n</span> against <span class="m">2&sigma;&sup2;/n</span> unpaired &mdash;
+  a sample-size saving of <span class="m">1/(1&minus;&rho;)</span>. For binary success with McNemar's test,
+  detecting a discordance ratio <span class="m">&psi; = p<sub>01</sub>/p<sub>10</sub></span> at level
+  <span class="m">&alpha;</span> and power <span class="m">1&minus;&beta;</span> requires</p>
+  <span class="eq"><span class="m">m &ge; (z<sub>&alpha;/2</sub> + z<sub>&beta;</sub>)&sup2; (&psi;+1)&sup2; / (&psi;&minus;1)&sup2;</span>
+  &nbsp;discordant pairs, &nbsp;<span class="m">n = m / (p<sub>01</sub>+p<sub>10</sub>)</span>.<span class="tag">(8.1)</span></span>
+  <p style="margin-bottom:.6em">At <span class="m">&psi;=2</span>, <span class="m">&alpha;=0.05</span>,
+  <span class="m">&beta;=0.2</span>: <span class="m">m &ge; 71</span>, and at a 25% discordance rate,
+  <span class="m">n &approx; 284</span> paired episodes. A trigger sweep that holds seed and initial state fixed
+  across arms is therefore not a nicety; it is the difference between 284 episodes and a study that cannot resolve
+  its own effect.</p>
+  <p class="proof">Var of a difference of correlated variables is
+  <span class="m">&sigma;&sup2;+&sigma;&sup2;&minus;2&rho;&sigma;&sup2;</span>; divide by <span class="m">n</span>.
+  For (8.1), condition on the discordant count: under <span class="m">H<sub>0</sub></span> the split is
+  Binomial(<span class="m">m</span>, &frac12;) and under <span class="m">H<sub>1</sub></span>
+  Binomial(<span class="m">m</span>, <span class="m">&psi;/(&psi;+1)</span>); the normal approximation to the
+  two-proportion comparison gives the stated <span class="m">m</span>. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<div class="note repo">
+  <span class="nh">You already hit this</span>
+  <p style="margin:0">F9 reports the 256&nbsp;vs&nbsp;360 render comparison as unpaired
+  (overall +5.7&nbsp;pp, <span class="m">p</span>&nbsp;=&nbsp;0.092) while noting both runs used
+  <code>seed=1000</code> with <code>init_states=true</code>, so the episodes <em>are</em> paired and McNemar would
+  be tighter. Theorem&nbsp;8 prices that: at a plausible <span class="m">&rho;</span> the paired test is the one
+  that can resolve the effect, and the blocker is only that per-episode outcomes are not in
+  <code>eval_info.json</code>. That is a logging change, not an experiment.</p>
+</div>
+</section>
+
+<hr>
+
+<section>
+<p class="part">Part III &mdash; from mechanism to data</p>
+<h2>Case 8, and what refined data has to be</h2>
+
+<p class="lead-in">Say Part&nbsp;I and Part&nbsp;II have done their work and you hold a mechanism. The plan is to
+synthesise refined data the pretraining never saw, retrain, and check for improvement. Two theorems decide whether
+that plan can work at all &mdash; and they decide it before the GPU is booked.</p>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 9 &middot; Case 8: the shortcut theorem</div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let the training distribution be <span class="m">p(O, X, A)</span> where
+  <span class="m">X</span> is an input channel (instruction, or any perturbation factor). Define the
+  <em>channel-attributable risk gap</em> under squared loss</p>
+  <span class="eq"><span class="m">&Delta;<sub>X</sub> = &#120124;&thinsp;&Vert;&thinsp;&#120124;[A &vert; O,X] &minus; &#120124;[A &vert; O]&thinsp;&Vert;&sup2;</span>.<span class="tag">(9.1)</span></span>
+  <p style="margin-bottom:.6em">(i) If <span class="m">X = g(O)</span> almost surely, then
+  <span class="m">&Delta;<sub>X</sub> = 0</span> and <em>some</em> risk-minimising policy ignores
+  <span class="m">X</span> entirely. (ii) More generally
+  <span class="m">I(A; X &vert; O) = 0 &rArr; &Delta;<sub>X</sub> = 0</span>, and contrapositively
+  <span class="m">&Delta;<sub>X</sub> &gt; 0 &rArr; I(A; X &vert; O) &gt; 0</span>.
+  Hence a policy's insensitivity to a channel is a property of the <em>data</em>, not a defect of the architecture,
+  and no amount of retraining on data with <span class="m">&Delta;<sub>X</sub> = 0</span> will create sensitivity to
+  <span class="m">X</span>.</p>
+  <p class="proof">(i) If <span class="m">X</span> is <span class="m">&sigma;(O)</span>-measurable then
+  <span class="m">&sigma;(O,X) = &sigma;(O)</span>, so the two conditional expectations coincide a.s. and (9.1)
+  vanishes; the policy <span class="m">o &#8614; &#120124;[A&vert;O=o]</span> attains the minimum.
+  (ii) <span class="m">I(A;X&vert;O)=0</span> is <span class="m">A &perp; X &vert; O</span>, which gives
+  <span class="m">&#120124;[A&vert;O,X] = &#120124;[A&vert;O]</span> a.s.; substitute. The converse of (ii) fails in
+  general because (9.1) sees only conditional means, which is why <span class="m">&Delta;<sub>X</sub></span> is the
+  right estimand and mutual information is the certificate. <span class="qed">&#9633;</span></p>
+  </div>
+</div>
+
+<p>This is the whole of the paper's headline result, derived rather than observed. &ldquo;The visual pathway dominates&rdquo;
+is what Theorem&nbsp;9(i) predicts for any benchmark whose scene determines the task: the instruction is a
+measurable function of the image, <span class="m">&Delta;<sub>L</sub> = 0</span>, and behaviour cloning has no
+gradient pressure to read it. The paper's own suite table is the theorem's fingerprint &mdash; the same model swings
+from language-blind to language-critical with the <em>suite</em>, not the architecture:</p>
+
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>Model / suite</th><th class="num">baseline</th><th class="num">null prompt</th><th class="num">wrong object</th><th>&Delta;<span class="m"><sub>L</sub></span> implied</th></tr></thead>
+  <tbody>
+  <tr><td><strong>GR00T</strong> / goal</td><td class="num">97%</td><td class="num">0%</td><td class="num">0%</td><td>large &mdash; scene fixes the objects, only text fixes the goal</td></tr>
+  <tr><td><strong>GR00T</strong> / object</td><td class="num">93%</td><td class="num">70%</td><td class="num">50%</td><td>partial</td></tr>
+  <tr><td>OpenVLA-OFT / goal</td><td class="num">100%</td><td class="num">10%</td><td class="num">10%</td><td>large</td></tr>
+  <tr><td>X-VLA / goal</td><td class="num">94%</td><td class="num">10%</td><td class="num">4&ndash;10%</td><td>large</td></tr>
+  <tr><td>&pi;<sub>0.5</sub> / object</td><td class="num">77.4%</td><td class="num">77.0%</td><td class="num">74.2%</td><td>&asymp; 0 &mdash; vision alone identifies the task</td></tr>
+  </tbody>
+</table>
+</div>
+<p style="font-size:.88rem;color:var(--muted);margin-top:-.6em">All rows <span class="mono" style="color:var(--warn)">measured</span>, arXiv:2603.19233 &sect;4.4.
+&pi;<sub>0.5</sub> across all prompt variations: <span class="m">F</span>(4,&thinsp;3391)&nbsp;=&nbsp;1.23,
+<span class="m">p</span>&nbsp;=&nbsp;0.247, <span class="m">&eta;&sup2;</span>&nbsp;=&nbsp;0.012.</p>
+
+<p><strong>The design rule this hands you.</strong> Refined data intended to make the policy sensitive to a trigger
+<span class="m">X</span> must satisfy <span class="m">I(A; X &vert; O) &gt; 0</span> <em>within the new data</em>:
+the trigger must change the correct action while remaining un-inferable from everything else in the observation.
+Data that varies <span class="m">X</span> in lockstep with a visual cue teaches nothing about <span class="m">X</span>
+&mdash; the policy will read the cue. This is a checkable property of a dataset before training: estimate
+<span class="m">&Delta;<sub>X</sub></span> by fitting two regressors, with and without the channel, on held-out episodes.</p>
+
+<div class="thm trig">
+  <div class="thm-label">Theorem 10 &middot; No excitation, no repair &mdash; <em>linear mechanism</em></div>
+  <div class="thm-body">
+  <p style="margin-bottom:.6em">Let mechanism <span class="m">m</span> compute
+  <span class="m">h = Wu + b</span> from an input <span class="m">u</span>, and let the refined dataset
+  <span class="m">D</span> have all its inputs in a subspace
+  <span class="m">U = span{u<sub>1</sub>,&hellip;,u<sub>k</sub>}</span> with
+  <span class="m">U &ne; &#8477;<sup>d</sup></span>. Then for any differentiable loss, every gradient satisfies</p>
+  <span class="eq"><span class="m">&nabla;<sub>W</sub> R&#770; &isin; {v&thinsp;u<sup>&#8868;</sup> : u &isin; U}</span>,
+  so <span class="m">W<sub>t</sub> u = W<sub>0</sub> u</span> for all <span class="m">u &perp; U</span>, at every step <span class="m">t</span>.<span class="tag">(10.1)</span></span>
+  <p style="margin-bottom:.6em">The mechanism's response along any direction the data never excites is <em>exactly</em>
+  its pretrained response, forever, under gradient descent from any initialisation. Equivalently: the Fisher /
+  Gauss-Newton matrix restricted to those directions is singular, the parameters are unidentified, and the
+  minimum-norm solution leaves them at <span class="m">W<sub>0</sub></span>.</p>
+  <p class="proof">For one sample, <span class="m">&part;&#8467;/&part;W = (&part;&#8467;/&part;h)&thinsp;u<sup>&#8868;</sup></span>
+  by the chain rule, which is rank one with row space <span class="m">span{u}</span>. The empirical gradient is a
+  sum of such terms with <span class="m">u &isin; U</span>, so its row space lies in <span class="m">U</span>.
+  Iterates stay in <span class="m">W<sub>0</sub> + {row space &sube; U}</span>, and for
+  <span class="m">u &perp; U</span>, <span class="m">(W<sub>t</sub> &minus; W<sub>0</sub>)u = 0</span>.
+  <span class="qed">&#9633;</span></p>
+  <p style="margin:.9em 0 0; font-size:.93rem; color:var(--muted)"><strong style="color:var(--ink)">Scope.</strong>
+  This is proved for a mechanism that is <em>linear in its input</em>. The general nonlinear statement &mdash;
+  gradients lie in the span of the realised Jacobian rows, so unexcited directions stay unidentified &mdash; is true
+  in the same spirit but weaker, and in a deep residual network &ldquo;never excited&rdquo; is much harder to
+  establish than it is here: skip connections and nonlinearities mix directions across layers, so a direction
+  unexcited at one site may be excited at the next. Treat the linear case as the theorem and the rest as motivation,
+  and establish non-excitation empirically per site rather than assuming it.</p>
+  </div>
+</div>
+
+<div class="thm">
+  <div class="thm-label">Corollary 10.1 &middot; Matched counterfactual pairs are the efficient design</div>
+  <div class="thm-body">
+  <p style="margin:0">Let <span class="m">e</span> be the trigger direction you intend to repair. The learning rate
+  along <span class="m">e</span> is governed by <span class="m">e<sup>&#8868;</sup>&Sigma;e</span>, where
+  <span class="m">&Sigma;</span> is the input second-moment matrix of the refined data. Episode pairs identical in
+  every respect except the trigger maximise <span class="m">e<sup>&#8868;</sup>&Sigma;e</span> per episode collected,
+  because the difference of the pair is a pure <span class="m">e</span>-displacement with every nuisance direction
+  cancelled. Independently sampled episodes spend their variance budget on nuisance directions the pretraining has
+  already covered. Combined with Theorem&nbsp;8, the same pairing buys both identifiability of the update and
+  <span class="m">1/(1&minus;&rho;)</span> in evaluation sample size &mdash; the same asset twice.</p>
+  </div>
+</div>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 700 250" role="img" aria-label="Left: refined data spread along one axis only, leaving the trigger direction unexcited, so the update cannot change the mechanism's response along it. Right: matched counterfactual pairs whose differences point exactly along the trigger direction, exciting it.">
+ <g font-family="IBM Plex Sans, sans-serif" font-size="12">
+  <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#A8481B"/></marker>
+  <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+  <text x="10" y="18" fill="currentColor" font-weight="600">independently sampled episodes</text>
+  <line x1="30" y1="200" x2="300" y2="200" stroke="currentColor" opacity=".5" marker-end="url(#ar5)"/>
+  <line x1="30" y1="200" x2="30" y2="40" stroke="currentColor" opacity=".5" marker-end="url(#ar5)"/>
+  <text x="252" y="220" fill="currentColor" font-size="11">nuisance u&#8321;</text>
+  <text x="38" y="46" fill="#A8481B" font-size="11">trigger e</text>
+  <g fill="currentColor" opacity=".7">
+   <circle cx="72" cy="176" r="4"/><circle cx="104" cy="182" r="4"/><circle cx="136" cy="172" r="4"/>
+   <circle cx="168" cy="180" r="4"/><circle cx="200" cy="174" r="4"/><circle cx="232" cy="181" r="4"/>
+   <circle cx="264" cy="176" r="4"/><circle cx="88" cy="185" r="4"/><circle cx="216" cy="169" r="4"/>
+  </g>
+  <ellipse cx="168" cy="177" rx="112" ry="13" fill="none" stroke="currentColor" stroke-dasharray="4 3" opacity=".6"/>
+  <text x="30" y="118" fill="#A8481B" font-size="11.5">e&#8869; never excited</text>
+  <text x="30" y="136" fill="#A8481B" font-size="11.5" font-weight="600">W&#8348;e = W&#8320;e forever</text>
+
+  <line x1="352" y1="20" x2="352" y2="230" stroke="currentColor" opacity=".25"/>
+
+  <text x="380" y="18" fill="currentColor" font-weight="600">matched counterfactual pairs</text>
+  <line x1="400" y1="200" x2="670" y2="200" stroke="currentColor" opacity=".5" marker-end="url(#ar5)"/>
+  <line x1="400" y1="200" x2="400" y2="40" stroke="currentColor" opacity=".5" marker-end="url(#ar5)"/>
+  <text x="622" y="220" fill="currentColor" font-size="11">nuisance u&#8321;</text>
+  <text x="408" y="46" fill="#A8481B" font-size="11">trigger e</text>
+  <g>
+   <circle cx="452" cy="182" r="4" fill="currentColor"/><line x1="452" y1="178" x2="452" y2="112" stroke="#A8481B" stroke-width="2" marker-end="url(#ar4)"/><circle cx="452" cy="108" r="4" fill="#A8481B"/>
+   <circle cx="524" cy="176" r="4" fill="currentColor"/><line x1="524" y1="172" x2="524" y2="106" stroke="#A8481B" stroke-width="2" marker-end="url(#ar4)"/><circle cx="524" cy="102" r="4" fill="#A8481B"/>
+   <circle cx="596" cy="184" r="4" fill="currentColor"/><line x1="596" y1="180" x2="596" y2="114" stroke="#A8481B" stroke-width="2" marker-end="url(#ar4)"/><circle cx="596" cy="110" r="4" fill="#A8481B"/>
+  </g>
+  <text x="400" y="240" fill="currentColor" font-size="11">each pair contributes a pure e-displacement: &thinsp;e&#8414;&Sigma;e &gt; 0, and &rho; &rarr; 1 for the paired test</text>
+ </g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 5.</span> Theorem&nbsp;10 and Corollary&nbsp;10.1. Left, refined episodes drawn
+independently: abundant, expensive, and silent about the direction you are trying to fix. Right, the same budget spent
+on pairs that differ only in the trigger. The arrows are the entire information content of the dataset with respect
+to the repair.</figcaption>
+</figure>
+</section>
+
+<hr>
+
+<section>
+<p class="part">The result</p>
+<h2>The eight cases, decided</h2>
+<p class="lead-in">Three observables per mechanism: does the probe move under the perturbation, does ablating it
+hurt, does injecting it transfer. Eight combinations, and the naive reading is wrong in five of them.</p>
+
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>#</th><th>Probe moves</th><th>Ablation bites</th><th>Injection transfers</th><th>Licensed conclusion</th><th>By</th></tr></thead>
+  <tbody>
+  <tr><td>1</td><td class="no">no</td><td class="no">no</td><td class="no">no</td><td>Unreachable &mdash; and you could have known before running. Check the step index first (Cor.&nbsp;1.1).</td><td>T1</td></tr>
+  <tr><td>2</td><td class="yes">yes</td><td class="no">no</td><td class="no">no</td><td><strong>Innocent bystander.</strong> Downstream of the trigger, upstream of nothing that matters. Not a locus.</td><td>T2</td></tr>
+  <tr><td>3</td><td class="no">no</td><td class="yes">yes</td><td>&mdash;</td><td><strong>Flat but guilty.</strong> The failure is in the interaction with a trigger-shifted sibling. Probing can never find this; only intervention can.</td><td>T2</td></tr>
+  <tr><td>4</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td><td>Locus &mdash; but the <em>share</em> of the effect is ordering-dependent and meaningless until the order is declared.</td><td>T3, T3b</td></tr>
+  <tr><td>5</td><td class="yes">yes</td><td>&mdash;</td><td class="yes">yes, fully</td><td><strong>Cut set.</strong> A sufficient statistic for the trigger: <span class="m">A &perp; T &vert; h<sub>S</sub></span>. Strongest available result. Requires episodes differing only in <span class="m">T</span>.</td><td>T4</td></tr>
+  <tr><td>6</td><td class="yes">yes</td><td class="no">no</td><td class="yes">yes</td><td><strong>Redundant carrier.</strong> Null ablation is not absence. Search over sets, not units.</td><td>T5</td></tr>
+  <tr><td>7</td><td class="no">no</td><td class="yes">yes</td><td class="yes">yes</td><td><strong>Instrument blind.</strong> Two distinct defects live here: a permutation-invariant readout cannot see <em>where</em>, and a modality-mixed one attenuates toward the null. Re-probe per-modality, equivariantly and at several prefix lengths before concluding anything. A null is weak evidence at best; a positive is conservative.</td><td>T6, T6b, T6c</td></tr>
+  <tr><td>8</td><td class="yes">yes</td><td class="no">no</td><td class="no">no</td><td><strong>Shortcut.</strong> The channel is represented and unused, because the training data made it redundant. A data problem, not a model problem &mdash; and the only case retraining fixes cheaply.</td><td>T9</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Cases&nbsp;3, 6 and 7 are three different reasons a mechanism can look innocent and not be. Case&nbsp;2 is the
+reason a mechanism can look guilty and not be. Getting from &ldquo;the policy failed when I moved the trigger&rdquo; to
+&ldquo;mechanism <span class="m">m</span> is why&rdquo; means excluding all four, and the exclusions need different
+experiments &mdash; which is the practical content of everything above.</p>
+</section>
+
+<hr>
+
+<section>
+<p class="part">Applying it</p>
+<h2>The protocol on your stack</h2>
+
+<ol class="proto">
+  <li><strong>Prune statically, and declare the step index.</strong> Write down which sources the trigger enters at,
+  take descendants, and record whether the claim is for the first forward pass or the closed loop.
+  For robot-initial-state this eliminates the VL pathway at <span class="m">h</span>=1 and nothing at
+  <span class="m">h</span>&ge;2. <span class="caseref">T1, Cor. 1.1 &mdash; costs nothing</span></li>
+
+  <li><strong>Read the index structure before intervening.</strong> N1.7 pre-separates language and vision by block
+  parity and phase: <span class="m">B<sub>L</sub></span> = {0,4,&hellip;,28}, <span class="m">B<sub>V</sub></span> = {2,6,&hellip;,30},
+  odd blocks empty. Capture per-block DiT hidden states &mdash; <code>AlternateVLDiT.forward</code> already accepts
+  <code>return_all_hidden_states</code> and returns all 33 &mdash; and the pathway question is answered by observation.
+  Structural null: periodicity at exactly the architectural phase.
+  <span class="caseref">Cor. 4.1 &mdash; one capture run, no intervention</span></li>
+
+  <li><strong>Fix the readout before spending episodes &mdash; two defects, one tap.</strong> Pool image and text
+  tokens <em>separately</em> using the <code>image_mask</code> already in scope, and add the spatial moment of (6.2)
+  beside the existing pooled roles; keep per-token activations for any role you intend to run an SAE on. Until both
+  are done, a VL null is uninterpretable against spatial triggers and attenuated by an episode-varying mixture ratio.
+  <span class="caseref">T6, Cor. 6.1, T6b &mdash; a tap change, no GPU time</span></li>
+
+  <li><strong>Balance the categories, then collect matched pairs.</strong> A draw whose target category is n=2 cannot
+  test a claim about that category at any sample size &mdash; stratify on the LIBERO-Plus category first, then pair
+  within it: same seed, same initial state, one trigger toggled. Log per-episode outcomes so McNemar is available.
+  Size from (8.1): ~284 paired episodes for a 2&times; discordance ratio at 80% power.
+  <span class="caseref">T1 sets the strata; T8, Cor. 10.1 size them</span></li>
+
+  <li><strong>Inject only within a matched pair, on a seeded path.</strong> Theorem&nbsp;4 requires source and target
+  to differ only in the trigger, and Theorem&nbsp;3 requires the run to be a function &mdash; so fix
+  <span class="m">&epsilon;</span> across both arms and every patched run, and assert bitwise reproducibility before
+  reading any increment. Cross-<em>task</em> injection violates the premise &mdash; which the paper states as its own confound,
+  that injected activations can produce invalid internal states through temporal misalignment. Under an
+  <span class="m">L</span>-Lipschitz downstream map, an off-manifold displacement <span class="m">&delta;</span> bounds
+  the measured effect by <span class="m">L&delta;</span>: an upper bound, not a path effect.
+  <span class="caseref">T4 + the paper's §5</span></li>
+
+  <li><strong>Ablate over sets, and pre-register the order.</strong> A single-unit sweep returning zeros is
+  Theorem&nbsp;5, not a finding. Pick one topological ordering for the patching curve, declare it before running, and
+  report Shapley only where <span class="m">n</span> is small enough to afford it.
+  <span class="caseref">T3b, T5</span></li>
+
+  <li><strong>Check the data before the retrain.</strong> For the trigger you intend to repair, estimate
+  <span class="m">&Delta;<sub>X</sub></span> on the refined set by fitting action regressors with and without the
+  channel. <span class="m">&Delta;<sub>X</sub> &asymp; 0</span> means the data cannot teach the dependency, however
+  many episodes it holds &mdash; and check that the pairs actually displace along the trigger direction.
+  <span class="caseref">T9, T10 &mdash; do this before booking the GPU</span></li>
+
+  <li><strong>Attribute at the step level, and only before divergence.</strong> Score the divergence step, not the
+  episode outcome: episode success is a <span class="m">T&sup2;</span>-amplified, saturating readout that will rank
+  long-horizon suites worst for reasons unrelated to mechanism, and any probe pooled over forwards after
+  <span class="m">h*</span> is measuring the consequence of the failure rather than its cause.
+  <span class="caseref">T7, Cor. 7.1</span></li>
+</ol>
+</section>
+
+<hr>
+
+<section>
+<h2>Pre-registered predictions, with their falsifiers</h2>
+<p class="lead-in">Each follows from a theorem above plus one measured anchor. Written here so they cannot be
+revised after the run.</p>
+
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>Prediction</th><th>From</th><th>Status</th></tr></thead>
+  <tbody>
+  <tr><td>Failures carry more forwards per episode than successes, so the all-forwards statistic is unbalanced.</td><td>T6c, T7</td><td><strong class="yes">CONFIRMED</strong> &mdash; every failure exactly 18 (the cap), successes mean 7.77, p=1.6e-8.</td></tr>
+  <tr><td><code>state_encoded</code>'s 12.95&times; collapses toward 1&times; under prefix restriction, because it is post-failure displacement.</td><td>Cor. 7.1</td><td><strong class="no">REFUTED</strong> &mdash; 6.11&times; survives at the first forward; it rises to 12.95&times;, so roughly half is accumulation and half is a real early signal. The theorem holds; the prediction over-read it.</td></tr>
+  <tr><td>Per-index separation at forward 0 is not significant.</td><td>Cor. 7.1</td><td><strong class="no">REFUTED</strong> &mdash; 6.11&times;, p=0.046, marginal and among many tests.</td></tr>
+  <tr><td>The VL signals stay flat at every prefix length, for the reasons in Theorems 1, 6 and 6b.</td><td>T1, T6, T6b</td><td><strong class="no">REFUTED</strong> &mdash; <code>vl_adapted_mean</code> separates at 5.30&times; (p=.0089) at k=2 and decays to 1.08&times; by k=18. The dominant defect was temporal averaging, which the framework did not cover until Theorem 6c was added after the fact.</td></tr>
+  <tr><td>Per-block DiT readout shows language structure at blocks &equiv; 0 mod 4 and visual at even &equiv; 2 mod 4, odd blocks neither.</td><td>Cor. 4.1</td><td><strong>OPEN</strong> &mdash; needs the per-block capture. Any other phase is a readout bug or a misread forward pass, not a discovery.</td></tr>
+  <tr><td>In a category-balanced re-draw, per-modality and equivariant VL readouts separate camera-viewpoint failures while robot-initial-state stays flat.</td><td>T1, T6, T6b</td><td><strong>OPEN</strong> &mdash; R-036's draw has n=2 camera episodes, so this has never been tested.</td></tr>
+  <tr><td><code>vl_adapted_mean</code> separates at k=2 on a fresh capture.</td><td>T6c</td><td><strong>OPEN &mdash; pre-registered</strong>. The confirmation test for the exploratory result above.</td></tr>
+  <tr><td>Retraining on trigger-varying <em>paired</em> data improves trigger-conditional success; an equal budget of independently sampled episodes does not.</td><td>T10, Cor. 10.1</td><td><strong>OPEN</strong> &mdash; the end-state test, and the strongest available evidence that a mechanism was repaired rather than data merely added.</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+<hr>
+
+<section>
+<h2>What the paper hands you off the shelf</h2>
+<p>Beyond the theory it licenses, four things are directly liftable, and three caveats travel with them.</p>
+
+<ul class="tight">
+  <li><strong>The per-token SAE recipe.</strong> TopK with <span class="m">k</span>=64, expansion
+  4<span class="m">d</span>&ndash;8<span class="m">d</span>, trained per token and never on pooled activations.
+  424 SAEs across five models, 68 of them on GR00T. Feature selection by frequency-weighted contrast,
+  <span class="m">score<sub>f</sub> = d<sub>f</sub> &times; freq<sub>f</sub></span>, with
+  <span class="m">d<sub>f</sub></span> Cohen's&nbsp;<span class="m">d</span> between concept-present and
+  concept-absent tasks and <span class="m">freq<sub>f</sub></span> the fraction of samples where the feature is in
+  the active top-<span class="m">k</span>.</li>
+  <li><strong>The four injection conditions</strong> &mdash; null, same-scene, cross-task, cross-seed &mdash; of which
+  only same-scene and cross-seed satisfy Theorem&nbsp;4's premise. Use the other two as bounds, labelled as bounds.</li>
+  <li><strong>A GR00T pathway prior.</strong> DiT ablations cost 40&ndash;80% success; Eagle moderate; VL-SA most
+  resilient despite the worst per-token SAE quality. That is a ranked list of where to look first, and it agrees
+  with your <code>state_encoded</code> result.</li>
+  <li><strong>Action Atlas</strong>, the released toolkit, at <span class="mono">CWRU-AISM/action-atlas</span>.</li>
+</ul>
+
+<div class="note">
+  <span class="nh">Caveats that travel</span>
+  <p style="margin:0">The paper's GR00T rows are <strong>N1.5</strong>, and N1.7's conditioning schedule is a
+  different graph &mdash; every cut set must be re-derived, not inherited. All of it is simulation; the authors note
+  that fine-tuning on a target robot reshapes internal representations, so a cut set is a property of a checkpoint.
+  And their SAE features are not guaranteed disentangled: ablation validation found features encoding general motor
+  primitives rather than clean semantic concepts, which is Theorem&nbsp;5 arriving from the other direction.</p>
+</div>
+</section>
+
+<hr>
+
+<section>
+<p class="part">Standing on what</p>
+<h2>Assumptions</h2>
+<p class="lead-in">Every theorem above is conditional. This is the full list of what each one needs, and whether
+your stack currently supplies it &mdash; a theorem whose premise fails is not wrong, it is simply not about your
+situation.</p>
+
+<div class="tbl-scroll">
+<table>
+  <thead><tr><th>Result</th><th>Premise</th><th>On GR00T N1.7 today</th></tr></thead>
+  <tbody>
+  <tr><td>T1, Cor. 1.1, T2</td><td>The computation is a finite DAG with a known trigger entry point.</td><td class="yes">Holds.</td></tr>
+  <tr><td>T3, T3b</td><td><span class="m">F(S)</span> is a <em>function</em>: same patch set in, same action out.</td><td class="no">Fails. The denoise loop starts from an unseeded <code>torch.randn</code> (<span class="mono">groot_n1_7.py:657</span>). Needs a seeded path; R-036 <em>relies</em> on the unseeded one, so the two modes must be separate.</td></tr>
+  <tr><td>T4</td><td>Source and target episodes differ <strong>only</strong> in the trigger.</td><td class="no">Fails on the current unpaired draw. Cross-task injection violates it by construction and yields an upper bound (<span class="m">&le; L&delta;</span>), not a path effect.</td></tr>
+  <tr><td>Cor. 4.1</td><td>The block conditioning schedule is as read from the forward pass.</td><td>Provisional. Read, not measured, and previously misread as period&nbsp;2.</td></tr>
+  <tr><td>T5</td><td>None beyond determinism of the circuit.</td><td class="yes">Holds; it is a possibility result.</td></tr>
+  <tr><td>T6</td><td>The perturbation acts as an <strong>exact</strong> token permutation.</td><td>Idealisation. Real perturbations are approximate permutations, so the conclusion is attenuation, not blindness.</td></tr>
+  <tr><td>T6b</td><td>The mixing ratio <span class="m">&alpha;</span> is independent of the class label.</td><td>Plausible, untested. If instruction length correlated with difficulty it would fail, and the bias would no longer be guaranteed toward the null.</td></tr>
+  <tr><td>T6c</td><td>Per-forward scores are exchangeable with equal variance; signal confined to a prefix.</td><td>An approximation. The prefix location <span class="m">f<sub>0</sub></span> is unknown, which is why the curve rather than any single <span class="m">F</span> is the estimand.</td></tr>
+  <tr><td>T7</td><td>Bounded per-step cost, fixed horizon, behaviour-cloned policy.</td><td class="yes">Holds.</td></tr>
+  <tr><td>T8</td><td>Pairs are genuinely matched; normal approximation for the power formula.</td><td>Available once seed and initial state are held across arms. Per-episode outcomes must be logged &mdash; currently they are not.</td></tr>
+  <tr><td>T9</td><td>Squared loss; <span class="m">&Delta;<sub>X</sub></span> read on the <em>training</em> distribution.</td><td class="yes">Holds, and is checkable before training.</td></tr>
+  <tr><td>T10</td><td><strong>Mechanism linear in its input.</strong></td><td>Proved for the linear case only; the nonlinear version is weaker and must be established empirically per site.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 style="margin-top:2em">Provenance</h3>
+<p style="margin-top:.7em">T1, Cor.&nbsp;1.1, T2, T3, T3b, T4 and T5 are standard causal-inference and mechanistic-interpretability
+material, re-derived here so the page is self-contained &mdash; not new, and a referee would call them folklore.
+T7 and T8 are restatements of published results, attributed below. T9 and T10 are standard arguments; the
+application to this paper's language result is ours. <strong>T6, T6b, T6c and Cor.&nbsp;7.1 were written for this
+stack</strong> and exist nowhere else. None of it is peer-reviewed in this form, and the proofs have been checked
+by one author only.</p>
+
+<h3 style="margin-top:1.6em">What the paper supplies, and what it does not</h3>
+<p style="margin-top:.7em">arXiv:2603.19233 supplies <em>vocabulary and empirical anchors</em> &mdash; the four
+injection conditions, the pooled-versus-per-token finding, the GR00T pathway ablation ordering, the suite tables.
+It supplies no theorems; its only equation is
+<span class="m">score<sub>f</sub> = d<sub>f</sub> &times; freq<sub>f</sub></span>. Three caveats travel with
+everything taken from it:</p>
+<ul class="tight">
+  <li><strong>No number in it has been reproduced here yet.</strong> A reproduction gate is pre-registered and in
+  flight (<span class="mono">2026-09-22-paper-reproduction-gate.md</span>). Until it returns, every figure quoted
+  from the paper on this page is an anchor on trust.</li>
+  <li><strong>Their GR00T is N1.5 with a 16-block DiT; ours is N1.7 with 32</strong>, and the hook paths differ
+  (<code>action_head.diffusion_model.transformer_blocks</code> vs <code>action_head.model.transformer_blocks</code>).
+  Layer indices do not transfer; at best proportions do.</li>
+  <li><strong>Their LIBERO GR00T checkpoints are community finetunes</strong> &mdash; <code>aractingi/libero-groot-goal</code>
+  loads as a <em>projector-only</em> tune over <code>nvidia/GR00T-N1.5-3B</code>. Their GR00T rows were never
+  evidence about <code>nvidia/GR00T-N1.7-LIBERO</code>.</li>
+</ul>
+</section>
+
+<div class="footer">
+  <p><strong>Sources.</strong></p>
+  <ul class="tight" style="margin-top:.4em">
+    <li>B. Grant, X. Zhao, P. Wang. <em>Not All Features Are Created Equal: A Mechanistic Study of
+    Vision-Language-Action Models.</em> arXiv:2603.19233 &mdash;
+    <a href="https://arxiv.org/abs/2603.19233">abstract</a> &middot;
+    <a href="https://arxiv.org/html/2603.19233">full text</a> &middot;
+    <a href="https://github.com/CWRU-AISM/action-atlas">Action Atlas toolkit</a>. Accepted to the Multimodal
+    Intelligence Workshop @ ICLR.</li>
+    <li>S. Ross &amp; J. A. Bagnell. <em>Efficient Reductions for Imitation Learning.</em> AISTATS 2010 &mdash;
+    <a href="https://proceedings.mlr.press/v9/ross10a.html">proceedings</a>. Theorem&nbsp;7 restates their bound.</li>
+    <li>L. S. Shapley. <em>A Value for n-Person Games.</em> 1953. The unique attribution satisfying efficiency,
+    symmetry, null player and linearity &mdash; the averaging in Figure&nbsp;2.</li>
+    <li>J. Pearl. <em>Causality.</em> 2nd ed., 2009. d-separation and the do-operator, behind Theorems&nbsp;1 and&nbsp;4.</li>
+    <li>L. Gao et al. <em>Scaling and Evaluating Sparse Autoencoders.</em> arXiv:2406.04093 &mdash;
+    <a href="https://arxiv.org/abs/2406.04093">abstract</a>. The TopK SAE formulation the paper's recipe uses.</li>
+    <li>Checkpoints under test: <a href="https://huggingface.co/aractingi/libero-groot-goal">aractingi/libero-groot-goal</a>
+    over <a href="https://huggingface.co/nvidia/GR00T-N1.5-3B">nvidia/GR00T-N1.5-3B</a>; ours is
+    <a href="https://huggingface.co/nvidia/GR00T-N1.7-LIBERO">nvidia/GR00T-N1.7-LIBERO</a>.</li>
+  </ul>
+  <p style="margin-top:1em"><strong>Repo anchors.</strong>
+  <span class="mono">RESULTS.md</span> R-036 with its 2026-09-22 sample-composition correction and per-category
+  tables; <span class="mono">FINDINGS.md</span> F9; <span class="mono">vla_harness/capture/taps.py</span>;
+  <span class="mono">vla_harness/capture/analysis.py</span>;
+  <span class="mono">experiments/ood_prefix.py</span>;
+  <span class="mono">groot_n1_7.py:451/457, :657</span>;
+  <span class="mono">action_head/cross_attention_dit.py:357&ndash;380</span>;
+  <span class="mono">third_party/LIBERO-plus/&hellip;/task_classification.json</span>;
+  specs <span class="mono">2026-09-22-prefix-restricted-reanalysis.md</span> and
+  <span class="mono">2026-09-22-paper-reproduction-gate.md</span>.</p>
+  <p style="margin-bottom:0">Every theorem here is proved from the definitions in the first section, under the
+  premises tabulated above. Every number attributed to the paper or to a run is a measurement, marked as such, and
+  is used as an anchor &mdash; never as a premise. Predictions that have been tested carry their outcome, including
+  the three that were refuted.</p>
+</div>
+
+</div>
+
+</body>
+</html>

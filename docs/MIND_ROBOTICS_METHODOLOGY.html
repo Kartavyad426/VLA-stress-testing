@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind Robotics — Methodology Dossier</title>
+<style>
+:root{
+  --bg:#fbfaf8; --panel:#ffffff; --ink:#191614; --muted:#645c55; --line:#e3ded7;
+  --accent:#8c4a2f; --accent-soft:#f3e7e0; --ok:#2f6f4f; --warn:#8a6d1f; --bad:#8f3030;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15130f; --panel:#1d1a16; --ink:#efe9e1; --muted:#a79c90; --line:#302b24;
+    --accent:#e0a184; --accent-soft:#2c211b; --ok:#7fc3a0; --warn:#d8be76; --bad:#e39191;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15130f; --panel:#1d1a16; --ink:#efe9e1; --muted:#a79c90; --line:#302b24;
+  --accent:#e0a184; --accent-soft:#2c211b; --ok:#7fc3a0; --warn:#d8be76; --bad:#e39191;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.65 ui-serif,Georgia,"Times New Roman",serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:56px 16px 96px}
+h1,h2,h3{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.25;letter-spacing:-.01em}
+h1{font-size:2.1rem;margin:0 0 .3em}
+h2{font-size:1.32rem;margin:2.6em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:1.8em 0 .4em;color:var(--accent)}
+p{margin:.7em 0}
+a{color:var(--accent)}
+.sub{color:var(--muted);font-size:.95rem;margin-top:0}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:1.2em 0}
+.card.flag{border-left:3px solid var(--accent)}
+.card h3{margin-top:0}
+ul,ol{padding-left:1.2em}
+li{margin:.35em 0}
+table{width:100%;border-collapse:collapse;margin:1.1em 0;font-size:.9rem;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{font-family:var(--mono);white-space:nowrap}
+blockquote{margin:1.1em 0;padding:.2em 0 .2em 16px;border-left:3px solid var(--accent-soft);
+  color:var(--ink);font-style:italic}
+blockquote cite{display:block;font-style:normal;font-size:.85rem;color:var(--muted);margin-top:.4em}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.tag{display:inline-block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.tag.warn{color:var(--warn);border-color:var(--warn)}
+.tag.bad{color:var(--bad);border-color:var(--bad)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:1.2em 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat b{display:block;font-family:var(--mono);font-size:1.32rem;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:.84rem;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+hr{border:0;border-top:1px solid var(--line);margin:2.4em 0}
+.foot{color:var(--muted);font-size:.85rem}
+@media (max-width:600px){ h1{font-size:1.7rem} .wrap{padding:36px 16px 72px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Competitive dossier · compiled 2026-09-22</p>
+<h1>Mind Robotics</h1>
+<p class="sub">How a Rivian spin-out says it is solving industrial manipulation — offerings, methodology, claims, and what is actually verifiable.</p>
+
+<div class="card flag">
+<h3>Bottom line</h3>
+<p>Mind Robotics has raised <b>&gt;$1B in under a year</b> against a methodology that is, in public, <b>entirely a data-access argument</b>: own a live high-volume factory, harvest expert human manipulation from it, train one foundation model on those hours, and judge the model by plant economics rather than by any benchmark.</p>
+<p>There is <b>no published paper, no open-source repo, no dataset release, no model card, and no quantitative benchmark result of any kind</b> — not even a demo video of a robot. Every technical statement below is company or investor positioning, not evidence. Treat the whole file as a claims ledger, not a results ledger.</p>
+</div>
+
+<div class="grid">
+  <div class="stat"><b>Nov 2025</b><span>Spun out of Rivian; internally "Project Synapse"</span></div>
+  <div class="stat"><b>$1.015B</b><span>$115M seed → $500M Series A → $400M</span></div>
+  <div class="stat"><b>$3.4B</b><span>Valuation after the May 2026 round</span></div>
+  <div class="stat"><b>1 site</b><span>Rivian, Normal IL — first partner, first customer</span></div>
+</div>
+
+<h2>1 · What they actually sell (or intend to)</h2>
+<p>Not a robot arm and not a humanoid product line — a <b>full-stack platform</b>: foundation models + purpose-built hardware + deployment infrastructure, sold as automation of tasks classical industrial robotics cannot do. Their own framing of the gap:</p>
+<blockquote>Existing industrial robotics can perform repeatable, dimensionally stable tasks, but a large share of factory value-add work requires human-like dexterity, adaptation, and physical reasoning that classical robotics cannot address.<cite>Mind Robotics positioning, repeated across its funding releases</cite></blockquote>
+<p>The four skills they name publicly are unusually specific, and all are contact-rich manipulation rather than transport:</p>
+<table>
+<thead><tr><th>Skill</th><th>What makes it hard, in their words</th></tr></thead>
+<tbody>
+<tr><td><b>Pick and place</b></td><td>Objects varying in angle, occlusion and orientation, at high precision</td></tr>
+<tr><td><b>Sorting</b></td><td>A real-time call between visually similar items, under line-speed pressure</td></tr>
+<tr><td><b>Fastening</b></td><td>Parts that don't always align; modulating force and sequence to seat them — <i>and recovering when they don't</i></td></tr>
+<tr><td><b>Connectors</b></td><td>Verified secure fit despite flexible harnesses, part variation, tight tolerances</td></tr>
+</tbody>
+</table>
+<p>Press reporting adds wiring-harness routing and soft-trim fitting — deformable-object manipulation, the hardest class on the list.</p>
+
+<h2>2 · The methodology, as they describe it</h2>
+
+<h3>M1 — "Captured distribution": own the deployment environment before you own the model</h3>
+<p>The central bet. Rivian is simultaneously shareholder, first manufacturing partner, training environment and launch customer. Investors describe the resulting loop identically across three separate memos:</p>
+<blockquote>Deployment generates data. Data improves models and control systems. And better performance unlocks broader deployment, which in turn produces more data.<cite>a16z, <i>Investing in Mind Robotics</i></cite></blockquote>
+<p>The claim being made is not that their architecture is better. It is that the <b>chicken-and-egg problem</b> — you need deployments to get data, and data to earn deployments — is structurally solved for them and unsolved for everyone without a captive plant. Their own summary of the competitive theory: <i>general-purpose industrial robots will be won by whoever can collect and learn from the most production-grade data.</i></p>
+
+<h3>M2 — Train on expert humans doing the real job, not on internet video</h3>
+<p>This is the most methodologically load-bearing sentence they have published:</p>
+<blockquote>Our data pipeline is centered on learning from skilled operators as they perform highly dexterous tasks, distilling the actions, tools, context, and decisions that make each cycle successful.<cite>mindrobotics.com</cite></blockquote>
+<p>Three deliberate choices are packed in there:</p>
+<ul>
+<li><b>Expert-only, in-distribution demonstrations.</b> The demonstrator is a trained line operator doing the exact task the robot will inherit, at takt time — not a lab teleoperator, not a crowdworker, not scraped egocentric video.</li>
+<li><b>Video at industrial scale as the base substrate</b> ("collecting video data at industrial scale, capturing live, high-variability work as it happens on the line"), supplemented by piloted robot demonstrations.</li>
+<li><b>Labels beyond trajectories.</b> "Actions, tools, context, and decisions" — they are trying to capture <i>why</i> a cycle succeeded, which implies annotation/segmentation over episodes rather than raw (obs, action) pairs alone.</li>
+</ul>
+<p>Their stated unit of measurement for the dataset is <b>"real production hours"</b> — hours of live line work, not episode counts. That is a meaningfully different scaling axis from the episode/trajectory counts the open VLA literature reports, and it is not directly comparable to anything published.</p>
+
+<h3>M3 — One model, judged by transfer</h3>
+<p>What the model is supposed to learn, in their words: <b>spatial reasoning, object dynamics, and tool manipulation</b> — framed as "a scalable intelligence layer that generalizes to new tasks and environments." The explicit generalization claim:</p>
+<blockquote>We are not building single-task machines… we are developing a platform that generalizes across core tasks and scales across manufacturing domains.<cite>Mind Robotics</cite></blockquote>
+<p>Automotive is chosen as the <b>curriculum</b>, not the market: welding, fasteners, castings, stampings, fixtures, assemblies and electrical systems are pitched as a dense enough task distribution that mastering it should transfer to appliances, soft goods and other physical production. No transfer evidence has been shown.</p>
+
+<h3>M4 — Embodiment: optimize for the factory, not for the human silhouette</h3>
+<p>Their loudest public differentiator, and the one with the most actual engineering content. Scaringe's argument, assembled from several interviews:</p>
+<ul>
+<li><b>The hands are the product; the body is a delivery mechanism.</b> ~95% of industrial work happens within a small radius of the operator, so body-level biomimicry buys little.</li>
+<li><b>Athleticism is a liability, not a feature.</b> "Doing cartwheels does not create value in manufacturing" — and, on backflips: <i>"If you were to go into a Rivian facility, you will see very few people that have the type of flexibility that would enable them to do a back flip."</i> Every such capability is an added failure mode against zero manufacturing value.</li>
+<li><b>Specialize the end effector, don't universalize it.</b> Gripping a steel pipe and threading a small fastener are different torque and dexterity problems; his analogy is that a dolphin swims better than a human because it has specialized parts. Hence interchangeable/modular hands, and not necessarily <i>two</i> of them — hands "attached where they matter most for their jobs."</li>
+<li><b>Exploit the environment's structure.</b> Factories are mapped, stable, stair-free and pet-free. Locomotion can be cheap; what cannot be cheap is safe, legible interaction with the humans sharing the line.</li>
+</ul>
+<div class="card">
+<p><span class="tag warn">tension worth tracking</span></p>
+<p>The anti-humanoid rhetoric is not the whole story. Scaringe has said he expects Mind to <b>unveil its first humanoid robot within about a year</b>, and the company's own safety engineering describes the platform it is certifying as a <b>bipedal, dynamically balancing, multi-DOF humanoid</b> that does not fit the assumptions of ISO 10218 / ISO 3691-4, tracking the in-development ISO 25785-1 (dynamic stability control, zero-energy pose protocols, fall-zone marking).</p>
+<p>The honest reading: they are building a humanoid-class machine while rejecting humanoid-class <i>marketing</i> — form follows the task, legs are a transport budget item, and the differentiator lives in the hands.</p>
+</div>
+
+<h3>M5 — Co-design the process, not just the robot</h3>
+<p>Because they control both the AI and the industrial process it lives in, they can move the task toward the robot instead of forcing the robot to imitate a human motion path — optimizing fixtures, presentation and sequencing for machine efficiency. This is leverage no merchant robot vendor selling into someone else's plant can use, and it quietly lowers the autonomy bar their models must clear.</p>
+
+<h3>M6 — Evaluation is economic, with teleoperation as the safety net</h3>
+<p>There is no academic eval story. The stated loop is: deploy improvements directly into live operations, where <b>performance is measured against concrete economic outcomes</b>. Around that sit the pieces of a production ML org rather than a lab:</p>
+<ul>
+<li>A teleoperation "cockpit" as first-class product surface — VR, haptics and ultra-low-latency streaming to improve operator intuition — with defined <b>workflows for operator intervention when autonomous policies fail</b>. Autonomy is graded, not binary; the human is the fallback that keeps the line running and generates correction data.</li>
+<li>Data-engine metrics treated as north stars: collection throughput, <b>cost per hour of valuable data</b>, and a framework to measure <b>the marginal impact of a given data source on model performance</b>. That last one is the closest thing they have to a scientific instrument, and it is internal.</li>
+<li>Fleet infrastructure borrowed straight from automotive: OTA, staged/canary rollout, rollback, hardware-in-the-loop and simulation regression gates before anything reaches a live site.</li>
+<li>Sensing invested in early: tactile/contact sensing on fingertips, palms and gripper surfaces, and wearable head- and body-worn capture rigs for harvesting human demonstrations.</li>
+</ul>
+<p class="foot">Items in this subsection are drawn from Mind's own public role and product descriptions rather than press coverage; they are the only place the company has described its stack concretely, and are reported here without links per request.</p>
+
+<h2>3 · Claims ledger</h2>
+<p>Every quantitative or performance claim found, with its evidentiary status.</p>
+<table>
+<thead><tr><th>Claim</th><th>Source type</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Foundation models learn spatial reasoning, object dynamics, tool manipulation and <b>generalize to new tasks and environments</b></td><td>Company site</td><td><span class="tag bad">no evidence</span></td></tr>
+<tr><td>Platform <b>generalizes across core tasks</b> and scales across manufacturing domains</td><td>Company statement</td><td><span class="tag bad">no evidence</span></td></tr>
+<tr><td>Robots "read the situation in front of them and adjust, rather than follow a prewritten script"</td><td>Press paraphrase</td><td><span class="tag bad">no evidence</span></td></tr>
+<tr><td>Automotive skills will <b>transfer</b> to appliances, soft goods, other production</td><td>Investor memo</td><td><span class="tag bad">forward-looking</span></td></tr>
+<tr><td>"A large number of robots deployed by the end of 2026"</td><td>Scaringe, WSJ</td><td><span class="tag warn">unfalsified, undefined</span></td></tr>
+<tr><td>First humanoid robot unveiled within ~a year</td><td>Scaringe</td><td><span class="tag warn">pending</span></td></tr>
+<tr><td>Robots training/deployed inside Rivian's Normal, IL plant</td><td>Multiple outlets</td><td><span class="tag ok">corroborated</span></td></tr>
+<tr><td>&gt;$1B raised; ~$3.4B valuation</td><td>Press releases</td><td><span class="tag ok">corroborated</span></td></tr>
+<tr><td>Manufacturing ≈ 25% of global output; &gt;50% of production cost is labor</td><td>Accel memo</td><td><span class="tag warn">market framing</span></td></tr>
+<tr><td>~95% of industrial work happens within a small radius of the operator</td><td>Scaringe</td><td><span class="tag warn">unsourced heuristic</span></td></tr>
+</tbody>
+</table>
+
+<div class="card">
+<h3>What does not exist (checked)</h3>
+<ul>
+<li><b>Papers:</b> none. No arXiv preprint, no conference paper, no author affiliation "Mind Robotics" anywhere in the literature.</li>
+<li><b>Open source:</b> no GitHub organization, no released code, no dataset, no model weights, no LeRobot/Open-X contribution.</li>
+<li><b>Benchmarks:</b> no LIBERO / SimplerEnv / Open-X / internal success-rate numbers. No task success rates at all.</li>
+<li><b>Engineering blog:</b> none. The company site has no blog, no news section and no technical writing.</li>
+<li><b>Citations:</b> they have not publicly cited or credited any external method, architecture or dataset.</li>
+</ul>
+<p>The only technical vocabulary they have committed to in public is <i>multimodal / VLA systems</i>, <i>foundation models</i>, and standard large-scale training practice (distributed training across hundreds of GPUs, PyTorch/JAX). No architecture, no action representation, no horizon, no control frequency.</p>
+</div>
+
+<h2>4 · People</h2>
+<table>
+<thead><tr><th>Name</th><th>Role</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td><b>RJ Scaringe</b></td><td>Founder &amp; chairman (also Rivian CEO)</td><td>Runs both a public automaker and this company; the vertical-integration credential is the whole investor thesis</td></tr>
+<tr><td><b>Ury Zhilinsky</b></td><td>Research/engineering leadership</td><td>Self-described decade-plus building physical AI</td></tr>
+<tr><td><b>Ruijie (RJ) He</b></td><td>Engineering leadership</td><td>Decade-plus robotics and autonomous-vehicle engineering leadership</td></tr>
+<tr><td><b>Jiten Behl</b></td><td>Eclipse partner, seed lead</td><td>Ex-Rivian; announced the seed</td></tr>
+<tr><td><b>Ilya Fushman</b></td><td>Kleiner Perkins, $400M lead</td><td>Authored the KP thesis post</td></tr>
+</tbody>
+</table>
+<p class="foot">Leadership is deliberately opaque: the company website names no one, and no CTO has been confirmed by any primary source. Hiring is concentrated in Palo Alto (research, ML infra, hardware, controls, robotics software) with a forward-deployed presence at Normal, IL.</p>
+
+<h2>5 · How this differs from the rest of the field</h2>
+<table>
+<thead><tr><th>Axis</th><th>Mind Robotics</th><th>The prevailing approach</th></tr></thead>
+<tbody>
+<tr><td>Data source</td><td>Expert operators on one live production line, in-distribution</td><td>Web video + lab teleop + cross-embodiment aggregation (Open-X-style)</td></tr>
+<tr><td>Scaling unit</td><td>Production hours</td><td>Episodes / trajectories / tokens</td></tr>
+<tr><td>Embodiment</td><td>Task-optimized, modular hands; humanoid-class only where it pays</td><td>Anthropomorphic generality as the goal (Optimus, Figure)</td></tr>
+<tr><td>Evaluation</td><td>Plant economics; teleop intervention rate</td><td>Benchmark success rates, then field pilots</td></tr>
+<tr><td>Openness</td><td>Closed end to end</td><td>Mixed — π, GR00T, LeRobot publish weights/code</td></tr>
+<tr><td>Go-to-market</td><td>Captive first customer that also owns equity</td><td>Sell into third-party plants</td></tr>
+</tbody>
+</table>
+<p>The nearest structural analogues are Tesla (Optimus trained in Tesla's own factories) and Boston Dynamics/Atlas inside Hyundai. Mind's differentiator against those two is not architecture — it is the claim that it will refuse the parts of humanoid design that don't pay.</p>
+
+<h2>6 · Open questions</h2>
+<ul>
+<li><b>What is the action representation?</b> Nothing public distinguishes their model from any other VLA — no chunking, horizon, tokenizer, or control-rate detail. Until the first product reveal there is nothing to compare against.</li>
+<li><b>Is there any held-out evaluation at all?</b> "Measured against economic outcomes" on the same line that produced the training data is, methodologically, training-set evaluation. Their one stated protection is the internal framework for attributing model gains to data sources.</li>
+<li><b>Does single-plant data actually transfer?</b> The entire thesis rests on it, and it is the exact axis on which a captured-distribution strategy is most likely to fail: one plant, one OEM, one set of parts and fixtures.</li>
+<li><b>How much autonomy is real?</b> With teleoperation built as a first-class product with defined intervention workflows, "deployed robots" by end-2026 may mean substantially human-in-the-loop units. The number to ask for is intervention rate per hour, not robot count.</li>
+</ul>
+
+<h2>7 · Inferred stack <span class="tag bad">speculation</span></h2>
+<div class="card flag">
+<p><b>This section is not part of the claims ledger.</b> Nothing below was said by Mind Robotics. It is reverse-inference from the sparse public record in §2 and §M6, plus what the rest of the field does with the same constraints. Every line is a falsifiable guess, tagged with how much the record actually constrains it. The company's first product reveal should settle most of it.</p>
+</div>
+
+<h3>P1 — Pre-training is human egocentric video with learned latent actions <span class="tag warn">high confidence</span></h3>
+<p>Two of their own statements only fit together one way. They collect <i>"video data at industrial scale, capturing live, high-variability work as it happens on the line,"</i> and they build <i>wearable head- and body-worn capture rigs</i>. That is action-free human video: there are no joint commands in it. The only way to pre-train a policy on such data is to learn actions in a latent space — an inverse-dynamics or VQ codebook over consecutive frames — and then decode that latent space to real actuator commands using a much smaller set of piloted robot demonstrations. This is GR00T N1.x's human-video branch and LAPA's recipe.</p>
+<p>The decisive tell is their scaling unit. <b>Hours</b> is the natural unit for passively captured video; <b>episodes</b> is the unit for teleoperated robot data. A company whose north star was robot teleop would report episodes.</p>
+
+<h3>P2 — The VLM backbone is open weights, not trained from scratch <span class="tag warn">high confidence</span></h3>
+<p>"Distributed training across hundreds of GPUs" is a fine-tuning cluster. Hundreds of accelerators trains a 2–10B-parameter VLA; it does not pre-train a frontier multimodal model. The likely shape is an off-the-shelf backbone (Qwen-VL, PaliGemma or Eagle class), frozen or lightly tuned, carrying a newly trained action head. Their refusal to cite any external method (§3) is best read as legal and competitive positioning, not as evidence of a from-scratch stack — the compute figure they volunteered contradicts the latter.</p>
+
+<h3>P3 — Episode labels are machine-generated, implying a two-level policy <span class="tag warn">medium-high</span></h3>
+<p><i>"Actions, tools, context, and decisions that make each cycle successful"</i> cannot be hand-annotated at industrial-hour scale. That phrasing describes a VLM captioner segmenting episodes into subtasks and emitting language for each — the role NVILA plays in the GR00T pipeline. If subtask language is being manufactured at scale, something consumes it: a slow vision-language planner reasoning over subtask sequence, with a fast action expert beneath it. A single flat policy would not need the labels.</p>
+
+<h3>P4 — The action head is shaped by fastening and connectors <span class="tag warn">medium</span></h3>
+<p>Two of their four named skills are contact-rich and force-dependent at takt time. That pushes toward diffusion or flow-matching action chunks at a high control rate, tactile and force/torque signals inside the observation space, and plausibly impedance or admittance targets rather than pure position in the action space. Their early investment in fingertip, palm and gripper tactile sensing (§M6) is only worth its cost and failure surface if those signals actually enter the policy.</p>
+
+<h3>P5 — Simulation is a gate, not a data source <span class="tag warn">medium</span></h3>
+<p>They describe <i>hardware-in-the-loop and simulation regression gates before anything reaches a live site</i> — and nowhere claim sim-to-real training. In a company this willing to make forward-looking claims, that omission is informative. It is also the correct call for contact-rich manipulation, where sim transfer is weakest. Expect simulation in the release pipeline and near-absent from the training mix.</p>
+
+<h3>P6 — Teleoperation is the failure-data collector, not the safety net <span class="tag warn">medium-high</span></h3>
+<p>This is the load-bearing inference. Expert demonstrations contain almost no failures — a trained operator at takt time mostly succeeds. But Mind explicitly scopes fastening as <i>modulating force and sequence to seat parts, and recovering when they don't</i>. Recovery behavior cannot be learned from a dataset that contains no failed seats.</p>
+<p>The only place that data exists is the intervention log. So the teleop cockpit with its <i>defined workflows for operator intervention when autonomous policies fail</i> is not a product concession — it is the mechanism that generates the corrective distribution the expert data structurally lacks. HG-DAgger, with a VR headset and a P&amp;L attached.</p>
+
+<h3>P7 — Held-out evaluation exists, and it is shadow mode <span class="tag warn">medium</span></h3>
+<p>§6 asks whether any held-out evaluation exists at all. The likely answer: run the policy against live line observations while a human or teleoperator actually performs the work, score action-prediction divergence, never actuate. It costs nothing beyond inference, it works on data the plant produces anyway, and it is the standard autonomous-vehicle move — which matters, because their engineering leadership comes out of AV. It is also the only construction that reconciles "measured against concrete economic outcomes" with not being training-set evaluation. Expect it to exist internally and never to be published.</p>
+
+<h3>P8 — One base checkpoint, many per-cell fine-tunes <span class="tag warn">medium-low</span></h3>
+<p>§M5 — co-designing fixtures, presentation and sequencing around the robot — only pays if specializing to a cell is cheap and routine. Combined with automotive-grade staged rollout and rollback, the natural shape is a shared base model plus per-station adaptation, rather than one weight set running unmodified across the plant. This sits in direct tension with the public generalization claim, which is why it is worth watching.</p>
+
+<div class="card">
+<h3>What would falsify this section</h3>
+<ul>
+<li><b>P8 fails</b> if the first reveal shows a single generalist policy running unmodified across heterogeneous cells — in which case the transfer claim is stronger than inferred here.</li>
+<li><b>P5 fails</b> if they demonstrate contact-rich skills trained primarily in simulation.</li>
+<li><b>P1 fails</b> if the data story turns out to be teleop-dominant, which would show up as episode counts replacing production hours in their own messaging.</li>
+<li><b>P2 fails</b> if they disclose a compute footprint an order of magnitude above "hundreds of GPUs."</li>
+</ul>
+</div>
+
+<div class="card">
+<p><span class="tag warn">note against our own work</span></p>
+<p>Nothing in the public record indicates whether language conditioning does any work in their stack. The subtask-language layer in P3 is inferred from a data-labeling sentence, not from any claim that the model follows instructions at inference. That is the same question R-037/R-038 tests on GR00T with a null prompt — detection versus discrimination — and it is the sort of result a closed lab has no incentive to publish either way.</p>
+</div>
+
+<h2>Sources</h2>
+<table>
+<thead><tr><th>Source</th><th>Type</th><th>Used for</th></tr></thead>
+<tbody>
+<tr><td><a href="https://www.mindrobotics.com/">mindrobotics.com</a></td><td>Primary</td><td>Data pipeline, model claims, skill list, positioning</td></tr>
+<tr><td><a href="https://a16z.com/announcement/investing-in-mind-robotics/">a16z — Investing in Mind Robotics</a></td><td>Investor</td><td>Data flywheel formulation; irreversibility of physical failure</td></tr>
+<tr><td><a href="https://www.accel.com/noteworthies/mind-robotics-bringing-ai-to-the-physical-world">Accel — Bringing AI to the Physical World</a></td><td>Investor</td><td>Vertical integration; market framing</td></tr>
+<tr><td><a href="https://www.kleinerperkins.com/perspectives/mind-robotics-building-the-ai-native-robotics-platform-for-manufacturing/">Kleiner Perkins — AI-Native Robotics Platform</a></td><td>Investor</td><td>EV↔robot component analogy; automotive-as-curriculum</td></tr>
+<tr><td><a href="https://eclipse.capital/companies/mind-robotics">Eclipse Capital — Mind Robotics</a></td><td>Investor</td><td>Seed, founding facts</td></tr>
+<tr><td><a href="https://techcrunch.com/2026/03/15/rivians-rj-scaringe-thinks-were-doing-robots-all-wrong/">TechCrunch — "doing robots all wrong"</a></td><td>Interview</td><td>Hands-first thesis, modular hands, environment exploitation</td></tr>
+<tr><td><a href="https://www.autoevolution.com/news/rivian-s-mind-robotics-has-a-new-recipe-for-factory-robots-after-finding-humanoid-robot-weaknesses-267144.html">autoevolution — new recipe for factory robots</a></td><td>Interview digest</td><td>Dolphin analogy; feet/hands reasoning</td></tr>
+<tr><td><a href="https://techcrunch.com/2026/03/11/rivian-mind-robotics-series-a-500m-fund-raise-industrial-ai-powered-robots/">TechCrunch — $500M Series A</a></td><td>Press</td><td>Series A, valuation, deployment intent</td></tr>
+<tr><td><a href="https://www.therobotreport.com/mind-robotics-raises-400m-scale-ai-powered-robots-in-manufacturing/">The Robot Report — $400M</a></td><td>Press</td><td>Investor list; platform-not-single-task quote</td></tr>
+<tr><td><a href="https://siliconangle.com/2026/05/13/rivian-spinout-mind-robotics-lands-400m-push-ai-robots-onto-factory-floors/">SiliconANGLE — $400M</a></td><td>Press</td><td>Project Synapse; wiring harness / soft trim; data-moat claim</td></tr>
+<tr><td><a href="https://www.humanoidsdaily.com/news/rj-scaringe-unveils-mind-robotics-a-500m-bet-on-captured-distribution-for-industrial-ai">Humanoids Daily — captured distribution</a></td><td>Analysis</td><td>Co-design philosophy; Tesla/Boston Dynamics analogues</td></tr>
+<tr><td><a href="https://www.cnbc.com/2026/06/13/rivian-humanoid-robots.html">CNBC — different approach than Musk</a></td><td>Press</td><td>Humanoid timeline, labor-shortage framing</td></tr>
+<tr><td><a href="https://en.wikipedia.org/wiki/Mind_Robotics">Wikipedia — Mind Robotics</a></td><td>Tertiary</td><td>Timeline cross-check only</td></tr>
+</tbody>
+</table>
+<p class="foot">Additional methodology detail in §M6 and the humanoid-platform note comes from Mind Robotics' own public engineering and product role descriptions, deliberately unlinked here. Compiled 2026-09-22; the company's first product reveal is expected to invalidate or confirm much of §2 within months.</p>
+
+</div>
+</body>
+</html>
