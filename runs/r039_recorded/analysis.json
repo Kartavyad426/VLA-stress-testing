@@ -1,0 +1,1111 @@
+{
+ "n": 30,
+ "by_category": {
+  "Camera Viewpoints": {
+   "n": 10,
+   "n_fail": 3,
+   "median_tf_f0": {
+    "T": 0.193985216319561,
+    "I": 0.692519336938858,
+    "S": 0.0
+   },
+   "median_tf_anchor": {
+    "T": 0.03371499216882512,
+    "I": 0.6801255941390991,
+    "S": 0.02374368067830801
+   },
+   "median_tf_mean": {
+    "T": 0.11944403076389183,
+    "I": 0.7327107500935358,
+    "S": 0.022608489451360785
+   },
+   "median_d_pn_f0": 1.1495072841644287,
+   "dominant": {
+    "none": 10
+   },
+   "S_slope_per_forward": {
+    "median": 4.4413694801436474e-05,
+    "n_positive": 2
+   }
+  },
+  "Light Conditions": {
+   "n": 10,
+   "n_fail": 1,
+   "median_tf_f0": {
+    "T": 0.08403431996703148,
+    "I": 0.7937946617603302,
+    "S": 0.0
+   },
+   "median_tf_anchor": {
+    "T": 0.0019771159277297556,
+    "I": 0.8122029602527618,
+    "S": 0.05838475935161114
+   },
+   "median_tf_mean": {
+    "T": 0.03328320418118632,
+    "I": 0.7844355361802238,
+    "S": 0.032213995599054863
+   },
+   "median_d_pn_f0": 0.32789865136146545,
+   "dominant": {
+    "I": 4,
+    "none": 6
+   },
+   "S_slope_per_forward": {
+    "median": 0.00392097481276973,
+    "n_positive": 0
+   }
+  },
+  "Sensor Noise": {
+   "n": 10,
+   "n_fail": 0,
+   "median_tf_f0": {
+    "T": 0.1823149472475052,
+    "I": 0.4443384110927582,
+    "S": 0.0
+   },
+   "median_tf_anchor": {
+    "T": 0.024331034161150455,
+    "I": 0.7568126320838928,
+    "S": 0.02801117766648531
+   },
+   "median_tf_mean": {
+    "T": 0.12832839269766635,
+    "I": 0.6512068197840736,
+    "S": 0.02709359709444384
+   },
+   "median_d_pn_f0": 1.4278043508529663,
+   "dominant": {
+    "none": 10
+   },
+   "S_slope_per_forward": {
+    "median": 0.0015760067881156038,
+    "n_positive": 0
+   }
+  }
+ },
+ "residual": {
+  "n": 26,
+  "ids": [
+   "d7e793a3dfcd",
+   "8755f0b062c7",
+   "166b8dec8117",
+   "16ab72b889d4",
+   "8b9c4d6896e2",
+   "1842921fd578",
+   "43c656a8ba02",
+   "f1645641a662",
+   "97ccaa664111",
+   "de35fc7f7f1f",
+   "656e766a7838",
+   "b7ff88a484e6",
+   "b2e959f29bf6",
+   "d9bd7c52db14",
+   "339dd47bbd4f",
+   "645465464909",
+   "a13db90d593f",
+   "bae21aba2d1e",
+   "ccf71855de73",
+   "c953a4aa56b7",
+   "4bf6abf14292",
+   "7744388f400e",
+   "d450991c19bd",
+   "e84e55397a88",
+   "bd068576cd36",
+   "47a0018ab980"
+  ],
+  "fraction": 0.8666666666666667
+ },
+ "instances": [
+  {
+   "rollout_id": "d7e793a3dfcd",
+   "task_id": 635,
+   "category": "Camera Viewpoints",
+   "level": 5,
+   "label": "next-to-ramekin \u00b7 view yaw 22 pitch 15 scale 1.00",
+   "success": true,
+   "forwards": 9,
+   "anchor_forward": 3,
+   "d_pn_f0": 1.1439838409423828,
+   "tf_f0": {
+    "T": 0.16297568380832672,
+    "I": 0.6956246495246887,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.001764031476341188,
+    "I": 0.6173704266548157,
+    "S": 0.02324867621064186
+   },
+   "tf_mean": {
+    "T": 0.182624174734681,
+    "I": 0.7790085938241746,
+    "S": 0.032616217982851796
+   },
+   "onset": {
+    "T": 4,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0004134285806988716
+  },
+  {
+   "rollout_id": "8755f0b062c7",
+   "task_id": 639,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "next-to-ramekin \u00b7 view yaw 24 pitch 15 scale 1.00",
+   "success": true,
+   "forwards": 9,
+   "anchor_forward": 3,
+   "d_pn_f0": 1.1059595346450806,
+   "tf_f0": {
+    "T": 0.17651332914829254,
+    "I": 0.6894140243530273,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.0026392019353806973,
+    "I": 0.615277886390686,
+    "S": 0.0257751252502203
+   },
+   "tf_mean": {
+    "T": 0.1889917770297163,
+    "I": 0.7772516674465604,
+    "S": 0.05926396475277013
+   },
+   "onset": {
+    "T": 4,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.00032460119109599866
+  },
+  {
+   "rollout_id": "166b8dec8117",
+   "task_id": 828,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "on-ramekin \u00b7 view yaw 299 pitch 15 scale 1.00",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 6,
+   "d_pn_f0": 1.4968074560165405,
+   "tf_f0": {
+    "T": 0.23000341653823853,
+    "I": 0.7802162766456604,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.13639280200004578,
+    "I": 0.8354122042655945,
+    "S": 0.6017737984657288
+   },
+   "tf_mean": {
+    "T": 0.09284204191395215,
+    "I": 0.7525338785988944,
+    "S": 0.18409374519251287
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": 6
+   },
+   "dominant": null,
+   "S_slope": 0.05310741570844715
+  },
+  {
+   "rollout_id": "16ab72b889d4",
+   "task_id": 889,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "on-stove \u00b7 view yaw 317 pitch 0 scale 1.00",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 7,
+   "d_pn_f0": 1.221532940864563,
+   "tf_f0": {
+    "T": 0.22905635833740234,
+    "I": 0.7157437205314636,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.08062899857759476,
+    "I": 0.37018153071403503,
+    "S": -0.11320576071739197
+   },
+   "tf_mean": {
+    "T": 0.10876422026194632,
+    "I": 0.6111430190503597,
+    "S": 0.028503072797320783
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.007927502361347987
+  },
+  {
+   "rollout_id": "8b9c4d6896e2",
+   "task_id": 887,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "on-stove \u00b7 view yaw 316 pitch 0 scale 1.00",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 5,
+   "d_pn_f0": 1.3074973821640015,
+   "tf_f0": {
+    "T": 0.2204979658126831,
+    "I": 0.7334900498390198,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.284820020198822,
+    "I": 0.44781458377838135,
+    "S": 0.02423868514597416
+   },
+   "tf_mean": {
+    "T": 0.0794861794456665,
+    "I": 0.6364451162517071,
+    "S": -0.02238393557490781
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.0031689793769536265
+  },
+  {
+   "rollout_id": "1842921fd578",
+   "task_id": 823,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "on-ramekin \u00b7 view yaw 297 pitch 0 scale 1.00",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 6,
+   "d_pn_f0": 1.2798179388046265,
+   "tf_f0": {
+    "T": 0.13831911981105804,
+    "I": 0.7857102751731873,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.40957334637641907,
+    "I": 0.7999069690704346,
+    "S": 0.14757363498210907
+   },
+   "tf_mean": {
+    "T": -0.05096087870853288,
+    "I": 0.8254340376172747,
+    "S": 0.07703710473807794
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.01963280703473304
+  },
+  {
+   "rollout_id": "43c656a8ba02",
+   "task_id": 918,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "next-to-plate \u00b7 view yaw 0 pitch 0 scale 1.85",
+   "success": false,
+   "forwards": 6,
+   "anchor_forward": 5,
+   "d_pn_f0": 1.1248266696929932,
+   "tf_f0": {
+    "T": 0.3124556839466095,
+    "I": 0.526042103767395,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.15420211851596832,
+    "I": 0.8211439847946167,
+    "S": 0.012428009882569313
+   },
+   "tf_mean": {
+    "T": 0.13012384126583734,
+    "I": 0.6980139315128326,
+    "S": 0.009295063248525063
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0079905792804701
+  },
+  {
+   "rollout_id": "f1645641a662",
+   "task_id": 873,
+   "category": "Camera Viewpoints",
+   "level": 4,
+   "label": "on-stove \u00b7 view yaw 0 pitch 0 scale 1.73",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 3,
+   "d_pn_f0": 0.7909022569656372,
+   "tf_f0": {
+    "T": 0.12336935847997665,
+    "I": 0.619699239730835,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.06566595286130905,
+    "I": 0.7428807616233826,
+    "S": -0.0005406159907579422
+   },
+   "tf_mean": {
+    "T": 0.14471078221686184,
+    "I": 0.66132877394557,
+    "S": -0.06364477082388476
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.06946961225254374
+  },
+  {
+   "rollout_id": "97ccaa664111",
+   "task_id": 637,
+   "category": "Camera Viewpoints",
+   "level": 5,
+   "label": "next-to-ramekin \u00b7 view yaw 23 pitch 15 scale 1.00",
+   "success": false,
+   "forwards": 9,
+   "anchor_forward": 3,
+   "d_pn_f0": 1.1283226013183594,
+   "tf_f0": {
+    "T": 0.1730417162179947,
+    "I": 0.6860687732696533,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.0010266662575304508,
+    "I": 0.6128795742988586,
+    "S": 0.021335627883672714
+   },
+   "tf_mean": {
+    "T": 0.14837001134744948,
+    "I": 0.7128876215881772,
+    "S": 0.00627885852009058
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.00346784785700341
+  },
+  {
+   "rollout_id": "de35fc7f7f1f",
+   "task_id": 648,
+   "category": "Camera Viewpoints",
+   "level": 5,
+   "label": "next-to-ramekin \u00b7 view yaw 29 pitch 15 scale 1.00",
+   "success": false,
+   "forwards": 9,
+   "anchor_forward": 5,
+   "d_pn_f0": 1.1550307273864746,
+   "tf_f0": {
+    "T": 0.21145710349082947,
+    "I": 0.6202065348625183,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.11315354704856873,
+    "I": 0.8130161762237549,
+    "S": 0.03644450381398201
+   },
+   "tf_mean": {
+    "T": 0.08941434489356147,
+    "I": 0.7942903108066983,
+    "S": 0.016713906105400786
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.004875119418526683
+  },
+  {
+   "rollout_id": "656e766a7838",
+   "task_id": 2327,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 22",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.31439149379730225,
+   "tf_f0": {
+    "T": 0.08957584202289581,
+    "I": 0.7951714992523193,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.012730531394481659,
+    "I": 0.7728596329689026,
+    "S": 0.09183581173419952
+   },
+   "tf_mean": {
+    "T": 0.027209846369389976,
+    "I": 0.7844355361802238,
+    "S": 0.07313084416091442
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.010533080469550832
+  },
+  {
+   "rollout_id": "b7ff88a484e6",
+   "task_id": 2330,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 26",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.31439149379730225,
+   "tf_f0": {
+    "T": 0.08957584202289581,
+    "I": 0.7951714992523193,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.012730531394481659,
+    "I": 0.7728596329689026,
+    "S": 0.09183581173419952
+   },
+   "tf_mean": {
+    "T": 0.027209846369389976,
+    "I": 0.7844355361802238,
+    "S": 0.07313084416091442
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.010533080469550832
+  },
+  {
+   "rollout_id": "b2e959f29bf6",
+   "task_id": 2339,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 41",
+   "success": false,
+   "forwards": 7,
+   "anchor_forward": 6,
+   "d_pn_f0": 0.5420951247215271,
+   "tf_f0": {
+    "T": 0.07849279791116714,
+    "I": 0.7924178242683411,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.12270316481590271,
+    "I": 0.17108164727687836,
+    "S": 0.0356111042201519
+   },
+   "tf_mean": {
+    "T": 0.06745889387093484,
+    "I": 0.7095192734684262,
+    "S": 0.00565184506454638
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0025873372131692512
+  },
+  {
+   "rollout_id": "ca524d50456b",
+   "task_id": 2345,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 50",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.5097819566726685,
+   "tf_f0": {
+    "T": 0.0921826958656311,
+    "I": 0.7516138553619385,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.0015071170637384057,
+    "I": 0.951286256313324,
+    "S": 8.955593511927873e-05
+   },
+   "tf_mean": {
+    "T": 0.03935656199298267,
+    "I": 0.7874551074845451,
+    "S": 0.06344343588196873
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": "I",
+   "S_slope": 0.009920820329300892
+  },
+  {
+   "rollout_id": "d9bd7c52db14",
+   "task_id": 2202,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "top-drawer \u00b7 light 1",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 4,
+   "d_pn_f0": 0.3352213203907013,
+   "tf_f0": {
+    "T": 0.030437598004937172,
+    "I": 0.8798860907554626,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.005689211189746857,
+    "I": 0.8328801393508911,
+    "S": 0.08115841448307037
+   },
+   "tf_mean": {
+    "T": 0.040755097521469,
+    "I": 0.8202868103981018,
+    "S": 0.02233029087074101
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.004414486011401532
+  },
+  {
+   "rollout_id": "8079df48d2a0",
+   "task_id": 2180,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "table-center \u00b7 light 35",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.27501940727233887,
+   "tf_f0": {
+    "T": 0.10579706728458405,
+    "I": 0.6125031113624573,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.0007218444370664656,
+    "I": 0.9656612873077393,
+    "S": 0.0025073292199522257
+   },
+   "tf_mean": {
+    "T": 0.021983614066682224,
+    "I": 0.8185954434531075,
+    "S": 0.04209770032736872
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": "I",
+   "S_slope": 0.005254612412370209
+  },
+  {
+   "rollout_id": "339dd47bbd4f",
+   "task_id": 2331,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 27",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.31439149379730225,
+   "tf_f0": {
+    "T": 0.08957584202289581,
+    "I": 0.7951714992523193,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.012730531394481659,
+    "I": 0.7728596329689026,
+    "S": 0.09183581173419952
+   },
+   "tf_mean": {
+    "T": 0.027209846369389976,
+    "I": 0.7844355361802238,
+    "S": 0.07313084416091442
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.010533080469550832
+  },
+  {
+   "rollout_id": "46b6fd1bef68",
+   "task_id": 2150,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "between-plate-ramekin \u00b7 light 8",
+   "success": true,
+   "forwards": 5,
+   "anchor_forward": 2,
+   "d_pn_f0": 1.5711138248443604,
+   "tf_f0": {
+    "T": -0.004669539630413055,
+    "I": 0.9569969177246094,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.008686965331435204,
+    "I": 0.9093610048294067,
+    "S": 0.20091688632965088
+   },
+   "tf_mean": {
+    "T": 0.011408055946230889,
+    "I": 0.6650903940200805,
+    "S": -0.027932445937767624
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": "I",
+   "S_slope": -0.04611790464259686
+  },
+  {
+   "rollout_id": "c65b2c4b73b0",
+   "task_id": 2335,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "on-ramekin \u00b7 light 33",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 2,
+   "d_pn_f0": 0.5333917737007141,
+   "tf_f0": {
+    "T": 0.07689034193754196,
+    "I": 0.7692088484764099,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.0024471147917211056,
+    "I": 0.9369117617607117,
+    "S": -0.0001630781771382317
+   },
+   "tf_mean": {
+    "T": 0.11476736429280468,
+    "I": 0.7806478653635297,
+    "S": -0.04976949626039381
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": "I",
+   "S_slope": -0.039027634480589775
+  },
+  {
+   "rollout_id": "645465464909",
+   "task_id": 2230,
+   "category": "Light Conditions",
+   "level": 4,
+   "label": "top-drawer \u00b7 light 36",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 5,
+   "d_pn_f0": 0.3205759823322296,
+   "tf_f0": {
+    "T": 0.07763342559337616,
+    "I": 0.738305389881134,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.07603081315755844,
+    "I": 0.7915257811546326,
+    "S": -0.03621814772486687
+   },
+   "tf_mean": {
+    "T": 0.05032334435964003,
+    "I": 0.75515516102314,
+    "S": -0.026952207495924085
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.0005806409144064496
+  },
+  {
+   "rollout_id": "a13db90d593f",
+   "task_id": 1697,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "on-wooden-cabinet \u00b7 noise 16",
+   "success": true,
+   "forwards": 8,
+   "anchor_forward": 3,
+   "d_pn_f0": 3.2785677909851074,
+   "tf_f0": {
+    "T": 0.17097119987010956,
+    "I": 0.4414573013782501,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.0035895390901714563,
+    "I": 0.747351884841919,
+    "S": 0.017169540748000145
+   },
+   "tf_mean": {
+    "T": 0.1380003260273952,
+    "I": 0.5687670111656189,
+    "S": -0.010498257863218896
+   },
+   "onset": {
+    "T": null,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.01494451064389154
+  },
+  {
+   "rollout_id": "bae21aba2d1e",
+   "task_id": 1699,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "on-wooden-cabinet \u00b7 noise 18",
+   "success": true,
+   "forwards": 9,
+   "anchor_forward": 3,
+   "d_pn_f0": 3.215865135192871,
+   "tf_f0": {
+    "T": 0.18134842813014984,
+    "I": 0.42764583230018616,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.01502386387437582,
+    "I": 0.8350878953933716,
+    "S": -0.027448324486613274
+   },
+   "tf_mean": {
+    "T": 0.08696335895607869,
+    "I": 0.5958663754993014,
+    "S": -0.1308149553272718
+   },
+   "onset": {
+    "T": null,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.05914347822642107
+  },
+  {
+   "rollout_id": "ccf71855de73",
+   "task_id": 1566,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "on-ramekin \u00b7 noise 29",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 6,
+   "d_pn_f0": 1.2892239093780518,
+   "tf_f0": {
+    "T": -0.0034727430902421474,
+    "I": 0.6311179399490356,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.09376762807369232,
+    "I": 0.6142522096633911,
+    "S": 0.13684138655662537
+   },
+   "tf_mean": {
+    "T": 0.06449754196884376,
+    "I": 0.63904698405947,
+    "S": 0.11012368808899607
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.009151083816375053
+  },
+  {
+   "rollout_id": "c953a4aa56b7",
+   "task_id": 1701,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "on-wooden-cabinet \u00b7 noise 20",
+   "success": true,
+   "forwards": 15,
+   "anchor_forward": 7,
+   "d_pn_f0": 3.1546549797058105,
+   "tf_f0": {
+    "T": 0.19396349787712097,
+    "I": 0.41096800565719604,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.15804927051067352,
+    "I": 0.7529517412185669,
+    "S": 0.18912912905216217
+   },
+   "tf_mean": {
+    "T": 0.19194564233378816,
+    "I": 0.5949284885078668,
+    "S": -0.08761152755469084
+   },
+   "onset": {
+    "T": 12,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.015539971421406205
+  },
+  {
+   "rollout_id": "4bf6abf14292",
+   "task_id": 1698,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "on-wooden-cabinet \u00b7 noise 17",
+   "success": true,
+   "forwards": 12,
+   "anchor_forward": 3,
+   "d_pn_f0": 3.3252859115600586,
+   "tf_f0": {
+    "T": 0.16686281561851501,
+    "I": 0.44721952080726624,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.00914362259209156,
+    "I": 0.5791116952896118,
+    "S": -0.05211196839809418
+   },
+   "tf_mean": {
+    "T": 0.07333190242449443,
+    "I": 0.6713633164763451,
+    "S": 0.030800420269467093
+   },
+   "onset": {
+    "T": null,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0009965217600851743
+  },
+  {
+   "rollout_id": "7744388f400e",
+   "task_id": 1535,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "top-drawer \u00b7 noise 39",
+   "success": true,
+   "forwards": 9,
+   "anchor_forward": 3,
+   "d_pn_f0": 1.0655978918075562,
+   "tf_f0": {
+    "T": 0.2437525987625122,
+    "I": 0.4983033239841461,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.0501365102827549,
+    "I": 0.7606735229492188,
+    "S": 0.0802147164940834
+   },
+   "tf_mean": {
+    "T": 0.1186564593679375,
+    "I": 0.6794596976704068,
+    "S": 0.03304199176555914
+   },
+   "onset": {
+    "T": null,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0025857347412966223
+  },
+  {
+   "rollout_id": "d450991c19bd",
+   "task_id": 1668,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "next-to-plate \u00b7 noise 17",
+   "success": true,
+   "forwards": 6,
+   "anchor_forward": 5,
+   "d_pn_f0": 0.7989585995674133,
+   "tf_f0": {
+    "T": 0.4668172299861908,
+    "I": 0.4172315001487732,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.06821144372224808,
+    "I": 0.8341148495674133,
+    "S": 0.00652120029553771
+   },
+   "tf_mean": {
+    "T": 0.16197658392290273,
+    "I": 0.6633666555086771,
+    "S": 0.12011577646868925
+   },
+   "onset": {
+    "T": null,
+    "I": 1,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": -0.007983657198825071
+  },
+  {
+   "rollout_id": "e84e55397a88",
+   "task_id": 1519,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "top-drawer \u00b7 noise 17",
+   "success": true,
+   "forwards": 9,
+   "anchor_forward": 4,
+   "d_pn_f0": 1.386340618133545,
+   "tf_f0": {
+    "T": 0.18328146636486053,
+    "I": 0.556368350982666,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.09209785610437393,
+    "I": 0.8859800100326538,
+    "S": 0.05549592152237892
+   },
+   "tf_mean": {
+    "T": 0.14438763219449255,
+    "I": 0.711905923154619,
+    "S": 0.04001451045688656
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.009195314704750972
+  },
+  {
+   "rollout_id": "bd068576cd36",
+   "task_id": 1600,
+   "category": "Sensor Noise",
+   "level": 4,
+   "label": "next-to-cookie-box \u00b7 noise 29",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 3,
+   "d_pn_f0": 0.7689000964164734,
+   "tf_f0": {
+    "T": 0.5242648124694824,
+    "I": 0.07991842925548553,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": 0.03951844573020935,
+    "I": 0.6942118406295776,
+    "S": 0.038852814584970474
+   },
+   "tf_mean": {
+    "T": 0.20040591380425862,
+    "I": 0.5445607623883656,
+    "S": 0.023386773919420584
+   },
+   "onset": {
+    "T": 0,
+    "I": 3,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.017990864913112352
+  },
+  {
+   "rollout_id": "47a0018ab980",
+   "task_id": 1419,
+   "category": "Sensor Noise",
+   "level": 5,
+   "label": "next-to-ramekin \u00b7 noise 18",
+   "success": true,
+   "forwards": 7,
+   "anchor_forward": 3,
+   "d_pn_f0": 1.4692680835723877,
+   "tf_f0": {
+    "T": 0.08471540361642838,
+    "I": 0.7980687618255615,
+    "S": 0.0
+   },
+   "tf_anchor": {
+    "T": -0.5584065318107605,
+    "I": 0.8722461462020874,
+    "S": -0.13161779940128326
+   },
+   "tf_mean": {
+    "T": -0.027604890189000537,
+    "I": 0.705115556716919,
+    "S": -0.005504604961190905
+   },
+   "onset": {
+    "T": null,
+    "I": 0,
+    "S": null
+   },
+   "dominant": null,
+   "S_slope": 0.0021554918161460334
+  }
+ ]
+}

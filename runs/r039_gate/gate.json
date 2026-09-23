@@ -1,0 +1,48 @@
+{
+ "torch": "2.11.0+cu128",
+ "cudnn_deterministic": false,
+ "cublas_workspace": ":4096:8",
+ "A_source_features": {
+  "backbone_bitwise": true,
+  "backbone_maxabs": 0.0,
+  "state_bitwise": true,
+  "state_maxabs": 0.0,
+  "n_tokens": 156,
+  "n_image_tokens": 128
+ },
+ "B_head_fixed_seed": {
+  "bitwise": true,
+  "maxabs": 0.0
+ },
+ "B_control_unseeded": {
+  "bitwise": false,
+  "maxabs": 0.2835165560245514,
+  "note": "must be False for the seed to mean anything"
+ },
+ "C_spliced_forward": {
+  "arms_recorded": [
+   "P",
+   "N",
+   "T",
+   "I",
+   "S"
+  ],
+  "chunk_shape": [
+   1,
+   40,
+   132
+  ],
+  "P_vs_N_maxabs_live": 0.318359375,
+  "transfer_fraction": {
+   "T": 0.11016947944896027,
+   "I": 0.9393612015146341,
+   "S": 0.0
+  },
+  "executed_equals_P": false
+ },
+ "verdict": {
+  "A_pass": true,
+  "B_pass": true,
+  "C_ran": true
+ }
+}
