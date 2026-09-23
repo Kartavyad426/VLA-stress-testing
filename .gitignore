@@ -1,5 +1,6 @@
 # Virtualenvs — 8.7 GB, rebuildable from pinned versions in provenance.txt
 .venvs/
+.env
 
 # Vendored upstream — clone at the SHA recorded in experiments/repro provenance
 third_party/
@@ -15,10 +16,12 @@ experiments/repro/runs/**/*.log
 experiments/repro/runs/**/videos/
 runs/**/frames/
 runs/**/*.png
+# Per-episode video (~1-2 MB each, on by default since 2026-09-23), R-039 splice
+# arrays and full run logs: regenerable or bulky, never tracked.
+runs/**/video/
+runs/**/splice/*.npz
+runs/**/run.log
 
-# Local-only docs (VLA 101 guide)
-docs/VLA_101.md
-docs/VLA_101.txt
 
 Screenshot from 2026-09-18 14-29-52.png
 
