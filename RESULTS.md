@@ -2375,6 +2375,85 @@ regimes are reported **separately** and never pooled:
   trigger restored rather than a pathway test; it is kept as a positive
   control for the splice machinery and labelled as such.
 
+### Revision 2026-09-23, before any data: paired rendering replaces the recorded source for vision categories
+
+Recorded after the harness work of the same day and before any patched
+rollout exists. Three things changed in the design, all of which make the
+experiment cleaner, and one measurement was taken.
+
+**1. The source is a paired render, not a recorded run.** Camera, lighting and
+sensor-noise variants are render-only: the world state is identical to the
+nominal task. So at every forward of the patched run the simulator's CURRENT
+state is re-rendered under the nominal condition, the backbone is run on that
+render, and those features are the source. `LiberoEnv.nominal_frames()` does
+this by swapping the camera / light fields in `sim.model`, calling forward
+kinematics, force-updating the observables and restoring; for noise the inner
+env's frame is already pre-blur. **Consequences:** the splice is on-manifold at
+every forward, so the open-loop window and its threshold are gone for vision
+categories; there is no divergence to align, so "which step" is no longer a
+choice but a per-forward measurement; and nothing is stored. Verified on one
+variant each (`experiments/paired_render_check.py`): mean-abs pixel change
+19.5 (view), 44.3 (light); restoring reproduces the perturbed frame to 0.001;
+qpos, qvel and sim time bitwise unchanged; the harness method matches the
+manual procedure. The recorded-source path stays only for **Robot Initial
+States**, where the trigger is the state and forward 0 is the one clean
+counterfactual; it remains the positive control (expectation 1).
+
+**2. All five arms are computed at every forward, one is executed.** From one
+state the head is run five times under one fixed noise: P (target), N (all
+nominal), T, I, S. The driven arm's chunk goes to the simulator; the other
+four are recorded. The transfer fraction is therefore a curve over forwards
+for every pathway, at the cost of four extra head passes and one extra
+backbone pass per forward (`vla_harness/capture/splice.py`,
+`LeRobotPolicy.features_for`). **Onset** = first forward where an arm's
+transfer crosses 0.5; the per-instance number is reported at the forward that
+contains the closest-approach step, which the labelling pipeline is recording
+as the failure anchor. Forwards are every 16 env steps, at most 18 per episode.
+
+**3. Splice point.** The tokens are spliced AFTER `vlln` and the 4-block
+`vl_self_attention`, i.e. as the DiT cross-attends to them; image and text
+positions come from `image_mask`. This is the primary. **R-037's result
+(committed the same day) makes the S1 splice a pre-registered secondary
+rather than an optional one:** a vision perturbation moves S1 on 46.6% of
+forwards but S2 on only 7.5%, so the adapter removes most of the visual
+*displacement* before the DiT. Whether what survives to S2 is what carries
+the *action* effect is exactly what the I arm measures; if I-transfer at S2
+is low where S1 moved a lot, the S1 splice (a pre-hook on `vlln`, which the
+capture already has for reading) is run on the same instances and reported
+beside it. The two answer different questions and are not pooled.
+
+**Determinism gate, restated.** The gate is at the MODEL: identical input
+tensors and identical noise seed must give bitwise-identical `action_pred`,
+and identical inputs must give bitwise-identical source features. Bitwise
+equality of two full ROLLOUTS is not required and is not expected, because
+the renderer itself jitters (0.001 mean-abs pixels between two renders of the
+same state, measured above). The five arms at one forward share one render
+and one seed, so the comparison that matters is exact by construction.
+**Result of the model-level gate, run 2026-09-23** (`runs/r039_gate/gate.json`,
+R-037's exact policy configuration, nominal control task 984):
+
+| gate | result |
+|---|---|
+| A · `features_for` twice on one Observation | backbone_features and state_features **bitwise equal** (156 tokens, 128 image) |
+| B · `predict_action_chunk` twice under `torch.manual_seed(0)` | **bitwise equal** |
+| B' · the same, unseeded | differs, max-abs 0.28 on the chunk, so the seed is doing the work |
+
+**Gate 1 passes at the model.** A smoke of the whole path also ran: one
+spliced forward on Camera-Viewpoint variant 616 with a paired-render source,
+all five arms recorded, P and N differing by 0.32 max-abs on the live dims.
+The per-arm transfer fractions from that single forward are **not a result**
+and are recorded here only so nobody later "discovers" them: I 0.94, T 0.11,
+S 0.00. n = 1, forward 0, one instance, seen before the analysis was
+specified; expectation 2 stands as written and is not revised on this. One
+check in the smoke was mis-specified: it compared the executed action to the
+P chunk before un-normalisation, so it reports False and means nothing; the
+unit test `test_records_hold_one_action_per_arm_per_forward` covers that
+contract.
+
+
+**Instance count unchanged** (40 instances, 10 per category), but the cost is
+now 1 rollout per instance plus 5 head passes per forward, not 5 rollouts.
+
 ### Pre-registered expectations
 
 1. **Splice machinery works: arm S on Robot Initial States transfers ≥ 0.8 of
@@ -2429,7 +2508,7 @@ Expectation 1 failing, or the bitwise-determinism gate failing.
 
 ---
 
-## R-040 — PRE-REGISTERED, NOT YET RUN, DEPENDS ON R-039: mechanism-targeted mining vs OOD-ranked bulk vs nominal, at a matched data budget
+## R-040 — PRE-REGISTERED, NOT YET RUN, DEPENDS ON R-039: direct corrective demos vs mechanism-targeted mining vs OOD-ranked bulk vs nominal, at a matched data budget
 
 **Date registered** 2026-09-23 · **Status** PRE-REGISTERED, BLOCKED ON R-039 ·
 **Type** EVAL · **Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html`
@@ -2441,16 +2520,37 @@ failure's **mechanism** (R-039's pathway × the cause family) beat choosing
 them by an **OOD score** alone, and does either beat spending the same budget
 on more nominal data?
 
-### Design — three arms, one budget, one post-training recipe
+### Design — four arms, one budget, one post-training recipe
 
 | arm | how the extra demos are chosen |
 |---|---|
+| **D** direct corrective | successful demonstrations of the **exact failed instances** (teleop or a passing policy's rollouts on the same scene, condition and start state); no localisation, no neighbourhood |
 | **M** mechanism | per R-039's table: re-render for I, pose-region demos for S, instruction augmentation for T |
 | **O** OOD-ranked | rank candidate demos by distance from the nominal cloud in the 5-dim proprio detector (6.9×, `EXP_EMBEDDING_OOD.md` §1); take the top-N regardless of mechanism |
 | **R** nominal | N additional nominal demos of the same tasks |
 
-Same N for all three. Same recipe: action head only, backbone frozen, same
-steps, same LR, same seed. Same held-out sets: (a) perturbation-matched
+**D is the baseline the whole method has to beat, added 2026-09-23 after the
+user asked why localisation is needed at all.** It is the cheapest thing to
+specify and the most expensive to collect. Its held-out test is the point:
+D is trained on the failed instances themselves, so on those instances it is
+expected to win outright. The comparison that matters is on **held-out
+instances of the same perturbation category that D never saw**, which is where
+"one point" and "the neighbourhood along the right axis" should separate. If
+they do not, localisation has no value over direct demos and the pipeline
+should be abandoned in favour of D.
+
+Same N for all four. Same recipe: the N1.7 port's defaults (`tune_diffusion_model`,
+`tune_projector`, `tune_vlln` on; `tune_llm`, `tune_visual` off, `lora_rank` 0),
+same steps, same LR, same seed. **The arms differ only in their data.**
+
+**Unfreezing is a measured outcome, not a prior.** Where R-039 assigns a bucket
+to the T or I pathway, that bucket gets a second run of arm M with the
+upstream unfrozen in the least destructive order — `tune_vlln` plus
+`tune_top_llm_layers` = 4 first; LoRA on the backbone only if that fails — and
+the two are reported side by side against the nominal control. No arm ever
+sets `tune_llm` or `tune_visual` to full: the backbone is 1.5 B of the 3 B
+parameters, holds the pretrained grounding, and does not fit in this GPU's
+memory with gradients (R-001). Same held-out sets: (a) perturbation-matched
 instances the mining never saw, (b) the R-029 nominal control, to detect
 regression.
 
@@ -2460,14 +2560,25 @@ that fed the mining.
 
 ### Pre-registered expectations
 
-1. **M ≥ O on held-out perturbed instances.** *Medium.* O is selecting on
+1. **D wins on the instances it was trained on.** *High.* This is not the
+   test; it is the sanity check that the recipe works.
+2. **M ≥ D on held-out instances of the same category.** *Medium.* This is
+   the claim the method rests on. D covers a point; M covers the axis. **If D
+   ≥ M here, localisation adds nothing over corrective demos and R-039's
+   pipeline is not worth its cost.** That outcome is reported as such.
+3. **D regresses the nominal control more than M does**, and the regression is
+   largest where R-039 assigned the failure to the T or I pathway. *Medium.*
+   Teaching the head a new mapping from an input that does not carry the
+   distinguishing information (the R-038 shape) should interfere with scenes
+   that share the signature.
+4. **M ≥ O on held-out perturbed instances.** *Medium.* O is selecting on
    symptom (arm motion) and will over-sample late-episode drift states.
-2. **O ≥ R on held-out perturbed instances.** *Medium-high.* Any targeting
+5. **O ≥ R on held-out perturbed instances.** *Medium-high.* Any targeting
    beats none.
-3. **R ≥ M and R ≥ O on the nominal control**, i.e. the targeted arms cost
+6. **R ≥ M and R ≥ O on the nominal control**, i.e. the targeted arms cost
    some nominal performance. *Medium-low.* If M shows **no** regression on
    nominal that is the strongest possible case for mechanism targeting.
-4. **M's gain concentrates in the category it was targeted at**, O's spreads
+7. **M's gain concentrates in the category it was targeted at**, O's spreads
    thin. *Medium.*
 
 ### What would make this uninterpretable

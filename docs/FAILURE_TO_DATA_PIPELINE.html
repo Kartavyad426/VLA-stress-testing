@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Failure to Data Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* trigger-independent / structure */
+    --trigger:#A8481B;      /* the perturbed trigger and what it reaches */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:760px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600;}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  /* masthead */
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  /* section numbering that means something: parts, then theorems */
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  /* blocks */
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+
+  /* math */
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  /* figures */
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted);}
+  .footer a{word-break:break-word;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Method spec · GR00T N1.7 · LIBERO-Plus</p>
+  <h1>From a failure to a data specification</h1>
+  <p class="standfirst">How a perturbed-rollout failure becomes a targeted post-training set: locate the pathway by intervention, name the hole in the corpus, mine against that hole, and test the whole chain against the two cheaper alternatives.</p>
+  <div class="meta">
+    <span>2026-09-23</span>
+    <span>Pre-registrations R-039, R-040 in <code>RESULTS.md</code></span>
+    <span>Builds on R-036, R-037, R-038</span>
+  </div>
+</header>
+
+<section>
+<p class="part">Part 0 · The shape of the problem</p>
+<h2>A failure is not training data</h2>
+<p>The action head of a VLA is trained by behaviour cloning. It has seen a set of demonstrations and nothing else, so anything outside that set is out of distribution in the trivial sense. That makes <em>"is this OOD?"</em> the wrong first question. Every failure is. The useful question is <strong>what demonstrations would have prevented this one</strong>, because that is the only thing the retraining step can consume.</p>
+<p>A failed rollout itself cannot go into the training set. It is a trajectory of wrong actions. What goes in is <em>successful</em> demonstrations of the same situation, and to find or make those you have to know which dimension of the situation to hold fixed and which to resample. That is the whole content of "localising to a mechanism": a mechanism is a data specification.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 190" role="img" aria-label="Pipeline: a failure under perturbation goes through pathway localisation by intervention, is assigned a cause family, which yields a data spec, which is mined into demonstrations, which post-train the action head, which is tested on held-out perturbed and nominal sets; the test feeds back into whether the localisation was right.">
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
+</defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <rect x="10" y="50" width="120" height="56" rx="4" fill="none" stroke="currentColor"/>
+  <text x="70" y="73" text-anchor="middle">failure under</text><text x="70" y="90" text-anchor="middle">perturbation P</text>
+
+  <rect x="170" y="50" width="130" height="56" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="235" y="73" text-anchor="middle" fill="#A8481B" font-weight="600">localise pathway</text><text x="235" y="90" text-anchor="middle">by intervention · R-039</text>
+
+  <rect x="340" y="50" width="110" height="56" rx="4" fill="none" stroke="currentColor"/>
+  <text x="395" y="73" text-anchor="middle">cause family</text><text x="395" y="90" text-anchor="middle">A · B · residual</text>
+
+  <rect x="490" y="50" width="110" height="56" rx="4" fill="none" stroke="currentColor"/>
+  <text x="545" y="73" text-anchor="middle">mine demos</text><text x="545" y="90" text-anchor="middle">re-render / collect</text>
+
+  <rect x="640" y="50" width="110" height="56" rx="4" fill="none" stroke="currentColor"/>
+  <text x="695" y="73" text-anchor="middle">post-train</text><text x="695" y="90" text-anchor="middle">action head</text>
+
+  <rect x="790" y="50" width="100" height="56" rx="4" fill="none" stroke="currentColor"/>
+  <text x="840" y="73" text-anchor="middle">held-out test</text><text x="840" y="90" text-anchor="middle">R-040</text>
+
+  <line x1="130" y1="78" x2="168" y2="78" stroke="currentColor" marker-end="url(#ar)"/>
+  <line x1="300" y1="78" x2="338" y2="78" stroke="currentColor" marker-end="url(#ar)"/>
+  <line x1="450" y1="78" x2="488" y2="78" stroke="currentColor" marker-end="url(#ar)"/>
+  <line x1="600" y1="78" x2="638" y2="78" stroke="currentColor" marker-end="url(#ar)"/>
+  <line x1="750" y1="78" x2="788" y2="78" stroke="currentColor" marker-end="url(#ar)"/>
+
+  <text x="149" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">label</text>
+  <text x="319" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">pathway</text>
+  <text x="469" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">data spec</text>
+  <text x="619" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">demos</text>
+  <text x="769" y="70" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">checkpoint</text>
+
+  <path d="M840 106 V150 H235 V108" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+  <text x="540" y="145" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">if the targeted arm does not beat the OOD-ranked arm, the localisation was wrong, not the recipe</text>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 1.</span> The chain. Every box after the second is mechanical once the second has answered. The dashed return is the reason R-040 exists: it is the only test of whether R-039's answer was the right one.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="part">Part 1 · Why not "train on everything OOD"</p>
+<h2>Moved is not the same as repairs</h2>
+<p>The second approach on the table was to score every state with an OOD detector, collect whatever scores high, and fine-tune on all of it. It fails on three counts, and the first is structural rather than empirical.</p>
+<ul class="tight">
+  <li><strong>It is not a data specification.</strong> "High OOD score" does not name an axis to re-render or a pose region to collect in. You cannot hand it to a data team.</li>
+  <li><strong>It selects on symptom.</strong> The one detector we have that separates failures (proprio, 6.9×) sees only arm motion. R-036 showed it separates broadly across every perturbation category, which is what "the episode ended up somewhere unusual because it went wrong" looks like. Harvesting on it over-samples late-episode drift states.</li>
+  <li><strong>The policy's own embeddings do not help.</strong> R-036: GR00T's VL embeddings do not separate its own failures. So an embedding-space OOD score is currently blind to exactly the vision failures we most want to mine.</li>
+</ul>
+<p>Underneath all three is the point made formally in the trigger-mechanism calculus (Theorem 2). The set of activations that <em>move</em> under a perturbation and the set whose <em>repair</em> fixes the failure are different sets, and neither contains the other. A mechanism can track the trigger perfectly and be causally inert. A mechanism whose output is constant under the perturbation can still be the locus, because the failure lives in its interaction with a trigger-shifted sibling. OOD detectors, linear probes and SAE feature statistics all live on the left side of that picture. Only intervention gets to the right side.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 760 230" role="img" aria-label="Two overlapping regions: mechanisms whose activation moves under the perturbation, and mechanisms whose restoration repairs the failure. Probes, OOD scores and SAE statistics observe the first region; only patching measures the second. Neither region contains the other.">
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <ellipse cx="290" cy="115" rx="200" ry="82" fill="none" stroke="currentColor" stroke-dasharray="5 4"/>
+  <ellipse cx="470" cy="115" rx="200" ry="82" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="180" y="60" text-anchor="middle" font-weight="600">MOVES</text>
+  <text x="180" y="78" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">activation differs under P</text>
+  <text x="580" y="60" text-anchor="middle" font-weight="600" fill="#A8481B">REPAIRS</text>
+  <text x="580" y="78" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">restoring it fixes the action</text>
+
+  <text x="170" y="120" text-anchor="middle" font-size="11">tracks the trigger,</text>
+  <text x="170" y="136" text-anchor="middle" font-size="11">causally inert</text>
+  <text x="380" y="120" text-anchor="middle" font-size="11">moves and matters</text>
+  <text x="590" y="120" text-anchor="middle" font-size="11">constant output,</text>
+  <text x="590" y="136" text-anchor="middle" font-size="11">interacts with a shifted sibling</text>
+
+  <text x="150" y="212" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">seen by: probes · OOD scores · SAE stats · R-036, R-037</text>
+  <text x="600" y="212" text-anchor="middle" font-size="11" fill="#A8481B">seen by: input restoration · activation splice · R-038, R-039</text>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 2.</span> What each instrument can see. Data mining needs the right-hand set, because the demonstrations we add must change what the policy does, not what it represents.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="part">Part 2 · What the policy receives, and where each input enters</p>
+<h2>N1.7 hands us an entry schedule</h2>
+<p>The policy sees two RGB images, eight numbers of proprioception and one instruction string. No object list, no goal spec, no task id. The vision-language backbone turns images and text into one token sequence <code>vl_embeds</code>; the state encoder turns the eight numbers into one 1536-wide token; the DiT action head consumes both and emits a 40-step action chunk, of which 7 of 132 dims are live.</p>
+<p>The part that makes localisation tractable is how the DiT consumes <code>vl_embeds</code>. It does not merge them into the stream. It cross-attends, and it cross-attends to <em>different token subsets at different block indices</em>. Read off the forward pass, not the config name: text tokens enter at blocks 0, 4, 8, … 28; image tokens at 2, 6, 10, … 30; the sixteen odd blocks receive nothing. State enters once, by concatenation, before block 0.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 300" role="img" aria-label="GR00T N1.7 data flow: images and text go through the Cosmos-Reason2 backbone to vl_embeds; the eight-number state goes through the state encoder to a state token; the DiT of 32 blocks reads the state token by concatenation before block 0, text tokens by cross-attention at blocks divisible by four, image tokens at the other even blocks, and nothing at odd blocks; the output is an action chunk that closes the loop through the simulator.">
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <!-- inputs -->
+  <rect x="10" y="30" width="110" height="34" rx="3" fill="none" stroke="currentColor"/><text x="65" y="52" text-anchor="middle">2 × RGB image</text>
+  <rect x="10" y="84" width="110" height="34" rx="3" fill="none" stroke="currentColor"/><text x="65" y="106" text-anchor="middle">instruction</text>
+  <rect x="10" y="190" width="110" height="34" rx="3" fill="none" stroke="currentColor"/><text x="65" y="212" text-anchor="middle">state · 8 numbers</text>
+
+  <!-- encoders -->
+  <rect x="170" y="30" width="150" height="88" rx="4" fill="none" stroke="currentColor"/>
+  <text x="245" y="60" text-anchor="middle">Cosmos-Reason2-2B</text><text x="245" y="78" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">+ vlln · vl_self_attn</text>
+  <text x="245" y="100" text-anchor="middle" font-size="11">→ vl_embeds (image | text tokens)</text>
+  <rect x="170" y="190" width="150" height="34" rx="4" fill="none" stroke="currentColor"/><text x="245" y="212" text-anchor="middle">state encoder → S0e</text>
+
+  <line x1="120" y1="47" x2="168" y2="47" stroke="currentColor" marker-end="url(#ar2)"/>
+  <line x1="120" y1="101" x2="168" y2="101" stroke="currentColor" marker-end="url(#ar2)"/>
+  <line x1="120" y1="207" x2="168" y2="207" stroke="currentColor" marker-end="url(#ar2)"/>
+
+  <!-- DiT -->
+  <rect x="400" y="20" width="400" height="250" rx="4" fill="none" stroke="currentColor"/>
+  <text x="600" y="42" text-anchor="middle" font-weight="600">DiT · 32 blocks · one residual stream</text>
+  <!-- block strip: 16 shown as pairs -->
+  <g font-size="10">
+    <rect x="420" y="60" width="22" height="22" fill="#2F4A9E" opacity=".85"/><text x="431" y="97" text-anchor="middle">0</text>
+    <rect x="444" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="455" y="97" text-anchor="middle">1</text>
+    <rect x="468" y="60" width="22" height="22" fill="#A8481B" opacity=".85"/><text x="479" y="97" text-anchor="middle">2</text>
+    <rect x="492" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="503" y="97" text-anchor="middle">3</text>
+    <rect x="516" y="60" width="22" height="22" fill="#2F4A9E" opacity=".85"/><text x="527" y="97" text-anchor="middle">4</text>
+    <rect x="540" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="551" y="97" text-anchor="middle">5</text>
+    <rect x="564" y="60" width="22" height="22" fill="#A8481B" opacity=".85"/><text x="575" y="97" text-anchor="middle">6</text>
+    <rect x="588" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="599" y="97" text-anchor="middle">7</text>
+    <text x="640" y="76" font-size="14">…</text>
+    <rect x="684" y="60" width="22" height="22" fill="#2F4A9E" opacity=".85"/><text x="695" y="97" text-anchor="middle">28</text>
+    <rect x="708" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="719" y="97" text-anchor="middle">29</text>
+    <rect x="732" y="60" width="22" height="22" fill="#A8481B" opacity=".85"/><text x="743" y="97" text-anchor="middle">30</text>
+    <rect x="756" y="60" width="22" height="22" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="767" y="97" text-anchor="middle">31</text>
+  </g>
+  <!-- legend inside -->
+  <g font-size="11">
+    <rect x="420" y="120" width="12" height="12" fill="#2F4A9E" opacity=".85"/><text x="438" y="130">idx % 4 == 0 · cross-attends TEXT tokens</text>
+    <rect x="420" y="140" width="12" height="12" fill="#A8481B" opacity=".85"/><text x="438" y="150">even, idx % 4 == 2 · cross-attends IMAGE tokens</text>
+    <rect x="420" y="160" width="12" height="12" fill="none" stroke="currentColor" stroke-dasharray="2 2"/><text x="438" y="170">odd · self-attention only, nothing enters</text>
+  </g>
+  <text x="600" y="205" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">stream = cat(S0e, action tokens) before block 0 → every block output after 2 mixes all three</text>
+  <text x="600" y="240" text-anchor="middle" font-size="11">× 4 Euler steps from noise ε → action chunk 40 × 132 (7 live)</text>
+
+  <!-- arrows into DiT -->
+  <path d="M320 60 H380 V70 H398" fill="none" stroke="#2F4A9E" marker-end="url(#ar2)"/>
+  <text x="360" y="56" font-size="10" fill="#2F4A9E">text tokens</text>
+  <path d="M320 100 H360 V150 H398" fill="none" stroke="#A8481B" marker-end="url(#ar2)"/>
+  <text x="330" y="140" font-size="10" fill="#A8481B">image tokens</text>
+  <path d="M320 207 H398" fill="none" stroke="currentColor" marker-end="url(#ar2)"/>
+  <text x="340" y="222" font-size="10" fill="currentColor" opacity=".62">concat</text>
+
+  <!-- loop -->
+  <path d="M800 240 H860 V285 H65 V226" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#ar2)"/>
+  <text x="460" y="281" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">simulator steps → next images and state (closed loop)</text>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 3.</span> Where each input touches the action head. This is an <em>entry</em> schedule, not a pathway decomposition: from block 2 onward the stream mixes everything. What the schedule gives us for free is three cleanly separable <strong>splice points</strong>: the text tokens, the image tokens, and the state token.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="part">Part 3 · R-039 · What we actually measure</p>
+<h2>Three splices, one source, one target, common random numbers</h2>
+<p>You asked whether the thing we look at is a difference in layer activations. No, or not primarily. Layer-activation differences are an observation, and Part 1 says observations cannot answer the question. What we look at is the <strong>action</strong>, after replacing one pathway's input with the value it would have had without the perturbation.</p>
+<p>For each failure instance, two rollouts are run that differ only in the perturbation: a <em>source</em> under the nominal condition and a <em>target</em> under the perturbed one. Same task, layout, instruction, seed, and the same fixed denoising noise ε at every step. Then three patched target rollouts. In each, at every step, exactly one of the three splice points is overwritten with the source's tensor for that step, and everything downstream recomputes.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 330" role="img" aria-label="Source run under the nominal condition records text tokens, image tokens and the state token per step. Target run under perturbation P is patched in three arms: arm T replaces the text tokens, arm I the image tokens, arm S the state token, each with the source's value. Each arm's action chunk is compared to the source chunk and to the unpatched target chunk, giving a transfer fraction.">
+<defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <!-- source -->
+  <rect x="10" y="20" width="200" height="120" rx="4" fill="none" stroke="#1B6B4F" stroke-width="1.6"/>
+  <text x="110" y="42" text-anchor="middle" font-weight="600" fill="#1B6B4F">SOURCE · nominal</text>
+  <text x="110" y="60" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">seed s · noise ε · task k</text>
+  <rect x="25" y="72" width="170" height="18" rx="2" fill="#2F4A9E" opacity=".2"/><text x="110" y="85" text-anchor="middle" font-size="11">text tokens (t)</text>
+  <rect x="25" y="94" width="170" height="18" rx="2" fill="#A8481B" opacity=".2"/><text x="110" y="107" text-anchor="middle" font-size="11">image tokens (t)</text>
+  <rect x="25" y="116" width="170" height="18" rx="2" fill="currentColor" opacity=".12"/><text x="110" y="129" text-anchor="middle" font-size="11">state token S0e (t)</text>
+  <text x="110" y="160" text-anchor="middle" font-size="11">→ action chunk a<tspan font-size="9" dy="3">src</tspan><tspan dy="-3">(t)</tspan></text>
+
+  <!-- target -->
+  <rect x="10" y="190" width="200" height="120" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="110" y="212" text-anchor="middle" font-weight="600" fill="#A8481B">TARGET · perturbed by P</text>
+  <text x="110" y="230" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">same seed s · same ε · same k</text>
+  <text x="110" y="262" text-anchor="middle" font-size="11">differs from source ONLY in P</text>
+  <text x="110" y="292" text-anchor="middle" font-size="11">→ a<tspan font-size="9" dy="3">tgt</tspan><tspan dy="-3">(t)</tspan> · the failure</text>
+
+  <!-- three arms -->
+  <g>
+    <rect x="320" y="20" width="220" height="70" rx="4" fill="none" stroke="currentColor"/>
+    <text x="430" y="42" text-anchor="middle" font-weight="600">arm T</text>
+    <text x="430" y="60" text-anchor="middle" font-size="11">target, text tokens ← source</text>
+    <text x="430" y="78" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">enters at blocks 0,4,…,28</text>
+
+    <rect x="320" y="120" width="220" height="70" rx="4" fill="none" stroke="currentColor"/>
+    <text x="430" y="142" text-anchor="middle" font-weight="600">arm I</text>
+    <text x="430" y="160" text-anchor="middle" font-size="11">target, image tokens ← source</text>
+    <text x="430" y="178" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">enters at blocks 2,6,…,30</text>
+
+    <rect x="320" y="220" width="220" height="70" rx="4" fill="none" stroke="currentColor"/>
+    <text x="430" y="242" text-anchor="middle" font-weight="600">arm S</text>
+    <text x="430" y="260" text-anchor="middle" font-size="11">target, state token ← source</text>
+    <text x="430" y="278" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">enters by concat before block 0</text>
+  </g>
+  <path d="M195 81 H260 V55 H318" fill="none" stroke="#2F4A9E" marker-end="url(#ar3)"/>
+  <path d="M195 103 H280 V155 H318" fill="none" stroke="#A8481B" marker-end="url(#ar3)"/>
+  <path d="M195 125 H240 V255 H318" fill="none" stroke="currentColor" marker-end="url(#ar3)"/>
+  <text x="250" y="180" font-size="10" fill="currentColor" opacity=".62">splice per step</text>
+
+  <!-- measurement -->
+  <rect x="600" y="20" width="290" height="270" rx="4" fill="none" stroke="currentColor"/>
+  <text x="745" y="44" text-anchor="middle" font-weight="600">measure, per arm</text>
+  <text x="615" y="76" font-size="11" font-weight="600">1 · action transfer (primary)</text>
+  <text x="615" y="94" font-size="11">d(a<tspan font-size="9" dy="3">patched</tspan><tspan dy="-3">, a</tspan><tspan font-size="9" dy="3">src</tspan><tspan dy="-3">) vs d(a</tspan><tspan font-size="9" dy="3">tgt</tspan><tspan dy="-3">, a</tspan><tspan font-size="9" dy="3">src</tspan><tspan dy="-3">)</tspan></text>
+  <text x="615" y="112" font-size="11">transfer = 1 − ratio · 7 live dims · cosine + L2</text>
+  <text x="615" y="146" font-size="11" font-weight="600">2 · outcome (secondary, bounded)</text>
+  <text x="615" y="164" font-size="11">success · closest approach (R-038's discriminator)</text>
+  <text x="615" y="198" font-size="11" font-weight="600">3 · observation only (free)</text>
+  <text x="615" y="216" font-size="11">per-block residual divergence over 32 blocks,</text>
+  <text x="615" y="232" font-size="11">first onset against the entry schedule</text>
+  <text x="615" y="266" font-size="11" fill="#A8481B">1 answers "which pathway". 3 never does.</text>
+  <line x1="540" y1="55" x2="598" y2="55" stroke="currentColor" marker-end="url(#ar3)"/>
+  <line x1="540" y1="155" x2="598" y2="155" stroke="currentColor" marker-end="url(#ar3)"/>
+  <line x1="540" y1="255" x2="598" y2="255" stroke="currentColor" marker-end="url(#ar3)"/>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 4.</span> R-039's unit of work. For vision categories the source is a paired render of the same state, so one instance costs one rollout with five head passes per forward, not five rollouts. The transfer fraction says how much of the perturbation's effect on the action travels through each pathway. If arm I recovers the source's actions, the camera perturbation acted through the image tokens and re-rendering will fix it. If arm S recovers them, re-rendering will not.</figcaption>
+</figure>
+
+<h3>Which forward to splice at: none has to be chosen</h3>
+<p>The first version of this design recorded a nominal source run and spliced its step-<span class="m">k</span> tensors into the target's step <span class="m">k</span>, which only holds while the two runs have not diverged. That is unnecessary for camera, lighting and sensor-noise variants, because they are <em>render-only</em>: the world state is identical to the nominal task. So at every forward the simulator's current state is re-rendered under the nominal condition, without stepping physics, and the backbone is run on that render. The nominal features are then exact for the state the patched run is actually in.</p>
+<ul class="tight">
+  <li><strong>Every arm at every forward.</strong> From one state the head runs five times under one fixed noise. One arm's chunk is executed; the other four are recorded. The transfer fraction is a curve over forwards for each pathway, at the price of four extra head passes and one extra backbone pass per forward.</li>
+  <li><strong>Onset and anchor.</strong> The onset is the first forward at which an arm's transfer fraction crosses 0.5. The per-instance number is read at the forward containing the closest-approach step, which the labelling pipeline records as the failure anchor. Forwards happen every 16 env steps, so an episode has at most 18.</li>
+  <li><strong>Robot initial state is the exception.</strong> There the trigger is the state itself, so no render can undo it. Forward 0 of a recorded nominal run is the one clean counterfactual, and that arm stays as the positive control.</li>
+</ul>
+<div class="note repo">
+<span class="nh">Verified 2026-09-23</span>
+<code>LiberoEnv.nominal_frames()</code> swaps the camera or light fields in the MuJoCo model, recomputes forward kinematics, force-updates the observables and restores. On one variant each: view changes the frame by 19.5 mean-abs pixels, light by 44.3; restoring reproduces the perturbed frame to 0.001; joint positions, velocities and sim time are bitwise unchanged. For noise the inner env's frame is already the clean one, since the fork blurs only inside its own step. Script: <code>experiments/paired_render_check.py</code>.
+</div>
+
+<h3>Two preconditions, both currently unmet on N1.7</h3>
+<div class="note measured">
+<span class="nh">Gate 1 · determinism, at the model</span>
+The denoise loop starts from an unseeded <code>torch.randn</code>. A patched forward has to be a function: same features in, same noise, same action out. The splice wrapper seeds the draw per forward and restores the generator afterwards, a separate path from the capture's save-and-rewind that R-036 relies on. The gate is at the <em>model</em>: identical input tensors and seed give a bitwise-identical chunk, and identical inputs give bitwise-identical source features. Bitwise equality of two whole rollouts is not required, because the renderer itself jitters by 0.001 mean-abs pixels between two renders of one state. The five arms at one forward share one render and one seed, so their comparison is exact by construction. Script: <code>experiments/r039_determinism_gate.py</code>.
+</div>
+<div class="note measured">
+<span class="nh">Gate 2 · trigger-only difference</span>
+Source and target must differ only in P. Holds by construction for camera, lighting and sensor noise: the world is identical, only the render differs. For robot initial state the perturbation <em>is</em> the state, so arm S restores the trigger rather than testing a pathway. It stays in the design as the positive control that proves the splice machinery works (expectation 1, load-bearing).
+</div>
+
+<h3>Why not a cumulative layer sweep</h3>
+<p>A sweep that patches blocks one at a time and accumulates sums exactly to the total effect, but how the total splits between blocks depends on the order you sweep in. On an AND-gate circuit, sweeping (m1, m2) gives all the credit to m2 and sweeping (m2, m1) gives it all to m1. So R-039 reports the three <em>single</em> splices, which have no ordering, and if any cumulative sweep is ever reported it uses the pre-registered order text → image → state and says so in the figure.</p>
+</section>
+
+<section>
+<p class="part">Part 4 · From pathway to data</p>
+<h2>The table that turns a result into a mining instruction</h2>
+<div class="note">
+<span class="nh">Legend</span>
+<div class="tbl-scroll" style="margin:0">
+<table>
+<thead><tr><th>symbol</th><th>meaning</th><th>defined in</th></tr></thead>
+<tbody>
+<tr><td><strong>T</strong></td><td>splice arm that restores the <em>text tokens</em> of <code>vl_embeds</code> to their nominal value (enters DiT blocks 0, 4, … 28)</td><td>Part 3, Figure 4</td></tr>
+<tr><td><strong>I</strong></td><td>splice arm that restores the <em>image tokens</em> of <code>vl_embeds</code> (enters DiT blocks 2, 6, … 30)</td><td>Part 3, Figure 4</td></tr>
+<tr><td><strong>S</strong></td><td>splice arm that restores the <em>state token</em> S0e, the encoded 8-number proprioception (enters by concatenation before block 0)</td><td>Part 3, Figure 4</td></tr>
+<tr><td>dominant arm</td><td>the one of T / I / S with the largest transfer fraction in the open-loop window; "none" if no arm reaches 0.9</td><td>Part 3</td></tr>
+<tr><td><strong>A</strong></td><td><em>coverage gap</em>: the situation is in-distribution in kind but under-sampled. Sub-families A1 placement (target pose or start pose rare), A2 object (object or class rare), A3 phrasing (instruction form rare)</td><td><code>RETRAINING_DEFAULT_TAXONOMY.md</code> §1</td></tr>
+<tr><td><strong>B</strong></td><td><em>condition gap</em>: a nuisance variable (viewpoint, illumination, clutter) is outside the demonstrated range; fixed by re-rendering or re-collecting existing demos under the condition, not by new task data</td><td><code>RETRAINING_DEFAULT_TAXONOMY.md</code> §1</td></tr>
+<tr><td>recovery</td><td>not a coverage family: the start was fine and the policy drifted into a state it cannot recover from; needs demos that begin from perturbed <em>states</em></td><td>Part 4</td></tr>
+<tr><td>residual</td><td>no single splice carries the effect; the failure is an interaction across pathways</td><td>Part 5</td></tr>
+<tr><td>transfer</td><td>1 − d(patched action, source action) / d(target action, source action), on the 7 live action dims</td><td>Part 3, Figure 4</td></tr>
+<tr><td>R-035, R-038</td><td>experiment entries in <code>RESULTS.md</code>: R-035 the pre-registered start-pose radius sweep, R-038 the null-prompt result</td><td><code>RESULTS.md</code></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>dominant arm</th><th>reading</th><th>family</th><th>what to mine</th><th>what to unfreeze</th></tr></thead>
+<tbody>
+<tr><td><strong>I</strong></td><td>perturbation acts through the image tokens</td><td>B · condition gap</td><td>re-render existing demos under the condition; no new collection</td><td>action head; add the VL projector if transfer &lt; 0.6</td></tr>
+<tr><td><strong>S</strong> at <span class="m">t</span> = 0</td><td>the starting state is outside the demonstrated region</td><td>A1 · placement</td><td>new demos sampling that pose region; R-035's radius sweep says how far out</td><td>action head</td></tr>
+<tr><td><strong>S</strong> growing with <span class="m">t</span></td><td>the failure is behavioural drift, not coverage</td><td>recovery</td><td>demos that <em>start</em> from perturbed states, not perturbed scenes</td><td>action head</td></tr>
+<tr><td><strong>T</strong></td><td>the visual perturbation raised the language load (the R-038 shape)</td><td>A3 · phrasing</td><td>instruction augmentation over existing demos</td><td>action head + text projector</td></tr>
+<tr><td>none ≥ 0.9</td><td>interaction across pathways</td><td>residual</td><td>hold; this is the SAE bucket (Part 5)</td><td>undecided</td></tr>
+</tbody>
+</table>
+</div>
+<p>Every row is a count against the training corpus and is therefore checkable before any GPU time is spent on mining: how many demos have the target in that region, how many were rendered under that condition, how many carry that instruction form. A row that cannot name a hole is not a family.</p>
+</section>
+
+<section>
+<p class="part">Part 5 · Where the SAE idea fits</p>
+<h2>Third tier, and only for the residual</h2>
+<p>A sparse autoencoder over the residual stream gives a dictionary of features and a way to say which ones fire differently on failures. Two things make it the wrong first tool here and the right third one.</p>
+<ul class="tight">
+  <li><strong>Feature statistics are on the "moves" side of Figure 2.</strong> A feature that lights up on failures is a probe result. It becomes causal only when you ablate or steer it and watch the action, which is a splice by another name, with the extra premise that the steered state stays on-manifold.</li>
+  <li><strong>The dictionary is per-checkpoint and expensive.</strong> arXiv:2603.19233's SAE is over N1.5's 16-block DiT and an Eagle backbone. Nothing transfers to N1.7 except the method. Training one is the single most expensive item on the board, and it has to be redone after every post-training round.</li>
+</ul>
+<p>Where it earns its cost is the residual bucket: instances where no single splice carries the effect, so the failure lives in an interaction the three coarse splice points cannot separate. There an SAE does two things nothing else does. It gives a finer set of splice points than "text, image, state", and it gives a <strong>retrieval key</strong>: a feature that is active on the failure and absent across the training set is itself a data specification, and you can mine demonstrations by searching for it. That is the version of "mine similar data by general scenario" that survives contact with the objections in Part 1, and it is only worth building once R-039 has shown how big the residual bucket actually is.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 200" role="img" aria-label="Three tiers of localisation ordered by cost: tier one is input-level restoration, which is trivial on LIBERO-Plus because the label gives the channel but is the only tool for real multi-factor failures; tier two is the three-point activation splice of R-039; tier three is an SAE dictionary, used only for the residual bucket that tier two cannot separate.">
+<defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <rect x="10" y="30" width="260" height="110" rx="4" fill="none" stroke="currentColor"/>
+  <text x="140" y="54" text-anchor="middle" font-weight="600">Tier 1 · input restoration</text>
+  <text x="140" y="76" text-anchor="middle" font-size="11">restore one input channel to nominal</text>
+  <text x="140" y="94" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">LIBERO-Plus: given by the label</text>
+  <text x="140" y="112" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">real failures: the only first step</text>
+  <text x="140" y="130" text-anchor="middle" font-size="10" fill="#1B6B4F">cost: rollouts only</text>
+
+  <rect x="320" y="30" width="260" height="110" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="450" y="54" text-anchor="middle" font-weight="600" fill="#A8481B">Tier 2 · three-point splice · R-039</text>
+  <text x="450" y="76" text-anchor="middle" font-size="11">text tokens / image tokens / state token</text>
+  <text x="450" y="94" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">needs seeded ε and a source run</text>
+  <text x="450" y="112" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">yields the family table directly</text>
+  <text x="450" y="130" text-anchor="middle" font-size="10" fill="#8A6A12">cost: 5 rollouts per instance + hooks</text>
+
+  <rect x="630" y="30" width="260" height="110" rx="4" fill="none" stroke="currentColor"/>
+  <text x="760" y="54" text-anchor="middle" font-weight="600">Tier 3 · SAE dictionary</text>
+  <text x="760" y="76" text-anchor="middle" font-size="11">finer splice points + a retrieval key</text>
+  <text x="760" y="94" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">per-checkpoint, redone after each round</text>
+  <text x="760" y="112" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">only for the residual bucket</text>
+  <text x="760" y="130" text-anchor="middle" font-size="10" fill="#A8481B">cost: dictionary training</text>
+
+  <line x1="270" y1="85" x2="318" y2="85" stroke="currentColor" marker-end="url(#ar5)"/>
+  <text x="294" y="78" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">unresolved</text>
+  <line x1="580" y1="85" x2="628" y2="85" stroke="currentColor" marker-end="url(#ar5)"/>
+  <text x="604" y="78" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62">residual</text>
+  <text x="450" y="180" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">each tier escalates only what the tier before could not assign</text>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 5.</span> Cost-ordered escalation. Most instances should stop at tier 2. The size of the arrow into tier 3 is an R-039 output, and it decides whether an SAE is worth training at all.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="part">Part 6 · R-040 · Testing the whole chain</p>
+<h2>Four ways to spend the same demonstrations</h2>
+<p>None of the above is worth anything unless mechanism-targeted mining beats the alternatives at the same budget. R-040 is that test, and it is the only place "which approach is best" gets a number instead of an argument.</p>
+<p>The alternative that matters most is the obvious one: <strong>take the failed scenario, have a teleoperator or a passing policy do it successfully, and train on that.</strong> That is arm D. It is expected to win on the instances it was trained on. The test is on held-out instances of the same perturbation category that D never saw. A direct demo covers one point; mechanism-targeted mining covers the neighbourhood along the axis R-039 named. If D generalises as well as M, the neighbourhood was not needed and the localisation step should be dropped. If it does not, or if D regresses the nominal control where the failure was assigned to the text or image pathway, that is the R-038 shape: the head has been taught a mapping from an input that does not carry the distinguishing information.</p>
+
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 250" role="img" aria-label="Four arms each add N demonstrations to the same base checkpoint with the same post-training recipe: arm D uses demos of the exact failed instances, arm M chooses them by R-039's mechanism table, arm O by ranking candidates on the proprio OOD score, arm R adds nominal demos. All three are evaluated on held-out perturbed instances and on the nominal control.">
+<defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <rect x="10" y="95" width="130" height="60" rx="4" fill="none" stroke="currentColor"/>
+  <text x="75" y="120" text-anchor="middle">base checkpoint</text><text x="75" y="138" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">GR00T N1.7</text>
+
+  <rect x="220" y="10" width="240" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="340" y="30" text-anchor="middle" font-weight="600">D · direct corrective</text>
+  <text x="340" y="48" text-anchor="middle" font-size="11">N demos of the exact failed instances</text>
+
+  <rect x="220" y="70" width="240" height="50" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="340" y="90" text-anchor="middle" font-weight="600" fill="#A8481B">M · mechanism-targeted</text>
+  <text x="340" y="108" text-anchor="middle" font-size="11">N demos chosen by the Part 4 table</text>
+
+  <rect x="220" y="130" width="240" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="340" y="150" text-anchor="middle" font-weight="600">O · OOD-ranked bulk</text>
+  <text x="340" y="168" text-anchor="middle" font-size="11">top-N by proprio OOD score, no mechanism</text>
+
+  <rect x="220" y="190" width="240" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="340" y="210" text-anchor="middle" font-weight="600">R · nominal</text>
+  <text x="340" y="228" text-anchor="middle" font-size="11">N more nominal demos, same tasks</text>
+
+  <path d="M140 125 H180 V35 H218" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M140 125 H180 V95 H218" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M140 125 H180 V155 H218" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M140 125 H180 V215 H218" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+
+  <rect x="530" y="95" width="150" height="60" rx="4" fill="none" stroke="currentColor"/>
+  <text x="605" y="118" text-anchor="middle">same recipe</text><text x="605" y="136" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">head only · same steps, LR, seed</text>
+  <path d="M460 35 H500 V125 H528" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M460 95 H500 V125 H528" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M460 155 H500 V125 H528" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M460 215 H500 V125 H528" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+
+  <rect x="740" y="60" width="150" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="815" y="81" text-anchor="middle">held-out perturbed</text><text x="815" y="99" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">never demoed by any arm</text>
+  <rect x="740" y="140" width="150" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="815" y="161" text-anchor="middle">nominal control</text><text x="815" y="179" text-anchor="middle" font-size="11" fill="currentColor" opacity=".62">R-029's 100/100 · regression</text>
+  <path d="M680 125 H710 V85 H738" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+  <path d="M680 125 H710 V165 H738" fill="none" stroke="currentColor" marker-end="url(#ar6)"/>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure 6.</span> R-040. One budget, one recipe, two held-out sets. D is expected to win on the instances it saw; the pre-registered ordering on <em>unseen</em> instances of the same category is M ≥ D and M ≥ O ≥ R. If D ≥ M there, localisation is not earning its cost and the pipeline should be dropped in favour of direct demos.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="part">Part 7 · What has to be built</p>
+<h2>Four pieces, in order</h2>
+<ol class="proto">
+  <li><strong>Paired render.</strong> <em>Done.</em> <code>LiberoEnv.nominal_frames()</code> re-renders the current state under the trained camera and lights, and <code>LeRobotPolicy.features_for()</code> runs the backbone on it without acting, queueing or touching the capture.</li>
+  <li><strong>Splice with fixed noise.</strong> <em>Done.</em> <code>vla_harness/capture/splice.py</code> wraps the head's denoise entry point, runs all five arms under one seeded draw, records their chunks and returns the driven arm. Thirteen CPU gates in <code>tests/test_splice.py</code>. Model-level determinism gate: <code>experiments/r039_determinism_gate.py</code>.</li>
+  <li><strong>The R-039 runner.</strong> One rollout per instance with the splice attached, the per-forward transfer fractions on the 7 live dims, the recorded-source path for Robot Initial States, and the anchor forward from the labelling pipeline.</li>
+  <li><strong>R-040's miners.</strong> Re-rendering existing LIBERO demos under a LIBERO-Plus condition, pose-region resampling, and instruction augmentation. Each is a data-generation script, not a model change, and each is gated on R-039 saying it is needed.</li>
+</ol>
+<p>Nothing in the list touches training until step 4, and step 4 is the only one that costs demonstrations. That is the point of doing the localisation first: the expensive step is spent on the answer, not on the guess.</p>
+</section>
+
+<div class="footer">
+Sources: <code>RESULTS.md</code> R-029, R-031, R-035, R-036, R-037, R-038, R-039, R-040 · <code>HANDOFF.md</code> §2, §6 · <code>docs/RETRAINING_DEFAULT_TAXONOMY.md</code> · <code>docs/EXP_EMBEDDING_OOD.md</code> · <code>docs/TRIGGER_MECHANISM_CALCULUS.html</code> Theorem 2 · Grant, Zhao &amp; Wang, <a href="https://arxiv.org/abs/2603.19233">arXiv:2603.19233</a> and <a href="https://github.com/CWRU-AISM/action-atlas">action-atlas</a>.
+</div>
+
+</div>
+</body>
+</html>
