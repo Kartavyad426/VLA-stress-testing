@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Splice Maths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* trigger-independent / structure */
+    --trigger:#A8481B;      /* the perturbed trigger and what it reaches */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:760px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600;}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  /* masthead */
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  /* section numbering that means something: parts, then theorems */
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  /* blocks */
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+
+  /* math */
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  /* figures */
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  dl.gloss{margin:0;} dl.gloss dt{font-family:var(--sans); font-weight:600; margin-top:.9em;} dl.gloss dd{margin:.15em 0 0 0; font-size:.97rem;}
+  .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted);}
+  .footer a{word-break:break-word;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="mast">
+  <p class="eyebrow">Reference · R-039 / R-041</p>
+  <h1>The splice maths</h1>
+  <p class="standfirst">Each quantity in the results, as a formula, with what its value means and where the construction comes from.</p>
+  <div class="meta"><span>2026-09-23</span><span>RESULTS.md R-039, R-041</span></div>
+</header>
+<section>
+<p class="part">Reference</p>
+<h2>Every number in the R-039 and R-041 results, written out</h2>
+<p class="lead-in">Companion to <a href="FAILURE_TO_DATA_PIPELINE.html">the pipeline spec</a> (glossary at its end) and <a href="R039_RESULTS.html">the R-039 results</a>. Symbols: <span class="m">h</span> is the action head run to completion (four Euler steps); <span class="m">p</span> and <span class="m">n</span> are the perturbed and nominal input sets; ε is the denoising noise.</p>
+<p>One forward emits a chunk of 40 actions; the LIBERO arm uses the first 7 of the 132 output dimensions. Flatten the live chunk to a vector <span class="m">a</span> ∈ ℝ<sup>280</sup>. Distances are Euclidean on that vector.</p>
+
+<div class="thm"><div class="thm-label">The five arms at forward <span class="m">f</span></div><div class="thm-body">
+From one simulator state and one fixed noise draw ε<sub>f</sub>, the head is run with inputs (<span class="m">x</span><sub>T</sub>, <span class="m">x</span><sub>I</sub>, <span class="m">x</span><sub>S</sub>) chosen from the perturbed run <span class="m">p</span> or the nominal source <span class="m">n</span>:
+<span class="eq"><span class="m">a</span><sub>P</sub> = h(p<sub>T</sub>, p<sub>I</sub>, p<sub>S</sub>; ε) &nbsp; <span class="m">a</span><sub>N</sub> = h(n<sub>T</sub>, n<sub>I</sub>, n<sub>S</sub>; ε) &nbsp; <span class="m">a</span><sub>I</sub> = h(p<sub>T</sub>, <b>n<sub>I</sub></b>, p<sub>S</sub>; ε) &nbsp; and likewise <span class="m">a</span><sub>T</sub>, <span class="m">a</span><sub>S</sub></span>
+This is an interchange intervention (Geiger et al. 2021) on one input at a time; in the activation-patching vocabulary it is <em>denoising</em>: a clean activation is patched into the corrupted run (Heimersheim &amp; Nanda 2024, arXiv:2404.15255; Meng et al. 2022, arXiv:2202.05262, "causal tracing"). Fixing ε across the five arms is common random numbers, the standard variance-reduction device for comparing alternatives under one noise stream.
+</div></div>
+
+<div class="thm"><div class="thm-label">Effect size</div><div class="thm-body">
+<span class="eq">‖P−N‖ = ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖<sub>2</sub></span>
+How much the perturbation moved the action at that forward. Zero means the perturbation has not reached the action yet.
+</div></div>
+
+<div class="thm trig"><div class="thm-label">Transfer fraction</div><div class="thm-body">
+<span class="eq">τ<sub>X</sub>(f) = 1 − ‖<span class="m">a</span><sub>X</sub> − <span class="m">a</span><sub>N</sub>‖ / ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖, &nbsp; X ∈ {T, I, S}</span>
+The share of the perturbed-to-nominal gap that restoring input X alone closes. τ = 1: that input carried everything. τ = 0: it carried nothing. τ &lt; 0: restoring it moved the action further away. τ ≤ 1 always. This is the normalised patching metric of Heimersheim &amp; Nanda (2024) and Zhang &amp; Nanda (ICLR 2024, arXiv:2309.16042), (patched − corrupted)/(clean − corrupted), with the scalar logit replaced by distance to the clean action, which is the natural choice when the output is a vector rather than a logit. Grant, Zhao &amp; Wang (arXiv:2603.19233) report action cosine similarity instead; cosine ignores magnitude, which for a 7-dof delta action is most of the information, so distance was chosen and pre-registered. <b>τ<sub>T</sub> + τ<sub>I</sub> + τ<sub>S</sub> need not equal 1</b>: single-input patches measure each pathway with the others held perturbed, and interactions are not additive (the order-dependence result in <code>TRIGGER_MECHANISM_CALCULUS.html</code>; Shapley 1953 is the additive repair, not applied here). The sum is reported only as an exploratory check.
+</div></div>
+
+<div class="thm"><div class="thm-label">Onset, anchor, dominant arm, residual</div><div class="thm-body">
+<span class="eq">onset<sub>X</sub> = min{ f : τ<sub>X</sub>(f) ≥ 0.5 }</span>
+<span class="eq">f* = the forward whose 16-step window contains argmin<sub>t</sub> ‖eef<sub>t</sub> − bowl<sub>t</sub>‖ &nbsp; (the anchor; R-038's discriminator)</span>
+<span class="eq">dominant = argmax<sub>X</sub> τ<sub>X</sub>(f*) if that maximum ≥ 0.9, else none (residual)</span>
+The anchor is the forward containing the closest approach to the target bowl, found from the privileged simulator distance in the trace and mapped to a forward by the logged env step of each forward, never by assuming 16 steps per forward.
+</div></div>
+
+<div class="thm"><div class="thm-label">Drift and aggregation</div><div class="thm-body">
+<span class="eq">S-slope = least-squares slope of τ<sub>S</sub>(f) against f</span>
+Positive slope would mean the state pathway takes over as the episode drifts. Per category, every statistic is the median over its ten instances; "n positive" counts instances with slope above 0.05.
+</div></div>
+
+<div class="thm"><div class="thm-label">The state-token control (R-039 expectation 1)</div><div class="thm-body">
+<span class="eq">r<sub>0</sub> = ‖<span class="m">a</span><sub>P</sub> − h(p<sub>T</sub>, p<sub>I</sub>, <b>0</b>; ε)‖ / ‖P−N‖, &nbsp; r<sub>ctl</sub> = ‖<span class="m">a</span><sub>P</sub> − h(p<sub>T</sub>, p<sub>I</sub>, n<sub>S</sub>; ε)‖ / ‖P−N‖</span>
+If deleting the state token (r<sub>0</sub>) moves the action about as little as swapping it (r<sub>ctl</sub>), the token is low-influence and the S splice is not at fault. Measured: r<sub>0</sub> = 0.10, r<sub>ctl</sub> = 0.17, against 0.91 for the image swap.
+</div></div>
+
+<div class="thm"><div class="thm-label">R-041's action boundary</div><div class="thm-body">
+<span class="eq">τ<sub>act</sub> = 95th percentile of ‖<span class="m">a</span><sub>P</sub>(f+1) − <span class="m">a</span><sub>P</sub>(f)‖ over all magnitude-0 rollouts</span>
+<span class="eq">action boundary = min{ m : ‖P−N‖(f=0; m) &gt; τ<sub>act</sub> }, found by bisection</span>
+The threshold is the policy's own forward-to-forward variation under no perturbation, computed before any perturbed rollout is analysed.
+</div></div>
+</section>
+
+<section>
+<p class="part">Sources</p>
+<h2>Where each piece comes from</h2>
+<ul class="tight">
+<li><b>Interchange interventions.</b> Geiger, Lu, Icard, Potts. <i>Causal Abstractions of Neural Networks.</i> NeurIPS 2021. Replacing one component's value with its value under another input and reading the output.</li>
+<li><b>Causal tracing / denoising.</b> Meng, Bau, Andonian, Belinkov. <i>Locating and Editing Factual Associations in GPT.</i> NeurIPS 2022, arXiv:2202.05262. Clean activations restored into a corrupted run; the recovered fraction locates the mechanism.</li>
+<li><b>The normalised metric and its pitfalls.</b> Heimersheim, Nanda. <i>How to use and interpret activation patching.</i> arXiv:2404.15255 (2024). Zhang, Nanda. <i>Towards Best Practices of Activation Patching in Language Models: Metrics and Methods.</i> ICLR 2024, arXiv:2309.16042. Define (patched − corrupted)/(clean − corrupted), the denoising-versus-noising distinction, and why single-component patches are not additive.</li>
+<li><b>Path patching.</b> Wang, Variengien, Conmy, Shlegeris, Steinhardt. <i>Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small.</i> ICLR 2023. Patching along one path while holding the others; the model for "one input restored, others held perturbed".</li>
+<li><b>Mediation.</b> Vig et al. <i>Investigating Gender Bias in Language Models Using Causal Mediation Analysis.</i> NeurIPS 2020; Pearl. <i>Direct and Indirect Effects.</i> UAI 2001. The transfer fraction estimates the share of the total effect mediated by one pathway; the non-additivity is the interaction term in Pearl's decomposition.</li>
+<li><b>Order dependence.</b> <code>docs/TRIGGER_MECHANISM_CALCULUS.html</code>, the AND-gate example; Shapley. <i>A Value for n-Person Games.</i> 1953, the additive attribution obtained by averaging over orders, not applied here.</li>
+<li><b>Activation injection on VLAs.</b> Grant, Zhao, Wang. <i>Not All Features Are Created Equal: A Mechanistic Study of Vision-Language-Action Models.</i> arXiv:2603.19233 (2026). Same intervention on GR00T N1.5 with action cosine similarity as the metric.</li>
+<li><b>Common random numbers.</b> Standard variance reduction for comparing alternatives under one noise stream; e.g. Glasserman, Yao. <i>Some Guidelines and Guarantees for Common Random Numbers.</i> Management Science 1992.</li>
+</ul>
+</section>
+</div>
+</body>
+</html>

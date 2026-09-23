@@ -119,6 +119,7 @@
       border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
       display:grid; place-items:center;}
   ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  dl.gloss{margin:0;} dl.gloss dt{font-family:var(--sans); font-weight:600; margin-top:.9em;} dl.gloss dd{margin:.15em 0 0 0; font-size:.97rem;}
   .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
   .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
           font-size:.84rem; color:var(--muted);}
@@ -400,51 +401,6 @@ Source and target must differ only in P. Holds by construction for camera, light
 </section>
 
 <section>
-<p class="part">Part 3b · Definitions and the maths, with their sources</p>
-<h2>Every number in the results page, written out</h2>
-<p>One forward emits a chunk of 40 actions; the LIBERO arm uses the first 7 of the 132 output dimensions. Flatten the live chunk to a vector <span class="m">a</span> ∈ ℝ<sup>280</sup>. Distances are Euclidean on that vector.</p>
-
-<div class="thm"><div class="thm-label">The five arms at forward <span class="m">f</span></div><div class="thm-body">
-From one simulator state and one fixed noise draw ε<sub>f</sub>, the head is run with inputs (<span class="m">x</span><sub>T</sub>, <span class="m">x</span><sub>I</sub>, <span class="m">x</span><sub>S</sub>) chosen from the perturbed run <span class="m">p</span> or the nominal source <span class="m">n</span>:
-<span class="eq"><span class="m">a</span><sub>P</sub> = h(p<sub>T</sub>, p<sub>I</sub>, p<sub>S</sub>; ε) &nbsp; <span class="m">a</span><sub>N</sub> = h(n<sub>T</sub>, n<sub>I</sub>, n<sub>S</sub>; ε) &nbsp; <span class="m">a</span><sub>I</sub> = h(p<sub>T</sub>, <b>n<sub>I</sub></b>, p<sub>S</sub>; ε) &nbsp; and likewise <span class="m">a</span><sub>T</sub>, <span class="m">a</span><sub>S</sub></span>
-This is an interchange intervention (Geiger et al. 2021) on one input at a time; in the activation-patching vocabulary it is <em>denoising</em>: a clean activation is patched into the corrupted run (Heimersheim &amp; Nanda 2024, arXiv:2404.15255; Meng et al. 2022, arXiv:2202.05262, "causal tracing"). Fixing ε across the five arms is common random numbers, the standard variance-reduction device for comparing alternatives under one noise stream.
-</div></div>
-
-<div class="thm"><div class="thm-label">Effect size</div><div class="thm-body">
-<span class="eq">‖P−N‖ = ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖<sub>2</sub></span>
-How much the perturbation moved the action at that forward. Zero means the perturbation has not reached the action yet.
-</div></div>
-
-<div class="thm trig"><div class="thm-label">Transfer fraction</div><div class="thm-body">
-<span class="eq">τ<sub>X</sub>(f) = 1 − ‖<span class="m">a</span><sub>X</sub> − <span class="m">a</span><sub>N</sub>‖ / ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖, &nbsp; X ∈ {T, I, S}</span>
-The share of the perturbed-to-nominal gap that restoring input X alone closes. τ = 1: that input carried everything. τ = 0: it carried nothing. τ &lt; 0: restoring it moved the action further away. τ ≤ 1 always. This is the normalised patching metric of Heimersheim &amp; Nanda (2024) and Zhang &amp; Nanda (ICLR 2024, arXiv:2309.16042), (patched − corrupted)/(clean − corrupted), with the scalar logit replaced by distance to the clean action, which is the natural choice when the output is a vector rather than a logit. Grant, Zhao &amp; Wang (arXiv:2603.19233) report action cosine similarity instead; cosine ignores magnitude, which for a 7-dof delta action is most of the information, so distance was chosen and pre-registered. <b>τ<sub>T</sub> + τ<sub>I</sub> + τ<sub>S</sub> need not equal 1</b>: single-input patches measure each pathway with the others held perturbed, and interactions are not additive (the order-dependence result in <code>TRIGGER_MECHANISM_CALCULUS.html</code>; Shapley 1953 is the additive repair, not applied here). The sum is reported only as an exploratory check.
-</div></div>
-
-<div class="thm"><div class="thm-label">Onset, anchor, dominant arm, residual</div><div class="thm-body">
-<span class="eq">onset<sub>X</sub> = min{ f : τ<sub>X</sub>(f) ≥ 0.5 }</span>
-<span class="eq">f* = the forward whose 16-step window contains argmin<sub>t</sub> ‖eef<sub>t</sub> − bowl<sub>t</sub>‖ &nbsp; (the anchor; R-038's discriminator)</span>
-<span class="eq">dominant = argmax<sub>X</sub> τ<sub>X</sub>(f*) if that maximum ≥ 0.9, else none (residual)</span>
-The anchor is the forward containing the closest approach to the target bowl, found from the privileged simulator distance in the trace and mapped to a forward by the logged env step of each forward, never by assuming 16 steps per forward.
-</div></div>
-
-<div class="thm"><div class="thm-label">Drift and aggregation</div><div class="thm-body">
-<span class="eq">S-slope = least-squares slope of τ<sub>S</sub>(f) against f</span>
-Positive slope would mean the state pathway takes over as the episode drifts. Per category, every statistic is the median over its ten instances; "n positive" counts instances with slope above 0.05.
-</div></div>
-
-<div class="thm"><div class="thm-label">The state-token control (R-039 expectation 1)</div><div class="thm-body">
-<span class="eq">r<sub>0</sub> = ‖<span class="m">a</span><sub>P</sub> − h(p<sub>T</sub>, p<sub>I</sub>, <b>0</b>; ε)‖ / ‖P−N‖, &nbsp; r<sub>ctl</sub> = ‖<span class="m">a</span><sub>P</sub> − h(p<sub>T</sub>, p<sub>I</sub>, n<sub>S</sub>; ε)‖ / ‖P−N‖</span>
-If deleting the state token (r<sub>0</sub>) moves the action about as little as swapping it (r<sub>ctl</sub>), the token is low-influence and the S splice is not at fault. Measured: r<sub>0</sub> = 0.10, r<sub>ctl</sub> = 0.17, against 0.91 for the image swap.
-</div></div>
-
-<div class="thm"><div class="thm-label">R-041's action boundary</div><div class="thm-body">
-<span class="eq">τ<sub>act</sub> = 95th percentile of ‖<span class="m">a</span><sub>P</sub>(f+1) − <span class="m">a</span><sub>P</sub>(f)‖ over all magnitude-0 rollouts</span>
-<span class="eq">action boundary = min{ m : ‖P−N‖(f=0; m) &gt; τ<sub>act</sub> }, found by bisection</span>
-The threshold is the policy's own forward-to-forward variation under no perturbation, computed before any perturbed rollout is analysed.
-</div></div>
-</section>
-
-<section>
 <p class="part">Part 4 · From pathway to data</p>
 <h2>The table that turns a result into a mining instruction</h2>
 <div class="note">
@@ -599,6 +555,34 @@ On all four LIBERO-Plus categories tested, including robot initial state, the <s
   <li><strong>R-040's miners.</strong> Re-rendering existing LIBERO demos under a LIBERO-Plus condition, pose-region resampling, and instruction augmentation. Each is a data-generation script, not a model change, and each is gated on R-039 saying it is needed.</li>
 </ol>
 <p>Nothing in the list touches training until step 4, and step 4 is the only one that costs demonstrations. That is the point of doing the localisation first: the expensive step is spent on the answer, not on the guess.</p>
+</section>
+
+<section>
+<p class="part">Definitions</p>
+<h2>Terms used in this document and in the R-039 results</h2>
+<dl class="gloss">
+<dt>forward</dt><dd>One run of the policy. It emits a chunk of 40 future actions and happens every 16 simulator steps, so an episode has at most 18 forwards. Everything in R-039 is measured per forward.</dd>
+<dt>live dims</dt><dd>The first 7 of the 132 action dimensions, the ones the LIBERO arm uses. All distances are computed on these.</dd>
+<dt>P · perturbed</dt><dd>The policy's own inputs under the perturbation. Its chunk is the baseline "wrong" action and is what drives the robot.</dd>
+<dt>N · nominal</dt><dd>Every input replaced by what the policy would see under the trained condition at the same simulator state. Its chunk is the "right" action for that state.</dd>
+<dt>T · text arm</dt><dd>Only the text-token positions of the vision-language output are restored to nominal; image tokens and state stay perturbed.</dd>
+<dt>I · image arm</dt><dd>Only the image-token positions are restored to nominal.</dd>
+<dt>S · state arm</dt><dd>Only the proprioception token, the eight numbers of arm pose and gripper after the state encoder, is restored to nominal.</dd>
+<dt>‖P−N‖</dt><dd>How far the perturbation moved the action at that forward. Zero means it has not reached the action yet.</dd>
+<dt>transfer fraction</dt><dd>For one arm, the share of the P-to-N gap that restoring that single input closes. 1 means that input carried everything, 0 nothing, negative means restoring it moved the action further away. Not additive across arms.</dd>
+<dt>f0</dt><dd>Forward zero, the first decision of the episode, before anything has diverged. The cleanest counterfactual.</dd>
+<dt>anchor</dt><dd>The forward that contains the step of closest approach to the target bowl. R-038 found this is where failures are most visible: on failures the arm never gets close.</dd>
+<dt>onset</dt><dd>The first forward at which an arm's transfer fraction reaches 0.5.</dd>
+<dt>dominant arm</dt><dd>The single arm with transfer at least 0.9 at the anchor. If none reaches it, the instance is in the residual bucket.</dd>
+<dt>S slope</dt><dd>How the state arm's transfer changes across forwards. A positive slope would mean the state pathway takes over as the episode drifts.</dd>
+<dt>paired-render source</dt><dd>N obtained by re-rendering the current simulator state under the trained camera and lights. Exact at every forward, but the state token is identical in P and N, so the S arm is zero by construction.</dd>
+<dt>recorded source</dt><dd>N obtained from a separate control rollout of the same scene under the same noise. Makes S a real counterfactual, but is exact only at forward 0 and a bound afterwards.</dd>
+<dt>common random numbers</dt><dd>The five arms at one forward share one seeded denoising noise, so their differences come from the inputs alone.</dd>
+<dt>level</dt><dd>LIBERO-Plus difficulty preset L1 to L5 for the perturbation instance, colour-coded on instance rows.</dd>
+<dt>action boundary (R-041)</dt><dd>The smallest perturbation magnitude at which ‖P−N‖ at forward 0 exceeds the policy's own forward-to-forward variation under no perturbation.</dd>
+<dt>outcome boundary (R-041)</dt><dd>The smallest magnitude at which the episode fails. Binary, late, and shown by R-039 to be chaotic at render-jitter level.</dd>
+</dl>
+<p>The formulas behind each of these, with their sources in the activation-patching literature, are in <a href="R039_MATHS.html">R039_MATHS.html</a>.</p>
 </section>
 
 <div class="footer">
