@@ -2454,6 +2454,31 @@ contract.
 **Instance count unchanged** (40 instances, 10 per category), but the cost is
 now 1 rollout per instance plus 5 head passes per forward, not 5 rollouts.
 
+### Correction 2026-09-23, recorded during the run, before any aggregation: the S arm is zero BY CONSTRUCTION under paired rendering
+
+Seen in the first three manifest rows (`runs/r039/splice/manifest.jsonl`):
+`tf_S` is exactly 0.0 at every forward for the vision instances. That is not a
+finding. A paired render re-renders the SAME sim state, so the source and
+target state tokens are identical, the S arm equals the P arm, and its
+transfer is 0 by definition. Paired rendering answers "which VL pathway
+carries the render change" cleanly, and by the same token removes the state
+difference that expectation 4 (S-transfer growing with forward index, the
+behavioural-drift route) needs. I did not see this when I revised the design
+this morning; it should have been obvious from the definition of the source.
+
+**Remedy, pre-registered now:** a second pass over the 30 vision instances
+with the RECORDED source, i.e. the per-forward features of the scene's
+control rollout under the same seed and noise, which the runner already
+does for Robot Initial States. On that pass the S arm is the counterfactual
+"state token where the nominal run would have been", the T and I arms are
+the recorded-source splices of the original design, and all three are in
+the off-manifold regime after forward 0 and are reported as bounds.
+Expectation 4 is tested on the second pass only. Expectations 2, 3 and 5
+are tested on the paired-render pass (arms T and I) and the recorded pass is
+reported beside them as the bound. Expectation 1 (Robot Initial States,
+recorded source) is unaffected. Cost: 30 rollouts, the 10 control rollouts
+are shared.
+
 ### Pre-registered expectations
 
 1. **Splice machinery works: arm S on Robot Initial States transfers ≥ 0.8 of

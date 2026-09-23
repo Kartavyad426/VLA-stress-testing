@@ -348,6 +348,9 @@ class LiberoEnv:
         import numpy as np
         k = spec.as_dict()
         sim = self._sim()
+        # R-041: remember the pre-knob camera and lights so nominal_frames can
+        # render the trained condition at any later state of this episode.
+        self._knob_nominal = self._snapshot_nominal(sim.model, sim.model.camera_name2id(MAIN_CAMERA))
 
         yaw, pitch = k.get("camera_yaw_deg", 0.0), k.get("camera_pitch_deg", 0.0)
         dist = k.get("camera_dist_m", 0.0)
@@ -529,7 +532,28 @@ class LiberoEnv:
             raw, _, _, _ = outer._env.step(get_libero_dummy_action())
         return outer._format_raw_obs(raw)
 
-    # --- R-039 paired render: the trained condition at the CURRENT state ----
+    # --- R-039 / R-041 paired render: the trained condition at the CURRENT state
+    _MODEL_FIELDS = ("light_diffuse", "light_dir", "light_specular", "light_pos")
+
+    @staticmethod
+    def _snapshot_nominal(model, cam_id: int) -> dict:
+        """The camera pose and every light array as they are NOW. Taken before
+        a harness knob is applied, so a later render can put them back."""
+        import numpy as np
+        out = {"cam_pos": np.array(model.cam_pos[cam_id], dtype=float),
+               "cam_quat": np.array(model.cam_quat[cam_id], dtype=float)}
+        for k in LiberoEnv._MODEL_FIELDS:
+            out[k] = np.array(getattr(model, k), dtype=float)
+        return out
+
+    @staticmethod
+    def _write_model_fields(model, cam_id: int, fields: dict) -> None:
+        model.cam_pos[cam_id] = fields["cam_pos"]
+        model.cam_quat[cam_id] = fields["cam_quat"]
+        for k in LiberoEnv._MODEL_FIELDS:
+            if k in fields:
+                getattr(model, k)[:] = fields[k]
+
     def nominal_frames(self) -> dict:
         """Frames the policy would see RIGHT NOW under the trained condition.
 
@@ -546,17 +570,26 @@ class LiberoEnv:
         """
         import numpy as np
         from . import nominal
-        if not self.libero_plus:
+        knob_nominal = getattr(self, "_knob_nominal", None) if (self.spec and self.spec.knobs) else None
+        if not self.libero_plus and knob_nominal is None:
             px = self._raw.get("pixels", {})
             return dict(px)
         outer = self._env.unwrapped
-        wrapper = outer._env                       # LIBERO-plus ControlEnv
+        wrapper = outer._env                       # LIBERO-plus ControlEnv (or LIBERO's)
         inner = wrapper.env                        # the BDDL domain (robosuite)
         sim = inner.sim
-        name = self._libero_plus_variant().get("variant") or ""
-        knobs = nominal.variant_perturbations(name)
+        if self.libero_plus:
+            name = self._libero_plus_variant().get("variant") or ""
+            knobs = nominal.variant_perturbations(name)
+        else:
+            knobs = {"view": None, "light": None, "noise": 0}
         saved = {}
         try:
+            if knob_nominal is not None:
+                # harness knobs (R-041 axes): put back what was there before the knob
+                cid = sim.model.camera_name2id(MAIN_CAMERA)
+                saved["knob"] = (cid, self._snapshot_nominal(sim.model, cid))
+                self._write_model_fields(sim.model, cid, knob_nominal)
             if knobs["view"] is not None:
                 domain = type(inner).__module__.rsplit(".", 1)[-1]
                 domain = domain.removeprefix("libero_").removesuffix("_manipulation")
@@ -587,6 +620,9 @@ class LiberoEnv:
             if "lights" in saved:
                 for k, arr in saved["lights"].items():
                     getattr(sim.model, f"light_{k}")[:] = arr
+            if "knob" in saved:
+                cid, fields = saved["knob"]
+                self._write_model_fields(sim.model, cid, fields)
             if saved:
                 sim.forward()
 
@@ -656,7 +692,30 @@ class LiberoEnv:
             out["_gt_nearest_object"] = nearest
             out["_gt_eef_to_object"] = d
         out["_gt_n_contacts"] = int(sim.data.ncon)
+        out["_gt_scene_object_pos"] = self._scene_object_pos(sim)
         return out
+
+    def _scene_object_pos(self, sim) -> dict[str, list[float]]:
+        """EVERY free-moving object, not only the BDDL task objects.
+
+        `_gt_object_pos` is deliberately the task objects (LE-2), so a grasp of
+        a DISTRACTOR is invisible in it: on lplus_fail_groot:5115b970e766 it
+        read "nothing moved" while the arm had lifted the ramekin 6 cm. This key
+        exists so a wrong-object grasp is recorded rather than inferred.
+
+        "Free-moving" = the body owns a free joint (mjJNT_FREE == 0), which is
+        exactly what a manipulable LIBERO object has and a fixture (cabinet,
+        stove, table) does not. Kept SEPARATE from `_gt_object_pos` so no
+        existing detector changes meaning. The joint scan is cached per model.
+        """
+        m = sim.model
+        if getattr(self, "_scene_bodies_model", None) is not m:
+            self._scene_bodies = [
+                (m.body_id2name(int(m.jnt_bodyid[j])), int(m.jnt_bodyid[j]))
+                for j in range(m.njnt) if int(m.jnt_type[j]) == 0]
+            self._scene_bodies_model = m
+        return {n: [float(x) for x in sim.data.body_xpos[b]]
+                for n, b in self._scene_bodies if n}
 
     def _object_body_names(self) -> tuple[list[str], bool]:
         """Task objects, from the BDDL problem definition.

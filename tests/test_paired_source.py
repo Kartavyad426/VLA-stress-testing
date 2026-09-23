@@ -209,3 +209,28 @@ def test_policy_logs_the_env_step_of_every_model_forward_without_capture():
     assert p.forward_env_steps == [0, 16]
     p.reset()
     assert p.forward_env_steps == []
+
+
+# --- nominal_frames must also undo HARNESS knobs (R-041's axes) ---------------
+
+def test_knob_nominal_restores_the_camera_and_lights_saved_before_the_knob():
+    """Pure bookkeeping: applying a knob records the pre-knob camera pose and
+    light arrays, and `_nominal_model_fields()` hands them back so
+    nominal_frames can write them for one render. No simulator needed."""
+    from vla_harness.envs.libero_env import LiberoEnv
+
+    class _M:      # the sim.model fields nominal_frames touches
+        def __init__(self):
+            self.cam_pos = np.array([[0.65, 0.0, 1.6]]); self.cam_quat = np.array([[0.6, 0.3, 0.3, 0.6]])
+            self.light_diffuse = np.array([[0.8, 0.8, 0.8]]); self.light_dir = np.array([[0.0, -0.15, -1.0]])
+            self.light_specular = np.array([[0.3, 0.3, 0.3]]); self.light_pos = np.array([[1.0, 1.0, 4.0]])
+            self.nlight = 1
+        def camera_name2id(self, n): return 0
+    m = _M()
+    saved = LiberoEnv._snapshot_nominal(m, cam_id=0)
+    m.cam_pos[0] = [9, 9, 9]; m.light_diffuse[0] = [0, 0, 1]
+    assert saved["cam_pos"].tolist() == [0.65, 0.0, 1.6]
+    assert saved["light_diffuse"].tolist() == [[0.8, 0.8, 0.8]]
+    LiberoEnv._write_model_fields(m, cam_id=0, fields=saved)
+    assert m.cam_pos[0].tolist() == [0.65, 0.0, 1.6]
+    assert m.light_diffuse[0].tolist() == [0.8, 0.8, 0.8]

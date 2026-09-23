@@ -96,6 +96,10 @@ def main():
     ap.add_argument("--drive", default="P", choices=list(ARMS))
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-video", action="store_true")
+    ap.add_argument("--source", default="auto", choices=["auto", "recorded"],
+                    help="auto: paired render for vision categories, recorded control for "
+                         "Robot Initial States. recorded: the control rollout's per-forward "
+                         "features for EVERY category (the R-039 second pass, for the S arm).")
     a = ap.parse_args()
 
     sel = json.load(open(a.selection))
@@ -132,7 +136,7 @@ def main():
 
         # --- source ----------------------------------------------------------
         env = make_env(suite, tid)
-        if cat == RIS:
+        if cat == RIS or a.source == "recorded":
             ctl = inst["control_task_id"]
             key = (ctl, seed)
             if key not in recorded_controls:
@@ -181,7 +185,8 @@ def main():
         row = {"rollout_id": r.rollout_id, "task_id": tid, "seed": seed, "category": cat,
                "label": inst.get("label"), "scene": inst.get("scene"),
                "variant": inst["variant"], "level": inst["level"], "prior_outcome": inst["prior_outcome"],
-               "drive": a.drive, "success": r.success, "termination": r.termination,
+               "drive": a.drive, "source": ("recorded" if (cat == RIS or a.source == "recorded") else "paired_render"),
+               "success": r.success, "termination": r.termination,
                "env_steps": r.env_steps, "forwards": F, "wall_s": round(r.wall_time_s, 1),
                "closest_approach_m": float(np.nanmin(ca)) if np.isfinite(ca).any() else None,
                "closest_approach_basis": ca_basis, "targets": target_names(env),
