@@ -109,3 +109,38 @@ def test_success_episodes_are_scored_leave_one_out_not_against_themselves(tmp_pa
         f"success rate {res.mean_ood_success:.3f} disagrees with reference rate "
         f"{res.reference_rate:.3f}; they describe the same episodes")
     assert res.separation < 100, "ratio is a division by epsilon, not a result"
+
+
+# --- Q1: detection (does the perturbation move the signal at all?) ----------
+
+def test_detection_rate_is_high_when_the_arm_is_genuinely_shifted(tmp_path):
+    """Q1 asks whether a perturbation moves a signal AT ALL, outcome aside.
+    It gates Q2: if a lighting change does not move the VL embedding, a
+    pass/fail null in lighting episodes says the instrument is deaf, not that
+    the model is."""
+    from vla_harness.capture.analysis import detection_rate
+
+    rng = np.random.default_rng(11)
+    nominal = [rng.normal(size=(8, 6)) for _ in range(20)]
+    shifted = [rng.normal(size=(8, 6)) + 5.0 for _ in range(20)]
+    same = [rng.normal(size=(8, 6)) for _ in range(20)]
+
+    thr, ref_rate = calibrate_threshold(nominal, alpha=0.05)
+    assert detection_rate(shifted, nominal, thr) > 0.5
+    # an unshifted arm must land near alpha, not at zero -- it is drawn from
+    # the same distribution but is NOT in the reference cloud
+    assert detection_rate(same, nominal, thr) < 0.25
+
+
+def test_detection_excludes_an_episode_from_its_own_reference(tmp_path):
+    """Scoring the nominal arm against itself must be leave-one-out, or it
+    reads 0% and every ratio against it is a division by epsilon (O8)."""
+    from vla_harness.capture.analysis import detection_rate
+
+    rng = np.random.default_rng(12)
+    nominal = [rng.normal(size=(8, 6)) for _ in range(20)]
+    thr, ref_rate = calibrate_threshold(nominal, alpha=0.05)
+
+    self_rate = detection_rate(nominal, nominal, thr, leave_one_out=True)
+    assert self_rate > 0.0
+    assert abs(self_rate - ref_rate) < 0.03

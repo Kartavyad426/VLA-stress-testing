@@ -2264,3 +2264,298 @@ directions**:
 directions and should not be reported as a test of anything.** Its image-pooled
 half stands unchanged and still tests modality mixing directly: if image-pooled
 and combined-pooled show the same arm-B effect, R-036's caveat 3a is downgraded.
+
+---
+
+## R-039 — PRE-REGISTERED, NOT YET RUN: which PATHWAY carries a perturbation to the action — channel restoration on GR00T N1.7
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html`
+
+**Registered before the run. Expectations written first; a wrong one is the
+finding.**
+
+### Why it exists — the retraining question needs a pathway, not a label
+
+The project's stated goal is to turn a failure into a **data specification**:
+what to add to the training set, and how to know it worked
+(`RETRAINING_DEFAULT_TAXONOMY.md` §0). On LIBERO-Plus the perturbed *input*
+channel is given by the label, so input-level localisation ("was it vision,
+text or telemetry?") is trivial by construction and tells us nothing we do not
+already have. **The non-trivial question is internal: through which pathway
+does the perturbation reach the action?**
+
+That matters for the data spec in two ways. (1) A camera-viewpoint failure that
+travels through the image pathway is a condition gap and is fixed by
+re-rendering existing demos (family B, no new collection). One that travels
+through the *state* pathway, because the shifted view changes the behaviour and
+hence the proprio distribution, is not fixed by re-rendering at all. (2) It
+decides *what to unfreeze*: action head alone, or the VL projector too.
+
+R-038 is the motivating precedent: a failure that *looks* visual (similar black
+bowls, arm never approaches) is *caused* through the language pathway. Nothing
+observational would have found that; the null-prompt intervention did.
+
+### Why intervention and not observation or probes
+
+A probe or a distance tells us an activation **moved**. That set is neither a
+subset nor a superset of the mechanisms whose **repair** fixes the failure
+(`docs/TRIGGER_MECHANISM_CALCULUS.html`, Theorem 2). R-036's negative is the
+practical version: the VL embedding did not separate failures, and we still do
+not know whether the VL pathway is causally inert or merely not linearly
+separable at the pooled tap. Only splicing the pathway and watching the action
+distinguishes those.
+
+### Design — three restoration arms plus two controls, per instance
+
+For each selected LIBERO-Plus failure instance, a **source** rollout (nominal
+condition) and a **target** rollout (perturbed condition) are run with **common
+random numbers**: same task, same object layout, same instruction, same seed,
+and the same fixed denoising noise ε at every step. Then three patched target
+runs, each replacing exactly one pathway's input to the DiT with the source's
+value at the same timestep:
+
+| arm | what is spliced from the source | where it enters N1.7 |
+|---|---|---|
+| **T** text | the text tokens of `vl_embeds` | cross-attention in blocks `idx % 4 == 0` |
+| **I** image | the image tokens of `vl_embeds` | cross-attention in blocks `idx % 4 == 2` (even) |
+| **S** state | `state_features` (S0e, 1536) | concatenated into `sa_embs` |
+| **P** perturbed control | nothing | — |
+| **N** nominal control | everything (this *is* the source) | — |
+
+Token masks for T and I are read off `non_image_attention_mask` /
+`image_attention_mask` in `AlternateVLDiT.forward`, **never off the config
+name** (`attend_text_every_n_blocks: 2` means period four, HANDOFF §6).
+
+**Instance selection.** Balanced across the vision categories that R-037 uses
+(Camera Viewpoints, Light Conditions, Sensor Noise) and Robot Initial States,
+drawn from `lplus_fail_groot` outcomes. Selection is biased by past outcome;
+labels come from this run. Target n = 40 instances (10 per category), each with
+5 runs (P, N, T, I, S) = 200 episodes, plus determinism checks.
+
+**Time alignment.** Source and target diverge after the first action. Two
+regimes are reported **separately** and never pooled:
+
+- **Open-loop window, t < k.** Source activations at step t are spliced into
+  the target at step t. Valid while the two states are close; k is fixed by a
+  proprio distance threshold set from arm N's own step-to-step variance,
+  declared before analysis.
+- **Full episode.** Splicing continues to the end. After divergence the spliced
+  tensor is off-manifold for the target's true state, so the result is a
+  **bound**, reported as a bound, as arXiv:2603.19233's authors do for their
+  cross-task condition.
+
+### What is measured, in priority order
+
+1. **Action transfer in the open-loop window.** Per step, for the 7 live action
+   dims of 132 (padding excluded, `EXP_EMBEDDING_OOD.md` §2.1): cosine and L2
+   between the patched action chunk and the source chunk, against the same
+   between the unpatched target chunk and the source chunk. *Transfer fraction*
+   = 1 − d(patched, source) / d(target, source). This is the primary outcome.
+2. **Outcome flip, full episode.** Success rate and closest approach (the R-038
+   discriminator) for each arm. Secondary, because it is the bounded regime.
+3. **Observation only, zero extra compute.** Per-block residual-stream
+   divergence between target and source over the 32 DiT blocks, via the
+   `all_hidden_states` that `AlternateVLDiT.forward` already accumulates.
+   First-onset attribution against the entry schedule. **Reported as
+   observation, not as evidence of mechanism**, and any cumulative sweep uses
+   the pre-registered order text → image → state (entry order), because the
+   per-layer split of a sweep is order-dependent on any interacting circuit.
+
+### Preconditions that gate whether this is an experiment at all
+
+- **Determinism.** GR00T's denoise loop starts from an unseeded `torch.randn`
+  (`groot_n1_7.py:657`). A seeded ε path is added as a **separate** code path;
+  R-036's protocol depends on the unseeded draw and is not changed. Gate:
+  two identical runs are **bitwise equal** in action output. A seed alone does
+  not satisfy this; GPU nondeterminism must be checked, not assumed.
+- **Trigger-only difference.** Source and target must differ only in the
+  perturbation. Holds by construction for Camera, Light, Sensor Noise. For
+  Robot Initial States the perturbation *is* the state, so arm S is the
+  trigger restored rather than a pathway test; it is kept as a positive
+  control for the splice machinery and labelled as such.
+
+### Pre-registered expectations
+
+1. **Splice machinery works: arm S on Robot Initial States transfers ≥ 0.8 of
+   the action effect at t = 0.** *High.* If this fails the harness is wrong,
+   not the model, and nothing else in the entry is interpretable. Load-bearing.
+2. **Camera Viewpoints route through the image pathway: arm I transfers most
+   of the effect (≥ 0.6 in the open-loop window), T and S near zero at
+   t = 0.** *Medium-high.*
+3. **Light and Sensor Noise route through the image pathway as well, but with
+   a smaller unpatched effect to begin with**, because R-031's per-category
+   rates show these categories fail less. *Medium.*
+4. **Arm S's transfer fraction grows with t in every vision category.**
+   *Medium-high, and the uncomfortable one.* This is the behavioural-drift
+   route: a visual perturbation changes the actions, the actions change the
+   state, and by mid-episode the state pathway carries the failure. If it
+   holds, R-036's `state_encoded` separation is confirmed as symptom rather
+   than mechanism, and **re-rendering alone may not repair late-episode
+   failures.**
+5. **Arm T transfers approximately nothing in all four categories.** *Medium.*
+   None of these categories underdetermines the target visually. **If T
+   transfers a material fraction anywhere, that is a language-load
+   interaction of the R-038 kind and gets its own follow-up; it is not
+   explained away.**
+6. **No single arm transfers ≥ 0.9 on at least a quarter of instances.**
+   *Medium-low.* That residual is the interaction bucket, and it is the only
+   place an SAE-style decomposition is worth its compute (see the HTML spec,
+   §5).
+
+### What each result buys for data mining (the point of the exercise)
+
+| dominant arm | family | data spec | unfreeze |
+|---|---|---|---|
+| I | B, condition gap | re-render existing demos under the condition | action head; projector if I-transfer < 0.6 |
+| S at t = 0 | A1, placement | new demos sampling the pose region (R-035's sweep says where) | action head |
+| S growing with t | recovery, not coverage | demos that start from perturbed *states*, not perturbed *scenes* | action head |
+| T | A3, phrasing / language load | instruction augmentation on existing demos | action head + text projector |
+| none | interaction | residual bucket; SAE candidate | undecided |
+
+### What this does NOT test
+
+- Language perturbations themselves (LIBERO-Plus language category). Arm T
+  here holds text nominal in both source and target; it tests whether a
+  *visual* perturbation is carried through the text pathway, which is the
+  R-038 interaction, not the rewording question.
+- Anything on N1.5. Block indices do not transfer from arXiv:2603.19233;
+  proportions might, and are the only cross-model comparison that will be
+  reported.
+
+### What would make this a failed experiment rather than a negative result
+
+Expectation 1 failing, or the bitwise-determinism gate failing.
+
+---
+
+## R-040 — PRE-REGISTERED, NOT YET RUN, DEPENDS ON R-039: mechanism-targeted mining vs OOD-ranked bulk vs nominal, at a matched data budget
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, BLOCKED ON R-039 ·
+**Type** EVAL · **Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html`
+
+### The question
+
+Given a fixed budget of additional demonstrations, does choosing them by the
+failure's **mechanism** (R-039's pathway × the cause family) beat choosing
+them by an **OOD score** alone, and does either beat spending the same budget
+on more nominal data?
+
+### Design — three arms, one budget, one post-training recipe
+
+| arm | how the extra demos are chosen |
+|---|---|
+| **M** mechanism | per R-039's table: re-render for I, pose-region demos for S, instruction augmentation for T |
+| **O** OOD-ranked | rank candidate demos by distance from the nominal cloud in the 5-dim proprio detector (6.9×, `EXP_EMBEDDING_OOD.md` §1); take the top-N regardless of mechanism |
+| **R** nominal | N additional nominal demos of the same tasks |
+
+Same N for all three. Same recipe: action head only, backbone frozen, same
+steps, same LR, same seed. Same held-out sets: (a) perturbation-matched
+instances the mining never saw, (b) the R-029 nominal control, to detect
+regression.
+
+**Budget N is fixed before any arm is built** and written here once R-039
+gives the bucket sizes. Placeholder until then: N = 2× the number of failures
+that fed the mining.
+
+### Pre-registered expectations
+
+1. **M ≥ O on held-out perturbed instances.** *Medium.* O is selecting on
+   symptom (arm motion) and will over-sample late-episode drift states.
+2. **O ≥ R on held-out perturbed instances.** *Medium-high.* Any targeting
+   beats none.
+3. **R ≥ M and R ≥ O on the nominal control**, i.e. the targeted arms cost
+   some nominal performance. *Medium-low.* If M shows **no** regression on
+   nominal that is the strongest possible case for mechanism targeting.
+4. **M's gain concentrates in the category it was targeted at**, O's spreads
+   thin. *Medium.*
+
+### What would make this uninterpretable
+
+Fewer than 10 held-out instances per perturbation category, or a nominal
+control that does not reproduce R-029's 100/100 before post-training.
+
+### RESULT, 2026-09-23 — all 70 episodes, rc=0
+
+`runs/r037_{A_nominal,B_vision,C_telemetry}`. Arm A 20 episodes, B 30 (20
+success / 10 fail), C 20 (9 success / 11 fail). Labels from this run.
+
+#### Q1 — detection: % of forwards outside the NOMINAL cloud
+
+| signal | A self | B vision | C telemetry |
+|---|---|---|---|
+| `vl_encoder_mean` (S1) | 3.0% | **46.6%** | 31.6% |
+| `vl_encoder_img_mean` | 3.4% | **43.4%** | 30.5% |
+| `vl_encoder_txt_mean` | 2.6% | 23.8% | 1.7% |
+| `vl_adapted_mean` (S2) | 4.9% | **7.5%** | 7.8% |
+| `vl_adapted_img_mean` | 4.9% | **6.4%** | 5.9% |
+| `state_encoded` (S0e) | 4.4% | 19.6% | **54.4%** |
+
+**EXPECTATION 1 HOLDS, AND IT RESCUES R-036 FROM AMBIGUITY.** A vision
+perturbation moves the VL encoder hard — 46.6% against a 3.0% baseline. **The
+instrument is not deaf.** So R-036's flat VL rows are a genuine negative about
+S2, not an artefact of a broken tap.
+
+#### The finding: the adapter destroys the visual signal before the action head sees it
+
+Threshold-crossing rates could be a threshold artefact, so the same comparison on
+raw median nearest-neighbour distance:
+
+| tap | nominal | arm B | ratio |
+|---|---|---|---|
+| `vl_encoder` — pre-`vlln` (S1) | 7.580 | 10.357 | **1.37x** |
+| `vl_normed` — post-`vlln` (S1.5) | 1.797 | 2.471 | **1.38x** |
+| `vl_adapted` — post-attention (S2) | 18.500 | 18.938 | **1.02x** |
+
+**`vlln` PRESERVES the perturbation signal (1.37 -> 1.38). `vl_self_attention`
+DESTROYS it (1.38 -> 1.02).** Not the LayerNorm — the four-block VL
+self-attention. This is why S2 was flat in R-036: **the information is present in
+the VLM's output and is gone by the time the action head receives it.**
+
+This also retroactively justifies capturing S1, S1.5 and S2 separately. With
+only S2 the conclusion would have been "GR00T cannot see the perturbation",
+which is false. With only S1 it would have been "it can", which is true and
+misleading. **The finding lives in the difference, and only the three-tap capture
+could see it.**
+
+#### Q2 — discrimination: pass vs fail within each arm
+
+| signal | B vision sep (p) | C telemetry sep (p) |
+|---|---|---|
+| `vl_encoder_mean` | 0.00x (0.53) | **9.26x (0.015)** |
+| `vl_encoder_img_mean` | 0.00x (0.53) | **7.11x (0.024)** |
+| `vl_adapted_mean` | 0.95x (0.91) | 1.46x (0.37) |
+| `state_encoded` | 2.36x (0.27) | **4.25x (0.031)** |
+
+**NOTHING predicts failure within vision perturbations** — not even the signal
+that detects them at 46.6%. Detecting that the scene changed and predicting
+whether the policy will cope are different problems, and GR00T's own
+representations solve only the first.
+
+**⚠ NEITHER Q2 RESULT SURVIVES MULTIPLE-COMPARISON CORRECTION.** 7 signals x 2
+arms = 14 tests; Bonferroni at alpha=0.05 needs p < 0.0036. The best is p=0.015.
+With 10 and 11 failures these are suggestive and nothing more, and should not be
+quoted as significant.
+
+#### Scorecard against the pre-registration
+
+| # | prediction | outcome |
+|---|---|---|
+| 1 | arm B moves VL signals | **HELD** — 46.6% vs 3.0%. Load-bearing, and it passed |
+| 2 | arm C moves `state_encoded` | **HELD** — 54.4% vs 4.4% |
+| 3 | off-diagonals weak | **WRONG** — arm C moves `vl_encoder` 31.6%. Explicable after the fact: the robot arm is IN the camera image, so a joint-space perturbation is also a visual one. Registered as wrong rather than reinterpreted |
+| 4 | image-pooled > combined | **WRONG** — 43.4% vs 46.6%, image-pooled slightly LOWER. **Modality mixing was not material for detection, and R-036 caveat 3a is DOWNGRADED accordingly**, exactly as pre-registered |
+| 5 | Q2 weaker than Q1 in arm B | **HELD**, dramatically — 46.6% detection against 0.00x discrimination |
+| 6 | `state_encoded` separates in every arm | **WRONG** — fails in arm B (2.36x, p=0.27). It does not separate vision failures |
+
+Four held, three wrong — #3, #4 and #6. **#6 being wrong is good news**:
+R-036's worry that `state_encoded` merely restates "this episode went wrong" is
+weakened, because a pure went-wrong detector should have fired in arm B too.
+
+#### What this does not establish
+
+Causation is untouched: `vl_encoder` separating arm-C failures at 9.26x may
+still be drift accompanying failure. And the vl_self_attention result is a
+**correlational localisation** — it shows where the signal stops being linearly
+recoverable by nearest-neighbour distance, not that the block causally discards
+it. An intervention would be needed for that.

@@ -161,3 +161,23 @@ def score_run(cap_dir, signal: str, alpha: float = 0.05,
     return Result(signal, thr, rate, len(frac[True]), len(frac[False]),
                   float(s.mean()), float(f.mean()),
                   float(f.mean() / max(s.mean(), 1e-9)), p)
+
+
+def detection_rate(arm: list[np.ndarray], reference: list[np.ndarray],
+                   threshold: float, leave_one_out: bool = False) -> float:
+    """Q1: what fraction of an arm's forwards fall outside the nominal cloud?
+
+    This is the question R-036 never asked. It gates Q2: if a perturbation does
+    not move a signal at all, a pass/fail null within that perturbation says
+    the instrument is deaf, not that the model is blind.
+
+    `leave_one_out` is REQUIRED when scoring the nominal arm against itself --
+    otherwise each episode finds its own points at distance 0 and reads 0%,
+    making every ratio against it a division by epsilon (O8).
+    """
+    out = []
+    for i, ep in enumerate(arm):
+        cloud = (np.concatenate(reference[:i] + reference[i + 1:])
+                 if leave_one_out else np.concatenate(reference))
+        out.append(float((nn_distance(ep, cloud) > threshold).mean()))
+    return float(np.mean(out)) if out else float("nan")

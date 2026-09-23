@@ -32,11 +32,23 @@ def _cell_id(env, policy, seed, spec) -> str:
                      _sem(env))
 
 
-def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
-    """One episode. Knobs are set at reset and frozen for its duration."""
+def rollout(env, policy, seed: int, spec: PerturbationSpec,
+            video_dir: str | None = None) -> Rollout:
+    """One episode. Knobs are set at reset and frozen for its duration.
+
+    `video_dir`: record the frames the policy was shown to
+    `<video_dir>/<rollout_id>.mp4` (vla_harness/video.py). The id is computable
+    before the episode, so the file is named by the same key as its trace.
+    """
     t0 = time.perf_counter()
     obs = env.reset(seed, spec)
     policy.reset()
+    vid = None
+    if video_dir:
+        import os
+        from .video import EpisodeVideo
+        vid = EpisodeVideo(os.path.join(
+            video_dir, _cell_id(env, policy, seed, spec) + ".mp4"))
     steps, env_steps = [], 0
     fwd0 = getattr(policy, "model_forwards", 0)   # per-rollout delta
 
@@ -46,6 +58,8 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
         # and policy_view() itself is unchanged -- a flag on the strict path
         # would reintroduce the convention-vs-enforcement weakness that caused
         # the original `_gt_` leak.
+        if vid is not None:
+            vid.add(obs.frames)
         action = policy(obs if getattr(policy, "privileged", False)
                         else obs.policy_view())
         env_steps += 1
@@ -62,6 +76,10 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
     # so the very moment the task was completed is the one moment not recorded.
     steps.append(Step(t=obs.t, obs_state=dict(obs.state), action=None,
                       image_refs=dict(obs.image_refs)))
+    video_meta = None
+    if vid is not None:
+        vid.add(obs.frames)                    # the frame success was decided on
+        video_meta = vid.close()
 
     r = Rollout(
         rollout_id=_cell_id(env, policy, seed, spec),
@@ -77,7 +95,8 @@ def rollout(env, policy, seed: int, spec: PerturbationSpec) -> Rollout:
                                          if hasattr(policy, "resolved_config") else {}),
               "control_mode": getattr(env, "control_mode", None),
               "max_steps": getattr(env, "max_steps", None),
-              "obs_size": getattr(env, "obs_size", None)},
+              "obs_size": getattr(env, "obs_size", None),
+              "video": video_meta},
         fingerprint=make_fingerprint(env, policy),
         scene_descriptor=(env.scene_descriptor()
                           if hasattr(env, "scene_descriptor") else {}),
@@ -137,7 +156,8 @@ class Cell:
 
 
 def run_cell(env, policy, spec, seeds, store: TraceStore | None = None,
-             strict: bool = False, arms=None, arm: str = "uniform") -> Cell:
+             strict: bool = False, arms=None, arm: str = "uniform",
+             video_dir: str | None = None) -> Cell:
     """G10: resumable, and the resume is VERIFIED rather than trusted.
 
     Two distinct failure modes are guarded here:
@@ -178,7 +198,7 @@ def run_cell(env, policy, spec, seeds, store: TraceStore | None = None,
                 r = None                       # fall through and re-run
 
         if r is None:
-            r = rollout(env, policy, sd, spec)
+            r = rollout(env, policy, sd, spec, video_dir=video_dir)
             fresh_n += 1
             if store:
                 store.append(r)
