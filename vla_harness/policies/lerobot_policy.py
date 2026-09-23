@@ -256,11 +256,13 @@ class LeRobotPolicy:
             self._sink.begin_episode()
             self._capture_env_steps = []
 
-    def __call__(self, obs: Observation) -> Action:
+    def _build_batch(self, obs: Observation) -> dict:
+        """The policy's input for one Observation, through LeRobot's own
+        env- and policy-preprocessor pipelines. Shared by `__call__` and
+        `features_for`, so a nominal render is tokenised, flipped and
+        normalised exactly as the frame the policy acts on."""
         import torch
         import numpy as np
-        if self._policy is None:
-            self._load()
         # Hand LeRobot the NESTED robot_state and let LiberoProcessorStep build
         # `observation.state` itself. It concatenates eef_pos + axis-angle +
         # gripper_qpos, and does the quaternion conversion with ITS convention.
@@ -300,7 +302,53 @@ class LeRobotPolicy:
             st = np.asarray(self.state_fn(obs), dtype=np.float32)
             batch[STATE_KEY] = torch.from_numpy(st).unsqueeze(0).to(self.device)
         batch["task"] = [obs.instruction]
+        # LeRobot's own pipelines -- tokenisation and normalisation live here.
+        if self._env_pre is not None:
+            batch = self._env_pre(batch)
+        return self._pre(batch)
 
+    def features_for(self, obs: Observation) -> dict:
+        """Backbone + encode for `obs`, WITHOUT acting: the R-039 paired source.
+
+        Returns what the splice substitutes -- `backbone_features` as the DiT
+        cross-attends to them (post `vlln` + `vl_self_attention`),
+        `state_features`, and `image_mask` -- for a nominal Observation at the
+        current sim state. Does not touch the action queue, does not count a
+        model forward, and stages nothing into the capture sink: the vlln
+        hooks fire here exactly as on a real forward, so the sink is paused.
+        GR00T N1.7 only, via `_groot_model` (modeling_groot.py:82).
+        """
+        import contextlib
+        import torch
+        if self._policy is None:
+            self._load()
+        model = getattr(self._policy, "_groot_model", None)
+        if model is None:
+            raise RuntimeError(
+                f"{type(self._policy).__name__} has no `_groot_model`; "
+                f"features_for is GR00T N1.7 structure (modeling_groot.py:82)")
+        batch = self._build_batch(obs)
+        filt = getattr(self._policy, "_filter_groot_inputs", None)
+        inputs = filt(batch, include_action=False) if filt is not None else batch
+        pause = self._sink.paused() if self._sink is not None else contextlib.nullcontext()
+        with torch.inference_mode(), pause:
+            backbone_inputs, action_inputs = model.prepare_input(inputs)
+            bo = model.backbone(backbone_inputs)
+            image_mask = bo["image_mask"] if "image_mask" in bo else getattr(bo, "image_mask", None)
+            attn = (bo["backbone_attention_mask"] if "backbone_attention_mask" in bo
+                    else getattr(bo, "backbone_attention_mask", None))
+            feats = model.action_head._encode_features(bo, action_inputs)
+        out = {"backbone_features": feats["backbone_features"].detach().clone(),
+               "state_features": feats["state_features"].detach().clone(),
+               "image_mask": image_mask.detach().clone()}
+        if attn is not None:
+            out["backbone_attention_mask"] = attn.detach().clone()
+        return out
+
+    def __call__(self, obs: Observation) -> Action:
+        import torch
+        if self._policy is None:
+            self._load()
         # A chunked policy only runs the model when its action queue is empty;
         # every other call pops a cached action. Counting calls therefore
         # overstates model invocations by up to n_action_steps (vla-81,
@@ -309,10 +357,7 @@ class LeRobotPolicy:
         q = getattr(self._policy, "_action_queue", None)
         ran_model = q is None or len(q) == 0
 
-        # LeRobot's own pipelines -- tokenisation and normalisation live here.
-        if self._env_pre is not None:
-            batch = self._env_pre(batch)
-        batch = self._pre(batch)
+        batch = self._build_batch(obs)
         with torch.inference_mode():
             a = self._policy.select_action(batch)
         if ran_model:

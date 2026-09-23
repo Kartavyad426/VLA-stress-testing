@@ -15,6 +15,8 @@ today, which is the only reason that constraint is currently satisfied.
 """
 from __future__ import annotations
 
+import contextlib
+
 import json
 import os
 import warnings
@@ -81,6 +83,7 @@ class CaptureSink:
         self._episode: list[dict] = []
         self._pending: dict = {}
         self._mask = None
+        self._paused = False
 
     def set_token_mask(self, mask) -> None:
         """Which VL tokens are IMAGE tokens, for the forward being assembled.
@@ -121,7 +124,26 @@ class CaptureSink:
 
     def stage(self, role: Role, value) -> None:
         """Record one tensor for the forward currently being assembled."""
+        if self._paused:
+            return
         self._pending[role.value] = value
+
+    @contextlib.contextmanager
+    def paused(self):
+        """Run the tapped modules WITHOUT staging into the current forward.
+
+        R-039's paired source runs `vlln` and `vl_self_attention` on a nominal
+        render between two real forwards. Those modules carry the capture's
+        hooks, so without this the nominal S1/S1.5 would land in `_pending`
+        and be written as the NEXT forward's tap -- a silent misjoin that no
+        gate on the written file could see.
+        """
+        prev = self._paused
+        self._paused = True
+        try:
+            yield
+        finally:
+            self._paused = prev
 
     def note(self, key: str, value) -> None:
         """Record a scalar fact about the current forward (shapes, counts).
@@ -130,6 +152,8 @@ class CaptureSink:
         they exist so a gate can assert what the tap SAW before any slicing,
         and they are not written as feature arrays.
         """
+        if self._paused:
+            return
         self._pending[key] = value
 
     def commit_forward(self) -> None:

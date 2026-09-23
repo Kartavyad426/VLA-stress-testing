@@ -13,6 +13,8 @@ harness stays stdlib-only and testable without MuJoCo.
 """
 from __future__ import annotations
 
+import os
+
 import math
 import re
 from typing import Any
@@ -526,6 +528,73 @@ class LiberoEnv:
         for _ in range(3):
             raw, _, _, _ = outer._env.step(get_libero_dummy_action())
         return outer._format_raw_obs(raw)
+
+    # --- R-039 paired render: the trained condition at the CURRENT state ----
+    def nominal_frames(self) -> dict:
+        """Frames the policy would see RIGHT NOW under the trained condition.
+
+        Physics is not stepped. The perturbed camera / lights are swapped for
+        their nominal values in `sim.model`, forward kinematics recomputes the
+        world poses the renderer reads, observables are force-updated, and the
+        fields are restored. For a noise variant the inner env's observation is
+        already the pre-blur frame (env_wrapper.py:294-327). Verified in
+        experiments/paired_render_check.py: view 19.5 / light 44.3 mean-abs
+        pixel change, restore 0.001, qpos/qvel/time unchanged.
+
+        Only defined on a LIBERO-Plus variant; on anything else the frames ARE
+        nominal and the current ones are returned unchanged.
+        """
+        import numpy as np
+        from . import nominal
+        if not self.libero_plus:
+            px = self._raw.get("pixels", {})
+            return dict(px)
+        outer = self._env.unwrapped
+        wrapper = outer._env                       # LIBERO-plus ControlEnv
+        inner = wrapper.env                        # the BDDL domain (robosuite)
+        sim = inner.sim
+        name = self._libero_plus_variant().get("variant") or ""
+        knobs = nominal.variant_perturbations(name)
+        saved = {}
+        try:
+            if knobs["view"] is not None:
+                domain = type(inner).__module__.rsplit(".", 1)[-1]
+                domain = domain.removeprefix("libero_").removesuffix("_manipulation")
+                pos, quat = nominal.nominal_camera(domain)
+                cid = sim.model.camera_name2id(MAIN_CAMERA)
+                saved["cam"] = (cid, sim.model.cam_pos[cid].copy(), sim.model.cam_quat[cid].copy())
+                sim.model.cam_pos[cid] = np.asarray(pos)
+                sim.model.cam_quat[cid] = np.asarray(quat)
+            if knobs["light"] is not None:
+                base = nominal.base_scene_for(inner._arena_xml)
+                if not os.path.isabs(base):
+                    base = os.path.join(inner.custom_asset_dir, base)
+                lights = nominal.nominal_lights(base)
+                saved["lights"] = {k: getattr(sim.model, f"light_{k}").copy()
+                                   for k in ("diffuse", "dir", "specular", "pos")}
+                for lname, fields in lights.items():
+                    lid = sim.model.light_name2id(lname)
+                    for k, v in fields.items():
+                        getattr(sim.model, f"light_{k}")[lid] = np.asarray(v)
+            sim.forward()
+            raw = inner._get_observations(force_update=True)
+            return dict(outer._format_raw_obs(raw)["pixels"])
+        finally:
+            if "cam" in saved:
+                cid, p0, q0 = saved["cam"]
+                sim.model.cam_pos[cid] = p0
+                sim.model.cam_quat[cid] = q0
+            if "lights" in saved:
+                for k, arr in saved["lights"].items():
+                    getattr(sim.model, f"light_{k}")[:] = arr
+            if saved:
+                sim.forward()
+
+    def nominal_observation(self) -> Observation:
+        """`_obs()` with the frames swapped for `nominal_frames()`."""
+        obs = self._obs()
+        obs.frames = self.nominal_frames()
+        return obs
 
     # --- observation ------------------------------------------------------
     def _sim(self):
