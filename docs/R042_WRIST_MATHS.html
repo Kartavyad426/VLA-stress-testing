@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Wrist Camera Maths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* trigger-independent / structure */
+    --trigger:#A8481B;      /* the perturbed trigger and what it reaches */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:760px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600;}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  /* masthead */
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  /* section numbering that means something: parts, then theorems */
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  /* blocks */
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+
+  /* math */
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  /* figures */
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  dl.gloss{margin:0;} dl.gloss dt{font-family:var(--sans); font-weight:600; margin-top:.9em;} dl.gloss dd{margin:.15em 0 0 0; font-size:.97rem;}
+  .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted);}
+  .footer a{word-break:break-word;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="mast">
+  <p class="eyebrow">Reference · R-042 · start-pose perturbations</p>
+  <h1>How the wrist camera was found</h1>
+  <p class="standfirst">The intervention, the arithmetic, the ten numbers it rests on, and the other ways the same claim could be checked, with which of them have actually been run.</p>
+  <div class="meta"><span>2026-09-23</span><span>RESULTS.md R-039, R-042</span><span><a href="R039_MATHS.html">general splice maths</a></span></div>
+</header>
+
+<section>
+<p class="part">1 · The claim</p>
+<h2>What is being asserted, and what is not</h2>
+<p>When the robot starts from a perturbed joint configuration, the change in the policy's first action is carried by what the <strong>wrist camera</strong> sees, not by the eight-number proprioception and not by the third-person view of the arm. The claim is about <em>which input the action head reads the pose from</em>. It is not a claim about what the vision encoder represents, nor about later forwards, nor about any checkpoint other than this one.</p>
+</section>
+
+<section>
+<p class="part">2 · The intervention</p>
+<h2>Hybrid observations through the whole stack</h2>
+<p>A start-pose instance has a perturbed run <span class="m">p</span> and a control run <span class="m">n</span> of the same scene under the same seed and the same fixed noise. At forward 0 both are at their reset state, so the comparison is exact. Write <span class="m">V</span> for the vision-language backbone followed by the adapter, <span class="m">E</span> for the state encoder, <span class="m">h</span> for the action head, and an observation as (agent image, wrist image, state).</p>
+<div class="thm"><div class="thm-label">The two per-camera arms</div><div class="thm-body">
+<span class="eq"><span class="m">a</span><sub>P</sub> = h( V(agent<sub>p</sub>, wrist<sub>p</sub>), E(state<sub>p</sub>); ε )</span>
+<span class="eq"><span class="m">a</span><sub>N</sub> = h( V(agent<sub>n</sub>, wrist<sub>n</sub>), E(state<sub>n</sub>); ε )</span>
+<span class="eq"><span class="m">a</span><sub>A</sub> = h( V(<b>agent<sub>n</sub></b>, wrist<sub>p</sub>), E(state<sub>p</sub>); ε ) &nbsp;&nbsp; <span class="m">a</span><sub>W</sub> = h( V(agent<sub>p</sub>, <b>wrist<sub>n</sub></b>), E(state<sub>p</sub>); ε )</span>
+The nominal pixels of one camera are put in <em>before</em> the backbone, so everything downstream, including the text positions that R-039 showed carry image content, is recomputed. The other camera and the state stay perturbed. This is an interchange intervention on one input at the pixel level (Geiger et al. 2021), run as denoising (Heimersheim &amp; Nanda 2024).
+</div></div>
+<div class="thm trig"><div class="thm-label">Transfer, as in R-039</div><div class="thm-body">
+<span class="eq">τ<sub>X</sub> = 1 − ‖<span class="m">a</span><sub>X</sub> − <span class="m">a</span><sub>N</sub>‖ / ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖, &nbsp; X ∈ {A, W}</span>
+The share of the perturbed-to-nominal gap in the 280-number action chunk that restoring one camera alone closes. The control of the state token, r<sub>0</sub> = 0.10 (R-039), is the third leg: restoring the state alone closes 4 percent, deleting it changes the action by 10 percent of the gap.
+</div></div>
+</section>
+
+<section>
+<p class="part">3 · The numbers</p>
+<h2>All ten start-pose instances at forward 0</h2>
+<div class="tbl-scroll"><table>
+<thead><tr><th>task</th><th>scene · initstate</th><th>outcome</th><th>‖P−N‖</th><th>S</th><th>T</th><th>I</th><th>IT</th><th>A · agent</th><th>W · wrist</th><th>W − A</th></tr></thead>
+<tbody><tr><td>281</td><td>between-plate-ramekin · initstate 401</td><td class='no'>fail</td><td class=num>7.80</td><td class=num>0.03</td><td class=num>0.52</td><td class=num>0.87</td><td class=num>0.97</td><td class=num>0.26</td><td class=num><b>0.90</b></td><td class=num>+0.64</td></tr><tr><td>313</td><td>next-to-ramekin · initstate 342</td><td class='no'>fail</td><td class=num>4.02</td><td class=num>-0.04</td><td class=num>0.72</td><td class=num>0.82</td><td class=num>0.98</td><td class=num>0.64</td><td class=num><b>0.92</b></td><td class=num>+0.28</td></tr><tr><td>416</td><td>top-drawer · initstate 385</td><td class='no'>fail</td><td class=num>4.07</td><td class=num>0.11</td><td class=num>0.43</td><td class=num>0.83</td><td class=num>0.97</td><td class=num>0.47</td><td class=num><b>0.88</b></td><td class=num>+0.41</td></tr><tr><td>430</td><td>on-ramekin · initstate 126</td><td class='yes'>success</td><td class=num>4.55</td><td class=num>-0.03</td><td class=num>0.17</td><td class=num>0.83</td><td class=num>0.97</td><td class=num>-0.03</td><td class=num><b>0.89</b></td><td class=num>+0.92</td></tr><tr><td>468</td><td>next-to-cookie-box · initstate 257</td><td class='no'>fail</td><td class=num>5.21</td><td class=num>0.09</td><td class=num>0.23</td><td class=num>0.87</td><td class=num>0.97</td><td class=num>0.12</td><td class=num><b>0.88</b></td><td class=num>+0.76</td></tr><tr><td>484</td><td>next-to-cookie-box · initstate 487</td><td class='no'>fail</td><td class=num>4.21</td><td class=num>0.11</td><td class=num>0.29</td><td class=num>0.85</td><td class=num>0.96</td><td class=num>0.22</td><td class=num><b>0.87</b></td><td class=num>+0.65</td></tr><tr><td>485</td><td>next-to-cookie-box · initstate 497</td><td class='yes'>success</td><td class=num>3.83</td><td class=num>0.15</td><td class=num>0.28</td><td class=num>0.85</td><td class=num>0.95</td><td class=num>0.33</td><td class=num><b>0.66</b></td><td class=num>+0.33</td></tr><tr><td>491</td><td>on-stove · initstate 118</td><td class='no'>fail</td><td class=num>1.69</td><td class=num>0.04</td><td class=num>0.29</td><td class=num>0.81</td><td class=num>0.93</td><td class=num>0.12</td><td class=num><b>0.83</b></td><td class=num>+0.71</td></tr><tr><td>524</td><td>on-stove · initstate 458</td><td class='no'>fail</td><td class=num>2.34</td><td class=num>0.03</td><td class=num>-0.08</td><td class=num>0.80</td><td class=num>0.95</td><td class=num>0.10</td><td class=num><b>0.73</b></td><td class=num>+0.63</td></tr><tr><td>548</td><td>next-to-plate · initstate 299</td><td class='yes'>success</td><td class=num>2.32</td><td class=num>0.02</td><td class=num>0.07</td><td class=num>0.79</td><td class=num>0.93</td><td class=num>-0.00</td><td class=num><b>0.90</b></td><td class=num>+0.90</td></tr>
+<tr><td colspan=3><b>median</b></td><td class=num>4.04</td><td class=num>0.04</td><td class=num>0.28</td><td class=num>0.83</td><td class=num>0.96</td><td class=num>0.17</td><td class=num><b>0.88</b></td><td class=num>+0.71</td></tr>
+</tbody></table></div>
+<p>Three facts the table establishes. <strong>W exceeds A on 10 of 10</strong>, by at least 0.28 and by 0.71 at the median. <strong>Restoring the wrist alone closes 66 to 92 percent of the gap</strong> while the state and the agent view stay perturbed. <strong>Restoring the agent view alone closes almost nothing on 7 of 10</strong> (−0.03 to 0.26), even though the arm is plainly visible in it. The last is the discriminating fact: if the head read its pose from the third-person view, A would be high.</p>
+<p>Consistency checks in the same rows. IT, both token blocks restored with the state perturbed, sits at 0.93 to 0.98, so everything outside the images and text is worth at most 7 percent, matching the state control. A + W − IT ranges from −0.12 to +0.59, i.e. the two cameras are roughly additive on eight instances and super-additive on two, so there is no cross-camera interaction to explain here, unlike lighting.</p>
+</section>
+
+<section>
+<p class="part">4 · Why this is causal and not a correlation</p>
+<h2>What rules out the alternatives</h2>
+<ul class="tight">
+<li><b>"The wrist image simply changes more under a pose change, so of course restoring it does more."</b> Magnitude of the pixel change is not what τ measures. τ measures how much the <em>action</em> moves when that input is set to nominal with the rest held. A large pixel change that the head ignored would give τ ≈ 0. And A is the counter-case: the agent-view image also changes, and restoring it moves the action 17 percent.</li>
+<li><b>"The proprioception carries it and the cameras are incidental."</b> S = 0.04 with the state restored alone, and deleting the state token outright changes the action by 10 percent of the gap. The training config's state dropout of 0.2 is the mechanism.</li>
+<li><b>"It is an artefact of the hybrid observation."</b> The same hybrid built on camera-viewpoint and sensor-noise instances, where only the agent view is perturbed by construction, gave W = 0.00 ± 0.02 on all twenty and A = 0.95 to 0.99. The wrist arm reads zero exactly when it should.</li>
+<li><b>"Noise."</b> The five arms share one seeded ε per forward; the perturbed and nominal chunks replicate R-039's to 0.03; the per-instance spread of W is 0.66 to 0.92.</li>
+</ul>
+</section>
+
+<section>
+<p class="part">5 · Other ways to check it</p>
+<h2>Run, and not run</h2>
+<div class="tbl-scroll"><table>
+<thead><tr><th>check</th><th>what it would show</th><th>status</th></tr></thead>
+<tbody>
+<tr><td>State-token deletion and randomisation</td><td>the state pathway is near-inert independent of any splice</td><td class="yes">run (R-039), r<sub>0</sub> = 0.10</td></tr>
+<tr><td>Per-camera sanity on categories that perturb one camera</td><td>the hybrid is built correctly; W reads 0 when the wrist is untouched</td><td class="yes">run (R-042), 20/20</td></tr>
+<tr><td>Both token blocks restored (IT)</td><td>nothing outside images and text carries more than 7 percent</td><td class="yes">run (R-042), 10/10 ≥ 0.93</td></tr>
+<tr><td><b>Reverse direction ("noising")</b>: put the <em>perturbed</em> wrist pixels into the <em>nominal</em> run and ask how far the action moves toward P</td><td>the wrist is sufficient as well as necessary; Heimersheim &amp; Nanda recommend both directions since they can disagree under redundancy</td><td class="no">not run · cheapest next check, 10 forwards</td></tr>
+<tr><td>Per-region splice within the wrist frame (gripper region vs background)</td><td>whether it is the gripper's own appearance or the near scene as seen from the new pose</td><td class="no">not run · needs a mask on the wrist frame</td></tr>
+<tr><td>Cross-attention mass of the DiT on wrist vs agent tokens at forward 0</td><td>observational corroboration only; attention is not causation</td><td class="no">not run · free from the capture hooks</td></tr>
+<tr><td>Per-camera pixel-change magnitude ‖wrist<sub>p</sub> − wrist<sub>n</sub>‖ vs agent</td><td>a prior on which camera moved more; explicitly not a test of use</td><td class="no">not measured</td></tr>
+<tr><td>Repeat over seeds and on a second checkpoint</td><td>whether the wrist reading is this checkpoint's habit or the architecture's</td><td class="no">not run</td></tr>
+</tbody></table></div>
+<p>The first three together already close the alternatives in section 4. The reverse-direction check is the one worth adding before the claim is used to specify data collection, because a redundant representation, pose readable from either camera, would show high W in the denoising direction and low W in the noising direction, and that would change the data spec from "wrist must cover the new poses" to "either camera may".</p>
+</section>
+
+<section>
+<p class="part">6 · Scope</p>
+<h2>What it does not say</h2>
+<p>Ten instances, one seed each, one checkpoint, forward 0 exact and later forwards a bound. Two instances (430, 485) fall to 0.25 and −0.19 on W at their anchor forward while IT stays above 0.9, so later in those episodes the wrist is no longer the whole story and the recorded source is off-manifold; those are reported as bounds, not results. The claim is about where the head reads its pose at the first decision, which is the decision the data specification has to cover.</p>
+</section>
+
+<div class="footer">Sources: <code>runs/r042/analysis.json</code>, <code>runs/r039_state_token_check.json</code>, <code>RESULTS.md</code> R-039 and R-042; method references in <a href="R039_MATHS.html">R039_MATHS.html</a>.</div>
+</div>
+</body>
+</html>
