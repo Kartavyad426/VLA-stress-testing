@@ -112,6 +112,7 @@ MAX_STEPS = {"libero_spatial": 280, "libero_object": 280, "libero_goal": 300,
 SUPPORTED_KNOBS: set[str] = {
     "camera_yaw_deg", "camera_pitch_deg", "camera_dist_m",
     "ee_offset_x_m", "ee_offset_y_m", "light_intensity",
+    "joint_radius_rad", "joint_dir_seed",
 }
 MAIN_CAMERA = "agentview"
 
@@ -409,6 +410,18 @@ class LiberoEnv:
             qpos = sim.data.qpos
             qpos[0] += dy * 2.0
             qpos[1] += dx * 2.0
+            sim.forward()
+
+        r = k.get("joint_radius_rad", 0.0)
+        if r:
+            # R-041 state axis, R-035's definition: the arm's 7 joints move
+            # from their reset pose along a seeded isotropic unit direction by
+            # r radians. Joint indices come from robosuite, not assumed.
+            from . import nominal
+            robot = self._env.unwrapped._env.env.robots[0]
+            idx = np.asarray(robot._ref_joint_pos_indexes)
+            d = nominal.joint_direction(int(k.get("joint_dir_seed", 0)), n=len(idx))
+            sim.data.qpos[idx] = sim.data.qpos[idx] + r * d
             sim.forward()
 
         li = k.get("light_intensity", 0.0)

@@ -109,3 +109,13 @@ def nominal_lights(base_xml_path: str) -> dict[str, dict[str, list[float]]]:
                 fields[key] = [float(x) for x in el.get(key).split()]
         out[name] = fields
     return out
+
+
+def joint_direction(seed: int, n: int = 7):
+    """Isotropic random unit direction in joint space, fixed by seed -- the
+    R-035 / LIBERO-Plus definition of a robot-initial-state perturbation of
+    radius r: init_qpos + r * direction (fork: robots/mounted_panda.py, each
+    MountedPandaN is such a point)."""
+    import numpy as np
+    v = np.random.default_rng(int(seed)).standard_normal(n)
+    return v / np.linalg.norm(v)

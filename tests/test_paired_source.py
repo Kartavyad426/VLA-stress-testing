@@ -234,3 +234,22 @@ def test_knob_nominal_restores_the_camera_and_lights_saved_before_the_knob():
     LiberoEnv._write_model_fields(m, cam_id=0, fields=saved)
     assert m.cam_pos[0].tolist() == [0.65, 0.0, 1.6]
     assert m.light_diffuse[0].tolist() == [0.8, 0.8, 0.8]
+
+
+# --- R-041 state axis: a joint-space radius knob, R-035's definition -----------
+
+def test_joint_direction_is_a_unit_vector_fixed_by_seed():
+    from vla_harness.envs.nominal import joint_direction
+    a = joint_direction(seed=3, n=7)
+    b = joint_direction(seed=3, n=7)
+    c = joint_direction(seed=4, n=7)
+    assert a.shape == (7,) and abs(np.linalg.norm(a) - 1) < 1e-9
+    assert np.array_equal(a, b) and not np.array_equal(a, c)
+
+
+def test_joint_radius_knob_is_a_known_initial_state_knob():
+    from vla_harness.schema import PerturbationSpec
+    from vla_harness.envs.libero_env import SUPPORTED_KNOBS
+    s = PerturbationSpec.of(joint_radius_rad=0.2, joint_dir_seed=5)
+    assert s.factors() == {"initial_state"}
+    assert {"joint_radius_rad", "joint_dir_seed"} <= SUPPORTED_KNOBS

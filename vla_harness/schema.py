@@ -98,7 +98,7 @@ class Step:
 
 LIBERO_PLUS_FACTORS = {
     "camera_pose":   ["camera_yaw_deg", "camera_pitch_deg", "camera_dist_m"],
-    "initial_state": ["ee_offset_x_m", "ee_offset_y_m"],
+    "initial_state": ["ee_offset_x_m", "ee_offset_y_m", "joint_radius_rad", "joint_dir_seed"],
     "object_layout": ["object_shift_m", "distractor_count"],
     "lighting":      ["light_intensity"],
     "texture":       ["texture_id"],

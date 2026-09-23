@@ -2738,7 +2738,25 @@ source from the magnitude-0 rollout of the same task and seed.
 Budget: 10 × 4 × 7 = **280 rollouts**, ~45 s each, ~3.5 h GPU. Run per axis
 so a partial run is still a result per axis.
 
-### Two boundaries, in this order
+### Bisection allocation and the state axis, fixed 2026-09-23 before any rollout
+
+Seven rollouts per (task, axis), allocated so that BOTH boundaries get a
+bracket: (1) one rollout at the range maximum; if the action criterion is
+not met there the axis has no boundary in range for that task and stops.
+(2) Four bisection steps on the ACTION criterion in [0, max], giving a
+bracket of 1/16 of the range. (3) Two bisection steps on the OUTCOME in
+[action-boundary bracket, max], since the outcome boundary cannot lie
+below the action boundary. Every rollout records all five splice arms.
+
+The state axis is the harness knob `joint_radius_rad` with
+`joint_dir_seed`: the arm's seven joints move from their reset pose along a
+seeded isotropic unit direction by r radians. That is the fork's own
+construction of its robot-initial-state variants (each `MountedPandaN` is
+`init_qpos + r·direction`, r in blocks of 0.1), so R-035's radius is now a
+continuous knob rather than a lookup into the catalogue. Its source is the
+recorded magnitude-0 rollout of the same task and seed, at forward 0 the one
+clean counterfactual, later forwards a bound.
+
 
 1. **Action boundary (primary).** The smallest magnitude at which, at
    forward 0, the P chunk departs from the N chunk by more than τ on the
