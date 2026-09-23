@@ -1,5 +1,7 @@
 # Handoff — mining layer, 2026-09-16
 
+> **Status as of 2026-09-23:** Historical (SmolVLA traces; SmolVLA is now vetoed). TRANSPORT over-firing was fixed (R-006) and the goal re-run is done (R-019, R-020). Mining now runs on GR00T: 155 failures of 623 LIBERO-Plus variants (R-026). The env also records `_gt_scene_object_pos` (every free-joint object, including distractors); `_gt_object_pos` has BDDL task objects only. Family labels and VLM labels (`experiments/vlm_label.py`) remain unvalidated. See `HANDOFF.md`, `RESULTS.md`.
+
 For whoever picks this up. `HANDOFF.md` has overall project state; this covers
 the mining layer specifically, which is where the live work is.
 

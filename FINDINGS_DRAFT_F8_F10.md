@@ -1,5 +1,7 @@
 # DRAFT — not yet applied to FINDINGS.md
 
+> **Status as of 2026-09-23:** Unapplied draft (2026-09-16, `PENDING_DECISIONS.md` #20), now moot: SmolVLA is vetoed, the F8 reframe is recorded as R-011, and the goal instrumentation gap below is closed (R-019, R-020). Do not apply without re-deciding. See `RESULTS.md`.
+
 Prepared 2026-09-16 for user approval (`PENDING_DECISIONS.md` #20). vla-81
 relayed that the owner wants F10 pinned. The F8 reframe it depends on was still
 an open decision in this session, so both are drafted here rather than written.

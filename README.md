@@ -9,10 +9,11 @@ The output is not a leaderboard score. It is a repeatable method for turning mod
 behaviour into a data strategy: what failed, under what conditions, how often, what it
 would cost, and whether more data would fix it at all.
 
-> **Status: prototype.** Phase 0 (supply-side coverage) and Phase 1 (harness + oracle
-> gate) are complete. Phase 2 (real policy on LIBERO) is in progress. Nothing here has
-> yet produced a client-facing result, and several findings below are open risks rather
-> than achievements. See [`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md).
+> **Status (2026-09-23): research prototype.** The harness reproduces published LIBERO
+> numbers and runs GR00T N1.7 on LIBERO-Plus. The work has moved from *measuring*
+> failures to *locating* them inside the policy (which pathway carries a perturbation
+> to the action) and designing the data that would fix them. Nothing here is
+> client-facing yet. New readers: start with [Reading order](#reading-order).
 
 ---
 
@@ -48,7 +49,7 @@ Five layers. The model is a plugin at L1; four of the five need no GPU.
 L4  manifest.py    Data Gap Manifest generation
 L3  mining/        phase detection · classification · clustering
 L2  envs/          ToyReachEnv → LIBERO → LIBERO-plus     (Env protocol)
-L1  policies/      ScriptedPolicy → SmolVLA → π0          (Policy protocol)
+L1  policies/      ScriptedPolicy → GR00T N1.7 · MINERVA  (Policy protocol)
 L0  schema.py      canonical Rollout contract + trace store
 ```
 
@@ -72,14 +73,18 @@ Two invariants worth knowing before reading the code:
 
 ```
 vla_harness/          the harness (L0–L4)
+  capture/            activation taps on GR00T (backbone, adapter, action head)
+  video.py            per-episode mp4, recorded by default
 experiments/
+  harness_eval.py     run a policy over LIBERO / LIBERO-Plus tasks through the harness
+  visualise_set.py    reference-vs-variants page: synced videos, signals, activations
+  vlm_label.py        VLM description of an episode (unvalidated; see RESULTS.md)
   oracle_test.py      the Phase-1 acceptance gate
   phase0/             supply-side coverage + predictions committed before measurement
-  repro/              SmolVLA/LIBERO reproduction, deliberately outside vla_harness
-docs/
-  REVIEW_SUMMARY.md   ← start here
-  LANDSCAPE.md        prior-art survey
-  reviews/            five detailed design reviews
+  repro/              LIBERO reproduction via lerobot-eval, outside vla_harness
+runs/                 one folder per run: metadata in git, traces and video not
+viz/                  generated pages (local; large ones are not committed)
+docs/                 see Reading order below
 ```
 
 ---
@@ -97,6 +102,23 @@ sweep → probe → classify → cluster → manifest pipeline, and checks the d
 against the fault that was planted. Validating a failure miner normally has no ground
 truth; planting the fault creates one.
 
+A GR00T run on LIBERO-Plus through the harness (announce and take the GPU lock first;
+other sessions share the card):
+
+```bash
+flock /tmp/vla_gpu.lock env MUJOCO_GL=egl PYTHONPATH=third_party/LIBERO-plus \
+  LIBERO_CONFIG_PATH=third_party/libero-plus-config \
+  .venvs/libero-plus/bin/python experiments/harness_eval.py \
+  --checkpoint nvidia/gr00t17-lerobot-libero_spatial-640 --n-action-steps 16 \
+  --override base_model_path=nvidia/GR00T-N1.7-3B --override embodiment_tag=libero_sim \
+  --dtype bfloat16 --obs-size 360 --libero-plus --base-instruction \
+  --rename-map '{"observation.images.image2": "observation.images.wrist_image"}' \
+  --suites libero_spatial --tasks 0,1 --episodes 1 --run-id my_run
+```
+
+To watch episodes side by side against an unperturbed reference:
+`experiments/visualise_set.py RUN:ROLLOUT_ID [RUN:ROLLOUT_ID ...]` (see its docstring).
+
 The LIBERO reproduction path needs the pinned environment (see
 [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) §3):
 
@@ -111,54 +133,104 @@ doesn't reproduce"* stays distinguishable from *"our adapter is buggy."*
 
 ## What we have established so far
 
-Full record in [`FINDINGS.md`](FINDINGS.md). The three that most change the plan:
+The running record is [`RESULTS.md`](RESULTS.md): its **Current state of knowledge**
+section and its **Index** of every experiment (R-001 onward). The headlines:
 
-**MuJoCo ≥ 3.4.0 silently breaks a LIBERO task, and a fresh install lands on the broken
-side.** A correct box-box collision fix invalidated LIBERO's stored initial states; on
-`libero_spatial` task 5 a SmolVLA fine-tune drops from 80% to 28%. LeRobot pins
-`mujoco<3.9.0`, which guards against API breaks and not behavioural ones. Left uncaught,
-this is a physics change masquerading as a model failure — it would have been clustered,
-attributed to a co-occurring perturbation, and written into a manifest row recommending
-a client buy bowl-on-ramekin demonstrations. Pinned to 3.3.7.
+- **The measuring instrument is sound.** MINERVA reproduces its published LIBERO score
+  (95.3% vs 95.75%). GR00T N1.7 runs the same through our harness as through
+  `lerobot-eval` (98 vs 97). Unperturbed LIBERO-Plus scenes score 100/100. SmolVLA was
+  dropped because it never reproduced a published number.
+- **Every policy here is behaviour-cloned from demonstrations**, so a failure under
+  perturbation is first a question about what those demonstrations covered.
+- **GR00T breaks mainly under robot-initial-state and camera perturbations.** That's
+  155 failures in 623 hard LIBERO-Plus variants, the same ordering as the LIBERO-Plus paper.
+- **Language is not inert.** With the instruction removed, GR00T falls from 100/100 to
+  50/100, from 0/10 to 10/10 depending on the scene. That overturns the published
+  "insensitive to language" reading.
+- **Inside the policy:** a visual perturbation is clearly visible in the vision-language
+  backbone's output and has almost vanished by the time the action head reads it. For
+  every perturbation type, the change reaches the action through the image tokens, not
+  the robot-state token.
+- **Some failures are wrong-object grasps**, which the original traces could not see.
+  The environment now records every object's position, not just the task objects.
 
-**The fine-tuning set contains zero camera-pose variation.** Phase 0 measured
-within-task end-effector spread of ~6 mm and rotational spread under 0.2°. Aggregate
-statistics are misleading — `eef_z` looks like it spans 0.40 m and is actually trimodal
-with zero mass between clusters. Predictions were committed before any stress run.
-
-**Published LIBERO numbers may not measure capability.** LIBERO-PRO reports models above
-90% collapsing to 0.0% under fair perturbation, with success going to zero once object
-displacement exceeds 0.2 units. If the baseline has memorised rather than generalised,
-more demonstrations in the failing region teach more memorisation — which makes
-`fixability: architecture` potentially the *modal* answer, not the rare one.
+Early findings that still stand: MuJoCo is pinned to 3.3.7, because ≥ 3.4.0 silently
+changes a LIBERO task; the fine-tuning data contains no camera-pose variation (Phase
+0); published LIBERO numbers can reflect memorisation (LIBERO-PRO). Details are in
+[`FINDINGS.md`](FINDINGS.md).
 
 ---
 
 ## Known open risks
 
-Carried honestly because the reviews exist to surface them:
-
 | | Risk |
 |---|---|
-| Reproduction gate | SmolVLA publishes ~87.3% on LIBERO; two independent open reports get 73.25% and ~67%. Against a ±5 pp gate that is a 14 pp gap, and there is no budget for a rented fallback reference. |
-| Oracle gate | Reports 3/4, but one fixture cannot fire, so the pass threshold equals the ceiling. It measures recall only — on a one-fault policy the pipeline emits a false second manifest row. |
-| Manifest completeness | `fixability`, `discriminators` and `failure_cost` are mandatory in the schema and not yet emitted. Confidence intervals are computed and dropped before the artifact. |
-| Regression set | Named as build item 7 of 7 in the proposal, referenced by every manifest row, and does not exist. Must be frozen *before* remediation data or Phase 5's comparison is contaminated. |
-| Phase coverage | Detectors stop at `transport` — no `place`, no `release`, no BDDL predicates. The second half of a LIBERO task is currently invisible to the miner. |
+| Failure labels | Failure-family labels are unvalidated, and the human adjudication sheet is at 0 of 80 verdicts. VLM labels are unvalidated too: the first test named the wrong grasped object. |
+| Correlation, not cause | The "signal vanishes in the adapter" localisation is correlational. The pathway result (R-039) is an intervention, but on 40 instances. |
+| Compute | One 8 GB GPU is shared by several sessions. The π0 family does not fit, so a second modern policy needs a rented GPU (PENDING #25). |
+| External claims | The action-atlas paper's GR00T layer ordering (arXiv:2603.19233) could not be reproduced: its code does not load under its own pinned versions. Treat it as unverified. |
+| Manifest | `fixability`, `discriminators` and `failure_cost` are still not emitted. The regression set named in the proposal does not exist yet and must be frozen before any remediation data. |
 
 ---
 
-## Documents
+## Reading order
 
-| | |
-|---|---|
-| [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) | the original proposal |
-| [`PLAN.md`](PLAN.md) | how we build it, on the hardware we have |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | who produces which data, and where to look when a number is wrong |
-| [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) | what we can run, on what, for how much |
-| [`FINDINGS.md`](FINDINGS.md) | running record of what we've established |
-| [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) | prior-art survey |
-| [`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) | design critique summary |
+For someone new to the project who wants a high-level picture of what has been done
+and what is happening now. About an hour, in this order:
+
+| | Read | What you get |
+|---|---|---|
+| 1 | [`docs/VLA_101.md`](docs/VLA_101.md) | What a VLA policy is, how it is trained (imitation of demonstrations), and the setups used here |
+| 2 | This README | What the project is for and what it has found |
+| 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
+| 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
+| 5 | [`HANDOFF.md`](HANDOFF.md) | What is running now, what is open, and the working conventions |
+| 6 | [`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html) | Where the work is heading: from a failure to a data specification |
+| 7 | [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) | The latest headline experiment: which pathway carries a perturbation to the action |
+
+### Extended reading
+
+**Project design:** [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) (the
+original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
+[`docs/FLOW.md`](docs/FLOW.md) · [`docs/COMPONENTS.md`](docs/COMPONENTS.md) ·
+[`IMPLEMENTATION.md`](IMPLEMENTATION.md)
+
+**Setup and benchmarks:** [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) ·
+[`docs/DATA_AND_BENCHMARKS.md`](docs/DATA_AND_BENCHMARKS.md) ·
+[`docs/LIBERO_PLUS_LEVELS.md`](docs/LIBERO_PLUS_LEVELS.md) ·
+[`docs/EXPERIMENT_PROCEDURE.md`](docs/EXPERIMENT_PROCEDURE.md) ·
+[`docs/BASELINE_FORENSICS.md`](docs/BASELINE_FORENSICS.md)
+
+**Decisions and history:** [`PENDING_DECISIONS.md`](PENDING_DECISIONS.md) ·
+[`FINDINGS.md`](FINDINGS.md) · [`NEXT_STEPS.md`](NEXT_STEPS.md) ·
+[`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) and [`docs/reviews/`](docs/reviews/)
+
+**Failure mining and taxonomy:** [`docs/OUR_MINING_APPROACH.md`](docs/OUR_MINING_APPROACH.md) ·
+[`docs/FAILURE_MINING_METHODS.md`](docs/FAILURE_MINING_METHODS.md) ·
+[`docs/TAXONOMY_FAMILY_GUIDELINES.md`](docs/TAXONOMY_FAMILY_GUIDELINES.md) ·
+[`docs/FAILURE_FAMILY_AUDIT.md`](docs/FAILURE_FAMILY_AUDIT.md) ·
+[`docs/RETRAINING_DEFAULT_TAXONOMY.md`](docs/RETRAINING_DEFAULT_TAXONOMY.md) ·
+[`docs/COVERAGE_GAP_METHOD.md`](docs/COVERAGE_GAP_METHOD.md)
+
+**Inside the policy (advanced):** [`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
+[`docs/EXP_EMBEDDING_OOD.md`](docs/EXP_EMBEDDING_OOD.md) ·
+[`docs/R039_MATHS.html`](docs/R039_MATHS.html) ·
+[`docs/EPISODE_RECORD_SCHEMA.md`](docs/EPISODE_RECORD_SCHEMA.md) ·
+[`docs/TRIGGER_MECHANISM_CALCULUS.html`](docs/TRIGGER_MECHANISM_CALCULUS.html) ·
+[`docs/VLA_JOIN_TOPOLOGY.html`](docs/VLA_JOIN_TOPOLOGY.html)
+
+**Prior art and related work:** [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) (238-source
+survey) · [`docs/SENTINEL_METHODOLOGY.html`](docs/SENTINEL_METHODOLOGY.html) ·
+[`docs/MIND_ROBOTICS_METHODOLOGY.html`](docs/MIND_ROBOTICS_METHODOLOGY.html) ·
+[`docs/POLICY_SIM_COUPLING.md`](docs/POLICY_SIM_COUPLING.md) ·
+[`docs/SIM_TO_REAL_TRANSFER.md`](docs/SIM_TO_REAL_TRANSFER.md) ·
+[`docs/REAL_SIM_PAIRED_DATA.md`](docs/REAL_SIM_PAIRED_DATA.md) ·
+[`docs/CONSUMER_ELICITATION_DESIGN.md`](docs/CONSUMER_ELICITATION_DESIGN.md)
+
+**Why "behaviour-cloned":** VLA policies are trained by imitating demonstrations, and
+fail out of distribution for exactly that reason. See VLA-RL (Lu et al., 2025,
+[arXiv:2505.18719](https://arxiv.org/abs/2505.18719)) and SimpleVLA-RL (Li et al., 2025,
+[arXiv:2509.09674](https://arxiv.org/abs/2509.09674)).
 
 `.venvs/` and `third_party/` are excluded from the repository; rebuild from the pinned
 versions recorded in each run's `provenance.txt`.

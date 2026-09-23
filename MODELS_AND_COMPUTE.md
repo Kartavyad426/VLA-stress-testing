@@ -4,6 +4,12 @@
 **Verified:** 2026-09-11 by web search. Re-verify before acting — this field moves fast.
 **Hardware baseline:** RTX PRO 1000 Blackwell laptop, **8 GB VRAM**, Linux (MuJoCo needs Linux — we qualify).
 
+> **Current roster (2026-09-23), measured, overrides everything below:**
+> **GR00T N1.7** (`nvidia/gr00t17-lerobot-libero_spatial-640`, bf16, 5.87 GiB, R-021) is the workhorse; harness
+> parity 98 vs 97 (R-022). **MINERVA** is the fp32 control, 95.3% vs 95.75% published (R-016); its bf16 path is
+> broken (R-033). **SmolVLA: vetoed** — never reproduced its published number (R-011, R-017). **π0.5 and
+> π0-FAST do not fit** this card (R-032). A rented GPU is a budget question (`PENDING_DECISIONS.md` #25).
+
 ---
 
 ## 0. Headlines
@@ -44,9 +50,9 @@ which we already built (G10).
 | Model | Params | Inference VRAM | On our 8 GB? | LoRA on 8 GB? | LIBERO ckpt | Notes |
 |---|---|---|---|---|---|---|
 | **Octo-small** | 27 M | <1 GB | **yes** | yes | via LeRobot | 93 M variant also exists. Runs in ~4 GB. Fast, weak. Good smoke test. |
-| **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | *Primary candidate.* ~25 Hz on A100; runs on Jetson Orin NX. |
-| **GR00T N1.7** | 3 B | 6.44 GiB weights (measured) | no | NVIDIA non-comm. N1.5 / N1.7 commercial | **4 LIBERO checkpoints EXIST** (`nvidia/GR00T-N1.7-LIBERO`, one per suite) | ~~**NOT LOADABLE BY LEROBOT — see below** ~~ **CORRECTED 2026-09-16: loadable — see §R1 below** |
-| **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
+| **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | ~~*Primary candidate.*~~ **SmolVLA: vetoed (R-011, R-017).** ~25 Hz on A100; runs on Jetson Orin NX. |
+| **GR00T N1.7** | 3 B | 5.87 GiB bf16 (measured, R-021) | ~~no~~ **yes, bf16 — the workhorse** | NVIDIA non-comm. N1.5 / N1.7 commercial | **4 LIBERO checkpoints EXIST** (`nvidia/GR00T-N1.7-LIBERO`, one per suite) | ~~**NOT LOADABLE BY LEROBOT — see below** ~~ **CORRECTED 2026-09-16: loadable — see §R1 below** |
+| **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** — π0.5 measured OOM at 7.40 / 7.53 GiB (R-032) | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
 | **OpenVLA** | 7.4 B | ~15 GB bf16 | **no** (4-bit only) | no (8×A100 for full FT) | yes, published | Quantizing voids the ±5 pp gate — see `PLAN.md` §1 |
 | **OpenVLA-OFT** | 7.4 B | ~15 GB | **no** | no | yes, per-suite | The proposal's headline. Needs rented GPU. |
 
@@ -59,6 +65,9 @@ Architecture notes that matter for us:
   `ARCHITECTURE.md` applies hard: seed the noise draw or probes are noise.
 
 ### GR00T N1.7 — checkpoints exist, but not in a form we can load
+
+> **Superseded (2026-09-16, §R1):** LeRobot-format checkpoints `nvidia/gr00t17-lerobot-libero_*-640` exist and
+> load. GR00T N1.7 now runs in bf16 as the project's workhorse (R-021, R-022).
 
 **Correction (2026-09-16).** The survey recorded GR00T as having "a SimplerEnv-Bridge
 checkpoint, not LIBERO". **Wrong: four LIBERO checkpoints exist**, one fine-tune per
@@ -96,10 +105,11 @@ door is open if a LeRobot-format checkpoint appears.
 |---|---|---|
 | Oracle / CI | `ScriptedReachPolicy` | Known answer. Already gating the miner. |
 | Smoke test | Octo-small | Trivial VRAM; shakes out the LeRobot path cheaply |
-| **Primary** | **SmolVLA + `HuggingFaceVLA/smolvla_libero`** | Only model that fits inference **and** LoRA on 8 GB ⇒ **Phase 5 closes the loop locally** |
-| Second policy | GR00T N1.7 (inference only, free tier) | Different architecture ⇒ genuinely informative comparison |
+| **Primary** | ~~SmolVLA + `HuggingFaceVLA/smolvla_libero`~~ **GR00T N1.7 (`nvidia/gr00t17-lerobot-libero_spatial-640`, bf16, local)** | Fits locally (R-021); harness parity 98 vs 97 (R-022). SmolVLA: vetoed (R-011, R-017) |
+| Control | MINERVA (fp32) | Reproduces its published number, 95.3% vs 95.75% (R-016); bf16 broken (R-033) |
 | Stretch | OpenVLA-OFT | Rented GPU, ~$20–50. Only if a published-number gate is needed. |
 
+*(2026-09-23: overtaken — SmolVLA is vetoed; the paragraph below is kept for the record.)*
 SmolVLA remains the right primary for the reason in `PLAN.md` §1: it is the
 largest model that can be **fine-tuned** on this hardware, and the retrain step
 is what converts the manifest from opinion into evidence.
@@ -432,8 +442,10 @@ Superseding the recommendation in `PENDING_DECISIONS.md` §10:
 2. **pi0.5** (`lerobot/pi05_libero_finetuned`) — the only checkpoint with a
    *documented LeRobot reproduction* (97.5%). That makes it the best reference
    for "is our harness configured correctly", though at ~3B it may not fit our
-   card for inference. [unverified]
-3. **GR00T N1.7** — now known to be loadable (R1). Worth the VRAM test.
+   card for inference. ~~[unverified]~~ **[verified 2026-09-18: does not fit —
+   OOM at 7.40 / 7.53 GiB, R-032]**
+3. **GR00T N1.7** — now known to be loadable (R1). ~~Worth the VRAM test.~~
+   **Fits in bf16 (5.87 GiB, R-021); now the workhorse.**
 4. **VLA-Adapter / MiniVLA / TurboVLA** — deprioritised. None is LeRobot-native
    as far as we have checked, and R3 suggests our gap is a config problem that a
    new model would not diagnose.
@@ -520,7 +532,7 @@ moved a long way since.
 ### The fit rule, measured
 
 GR00T N1.7 is **3,144,016,000 parameters** and occupies **5.87 GiB** on the card
-in bf16 (`experiments/groot_vram_probe.py`, R-020). That is essentially weights
+in bf16 (`experiments/groot_vram_probe.py`, R-021). That is essentially weights
 alone — params × 2 bytes = 5.86 GiB — with activations living in the remaining
 headroom. Our GPU (RTX PRO 1000 Blackwell Laptop) reports **8,151 MiB total,
 ~7.53 GiB usable**.
@@ -533,11 +545,11 @@ comfortable.
 |---|---|---|---|
 | X-VLA `lerobot/xvla-libero` | 0.88 B | 1.64 GiB | yes, trivially |
 | EVO-1 `zuoxingdong/evo1_libero` | 0.78 B | 1.45 GiB | yes, trivially |
-| **π0-FAST `lerobot/pi0fast-libero-v044`** | **2.92 B** | **5.44 GiB** | **yes, roomier than GR00T** |
+| **π0-FAST `lerobot/pi0fast-libero-v044`** | **2.92 B** | **5.44 GiB** | ~~yes, roomier than GR00T~~ **no — does not fit in practice; four configurations tried (R-032, R-034)** |
 | GR00T N1.7 (in use) | 3.14 B | 5.86 GiB | yes [measured] |
 | VLA-JEPA `lerobot/VLA-JEPA-LIBERO` | 3.08 B | 5.74 GiB | yes |
 | π0 `lerobot/pi0_libero_base` | 3.50 B | 6.52 GiB | borderline |
-| **π0.5 `lerobot/pi05_libero_finetuned_v044`** | **3.62 B** | **6.74 GiB** | **borderline — 0.8 GiB headroom vs GR00T's 1.4** |
+| **π0.5 `lerobot/pi05_libero_finetuned_v044`** | **3.62 B** | **6.74 GiB** | ~~borderline~~ **no — OOM at 7.40 / 7.53 GiB, twice, on an idle card (R-032)** |
 | MolmoAct2 `allenai/MolmoAct2-LIBERO-LeRobot` | 5.44 B | 10.1 GiB | no |
 | FastWAM, LingBot-VA (6 B class) | ~6 B | ~11 GiB | no |
 | OpenVLA-OFT 7B | 7.54 B | 14.0 GiB | no — needs ≥16 GB |
@@ -546,7 +558,11 @@ comfortable.
 
 ### Recommendation, in order
 
-**1. π0-FAST — `lerobot/pi0fast-libero-v044`. Run locally, first.**
+> **Outcome (2026-09-18/23):** items 1 and 2 were tried and **neither fits this card** (R-032; π0-FAST needed
+> three harness fixes just to prove it, R-034). Both are rented-GPU candidates; that is now a budget question
+> (`PENDING_DECISIONS.md` #25). The reasoning below is kept for the record.
+
+**1. π0-FAST — `lerobot/pi0fast-libero-v044`. ~~Run locally, first.~~ Does not fit locally (R-032).**
 
 Its card documents only **82.5%** on LIBERO, well below GR00T. That is not why it
 is first. **π0-FAST is one of the four reference models LIBERO-Plus used to
@@ -566,15 +582,15 @@ is. Two flow-matching models could not separate those.
 Cost to note: autoregressive decoding is slower per step than flow matching, so
 budget more wall-clock per variant than GR00T's ~25 s.
 
-**2. π0.5 — `lerobot/pi05_libero_finetuned_v044`. The frontier one; probe before planning.**
+**2. π0.5 — `lerobot/pi05_libero_finetuned_v044`. The frontier one; ~~probe before planning~~ probed: OOM (R-032).**
 
 The general, robust, frontier policy the roster is missing: **97.5%**, and the
 only checkpoint with a *documented LeRobot reproduction*, which makes it the best
 available check that our harness is configured correctly. But 6.74 GiB of weights
 against 7.53 GiB usable leaves **0.8 GiB** for activations where GR00T had 1.4.
-Genuinely uncertain — resolve it with a VRAM probe (~10 min) rather than an
-argument. If it OOMs, π0.5 is the single best justification for renting a 16 GB
-GPU.
+~~Genuinely uncertain — resolve it with a VRAM probe (~10 min) rather than an
+argument.~~ **Probed: it OOMs (R-032).** π0.5 is therefore the single best
+justification for renting a 16 GB GPU.
 
 **3. X-VLA — `lerobot/xvla-libero`. Cheap third architecture.**
 

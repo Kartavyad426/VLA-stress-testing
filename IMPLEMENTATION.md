@@ -1,5 +1,7 @@
 # Pending Implementation
 
+> **Status as of 2026-09-23:** Historical (2026-09-11/15); kept as written. Waves A–C are built, **including C9** (`vla_harness/control.py`, despite the table below); only D10 `adaptive_sweep()` is open. The DG-5 anchor went to MINERVA (R-016; π0.5 does not fit, R-032), and DG-11's "language out of scope" is overtaken by R-038. See `RESULTS.md`, `HANDOFF.md`.
+
 **What changes in the code, why, and what is genuinely new.**
 Written 2026-09-11 after the design review (`docs/reviews/2026-09-11-design-review.md`,
 findings DG-1..DG-11, all adjudicated). `PLAN.md` is the authority on *what we

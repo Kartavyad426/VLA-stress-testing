@@ -1,0 +1,253 @@
+VLA 101: SETUPS AND CONFIGURATIONS
+
+An introduction for people new to Vision-Language-Action models. It explains what the pieces are, how they fit together, and which settings quietly decide whether things work. Examples come from real setups (SmolVLA on the LIBERO benchmark) so the terms stay concrete.
+
+
+1. WHAT A VLA IS
+
+A Vision-Language-Action model (VLA) is a neural network that controls a robot. At every moment it looks at camera images, reads a plain-language instruction ("put the bowl on the plate"), checks where the robot's own arm and gripper are, and outputs the next small movement.
+
+It runs in a loop:
+
+  observation (images, robot state, instruction)
+    -> VLA policy
+    -> action (small arm and gripper command)
+    -> robot or simulator moves
+    -> new observation
+    -> repeat
+
+The loop typically runs 10 to 20 times per second until the task succeeds or time runs out. One pass from start to finish is called an episode (or rollout).
+
+A correction to a common assumption: VLAs aren't "simple" models. Most are built on top of a vision-language model (the kind that can describe a picture), with an extra component that turns its understanding into motor commands. Sizes range from about 0.5 billion parameters (SmolVLA) to 3 to 7 billion (GR00T N1.7, pi0.5, OpenVLA). What is simple is the training recipe, described in section 3.
+
+Words you'll see used for the same thing:
+- Policy: the model that decides actions. "VLA" is one kind of policy.
+- Checkpoint: a saved, trained copy of a model's weights, usually downloaded from Hugging Face.
+- Episode / rollout / trial: one attempt at a task from start to end.
+- Success rate: the percentage of episodes that complete the task.
+- Benchmark: a fixed set of tasks plus rules for scoring them, so results are comparable.
+
+
+2. WHAT GOES IN AND WHAT COMES OUT
+
+The observation (input)
+
+- Images: one or more cameras, usually a fixed "third-person" view of the scene plus a camera on the robot's wrist. Typically two 256x256 colour images.
+- Robot state (also called proprioception): where the robot's own body is, such as gripper position and orientation in space and how open the gripper is. A short list of numbers, e.g. 8 values.
+- Instruction: the task in words, e.g. "pick up the black bowl on the plate and place it on the ramekin".
+
+Note that the robot state describes only the robot, not the objects. The policy has to work out where the bowl is from the images.
+
+The action (output)
+
+Usually 7 numbers for a single arm:
+- 3 for moving the gripper (forward/back, left/right, up/down)
+- 3 for rotating it
+- 1 for the gripper (open or close)
+
+Many modern VLAs predict a chunk of future actions at once (say, the next 50) instead of one at a time. The eval setup then decides how many of those to actually execute before looking again (see section 5).
+
+
+3. HOW VLAS ARE TRAINED
+
+The main recipe is imitation learning (also called behaviour cloning):
+
+1. Collect demonstrations. A human remote-controls the robot (teleoperation) through the task many times. Each demonstration records the images, robot state, instruction and actions at every step.
+2. Train the model to copy them. Shown an observation from a demonstration, the model learns to predict the action the human took next.
+
+In practice this happens in stages:
+- Vision-language pretraining. Data: web images and text. Purpose: general visual and language understanding.
+- Robot pretraining (optional). Data: large mixed robot datasets, e.g. Open X-Embodiment, DROID. Purpose: general manipulation skills across many robots.
+- Fine-tuning. Data: demonstrations for the target robot and tasks, e.g. the LIBERO dataset. Purpose: the actual skill you evaluate.
+
+A consequence worth understanding early: demonstrations are almost always successful runs. The model rarely sees mistakes, so it rarely learns how to recover from one. If it drifts into a situation no demonstration covered, it often just stalls.
+
+
+4. THE PIECES OF A SETUP
+
+Running a VLA always involves three things, and most problems live in the joins between them:
+
+  (1) Checkpoint  <->  (2) Glue / eval harness  <->  (3) Environment
+
+4.1 The checkpoint
+
+Downloaded from Hugging Face, e.g. HuggingFaceVLA/smolvla_libero. It usually contains:
+- the weights (model.safetensors)
+- a config file (config.json) declaring input names, image sizes, chunk size and so on
+- normalisation statistics: the average and spread of the training data's states and actions (see section 5)
+
+4.2 The glue (eval harness)
+
+The code that connects model and environment. It converts simulator output into what the model expects, converts model output into robot commands, runs the loop, and counts successes. Common choices:
+- LeRobot (Hugging Face): the lerobot-eval command supports SmolVLA, pi0.5, GR00T and others on LIBERO.
+- Project-specific scripts, e.g. OpenVLA's and openpi's LIBERO eval scripts.
+
+4.3 The environment
+
+Simulation is where most people start: free, repeatable, and safe. A simulated setup has layers:
+- Physics engine, e.g. MuJoCo: computes contacts, gravity and motion, and renders images.
+- Robot framework, e.g. robosuite: robot models, controllers, standard scenes.
+- Benchmark, e.g. LIBERO: a fixed set of tasks, starting positions and success checks.
+
+LIBERO is the most common VLA benchmark. It has four 10-task suites:
+- libero_spatial: same objects, different arrangements ("the bowl next to the plate").
+- libero_object: picking the right object out of several.
+- libero_goal: same scene, different goals ("open the drawer" vs "turn on the stove").
+- libero_10 (Long): longer, multi-step tasks.
+
+Other simulated benchmarks include SimplerEnv, RoboCasa, CALVIN and ManiSkill. Each uses its own simulator, so settings don't automatically carry over between them.
+
+
+5. THE CONFIGURATIONS THAT MATTER
+
+This section matters most. A VLA can be perfectly trained and still score badly because one of these settings disagrees between training and evaluation. Usually nothing crashes; the numbers just come out lower.
+
+Rule of thumb: evaluation must present the world to the model exactly as training did.
+
+5.1 Inputs
+
+Camera names and order
+- What it is: which image goes into which input slot, e.g. "image" = scene camera, "image2" = wrist camera.
+- What goes wrong: swapped cameras, so the model sees the wrist view where it expects the scene view.
+
+Image resolution
+- What it is: the pixel size of rendered images.
+- What goes wrong: training on 256x256 but evaluating at 360x360. Measured cost in our work: 17 percentage points on one suite.
+
+Image orientation
+- What it is: whether images are flipped or rotated.
+- What goes wrong: LIBERO's raw camera images are upside-down compared with the training data, so LeRobot rotates them 180 degrees. Miss that and the model sees an upside-down world.
+
+State format
+- What it is: which numbers make up the robot state, in what order and units.
+- What goes wrong: e.g. gripper rotation written as a quaternion (4 numbers) when the model expects axis-angle (3 numbers).
+
+Normalisation statistics
+- What it is: the training data's mean and spread, used to scale inputs and outputs to a standard range.
+- What goes wrong: using another dataset's statistics means every value is subtly rescaled.
+
+5.2 Actions
+
+Control mode
+- What it is: whether an action means "move BY this much" (relative, also called delta) or "move TO this position" (absolute).
+- What goes wrong: mix them up and the arm flies off.
+
+Gripper convention
+- What it is: whether -1 means open or closed.
+- What goes wrong: inverted, it opens when it should grab.
+
+Chunk size
+- What it is: how many future actions the model predicts at once (e.g. 50).
+- What goes wrong: nothing to choose here; it is fixed by training.
+
+n_action_steps
+- What it is: how many of those predicted actions to execute before looking again.
+- What goes wrong: executing all 50 blind costs about 20 to 30 percentage points on LIBERO. Values of 1 or 10 work well.
+
+Control frequency (fps)
+- What it is: how many actions per second the simulator applies (LIBERO: 20).
+- What goes wrong: at the wrong rate, each "small move" becomes a bigger or smaller one.
+
+Chunking in plain terms: the model plans the next 50 moves. n_action_steps=10 means "do 10 of them, then look again and replan". Higher values run faster (fewer model calls) but react more slowly to what actually happens.
+
+5.3 Environment
+
+Simulator version
+- What it is: e.g. MuJoCo 3.3.2 vs 3.4.0.
+- What goes wrong: new versions can change physics or lighting. From MuJoCo 3.4.0, one LIBERO task's bowl starts tilted, dropping SmolVLA from 80% to 28% on that task. From 3.3.3 some floors render darker, which cost OpenVLA about 17 points on one suite.
+
+Initial states
+- What it is: the stored starting positions of objects for each episode.
+- What goes wrong: different starting states make results incomparable.
+
+Settle steps
+- What it is: a few "do nothing" steps after reset so objects stop wobbling (LIBERO eval scripts use 10).
+- What goes wrong: too few, and the policy acts in a still-moving scene.
+
+Max episode length
+- What it is: the step budget before an episode counts as failed (LIBERO: 220 to 520 depending on suite).
+- What goes wrong: too short turns slow successes into failures.
+
+Seed
+- What it is: the random-number starting point.
+- What goes wrong: a different seed gives a different sample of episodes. Compare like with like.
+
+
+6. A WORKED EXAMPLE: SMOLVLA ON LIBERO
+
+What a real configuration looks like, and where each value comes from:
+
+- Checkpoint: HuggingFaceVLA/smolvla_libero. Source: Hugging Face.
+- Model size: about 605M parameters. Source: the weights file.
+- Cameras: "image" (scene) and "image2" (wrist), 256x256 each. Source: the checkpoint's config.json.
+- Image orientation: rotated 180 degrees. Source: LeRobot's LIBERO code, NOT the checkpoint.
+- Robot state: 8 numbers, gripper position (3) + rotation (3) + finger positions (2). Source: checkpoint config plus LeRobot code.
+- Action: 7 numbers, relative control. Source: checkpoint config plus environment default.
+- Chunk size: 50. Source: checkpoint config.
+- n_action_steps: the config says 1; 10 is common in practice and scores about the same. Source: checkpoint config, overridden on the command line.
+- Control frequency: 20 Hz. Source: environment default.
+- Simulator: MuJoCo 3.3.x (below 3.4.0), robosuite 1.4. Source: your installed packages, NOT the checkpoint.
+
+A typical evaluation command:
+
+  lerobot-eval \
+    --policy.path=HuggingFaceVLA/smolvla_libero \
+    --env.type=libero \
+    --env.task=libero_spatial \
+    --env.observation_height=256 --env.observation_width=256 \
+    --policy.n_action_steps=10 \
+    --eval.n_episodes=10 --eval.batch_size=1 \
+    --seed=1000
+
+Notice how the settings are split across the checkpoint's config, the eval code's defaults, the command line and your installed packages. No single file holds the full set of settings, which is why mismatches are so common.
+
+
+7. LESSONS THAT SAVE TIME
+
+1. A low score doesn't prove a weak model. Before concluding a policy is bad, check resolution, orientation, cameras, n_action_steps, control frequency and simulator version.
+2. Settings fail silently. Tools typically check that input names match, not sizes or meanings. A 256 vs 360 image mismatch runs without a single warning.
+3. The checkpoint's config.json isn't the whole story. Some published results use values that differ from the config (e.g. a different n_action_steps), and many settings (image flip, simulator version) aren't in the config at all. Look for the authors' actual eval command.
+4. Pin your simulator version. A fresh pip install can pull a newer MuJoCo that changes results. Record the versions of MuJoCo, robosuite and LIBERO alongside every number.
+5. Run a small smoke test first. A few episodes on one task will catch a broken setup before you spend hours on hundreds.
+6. Small evaluations are noisy. 10 episodes per task (100 per suite) gives roughly plus or minus 10 percentage points of uncertainty. Differences smaller than that may be chance.
+7. Change one thing at a time. Compare runs that differ in exactly one setting, with the same seed and starting states, so you know what caused a change.
+8. Check a published number applies to your checkpoint. A paper's headline result may come from a different model variant than the checkpoint you downloaded.
+
+
+8. HARDWARE, BRIEFLY
+
+Does the model run on an 8 GB GPU?
+- SmolVLA (about 0.5B): yes.
+- OpenVLA (7B): generally no, without heavy compression.
+- pi0.5 (about 3B): no; the weights alone exceed 8 GB in our tests.
+- GR00T N1.7 (3B): unclear; community reports suggest it needs 16 GB.
+
+Simulation itself needs little GPU, but it shares memory with the model. On laptops, also check the machine is plugged in: GPUs can throttle heavily on battery while still reporting 100% utilisation.
+
+
+9. WHERE TO START
+
+1. Install LeRobot with its LIBERO extra, and pin MuJoCo below 3.4.0.
+2. Evaluate HuggingFaceVLA/smolvla_libero on one task with 5 to 10 episodes at 256x256 resolution.
+3. Watch the saved episode videos. Seeing the robot move tells you more than a percentage.
+4. Change one setting (e.g. n_action_steps) and compare.
+5. Then scale up to full suites, recording every version and setting next to the result.
+
+
+GLOSSARY
+
+- Action chunk: several future actions predicted at once.
+- Axis-angle / quaternion: two ways of writing down a 3D rotation as numbers.
+- Behaviour cloning: training a model to copy recorded demonstrations.
+- Benchmark suite: a named group of related tasks, e.g. libero_spatial.
+- Checkpoint: saved trained weights of a model.
+- Delta (relative) action: "move by this much".
+- Absolute action: "move to here".
+- Episode: one attempt at a task.
+- Fine-tuning: further training of a pretrained model on specific data.
+- Normalisation: rescaling numbers to a standard range using training-data statistics.
+- Proprioception: the robot's sense of its own body, i.e. joint and gripper positions.
+- Seed: a number that fixes randomness so runs can be repeated.
+- Sim-to-real gap: differences between simulated and real-world behaviour.
+- Teleoperation: a human remote-controlling a robot, usually to record demonstrations.
+- VLM: vision-language model. Understands images and text, but doesn't control robots.

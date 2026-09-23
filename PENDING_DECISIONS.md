@@ -1,14 +1,17 @@
 # Pending decisions
 
-Everything waiting on a human call, as of 2026-09-16. Each item says what it is,
-what it costs, what it blocks, and what I'd do — so a decision can be made
-without re-reading the transcript.
+Everything waiting on a human call, as of 2026-09-23 (first written 2026-09-16).
+Each item says what it is, what it costs, what it blocks, and what I'd do — so a
+decision can be made without re-reading the transcript.
 
-Nothing below has been actioned. Nothing is committed since `b198613`.
+**Status 2026-09-23:** items marked ✅ / ❌ are closed, and #10, #20, #21 and #25
+carry a dated status line where later results overtook them. Current roster:
+GR00T N1.7 (workhorse), MINERVA (fp32 control), SmolVLA vetoed, π0.5 and π0-FAST
+do not fit (R-032). `HANDOFF.md` §7 lists what is still open.
 
-**Working tree:** `vla_harness/mining/signals.py` (modified),
-`experiments/visualise_episode_video.py` (new), `viz/*_video.html` (new),
-`IMPLEMENTATION_OVERSIGHTS.md` (new, in `b198613`), `PENDING_DECISIONS.md` (this).
+*(2026-09-16 note, now stale: "Nothing below has been actioned. Nothing is
+committed since `b198613`." The code files in the working-tree list that followed
+have since been committed; the `viz/*_video.html` pages are untracked.)*
 
 ---
 
@@ -244,8 +247,13 @@ describes none of them. Worth a follow-up commit message or a note.
 
 ## 10. ✅ DECIDED 2026-09-16 — Policy roster and architecture
 
+> **Status 2026-09-23 — roster overtaken.** GR00T N1.7 is the workhorse (bf16;
+> parity 98 vs 97, R-022). MINERVA is the fp32 control (95.3% vs 95.75%, R-016;
+> bf16 broken, R-033). SmolVLA: vetoed 2026-09-18 (R-011, R-017). The MINERVA and
+> GR00T venvs are built. The architecture and one-venv-per-policy decisions stand.
+
 **Decided by user:**
-- Roster: **SmolVLA** (primary) / **MINERVA** (alternate) / **GR00T N1.7** (third).
+- Roster: ~~**SmolVLA** (primary) / **MINERVA** (alternate) / **GR00T N1.7** (third)~~ — see status above.
 - Architecture: **their policy, our simulator, our observability layer**, plus a **spare simulator** for policies whose pins conflict (MINERVA's MuJoCo 3.3.2). Policies are swappable boxes; switching must be low-friction.
 - Every policy in its **own venv** (`MODELS_AND_COMPUTE.md` §R7).
 
@@ -655,6 +663,10 @@ next arm. Prediction pre-registered in
 
 ## 20. Reframe F8/F9's headline gap — our checkpoint is not the published model
 
+> **Status 2026-09-23 — moot.** The architecture finding is recorded as R-011, and
+> SmolVLA was vetoed on 2026-09-18. `FINDINGS_DRAFT_F8_F10.md` was never applied and
+> carries a banner saying so. No decision is needed unless SmolVLA returns.
+
 **Escalated from vla-7f and vla-81**, who both think this is yours to decide:
 F8 is a headline project claim and `FINDINGS.md` has no live owner.
 
@@ -699,6 +711,9 @@ provenance.
 ---
 
 ## 21. Goal-suite MuJoCo 3.3.2 vs 3.3.7 A/B — cheapest discriminating GPU arm
+
+> **Status 2026-09-23 — run, and moot.** R-018 ran it: 74% vs 68%, paired p=0.26,
+> not significant. SmolVLA has since been vetoed, so nothing waits on it.
 
 From vla-7f's `docs/POLICY_SIM_COUPLING.md` §7.2 (uncommitted). There are four
 community reproductions of **this exact checkpoint** (lerobot#2354 ×3,
@@ -887,6 +902,13 @@ runs (#3, #21).
 
 **Open. Needs your call.** Full survey with measured VRAM in
 `MODELS_AND_COMPUTE.md` §R9.
+
+> **Status 2026-09-23 — now a budget question only.** Options 1 and 2 below were
+> tried: **neither π0-FAST nor π0.5 fits this card** (R-032). π0-FAST needed three
+> harness fixes to get far enough to show that (R-034), and π0.5 hit OOM at
+> 7.40 / 7.53 GiB. So the choice is whether to rent ≥16 GB for π0.5 / π0-FAST /
+> OpenVLA-OFT, or add X-VLA locally. The "fits locally" and "VRAM probe?" text
+> below is overtaken.
 
 The roster today is GR00T N1.7 (priority), MINERVA (control), SmolVLA
 (vetoed 2026-09-18 — never reproduced). A fourth policy is wanted that is

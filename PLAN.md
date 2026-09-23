@@ -1,5 +1,7 @@
 # VLA Stress-Test — Implementation Plan
 
+> **Status as of 2026-09-23:** Historical design record (2026-09-10/11); kept as written. The policy decisions are superseded: **GR00T N1.7** is the subject policy, **MINERVA** is the reproduction anchor (R-016), SmolVLA is vetoed, VLA-Adapter was never run, and π0.5 does not fit the card (R-032). §6's "language out of scope" is overtaken: an empty prompt drops GR00T to 50/100 from 100/100 (R-038). See `HANDOFF.md` §4 and `RESULTS.md`.
+
 > **[UNSOURCED — do not cite]** the sim-to-real rank-correlation figure (Spearman 0.4–0.7) and the claim that *severity ordering transfers worst* were carried forward from an early survey and **no primary source has been located** (flagged 2026-09-15). The design decisions they motivated stand on their own reasoning; the numbers must not appear in a readout until sourced.
 
 **Status:** draft v1 · 2026-09-10

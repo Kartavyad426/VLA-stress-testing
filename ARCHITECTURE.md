@@ -9,25 +9,30 @@ number is wrong. Companion to `PLAN.md` (what we are building and why).
 
 ---
 
-## 0. Pending changes — agreed, not yet built
+## 0. Pending changes — agreed 2026-09-11; status as of 2026-09-23
+
+> **Status (2026-09-23):** all but two are now built (Waves A–C, see
+> `IMPLEMENTATION.md`). **Still open: #5 `adaptive_sweep()` and #7 the
+> `coverage_required` validator.** #2 was built in the form #12 specifies. The
+> "why" column is kept as written on 2026-09-11.
 
 From the 2026-09-11 landscape review (`docs/LANDSCAPE.md` adoption ledger) and
 the `FINDINGS.md` entries. Ordered by when they get more expensive to retrofit.
 
 | # | Change | Where | Why it cannot wait |
 |---|---|---|---|
-| 1 | ~~`sampling_arm` on the `Rollout`~~ → **`runs/<id>/arms.jsonl`, a request log** mapping `(arm, rollout_id)` many-to-many | `runner.py`, store | **Revised after DG-2.** Tagging the rollout de-uniforms the uniform arm: `rollout_id` excludes the arm (correctly — same physics), so one stored rollout gets whichever arm asked first, and the uniform arm silently loses cells to cache hits in adaptive search order. The arm belongs to the **request**. `Rollout` unchanged ⇒ **no schema major bump for this item.** |
-| 2 | **`mujoco` version moves from `runtime` into Env `identity()`** | `schema.py`, env adapters | F2: mujoco does not shift timings, it **changes results** (80% → 28% on one task). A version bump must MISS the cache, not warn. My original placement was wrong. |
-| 3 | **Rendering backend into Env `identity()`** | env adapters | EGL vs osmesa can change rendered observations ⇒ changes results (`PLAN.md` §5.4). |
-| 4 | **Paired statistics in `counterfactual_probe`** | `runner.py` | We run the same seeds in both arms and currently discard the pairing. McNemar on paired per-seed outcomes is free variance reduction. |
-| 5 | `adaptive_sweep()` with a surrogate; `boundary` gains a posterior interval | `runner.py` | `PLAN.md` §5.1. Largest piece; only pays off once there is a real boundary. |
-| 6 | `failure_cost` computed in `classify()` | `mining/classify.py` | `PLAN.md` §7b.3 — rated our most novel contribution, and currently unimplemented. |
-| 7 | `coverage_required` validator rejecting count-shaped strings | `manifest.py` | `PLAN.md` §9.1 — demo counts are the wrong axis (Lin et al.). |
-| 8 | Environment control runs **per task**, not per suite | `experiments/` | F2's lesson: at suite level a task-5 collapse dilutes into noise. |
-| 9 | **`scene_descriptor`** on every rollout — object poses, camera pose, lighting **in physical units**, resolved from the seed at reset | env adapters, `schema.py` | `PLAN.md` §9.2. PPI needs a scene a *person could rebuild on a bench*; `seed`+`spec` is sim-internal by construction and cannot supply it (DG-8). Cheap now, unreconstructable later. |
-| 10 | **`RegressionSet`** as a first-class L0 artifact: own id, `frozen_env` identity, member rollout ids | `schema.py`, new module | It is the comparison basis for all of Phase 5 and currently has no type, no owner and no fingerprint — so it expires invisibly whenever env identity moves (DG-7). Finding #2 one level up, against our headline claim. |
-| 11 | **`PrivilegedProbePolicy`** — full state, stamps `privileged: true`, excluded like `tier3` | `policies/` | §7c discriminator 4 is unrunnable today: `policy_view()` strips `_gt_` and that is enforced. Audited escape hatch, not a weakening (DG-6). |
-| 12 | `semantic_runtime` bucket + promotion policy | `schema.py` | Supersedes item 2's naive "mujoco into identity()" (DG-4). |
+| 1 | **BUILT** — ~~`sampling_arm` on the `Rollout`~~ → **`runs/<id>/arms.jsonl`, a request log** mapping `(arm, rollout_id)` many-to-many | `runner.py`, store | **Revised after DG-2.** Tagging the rollout de-uniforms the uniform arm: `rollout_id` excludes the arm (correctly — same physics), so one stored rollout gets whichever arm asked first, and the uniform arm silently loses cells to cache hits in adaptive search order. The arm belongs to the **request**. `Rollout` unchanged ⇒ **no schema major bump for this item.** |
+| 2 | **BUILT** — **`mujoco` version moves from `runtime` into Env `identity()`** | `schema.py`, env adapters | F2: mujoco does not shift timings, it **changes results** (80% → 28% on one task). A version bump must MISS the cache, not warn. My original placement was wrong. |
+| 3 | **BUILT** — **Rendering backend into Env `identity()`** | env adapters | EGL vs osmesa can change rendered observations ⇒ changes results (`PLAN.md` §5.4). |
+| 4 | **BUILT** — **Paired statistics in `counterfactual_probe`** | `runner.py` | We run the same seeds in both arms and currently discard the pairing. McNemar on paired per-seed outcomes is free variance reduction. |
+| 5 | **OPEN** — `adaptive_sweep()` with a surrogate; `boundary` gains a posterior interval | `runner.py` | `PLAN.md` §5.1. Largest piece; only pays off once there is a real boundary. |
+| 6 | **BUILT** — `failure_cost` computed in `classify()` | `mining/classify.py` | `PLAN.md` §7b.3 — rated our most novel contribution, and currently unimplemented. |
+| 7 | **OPEN** — `coverage_required` validator rejecting count-shaped strings | `manifest.py` | `PLAN.md` §9.1 — demo counts are the wrong axis (Lin et al.). |
+| 8 | **BUILT** — Environment control runs **per task**, not per suite | `vla_harness/control.py` | F2's lesson: at suite level a task-5 collapse dilutes into noise. |
+| 9 | **BUILT** — **`scene_descriptor`** on every rollout — object poses, camera pose, lighting **in physical units**, resolved from the seed at reset | env adapters, `schema.py` | `PLAN.md` §9.2. PPI needs a scene a *person could rebuild on a bench*; `seed`+`spec` is sim-internal by construction and cannot supply it (DG-8). Cheap now, unreconstructable later. |
+| 10 | **BUILT** — **`RegressionSet`** as a first-class L0 artifact: own id, `frozen_env` identity, member rollout ids | `schema.py`, new module | It is the comparison basis for all of Phase 5 and currently has no type, no owner and no fingerprint — so it expires invisibly whenever env identity moves (DG-7). Finding #2 one level up, against our headline claim. |
+| 11 | **BUILT** — **`PrivilegedProbePolicy`** — full state, stamps `privileged: true`, excluded like `tier3` | `policies/` | §7c discriminator 4 is unrunnable today: `policy_view()` strips `_gt_` and that is enforced. Audited escape hatch, not a weakening (DG-6). |
+| 12 | **BUILT** — `semantic_runtime` bucket + promotion policy | `schema.py` | Supersedes item 2's naive "mujoco into identity()" (DG-4). |
 
 **Sequencing:** 1–3 first (correctness + schema, worse to retrofit once real
 traces exist), then 8–9 before Phase 2 accumulates traces, then 4 and 6, then 5.
@@ -47,6 +52,22 @@ traces exist), then 8–9 before Phase 2 accumulates traces, then 4 and 6, then 
 | `vla_harness/mining/cluster.py` | L3 | grouping failures | envs (G9) |
 | `vla_harness/manifest.py` | L4 | manifest rows + rendering | envs, policies |
 | `experiments/oracle_test.py` | — | the acceptance gate | — |
+| `vla_harness/envs/libero_env.py` | L2 | LIBERO / LIBERO-Plus adapter over LeRobot's `LiberoEnv`; `scene_descriptor`, the LIBERO `_gt_*` keys (§3) | policies, mining, manifest |
+| `vla_harness/envs/nominal.py` | L2 | what "nominal" means for a LIBERO-Plus vision variant (R-039's paired source) | policies, mining |
+| `vla_harness/policies/lerobot_policy.py` | L1 | any LeRobot policy (GR00T, MINERVA, SmolVLA, π0 family) behind the Policy protocol | envs, mining, manifest |
+| `vla_harness/policies/privileged.py` | L1 | `PrivilegedProbePolicy`, the audited `_gt_` escape hatch (§0 #11) | mining, manifest |
+| `vla_harness/mining/phases_libero.py` | L3 | LIBERO phase segmentation | envs (G9) |
+| `vla_harness/mining/signals.py` | L3 | per-env signal extraction feeding one `classify()` | envs (G9) |
+| `vla_harness/mining/agreement.py` | L3 | taxonomy validation beyond κ (F6a) | envs (G9) |
+| `vla_harness/control.py` | — | per-task environment control (C9) | — |
+| `vla_harness/conformance.py` | — | checkpoint ↔ env wiring gate, run before a campaign | mining, manifest |
+| `vla_harness/video.py` | — | per-episode mp4 of the frames the policy saw; path in `Rollout.meta["video"]` | mining |
+| `vla_harness/probes/language.py` | — | language sensitivity probe | — |
+| `vla_harness/capture/` | — | activation taps (`taps.py`, `groot_features.py`), OOD analysis (`analysis.py`), R-039 pathway splice (`splice.py`). Attaches from outside; `third_party/` unmodified | mining, manifest |
+| `vla_harness/analysis/r039.py` | — | R-039 aggregation from `runs/<run>/splice/` | model, simulator |
+| `experiments/harness_eval.py` | — | the eval entry point for every reported rate; records mp4 per episode by default (`--no-video` to disable) | — |
+| `experiments/visualise_set.py` | — | reference-vs-variants comparison page, with activations | — |
+| `experiments/vlm_label.py` | — | VLM labeller (local Qwen3-VL-8B 4-bit, or NVIDIA NIM). **Labels unvalidated** — first test named the wrong grasped object | — |
 
 **The one rule that keeps this honest:** the mining layer imports nothing from
 `envs/` or `policies/`. It consumes `Rollout` objects. If you ever need an env
@@ -156,6 +177,18 @@ enforced in code, not by convention alone.
 | `_gt_obj_xy` | env `_obs` | **miner only** | **YES** |
 | `_gt_ee_to_obj` | env `_obs` | **miner only** | **YES** |
 | `_gt_dist_to_distractor` | env `_obs` | **miner only** | **YES** |
+
+The rows above are the **toy** env's keys. The **LIBERO** env (`envs/libero_env.py`)
+writes its own `_gt_` keys; the two object-pose keys differ in scope and it matters:
+
+| Key | Written by | Read by | Privileged |
+|---|---|---|---|
+| `_gt_object_pos` | LIBERO env `_obs` | **miner only** | **YES** — **BDDL task objects only**. It missed a wrong-object grasp of a ramekin; do not use it to ask "what did the gripper touch?" |
+| `_gt_scene_object_pos` | LIBERO env `_obs` | **miner only** | **YES** — **every free-joint object**, including distractors |
+
+Also written: `_gt_object_pos_complete`, `_gt_eef_to_object`,
+`_gt_eef_to_nearest_object`, `_gt_nearest_object` (all over the BDDL task objects
+only) and `_gt_n_contacts`.
 
 ### The `_gt_` contract
 

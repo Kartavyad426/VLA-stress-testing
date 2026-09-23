@@ -1,5 +1,7 @@
 # Findings
 
+> **Status as of 2026-09-23:** Historical record (F1–F9, 2026-09-15); kept as written. Since then: F8's "SmolVLA does not reproduce 87.3%" was reframed — the checkpoint is a 32-layer build with no published target (R-011) — and SmolVLA is now **vetoed**; F9's "next: nas=1" showed no effect (R-009); the environment was cleared by **MINERVA** (95.3% vs 95.75%, R-016), not π0.5, which does not fit (R-032). **GR00T N1.7 is the workhorse.** Current state: `RESULTS.md`, `HANDOFF.md`.
+
 > ## ⭐ REFERENCE — re-derive these when the ground moves
 >
 > Several findings below are **measurements of things that can change under

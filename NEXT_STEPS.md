@@ -1,5 +1,7 @@
 # Next Steps — experimentation order, blockers, requirements
 
+> **Status as of 2026-09-23:** Historical (2026-09-11); the order below is overtaken. The LIBERO adapter and per-task control are built, MINERVA reproduced its published number (R-016), **GR00T N1.7 is the workhorse**, SmolVLA is vetoed, and VLA-Adapter was never run. GPU rule now: announce before taking the card, then `flock /tmp/vla_gpu.lock`. Current state and next work: `HANDOFF.md`, `RESULTS.md`.
+
 **Written 2026-09-11**, after Waves A/B/C were implemented and verified
 (`experiments/wave_abc_test.py`, 7/7 pass; oracle gate 3/4 + control PASS).
 

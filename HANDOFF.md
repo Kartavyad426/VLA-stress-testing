@@ -1,4 +1,47 @@
-# Handoff — 2026-09-23
+# Handoff — 2026-09-23 (updated late afternoon)
+
+> **Since this morning:** R-037 and R-039 are done, R-041 is running, and R-040 and
+> R-042 are pre-registered. The action-atlas repro is blocked. The harness now records
+> video and every object's position. See **§0** first, then the rest.
+
+## 0. Afternoon update
+
+- **R-037 DONE.** A vision perturbation moves the backbone output (Qwen3-VL layer 16)
+  by 1.37x, and after the 4-block VL self-attention it is 1.02x. The signal is gone by
+  the time the action head reads it. The localisation is correlational. Nothing
+  predicts which episodes fail (Q2: no result survives Bonferroni).
+- **R-039 DONE (fable).** For every LIBERO-Plus category, robot initial state
+  included, the perturbation reaches the action via the **image tokens**; the state
+  token is near-inert. Report: `docs/R039_RESULTS.html`.
+- **R-041 RUNNING (fable)**: boundary sweeps from a known success. **R-040, R-042**
+  pre-registered.
+- **Action-atlas repro (arXiv:2603.19233) is BLOCKED.** The user assigned it to
+  `implementor`, and it would not load under its own pinned transformers (three
+  separate failures). The paper's GR00T layer ordering is **unverified**. Details:
+  `~/Documents/Code/action-atlas-repro/STATUS.md`. A bare `except` at
+  `model_adapters.py:443` hides the real errors, so make it re-raise first.
+- **The harness now records per-episode video by default**
+  (`runs/<run>/video/<rollout_id>.mp4`, ~1–2 MB; `--no-video` to skip).
+- **Wrong-object grasps were invisible in traces.** `_gt_object_pos` holds only
+  BDDL task objects. On `5115b970e766` it read "nothing moved" while the arm had
+  lifted the **ramekin** 6 cm. The env now also records `_gt_scene_object_pos`
+  (every free-joint object). On the drawer scene, both failing initial states
+  handled the wrong object. That has two explanations, grounding or start-pose
+  coverage, and these episodes can't tell them apart.
+- **`experiments/visualise_set.py`**: a reference plus any number of variants on one
+  page, with synced videos, signals, every-object movement and stored activations
+  (labelled by layer). `--rerender` rebuilds a page on the CPU.
+- **VLM labelling (`experiments/vlm_label.py`) is unvalidated.**
+  - Qwen3-VL-8B-Thinking runs locally at 4-bit (6.4 GB peak, 2 fps, half
+    resolution); Nemotron-Omni runs via NIM.
+  - Gemma-4 times out on NIM; Cosmos-Reason2-8B is gated (HF access pending).
+  - On the first real failure, both working models detected the grasp and **named
+    the wrong object**. Score VLM output against simulator truth before counting it.
+  - FailBench (arXiv 2609.03611) finds robotics-specialised VLMs underperform their
+    base models.
+- **Per-episode record schema:** `docs/EPISODE_RECORD_SCHEMA.md`. Simulator fields
+  are exact; the VLM supplies only `attempt.*`.
+
 
 For whoever picks this up next, agent or human. `RESULTS.md` is the experiment
 record (R-001..R-038), `PENDING_DECISIONS.md` holds what needs the user's call,
@@ -63,9 +106,10 @@ our traces for analysis and is **not** in the batch.
 
 ## 3. Machine state
 
-**Nothing of mine is running. GPU free at 106 MiB.** `implementor` announced it
-was taking the card for R-037 (~70 episodes, ~25 min) — check the flock at
-`/tmp/vla_gpu.lock` before starting anything.
+**`fable` holds the GPU for R-041** (camera-yaw axis, then an R-039 extension and
+three more axes, each a separate flock acquisition, each announced). Check the flock
+at `/tmp/vla_gpu.lock` before starting anything. An 8B VLM at 4-bit needs about
+6.4 GB and cannot share the card with GR00T.
 
 **Announce BEFORE launching, then wait for an ack.** We had a near-miss: both
 sessions announced *while* starting. The mutex held and the second job queued
@@ -152,9 +196,15 @@ forward pass, never off config names.**
   near-neutral is worth most.
 - **Category-balanced de-risk** — ~40 episodes weighted to camera viewpoint.
   Tests what R-036 could not.
-- **action-atlas port** — **unowned and disputed.** I told `implementor` it was
-  theirs; I had no standing to assign it, and they correctly declined. Only a
-  user can assign it.
+- **action-atlas port**: assigned by the user to `implementor`, now **BLOCKED**
+  (see §0). The next step is an older transformers, not more model-code patches.
+- **Per-block DiT capture (§6)**: still not built. Its pilot should target R-038's
+  two arms at the first action, where the images are identical and only the prompt
+  differs. Index trap: `all_hidden_states[i+1]` is block *i*'s output. Score the
+  per-block delta, and fix the Euler step before ordering by block.
+- **VLM calibration**: about 40 human-labelled episodes are needed, and the
+  adjudication CSV is the place for them. Then compare video-only, sim-facts-only and
+  both, scored on labels that are not in the prompt.
 - **PENDING #25** (fourth policy / rent a GPU), #20, #15, #13, #6, #2, #21, #8.
 - **The adjudication CSV is still 0 of 80 verdicts.** It has been the open job
   for five days.
