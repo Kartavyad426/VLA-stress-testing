@@ -2219,3 +2219,48 @@ AGAINST the fallback-or-dead reading, and it will be reported as such rather
 than explained away. The prediction remains falsifiable in one direction and
 uninformative in the other, which is worth stating plainly rather than
 discovering later.
+
+### SECOND revision to expectation #4, 2026-09-22/23 — the premise was falsified
+
+Recorded while R-037 was mid-capture and **before any of its data had been
+analysed**. The previous revision above rests on a premise that R-038's final
+result destroys, and leaving the old justification in place would make a correct
+prediction rest on a false reason.
+
+**R-038 final: 50/100 with an empty prompt against a 100/100 control**, and the
+per-scene spread is the finding: 0/10 on the stove, 0/10 on the wooden cabinet,
+0/10 in the drawer, through to 10/10 between the plate and the ramekin. On the
+failures the arm **does not approach the target at all** — mean closest approach
+25.2 cm on the stove against the control's ~5 cm, and on the stove the bowl never
+moves in any episode. All 50 failures are timeouts, and success rate correlates
+with closest approach at r = -0.826, so it is one mechanism varying in degree.
+
+**So "language is unused on this suite" is false.** Language does real work on
+half the scenes. Both earlier framings are dead:
+
+- **"Text tokens are signal-free mass"** (my third-reason argument for R-036's
+  flat VL rows) — **withdrawn.** The dilution conclusion survives on the
+  ratio-drift argument alone, but not on this reasoning.
+- **"Language is a conditional fallback"** — `primary`'s own confusable-pair
+  version is **retracted by them**: both wooden-cabinet scenes are 0/10, the
+  cookie-box pair is 8/10 and 8/10, and the stove has no sibling. What survives
+  is weaker and has no mechanism: vision resolves the target in some scenes and
+  not others, and where it does not, the policy fails to approach rather than
+  approaching the wrong thing.
+
+**What this does to expectation #4.** The prediction is unchanged — text-pooled
+features should be near-inert in THIS sample, because R-037's arms (Camera,
+Light, Sensor, Robot Initial States) contain no scene where vision
+underdetermines the target. But **the inference rules change in both
+directions**:
+
+- A text-pooled **null** no longer corroborates any "language is dead" reading,
+  because that reading is already refuted.
+- A text-pooled **signal** is **no longer evidence against** `primary`. Given
+  that language demonstrably carries information the policy uses, a signal is
+  now half-expected and would be unsurprising either way.
+
+**Expectation #4's text-pooled half is therefore now uninformative in BOTH
+directions and should not be reported as a test of anything.** Its image-pooled
+half stands unchanged and still tests modality mixing directly: if image-pooled
+and combined-pooled show the same arm-B effect, R-036's caveat 3a is downgraded.
