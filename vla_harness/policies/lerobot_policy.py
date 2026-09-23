@@ -255,6 +255,7 @@ class LeRobotPolicy:
         # episode timeline (forwards are every n_action_steps env steps only
         # while every chunk runs to completion, so it is logged, not derived).
         self.forward_env_steps = []
+        self.current_obs = None
         if self._sink is not None:
             # Warns and discards if the previous episode never reached
             # flush_capture -- i.e. it raised part-way through.
@@ -354,6 +355,9 @@ class LeRobotPolicy:
         import torch
         if self._policy is None:
             self._load()
+        # the observation being acted on, readable by splice sources that need
+        # to build a hybrid of it (R-042 per-camera arms). Cleared after.
+        self.current_obs = obs
         # A chunked policy only runs the model when its action queue is empty;
         # every other call pops a cached action. Counting calls therefore
         # overstates model invocations by up to n_action_steps (vla-81,
@@ -374,6 +378,7 @@ class LeRobotPolicy:
                 # forward index -> env step, so a per-forward signal can be
                 # placed on the episode's timeline by the analysis.
                 self._capture_env_steps.append(int(obs.t))
+        self.current_obs = None
         if self._post is not None:
             a = self._post(a)
         if self._env_post is not None:

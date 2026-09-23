@@ -65,7 +65,64 @@ Every entry records its expectation and **says when it was written**:
 
 ---
 
-## Current state of knowledge — as of 2026-09-17
+## Current state of knowledge — as of 2026-09-23
+
+**The setup (trustworthy)**
+
+1. **The harness reproduces published numbers.** MINERVA 95.3% vs 95.75%
+   published (R-016). GR00T N1.7 harness parity 98 vs 97 (R-022). The
+   unperturbed control on the LIBERO-Plus stack scores 100/100 (R-029). Our
+   per-category LIBERO-Plus ordering matches the paper's (R-031).
+2. **Roster.** **GR00T N1.7** (bf16, `nvidia/gr00t17-lerobot-libero_spatial-640`)
+   is the workhorse. **MINERVA** is the fp32 control; its bf16 path is broken
+   (R-033). **SmolVLA is vetoed**: it never reproduced a published number
+   (R-011, R-017). **π0.5 and π0-FAST do not fit** the 8 GB card (R-032). A
+   rented GPU is a budget question (PENDING #25).
+3. **All of these are behaviour-cloned policies**, trained by imitation on
+   demonstrations (the GR00T checkpoint: 20k steps on
+   `IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot`). So a failure
+   under perturbation is, by default, a coverage question about those
+   demonstrations.
+
+**What breaks GR00T, and how**
+
+4. **Robot initial state and camera viewpoint are the damaging
+   perturbations.** 155 failures in 623 L4+L5 variants (R-026). Robot initial
+   state moves all seven joints and nothing else (R-030).
+5. **Language is not inert.** With an empty prompt GR00T scores 50/100
+   against 100/100 (R-038), from 0/10 to 10/10 by scene. R-025's null
+   (rewording) was underpowered. LIBERO-Plus Finding 3 does not hold in its
+   strong form.
+6. **A vision perturbation is visible at the backbone output and gone by the
+   time the action head reads it** (R-037): 1.37x at Qwen3-VL layer 16, 1.02x
+   after the 4-block VL self-attention. This localisation is correlational.
+7. **Every LIBERO-Plus category reaches the action through the image tokens,
+   robot initial state included; the state token is near-inert** (R-039).
+8. **Failures can be wrong-object grasps that the trace used to miss.**
+   `_gt_object_pos` holds only BDDL task objects. Since 2026-09-23 the env also
+   records `_gt_scene_object_pos` (every free-joint object). On the drawer
+   scene, both failing initial states handled the ramekin or the other bowl.
+
+**Negative or unresolved**
+
+9. **R-036 is a negative that never tested its hypothesis.** It had 2
+   camera episodes.
+10. **Nothing tested so far predicts which perturbed episodes fail** (R-037
+    Q2; nothing survives Bonferroni).
+11. **Failure-family labels are unvalidated** (R-008). The adjudication CSV
+    is at 0 of 80 verdicts. VLM labels (`experiments/vlm_label.py`) are
+    unvalidated too: in the first test, two models named the wrong grasped
+    object.
+12. **The action-atlas reproduction (arXiv:2603.19233) is blocked**: the
+    artifact fails under its own pin. Its GR00T pathway ordering is
+    **unverified** here.
+
+**Open, in order of readiness:** R-041 (running), R-042 and R-040
+(pre-registered), R-035 (pre-registered, ~2 h), the per-block DiT capture
+(HANDOFF §6).
+
+<details><summary>Superseded: the 2026-09-17 list</summary>
+
 
 1. **The setup can reproduce a published LIBERO number.** MINERVA scores 95.3%
    against 95.75% published, and all four suites fall inside their CIs (R-016).
@@ -90,6 +147,8 @@ Every entry records its expectation and **says when it was written**:
    family count is reportable yet. **Diagnoses produced before 2026-09-17 use
    first-match labels; re-mine before comparing.**
 7. **libero_goal is now fully instrumented** for mining (R-019, R-020).
+
+</details>
 
 ---
 
@@ -145,8 +204,21 @@ Every entry records its expectation and **says when it was written**:
 | R-024 | 09-17 | EVAL | GR00T on hard LIBERO-Plus variants, through harness | DONE | 33/41; camera and robot-init worst |
 | R-025 | 09-18 | EVAL | Contamination A/B: clean vs LeRobot instruction | DONE | 34 vs 33 of 42; no detectable effect |
 | R-026 | 09-18 | EVAL | GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants | DONE | 155 failures; robot init state 32.8% |
-| R-027 | 09-18 | EVAL | MINERVA on the same variants (non-language) | RUNNING | — |
+| R-027 | 09-18 | EVAL | MINERVA on the same variants (non-language) | STALLED — entry still says RUNNING | Run stopped 09-18 14:05 at 506 episodes, 225 successes; no result written |
 | R-028 | 09-18 | BUG | Clean-instruction stripper truncated 10% of variants | FIXED | validated on all 8,493 non-language variants |
+| R-029 | 09-18 | EVAL | Unperturbed control on the LIBERO-Plus stack | DONE | 100/100 — the reference every LIBERO-Plus rate is read against |
+| R-030 | 09-18 | ANALYSIS | Robot initial state is a joint-space perturbation | DONE | All 7 joints move (J6, J2 dominate); no object moves at t=0 |
+| R-031 | 09-18 | COMPARISON | Our per-category rates vs the LIBERO-Plus paper | DONE | Same ordering as the paper: camera and robot-init worst |
+| R-032 | 09-18 | EVAL | π0 family on 8 GB | DONE — NEITHER FITS | π0.5 OOM at 7.40/7.53 GiB; π0-FAST does not fit as published |
+| R-033 | 09-18 | BUG | Precision A/B reported rc=0 and produced nothing | BUG | MINERVA bf16 broken (dtype mismatch); fp32 is the control |
+| R-034 | 09-18 | BUG | Three harness bugs found via a drop-in checkpoint | FIXED | Rename map discarded, dual-declared settings, missing tokenizer subfolder |
+| R-035 | 09-22 | EVAL | Balanced radius sweep on robot initial state | PRE-REGISTERED, NOT RUN | ~2 h GPU; saturation vs monotone decline |
+| R-036 | 09-22 | EVAL | VL embeddings vs GR00T's own failures | DONE — NEGATIVE, SCOPE CORRECTED | VL taps do not separate; sample had n=2 camera episodes, so the VL hypothesis was never tested |
+| R-037 | 09-23 | EVAL | Does a perturbation move the signals at all? | DONE (result filed under R-040's heading) | Vision moves the backbone output 46.6% vs 3.0%; gone after VL self-attention (1.37x → 1.02x) |
+| R-038 | 09-22 | EVAL | GR00T with an empty prompt | DONE (header still says launching) | 50/100 vs 100/100; language is not inert; scenes span 0/10 to 10/10 |
+| R-039 | 09-23 | EVAL | Which pathway carries a perturbation to the action | DONE | Image tokens for every category incl. robot init; state token near-inert |
+| R-040 | 09-23 | EVAL | Corrective demos vs mechanism-mined vs OOD-ranked vs nominal data | PRE-REGISTERED, NOT RUN | Was blocked on R-039, which is now done |
+| R-041 | 09-23 | EVAL | Boundary sweeps from a known success | PRE-REGISTERED, NOT RUN | Single-axis sweeps with the R-039 splice running |
 
 ---
 
@@ -1065,7 +1137,7 @@ expected, and is **not** evidence that GR00T is robust to mild perturbations. Se
 
 ## R-024 — GR00T on hard LIBERO-Plus variants, through our harness
 
-**Date** 2026-09-17 · **Status** RUNNING · **Type** EVAL
+**Date** 2026-09-17 · **Status** DONE (see Result) · **Type** EVAL
 
 **Question (why).**
 - R-023 showed only level-1 variants, which the reference models solve, and it
@@ -1178,7 +1250,7 @@ than a suffix of junk. It clears this bug only for this policy, at this size.
 
 ## R-026 — GR00T failure hunt: 623 LIBERO-Plus L5+L4 variants
 
-**Date** 2026-09-18 · **Status** RUNNING · **Type** EVAL
+**Date** 2026-09-18 · **Status** DONE (see Result) · **Type** EVAL
 
 **Question.** Not a rate question. The mining layer's family rules
 (`vla_harness/mining/classify.py`) were written against the toy environment and
@@ -1277,7 +1349,7 @@ failure episodes in `viz/lplus_fail_groot/`.
 
 ## R-027 — MINERVA on the same variants: a policy that cannot read
 
-**Date** 2026-09-18 · **Status** RUNNING · **Type** EVAL
+**Date** 2026-09-18 · **Status** STALLED — run stopped 2026-09-18 14:05 at 506 episodes (225 successes), no result written · **Type** EVAL
 
 **Question.** Do two policies fail on the same variants, and do they fail the
 same *way*? The second half is what the taxonomy work needs: if the family
@@ -1749,7 +1821,7 @@ This is the cheapest experiment that separates them.
 
 ## R-038 — GR00T with a NULL PROMPT: 50/100, and the expectation was WRONG
 
-**Date registered** 2026-09-22 · **Status** PRE-REGISTERED, launching now
+**Date registered** 2026-09-22 · **Status** DONE (RESULT below, 2026-09-22)
 
 **Registered before the run because both outcomes are interpretable and it
 would be easy to claim either was expected.**
@@ -2090,9 +2162,9 @@ episodes.
 
 ---
 
-## R-037 — PRE-REGISTERED, NOT YET RUN: does the perturbation show up at all, and does it separate?
+## R-037 — DONE: a vision perturbation is visible at the backbone output and gone after the VL adapter
 
-**Date registered** 2026-09-22 · **Status** PRE-REGISTERED · **Spec** this entry
+**Date registered** 2026-09-22 · **Run** 2026-09-23 · **Status** DONE (RESULT at the end of this entry) · **Spec** this entry
 
 **Registered before the run. §5's convention: expectations written first, and a
 wrong one is the finding.**
@@ -2264,6 +2336,91 @@ directions**:
 directions and should not be reported as a test of anything.** Its image-pooled
 half stands unchanged and still tests modality mixing directly: if image-pooled
 and combined-pooled show the same arm-B effect, R-036's caveat 3a is downgraded.
+
+### RESULT, 2026-09-23 — all 70 episodes, rc=0
+
+`runs/r037_{A_nominal,B_vision,C_telemetry}`. Arm A 20 episodes, B 30 (20
+success / 10 fail), C 20 (9 success / 11 fail). Labels from this run.
+
+#### Q1 — detection: % of forwards outside the NOMINAL cloud
+
+| signal | A self | B vision | C telemetry |
+|---|---|---|---|
+| `vl_encoder_mean` (S1) | 3.0% | **46.6%** | 31.6% |
+| `vl_encoder_img_mean` | 3.4% | **43.4%** | 30.5% |
+| `vl_encoder_txt_mean` | 2.6% | 23.8% | 1.7% |
+| `vl_adapted_mean` (S2) | 4.9% | **7.5%** | 7.8% |
+| `vl_adapted_img_mean` | 4.9% | **6.4%** | 5.9% |
+| `state_encoded` (S0e) | 4.4% | 19.6% | **54.4%** |
+
+**EXPECTATION 1 HOLDS, AND IT RESCUES R-036 FROM AMBIGUITY.** A vision
+perturbation moves the VL encoder hard — 46.6% against a 3.0% baseline. **The
+instrument is not deaf.** So R-036's flat VL rows are a genuine negative about
+S2, not an artefact of a broken tap.
+
+#### The finding: the adapter destroys the visual signal before the action head sees it
+
+Threshold-crossing rates could be a threshold artefact, so the same comparison on
+raw median nearest-neighbour distance:
+
+| tap | nominal | arm B | ratio |
+|---|---|---|---|
+| `vl_encoder` — pre-`vlln` (S1) | 7.580 | 10.357 | **1.37x** |
+| `vl_normed` — post-`vlln` (S1.5) | 1.797 | 2.471 | **1.38x** |
+| `vl_adapted` — post-attention (S2) | 18.500 | 18.938 | **1.02x** |
+
+**`vlln` PRESERVES the perturbation signal (1.37 -> 1.38). `vl_self_attention`
+DESTROYS it (1.38 -> 1.02).** Not the LayerNorm — the four-block VL
+self-attention. This is why S2 was flat in R-036: **the information is present in
+the VLM's output and is gone by the time the action head receives it.**
+
+This also retroactively justifies capturing S1, S1.5 and S2 separately. With
+only S2 the conclusion would have been "GR00T cannot see the perturbation",
+which is false. With only S1 it would have been "it can", which is true and
+misleading. **The finding lives in the difference, and only the three-tap capture
+could see it.**
+
+#### Q2 — discrimination: pass vs fail within each arm
+
+| signal | B vision sep (p) | C telemetry sep (p) |
+|---|---|---|
+| `vl_encoder_mean` | 0.00x (0.53) | **9.26x (0.015)** |
+| `vl_encoder_img_mean` | 0.00x (0.53) | **7.11x (0.024)** |
+| `vl_adapted_mean` | 0.95x (0.91) | 1.46x (0.37) |
+| `state_encoded` | 2.36x (0.27) | **4.25x (0.031)** |
+
+**NOTHING predicts failure within vision perturbations** — not even the signal
+that detects them at 46.6%. Detecting that the scene changed and predicting
+whether the policy will cope are different problems, and GR00T's own
+representations solve only the first.
+
+**⚠ NEITHER Q2 RESULT SURVIVES MULTIPLE-COMPARISON CORRECTION.** 7 signals x 2
+arms = 14 tests; Bonferroni at alpha=0.05 needs p < 0.0036. The best is p=0.015.
+With 10 and 11 failures these are suggestive and nothing more, and should not be
+quoted as significant.
+
+#### Scorecard against the pre-registration
+
+| # | prediction | outcome |
+|---|---|---|
+| 1 | arm B moves VL signals | **HELD** — 46.6% vs 3.0%. Load-bearing, and it passed |
+| 2 | arm C moves `state_encoded` | **HELD** — 54.4% vs 4.4% |
+| 3 | off-diagonals weak | **WRONG** — arm C moves `vl_encoder` 31.6%. Explicable after the fact: the robot arm is IN the camera image, so a joint-space perturbation is also a visual one. Registered as wrong rather than reinterpreted |
+| 4 | image-pooled > combined | **WRONG** — 43.4% vs 46.6%, image-pooled slightly LOWER. **Modality mixing was not material for detection, and R-036 caveat 3a is DOWNGRADED accordingly**, exactly as pre-registered |
+| 5 | Q2 weaker than Q1 in arm B | **HELD**, dramatically — 46.6% detection against 0.00x discrimination |
+| 6 | `state_encoded` separates in every arm | **WRONG** — fails in arm B (2.36x, p=0.27). It does not separate vision failures |
+
+Four held, three wrong — #3, #4 and #6. **#6 being wrong is good news**:
+R-036's worry that `state_encoded` merely restates "this episode went wrong" is
+weakened, because a pure went-wrong detector should have fired in arm B too.
+
+#### What this does not establish
+
+Causation is untouched: `vl_encoder` separating arm-C failures at 9.26x may
+still be drift accompanying failure. And the vl_self_attention result is a
+**correlational localisation** — it shows where the signal stops being linearly
+recoverable by nearest-neighbour distance, not that the block causally discards
+it. An intervention would be needed for that.
 
 ---
 
@@ -2650,9 +2807,9 @@ Expectation 1 failing, or the bitwise-determinism gate failing.
 
 ---
 
-## R-040 — PRE-REGISTERED, NOT YET RUN, DEPENDS ON R-039: direct corrective demos vs mechanism-targeted mining vs OOD-ranked bulk vs nominal, at a matched data budget
+## R-040 — PRE-REGISTERED, NOT YET RUN (its dependency R-039 is DONE): direct corrective demos vs mechanism-targeted mining vs OOD-ranked bulk vs nominal, at a matched data budget
 
-**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, BLOCKED ON R-039 ·
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, UNBLOCKED (R-039 done 2026-09-23) ·
 **Type** EVAL · **Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html`
 
 ### The question
@@ -2728,94 +2885,10 @@ that fed the mining.
 Fewer than 10 held-out instances per perturbation category, or a nominal
 control that does not reproduce R-029's 100/100 before post-training.
 
-### RESULT, 2026-09-23 — all 70 episodes, rc=0
-
-`runs/r037_{A_nominal,B_vision,C_telemetry}`. Arm A 20 episodes, B 30 (20
-success / 10 fail), C 20 (9 success / 11 fail). Labels from this run.
-
-#### Q1 — detection: % of forwards outside the NOMINAL cloud
-
-| signal | A self | B vision | C telemetry |
-|---|---|---|---|
-| `vl_encoder_mean` (S1) | 3.0% | **46.6%** | 31.6% |
-| `vl_encoder_img_mean` | 3.4% | **43.4%** | 30.5% |
-| `vl_encoder_txt_mean` | 2.6% | 23.8% | 1.7% |
-| `vl_adapted_mean` (S2) | 4.9% | **7.5%** | 7.8% |
-| `vl_adapted_img_mean` | 4.9% | **6.4%** | 5.9% |
-| `state_encoded` (S0e) | 4.4% | 19.6% | **54.4%** |
-
-**EXPECTATION 1 HOLDS, AND IT RESCUES R-036 FROM AMBIGUITY.** A vision
-perturbation moves the VL encoder hard — 46.6% against a 3.0% baseline. **The
-instrument is not deaf.** So R-036's flat VL rows are a genuine negative about
-S2, not an artefact of a broken tap.
-
-#### The finding: the adapter destroys the visual signal before the action head sees it
-
-Threshold-crossing rates could be a threshold artefact, so the same comparison on
-raw median nearest-neighbour distance:
-
-| tap | nominal | arm B | ratio |
-|---|---|---|---|
-| `vl_encoder` — pre-`vlln` (S1) | 7.580 | 10.357 | **1.37x** |
-| `vl_normed` — post-`vlln` (S1.5) | 1.797 | 2.471 | **1.38x** |
-| `vl_adapted` — post-attention (S2) | 18.500 | 18.938 | **1.02x** |
-
-**`vlln` PRESERVES the perturbation signal (1.37 -> 1.38). `vl_self_attention`
-DESTROYS it (1.38 -> 1.02).** Not the LayerNorm — the four-block VL
-self-attention. This is why S2 was flat in R-036: **the information is present in
-the VLM's output and is gone by the time the action head receives it.**
-
-This also retroactively justifies capturing S1, S1.5 and S2 separately. With
-only S2 the conclusion would have been "GR00T cannot see the perturbation",
-which is false. With only S1 it would have been "it can", which is true and
-misleading. **The finding lives in the difference, and only the three-tap capture
-could see it.**
-
-#### Q2 — discrimination: pass vs fail within each arm
-
-| signal | B vision sep (p) | C telemetry sep (p) |
-|---|---|---|
-| `vl_encoder_mean` | 0.00x (0.53) | **9.26x (0.015)** |
-| `vl_encoder_img_mean` | 0.00x (0.53) | **7.11x (0.024)** |
-| `vl_adapted_mean` | 0.95x (0.91) | 1.46x (0.37) |
-| `state_encoded` | 2.36x (0.27) | **4.25x (0.031)** |
-
-**NOTHING predicts failure within vision perturbations** — not even the signal
-that detects them at 46.6%. Detecting that the scene changed and predicting
-whether the policy will cope are different problems, and GR00T's own
-representations solve only the first.
-
-**⚠ NEITHER Q2 RESULT SURVIVES MULTIPLE-COMPARISON CORRECTION.** 7 signals x 2
-arms = 14 tests; Bonferroni at alpha=0.05 needs p < 0.0036. The best is p=0.015.
-With 10 and 11 failures these are suggestive and nothing more, and should not be
-quoted as significant.
-
-#### Scorecard against the pre-registration
-
-| # | prediction | outcome |
-|---|---|---|
-| 1 | arm B moves VL signals | **HELD** — 46.6% vs 3.0%. Load-bearing, and it passed |
-| 2 | arm C moves `state_encoded` | **HELD** — 54.4% vs 4.4% |
-| 3 | off-diagonals weak | **WRONG** — arm C moves `vl_encoder` 31.6%. Explicable after the fact: the robot arm is IN the camera image, so a joint-space perturbation is also a visual one. Registered as wrong rather than reinterpreted |
-| 4 | image-pooled > combined | **WRONG** — 43.4% vs 46.6%, image-pooled slightly LOWER. **Modality mixing was not material for detection, and R-036 caveat 3a is DOWNGRADED accordingly**, exactly as pre-registered |
-| 5 | Q2 weaker than Q1 in arm B | **HELD**, dramatically — 46.6% detection against 0.00x discrimination |
-| 6 | `state_encoded` separates in every arm | **WRONG** — fails in arm B (2.36x, p=0.27). It does not separate vision failures |
-
-Four held, three wrong — #3, #4 and #6. **#6 being wrong is good news**:
-R-036's worry that `state_encoded` merely restates "this episode went wrong" is
-weakened, because a pure went-wrong detector should have fired in arm B too.
-
-#### What this does not establish
-
-Causation is untouched: `vl_encoder` separating arm-C failures at 9.26x may
-still be drift accompanying failure. And the vl_self_attention result is a
-**correlational localisation** — it shows where the signal stops being linearly
-recoverable by nearest-neighbour distance, not that the block causally discards
-it. An intervention would be needed for that.
 
 ---
 
-## R-041 — PRE-REGISTERED, NOT YET RUN: where is the boundary — single-axis sweeps from a known success, with the splice running
+## R-041 — PRE-REGISTERED, RUNNING (camera-yaw axis started 2026-09-23): where is the boundary — single-axis sweeps from a known success, with the splice running
 
 **Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
 **Spec** this entry · **Shares the runner with R-039**
@@ -2920,3 +2993,65 @@ R-039's transfer fractions can be plotted against.
 
 Expectation 1 failing on any axis; or the magnitude-0 rollouts not
 reproducing R-029's 100/100 before τ is computed.
+
+---
+
+## R-042 — PRE-REGISTERED, NOT YET RUN: does the R-039 residual collapse under a pairwise arm, and which CAMERA carries it
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Spec** this entry · **Runner** `experiments/r039_run.py --arms extended`
+
+### Why it exists
+
+R-039 left 36/40 instances "residual" because the text and image arms are
+split by token POSITION at the adapter output, and the text positions carry
+image content that the VLM mixed in. Two cheap arms settle whether that is
+all there is to it, and a third asks the question that matters for mining
+start-pose failures: which camera.
+
+A pre-backbone text splice is degenerate and is NOT run: the instruction is
+identical in P and N, so the only inputs that differ before the VLM are the
+pixels and the state. Restoring the pixels pre-backbone therefore equals N
+minus the state token, which R-039 already showed is near-inert.
+
+### Design — three arms added to the five, same instances, same seeds, same noise
+
+| arm | what is restored to nominal | where |
+|---|---|---|
+| **IT** | image AND text token positions together | post-adapter, as T and I |
+| **A** | the agent-view pixels only; wrist stays perturbed; the whole VL stack re-runs | pre-backbone |
+| **W** | the wrist-camera pixels only; agent view stays perturbed | pre-backbone |
+
+A and W are built by running `features_for` on a hybrid observation: for
+vision instances one frame from `nominal_frames()` and the other from the
+perturbed step; for Robot Initial States one frame from the control rollout's
+logged frames at the same forward and the other from the target. Cost per
+forward: 8 head passes and 3 backbone passes. Same 40 instances as R-039,
+same seeds, same `noise_key`, so P and N are bitwise the same numbers as
+R-039's (the determinism gate) and the run is also a replication of R-039's
+T, I, S.
+
+### Pre-registered expectations
+
+1. **IT ≥ 0.9 at forward 0 on at least 75% of instances.** *Medium-high.*
+   If it holds, the R-039 residual was the positional split and no
+   interaction model (SAE or otherwise) is needed for these categories.
+2. **Sanity, high confidence, load-bearing for A and W:** on Camera
+   Viewpoints and Sensor Noise the perturbation touches the agent view only
+   (the fork moves `agentview` and blurs `agentview_image`), so **A ≈ I and
+   W ≈ 0**. If W is material on those categories the hybrid observation is
+   built wrong and nothing else in the entry is interpretable.
+3. **Light Conditions: A and W both material**, since the scene lights both
+   cameras; A > W. *Medium.*
+4. **Robot Initial States: W > A.** *Medium.* The wrist camera sees the
+   gripper and the near scene, and a joint perturbation moves what it sees
+   most. If instead A > W, the policy reads its pose from the third-person
+   view of the arm. Either answer is a data-collection instruction: which
+   camera's rendering has to cover the new poses.
+5. **A + W ≈ I on every category** (within 0.15). *Medium.* The two cameras'
+   contributions add because they are separate token blocks; a large
+   shortfall means a cross-camera interaction.
+
+### What would make this a failed experiment rather than a negative result
+
+Expectation 2 failing, or P/N not reproducing R-039's numbers.

@@ -259,3 +259,43 @@ def test_none_source_still_fixes_the_noise_and_records_nothing(policy):
     assert torch.equal(a1, a2)
     assert h.records == []
     h.detach()
+
+
+# --- R-042: pairwise arm and whole-feature-set arms ---------------------------
+
+def test_pairwise_IT_arm_restores_both_token_blocks_and_not_the_state(policy):
+    bo, ai = _inputs(1)
+    src = _source_from(policy, seed=7)
+    h = attach_splice(policy, source=lambda i: src, drive="IT", noise_key=lambda i: 5)
+    out = policy.action_head.get_action(bo, ai)
+    h.detach()
+    assert torch.equal(out["backbone_features"], src["backbone_features"])
+    assert torch.equal(out["state_features"],
+                       policy.action_head._encode_features(*_inputs(1))["state_features"])
+    assert set(h.records[0]["action"]) >= {"P", "N", "T", "I", "S", "IT"}
+
+
+def test_extra_full_feature_arms_run_the_head_on_the_given_features(policy):
+    bo, ai = _inputs(1)
+    src = _source_from(policy, seed=7)
+    alt = _source_from(policy, seed=9)
+    h = attach_splice(policy, source=lambda i: src, drive=None, noise_key=lambda i: 5,
+                      extra={"A": lambda i: alt})
+    policy.action_head.get_action(bo, ai)
+    acts = h.records[0]["action"]
+    h.detach()
+    assert "A" in acts
+    # the A arm equals N computed from `alt` under the same noise
+    h2 = attach_splice(policy, source=lambda i: alt, drive=None, noise_key=lambda i: 5)
+    policy.action_head.get_action(*_inputs(1))
+    assert torch.equal(acts["A"], h2.records[0]["action"]["N"])
+    h2.detach()
+
+
+def test_extra_arm_returning_none_is_skipped_for_that_forward(policy):
+    src = _source_from(policy, seed=7)
+    h = attach_splice(policy, source=lambda i: src, drive=None, noise_key=lambda i: 5,
+                      extra={"W": lambda i: None})
+    policy.action_head.get_action(*_inputs(1))
+    assert "W" not in h.records[0]["action"]
+    h.detach()

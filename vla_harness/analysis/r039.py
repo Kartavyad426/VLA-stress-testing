@@ -10,7 +10,7 @@ import os
 
 import numpy as np
 
-ARMS = ("T", "I", "S")
+ARMS = ("T", "I", "S")            # the R-039 single-input arms, always present
 ONSET_THRESHOLD = 0.5       # RESULTS.md R-039 revision: first forward with transfer >= 0.5
 RESIDUAL_THRESHOLD = 0.9    # RESULTS.md R-039 expectation 6: no single arm >= 0.9
 
@@ -31,7 +31,9 @@ def load_instances(run_root: str) -> list[dict]:
     for line in open(os.path.join(d, "manifest.jsonl")):
         row = json.loads(line)
         z = np.load(os.path.join(d, f"{row['rollout_id']}.npz"))
-        row["tf"] = {a: z[f"tf_{a}"].astype(np.float64) for a in ARMS}
+        arms = [k[3:] for k in z.files if k.startswith("tf_")]
+        arms = list(ARMS) + [a for a in arms if a not in ARMS]     # R-042 extras after the three
+        row["tf"] = {a: z[f"tf_{a}"].astype(np.float64) for a in arms if f"tf_{a}" in z.files}
         row["env_steps"] = z["env_steps"]
         row["d_pn"] = z["d_pn"].astype(np.float64)
         row["closest_approach"] = z["closest_approach"].astype(np.float64)
@@ -40,7 +42,7 @@ def load_instances(run_root: str) -> list[dict]:
 
 
 def _at(inst: dict, fwd: int) -> dict:
-    return {a: float(inst["tf"][a][fwd]) for a in ARMS}
+    return {a: float(inst["tf"][a][fwd]) for a in inst["tf"]}
 
 
 def _slope(y: np.ndarray) -> float:
@@ -64,8 +66,8 @@ def aggregate(instances: list[dict]) -> dict:
             "success": inst.get("success"), "forwards": F, "anchor_forward": anchor,
             "d_pn_f0": float(inst["d_pn"][0]) if len(inst["d_pn"]) else None,
             "tf_f0": at_f0, "tf_anchor": at_anchor,
-            "tf_mean": {a: float(np.nanmean(inst["tf"][a])) for a in ARMS},
-            "onset": {a: onset_forward(inst["tf"][a]) for a in ARMS},
+            "tf_mean": {a: float(np.nanmean(inst["tf"][a])) for a in inst["tf"]},
+            "onset": {a: onset_forward(inst["tf"][a]) for a in inst["tf"]},
             "dominant": dominant_arm(at_anchor),
             "S_slope": _slope(inst["tf"]["S"]),
         })
@@ -76,12 +78,13 @@ def aggregate(instances: list[dict]) -> dict:
         for p in rows:
             dom[p["dominant"] or "none"] = dom.get(p["dominant"] or "none", 0) + 1
         slopes = np.array([p["S_slope"] for p in rows], dtype=np.float64)
+        arms = [a for a in rows[0]["tf_f0"] if all(a in p["tf_f0"] for p in rows)]
         by_cat[cat] = {
             "n": len(rows),
             "n_fail": sum(1 for p in rows if p["success"] is False),
-            "median_tf_f0": {a: float(np.median([p["tf_f0"][a] for p in rows])) for a in ARMS},
-            "median_tf_anchor": {a: float(np.median([p["tf_anchor"][a] for p in rows])) for a in ARMS},
-            "median_tf_mean": {a: float(np.median([p["tf_mean"][a] for p in rows])) for a in ARMS},
+            "median_tf_f0": {a: float(np.median([p["tf_f0"][a] for p in rows])) for a in arms},
+            "median_tf_anchor": {a: float(np.median([p["tf_anchor"][a] for p in rows])) for a in arms},
+            "median_tf_mean": {a: float(np.median([p["tf_mean"][a] for p in rows])) for a in arms},
             "median_d_pn_f0": float(np.median([p["d_pn_f0"] for p in rows if p["d_pn_f0"] is not None])),
             "dominant": dict(sorted(dom.items())),
             "S_slope_per_forward": {"median": float(np.nanmedian(slopes)),

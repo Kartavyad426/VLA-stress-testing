@@ -35,6 +35,7 @@ import torch
 from .groot_features import _restore_rng, _rng_state, find_action_head
 
 ARMS = ("P", "N", "T", "I", "S")
+PAIR_ARMS = {"IT": ("I", "T")}          # R-042: both token blocks restored, state stays perturbed
 
 
 def transfer_fraction(patched, target, source, live_dims: int) -> float:
@@ -54,11 +55,19 @@ def transfer_fraction(patched, target, source, live_dims: int) -> float:
 
 class SpliceHandle:
     def __init__(self, head, source: Callable[[int], dict | None],
-                 drive: str | None, noise_key: Callable[[int], int]):
-        if drive is not None and drive not in ARMS:
-            raise ValueError(f"drive must be one of {ARMS} or None, got {drive!r}")
+                 drive: str | None, noise_key: Callable[[int], int],
+                 extra: dict[str, Callable[[int], dict | None]] | None = None):
+        """`extra` maps an arm name to a callable giving a WHOLE feature set
+        (backbone_features, state_features, image_mask) for forward i, or
+        None to skip that arm this forward. Used for R-042's per-camera
+        arms, where the hybrid observation is run through the full VL stack
+        and the resulting features are used as-is."""
+        allowed = ARMS + tuple(PAIR_ARMS) + tuple(extra or ())
+        if drive is not None and drive not in allowed:
+            raise ValueError(f"drive must be one of {allowed} or None, got {drive!r}")
         self._head = head
         self._source = source
+        self._extra = dict(extra or {})
         self._drive = drive or "P"
         self._noise_key = noise_key
         self._fidx = 0
@@ -129,7 +138,15 @@ class SpliceHandle:
             "T": (patched(text), st_t),
             "I": (patched(image), st_t),
             "S": (vl_t, st_s),
+            "IT": (patched(image | text), st_t),
         }
+        for name, fn in self._extra.items():
+            ex = fn(fidx)
+            if ex is None:
+                continue
+            if ex["backbone_features"].shape != vl_t.shape or ex["state_features"].shape != st_t.shape:
+                raise RuntimeError(f"extra arm {name!r}: feature shapes differ from the target's")
+            feats[name] = (ex["backbone_features"], ex["state_features"])
 
         device = vl_t.device
         outer = _rng_state(device)
@@ -144,7 +161,7 @@ class SpliceHandle:
 
         self.records.append({
             "forward_idx": fidx,
-            "action": {arm: outputs[arm]["action_pred"].detach().clone() for arm in ARMS},
+            "action": {arm: outputs[arm]["action_pred"].detach().clone() for arm in outputs},
         })
         return outputs[self._drive]
 
@@ -158,7 +175,8 @@ def _get(bo, key):
 
 
 def attach_splice(policy, source: Callable[[int], dict | None], drive: str | None = None,
-                  noise_key: Callable[[int], int] | None = None) -> SpliceHandle:
+                  noise_key: Callable[[int], int] | None = None,
+                  extra: dict[str, Callable[[int], dict | None]] | None = None) -> SpliceHandle:
     """Wrap the head so every forward runs all five arms and drives `drive`.
 
     `source(forward_idx)` returns the nominal features for that forward:
@@ -168,7 +186,7 @@ def attach_splice(policy, source: Callable[[int], dict | None], drive: str | Non
     head = find_action_head(policy)
     if head is None:
         raise RuntimeError("no GR00T action head found on the policy")
-    return SpliceHandle(head, source, drive, noise_key or (lambda i: i))
+    return SpliceHandle(head, source, drive, noise_key or (lambda i: i), extra)
 
 
 class RecorderHandle:

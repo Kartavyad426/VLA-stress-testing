@@ -72,3 +72,16 @@ def test_aggregate_flags_the_state_arm_growing_with_forward_index(tmp_path):
     agg = aggregate(load_instances(root))
     slopes = agg["by_category"]["Light Conditions"]["S_slope_per_forward"]
     assert slopes["median"] > 0 and slopes["n_positive"] == 1
+
+
+def test_aggregate_picks_up_extra_arms_present_in_the_arrays(tmp_path):
+    rows = [_row("1", "Light Conditions", [0.1, 0.1], [0.7, 0.7], [0.0, 0.0])]
+    rows[0]["_arrays"]["tf_IT"] = np.array([0.95, 0.96], np.float32)
+    rows[0]["_arrays"]["tf_A"] = np.array([0.5, 0.5], np.float32)
+    root = _write(tmp_path, rows)
+    inst = load_instances(root)
+    assert set(inst[0]["tf"]) == {"T", "I", "S", "IT", "A"}
+    agg = aggregate(inst)
+    c = agg["by_category"]["Light Conditions"]
+    assert c["median_tf_f0"]["IT"] == pytest.approx(0.95)
+    assert agg["instances"][0]["dominant"] == "IT"

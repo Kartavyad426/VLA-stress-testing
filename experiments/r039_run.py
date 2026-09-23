@@ -47,11 +47,41 @@ from vla_harness.schema import PerturbationSpec, TraceStore
 
 LIVE_DIMS = 7
 RIS = "Robot Initial States"
+TF_ARMS_BASE = ("T", "I", "S")
+EXTENDED = ("IT", "A", "W")          # R-042: pairwise tokens, agent-view pixels, wrist pixels
+
+
+class FrameLoggingPolicy(LeRobotPolicy):
+    """R-042 needs the CONTROL rollout's frames at each forward, to build the
+    hybrid observations for the per-camera arms of a Robot-Initial-State
+    instance. Logged only when a forward actually ran."""
+
+    def reset(self):
+        super().reset()
+        self.forward_frames = []
+
+    def __call__(self, obs):
+        before = self.model_forwards
+        a = super().__call__(obs)
+        if self.model_forwards > before:
+            self.forward_frames.append({k: np.array(v, copy=True) for k, v in (obs.frames or {}).items()})
+        return a
+
+
+def hybrid_obs(obs, nominal_frames: dict, camera: str):
+    """`obs` with ONE camera's frame swapped for its nominal version.
+    camera: "image" (agent view) or "image2" (wrist)."""
+    from copy import copy
+    o = copy(obs)
+    frames = dict(obs.frames or {})
+    frames[camera] = nominal_frames[camera]
+    o.frames = frames
+    return o
 
 
 def build_policy():
     from lerobot.envs.configs import LiberoPlusEnv
-    return LeRobotPolicy(
+    return FrameLoggingPolicy(
         "nvidia/gr00t17-lerobot-libero_spatial-640", n_action_steps=16,
         env_cfg=LiberoPlusEnv(task="libero_spatial"),
         policy_overrides={"base_model_path": "nvidia/GR00T-N1.7-3B",
@@ -96,6 +126,9 @@ def main():
     ap.add_argument("--drive", default="P", choices=list(ARMS))
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-video", action="store_true")
+    ap.add_argument("--arms", default="base", choices=["base", "extended"],
+                    help="extended adds R-042's IT (both token blocks), A (agent-view pixels "
+                         "nominal, whole VL stack re-run) and W (wrist pixels nominal).")
     ap.add_argument("--source", default="auto", choices=["auto", "recorded"],
                     help="auto: paired render for vision categories, recorded control for "
                          "Robot Initial States. recorded: the control rollout's per-forward "
@@ -136,6 +169,8 @@ def main():
 
         # --- source ----------------------------------------------------------
         env = make_env(suite, tid)
+        extra = None
+        recorded_frames = None
         if cat == RIS or a.source == "recorded":
             ctl = inst["control_task_id"]
             key = (ctl, seed)
@@ -148,16 +183,33 @@ def main():
                     r_ctl = rollout(cenv, pol, seed, PerturbationSpec(), video_dir=None)
                 finally:
                     gen.detach(); rec.detach()
-                recorded_controls[key] = rec.records
+                recorded_controls[key] = (rec.records, list(pol.forward_frames))
                 log(f"    control {ctl}: success={r_ctl.success} forwards={len(rec.records)}")
                 store.append(r_ctl)
-            recs = recorded_controls[key]
+            recs, recorded_frames = recorded_controls[key]
             source = lambda i, recs=recs: recs[i] if i < len(recs) else None
         else:
             source = lambda i, env=env: pol.features_for(env.nominal_observation())
+        if a.arms == "extended":
+            # the target's CURRENT observation is what the policy is being called on;
+            # LeRobotPolicy exposes it as `last_obs` (set below via the frame logger)
+            def per_camera(camera):
+                def fn(i, env=env, camera=camera):
+                    cur = pol.current_obs
+                    if cur is None:
+                        return None
+                    if recorded_frames is not None:
+                        if i >= len(recorded_frames):
+                            return None
+                        nom = recorded_frames[i]
+                    else:
+                        nom = env.nominal_frames()
+                    return pol.features_for(hybrid_obs(cur, nom, camera))
+                return fn
+            extra = {"A": per_camera("image"), "W": per_camera("image2")}
 
         # --- the spliced rollout ---------------------------------------------
-        h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key)
+        h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key, extra=extra)
         try:
             r = rollout(env, pol, seed, PerturbationSpec(), video_dir=video_dir)
         finally:
@@ -166,11 +218,13 @@ def main():
 
         # --- per-forward arrays ----------------------------------------------
         F = len(h.records)
+        present = [arm for arm in (list(ARMS) + list(EXTENDED)) if all(arm in rec["action"] for rec in h.records)] if F else list(ARMS)
         acts = {arm: np.stack([rec["action"][arm][0, :, :LIVE_DIMS].float().cpu().numpy()
-                               for rec in h.records]).astype(np.float16) for arm in ARMS}
+                               for rec in h.records]).astype(np.float16) for arm in present}
+        tf_arms = [arm for arm in present if arm not in ("P", "N")]
         tf = {arm: np.array([transfer_fraction(rec["action"][arm], rec["action"]["P"],
                                                rec["action"]["N"], LIVE_DIMS)
-                             for rec in h.records], dtype=np.float32) for arm in ("T", "I", "S")}
+                             for rec in h.records], dtype=np.float32) for arm in tf_arms}
         d_pn = np.array([torch.linalg.vector_norm(
             rec["action"]["P"][..., :LIVE_DIMS].float() - rec["action"]["N"][..., :LIVE_DIMS].float()).item()
             for rec in h.records], dtype=np.float32)
@@ -185,7 +239,7 @@ def main():
         row = {"rollout_id": r.rollout_id, "task_id": tid, "seed": seed, "category": cat,
                "label": inst.get("label"), "scene": inst.get("scene"),
                "variant": inst["variant"], "level": inst["level"], "prior_outcome": inst["prior_outcome"],
-               "drive": a.drive, "source": ("recorded" if (cat == RIS or a.source == "recorded") else "paired_render"),
+               "drive": a.drive, "arms": present, "source": ("recorded" if (cat == RIS or a.source == "recorded") else "paired_render"),
                "success": r.success, "termination": r.termination,
                "env_steps": r.env_steps, "forwards": F, "wall_s": round(r.wall_time_s, 1),
                "closest_approach_m": float(np.nanmin(ca)) if np.isfinite(ca).any() else None,
