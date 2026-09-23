@@ -2267,13 +2267,13 @@ and combined-pooled show the same arm-B effect, R-036's caveat 3a is downgraded.
 
 ---
 
-## R-039 — PRE-REGISTERED, NOT YET RUN: which PATHWAY carries a perturbation to the action — channel restoration on GR00T N1.7
+## R-039 — DONE: which PATHWAY carries a perturbation to the action — IMAGE tokens for every category, state token near-inert
 
-**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
-**Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html`
+**Date registered** 2026-09-23 · **Run** 2026-09-23 · **Status** DONE · **Type** EVAL ·
+**Spec** this entry + `docs/FAILURE_TO_DATA_PIPELINE.html` · **Result** `docs/R039_RESULTS.html`
 
 **Registered before the run. Expectations written first; a wrong one is the
-finding.**
+finding. Four of six were wrong; see RESULT below.**
 
 ### Why it exists — the retraining question needs a pathway, not a label
 
@@ -2506,6 +2506,123 @@ are shared.
    *Medium-low.* That residual is the interaction bucket, and it is the only
    place an SAE-style decomposition is worth its compute (see the HTML spec,
    §5).
+
+### RESULT, 2026-09-23 — every category is carried by the IMAGE tokens, including robot initial state; the state token is close to inert
+
+`runs/r039` (paired-render pass, 40 instances, drive P) and `runs/r039_recorded`
+(recorded-control pass, the 30 vision instances) + 10 control rollouts, all
+rc=0, all controls 100% success. Report: `docs/R039_RESULTS.html`.
+Aggregates: `runs/r039*/analysis.json`.
+
+**Transfer fraction at forward 0, medians (paired-render pass).** ‖P−N‖ is
+the size of the perturbation's effect on the first chunk, live dims.
+
+| category | n | fail | ‖P−N‖ f0 | T f0 | **I f0** | S f0 | I at anchor | onset of I |
+|---|---|---|---|---|---|---|---|---|
+| Camera Viewpoints | 10 | 5 | 1.18 | 0.19 | **0.69** | 0 by constr. | 0.68 | forward 0, 10/10 |
+| Light Conditions | 10 | 1 | 0.38 | 0.04 | **0.73** | 0 by constr. | 0.81 | forward 0, 10/10 |
+| Sensor Noise | 10 | 3 | 1.33 | 0.18 | **0.45** | 0 by constr. | 0.82 | forward 0–3 |
+| Robot Initial States | 10 | 8 | 4.04 | 0.28 | **0.83** | **0.04** | 0.80 | forward 0, 10/10 |
+
+Recorded-control pass (vision instances, S is a real counterfactual, all
+arms a bound after forward 0): I f0 0.69 / 0.79 / 0.44 for camera / light /
+noise, matching the paired pass to within 0.06; S at the anchor median 0.02 /
+0.06 / 0.03; S slope over forwards median ≈ 0, above 0.05 on 2 of 30.
+
+#### Expectations, scored
+
+1. **S on Robot Initial States ≥ 0.8 — MISSED, by 0.76.** S f0 = 0.04
+   (range −0.04 to 0.15), while **I f0 = 0.83** (0.79–0.87) on the same ten
+   instances. The pre-registration said a miss here means the harness is
+   wrong. Checked (`experiments/r039_state_token_check.py`, task 468, one
+   forward, fixed noise): ‖P−N‖ = 5.12; swapping the state token for the
+   control's moves the action by 0.85; **zeroing it moves it by 0.50;
+   replacing it with Gaussian noise, 0.50**; swapping the image tokens,
+   4.66. Deleting the state token outright changes the action by under 10%
+   of the perturbation's effect. **The splice is not broken; the premise
+   was.** N1.7 reads its own arm pose from the cameras, not from the 8-dim
+   state, and its training config says why: `state_dropout_prob: 0.2`
+   (`groot_n1_7.py:142`) zeroes the state token on a fifth of training
+   samples, so the head is trained not to depend on it. The wrist camera
+   shows the gripper and the agent view shows the arm, so a joint
+   perturbation IS a visual perturbation to this policy. R-030's "robot
+   initial state is a joint-space perturbation and nothing else moves" is
+   true of the simulator and false of the policy's inputs.
+2. **Camera through I, ≥ 0.6, T and S ≈ 0 — HELD on I (8/10 ≥ 0.6, median
+   0.69), MISSED on T (0.13–0.30).** See 5.
+3. **Light and noise like camera with a smaller unpatched effect — HELD for
+   light** (‖P−N‖ 0.38 vs 1.18, I 0.73), **MISSED for noise**: the unpatched
+   effect is *larger* (1.33, four instances above 3.1) and I closes only 0.45
+   at forward 0, reaching 0.82 by the anchor with onset at forwards 1–3 on
+   6/10. Sensor noise is the one category where restoring the image tokens
+   at the first forward is not enough, and the deficit is not in S (0 by
+   construction on this pass, ≈ 0 on the recorded pass) so it sits in the
+   text positions (T f0 up to 0.45 on the two worst) or in an interaction.
+4. **S grows with forward index (drift) — MISSED.** Recorded pass: S slope
+   median ≈ 0, positive on 2 of 30, S at the anchor ≤ 0.2 on 29 of 30. There
+   is no behavioural-drift route through the state token, for the same
+   reason as 1: the token barely enters.
+5. **T ≈ 0 everywhere — MISSED.** T f0 medians 0.19 / 0.04 / 0.18 / 0.28;
+   five instances ≥ 0.4, one at 0.71 (top-drawer, initstate 385). This is
+   NOT the R-038 language effect and should not be read as one: the splice
+   is at the backbone output, where the text *positions* have already
+   attended to the image tokens inside Qwen3-VL, so they carry image
+   information. The T/I split is a split by position, not by information.
+   I + T at forward 0 sums to 0.86 / 0.79 / 0.62 / 1.11 by category, i.e.
+   the two together account for most of the gap, and their overlap is the
+   shared image content. **A clean text-vs-image attribution needs the
+   splice BEFORE the VLM mixes them**, which is a different experiment
+   (tokens at the vision-encoder output and the text embeddings,
+   pre-backbone).
+6. **Residual ≥ 25% with no arm ≥ 0.9 at the anchor — HELD (36/40, 90%).**
+   Mostly because the position split leaves 10–30% in the overlap, not
+   because of a true interaction. Reported as pre-registered; the
+   threshold was set for an information split and this run did not give
+   one.
+
+#### What survives, and what it buys
+
+- **For every LIBERO-Plus category tested, the image tokens are the
+  pathway.** Restoring them alone recovers 70–85% of the first action's
+  displacement, at forward 0, on 40/40 instances. The mining instruction in
+  the table below is therefore "re-render / re-collect under the condition"
+  for camera and light, and for robot initial state it is **demonstrations
+  from perturbed start poses**, unchanged, but the reason is visual: the
+  policy must *see* the arm in those poses. A proprio-only augmentation
+  would not reach it.
+- **The state token is a near-null input to this checkpoint.** This
+  re-reads R-036 and R-037: `state_encoded` separated failures at 12.95×
+  because it *records* where the arm is, not because the head *uses* it.
+  Symptom, exactly as R-037 expectation 6 feared.
+- **Outcome is chaotic at the render-jitter level.** The two passes use the
+  same seed, same fixed noise and the same driven arm; they differ only in
+  that the paired pass re-renders between forwards. Outcomes agreed on
+  **23/30**, while the action-level measurements agreed to within 0.06.
+  Success/failure of one rollout is not a stable label for this policy in
+  this simulator, and the action-level transfer is. R-040's held-out
+  evaluation needs repeated seeds per instance, and R-041 was right to make
+  the action boundary primary.
+
+#### Scope and what this does NOT show
+
+One checkpoint (`gr00t17-lerobot-libero_spatial-640`), one suite, one seed
+per instance, splice at the adapter output. The text-vs-image number is
+positional and is not a language finding. The residual bucket is not
+evidence for an interaction. Nothing here says what the *vision encoder*
+does with the perturbation; R-037 says most of the visual displacement is
+removed by the adapter, and this run says what survives to the DiT is what
+moves the action.
+
+#### Follow-ups, in priority order
+
+1. **Pre-backbone splice** (image patches vs text embeddings, before
+   Qwen3-VL), to turn the positional T/I split into an informational one.
+   Same machinery, one wrapper higher.
+2. **R-041** as pre-registered; its state axis now tests a *visual*
+   effect and expectation 4 there should be read accordingly.
+3. **R-040**: arm M for robot-initial-state failures is "demos from those
+   poses", as before; the unfreeze rule stays at the head, since the
+   pathway is the image tokens and the adapter passes them.
 
 ### What each result buys for data mining (the point of the exercise)
 

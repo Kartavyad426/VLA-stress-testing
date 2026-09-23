@@ -435,6 +435,10 @@ Source and target must differ only in P. Holds by construction for camera, light
 </table>
 </div>
 <p>Every row is a count against the training corpus and is therefore checkable before any GPU time is spent on mining: how many demos have the target in that region, how many were rendered under that condition, how many carry that instruction form. A row that cannot name a hole is not a family.</p>
+<div class="note measured">
+<span class="nh">R-039 result, 2026-09-23 · what the table looks like after the run</span>
+On all four LIBERO-Plus categories tested, including robot initial state, the <strong>image tokens</strong> are the pathway: restoring them alone recovers 70 to 85 percent of the first action's displacement at forward 0 on 40 of 40 instances. The state token is close to inert. Deleting it entirely moves the action by under 10 percent of a start-pose perturbation's effect, which the checkpoint's training-time state dropout of 0.2 explains. So the "S at t = 0" and "S growing with t" rows did not occur. A start-pose failure still calls for demonstrations from those poses, but the reason is visual: the policy must see the arm there. The text-arm numbers (0.04 to 0.28 by category) are positional, not linguistic, because the splice sits after the VLM has mixed image content into the text positions. Full tables and per-instance curves: <code>docs/R039_RESULTS.html</code>; scored expectations in <code>RESULTS.md</code> R-039.
+</div>
 </section>
 
 <section>
