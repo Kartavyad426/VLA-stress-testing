@@ -219,6 +219,9 @@ Every entry records its expectation and **says when it was written**:
 | R-039 | 09-23 | EVAL | Which pathway carries a perturbation to the action | DONE | Image tokens for every category incl. robot init; state token near-inert |
 | R-040 | 09-23 | EVAL | Corrective demos vs mechanism-mined vs OOD-ranked vs nominal data | PRE-REGISTERED, NOT RUN | Was blocked on R-039, which is now done |
 | R-041 | 09-23 | EVAL | Boundary sweeps from a known success | PRE-REGISTERED, NOT RUN | Single-axis sweeps with the R-039 splice running |
+| R-042 | 09-23 | EVAL | Which camera carries start-pose perturbations | DONE | Wrist camera; lighting is a cross-camera interaction |
+| R-043 | 09-23 | EVAL | LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification | PRE-REGISTERED, NOT RUN | Decides whether the manifest applies to long-horizon failures |
+| R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | PRE-REGISTERED, QUEUED | behind R-041 |
 
 ---
 
@@ -3164,3 +3167,231 @@ result.
 ### What would make this a failed experiment rather than a negative result
 
 Expectation 2 failing, or P/N not reproducing R-039's numbers.
+
+
+---
+
+## R-043 — PRE-REGISTERED, NOT YET RUN: LIBERO-10 long-horizon — does the manifest's remedy even apply? Drift vs coverage cascade vs stage identification
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, NOT RUN ·
+**Type** EVAL · **Spec** this entry · **Origin** three sessions (vla-f9, fable,
+primary) were asked the same question independently on 2026-09-23 and
+converged; this entry merges their designs. Background:
+`docs/ROBOTTT_METHOD.html` §8, `docs/GEN15_ONE_SHOT.html` §II.4,
+`FINDINGS.md` "long-horizon suite" (~line 798).
+
+### The question
+
+Every result so far is on 10–15 s single-stage tasks. A one-minute,
+multi-object task can fail for three different reasons, and **only one of them
+is fixed by more demonstrations**, which is what the Data Gap Manifest
+prescribes:
+
+| mechanism | what happens | fixed by coverage data? |
+|---|---|---|
+| **drift** (compounding) | per-forward error accumulates; success ≈ p^k over k stages even from in-distribution starts | **no** — same-distribution data does not shrink per-step error |
+| **coverage cascade** | stage k starts from stage k−1's *end* distribution, which is wider than any demo start, so later stages begin out of distribution | **yes** — demos from the wider entry distribution |
+| **stage identification** | a one-frame policy (`n_obs_steps: 1`, no memory) cannot tell "about to do stage k" from "just did stage k" unless the scene shows it | **no** for this architecture — needs history |
+
+If drift or stage identification dominate, the manifest cannot fix long-horizon
+failures and the deliverable has to say so. That is the point of the run. It
+is **not** a leaderboard entry.
+
+### Why LIBERO-10 and nothing else now
+
+- It stays in the harness: same MuJoCo pin, same env, same trace format.
+- `nvidia/gr00t17-lerobot-libero_10-640` exists, published **93%** at
+  `n_episodes ≥ 50` (`MODELS_AND_COMPUTE.md`). The roster rule applies: it has
+  to reproduce before anything is read from it.
+- MINERVA already reproduced it: **87.8% vs 89.2% published**, inside the CI
+  (R-016). Its weak tasks are 6 (58%) and 4 (78%).
+- LIBERO-Plus ships **2,519 libero_10 variants** (`docs/libero_plus_variants/libero_10.csv`);
+  **1,228 are L4+L5**, the R-026 selection rule (Camera 301, Noise 244,
+  Language 177, Light 175, Background 156, Robot-init 152, Layout 23).
+- The env now records `_gt_scene_object_pos` for every free-joint object
+  (`vla_harness/envs/libero_env.py:708`), so per-stage labels come from the
+  BDDL goal conjuncts without a new oracle.
+- Caveat accepted up front: LIBERO-10 is ~2 stages (goal = 2–3 conjuncts) and
+  a 520-step cap (~26 s), not a minute. It is the shortest horizon that can
+  separate the three mechanisms. CALVIN, RoboCasa365 and BEHAVIOR-1K are not
+  run: each needs a checkpoint fine-tuned for it (training that does not fit
+  in 8 GB, R-001) plus a new env adapter, and each has open reproduction
+  issues (`docs/LANDSCAPE.md` §3.3). LIBERO-Long++/Ultra-Long (9–16 chained
+  skills, same simulator) is the follow-up only if E4 below comes out
+  "coverage" and a longer chain is needed to see the cascade.
+
+### Stage definition (fixed before the run)
+
+A task's stages are the **conjuncts of its BDDL `:goal`** in the order the
+demo corpus completes them (majority order over the 50 `lerobot/libero`
+demos per task). The ten tasks:
+
+| scene | goal conjuncts | stages | objects to choose among |
+|---|---|---|---|
+| KITCHEN_SCENE3 stove + moka pot | Turnon(stove), On(moka_pot, stove) | 2 | 1 |
+| KITCHEN_SCENE4 bowl in bottom drawer + close | In(bowl, drawer), Close(drawer) | 2 | 1 |
+| KITCHEN_SCENE6 mug in microwave + close | In(mug, microwave), Close(microwave) | 2 | 1 |
+| KITCHEN_SCENE8 both moka pots on stove | On(pot_1), On(pot_2), Turnon(stove) | 3 | 2 identical |
+| LIVING_ROOM_SCENE1 soup + cream cheese in basket | In(soup), In(cream_cheese) | 2 | 2 |
+| LIVING_ROOM_SCENE2 soup + tomato sauce in basket | In(soup), In(sauce) | 2 | 2 |
+| LIVING_ROOM_SCENE2 cream cheese + butter in basket | In(cream_cheese), In(butter) | 2 | 2 |
+| LIVING_ROOM_SCENE5 two mugs on two plates | On(mug_1, plate_1), On(mug_2, plate_2) | 2 | 2 × 2 |
+| LIVING_ROOM_SCENE6 mug on plate + pudding right of plate | On(mug, plate), On(pudding, region) | 2 | 2 |
+| STUDY_SCENE1 book in caddy back compartment | In(book, caddy_back) | 1 | 1 |
+
+Stage k **starts** when conjunct k−1 first holds (t=0 for k=1) and **ends**
+when conjunct k first holds. `Turnon` and `Close` need the articulated joint
+(stove knob, drawer, microwave door), which the env does not record yet —
+prerequisite P1 below. Manipulation phases inside a stage (approach, grasp,
+transport, place) come from the existing `LiberoPhaseSegmenter`.
+
+### Measurements per rollout, per stage
+
+1. **Entry state** `s_k`: 7 joints + gripper + every object pose at stage
+   start. **Entry distance** `d_k`: z-scored L2 to the demo corpus's
+   stage-k entry distribution for that task; **OOD** if `d_k` exceeds the
+   95th percentile of demo-to-demo distances. This is the coverage test.
+2. **Exit quality** of stage k−1, *clean* vs *messy*: messy if its exit state
+   is OOD by the same rule, **or** the segmenter saw a regrasp, **or** the
+   stage took more steps than the demo 95th percentile.
+3. **Within-stage deviation**: DTW distance of the executed end-effector path
+   to the nearest demo path for the same stage. This is the drift test. The
+   R-039 splice is an **optional** extension for the pathway once R-041's
+   machinery is free; not required for the verdict.
+4. **Failure location**: the stage in which the episode fails, and whether it
+   fails in the **transition window** (first 20% of that stage's demo-median
+   length after the previous conjunct became true) or mid-stage.
+5. **Wrong-object**: which object the gripper first lifts vs the conjunct's
+   manipuland, by the R-038 method (`_gt_scene_object_pos`).
+6. Elapsed steps at failure.
+
+### Design
+
+**Phase A — nominal, the reproduction gate.** GR00T libero_10 checkpoint,
+50 episodes × 10 tasks = 500, `lerobot-eval` parity first (as R-022), then
+through the harness with full traces. MINERVA afterwards (R-016 traces may
+not have `_gt_scene_object_pos`; re-run 50 × 10 if not), per the priority
+memory. **Gate:** the harness number must fall inside the published CI, as
+R-016/R-022 did. If it does not, stop and file the discrepancy.
+
+**Phase B — perturbed, the hunt.** All 1,228 L4+L5 libero_10 variants, one
+rollout each, GR00T only, as in R-026. This finds failures across categories.
+
+**Phase C — repeats, the mechanism.** Because single-rollout labels are
+unstable (R-039: 23/30 agreement under render jitter), the analyses below use
+**≥50 rollouts per cell**: every nominal task (Phase A already gives this) and
+the 10 worst variants from Phase B, chosen by failure count within the two
+worst categories, 50 rollouts each.
+
+Same seeds and noise conventions as R-039/R-042. GPU: flock + announce,
+metadata-only run commits.
+
+### Pre-registered expectations
+
+1. **Reproduction.** GR00T lands inside the 93% CI on 500 episodes. *High.*
+   Not the test; the gate.
+2. **Failures cluster at stage transitions.** ≥60% of nominal failures occur
+   in the transition window (measurement 4). *Medium.* The stage-identification
+   prediction from primary. If failures are instead spread through the stage,
+   drift or coverage is the story.
+3. **Clean-vs-messy conditional.** P(stage k succeeds | k−1 clean) exceeds
+   P(stage k | k−1 messy) by ≥10 pp. *Medium.* Compounding is real. If the gap
+   is ~0, stages are independent and p^k is the whole story.
+4. **Coverage majority — the decision test.** Among failed stages, ≥60% have
+   an OOD entry state (measurement 1) and <40% fail from an in-distribution
+   entry. *Medium-low.* If coverage wins, the manifest applies and the cascade
+   is the row to cost. **If in-distribution failures are the majority, drift
+   dominates, more demos will not fix it, and the deliverable says so.**
+5. **Multi-object tasks fail by wrong object.** The five "both X and Y"
+   tasks show a wrong-object rate (measurement 5) at least 2× the
+   single-manipuland tasks. *Medium.* Extends the R-038 drawer finding.
+6. **Perturbation ordering holds and steepens.** Under Phase B, robot-init
+   and camera are still the worst categories (R-026/R-031 order), and the
+   stage-2 failure rate rises more than the stage-1 rate relative to nominal.
+   *Medium.* The cascade signature under perturbation.
+7. **MINERVA's weak tasks (4, 6) are multi-object tasks.** *Low.* A check,
+   not a claim; task indices are the benchmark's order and are mapped to
+   scenes when Phase A runs.
+
+### Prerequisites
+
+- **P1** record articulated-joint qpos in the trace (stove knob, drawer,
+  microwave door) so `Turnon`/`Close` conjuncts can be evaluated per step.
+  Small env change, `libero_env.py` near `_gt_scene_object_pos`.
+- **P2** a per-step BDDL conjunct evaluator over traces, validated against
+  the env's own `done` flag on Phase A (disagreement >5% of episodes makes
+  the stage labels unusable; the two symbolic oracles in
+  `docs/OUR_MINING_APPROACH.md` agree at only F1 0.841, so this must be
+  checked, not assumed).
+- **P3** stage-entry/exit distributions from the 50 `lerobot/libero` demos
+  per task (dataset is cached in `~/.cache/huggingface/hub/datasets--lerobot--libero`).
+
+### What would make this uninterpretable
+
+Expectation 1 failing; P2 disagreeing with `done` on >5% of episodes; fewer
+than 30 failed stages across Phases A and C to classify; or a Phase A nominal
+control that does not match the R-029-style unperturbed reference on the
+LIBERO-Plus stack.
+
+---
+
+## R-044 — PRE-REGISTERED, NOT YET RUN: three robustness checks on the wrist-camera claim
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, QUEUED behind R-041 ·
+**Type** EVAL · **Spec** this entry + `docs/R042_WRIST_MATHS.html` §5 ·
+**Queue** `experiments/queue_r043.sh`
+
+### The claim under test
+
+R-042: on the ten start-pose instances, restoring the wrist pixels alone
+closes a median 0.88 of the perturbed-to-nominal action gap at forward 0,
+the agent view alone 0.17, W > A on 10/10. Before that goes into a data
+specification ("demonstrations must cover what the wrist sees at the new
+poses") three things have to hold.
+
+### Check 1 — reverse direction (noising), `experiments/r044_reverse.py`
+
+At forward 0 only, no rollouts: corrupt ONE input of the nominal run with
+the perturbed instance's and measure how far the action moves toward the
+perturbed action, `noise_X = 1 − ‖a_revX − a_P‖ / ‖a_N − a_P‖`. Both
+directions are recomputed from one forward so they share the noise.
+
+- **Expectation 1a:** `noise_W` median ≥ 0.6 and `noise_W > noise_A` on
+  ≥ 8/10. *Medium.* The wrist is necessary as well as sufficient.
+- **Expectation 1b:** `noise_S` ≤ 0.15 median. *High.* Corrupting the state
+  token alone does almost nothing (R-039's control from the other side).
+- **If 1a fails while denoise_W stays ≥ 0.8:** the pose is redundantly
+  readable, and the data spec weakens to "either camera may cover it". That
+  is a real outcome, not a failure of the check.
+
+### Check 2 — noise seeds, `r039_run.py --arms extended --noise-seed {1,2}`
+
+The ten instances again, env seed unchanged (so the object layout is the
+same: `init_state_id = seed % n_init`), only the fixed denoising noise
+changed. Twenty rollouts plus their controls.
+
+- **Expectation 2:** per instance, W under seeds 1 and 2 within 0.15 of
+  seed 0; W > A on 10/10 under each seed. *Medium-high.*
+
+### Check 3 — forward-0 rescue, `r039_run.py --arms extended --drive-until 1`
+
+Execute the wrist-corrected chunk (drive W) at forward 0 only, then continue
+unspliced under the same noise; likewise drive A (contrast) and drive N (the
+full nominal chunk at forward 0, an upper bound). Thirty rollouts. Compared
+against R-042's drive-P outcomes on the same instances under the same noise
+(7/10 fail) and against closest approach, the continuous discriminator.
+
+- **Expectation 3a:** drive-W improves closest approach over drive-P on
+  ≥ 6/10 and flips ≥ 2 of the 7 failures; drive-A ≈ drive-P. *Medium-low*,
+  because R-039 showed outcomes flip on render jitter; closest approach is
+  the primary readout here, outcome the secondary.
+- **Expectation 3b:** drive-N ≥ drive-W on both readouts. *Medium.* One
+  corrected chunk cannot beat the whole nominal chunk.
+- **A null here does not weaken R-042**, which is about where the head reads
+  the pose at forward 0; it bounds how much the first decision matters for
+  the episode.
+
+### What would make this uninterpretable
+
+Check 1's `denoise_W` not reproducing R-042's per-instance W within 0.1
+(same inputs, same noise: it must), or any control rollout failing.

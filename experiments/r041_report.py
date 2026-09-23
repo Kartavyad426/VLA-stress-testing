@@ -108,7 +108,7 @@ def render(run, axes, out):
              f"<style>{CSS}</style></head><body><div class=wrap>",
              "<h1>R-041 · where is the boundary</h1>",
              f"<div class=meta>GR00T N1.7 · libero_spatial controls (R-029, 100/100) · one seed and one fixed noise per task · τ = {tau if tau is None else f'{tau:.3g}'} "
-             "(95th pct of forward-to-forward chunk distance at magnitude 0) · pre-registration in <code>RESULTS.md</code> R-041</div>",
+             "(95th pct of ‖P−N‖ at forward 0 across the magnitude-0 rollouts, the paired-render noise floor; R-041 correction 1) · pre-registration in <code>RESULTS.md</code> R-041</div>",
              "<div class=note><b>How to read.</b> Action boundary: smallest magnitude at which the first chunk departs from the nominal chunk by more than τ. "
              "Outcome boundary: smallest magnitude at which the episode fails, searched above the action boundary. Brackets are bisection intervals. "
              "Squares are failures, circles successes. Lines in red are the three scenes that failed R-038's null prompt (stove, wooden cabinet, top drawer).</div>",
@@ -118,6 +118,9 @@ def render(run, axes, out):
         if not rows:
             continue
         mx = max(r["magnitude"] for r in rows)
+        if mx <= 0:
+            parts.append(f"<h2>{html.escape(AXIS_LABEL.get(axis, axis))} · {len(rows)} magnitude-0 rollouts so far, no sweep yet</h2>")
+            continue
         parts.append(f"<h2>{html.escape(AXIS_LABEL.get(axis, axis))} · {len(rows)} rollouts · {len(bounds)} tasks bracketed</h2>")
         trs = []
         for b in sorted(bounds, key=lambda b: b["task_id"]):

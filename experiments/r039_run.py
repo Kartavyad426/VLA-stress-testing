@@ -68,6 +68,12 @@ class FrameLoggingPolicy(LeRobotPolicy):
         return a
 
 
+def until_forward(fn, n: int):
+    """A source that answers only for forwards < n; None afterwards makes the
+    splice pass the forward through unspliced (R-044 forward-0 rescue)."""
+    return lambda i, fn=fn, n=n: fn(i) if i < n else None
+
+
 def hybrid_obs(obs, nominal_frames: dict, camera: str):
     """`obs` with ONE camera's frame swapped for its nominal version.
     camera: "image" (agent view) or "image2" (wrist)."""
@@ -129,6 +135,13 @@ def main():
     ap.add_argument("--arms", default="base", choices=["base", "extended"],
                     help="extended adds R-042's IT (both token blocks), A (agent-view pixels "
                          "nominal, whole VL stack re-run) and W (wrist pixels nominal).")
+    ap.add_argument("--noise-seed", type=int, default=None,
+                    help="R-044: base of the fixed denoising noise (noise_key = 1000*noise_seed + forward). "
+                         "Default: the env seed. Lets the noise vary while the env seed, and so the "
+                         "object layout (init_state_id = seed %% n_init), stays fixed.")
+    ap.add_argument("--drive-until", type=int, default=None,
+                    help="R-044: execute the driven arm only for forwards < N, then pass through "
+                         "unspliced (still under the fixed noise). Default: every forward.")
     ap.add_argument("--source", default="auto", choices=["auto", "recorded"],
                     help="auto: paired render for vision categories, recorded control for "
                          "Robot Initial States. recorded: the control rollout's per-forward "
@@ -165,7 +178,8 @@ def main():
         if tid in done:
             continue
         log(f"[{k+1}/{len(instances)}] task {tid} L{inst['level']} {inst.get('label', cat)} prior={inst['prior_outcome']}")
-        noise_key = lambda i, s=seed: 1000 * s + i
+        nseed = seed if a.noise_seed is None else a.noise_seed
+        noise_key = lambda i, s=nseed: 1000 * s + i
 
         # --- source ----------------------------------------------------------
         env = make_env(suite, tid)
@@ -209,6 +223,9 @@ def main():
             extra = {"A": per_camera("image"), "W": per_camera("image2")}
 
         # --- the spliced rollout ---------------------------------------------
+        if a.drive_until is not None:
+            source = until_forward(source, a.drive_until)
+            extra = {k: until_forward(v, a.drive_until) for k, v in (extra or {}).items()} or extra
         h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key, extra=extra)
         try:
             r = rollout(env, pol, seed, PerturbationSpec(), video_dir=video_dir)
@@ -236,7 +253,8 @@ def main():
                             **{f"act_{k}": v for k, v in acts.items()})
         anchor_step = int(np.nanargmin(ca)) if np.isfinite(ca).any() else -1
         anchor_fwd = int(np.searchsorted(env_steps, anchor_step, side="right") - 1) if anchor_step >= 0 and F else -1
-        row = {"rollout_id": r.rollout_id, "task_id": tid, "seed": seed, "category": cat,
+        row = {"rollout_id": r.rollout_id, "task_id": tid, "seed": seed, "noise_seed": nseed,
+               "drive_until": a.drive_until, "category": cat,
                "label": inst.get("label"), "scene": inst.get("scene"),
                "variant": inst["variant"], "level": inst["level"], "prior_outcome": inst["prior_outcome"],
                "drive": a.drive, "arms": present, "source": ("recorded" if (cat == RIS or a.source == "recorded") else "paired_render"),
