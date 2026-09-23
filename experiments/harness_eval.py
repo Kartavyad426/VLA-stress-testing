@@ -75,6 +75,11 @@ def main():
                     help="k>1 measures S4 self-consistency by re-running the "
                          "denoise loop k-1 extra times. Measured cost: +17%% "
                          "wall at k=4 (1.815 -> 2.208 s/forward).")
+    ap.add_argument("--no-video", action="store_true",
+                    help="skip the per-episode mp4 (runs/<run-id>/video/<rollout_id>.mp4, "
+                         "~1 MB/episode, CPU-encoded). On by default so every failure "
+                         "can be watched or VLM-labelled without a sim replay. Not part "
+                         "of the policy identity: trace cache and rollout ids unchanged.")
     ap.add_argument("--run-id", required=True)
     a = ap.parse_args()
 
@@ -87,6 +92,16 @@ def main():
         step, key = path.split(".", 1)
         pre_overrides.setdefault(step, {})[key] = val
     specs = json.loads(a.specs)
+    video_dir = None if a.no_video else os.path.join("runs", a.run_id, "video")
+    if video_dir:
+        # fail at launch, not at the first frame of the first episode after a
+        # multi-minute model load (.venvs/minerva-lplus ships without it).
+        try:
+            import imageio_ffmpeg  # noqa: F401
+        except ImportError:
+            raise SystemExit("video is on by default but imageio-ffmpeg is not "
+                             "installed in this venv: pip install imageio-ffmpeg, "
+                             "or pass --no-video")
     store, arms = TraceStore("runs", a.run_id), ArmLog("runs", a.run_id)
     cells_path = os.path.join("runs", a.run_id, "cells.jsonl")
     done = set()
@@ -122,7 +137,8 @@ def main():
                     continue
                 t0 = time.time()
                 cell = run_cell(env, pol, PerturbationSpec.of(**knobs), seeds,
-                                store=store, arms=arms, arm="uniform")
+                                store=store, arms=arms, arm="uniform",
+                                video_dir=video_dir)
                 row = {"suite": suite, "task": tid, "spec": knobs,
                        "n": cell.n, "successes": cell.successes,
                        "rate": cell.rate, "ci95": list(cell.ci),
@@ -132,6 +148,7 @@ def main():
                        "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
                        "libero_plus": a.libero_plus,
                        "capture_dir": a.capture_dir,
+                       "video_dir": video_dir,
                        "capture_k_resample": a.capture_k_resample,
                        "raw_instruction": a.raw_instruction,
                        "base_instruction": a.base_instruction}
