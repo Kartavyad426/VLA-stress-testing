@@ -2956,6 +2956,29 @@ clean counterfactual, later forwards a bound.
 2. **Outcome boundary (secondary).** The smallest magnitude at which the
    episode fails. Binary, late, and confounded by everything after forward 0.
 
+### Correction 1, 2026-09-23 19:45, after phase 0 and phase 1 of the camera-yaw axis, before any bisection
+
+The pre-registered τ was mis-specified. "Forward-to-forward chunk distance"
+compares two 40-step chunks emitted 16 steps apart, which differ by the
+trajectory's own progress, not by noise; it came out at **13.7**, against
+‖P−N‖ of 0.6–3.0 at 40° yaw, so the first axis reported "no action boundary"
+for every task in nine minutes. That is an artefact of the threshold.
+
+**Replacement, fixed before any bisection rollout:** τ = 95th percentile of
+‖P−N‖ at forward 0 across the magnitude-0 rollouts, i.e. the noise floor of
+the very quantity the criterion tests (the paired render of an unperturbed
+state re-run through bf16). Measured on the ten yaw-axis magnitude-0
+rollouts: forward-0 values 0.02–0.10, **τ = 0.095**. The stricter floor over
+every forward (p95 = 0.79, driven by the render-jitter chaos R-039 found) is
+written beside it and the analysis reports the action boundary against
+both. What was seen before this change: the ten magnitude-0 and ten
+magnitude-40 rollouts. Both candidate thresholds lie below every
+magnitude-40 value (0.64–3.00), so the choice does not decide whether a
+boundary exists in range on this axis, only where the bisection lands. The
+twenty rollouts are kept (resumable) and the bisections start from them.
+Also seen at 40° yaw: 8 of 10 scenes still succeed, which is already a
+partial answer to expectation 2 and is not claimed until the sweep is in.
+
 ### Pre-registered expectations
 
 1. **Action deviation is monotone in magnitude on every axis.** *High.* If
