@@ -1,0 +1,995 @@
+diff --git a/.gitignore b/.gitignore
+index 06c2335..caa6799 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,5 +1,6 @@
+ # Virtualenvs — 8.7 GB, rebuildable from pinned versions in provenance.txt
+ .venvs/
++.env
+ 
+ # Vendored upstream — clone at the SHA recorded in experiments/repro provenance
+ third_party/
+@@ -15,10 +16,12 @@ experiments/repro/runs/**/*.log
+ experiments/repro/runs/**/videos/
+ runs/**/frames/
+ runs/**/*.png
++# Per-episode video (~1-2 MB each, on by default since 2026-09-23), R-039 splice
++# arrays and full run logs: regenerable or bulky, never tracked.
++runs/**/video/
++runs/**/splice/*.npz
++runs/**/run.log
+ 
+-# Local-only docs (VLA 101 guide)
+-docs/VLA_101.md
+-docs/VLA_101.txt
+ 
+ Screenshot from 2026-09-18 14-29-52.png
+ 
+diff --git a/FINDINGS.md b/FINDINGS.md
+index faf332f..424c788 100644
+--- a/FINDINGS.md
++++ b/FINDINGS.md
+@@ -1,5 +1,7 @@
+ # Findings
+ 
++> **Status as of 2026-09-23:** Historical record (F1–F9, 2026-09-15); kept as written. Since then: F8's "SmolVLA does not reproduce 87.3%" was reframed — the checkpoint is a 32-layer build with no published target (R-011) — and SmolVLA is now **vetoed**; F9's "next: nas=1" showed no effect (R-009); the environment was cleared by **MINERVA** (95.3% vs 95.75%, R-016), not π0.5, which does not fit (R-032). **GR00T N1.7 is the workhorse.** Current state: `RESULTS.md`, `HANDOFF.md`.
++
+ > ## ⭐ REFERENCE — re-derive these when the ground moves
+ >
+ > Several findings below are **measurements of things that can change under
+diff --git a/FINDINGS_DRAFT_F8_F10.md b/FINDINGS_DRAFT_F8_F10.md
+index eb74f77..dcd9329 100644
+--- a/FINDINGS_DRAFT_F8_F10.md
++++ b/FINDINGS_DRAFT_F8_F10.md
+@@ -1,5 +1,7 @@
+ # DRAFT — not yet applied to FINDINGS.md
+ 
++> **Status as of 2026-09-23:** Unapplied draft (2026-09-16, `PENDING_DECISIONS.md` #20), now moot: SmolVLA is vetoed, the F8 reframe is recorded as R-011, and the goal instrumentation gap below is closed (R-019, R-020). Do not apply without re-deciding. See `RESULTS.md`.
++
+ Prepared 2026-09-16 for user approval (`PENDING_DECISIONS.md` #20). vla-81
+ relayed that the owner wants F10 pinned. The F8 reframe it depends on was still
+ an open decision in this session, so both are drafted here rather than written.
+diff --git a/HANDOFF.md b/HANDOFF.md
+index db70c14..594e97e 100644
+--- a/HANDOFF.md
++++ b/HANDOFF.md
+@@ -1,4 +1,47 @@
+-# Handoff — 2026-09-23
++# Handoff — 2026-09-23 (updated late afternoon)
++
++> **Since this morning:** R-037 and R-039 are done, R-041 is running, and R-040 and
++> R-042 are pre-registered. The action-atlas repro is blocked. The harness now records
++> video and every object's position. See **§0** first, then the rest.
++
++## 0. Afternoon update
++
++- **R-037 DONE.** A vision perturbation moves the backbone output (Qwen3-VL layer 16)
++  by 1.37x, and after the 4-block VL self-attention it is 1.02x. The signal is gone by
++  the time the action head reads it. The localisation is correlational. Nothing
++  predicts which episodes fail (Q2: no result survives Bonferroni).
++- **R-039 DONE (fable).** For every LIBERO-Plus category, robot initial state
++  included, the perturbation reaches the action via the **image tokens**; the state
++  token is near-inert. Report: `docs/R039_RESULTS.html`.
++- **R-041 RUNNING (fable)**: boundary sweeps from a known success. **R-040, R-042**
++  pre-registered.
++- **Action-atlas repro (arXiv:2603.19233) is BLOCKED.** The user assigned it to
++  `implementor`, and it would not load under its own pinned transformers (three
++  separate failures). The paper's GR00T layer ordering is **unverified**. Details:
++  `~/Documents/Code/action-atlas-repro/STATUS.md`. A bare `except` at
++  `model_adapters.py:443` hides the real errors, so make it re-raise first.
++- **The harness now records per-episode video by default**
++  (`runs/<run>/video/<rollout_id>.mp4`, ~1–2 MB; `--no-video` to skip).
++- **Wrong-object grasps were invisible in traces.** `_gt_object_pos` holds only
++  BDDL task objects. On `5115b970e766` it read "nothing moved" while the arm had
++  lifted the **ramekin** 6 cm. The env now also records `_gt_scene_object_pos`
++  (every free-joint object). On the drawer scene, both failing initial states
++  handled the wrong object. That has two explanations, grounding or start-pose
++  coverage, and these episodes can't tell them apart.
++- **`experiments/visualise_set.py`**: a reference plus any number of variants on one
++  page, with synced videos, signals, every-object movement and stored activations
++  (labelled by layer). `--rerender` rebuilds a page on the CPU.
++- **VLM labelling (`experiments/vlm_label.py`) is unvalidated.**
++  - Qwen3-VL-8B-Thinking runs locally at 4-bit (6.4 GB peak, 2 fps, half
++    resolution); Nemotron-Omni runs via NIM.
++  - Gemma-4 times out on NIM; Cosmos-Reason2-8B is gated (HF access pending).
++  - On the first real failure, both working models detected the grasp and **named
++    the wrong object**. Score VLM output against simulator truth before counting it.
++  - FailBench (arXiv 2609.03611) finds robotics-specialised VLMs underperform their
++    base models.
++- **Per-episode record schema:** `docs/EPISODE_RECORD_SCHEMA.md`. Simulator fields
++  are exact; the VLM supplies only `attempt.*`.
++
+ 
+ For whoever picks this up next, agent or human. `RESULTS.md` is the experiment
+ record (R-001..R-038), `PENDING_DECISIONS.md` holds what needs the user's call,
+@@ -63,9 +106,10 @@ our traces for analysis and is **not** in the batch.
+ 
+ ## 3. Machine state
+ 
+-**Nothing of mine is running. GPU free at 106 MiB.** `implementor` announced it
+-was taking the card for R-037 (~70 episodes, ~25 min) — check the flock at
+-`/tmp/vla_gpu.lock` before starting anything.
++**`fable` holds the GPU for R-041** (camera-yaw axis, then an R-039 extension and
++three more axes, each a separate flock acquisition, each announced). Check the flock
++at `/tmp/vla_gpu.lock` before starting anything. An 8B VLM at 4-bit needs about
++6.4 GB and cannot share the card with GR00T.
+ 
+ **Announce BEFORE launching, then wait for an ack.** We had a near-miss: both
+ sessions announced *while* starting. The mutex held and the second job queued
+@@ -152,9 +196,15 @@ forward pass, never off config names.**
+   near-neutral is worth most.
+ - **Category-balanced de-risk** — ~40 episodes weighted to camera viewpoint.
+   Tests what R-036 could not.
+-- **action-atlas port** — **unowned and disputed.** I told `implementor` it was
+-  theirs; I had no standing to assign it, and they correctly declined. Only a
+-  user can assign it.
++- **action-atlas port**: assigned by the user to `implementor`, now **BLOCKED**
++  (see §0). The next step is an older transformers, not more model-code patches.
++- **Per-block DiT capture (§6)**: still not built. Its pilot should target R-038's
++  two arms at the first action, where the images are identical and only the prompt
++  differs. Index trap: `all_hidden_states[i+1]` is block *i*'s output. Score the
++  per-block delta, and fix the Euler step before ordering by block.
++- **VLM calibration**: about 40 human-labelled episodes are needed, and the
++  adjudication CSV is the place for them. Then compare video-only, sim-facts-only and
++  both, scored on labels that are not in the prompt.
+ - **PENDING #25** (fourth policy / rent a GPU), #20, #15, #13, #6, #2, #21, #8.
+ - **The adjudication CSV is still 0 of 80 verdicts.** It has been the open job
+   for five days.
+diff --git a/HANDOFF_MINING.md b/HANDOFF_MINING.md
+index edc794a..4535b13 100644
+--- a/HANDOFF_MINING.md
++++ b/HANDOFF_MINING.md
+@@ -1,5 +1,7 @@
+ # Handoff — mining layer, 2026-09-16
+ 
++> **Status as of 2026-09-23:** Historical (SmolVLA traces; SmolVLA is now vetoed). TRANSPORT over-firing was fixed (R-006) and the goal re-run is done (R-019, R-020). Mining now runs on GR00T: 155 failures of 623 LIBERO-Plus variants (R-026). The env also records `_gt_scene_object_pos` (every free-joint object, including distractors); `_gt_object_pos` has BDDL task objects only. Family labels and VLM labels (`experiments/vlm_label.py`) remain unvalidated. See `HANDOFF.md`, `RESULTS.md`.
++
+ For whoever picks this up. `HANDOFF.md` has overall project state; this covers
+ the mining layer specifically, which is where the live work is.
+ 
+diff --git a/IMPLEMENTATION.md b/IMPLEMENTATION.md
+index e1451d8..7cd4679 100644
+--- a/IMPLEMENTATION.md
++++ b/IMPLEMENTATION.md
+@@ -1,5 +1,7 @@
+ # Pending Implementation
+ 
++> **Status as of 2026-09-23:** Historical (2026-09-11/15); kept as written. Waves A–C are built, **including C9** (`vla_harness/control.py`, despite the table below); only D10 `adaptive_sweep()` is open. The DG-5 anchor went to MINERVA (R-016; π0.5 does not fit, R-032), and DG-11's "language out of scope" is overtaken by R-038. See `RESULTS.md`, `HANDOFF.md`.
++
+ **What changes in the code, why, and what is genuinely new.**
+ Written 2026-09-11 after the design review (`docs/reviews/2026-09-11-design-review.md`,
+ findings DG-1..DG-11, all adjudicated). `PLAN.md` is the authority on *what we
+diff --git a/MODELS_AND_COMPUTE.md b/MODELS_AND_COMPUTE.md
+index a84aae8..143c170 100644
+--- a/MODELS_AND_COMPUTE.md
++++ b/MODELS_AND_COMPUTE.md
+@@ -4,6 +4,12 @@
+ **Verified:** 2026-09-11 by web search. Re-verify before acting — this field moves fast.
+ **Hardware baseline:** RTX PRO 1000 Blackwell laptop, **8 GB VRAM**, Linux (MuJoCo needs Linux — we qualify).
+ 
++> **Current roster (2026-09-23), measured, overrides everything below:**
++> **GR00T N1.7** (`nvidia/gr00t17-lerobot-libero_spatial-640`, bf16, 5.87 GiB, R-021) is the workhorse; harness
++> parity 98 vs 97 (R-022). **MINERVA** is the fp32 control, 95.3% vs 95.75% published (R-016); its bf16 path is
++> broken (R-033). **SmolVLA: vetoed** — never reproduced its published number (R-011, R-017). **π0.5 and
++> π0-FAST do not fit** this card (R-032). A rented GPU is a budget question (`PENDING_DECISIONS.md` #25).
++
+ ---
+ 
+ ## 0. Headlines
+@@ -44,9 +50,9 @@ which we already built (G10).
+ | Model | Params | Inference VRAM | On our 8 GB? | LoRA on 8 GB? | LIBERO ckpt | Notes |
+ |---|---|---|---|---|---|---|
+ | **Octo-small** | 27 M | <1 GB | **yes** | yes | via LeRobot | 93 M variant also exists. Runs in ~4 GB. Fast, weak. Good smoke test. |
+-| **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | *Primary candidate.* ~25 Hz on A100; runs on Jetson Orin NX. |
+-| **GR00T N1.7** | 3 B | 6.44 GiB weights (measured) | no | NVIDIA non-comm. N1.5 / N1.7 commercial | **4 LIBERO checkpoints EXIST** (`nvidia/GR00T-N1.7-LIBERO`, one per suite) | ~~**NOT LOADABLE BY LEROBOT — see below** ~~ **CORRECTED 2026-09-16: loadable — see §R1 below** |
+-| **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
++| **SmolVLA** | 450 M (some sources 535 M) | ~1–2 GB | **yes** | **yes** | **`HuggingFaceVLA/smolvla_libero`** | ~~*Primary candidate.*~~ **SmolVLA: vetoed (R-011, R-017).** ~25 Hz on A100; runs on Jetson Orin NX. |
++| **GR00T N1.7** | 3 B | 5.87 GiB bf16 (measured, R-021) | ~~no~~ **yes, bf16 — the workhorse** | NVIDIA non-comm. N1.5 / N1.7 commercial | **4 LIBERO checkpoints EXIST** (`nvidia/GR00T-N1.7-LIBERO`, one per suite) | ~~**NOT LOADABLE BY LEROBOT — see below** ~~ **CORRECTED 2026-09-16: loadable — see §R1 below** |
++| **π0 / π0.5** | ~3 B | **>8 GB stated** | **no** — π0.5 measured OOM at 7.40 / 7.53 GiB (R-032) | no (>22.5 GB LoRA) | openpi LIBERO expert ckpts | OOMs on Jetson Orin NX. Full FT >70 GB. |
+ | **OpenVLA** | 7.4 B | ~15 GB bf16 | **no** (4-bit only) | no (8×A100 for full FT) | yes, published | Quantizing voids the ±5 pp gate — see `PLAN.md` §1 |
+ | **OpenVLA-OFT** | 7.4 B | ~15 GB | **no** | no | yes, per-suite | The proposal's headline. Needs rented GPU. |
+ 
+@@ -60,6 +66,9 @@ Architecture notes that matter for us:
+ 
+ ### GR00T N1.7 — checkpoints exist, but not in a form we can load
+ 
++> **Superseded (2026-09-16, §R1):** LeRobot-format checkpoints `nvidia/gr00t17-lerobot-libero_*-640` exist and
++> load. GR00T N1.7 now runs in bf16 as the project's workhorse (R-021, R-022).
++
+ **Correction (2026-09-16).** The survey recorded GR00T as having "a SimplerEnv-Bridge
+ checkpoint, not LIBERO". **Wrong: four LIBERO checkpoints exist**, one fine-tune per
+ suite, at `nvidia/GR00T-N1.7-LIBERO`.
+@@ -96,10 +105,11 @@ door is open if a LeRobot-format checkpoint appears.
+ |---|---|---|
+ | Oracle / CI | `ScriptedReachPolicy` | Known answer. Already gating the miner. |
+ | Smoke test | Octo-small | Trivial VRAM; shakes out the LeRobot path cheaply |
+-| **Primary** | **SmolVLA + `HuggingFaceVLA/smolvla_libero`** | Only model that fits inference **and** LoRA on 8 GB ⇒ **Phase 5 closes the loop locally** |
+-| Second policy | GR00T N1.7 (inference only, free tier) | Different architecture ⇒ genuinely informative comparison |
++| **Primary** | ~~SmolVLA + `HuggingFaceVLA/smolvla_libero`~~ **GR00T N1.7 (`nvidia/gr00t17-lerobot-libero_spatial-640`, bf16, local)** | Fits locally (R-021); harness parity 98 vs 97 (R-022). SmolVLA: vetoed (R-011, R-017) |
++| Control | MINERVA (fp32) | Reproduces its published number, 95.3% vs 95.75% (R-016); bf16 broken (R-033) |
+ | Stretch | OpenVLA-OFT | Rented GPU, ~$20–50. Only if a published-number gate is needed. |
+ 
++*(2026-09-23: overtaken — SmolVLA is vetoed; the paragraph below is kept for the record.)*
+ SmolVLA remains the right primary for the reason in `PLAN.md` §1: it is the
+ largest model that can be **fine-tuned** on this hardware, and the retrain step
+ is what converts the manifest from opinion into evidence.
+@@ -432,8 +442,10 @@ Superseding the recommendation in `PENDING_DECISIONS.md` §10:
+ 2. **pi0.5** (`lerobot/pi05_libero_finetuned`) — the only checkpoint with a
+    *documented LeRobot reproduction* (97.5%). That makes it the best reference
+    for "is our harness configured correctly", though at ~3B it may not fit our
+-   card for inference. [unverified]
+-3. **GR00T N1.7** — now known to be loadable (R1). Worth the VRAM test.
++   card for inference. ~~[unverified]~~ **[verified 2026-09-18: does not fit —
++   OOM at 7.40 / 7.53 GiB, R-032]**
++3. **GR00T N1.7** — now known to be loadable (R1). ~~Worth the VRAM test.~~
++   **Fits in bf16 (5.87 GiB, R-021); now the workhorse.**
+ 4. **VLA-Adapter / MiniVLA / TurboVLA** — deprioritised. None is LeRobot-native
+    as far as we have checked, and R3 suggests our gap is a config problem that a
+    new model would not diagnose.
+@@ -520,7 +532,7 @@ moved a long way since.
+ ### The fit rule, measured
+ 
+ GR00T N1.7 is **3,144,016,000 parameters** and occupies **5.87 GiB** on the card
+-in bf16 (`experiments/groot_vram_probe.py`, R-020). That is essentially weights
++in bf16 (`experiments/groot_vram_probe.py`, R-021). That is essentially weights
+ alone — params × 2 bytes = 5.86 GiB — with activations living in the remaining
+ headroom. Our GPU (RTX PRO 1000 Blackwell Laptop) reports **8,151 MiB total,
+ ~7.53 GiB usable**.
+@@ -533,11 +545,11 @@ comfortable.
+ |---|---|---|---|
+ | X-VLA `lerobot/xvla-libero` | 0.88 B | 1.64 GiB | yes, trivially |
+ | EVO-1 `zuoxingdong/evo1_libero` | 0.78 B | 1.45 GiB | yes, trivially |
+-| **π0-FAST `lerobot/pi0fast-libero-v044`** | **2.92 B** | **5.44 GiB** | **yes, roomier than GR00T** |
++| **π0-FAST `lerobot/pi0fast-libero-v044`** | **2.92 B** | **5.44 GiB** | ~~yes, roomier than GR00T~~ **no — does not fit in practice; four configurations tried (R-032, R-034)** |
+ | GR00T N1.7 (in use) | 3.14 B | 5.86 GiB | yes [measured] |
+ | VLA-JEPA `lerobot/VLA-JEPA-LIBERO` | 3.08 B | 5.74 GiB | yes |
+ | π0 `lerobot/pi0_libero_base` | 3.50 B | 6.52 GiB | borderline |
+-| **π0.5 `lerobot/pi05_libero_finetuned_v044`** | **3.62 B** | **6.74 GiB** | **borderline — 0.8 GiB headroom vs GR00T's 1.4** |
++| **π0.5 `lerobot/pi05_libero_finetuned_v044`** | **3.62 B** | **6.74 GiB** | ~~borderline~~ **no — OOM at 7.40 / 7.53 GiB, twice, on an idle card (R-032)** |
+ | MolmoAct2 `allenai/MolmoAct2-LIBERO-LeRobot` | 5.44 B | 10.1 GiB | no |
+ | FastWAM, LingBot-VA (6 B class) | ~6 B | ~11 GiB | no |
+ | OpenVLA-OFT 7B | 7.54 B | 14.0 GiB | no — needs ≥16 GB |
+@@ -546,7 +558,11 @@ comfortable.
+ 
+ ### Recommendation, in order
+ 
+-**1. π0-FAST — `lerobot/pi0fast-libero-v044`. Run locally, first.**
++> **Outcome (2026-09-18/23):** items 1 and 2 were tried and **neither fits this card** (R-032; π0-FAST needed
++> three harness fixes just to prove it, R-034). Both are rented-GPU candidates; that is now a budget question
++> (`PENDING_DECISIONS.md` #25). The reasoning below is kept for the record.
++
++**1. π0-FAST — `lerobot/pi0fast-libero-v044`. ~~Run locally, first.~~ Does not fit locally (R-032).**
+ 
+ Its card documents only **82.5%** on LIBERO, well below GR00T. That is not why it
+ is first. **π0-FAST is one of the four reference models LIBERO-Plus used to
+@@ -566,15 +582,15 @@ is. Two flow-matching models could not separate those.
+ Cost to note: autoregressive decoding is slower per step than flow matching, so
+ budget more wall-clock per variant than GR00T's ~25 s.
+ 
+-**2. π0.5 — `lerobot/pi05_libero_finetuned_v044`. The frontier one; probe before planning.**
++**2. π0.5 — `lerobot/pi05_libero_finetuned_v044`. The frontier one; ~~probe before planning~~ probed: OOM (R-032).**
+ 
+ The general, robust, frontier policy the roster is missing: **97.5%**, and the
+ only checkpoint with a *documented LeRobot reproduction*, which makes it the best
+ available check that our harness is configured correctly. But 6.74 GiB of weights
+ against 7.53 GiB usable leaves **0.8 GiB** for activations where GR00T had 1.4.
+-Genuinely uncertain — resolve it with a VRAM probe (~10 min) rather than an
+-argument. If it OOMs, π0.5 is the single best justification for renting a 16 GB
+-GPU.
++~~Genuinely uncertain — resolve it with a VRAM probe (~10 min) rather than an
++argument.~~ **Probed: it OOMs (R-032).** π0.5 is therefore the single best
++justification for renting a 16 GB GPU.
+ 
+ **3. X-VLA — `lerobot/xvla-libero`. Cheap third architecture.**
+ 
+diff --git a/NEXT_STEPS.md b/NEXT_STEPS.md
+index 7c074f7..8916cce 100644
+--- a/NEXT_STEPS.md
++++ b/NEXT_STEPS.md
+@@ -1,5 +1,7 @@
+ # Next Steps — experimentation order, blockers, requirements
+ 
++> **Status as of 2026-09-23:** Historical (2026-09-11); the order below is overtaken. The LIBERO adapter and per-task control are built, MINERVA reproduced its published number (R-016), **GR00T N1.7 is the workhorse**, SmolVLA is vetoed, and VLA-Adapter was never run. GPU rule now: announce before taking the card, then `flock /tmp/vla_gpu.lock`. Current state and next work: `HANDOFF.md`, `RESULTS.md`.
++
+ **Written 2026-09-11**, after Waves A/B/C were implemented and verified
+ (`experiments/wave_abc_test.py`, 7/7 pass; oracle gate 3/4 + control PASS).
+ 
+diff --git a/PLAN.md b/PLAN.md
+index 20fae48..e5f2e7c 100644
+--- a/PLAN.md
++++ b/PLAN.md
+@@ -1,5 +1,7 @@
+ # VLA Stress-Test — Implementation Plan
+ 
++> **Status as of 2026-09-23:** Historical design record (2026-09-10/11); kept as written. The policy decisions are superseded: **GR00T N1.7** is the subject policy, **MINERVA** is the reproduction anchor (R-016), SmolVLA is vetoed, VLA-Adapter was never run, and π0.5 does not fit the card (R-032). §6's "language out of scope" is overtaken: an empty prompt drops GR00T to 50/100 from 100/100 (R-038). See `HANDOFF.md` §4 and `RESULTS.md`.
++
+ > **[UNSOURCED — do not cite]** the sim-to-real rank-correlation figure (Spearman 0.4–0.7) and the claim that *severity ordering transfers worst* were carried forward from an early survey and **no primary source has been located** (flagged 2026-09-15). The design decisions they motivated stand on their own reasoning; the numbers must not appear in a readout until sourced.
+ 
+ **Status:** draft v1 · 2026-09-10
+diff --git a/README.md b/README.md
+index b68d516..78b7d0f 100644
+--- a/README.md
++++ b/README.md
+@@ -9,10 +9,11 @@ The output is not a leaderboard score. It is a repeatable method for turning mod
+ behaviour into a data strategy: what failed, under what conditions, how often, what it
+ would cost, and whether more data would fix it at all.
+ 
+-> **Status: prototype.** Phase 0 (supply-side coverage) and Phase 1 (harness + oracle
+-> gate) are complete. Phase 2 (real policy on LIBERO) is in progress. Nothing here has
+-> yet produced a client-facing result, and several findings below are open risks rather
+-> than achievements. See [`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md).
++> **Status (2026-09-23): research prototype.** The harness reproduces published LIBERO
++> numbers and runs GR00T N1.7 on LIBERO-Plus. The work has moved from *measuring*
++> failures to *locating* them inside the policy (which pathway carries a perturbation
++> to the action) and designing the data that would fix them. Nothing here is
++> client-facing yet. New readers: start with [Reading order](#reading-order).
+ 
+ ---
+ 
+@@ -48,7 +49,7 @@ Five layers. The model is a plugin at L1; four of the five need no GPU.
+ L4  manifest.py    Data Gap Manifest generation
+ L3  mining/        phase detection · classification · clustering
+ L2  envs/          ToyReachEnv → LIBERO → LIBERO-plus     (Env protocol)
+-L1  policies/      ScriptedPolicy → SmolVLA → π0          (Policy protocol)
++L1  policies/      ScriptedPolicy → GR00T N1.7 · MINERVA  (Policy protocol)
+ L0  schema.py      canonical Rollout contract + trace store
+ ```
+ 
+@@ -72,14 +73,18 @@ Two invariants worth knowing before reading the code:
+ 
+ ```
+ vla_harness/          the harness (L0–L4)
++  capture/            activation taps on GR00T (backbone, adapter, action head)
++  video.py            per-episode mp4, recorded by default
+ experiments/
++  harness_eval.py     run a policy over LIBERO / LIBERO-Plus tasks through the harness
++  visualise_set.py    reference-vs-variants page: synced videos, signals, activations
++  vlm_label.py        VLM description of an episode (unvalidated; see RESULTS.md)
+   oracle_test.py      the Phase-1 acceptance gate
+   phase0/             supply-side coverage + predictions committed before measurement
+-  repro/              SmolVLA/LIBERO reproduction, deliberately outside vla_harness
+-docs/
+-  REVIEW_SUMMARY.md   ← start here
+-  LANDSCAPE.md        prior-art survey
+-  reviews/            five detailed design reviews
++  repro/              LIBERO reproduction via lerobot-eval, outside vla_harness
++runs/                 one folder per run: metadata in git, traces and video not
++viz/                  generated pages (local; large ones are not committed)
++docs/                 see Reading order below
+ ```
+ 
+ ---
+@@ -97,6 +102,23 @@ sweep → probe → classify → cluster → manifest pipeline, and checks the d
+ against the fault that was planted. Validating a failure miner normally has no ground
+ truth; planting the fault creates one.
+ 
++A GR00T run on LIBERO-Plus through the harness (announce and take the GPU lock first;
++other sessions share the card):
++
++```bash
++flock /tmp/vla_gpu.lock env MUJOCO_GL=egl PYTHONPATH=third_party/LIBERO-plus \
++  LIBERO_CONFIG_PATH=third_party/libero-plus-config \
++  .venvs/libero-plus/bin/python experiments/harness_eval.py \
++  --checkpoint nvidia/gr00t17-lerobot-libero_spatial-640 --n-action-steps 16 \
++  --override base_model_path=nvidia/GR00T-N1.7-3B --override embodiment_tag=libero_sim \
++  --dtype bfloat16 --obs-size 360 --libero-plus --base-instruction \
++  --rename-map '{"observation.images.image2": "observation.images.wrist_image"}' \
++  --suites libero_spatial --tasks 0,1 --episodes 1 --run-id my_run
++```
++
++To watch episodes side by side against an unperturbed reference:
++`experiments/visualise_set.py RUN:ROLLOUT_ID [RUN:ROLLOUT_ID ...]` (see its docstring).
++
+ The LIBERO reproduction path needs the pinned environment (see
+ [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) §3):
+ 
+@@ -111,54 +133,104 @@ doesn't reproduce"* stays distinguishable from *"our adapter is buggy."*
+ 
+ ## What we have established so far
+ 
+-Full record in [`FINDINGS.md`](FINDINGS.md). The three that most change the plan:
+-
+-**MuJoCo ≥ 3.4.0 silently breaks a LIBERO task, and a fresh install lands on the broken
+-side.** A correct box-box collision fix invalidated LIBERO's stored initial states; on
+-`libero_spatial` task 5 a SmolVLA fine-tune drops from 80% to 28%. LeRobot pins
+-`mujoco<3.9.0`, which guards against API breaks and not behavioural ones. Left uncaught,
+-this is a physics change masquerading as a model failure — it would have been clustered,
+-attributed to a co-occurring perturbation, and written into a manifest row recommending
+-a client buy bowl-on-ramekin demonstrations. Pinned to 3.3.7.
+-
+-**The fine-tuning set contains zero camera-pose variation.** Phase 0 measured
+-within-task end-effector spread of ~6 mm and rotational spread under 0.2°. Aggregate
+-statistics are misleading — `eef_z` looks like it spans 0.40 m and is actually trimodal
+-with zero mass between clusters. Predictions were committed before any stress run.
+-
+-**Published LIBERO numbers may not measure capability.** LIBERO-PRO reports models above
+-90% collapsing to 0.0% under fair perturbation, with success going to zero once object
+-displacement exceeds 0.2 units. If the baseline has memorised rather than generalised,
+-more demonstrations in the failing region teach more memorisation — which makes
+-`fixability: architecture` potentially the *modal* answer, not the rare one.
++The running record is [`RESULTS.md`](RESULTS.md): its **Current state of knowledge**
++section and its **Index** of every experiment (R-001 onward). The headlines:
++
++- **The measuring instrument is sound.** MINERVA reproduces its published LIBERO score
++  (95.3% vs 95.75%). GR00T N1.7 runs the same through our harness as through
++  `lerobot-eval` (98 vs 97). Unperturbed LIBERO-Plus scenes score 100/100. SmolVLA was
++  dropped because it never reproduced a published number.
++- **Every policy here is behaviour-cloned from demonstrations**, so a failure under
++  perturbation is first a question about what those demonstrations covered.
++- **GR00T breaks mainly under robot-initial-state and camera perturbations.** That's
++  155 failures in 623 hard LIBERO-Plus variants, the same ordering as the LIBERO-Plus paper.
++- **Language is not inert.** With the instruction removed, GR00T falls from 100/100 to
++  50/100, from 0/10 to 10/10 depending on the scene. That overturns the published
++  "insensitive to language" reading.
++- **Inside the policy:** a visual perturbation is clearly visible in the vision-language
++  backbone's output and has almost vanished by the time the action head reads it. For
++  every perturbation type, the change reaches the action through the image tokens, not
++  the robot-state token.
++- **Some failures are wrong-object grasps**, which the original traces could not see.
++  The environment now records every object's position, not just the task objects.
++
++Early findings that still stand: MuJoCo is pinned to 3.3.7, because ≥ 3.4.0 silently
++changes a LIBERO task; the fine-tuning data contains no camera-pose variation (Phase
++0); published LIBERO numbers can reflect memorisation (LIBERO-PRO). Details are in
++[`FINDINGS.md`](FINDINGS.md).
+ 
+ ---
+ 
+ ## Known open risks
+ 
+-Carried honestly because the reviews exist to surface them:
+-
+ | | Risk |
+ |---|---|
+-| Reproduction gate | SmolVLA publishes ~87.3% on LIBERO; two independent open reports get 73.25% and ~67%. Against a ±5 pp gate that is a 14 pp gap, and there is no budget for a rented fallback reference. |
+-| Oracle gate | Reports 3/4, but one fixture cannot fire, so the pass threshold equals the ceiling. It measures recall only — on a one-fault policy the pipeline emits a false second manifest row. |
+-| Manifest completeness | `fixability`, `discriminators` and `failure_cost` are mandatory in the schema and not yet emitted. Confidence intervals are computed and dropped before the artifact. |
+-| Regression set | Named as build item 7 of 7 in the proposal, referenced by every manifest row, and does not exist. Must be frozen *before* remediation data or Phase 5's comparison is contaminated. |
+-| Phase coverage | Detectors stop at `transport` — no `place`, no `release`, no BDDL predicates. The second half of a LIBERO task is currently invisible to the miner. |
++| Failure labels | Failure-family labels are unvalidated, and the human adjudication sheet is at 0 of 80 verdicts. VLM labels are unvalidated too: the first test named the wrong grasped object. |
++| Correlation, not cause | The "signal vanishes in the adapter" localisation is correlational. The pathway result (R-039) is an intervention, but on 40 instances. |
++| Compute | One 8 GB GPU is shared by several sessions. The π0 family does not fit, so a second modern policy needs a rented GPU (PENDING #25). |
++| External claims | The action-atlas paper's GR00T layer ordering (arXiv:2603.19233) could not be reproduced: its code does not load under its own pinned versions. Treat it as unverified. |
++| Manifest | `fixability`, `discriminators` and `failure_cost` are still not emitted. The regression set named in the proposal does not exist yet and must be frozen before any remediation data. |
+ 
+ ---
+ 
+-## Documents
+-
+-| | |
+-|---|---|
+-| [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) | the original proposal |
+-| [`PLAN.md`](PLAN.md) | how we build it, on the hardware we have |
+-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | who produces which data, and where to look when a number is wrong |
+-| [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) | what we can run, on what, for how much |
+-| [`FINDINGS.md`](FINDINGS.md) | running record of what we've established |
+-| [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) | prior-art survey |
+-| [`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) | design critique summary |
++## Reading order
++
++For someone new to the project who wants a high-level picture of what has been done
++and what is happening now. About an hour, in this order:
++
++| | Read | What you get |
++|---|---|---|
++| 1 | [`docs/VLA_101.md`](docs/VLA_101.md) | What a VLA policy is, how it is trained (imitation of demonstrations), and the setups used here |
++| 2 | This README | What the project is for and what it has found |
++| 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
++| 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
++| 5 | [`HANDOFF.md`](HANDOFF.md) | What is running now, what is open, and the working conventions |
++| 6 | [`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html) | Where the work is heading: from a failure to a data specification |
++| 7 | [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) | The latest headline experiment: which pathway carries a perturbation to the action |
++
++### Extended reading
++
++**Project design:** [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) (the
++original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
++[`docs/FLOW.md`](docs/FLOW.md) · [`docs/COMPONENTS.md`](docs/COMPONENTS.md) ·
++[`IMPLEMENTATION.md`](IMPLEMENTATION.md)
++
++**Setup and benchmarks:** [`MODELS_AND_COMPUTE.md`](MODELS_AND_COMPUTE.md) ·
++[`docs/DATA_AND_BENCHMARKS.md`](docs/DATA_AND_BENCHMARKS.md) ·
++[`docs/LIBERO_PLUS_LEVELS.md`](docs/LIBERO_PLUS_LEVELS.md) ·
++[`docs/EXPERIMENT_PROCEDURE.md`](docs/EXPERIMENT_PROCEDURE.md) ·
++[`docs/BASELINE_FORENSICS.md`](docs/BASELINE_FORENSICS.md)
++
++**Decisions and history:** [`PENDING_DECISIONS.md`](PENDING_DECISIONS.md) ·
++[`FINDINGS.md`](FINDINGS.md) · [`NEXT_STEPS.md`](NEXT_STEPS.md) ·
++[`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) and [`docs/reviews/`](docs/reviews/)
++
++**Failure mining and taxonomy:** [`docs/OUR_MINING_APPROACH.md`](docs/OUR_MINING_APPROACH.md) ·
++[`docs/FAILURE_MINING_METHODS.md`](docs/FAILURE_MINING_METHODS.md) ·
++[`docs/TAXONOMY_FAMILY_GUIDELINES.md`](docs/TAXONOMY_FAMILY_GUIDELINES.md) ·
++[`docs/FAILURE_FAMILY_AUDIT.md`](docs/FAILURE_FAMILY_AUDIT.md) ·
++[`docs/RETRAINING_DEFAULT_TAXONOMY.md`](docs/RETRAINING_DEFAULT_TAXONOMY.md) ·
++[`docs/COVERAGE_GAP_METHOD.md`](docs/COVERAGE_GAP_METHOD.md)
++
++**Inside the policy (advanced):** [`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
++[`docs/EXP_EMBEDDING_OOD.md`](docs/EXP_EMBEDDING_OOD.md) ·
++[`docs/R039_MATHS.html`](docs/R039_MATHS.html) ·
++[`docs/EPISODE_RECORD_SCHEMA.md`](docs/EPISODE_RECORD_SCHEMA.md) ·
++[`docs/TRIGGER_MECHANISM_CALCULUS.html`](docs/TRIGGER_MECHANISM_CALCULUS.html) ·
++[`docs/VLA_JOIN_TOPOLOGY.html`](docs/VLA_JOIN_TOPOLOGY.html)
++
++**Prior art and related work:** [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) (238-source
++survey) · [`docs/SENTINEL_METHODOLOGY.html`](docs/SENTINEL_METHODOLOGY.html) ·
++[`docs/MIND_ROBOTICS_METHODOLOGY.html`](docs/MIND_ROBOTICS_METHODOLOGY.html) ·
++[`docs/POLICY_SIM_COUPLING.md`](docs/POLICY_SIM_COUPLING.md) ·
++[`docs/SIM_TO_REAL_TRANSFER.md`](docs/SIM_TO_REAL_TRANSFER.md) ·
++[`docs/REAL_SIM_PAIRED_DATA.md`](docs/REAL_SIM_PAIRED_DATA.md) ·
++[`docs/CONSUMER_ELICITATION_DESIGN.md`](docs/CONSUMER_ELICITATION_DESIGN.md)
++
++**Why "behaviour-cloned":** VLA policies are trained by imitating demonstrations, and
++fail out of distribution for exactly that reason. See VLA-RL (Lu et al., 2025,
++[arXiv:2505.18719](https://arxiv.org/abs/2505.18719)) and SimpleVLA-RL (Li et al., 2025,
++[arXiv:2509.09674](https://arxiv.org/abs/2509.09674)).
+ 
+ `.venvs/` and `third_party/` are excluded from the repository; rebuild from the pinned
+ versions recorded in each run's `provenance.txt`.
+diff --git a/docs/FRAME_LABEL_METHODOLOGY.md b/docs/FRAME_LABEL_METHODOLOGY.md
+index c16f18e..cc8e95b 100644
+--- a/docs/FRAME_LABEL_METHODOLOGY.md
++++ b/docs/FRAME_LABEL_METHODOLOGY.md
+@@ -1034,23 +1034,23 @@ rather than accept them):
+    **`groot_n1_7.py:339-340`**, `getattr(self.model,"model",self.model).language_model`.
+ 2. **VL self-attention** — `action_head.vl_self_attention.transformer_blocks`,
+    **identical, 4 blocks in both** (`vl_self_attention_cfg.num_layers: 4`,
+-   line 128). **Guard before indexing:** it is `nn.Identity()` when
+-   `num_layers == 0` (**lines 506-509**).
++   line 128). An accessor should still guard for the `nn.Identity()` branch taken
++   when `num_layers == 0` (**lines 506-509**) for generality, but **that branch
++   does not fire on our checkpoint** — `implementor`'s taps on the real N1.7
++   checkpoint measure ‖S1.5−S2‖ = 45.7 against ‖S1−S2‖ = 454.3, so the block is
++   live and doing real work.
+ 3. **DiT** — theirs `action_head.diffusion_model.transformer_blocks` (16);
+    ours `action_head.model.transformer_blocks`, **32** (`num_layers: 32`,
+    line 117).
+ 
+ **The DiT finding that matters beyond the port, and it is `vla-dd`'s.** N1.7
+ instantiates **`AlternateVLDiT`** when `use_alternate_vl_dit` — **which defaults
+-True** (line 113) — with **`attend_text_every_n_blocks: 2`** (line 114), verified
+-at lines 472-476. So the DiT attends text only every second block. **Two
+-consequences.** First, DiT block index is *not semantically comparable* to an
+-N1.5 block index, so no layer-wise plot inherited from their baked N1.5 results
+-is a like-for-like axis. Second — and this is new for **§4.4** — N1.7's DiT has a
+-**built-in period-2 structure in when VL information can arrive**. Any cross-tap
+-ordering or onset analysis on the DiT must not read that periodicity as evidence
+-about the failure; it is architecture. That strengthens the §4.4 hazard already
+-recorded and gives it a concrete, checkable form.
++True** (line 113) — with **`attend_text_every_n_blocks: 2`** (line 114), wired at
++lines 472-476. **One consequence is immediate:** DiT block index is *not*
++semantically comparable to an N1.5 block index, so no layer-wise plot inherited
++from their baked N1.5 results is a like-for-like axis. **The second consequence
++is the subject of the rest of this section, and my first reading of it was
++wrong** — see below.
+ 
+ **Reading `AlternateVLDiT.forward` directly — it is period 4, not period 2, and
+ it is an instrument rather than only a hazard.** `vla-dd` was right that the
+@@ -1124,6 +1124,18 @@ image-attending ones (2, 6, 10, …), which is a far sharper question than
+ no such alternation, so the papers' published layer-wise results contain no
+ equivalent artefact and **cannot be used to calibrate for it**.
+ 
++**A better route than hooks — `primary` checked my hunch and it holds.**
++`AlternateVLDiT.forward` takes `return_all_hidden_states: bool = False` at
++**:338**, accumulates per block at **:354** and **:380**, and returns **all 33**
++at **:385-386**. The caller never passes it — but `implementor` already wraps
++bound methods from outside, so **wrapping `action_head.model.forward` yields
++every block output with no hooks and no `third_party/` edit.** That is cleaner
++than the per-block hook route below and removes trap 1 outright, since one wrap
++per call returns the whole set in block order rather than 128 interleaved
++tensors. The per-block-hook description below is retained as the fallback.
++Three volume options are with `implementor` to price: **all 33**, **the 16 even
++blocks**, or **just the 8 text + 8 image**.
++
+ **Pricing the capture change this would need (`vla-dd`, verified).** Our taps
+ record no per-block DiT output. **The return value is not the route:**
+ `AlternateVLDiT` does build `all_hidden_states` unconditionally, but the
+@@ -1178,9 +1190,291 @@ recorded in `groot_features.py` applies: a stand-in defines its own layout, so a
+ path error can survive a green CPU gate and only surface against the real
+ checkpoint. Treat a passing dry-run as a precondition, not a verification.
+ 
+-**Ownership:** this is `implementor`'s to build, not mine. `vla-dd` notes the
+-same assessment reached `implementor` before being routed here, so the port must
+-not be picked up twice.
++**Ownership: nobody.** `implementor` has started nothing and **declines** the
++port — their user scoped them to the embedding capture and §4 A–D of
++`EXP_EMBEDDING_OOD.md`, and they are right that a peer routing work to them is
++not their user assigning it. `vla-dd` has withdrawn its earlier "the port is
++`implementor`'s" and is surfacing it as an open decision. **Recorded here as
++unowned, not assigned.**
++
++**Knockout implementation — decided, `primary`'s steer and it is the right
++one.** Use the **attention-mask edit**, not `attn_implementation="eager"`.
++Forcing eager for knockout runs would make the knockout arm and its baseline run
++**different kernels**, putting a numerics difference inside the comparison on top
++of the slowdown. A mask edit keeps the kernel identical and changes only what the
++model may attend to, which is the intervention actually wanted. Decided before
++any code is written.
++
++**⚠ OWNERSHIP IS DISPUTED — do not treat this as settled.** `primary` states the
++port is `implementor`'s, confirmed. `vla-dd` relays that `implementor`
++**declines** it, on the grounds that their user scoped them to the embedding
++capture and §4 A–D of `EXP_EMBEDDING_OOD.md`, and that a peer routing work to
++them is not their user assigning it. **These are directly contradictory and
++neither is mine to resolve.** It needs a human decision. Recorded here so the
++work is neither dropped by both nor picked up by two. What is not in dispute:
++`implementor` has started nothing, `vla-dd` has started nothing, and `res` has
++started nothing and will not.
++
++### 8.11a The conclusion this exchange actually reached — don't port anything
++
++`vla-dd`'s reframing, which I think is right and supersedes the porting question.
++
++**The action-head taps are already green on the real N1.7 checkpoint** as of
++2026-09-22: pre-vlln, post-vlln, post-attention, `state_features`,
++`action_pred`, the four Euler intermediates and k-resample spread, per model
++forward, with sidecars and manifest, at 26.3 KB and 2.208 s per forward at k=4.
++
++Combine that with §8.9 — backbone identity explains essentially none of the
++variance in robustness, so a toolkit whose centre of mass is backbone-side SAE
++and concept work is poorly aimed at our question — and **the action-head-side
++motivation for the port is already satisfied by what exists.**
++
++**For the question in §5, the only thing action-atlas adds that we do not have
++is per-block DiT outputs across the 32 blocks.** And that is a **forward-hook
++change on `action_head.model.transformer_blocks`** — the same accessor the port
++would need — not an adoption of the toolkit.
++
++**So the proposal is not "port action-atlas". It is: add per-block DiT hooks and
++run the first-onset phase test on camera-viewpoint failures.** One change to
++`vla_harness/capture/`, priced above, with the two traps named
++(per-Euler-step interleaving; extending the `live["on"]` gate). Everything else
++in action-atlas stays a reference. That is a far smaller and better-scoped
++proposal, and it is where this section lands.
++
++**The caveats travel with it:** the entry schedule supports **first-onset**
++attribution only, because the residual stream mixes both modalities from block 2
++onward; and the statistic must be **the phase of the first departure per
++episode**, not a fit over the whole depth profile.
++
++### 8.11b Methodological rule earned on this workstream
++
++**Read indices and module paths off the `forward`, not off config names,
++READMEs, or class names.** Three confident structural claims about GR00T's
++layout were overturned by a file read in a single day:
++
++| claim | reality |
++|---|---|
++| `model.action_head` (`implementor`) | `_groot_model.action_head` |
++| 4 of 5 adapter methods transfer (`vla-dd`) | 3 of 5 — `build_eagle_processor()` is outside the try/except |
++| `attend_text_every_n_blocks: 2` ⇒ period 2 (`res` **and** `vla-dd`, independently) | period **4** — the modulus is `2*n` over an index space that already excludes odd blocks |
++
++**All three looked right, and none would have failed a CPU stand-in test.** The
++period misread is the worst of the three because it produces a plausible,
++well-formed, wrong plot rather than a crash. This belongs beside §6's negative
++controls: controls catch bad *statistics*, and only reading the source catches
++bad *structure*.
++
++---
++
++### 8.12 Probe design — what the representation *contains*, not what it predicts
++
++Requested by `primary` as the §8.4 follow-up, designed against **§4.3 and §4.6**.
++**Blocked only on embeddings existing**; everything here is specifiable now.
++
++**The gap this fills.** Every published probe in §8.1 decodes *outcome* — will
++this succeed, how far along is it. They do that because their environments expose
++nothing else. **We hold privileged simulator truth per step**, so we can ask what
++a representation *contains about the world*. That is the novel slice.
++
++#### The target that makes the question sharp
++
++Probe for **target-object position**, not distance-to-target.
++
++The reason is a confound that would otherwise sink the whole design: **eef pose
++is already in the policy's 8-D input**, so `_gt_eef_to_object` is partly
++derivable from proprioception alone, and a probe recovering it from S0e
++(`state_encoded`) would be near-tautological. **Object position is not in the
++proprioceptive state at all.** It is available *only* through vision. So:
++
++> **Can the representation the DiT receives locate the target object — and does
++> that survive a camera perturbation?**
++
++If S2 does not encode object position under a camera perturbation, the action
++head was never told where the object is, and the fault is upstream. If it does,
++the head had the information and failed anyway. **That is §5's cut, made
++measurable on a quantity only vision can supply.**
++
++#### Predictor sets, in ascending order of what they should know
++
++| set | tap | role |
++|---|---|---|
++| set | tap | role |
++|---|---|---|
++| **P0** | raw 8-D state | **baseline — the proprioception-only null** |
++| P1 | S1 `vl_encoder`, S1.5 `vl_normed` | backbone output — **token-pooled, see below** |
++| P2 | S2 `vl_adapted` | what the DiT receives — **token-pooled, see below** |
++| P3 | S0e `state_encoded` | **not** pooled; should be ≈ P0, a pipeline sanity check |
++| **P4** | **per-block DiT at the 8 text / 8 image indices** (§4.6) | **the decisive set — see below** |
++
++#### ⚠ P1 and P2 are a false-negative trap — `primary` caught this, and it is worse than flagged
++
++`vla_harness/capture/taps.py:148-155` reduces the VL roles with
++`t.mean(axis=1)` **and** `t.max(axis=1)` — **pooled across the token axis**,
++stored as F × 2048 with **no per-token structure**. The file says so itself at
++`:152`: *"mean discards spatial structure, max keeps peaks."* And
++`_POOLED = ("vl_encoder", "vl_normed", "vl_adapted")` at `:56` — so **all three
++VL roles are affected, P1 as well as P2**, not P2 alone.
++
++**Why that is fatal to a spatial question.** Object position in a ViT-style
++encoder is carried by *which tokens are active*, not by the magnitude of a
++token-averaged vector. Mean-pooling destroys precisely that; max-pooling retains
++*"the object is present"* far better than *"the object is over there"*. So a null
++on P1/P2 is consistent with two different worlds — the representation does not
++encode object position, or it does and pooling discarded it — and **the design
++cannot tell them apart.** That null is exactly the result one would be most
++tempted to report as the §5 answer, and it is the least safe one available.
++
++**And it is worse than spatial loss: the pooling averages across MODALITIES.**
++`primary` found this and it verifies at source. `backbone_features` is the last
++decoder layer output over the **entire `input_ids` sequence**, which is image
++**and text** tokens interleaved — separable only by
++`image_mask = model_input["input_ids"] == self.model.config.image_token_id`
++(**`groot_n1_7.py:451`**, carried at `:457` and used by `AlternateVLDiT` to split
++`image_attention_mask` from `non_image_attention_mask`). `taps.py:154-155` means
++over **that whole interleaved sequence**.
++
++**The consequence is a nuisance variable nobody would look for.** Instruction
++lengths across the 40 de-risk episodes run **14 to 23 words**, so the fraction of
++the pooled mean contributed by text **drifts episode to episode**. Two episodes
++of the *same scene* with differently worded instructions get different pooled VL
++features **for a reason that has nothing to do with what the camera saw.** Any
++probe or distance computed on pooled VL features has instruction length baked
++into it.
++
++**FIXED — `implementor`, commit `037b5a2`, 2026-09-22.** Verified in the source,
++not taken from the commit message. `taps.py` now stores, per VL role,
++`{role}_img_{mean,max}` and `{role}_txt_{mean,max}` alongside the original
++combined pools, selecting with `image_mask`. Three things it got right that the
++spec did not call for:
++
++- **It solves the S1/S1.5 access problem in one place, not two.** I had flagged
++  that S2 can see the mask but the `vlln` pre/post hooks receive a bare tensor,
++  so this would be two changes priced separately. `groot_features.py:150-169`
++  stashes the mask via `sink.set_token_mask(mask)` at the **top of the
++  `get_action` wrapper, before the original call** — because the `vlln` hooks
++  fire *inside* `get_action` and cannot see their caller's arguments. One
++  well-placed change serves all three taps. Better than what I proposed.
++- **It records `n_image_tokens` / `n_text_tokens` per forward.** That turns the
++  instruction-length confound from something to avoid into something
++  **measurable** — the drift can now be tested for directly rather than assumed
++  away. R-036 could not check this.
++- **It refuses rather than misindexes.** A mask whose length disagrees with the
++  token axis raises, with the offending forward indices named. The comment gives
++  the reason: a misaligned mask would pool the wrong tokens into "image" and
++  **the error would look like a weak signal** — i.e. it would be read as a
++  finding. That is the right failure mode.
++
++The combined pools are retained deliberately so results stay comparable with
++R-036.
++
++**What this does NOT fix, and the distinction matters for §8.12.** The image-side
++pool is still `t[i][image_mask].mean(axis=0)` — **one vector per forward, no
++per-token or grid structure.** So the *modality mixing* is gone and the *spatial
++loss* remains. **P1/P2 still cannot answer "where" questions**, the pre-registered
++asymmetry below still stands unchanged, and **P4 is still the decisive set.**
++What has improved is that a VL-side null is now attributable to spatial pooling
++alone rather than to spatial pooling *or* instruction-length drift — one of the
++two confounds is retired, and the remaining one is named.
++
++**The access wrinkle this fix had to solve (now resolved, kept for the record).** S2 (`VL_ADAPTED`) is staged
++from the `out` BatchFeature (`groot_features.py:157`), which carries `image_mask`
++alongside `backbone_features`, so masking is straightforward there. **S1
++(`VL_ENCODER`) is a pre-hook on `head.vlln` that receives `args[0]` — the tensor
++only, no mask** (`:81`). Supplying the mask at S1 needs it threaded from the
++backbone output rather than read off the hook arguments. Worth knowing before it
++is priced as one uniform change.
++
++**Pre-registered asymmetry, adopted regardless of anything else (`primary`'s
++option 1).** A **positive** on pooled P1/P2 is *strong* evidence — the
++information survived even pooling. A **null is uninformative** and **must be
++reported as uninformative**, never as "S2 does not encode object position".
++Registered here before any result exists.
++
++**Capture change worth pricing (option 2), with an obstacle.** Retaining a small
++per-token summary for the VL roles — top-k token indices by norm, or coarse
++pooling over the token grid instead of a global mean — would fix this, and must
++be priced **alongside** the DiT-block question, not discovered afterwards.
++**Obstacle to check first:** `EXP_EMBEDDING_OOD.md` §2 records that N1.7 encodes
++images in their **native aspect ratio**, so a fixed spatial grid may not be
++well defined in general. LIBERO is always 256×256, so it is likely constant
++*here* — but **verify the token count is constant before assuming grid pooling
++is meaningful**, or this fix silently produces ragged features.
++
++**Bearing on R-036 (the de-risk capture), flagged by `primary`.** The flat VL
++rows in that run now have **three independent reasons to be weak evidence rather
++than one**: (i) spatial pooling discards *where*-ness; (ii) modality mixing
++injects instruction-length variance unrelated to outcome; and (iii) the 40
++episodes contain only **two camera-viewpoint variants** — twelve are Robot
++Initial States and eleven Objects Layout, the two categories §8.6/§8.8 argue are
++**not** VL-pathway phenomena. **R-036 tested the VL pathway on failures we
++already believed were not VL failures.** A flat VL result there is close to
++uninformative and should not be read as evidence that the VL taps carry nothing.
++`primary` has asked `implementor` to restate it to the scope the sample supports.
++
++#### P4 is promoted to decisive, not optional (`primary`'s option 3)
++
++The DiT hidden states are over **`sa_embs` — one state token plus 40 action
++tokens** — not image tokens, so they are not subject to this pooling loss, and at
++41 tokens they are cheap to keep unpooled. More importantly the question is
++better posed: object position can only reach the action stream by being
++**cross-attended in from the VL stream**, so *"does the action representation
++encode where the object is"* asks directly **whether the information crossed the
++bridge.** That is §5's cut stated more precisely than asking it of the pooled VL
++stream. **If per-block DiT lands, P4 is the primary predictor set and P1/P2
++become corroboration.**
++
++**The finding is always a *delta against P0*, never an absolute R².** "S2 predicts
++object position at R²=0.7" means nothing on its own — the question is whether it
++beats what proprioception alone already gives.
++
++#### Five controls, none optional
++
++1. **Proprioception baseline (P0).** If P0 matches P2, the VL taps add nothing
++   and every downstream claim is void. **Run this first**; it can kill the design
++   cheaply.
++2. **Held-out scenes, not held-out episodes.** Train on 8 base scenes, test on
++   2. Within-scene splits let the probe memorise fixed geometry — the object sits
++   in a similar place every episode of a scene. This is §6 control 3 applied to
++   probes, and it is the control most likely to overturn a positive result.
++3. **Fixed timestep.** Compare forward *i* against forward *i*, per §6 and the
++   frozen-VLA literature's own control. Object position correlates with
++   trajectory phase, and phase correlates with episode length, which is a
++   near-perfect success/failure classifier. **Pooling across timesteps
++   reintroduces the §6 leak one level down.**
++4. **Shuffled targets.** Permute object positions across episodes; the probe
++   must collapse to chance. Catches leakage through any structure shared by
++   representation and target.
++5. **Successes only for training.** No episode labels are needed anywhere in
++   this design — consistent with §5. Failures are *scored*, never trained on.
++
++#### The experiment, in three steps
++
++1. **Nominal.** Fit P0…P4 on successful canonical episodes, held-out scenes,
++   fixed timestep. Report each set's delta over P0. *Expectation, pre-registered:
++   P2 beats P0 on object position, because the information is not otherwise
++   available.* If it does not, either the capture is wrong or the representation
++   genuinely does not carry object location — both are major findings.
++2. **Camera-perturbed, matched pairs (§4.2).** Score the *same* probes on
++   camera-perturbed episodes against their canonical counterparts. **Does object
++   decodability degrade, and does the degradation track failure?** This is the
++   §5 cut on the failure mode §8.9 says it is well posed for.
++3. **Pathway-resolved (§4.6), if per-block DiT lands.** Fit the probe at each of
++   the 8 image-entry and 8 text-entry blocks. **Expect object position to be
++   decodable at image-entry blocks and not to improve at text-entry blocks** —
++   LIBERO-Plus Finding 3 and our own R-025 both say language is close to inert
++   here. If text-entry blocks *do* improve object decodability, that contradicts
++   the inert-language finding and would be the most surprising result available.
++
++**Scope limit, inherited from §8.11.** Step 3 reads cleanly at **first** onset
++only. The residual stream mixes both modalities from block 2 onward, so a
++pathway claim at block 19 is not supported by index alone.
++
++**What it cannot do.** Linear decodability is not causal relevance — the standard
++caution, which §4.3 already concedes and which the mech-interp literature states
++plainly. A probe says the information is *present and linearly available*, not
++that the model *uses* it. Establishing use needs §4.6's onset test or §4.5's
++patching. **This design is deliberately correlational and should be labelled so
++wherever its results are quoted.**
+ 
+ ---
+ 
+diff --git a/docs/R039_RESULTS.html b/docs/R039_RESULTS.html
+index d0e0b86..b7cf2a8 100644
+--- a/docs/R039_RESULTS.html
++++ b/docs/R039_RESULTS.html
+@@ -4,15 +4,15 @@
+ <style>
+ :root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+  --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;
+- --arm-T:#2a78d6;--arm-I:#eb6834;--arm-S:#1baf7a;
++ --arm-T:#2a78d6;--arm-I:#eb6834;--arm-S:#1baf7a;--arm-IT:#eda100;--arm-A:#e87ba4;--arm-W:#4a3aa7;
+  --L1:#e8f1fb;--L2:#cfe0f6;--L3:#a9c8ee;--L4:#7ea9e0;--L5:#4f86cf;--Lfg5:#ffffff;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+ @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+  --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;
+- --arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;
++ --arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;
+  --L1:#1a2230;--L2:#1f2f47;--L3:#25405f;--L4:#2c5280;--L5:#3567a5;}}
+ :root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;
+- --rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;
++ --rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;
+  --L1:#1a2230;--L2:#1f2f47;--L3:#25405f;--L4:#2c5280;--L5:#3567a5;}
+ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+ .wrap{max-width:1100px;margin:0 auto;padding:32px 16px 80px}
+@@ -36,7 +36,7 @@ code{font-family:var(--mono);font-size:.85em;background:var(--surface-2);padding
+ </style></head><body><div class=wrap>
+ <h1>R-039 · which pathway carries a perturbation to the action</h1>
+ <div class=meta>GR00T N1.7 · LIBERO-Plus libero_spatial · transfer fraction = 1 − ‖patched − N‖ / ‖P − N‖ on the 7 live action dims · anchor = forward containing the closest approach to the target bowl · pre-registration in <code>RESULTS.md</code> R-039</div>
+-<div class=legend><span><i class=sw style="background:var(--arm-T)"></i>T · text tokens</span><span><i class=sw style="background:var(--arm-I)"></i>I · image tokens</span><span><i class=sw style="background:var(--arm-S)"></i>S · state token</span><span>level: <span class="lvl L1">L1</span> <span class="lvl L2">L2</span> <span class="lvl L3">L3</span> <span class="lvl L4">L4</span> <span class="lvl L5">L5</span></span></div>
++<div class=legend><span><i class=sw style="background:var(--arm-T)"></i>T · text tokens</span><span><i class=sw style="background:var(--arm-I)"></i>I · image tokens</span><span><i class=sw style="background:var(--arm-S)"></i>S · state token</span><span><i class=sw style="background:var(--arm-IT)"></i>IT · image + text tokens</span><span><i class=sw style="background:var(--arm-A)"></i>A · agent-view pixels</span><span><i class=sw style="background:var(--arm-W)"></i>W · wrist pixels</span><span>level: <span class="lvl L1">L1</span> <span class="lvl L2">L2</span> <span class="lvl L3">L3</span> <span class="lvl L4">L4</span> <span class="lvl L5">L5</span></span></div>
+ <div class=note><b>How to read.</b> P is the perturbed run's own chunk, N the chunk from the nominal source. Each arm puts ONE input back to nominal; its transfer says how much of the P→N gap that alone closes. Paired-render pass: the source is the same sim state re-rendered under the trained condition, so the S arm is 0 by construction there. Recorded pass: the source is the scene's control rollout under the same noise, off-manifold after forward 0, reported as a bound.</div>
+ <h2>r039 · 40 instances · residual (no arm ≥ 0.9 at anchor): 36 (90%)</h2>
+ <h3>By category (medians)</h3><table><thead><tr><th>category</th><th>n</th><th>fail</th><th>‖P−N‖ f0</th><th>T f0</th><th>I f0</th><th>S f0</th><th>T anchor</th><th>I anchor</th><th>S anchor</th><th>S slope</th><th>dominant @anchor</th></tr></thead><tbody><tr><td>Camera Viewpoints</td><td class=num>10</td><td class=num>5</td><td class=num>1.18</td><td class=num>0.19</td><td class=num>0.69</td><td class=num>0.00</td><td class=num>0.17</td><td class=num>0.68</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 2, none 8</td></tr><tr><td>Light Conditions</td><td class=num>10</td><td class=num>1</td><td class=num>0.29</td><td class=num>0.04</td><td class=num>0.73</td><td class=num>0.00</td><td class=num>0.03</td><td class=num>0.81</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 1, none 9</td></tr><tr><td>Sensor Noise</td><td class=num>10</td><td class=num>3</td><td class=num>1.41</td><td class=num>0.18</td><td class=num>0.45</td><td class=num>0.00</td><td class=num>0.07</td><td class=num>0.82</td><td class=num>0.00</td><td class=num>+0.000 (0↑)</td><td>I 1, none 9</td></tr><tr><td>Robot Initial States</td><td class=num>10</td><td class=num>8</td><td class=num>4.04</td><td class=num>0.28</td><td class=num>0.83</td><td class=num>0.04</td><td class=num>0.16</td><td class=num>0.80</td><td class=num>0.05</td><td class=num>-0.009 (0↑)</td><td>none 10</td></tr></tbody></table>
+diff --git a/experiments/harness_eval.py b/experiments/harness_eval.py
+index 25848b1..70258c0 100644
+--- a/experiments/harness_eval.py
++++ b/experiments/harness_eval.py
+@@ -75,6 +75,11 @@ def main():
+                     help="k>1 measures S4 self-consistency by re-running the "
+                          "denoise loop k-1 extra times. Measured cost: +17%% "
+                          "wall at k=4 (1.815 -> 2.208 s/forward).")
++    ap.add_argument("--no-video", action="store_true",
++                    help="skip the per-episode mp4 (runs/<run-id>/video/<rollout_id>.mp4, "
++                         "~1 MB/episode, CPU-encoded). On by default so every failure "
++                         "can be watched or VLM-labelled without a sim replay. Not part "
++                         "of the policy identity: trace cache and rollout ids unchanged.")
+     ap.add_argument("--run-id", required=True)
+     a = ap.parse_args()
+ 
+@@ -87,6 +92,16 @@ def main():
+         step, key = path.split(".", 1)
+         pre_overrides.setdefault(step, {})[key] = val
+     specs = json.loads(a.specs)
++    video_dir = None if a.no_video else os.path.join("runs", a.run_id, "video")
++    if video_dir:
++        # fail at launch, not at the first frame of the first episode after a
++        # multi-minute model load (.venvs/minerva-lplus ships without it).
++        try:
++            import imageio_ffmpeg  # noqa: F401
++        except ImportError:
++            raise SystemExit("video is on by default but imageio-ffmpeg is not "
++                             "installed in this venv: pip install imageio-ffmpeg, "
++                             "or pass --no-video")
+     store, arms = TraceStore("runs", a.run_id), ArmLog("runs", a.run_id)
+     cells_path = os.path.join("runs", a.run_id, "cells.jsonl")
+     done = set()
+@@ -122,7 +137,8 @@ def main():
+                     continue
+                 t0 = time.time()
+                 cell = run_cell(env, pol, PerturbationSpec.of(**knobs), seeds,
+-                                store=store, arms=arms, arm="uniform")
++                                store=store, arms=arms, arm="uniform",
++                                video_dir=video_dir)
+                 row = {"suite": suite, "task": tid, "spec": knobs,
+                        "n": cell.n, "successes": cell.successes,
+                        "rate": cell.rate, "ci95": list(cell.ci),
+@@ -132,6 +148,7 @@ def main():
+                        "dtype": a.dtype, "rename_map": json.loads(a.rename_map),
+                        "libero_plus": a.libero_plus,
+                        "capture_dir": a.capture_dir,
++                       "video_dir": video_dir,
+                        "capture_k_resample": a.capture_k_resample,
+                        "raw_instruction": a.raw_instruction,
+                        "base_instruction": a.base_instruction}
+diff --git a/experiments/visualise_episode_video.py b/experiments/visualise_episode_video.py
+index 0eec1e0..0b794e4 100644
+--- a/experiments/visualise_episode_video.py
++++ b/experiments/visualise_episode_video.py
+@@ -40,11 +40,16 @@ FPS = 20                      # LIBERO control frequency; playback speed only
+ 
+ # --- replay -----------------------------------------------------------------
+ 
+-def replay(r, cameras=2):
++def replay(r, cameras=2, on_step=None):
+     """Re-execute the stored actions and collect frames from every camera.
+ 
+     Returns (frames_per_camera, fidelity). `frames_per_camera` is a list of
+     per-camera lists of HxWx3 uint8 arrays.
++
++    `on_step(env)`, if given, is called once per recorded step BEFORE that step's
++    action is applied -- i.e. aligned with the frame and with `r.steps[t]`. It is
++    how a caller reads simulator state the trace never stored (visualise_pair.py
++    tracks every object body, not only the BDDL task objects).
+     """
+     import numpy as np
+     from vla_harness.envs.libero_env import LiberoEnv
+@@ -99,6 +104,8 @@ def replay(r, cameras=2):
+                 # direction: without the processor the policy scores ~0%.
+                 cams[i].append(np.asarray(im, dtype=np.uint8)[::-1, ::-1])
+         eef_replay.append(list(env._raw["robot_state"]["eef"]["pos"]))
++        if on_step is not None:
++            on_step(env)
+         if st.action is None:
+             break
+         env.step(Action(values=list(st.action), dims=r.action_dims))

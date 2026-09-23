@@ -2996,10 +2996,10 @@ reproducing R-029's 100/100 before τ is computed.
 
 ---
 
-## R-042 — PRE-REGISTERED, NOT YET RUN: does the R-039 residual collapse under a pairwise arm, and which CAMERA carries it
+## R-042 — DONE: R-039's residual was positional; the WRIST camera carries start-pose perturbations; lighting is a cross-camera interaction
 
-**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
-**Spec** this entry · **Runner** `experiments/r039_run.py --arms extended`
+**Date registered** 2026-09-23 · **Run** 2026-09-23 · **Status** DONE · **Type** EVAL ·
+**Spec** this entry · **Runner** `experiments/r039_run.py --arms extended` · **Result** `docs/R039_RESULTS.html`
 
 ### Why it exists
 
@@ -3064,6 +3064,79 @@ vision instances IT is reported as a check that the arithmetic closes (it
 must read 1.000) and not as a result. Expectations 2–5 are unaffected. The
 smoke's A/W split (0.98 / 0.00 on a view variant) is consistent with the
 sanity expectation 2 but is one instance and is not claimed.
+
+### RESULT, 2026-09-23 — residual collapses; the wrist camera carries start-pose perturbations; lighting is the one true cross-camera interaction
+
+`runs/r042`, 40 instances + 10 controls, rc=0. Report: `docs/R039_RESULTS.html`
+(third block). **Replication of R-039's P and N:** ‖P−N‖ at forward 0 agrees
+to 0.03 max across the 40 instances and I f0 to 0.10 max (bf16 under render
+jitter); outcomes agreed on 31/40, the same chaos as R-039's two passes.
+
+**Transfer at forward 0, medians.** A = agent-view pixels nominal through the
+whole VL stack; W = wrist pixels nominal; IT = both token blocks post-adapter.
+
+| category | fail | I (positional) | **A** | **W** | IT | A+W−I (range) |
+|---|---|---|---|---|---|---|
+| Camera Viewpoints | 7 | 0.69 | **0.98** | 0.00 | 1.00* | +0.19 … +0.45 |
+| Sensor Noise | 1 | 0.45 | **0.97** | 0.00 | 1.00* | +0.19 … +0.85 |
+| Light Conditions | 1 | 0.73 | 0.16 | 0.19 | 1.00* | **−0.95 … 0.00** |
+| Robot Initial States | 7 | 0.83 | 0.17 | **0.88** | **0.96** | +0.03 … +0.74 |
+
+\* by construction on the paired-render pass (see the correction above).
+
+#### Expectations, scored
+
+1. **IT ≥ 0.9 on ≥ 75% — HELD where it is testable.** Robot Initial States:
+   10/10 at forward 0 (0.93–0.98), 8/10 at the anchor. Overall residual
+   2/40, both start-pose instances at the anchor (0.69, 0.73). **R-039's
+   36/40 residual was the positional split, as suspected; no interaction
+   model is needed for these categories.**
+2. **Sanity on camera and noise, A ≈ I and W ≈ 0 — HELD, and A exceeds I.**
+   W is 0.00 ± 0.02 on all 20 instances, so the hybrid observation is built
+   correctly. A is 0.95–0.98 on camera and 0.91–0.99 on noise, ABOVE the
+   positional I (0.69 / 0.45). A restores the image pixels before the VLM,
+   so the text positions also receive nominal image content; A is the
+   informational image arm and it accounts for ~97% of the effect. **This
+   closes R-039's open question: the 0.1–0.3 on the text arm and the noise
+   category's low I were image content in text positions, nothing else.**
+3. **Light: A and W both material, A > W — MISSED.** A 0.16, W 0.19, W > A
+   on 4/10, and A+W falls short of I by up to 0.95. Restoring either camera
+   alone recovers almost nothing; restoring both (I, 0.73) recovers most.
+   **Lighting is a genuine cross-camera interaction**: the head reads the
+   scene's illumination as a joint property of the two views, and a
+   mismatch between them is itself a perturbation. This is the one place
+   in R-039/R-042 where a finer decomposition (per-region, or a dictionary)
+   would have something to explain.
+4. **Robot Initial States: W > A — HELD, 10/10.** W 0.66–0.92 (median
+   0.88), A −0.03–0.64 (median 0.17). **The policy reads its own arm pose
+   from the wrist camera**, which sees the gripper and the near scene, not
+   from the third-person view of the arm and not from the state token.
+5. **A + W ≈ I within 0.15 — MISSED, on both sides.** Super-additive against
+   I on camera, noise and start pose (because I is positional and A/W are
+   informational; A alone already exceeds I), sub-additive on light (the
+   interaction in 3). The expectation compared two different kinds of arm
+   and was mis-specified; recorded as a miss.
+
+#### What it buys
+
+- **Data spec for start-pose failures is now concrete:** the wrist camera's
+  view of the gripper and near scene at the new poses is what must be in
+  the demonstrations. Rendering the third-person view at new poses would
+  reach 17% of the effect.
+- **Camera and noise failures are agent-view failures**, fixable by
+  re-rendering that one camera; the wrist stream is untouched by them.
+- **Lighting needs both cameras rendered consistently**; a single-camera
+  augmentation would leave a cross-view mismatch the policy treats as a
+  perturbation.
+- **The SAE question is settled for three of four categories:** nothing
+  left to decompose. It remains open for lighting only.
+
+#### Scope
+
+One checkpoint, one suite, one seed per instance. A and W are pixel-level
+splices of whole cameras; a per-region splice within a camera was not run.
+The IT value on the paired-render pass is by construction and is not a
+result.
 
 ### What would make this a failed experiment rather than a negative result
 
