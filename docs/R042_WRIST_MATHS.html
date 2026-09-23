@@ -207,6 +207,35 @@ The share of the perturbed-to-nominal gap in the 280-number action chunk that re
 <p>Ten instances, one seed each, one checkpoint, forward 0 exact and later forwards a bound. Two instances (430, 485) fall to 0.25 and −0.19 on W at their anchor forward while IT stays above 0.9, so later in those episodes the wrist is no longer the whole story and the recorded source is off-manifold; those are reported as bounds, not results. The claim is about where the head reads its pose at the first decision, which is the decision the data specification has to cover.</p>
 </section>
 
+<section>
+<p class="part">7 · Reading the number</p>
+<h2>What W is, exactly</h2>
+<div class="thm trig"><div class="thm-label">Operator order</div><div class="thm-body">
+<span class="eq">W = 1 − ( ‖<span class="m">a</span><sub>W</sub> − <span class="m">a</span><sub>N</sub>‖ / ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖ )</span>
+The division happens first, then the subtraction from 1. The denominator belongs to the fraction alone. Task 468: 0.63 / 5.21 = 0.12, then 1 − 0.12 = 0.88. The other bracketing, (1 − 0.63) / 5.21 = 0.07, is not what the tables show.
+</div></div>
+<ul class="tight">
+<li><b>Not a cosine.</b> Both norms are Euclidean distances on the 280-number chunk (40 steps × 7 live action dims) in the policy's normalised action units. Cosine would ignore magnitude, and for delta-pose commands magnitude is most of the content; that is why the published activation-injection paper's cosine numbers read 0.99 where ours read 0.88 for comparable effects.</li>
+<li><b>Not rescaled to 0–1.</b> Bounded above by 1 (a distance cannot be negative) and unbounded below. W = 1: the wrist-restored chunk lands on the nominal chunk. W = 0: no closer to nominal than the fully perturbed chunk. W &lt; 0: restoring the wrist moved the action further away, which a few rows show at −0.03 and −0.19.</li>
+<li><b>Higher is closer to nominal.</b></li>
+<li><b>Units.</b> Normalised action space, the units the head is trained in. A gap of 4.0 for a start pose and 0.3 for lighting are comparable to each other but do not convert to centimetres.</li>
+</ul>
+</section>
+
+<section>
+<p class="part">8 · What follows for data</p>
+<h2>More pairs, and what to retrain</h2>
+<p>The product of this line of work is a map from perturbation to the input that carries it, and from that input to a data specification. Four LIBERO-Plus categories are mapped. The pairs still worth finding, in order of value:</p>
+<ul class="tight">
+<li>The three categories not yet run: object layout, background texture, language. Language is the only one where the text arm would be a finding rather than leakage (R-038).</li>
+<li>Within the wrist frame for start poses: the gripper's own appearance versus the near scene seen from the new pose. This decides whether demonstrations need the gripper visible or scene coverage.</li>
+<li>The reverse-direction check (section 5), to rule out the pose being readable from either camera.</li>
+<li>Lighting, the one interaction, where neither camera alone explains the effect.</li>
+</ul>
+<p><strong>Two corrections to the natural reading of the result.</strong> First, the finding is not about perturbations <em>of</em> the wrist camera. The perturbation is the robot's start pose in joint space; the policy reads that pose through the wrist camera. So the data needed is demonstrations that <em>start from those poses</em>, and the wrist view they contain is what makes them work. Rendering only the third-person view at new poses would reach 17 percent of the effect.</p>
+<p>Second, not the VLM first. Restoring the pixels before the vision-language model recovers 97 percent of the action, so the VLM and adapter pass the pose through faithfully; the action head has simply never mapped those features to the right motion. That is a behaviour-cloning coverage gap in the head. The R-040 rule follows: train with the VLM frozen and the head and adapter unfrozen, on the new demonstrations. What this evidence does not settle is whether the VLM's encoding of a new pose is merely different or actually worse; R-040's mechanism arm therefore runs once frozen and once with the top of the VLM unfrozen, side by side, so unfreezing is a measured outcome. Unfreezing the full VLM is excluded regardless: half the parameters, the pretrained grounding, and it does not fit in this GPU's memory with gradients.</p>
+</section>
+
 <div class="footer">Sources: <code>runs/r042/analysis.json</code>, <code>runs/r039_state_token_check.json</code>, <code>RESULTS.md</code> R-039 and R-042; method references in <a href="R039_MATHS.html">R039_MATHS.html</a>.</div>
 </div>
 </body>
