@@ -200,10 +200,18 @@ def main():
     if os.path.exists(tau_path):
         tau = json.load(open(tau_path))["tau"]
     else:
-        steps = np.concatenate([np.load(os.path.join(R.dir, f"{t}_0p000000.npz"))["step_d"] for t in tasks])
-        tau = float(np.percentile(steps, 95))
-        json.dump({"tau": tau, "n_step_pairs": int(len(steps)), "tasks": tasks, "axis_used": a.axis,
-                   "definition": "95th pct of forward-to-forward P-chunk L2 distance on 7 live dims, magnitude-0 rollouts"},
+        # CORRECTED 2026-09-23 (RESULTS.md R-041, correction 1): tau is the paired-
+        # render NOISE FLOOR of the action criterion itself -- ‖P−N‖ at forward 0
+        # when nothing is perturbed -- not the forward-to-forward chunk distance,
+        # which measures trajectory progress (it came out at 13.7).
+        z = [np.load(os.path.join(R.dir, f"{t}_0p000000.npz")) for t in tasks]
+        f0 = np.array([float(x["d_pn"][0]) for x in z])
+        allf = np.concatenate([x["d_pn"] for x in z])
+        tau = float(np.percentile(f0, 95))
+        json.dump({"tau": tau, "tau_all_forwards_p95": float(np.percentile(allf, 95)),
+                   "f0_values": f0.round(4).tolist(), "n_forwards_all": int(len(allf)), "tasks": tasks, "axis_used": a.axis,
+                   "definition": "95th pct of ‖P−N‖ at forward 0 across the magnitude-0 rollouts (paired-render noise floor); "
+                                 "tau_all_forwards_p95 is the stricter floor over every forward, reported alongside"},
                   open(tau_path, "w"), indent=1)
     log(f"tau = {tau:.4f}")
 
