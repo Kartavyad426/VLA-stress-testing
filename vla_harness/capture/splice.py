@@ -87,7 +87,14 @@ class SpliceHandle:
         self._fidx += 1
         src = self._source(fidx)
         if src is None:
-            return self._original(**kwargs)
+            # unspliced, but still under common random numbers
+            device = kwargs["backbone_features"].device
+            outer = _rng_state(device)
+            try:
+                torch.manual_seed(int(self._noise_key(fidx)))
+                return self._original(**kwargs)
+            finally:
+                _restore_rng(outer)
 
         vl_t = kwargs["backbone_features"]
         st_t = kwargs["state_features"]
@@ -162,3 +169,48 @@ def attach_splice(policy, source: Callable[[int], dict | None], drive: str | Non
     if head is None:
         raise RuntimeError("no GR00T action head found on the policy")
     return SpliceHandle(head, source, drive, noise_key or (lambda i: i))
+
+
+class RecorderHandle:
+    """Store the head's encoded features per forward -- the recorded-source
+    path, used only where a paired render cannot exist (Robot Initial
+    States, where the trigger IS the state). `source(i)` hands them to
+    `attach_splice` for forward i and returns None past the end, so a longer
+    target episode passes through unspliced rather than reusing a stale
+    forward."""
+
+    def __init__(self, head):
+        self._head = head
+        self.records: list[dict] = []
+        self._had_override = "get_action_with_features" in vars(head)
+        self._original = head.get_action_with_features
+        head.get_action_with_features = self._wrapped
+
+    def _wrapped(self, *args, **kwargs):
+        if args:
+            raise RuntimeError("recorder needs keyword arguments")
+        bo = kwargs["backbone_output"]
+        rec = {"backbone_features": kwargs["backbone_features"].detach().clone(),
+               "state_features": kwargs["state_features"].detach().clone(),
+               "image_mask": _get(bo, "image_mask").detach().clone()}
+        attn = _get(bo, "backbone_attention_mask")
+        if attn is not None:
+            rec["backbone_attention_mask"] = attn.detach().clone()
+        self.records.append(rec)
+        return self._original(**kwargs)
+
+    def source(self, i: int):
+        return self.records[i] if i < len(self.records) else None
+
+    def detach(self) -> None:
+        if self._had_override:
+            self._head.get_action_with_features = self._original
+        else:
+            del self._head.get_action_with_features
+
+
+def attach_recorder(policy) -> RecorderHandle:
+    head = find_action_head(policy)
+    if head is None:
+        raise RuntimeError("no GR00T action head found on the policy")
+    return RecorderHandle(head)

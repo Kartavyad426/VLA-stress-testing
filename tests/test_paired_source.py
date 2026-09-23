@@ -196,3 +196,16 @@ def test_features_for_is_a_function_of_the_frames():
     b = p.features_for(_obs(1))["backbone_features"]
     c = p.features_for(_obs(2))["backbone_features"]
     assert torch.equal(a, b) and not torch.equal(a, c)
+
+
+def test_policy_logs_the_env_step_of_every_model_forward_without_capture():
+    p = _wired_policy(with_sink=False)
+    p.action_dims = ("a", "b", "c", "d", "e")
+    p._policy.select_action = lambda batch: torch.zeros(1, 5)   # queue stays empty: every call is a forward
+    o = _obs(1); o.t = 0
+    p(o)
+    o2 = _obs(2); o2.t = 16
+    p(o2)
+    assert p.forward_env_steps == [0, 16]
+    p.reset()
+    assert p.forward_env_steps == []

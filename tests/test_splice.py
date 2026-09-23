@@ -219,3 +219,43 @@ def test_transfer_fraction_ignores_padding_dims():
     patched = tgt.clone()
     patched[..., 5:] = 100.0            # padding only; must not count
     assert transfer_fraction(patched, tgt, src, live_dims=5) == pytest.approx(0.0)
+
+
+# --- recorded source, for the one category paired rendering cannot serve ----
+
+def test_recorder_stores_the_three_source_tensors_per_forward(policy):
+    from vla_harness.capture.splice import attach_recorder
+    bo, ai = _inputs(4)
+    rec = attach_recorder(policy)
+    policy.action_head.get_action(*_fresh(bo, ai))
+    policy.action_head.get_action(*_fresh(bo, ai))
+    rec.detach()
+    assert len(rec.records) == 2
+    want = policy.action_head._encode_features(*_fresh(bo, ai))
+    assert torch.equal(rec.records[0]["backbone_features"], want["backbone_features"])
+    assert torch.equal(rec.records[0]["state_features"], want["state_features"])
+    assert torch.equal(rec.records[0]["image_mask"], bo["image_mask"])
+
+
+def test_recorder_returns_none_past_the_end_and_detach_restores(policy):
+    from vla_harness.capture.splice import attach_recorder
+    orig = policy.action_head.get_action_with_features
+    rec = attach_recorder(policy)
+    policy.action_head.get_action(*_inputs(4))
+    rec.detach()
+    assert policy.action_head.get_action_with_features.__func__ is orig.__func__
+    assert rec.source(0) is not None and rec.source(1) is None
+
+
+def test_none_source_still_fixes_the_noise_and_records_nothing(policy):
+    """A pass-through forward is still under common random numbers: the
+    control rollout for the recorded-source path must draw the same epsilon
+    per forward as the target it will be spliced into."""
+    bo, ai = _inputs(5)
+    h = attach_splice(policy, source=lambda i: None, drive=None, noise_key=lambda i: 77)
+    a1 = policy.action_head.get_action(*_fresh(bo, ai))["action_pred"].clone()
+    h.begin_episode()
+    a2 = policy.action_head.get_action(*_fresh(bo, ai))["action_pred"].clone()
+    assert torch.equal(a1, a2)
+    assert h.records == []
+    h.detach()

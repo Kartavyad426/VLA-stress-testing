@@ -250,6 +250,11 @@ class LeRobotPolicy:
             self._load()
         if hasattr(self._policy, "reset"):
             self._policy.reset()
+        # env step of every model forward this episode, capture or not: the
+        # R-039 splice records per FORWARD and the analysis places each on the
+        # episode timeline (forwards are every n_action_steps env steps only
+        # while every chunk runs to completion, so it is logged, not derived).
+        self.forward_env_steps = []
         if self._sink is not None:
             # Warns and discards if the previous episode never reached
             # flush_capture -- i.e. it raised part-way through.
@@ -362,6 +367,9 @@ class LeRobotPolicy:
             a = self._policy.select_action(batch)
         if ran_model:
             self.model_forwards += 1
+            if not hasattr(self, "forward_env_steps"):
+                self.forward_env_steps = []
+            self.forward_env_steps.append(int(obs.t))
             if self._sink is not None:
                 # forward index -> env step, so a per-forward signal can be
                 # placed on the episode's timeline by the analysis.

@@ -2670,3 +2670,93 @@ still be drift accompanying failure. And the vl_self_attention result is a
 **correlational localisation** — it shows where the signal stops being linearly
 recoverable by nearest-neighbour distance, not that the block causally discards
 it. An intervention would be needed for that.
+
+---
+
+## R-041 — PRE-REGISTERED, NOT YET RUN: where is the boundary — single-axis sweeps from a known success, with the splice running
+
+**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Spec** this entry · **Shares the runner with R-039**
+
+### The question
+
+R-039 starts from a failure and asks which pathway carried it. This starts
+from a **success** and asks how far each axis can be pushed before the
+policy fails, and what the action does on the way there. The boundary radius
+per axis is what the condition-gap family (`RETRAINING_DEFAULT_TAXONOMY.md`
+B) needs and does not have: "show the failure sits outside the demonstrated
+range" requires a measured range on the *policy* side, not only the corpus
+side. LIBERO-Plus's difficulty levels are discrete presets that mix axes, so
+they give at best a coarse boundary.
+
+### Design
+
+Start: the R-029 control on the LIBERO-Plus stack (canonical camera,
+`--base-instruction`, initstate 0), 100/100. GR00T bf16, nas=16, obs 360,
+the R-037 configuration exactly.
+
+| axis | harness knob | range | notes |
+|---|---|---|---|
+| camera yaw | `camera_yaw_deg` | 0 – 40 | rigid orbit about the look-at point (R-010 fix) |
+| camera distance | `camera_dist_m` | 0 – 0.4 | |
+| light intensity | `light_intensity` | 0 – 3.0 | multiplier on `light_diffuse` |
+| robot start pose | R-035's radius | R-035's 0 – 0.5 | **R-035 folded in** as the state axis; its hypotheses stand as written there |
+
+Ten `libero_spatial` tasks × four axes. Per (task, axis): **bisection on the
+magnitude with the noise fixed** (the R-039 seeded path, one seed per task),
+seven rollouts, stopping at a bracket of 1/64 of the range. Every rollout
+runs with the splice attached, driving arm P, so all five arms' chunks are
+recorded at every forward at every magnitude. Paired rendering supplies the
+source for the three render axes; the state axis uses the recorded forward-0
+source from the magnitude-0 rollout of the same task and seed.
+
+Budget: 10 × 4 × 7 = **280 rollouts**, ~45 s each, ~3.5 h GPU. Run per axis
+so a partial run is still a result per axis.
+
+### Two boundaries, in this order
+
+1. **Action boundary (primary).** The smallest magnitude at which, at
+   forward 0, the P chunk departs from the N chunk by more than τ on the
+   live dims, where τ is the 95th percentile of forward-to-forward chunk
+   distance within the magnitude-0 rollouts, computed from those rollouts
+   before any perturbed one is analysed. Continuous, immediate, low-noise.
+2. **Outcome boundary (secondary).** The smallest magnitude at which the
+   episode fails. Binary, late, and confounded by everything after forward 0.
+
+### Pre-registered expectations
+
+1. **Action deviation is monotone in magnitude on every axis.** *High.* If
+   it is not, the knob is broken (R-010 found exactly that once) and the
+   axis is invalid, not the policy.
+2. **The action boundary is tighter and more consistent across tasks than
+   the outcome boundary.** *Medium-high.* The outcome boundary is task
+   geometry; the action boundary is policy sensitivity.
+3. **On the camera axes, the scenes that failed R-038's null prompt (stove,
+   wooden cabinet, top drawer) have the smallest outcome boundary.**
+   *Medium.* They are the scenes where vision underdetermines the target,
+   so a view change should hurt them first. If the ordering is unrelated
+   to R-038's, the two effects are separate mechanisms.
+4. **Below the action boundary, on the render axes, I-transfer ≥ 0.8 and
+   S-transfer ≈ 0 at forward 0.** *Medium-high.* Same claim as R-039
+   expectation 2, from the other side.
+5. **S-transfer grows along the episode, and grows faster at larger
+   magnitude.** *Medium.* Behavioural drift: the further the render is
+   from nominal, the sooner the state carries the failure.
+6. **The light axis has the largest outcome boundary of the three render
+   axes**, i.e. the policy tolerates illumination best. *Medium-low.*
+   R-031's per-category rates put Light Conditions among the least
+   harmful; a continuous axis tests whether that is tolerance or preset
+   choice.
+
+### What this buys
+
+A per-axis radius that goes into the mining spec directly: the re-render
+range for family B, and the pose region for A1 (R-035's saturation-versus-
+decline question decides whether corrective data must cover the whole ball
+or only the near-neutral shell). And a scale for the perturbed space that
+R-039's transfer fractions can be plotted against.
+
+### What would make this a failed experiment rather than a negative result
+
+Expectation 1 failing on any axis; or the magnitude-0 rollouts not
+reproducing R-029's 100/100 before τ is computed.
