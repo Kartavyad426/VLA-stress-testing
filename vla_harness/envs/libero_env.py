@@ -444,6 +444,19 @@ class LiberoEnv:
     # the LeRobot datasets the policies trained on do not.
     _LPLUS_SCENE_PREFIX_RE = re.compile(r"^[A-Z][A-Z0-9_]*SCENE\d+_")
 
+    @classmethod
+    def trained_instruction_for(cls, task_name: str) -> str:
+        """The trained scene wording for ANY LIBERO-Plus variant name, with every
+        perturbation suffix stripped, independent of the base/raw flags. Used
+        as the language row's nominal text (R-049): `base_instruction` is the
+        text this env SERVES, which for a language variant run with
+        base_instruction=False is the rewrite itself."""
+        base = cls._LPLUS_SCENE_PREFIX_RE.sub("", task_name)
+        prev = None
+        while prev != base:
+            prev, base = base, cls._LPLUS_SUFFIX_RE.sub("", base)
+        return " ".join(base.split("_"))
+
     def _clean_instruction(self, task) -> str:
         """The instruction the policy should receive.
 

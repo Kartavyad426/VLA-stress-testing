@@ -3932,7 +3932,7 @@ values within 0.05.
 
 ---
 
-## R-049 — PRE-REGISTERED, NOT YET RUN: the three unmapped rows — object layout, background texture, language
+## R-049 — PARTIAL: layout (agent view 0.55) and texture (cross-camera, like lighting) mapped; language rerunning
 
 **Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-048 ·
 **Type** EVAL · **Selection** `experiments/repro/r049_selection_rest.json` ·
@@ -3985,6 +3985,68 @@ run). 30 instances plus 10 control rollouts, ~40 minutes.
    selection draws).
 5. **No category shows S > 0.2 at forward 0.** *High.* The state token is
    near-inert (R-039, R-044).
+
+### RESULT, 2026-09-24 — layout and texture mapped; language must be rerun
+
+`runs/r049`, 30 instances + 10 controls, rc=0, controls 100%.
+
+**Language: uninterpretable on this run, by its own criterion.** P received
+the rewrite (recorded `instruction_given`, e.g. "pick up the darkhued vessel
+situated adjacent to the small ramekin…"), but the nominal text was the
+rewrite too: the env's `base_instruction` attribute holds the text it is
+*serving*, which with `base_instruction=False` is the variant. So ‖P−N‖ = 0
+on 10/10 and every transfer is NaN. Fixed by taking the trained scene
+wording from the variant name independent of the flag
+(`LiberoEnv.trained_instruction_for`, tested); the row reruns behind R-050
+as `runs/r049_lang`. One number survives from this run: **7 of 10 language
+rewrites fail** under a fixed noise seed, which with R-038 says once more
+that "insensitive to language" is not this policy's property.
+
+**Objects Layout** (recorded control source, 10 instances, 8 fail; median
+‖P−N‖ at forward 0 = 0.88; the three moved-object instances 2.7–3.3, the
+seven added-distractor instances 0.5–1.0):
+
+| arm | median at forward 0 | notes |
+|---|---|---|
+| A · agent-view pixels | **0.55** | 0.89 on the two wooden-cabinet distractor instances, 0.17–0.42 on cookie-box ones |
+| W · wrist pixels | 0.16 | 0.71 on the moved-object instance 1766 |
+| I · image tokens | 0.40 | |
+| T · text positions | 0.29 | leakage, 0.43–0.49 on the small-effect cookie-box instances |
+| IT | 0.93 | ≥ 0.9 on 5/10 |
+| S | −0.01 | |
+
+- **Expectation 1 (IT ≥ 0.9 on ≥ 8/10; A > W on ≥ 7/10) — half HELD:**
+  A > W on 7/10, IT ≥ 0.9 on 5/10. The agent view is the dominant camera
+  where the effect is large (wooden cabinet); on the cookie-box scene the
+  distractor's effect is small (0.5–0.8) and no single arm dominates, with
+  the leakage into text positions a third of it. The moved-object instance
+  is the one place the wrist leads (0.71): the near scene changed.
+- **Expectation 5 (S ≤ 0.2) — HELD** on 10/10.
+
+**Background Textures** (recorded control source, 10 instances, **0 fail**;
+median ‖P−N‖ at forward 0 = 0.31, the smallest of any category):
+
+| arm | median at forward 0 |
+|---|---|
+| A · agent-view pixels | −0.02 (range −0.55 to 0.34) |
+| W · wrist pixels | −0.05 (range −0.61 to 0.53) |
+| I · image tokens | **0.62** |
+| IT | 1.00 (by construction: identical physics, identical state token) |
+
+- **Expectation 2 (small effect; A > W on ≥ 7/10) — HELD on size, MISSED
+  on A > W (4/10).** Restoring either camera's pixels alone does nothing
+  or makes the action worse, while restoring both cameras' tokens (I)
+  recovers 0.62. **Texture behaves like lighting: a cross-camera
+  property.** The table surface is in both views, and a mismatch between
+  the two views is itself a perturbation to this head. Both prior failures
+  succeeded here; with ‖P−N‖ this small the category is near the outcome
+  noise floor.
+
+**Where the map stands.** Six of seven rows now have a dominant input:
+agent view for camera and noise, wrist for start pose, agent view for
+layout (with the wrist leading when the near scene moves), both cameras
+jointly for lighting and texture, and language pending the rerun. The
+state token is ≤ 0.2 on every row.
 
 ### What would make this uninterpretable
 

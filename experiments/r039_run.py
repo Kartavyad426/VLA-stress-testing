@@ -216,8 +216,9 @@ def main():
             recs, recorded_frames = recorded_controls[key]
             source = lambda i, recs=recs: recs[i] if i < len(recs) else None
         elif cat == LANG:
-            source = lambda i, env=env: (pol.features_for(text_nominal(pol.current_obs, env.base_instruction))
-                                         if pol.current_obs is not None else None)
+            trained = LiberoEnv.trained_instruction_for(inst["variant"])
+            source = lambda i, trained=trained: (pol.features_for(text_nominal(pol.current_obs, trained))
+                                                 if pol.current_obs is not None else None)
         else:
             source = lambda i, env=env: pol.features_for(env.nominal_observation())
         if a.arms == "extended":

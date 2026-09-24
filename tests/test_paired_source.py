@@ -253,3 +253,19 @@ def test_joint_radius_knob_is_a_known_initial_state_knob():
     s = PerturbationSpec.of(joint_radius_rad=0.2, joint_dir_seed=5)
     assert s.factors() == {"initial_state"}
     assert {"joint_radius_rad", "joint_dir_seed"} <= SUPPORTED_KNOBS
+
+
+def test_trained_instruction_strips_every_variant_suffix_regardless_of_flag():
+    """R-049 language row: the nominal text must be the trained scene wording
+    even when the env is serving the variant's rewrite as P."""
+    from vla_harness.envs.libero_env import LiberoEnv
+    e = LiberoEnv.__new__(LiberoEnv)
+    for name, want in [
+        ("pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_language_25_view_0_0_100_0_0_initstate_0",
+         "pick up the black bowl on the stove and place it on the plate"),
+        ("KITCHEN_SCENE3_pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_tb_22",
+         "pick up the black bowl next to the ramekin and place it on the plate"),
+        ("pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+         "pick up the black bowl between the plate and the ramekin and place it on the plate"),
+    ]:
+        assert LiberoEnv.trained_instruction_for(name) == want, name
