@@ -129,7 +129,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--selection", required=True)
     ap.add_argument("--run-id", required=True)
-    ap.add_argument("--drive", default="P", choices=list(ARMS))
+    ap.add_argument("--drive", default="P", choices=list(ARMS) + list(EXTENDED))
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--no-video", action="store_true")
     ap.add_argument("--arms", default="base", choices=["base", "extended"],

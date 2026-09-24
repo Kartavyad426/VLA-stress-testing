@@ -1,0 +1,66 @@
+[20:09:51] waiting for R-041
+[20:58:51] R-041 finished: [20:58:45] joint_radius_rad rc=0
+[20:58:51] smoke start
+[20:58:55] smoke rc=2
+[20:58:55] SMOKE FAILED
+[20:58:55] reverse start
+[21:01:16] reverse rc=0
+[21:01:16] seed1 start
+[21:09:15] seed1 rc=0
+[21:09:15] seed2 start
+[21:16:55] seed2 rc=0
+camera_yaw_deg 64 rollouts; 10 tasks
+  between-plate-ramekin    action          0 – 2.5  outcome                —  still succeeds at max
+  next-to-ramekin          action          0 – 2.5  outcome                —  still succeeds at max
+  table-center             action          0 – 2.5  outcome        30.6 – 40  
+  on-cookie-box            action          0 – 2.5  outcome                —  still succeeds at max
+  top-drawer               action          0 – 2.5  outcome      21.2 – 30.6  
+  on-ramekin               action          0 – 2.5  outcome                —  still succeeds at max
+  next-to-cookie-box       action          0 – 2.5  outcome                —  still succeeds at max
+  on-stove                 action          0 – 2.5  outcome                —  still succeeds at max
+  next-to-plate            action          0 – 2.5  outcome                —  still succeeds at max
+  on-wooden-cabinet        action          0 – 2.5  outcome                —  still succeeds at max
+camera_dist_m 62 rollouts; 10 tasks
+  between-plate-ramekin    action        0 – 0.025  outcome                —  still succeeds at max
+  next-to-ramekin          action        0 – 0.025  outcome                —  still succeeds at max
+  table-center             action        0 – 0.025  outcome                —  still succeeds at max
+  on-cookie-box            action        0 – 0.025  outcome                —  still succeeds at max
+  top-drawer               action        0 – 0.025  outcome                —  still succeeds at max
+  on-ramekin               action        0 – 0.025  outcome      0.306 – 0.4  
+  next-to-cookie-box       action        0 – 0.025  outcome                —  still succeeds at max
+  on-stove                 action        0 – 0.025  outcome                —  still succeeds at max
+  next-to-plate            action        0 – 0.025  outcome                —  still succeeds at max
+  on-wooden-cabinet        action        0 – 0.025  outcome                —  still succeeds at max
+light_intensity 48 rollouts; 10 tasks
+  between-plate-ramekin    action        0 – 0.188  outcome                —  still succeeds at max
+  next-to-ramekin          action                —  outcome                —  no action boundary in range
+  table-center             action     0.562 – 0.75  outcome                —  still succeeds at max
+  on-cookie-box            action                —  outcome                —  no action boundary in range
+  top-drawer               action        0 – 0.188  outcome                —  still succeeds at max
+  on-ramekin               action        0 – 0.188  outcome                —  still succeeds at max
+  next-to-cookie-box       action        0 – 0.188  outcome                —  still succeeds at max
+  on-stove                 action     0.75 – 0.938  outcome                —  still succeeds at max
+  next-to-plate            action                —  outcome                —  no action boundary in range
+  on-wooden-cabinet        action        0 – 0.188  outcome                —  still succeeds at max
+joint_radius_rad 66 rollouts; 10 tasks
+  between-plate-ramekin    action       0 – 0.0312  outcome                —  still succeeds at max
+  next-to-ramekin          action       0 – 0.0312  outcome                —  still succeeds at max
+  table-center             action       0 – 0.0312  outcome      0.383 – 0.5  
+  on-cookie-box            action       0 – 0.0312  outcome                —  still succeeds at max
+  top-drawer               action       0 – 0.0312  outcome      0.383 – 0.5  
+  on-ramekin               action       0 – 0.0312  outcome                —  still succeeds at max
+  next-to-cookie-box       action       0 – 0.0312  outcome                —  still succeeds at max
+  on-stove                 action       0 – 0.0312  outcome    0.148 – 0.266  
+  next-to-plate            action       0 – 0.0312  outcome                —  still succeeds at max
+  on-wooden-cabinet        action       0 – 0.0312  outcome                —  still succeeds at max
+wrote docs/R041_RESULTS.html
+runs/r044_seed1 n = 10 residual = 2
+  Robot Initial States   n=10 fail= 9 f0 T=0.29 I=0.77 S=0.03 IT=0.95 A=0.20 W=0.85 | anchor T=0.09 I=0.77 S=0.02 IT=0.95 A=0.13 W=0.60 | dom {'IT': 8, 'none': 2}
+wrote /dev/null
+runs/r044_seed2 n = 10 residual = 4
+  Robot Initial States   n=10 fail= 6 f0 T=0.29 I=0.81 S=0.05 IT=0.95 A=0.19 W=0.85 | anchor T=0.16 I=0.78 S=0.03 IT=0.96 A=0.27 W=0.62 | dom {'IT': 6, 'none': 4}
+wrote /dev/null
+[21:16:56] DONE
+[10:02:02] smoke2 start
+[10:03:16] smoke2 rc=0
+[10:03:16] rescue_W start

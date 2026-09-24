@@ -2891,7 +2891,7 @@ control that does not reproduce R-029's 100/100 before post-training.
 
 ---
 
-## R-041 — PRE-REGISTERED, RUNNING (camera-yaw axis started 2026-09-23): where is the boundary — single-axis sweeps from a known success, with the splice running
+## R-041 — DONE: no boundary in the action, a wide scene-dependent one in the outcome — single-axis sweeps from a known success
 
 **Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
 **Spec** this entry · **Shares the runner with R-039**
@@ -3006,6 +3006,84 @@ partial answer to expectation 2 and is not claimed until the sweep is in.
    R-031's per-category rates put Light Conditions among the least
    harmful; a continuous axis tests whether that is tolerance or preset
    choice.
+
+### RESULT, 2026-09-24 — there is no boundary in the action; there is a wide one in the outcome
+
+`runs/r041`, four axes, 240 rollouts (64 / 62 / 48 / 66), rc=0 on every axis;
+magnitude-0 rollouts **40/40 success** (R-029 reproduced; τ computed from
+them: 0.093, stricter all-forward floor 0.79). Report: `docs/R041_RESULTS.html`.
+
+| axis | range | action boundary (τ = 0.093) | action boundary (τ = 0.79) | outcome boundary | still succeeds at max |
+|---|---|---|---|---|---|
+| camera yaw | 0–40° | **< 2.5° on 10/10** | 2.5–20°, none on 1 | 21–31° (top-drawer), 31–40° (table-center) | **8/10** |
+| camera distance | 0–0.4 m | **< 0.025 m on 10/10** | 0.025–0.2 m, none on 1 | 0.31–0.4 m (on-ramekin) | **9/10** |
+| light intensity | 0–3× | < 0.19 on 6; 0.56–0.94 on 2; none on 2 | none on 10/10 | none | **10/10** |
+| start-pose radius | 0–0.5 rad | **< 0.031 rad on 10/10** | 0.03–0.125 rad | 0.15–0.27 (stove), 0.38–0.5 (table-center, top-drawer) | **7/10** |
+
+**The answer to "is there a space".** Yes, on the outcome: this checkpoint
+tolerates at least 40° of yaw on 8 scenes, 0.4 m of camera distance on 9,
+3× illumination on 10 and 0.5 rad of start-pose radius on 7, from a
+starting point of 100/100. No, on the action: on every axis but light the
+first chunk departs from nominal by more than the noise floor at the
+smallest magnitude the bisection resolves, and by more than the stricter
+floor within the first fifth of the range. **The policy's first decision is
+already wrong at 2.5° of yaw; the closed loop absorbs it for another 20 to
+40°.** The boundary that matters for failure is not in the policy's
+sensitivity but in how much accumulated deviation the loop can correct,
+which is a property of the scene as much as of the policy.
+
+#### Expectations, scored
+
+1. **Monotone action deviation on every axis — HELD in trend, MISSED in
+   strictness.** Consecutive samples are non-decreasing on a median 83%
+   (yaw, distance) to 100% (light, start pose) of steps, and every axis
+   reaches its largest effect at or near its maximum. But individual scenes
+   are locally non-monotone: next-to-plate under yaw reads 1.86 at 2.5°,
+   0.90 at 10°, 2.05 at 20°, 1.11 at 40°. That is not a broken knob (the
+   trend and the maxima are right); it is the render-jitter chaos R-039
+   measured, now seen as a rough action surface. The knobs are valid.
+2. **Action boundary tighter and more consistent than the outcome boundary
+   — HELD, in the extreme.** Action: identical bracket on 10/10 scenes for
+   three axes. Outcome: from 0.15 rad to beyond range on the same scenes.
+3. **R-038's null-prompt scenes fail earliest on the camera axes — MISSED
+   on the camera axes, partial on the state axis.** Yaw failures: table-
+   center and top-drawer (one R-038 scene of two); distance: on-ramekin
+   (not an R-038 scene). Start pose: stove earliest (0.15–0.27 rad), then
+   top-drawer, both R-038 scenes, plus table-center. The language-load
+   scenes are fragile to a moved start, not to a moved camera.
+4. **I ≥ 0.8 below the action boundary on the render axes — MISSED**
+   (median 0.79 yaw, 0.74 distance, 0.65 light). Same cause as R-039's
+   expectation 2: the positional image arm undercounts; R-042's A arm (not
+   in R-041, which ran the base arms) is the right instrument.
+5. **S-transfer grows with magnitude — MISSED.** S slope ≈ 0 at small and
+   large magnitudes on all axes, consistent with the near-inert state token.
+6. **Light has the largest outcome boundary — HELD, and then some.** No
+   scene fails at 3×; three scenes never cross even the 0.093 floor at
+   forward 0; none crosses 0.79. Illumination barely reaches the action on
+   this suite, which is also why LIBERO-Plus's light variants rarely fail.
+
+#### What it buys, and what it changes
+
+- **The data spec's radius is the OUTCOME boundary, not the action
+  boundary.** For camera and start pose, coverage should target the region
+  where the loop stops recovering (yaw ≳ 20°, radius ≳ 0.15–0.4 rad,
+  scene-dependent), not the region where the first action moves (which is
+  everywhere). R-035's saturation-vs-decline question is answered on the
+  10-scene sample by "flat, then a cliff that depends on the scene".
+- **Outcome boundaries need repeated seeds.** on-wooden-cabinet failed at
+  2.5° yaw and succeeded at 5, 10, 20 and 40°; the outcome is not a
+  monotone function of magnitude at one seed. The action boundary is; that
+  is why it was made primary, and the resolution floor (one bisection
+  cell) is now the limit, not the noise.
+- **For R-040:** held-out perturbed instances should be drawn from just
+  beyond each scene's outcome boundary, where a data effect can register.
+
+#### Scope
+
+One checkpoint, one suite, one seed per (task, axis), base arms only; the
+per-camera arms of R-042 were not run here. The outcome boundaries are
+brackets from two bisection steps at one seed and should be read as
+"somewhere in", not as thresholds.
 
 ### What this buys
 
@@ -3335,7 +3413,7 @@ LIBERO-Plus stack.
 
 ---
 
-## R-044 — PRE-REGISTERED, NOT YET RUN: three robustness checks on the wrist-camera claim
+## R-044 — RUNNING (checks 1–2 done, 3 relaunched): three robustness checks on the wrist-camera claim
 
 **Date registered** 2026-09-23 · **Status** PRE-REGISTERED, QUEUED behind R-041 ·
 **Type** EVAL · **Spec** this entry + `docs/R042_WRIST_MATHS.html` §5 ·
@@ -3390,6 +3468,37 @@ against R-042's drive-P outcomes on the same instances under the same noise
 - **A null here does not weaken R-042**, which is about where the head reads
   the pose at forward 0; it bounds how much the first decision matters for
   the episode.
+
+### RESULT, checks 1 and 2, 2026-09-24 (check 3 pending: its first launch was blocked by an argparse bug, relaunched)
+
+**Check 1, reverse direction** (`runs/r044_reverse`): `denoise_W` reproduces
+R-042's per-instance W to **0.01 on 10/10**, so the check is interpretable.
+
+| direction | W · wrist | A · agent | S · state |
+|---|---|---|---|
+| denoising (nominal input into perturbed run) | **0.88** | 0.17 | 0.04 (R-039) |
+| noising (perturbed input into nominal run) | **0.46** (0.25–0.86) | 0.02 | 0.01 |
+
+- **1a — MISSED on the median (0.46 < 0.6), HELD on the ordering (noise_W >
+  noise_A on 10/10).** Corrupting the wrist alone reproduces about half of
+  the perturbation's effect; corrupting the agent view or the state alone
+  reproduces none. The three noising numbers sum to 0.49, so the full
+  effect needs the wrist *and* the agent view to be perturbed together: a
+  nominal agent view restrains the head when the wrist says the pose has
+  moved. **Reading:** the wrist is *necessary* (nothing else reproduces the
+  effect, and restoring it alone removes it) but the agent view is a
+  *consistency check* the head also uses. Data spec unchanged in substance,
+  sharpened in wording: demonstrations at new poses must contain what the
+  wrist sees there, and the agent view of the same pose, which real
+  demonstrations do by construction and a wrist-only augmentation would not.
+- **1b — HELD.** Corrupting the state token alone: 0.01.
+
+**Check 2, noise seeds** (`runs/r044_seed1`, `runs/r044_seed2`): W under
+seeds 1 and 2 is **0.85 / 0.85** (seed 0: 0.88); per instance within 0.15
+of seed 0 on **10/10 and 10/10**; W > A on **10/10 under each seed** (A 0.20
+/ 0.19). **HELD.** The outcomes, meanwhile, agreed with seed 0 on only 6/10
+and 6/10, the same chaos as everywhere else; the action-level number is the
+stable one.
 
 ### What would make this uninterpretable
 
