@@ -55,7 +55,7 @@ def _slope(y: np.ndarray) -> float:
 def aggregate(instances: list[dict]) -> dict:
     per = []
     for inst in instances:
-        F = len(inst["tf"]["T"])
+        F = len(next(iter(inst["tf"].values()))) if inst["tf"] else len(inst["d_pn"])
         anchor = inst.get("anchor_forward")
         if anchor is None or anchor < 0 or anchor >= F:
             anchor = F - 1

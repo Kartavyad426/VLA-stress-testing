@@ -122,10 +122,13 @@ class SpliceHandle:
             device = vl_t.device
             outer = _rng_state(device)
             outputs = {}
+            # the N arm has the SOURCE's token count, so the DiT must see the
+            # source's masks too (image_mask, backbone_attention_mask), not the target's
+            bo_src = _with_masks(bo, src)
             try:
-                for arm, (vl, st) in {"P": (vl_t, st_t), "N": (vl_s, st_s), "S": (vl_t, st_s)}.items():
+                for arm, (vl, st, bo_arm) in {"P": (vl_t, st_t, bo), "N": (vl_s, st_s, bo_src), "S": (vl_t, st_s, bo)}.items():
                     torch.manual_seed(int(self._noise_key(fidx)))
-                    outputs[arm] = self._original(**{**kwargs, "backbone_features": vl, "state_features": st})
+                    outputs[arm] = self._original(**{**kwargs, "backbone_features": vl, "state_features": st, "backbone_output": bo_arm})
             finally:
                 _restore_rng(outer)
             self.records.append({"forward_idx": fidx, "aligned": False,
@@ -185,6 +188,19 @@ class SpliceHandle:
         if self._drive_until is not None and fidx >= self._drive_until:
             return outputs["P"]
         return outputs[self._drive]
+
+
+def _with_masks(bo, src):
+    """A copy of backbone_output carrying the source's image and attention masks."""
+    import copy
+    out = copy.copy(bo)
+    for k in ("image_mask", "backbone_attention_mask"):
+        if k in src:
+            try:
+                out[k] = src[k]
+            except Exception:
+                setattr(out, k, src[k])
+    return out
 
 
 def _get(bo, key):

@@ -2895,7 +2895,7 @@ control that does not reproduce R-029's 100/100 before post-training.
 
 ## R-041 — DONE: no boundary in the action, a wide scene-dependent one in the outcome — single-axis sweeps from a known success
 
-**Date registered** 2026-09-23 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Date registered** 2026-09-23 · **Run** 2026-09-23 · **Status** DONE · **Type** EVAL ·
 **Spec** this entry · **Shares the runner with R-039**
 
 ### The question
@@ -3431,7 +3431,7 @@ LIBERO-Plus stack.
 
 ## R-044 — DONE: the wrist claim survives; one corrected chunk at forward 0 rescues 7/7 start-pose failures
 
-**Date registered** 2026-09-23 · **Status** PRE-REGISTERED, QUEUED behind R-041 ·
+**Date registered** 2026-09-23 · **Run** 2026-09-23/24 · **Status** DONE ·
 **Type** EVAL · **Spec** this entry + `docs/R042_WRIST_MATHS.html` §5 ·
 **Queue** `experiments/queue_r043.sh`
 
@@ -3572,7 +3572,7 @@ Check 1's `denoise_W` not reproducing R-042's per-instance W within 0.1
 
 ## R-045 — DONE (pre-registered split failed its sanity gate; post-hoc scene split flat in radius): does the VLM's output still encode the arm pose at new start poses?
 
-**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** ANALYSIS
+**Date registered** 2026-09-24 · **Run** 2026-09-24 · **Status** DONE · **Type** ANALYSIS
 (forwards only, no rollouts) · **Script** `experiments/r045_pose_probe.py`
 
 ### The question
@@ -3821,7 +3821,7 @@ P/N not matching R-041's at the shared magnitudes.
 
 ## R-048 — DONE: camera row confirmed (agent view 0.98, exact, stable); forward-0 rescue weak against a 43% no-correction flip rate
 
-**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Date registered** 2026-09-24 · **Run** 2026-09-24 · **Status** DONE · **Type** EVAL ·
 **Queue** `experiments/queue_r048.sh` · **Instances** the 10 Camera
 Viewpoints instances of R-039/R-042 (`experiments/repro/r048_selection_cam.json`)
 
@@ -3932,9 +3932,9 @@ values within 0.05.
 
 ---
 
-## R-049 — PARTIAL: layout (agent view 0.55) and texture (cross-camera, like lighting) mapped; language rerunning
+## R-049 — DONE: layout (agent view 0.55), texture (cross-camera), language (rewrite moves the first action 1.4, doubled on R-038's scenes; positional arms undefined)
 
-**Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-048 ·
+**Date registered** 2026-09-24 · **Run** 2026-09-24 · **Status** DONE ·
 **Type** EVAL · **Selection** `experiments/repro/r049_selection_rest.json` ·
 **Queue** `experiments/queue_r049.sh`
 
@@ -4055,7 +4055,28 @@ this category. Expectation 3 (T ≥ 0.8, I ≤ 0.3) is therefore untestable as
 written; expectation 4 (effect size scene-dependent in the R-038 pattern)
 and 5 (S ≤ 0.2) stand.
 
-**Where the map stands.** Six of seven rows now have a dominant input:
+**Language, measured (rerun 3, 14:33, `runs/r049_lang`, 10 rollouts, rc=0).**
+Positional arms undefined (token counts differ), so the row is ‖P−N‖ from
+the paired text plus the S arm:
+
+| scene | instances | fail | ‖P−N‖ at forward 0 |
+|---|---|---|---|
+| R-038 null-prompt scenes (stove, wooden cabinet) | 5 | 4 | **2.81** median (2.81, 2.81, 2.94, 1.17, 3.56) |
+| other scenes (next-to-ramekin, on-ramekin) | 5 | 3 | **1.38** median (0.49–1.44) |
+
+- **7 of 10 rewrites fail**; S at forward 0 is 0.00 on 10/10 (expectation 5
+  HELD).
+- **Expectation 4 (effect larger on the R-038 scenes) — HELD**, 2.8 against
+  1.4 at the median, with the smallest effect (0.49) on the one polite
+  paraphrase that keeps the words "black bowl" and "ramekin" ("could you
+  arrange the black bowl from the ramekin onto…") and the largest (3.56) on
+  a full relexicalisation ("lift the darkcolored rounded container resting
+  on the surface…"). A rewrite moves the first action about as much as a
+  25° camera change (1.18) and more than lighting (0.38) or texture
+  (0.31), and twice as much where the scene already leans on language.
+- **Expectation 3 — untestable**, as recorded above.
+
+**Where the map stands.** All seven rows now have a measured input:
 agent view for camera and noise, wrist for start pose, agent view for
 layout (with the wrist leading when the near scene moves), both cameras
 jointly for lighting and texture, and language pending the rerun. The
@@ -4071,7 +4092,7 @@ recorded `instruction_given`).
 
 ## R-050 — DONE: a corrected first chunk halves the downstream gap on start pose (10/10) and re-opens it on camera (8/10)
 
-**Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-049 ·
+**Date registered** 2026-09-24 · **Run** 2026-09-24 · **Status** DONE ·
 **Type** EVAL · **Queue** `experiments/queue_r050.sh`
 
 ### Why

@@ -64,7 +64,7 @@ def lvl(n):
 
 
 def curve_svg(inst: dict, aid: str) -> str:
-    F = len(inst["tf"]["T"])
+    F = len(next(iter(inst["tf"].values()))) if inst["tf"] else len(inst["d_pn"])
     W, H, pl, pr, pt, pb = 250, 130, 30, 8, 8, 22
     x = lambda i: pl + (W - pl - pr) * (i / max(F - 1, 1))
     y = lambda v: pt + (H - pt - pb) * (1 - min(max(v, -0.25), 1.05) + 0.05) / 1.3

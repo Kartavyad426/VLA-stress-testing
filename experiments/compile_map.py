@@ -384,15 +384,23 @@ def section_texture():
 
 
 def section_language():
-    a = analysis("r049_lang")
-    fails = sum(1 for r in manifest("r049_lang") if not r["success"]) if a else None
+    rs = rows_of("r049_lang", "Language Instructions")
     body = ""
-    if a and "Language Instructions" in a["by_category"]:
-        body = denoise_table("Language Instructions", [("r049_lang", "R-049 paired text")]) + instance_table("Language Instructions", "r049_lang") + curves("Language Instructions", "r049_lang", "Transfer curves (R-049 language rerun)")
-        c = a["by_category"]["Language Instructions"]
-        body += f"<p>Medians at forward 0: T {f2(c['median_tf_f0'].get('T'))}, I {f2(c['median_tf_f0'].get('I'))}, S {f2(c['median_tf_f0'].get('S'))}; ‖P−N‖ {f2(c['median_d_pn_f0'])}; {c['n_fail']} of {c['n']} fail.</p>"
+    if rs:
+        R038 = {"on-stove", "on-wooden-cabinet", "top-drawer"}
+        def dpn_mean(r):
+            p = f"runs/r049_lang/splice/{r['rollout_id']}.npz"
+            return float(np.load(p)["d_pn"].mean()) if os.path.exists(p) else float("nan")
+        body += table(["level", "instance", "task", "outcome", "‖P−N‖ f0", "‖P−N‖ mean over forwards", "S f0", "aligned", "instruction served"],
+                      [[lvl(r["level"]), E(str(r["label"])), r["task_id"], ok(r["success"]), r["d_pn_f0"] if r["d_pn_f0"] is not None else float("nan"), dpn_mean(r),
+                        (r.get("tf_at_f0") or {}).get("S", float("nan")), "yes" if r.get("aligned") else "no", E(str(r.get("instruction_given", ""))[:70])]
+                       for r in sorted(rs, key=lambda r: (-(r["level"] or 0), r["task_id"]))])
+        d38 = [r["d_pn_f0"] for r in rs if r["scene"] in R038 and r["d_pn_f0"] is not None]; dother = [r["d_pn_f0"] for r in rs if r["scene"] not in R038 and r["d_pn_f0"] is not None]
+        body += f"<p>{sum(1 for r in rs if not r['success'])} of {len(rs)} fail. ‖P−N‖ at forward 0: median {f2(med([r['d_pn_f0'] for r in rs]))} overall; {f2(med(d38))} on R-038's null-prompt scenes (n={len(d38)}) against {f2(med(dother))} elsewhere (n={len(dother)}). S at forward 0: median {f2(med([(r.get('tf_at_f0') or {}).get('S') for r in rs]))}.</p>"
+        body += curves("Language Instructions", "r049_lang", "‖P−N‖ is the row's curve here; the S arm is the only transfer defined")
     else:
-        body = "<p class=lead-in>Rerun pending; the first run's nominal text was the rewrite itself (P ≡ N), a harness bug fixed and tested the same day.</p>"
+        body = "<p class=lead-in>Rerun pending.</p>"
+    body = ("<p><b>Why this row has no T or I arm.</b> The rewrite tokenises to a different length than the trained wording (153 vs 151 tokens on the first instance), so the token positions of P and N do not correspond and a positional splice is undefined, not merely unmeasured. The pixel arms are identity (frames unchanged). What is well defined is the effect size ‖P−N‖ at every forward, from the paired text, and the state arm.</p>") + body
     return f'''
 <section id="language">
 <p class="part">7 · Language instruction</p>
@@ -400,7 +408,7 @@ def section_language():
 <p><b>What the perturbation is.</b> The instruction is rewritten ("pick up the darkhued vessel situated adjacent to the small ramekin…"); frames and state are identical, so the nominal is the same observation with the trained wording. Ten campaign failures, five level-4 and five level-5, heavy on the wooden-cabinet and ramekin scenes. Context: R-038 found the empty prompt takes this policy from 100/100 to 50/100 with a scene-dependent spread, so "insensitive to language" is not this policy's property.</p>
 <h3>Denoising map (R-049 rerun)</h3>
 {body}
-{note("Verdict", "<b>Dominant input:</b> the text tokens by construction (the only differing input); the question this row answers is whether text content leaks into image positions the way image content leaks into text positions (R-039), and how large the rewrite's effect on the first action is per scene. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Not run:</b> necessity (degenerate, one input), seeds, rescue.", "repo")}
+{note("Verdict", "<b>Dominant input:</b> the text by construction, the only differing input. <b>What the row measures:</b> how far a rewrite moves the first action and whether that is scene-dependent in the R-038 pattern, since a positional text-vs-image split is undefined when token counts differ. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Not run:</b> seeds, rescue; a pre-VLM instruction swap with matched token counts would restore the positional arms.", "repo")}
 </section>'''
 
 
@@ -477,7 +485,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--out", default="docs/PERTURBATION_MAP.html"); a = ap.parse_args()
     src = open("docs/R039_MATHS.html").read()
     head = src[:src.index("</head>")].replace("<title>Splice Maths</title>", "<title>Perturbation Map</title>")
-    head = head.replace("  .footer{", "  .lvl{display:inline-block;min-width:2.2em;text-align:center;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.78rem}\n  .L1{background:#e8f1fb}.L2{background:#cfe0f6}.L3{background:#a9c8ee}.L4{background:#7ea9e0}.L5{background:#4f86cf;color:#fff}\n  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}\n  figure.small{margin:0;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:8px}\n  figure.small svg{display:block;width:100%;height:auto;color:var(--ink)}\n  figure.small figcaption{border:0;padding-top:4px;margin-top:4px;font-size:.74rem}\n  h4{font-family:var(--sans);font-size:.95rem;margin:1.2em 0 .4em}\n  dl.gloss dt{font-family:var(--sans);font-weight:600;margin-top:.8em}dl.gloss dd{margin:.1em 0 0}\n  .toc a{margin-right:14px;font-family:var(--sans);font-size:.85rem}\n  .footer{")
+    head = head.replace("  .footer{", "  .wrap{max-width:1180px}\n  td:nth-child(2){white-space:nowrap}\n  table{font-size:.8rem}\n  .footer{").replace("  .footer{", "  .lvl{display:inline-block;min-width:2.2em;text-align:center;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.78rem}\n  .L1{background:#e8f1fb}.L2{background:#cfe0f6}.L3{background:#a9c8ee}.L4{background:#7ea9e0}.L5{background:#4f86cf;color:#fff}\n  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}\n  figure.small{margin:0;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:8px}\n  figure.small svg{display:block;width:100%;height:auto;color:var(--ink)}\n  figure.small figcaption{border:0;padding-top:4px;margin-top:4px;font-size:.74rem}\n  h4{font-family:var(--sans);font-size:.95rem;margin:1.2em 0 .4em}\n  dl.gloss dt{font-family:var(--sans);font-weight:600;margin-top:.8em}dl.gloss dd{margin:.1em 0 0}\n  .toc a{margin-right:14px;font-family:var(--sans);font-size:.85rem}\n  .footer{")
     body = f'''</head>
 <body>
 <div class="wrap">

@@ -14,3 +14,18 @@ runs/r049 n = 30 residual = 14
 wrote /dev/null
 [13:53:45] DONE
 [14:02:49] lang rerun: waiting for R-050
+[14:19:49] lang start
+[14:20:39] lang rc=1
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/experiments/r039_report.py", line 173, in <module>
+    main()
+  File "/home/imerit/Documents/Code/VLA/experiments/r039_report.py", line 160, in main
+    inst = load_instances(r)
+           ^^^^^^^^^^^^^^^^^
+  File "/home/imerit/Documents/Code/VLA/vla_harness/analysis/r039.py", line 31, in load_instances
+    for line in open(os.path.join(d, "manifest.jsonl")):
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'runs/r049_lang/splice/manifest.jsonl'
+[14:20:40] LANG DONE
+[14:26:17] lang2 rc=1
+[14:33:22] lang3 rc=0

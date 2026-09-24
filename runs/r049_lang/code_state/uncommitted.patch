@@ -1,0 +1,106 @@
+diff --git a/experiments/compile_map.py b/experiments/compile_map.py
+index 32e7665..2cbb1d9 100644
+--- a/experiments/compile_map.py
++++ b/experiments/compile_map.py
+@@ -384,15 +384,23 @@ def section_texture():
+ 
+ 
+ def section_language():
+-    a = analysis("r049_lang")
+-    fails = sum(1 for r in manifest("r049_lang") if not r["success"]) if a else None
++    rs = rows_of("r049_lang", "Language Instructions")
+     body = ""
+-    if a and "Language Instructions" in a["by_category"]:
+-        body = denoise_table("Language Instructions", [("r049_lang", "R-049 paired text")]) + instance_table("Language Instructions", "r049_lang") + curves("Language Instructions", "r049_lang", "Transfer curves (R-049 language rerun)")
+-        c = a["by_category"]["Language Instructions"]
+-        body += f"<p>Medians at forward 0: T {f2(c['median_tf_f0'].get('T'))}, I {f2(c['median_tf_f0'].get('I'))}, S {f2(c['median_tf_f0'].get('S'))}; ‖P−N‖ {f2(c['median_d_pn_f0'])}; {c['n_fail']} of {c['n']} fail.</p>"
++    if rs:
++        R038 = {"on-stove", "on-wooden-cabinet", "top-drawer"}
++        def dpn_mean(r):
++            p = f"runs/r049_lang/splice/{r['rollout_id']}.npz"
++            return float(np.load(p)["d_pn"].mean()) if os.path.exists(p) else float("nan")
++        body += table(["level", "instance", "task", "outcome", "‖P−N‖ f0", "‖P−N‖ mean over forwards", "S f0", "aligned", "instruction served"],
++                      [[lvl(r["level"]), E(str(r["label"])), r["task_id"], ok(r["success"]), r["d_pn_f0"] if r["d_pn_f0"] is not None else float("nan"), dpn_mean(r),
++                        (r.get("tf_at_f0") or {}).get("S", float("nan")), "yes" if r.get("aligned") else "no", E(str(r.get("instruction_given", ""))[:70])]
++                       for r in sorted(rs, key=lambda r: (-(r["level"] or 0), r["task_id"]))])
++        d38 = [r["d_pn_f0"] for r in rs if r["scene"] in R038 and r["d_pn_f0"] is not None]; dother = [r["d_pn_f0"] for r in rs if r["scene"] not in R038 and r["d_pn_f0"] is not None]
++        body += f"<p>{sum(1 for r in rs if not r['success'])} of {len(rs)} fail. ‖P−N‖ at forward 0: median {f2(med([r['d_pn_f0'] for r in rs]))} overall; {f2(med(d38))} on R-038's null-prompt scenes (n={len(d38)}) against {f2(med(dother))} elsewhere (n={len(dother)}). S at forward 0: median {f2(med([(r.get('tf_at_f0') or {}).get('S') for r in rs]))}.</p>"
++        body += curves("Language Instructions", "r049_lang", "‖P−N‖ is the row's curve here; the S arm is the only transfer defined")
+     else:
+-        body = "<p class=lead-in>Rerun pending; the first run's nominal text was the rewrite itself (P ≡ N), a harness bug fixed and tested the same day.</p>"
++        body = "<p class=lead-in>Rerun pending.</p>"
++    body = ("<p><b>Why this row has no T or I arm.</b> The rewrite tokenises to a different length than the trained wording (153 vs 151 tokens on the first instance), so the token positions of P and N do not correspond and a positional splice is undefined, not merely unmeasured. The pixel arms are identity (frames unchanged). What is well defined is the effect size ‖P−N‖ at every forward, from the paired text, and the state arm.</p>") + body
+     return f'''
+ <section id="language">
+ <p class="part">7 · Language instruction</p>
+@@ -400,7 +408,7 @@ def section_language():
+ <p><b>What the perturbation is.</b> The instruction is rewritten ("pick up the darkhued vessel situated adjacent to the small ramekin…"); frames and state are identical, so the nominal is the same observation with the trained wording. Ten campaign failures, five level-4 and five level-5, heavy on the wooden-cabinet and ramekin scenes. Context: R-038 found the empty prompt takes this policy from 100/100 to 50/100 with a scene-dependent spread, so "insensitive to language" is not this policy's property.</p>
+ <h3>Denoising map (R-049 rerun)</h3>
+ {body}
+-{note("Verdict", "<b>Dominant input:</b> the text tokens by construction (the only differing input); the question this row answers is whether text content leaks into image positions the way image content leaks into text positions (R-039), and how large the rewrite's effect on the first action is per scene. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Not run:</b> necessity (degenerate, one input), seeds, rescue.", "repo")}
++{note("Verdict", "<b>Dominant input:</b> the text by construction, the only differing input. <b>What the row measures:</b> how far a rewrite moves the first action and whether that is scene-dependent in the R-038 pattern, since a positional text-vs-image split is undefined when token counts differ. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Not run:</b> seeds, rescue; a pre-VLM instruction swap with matched token counts would restore the positional arms.", "repo")}
+ </section>'''
+ 
+ 
+diff --git a/runs/r049/queue.log b/runs/r049/queue.log
+index bcc4859..bbf2b83 100644
+--- a/runs/r049/queue.log
++++ b/runs/r049/queue.log
+@@ -14,3 +14,17 @@ runs/r049 n = 30 residual = 14
+ wrote /dev/null
+ [13:53:45] DONE
+ [14:02:49] lang rerun: waiting for R-050
++[14:19:49] lang start
++[14:20:39] lang rc=1
++Traceback (most recent call last):
++  File "/home/imerit/Documents/Code/VLA/experiments/r039_report.py", line 173, in <module>
++    main()
++  File "/home/imerit/Documents/Code/VLA/experiments/r039_report.py", line 160, in main
++    inst = load_instances(r)
++           ^^^^^^^^^^^^^^^^^
++  File "/home/imerit/Documents/Code/VLA/vla_harness/analysis/r039.py", line 31, in load_instances
++    for line in open(os.path.join(d, "manifest.jsonl")):
++                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++FileNotFoundError: [Errno 2] No such file or directory: 'runs/r049_lang/splice/manifest.jsonl'
++[14:20:40] LANG DONE
++[14:26:17] lang2 rc=1
+diff --git a/vla_harness/capture/splice.py b/vla_harness/capture/splice.py
+index c3affc7..3e2d48a 100644
+--- a/vla_harness/capture/splice.py
++++ b/vla_harness/capture/splice.py
+@@ -122,10 +122,13 @@ class SpliceHandle:
+             device = vl_t.device
+             outer = _rng_state(device)
+             outputs = {}
++            # the N arm has the SOURCE's token count, so the DiT must see the
++            # source's masks too (image_mask, backbone_attention_mask), not the target's
++            bo_src = _with_masks(bo, src)
+             try:
+-                for arm, (vl, st) in {"P": (vl_t, st_t), "N": (vl_s, st_s), "S": (vl_t, st_s)}.items():
++                for arm, (vl, st, bo_arm) in {"P": (vl_t, st_t, bo), "N": (vl_s, st_s, bo_src), "S": (vl_t, st_s, bo)}.items():
+                     torch.manual_seed(int(self._noise_key(fidx)))
+-                    outputs[arm] = self._original(**{**kwargs, "backbone_features": vl, "state_features": st})
++                    outputs[arm] = self._original(**{**kwargs, "backbone_features": vl, "state_features": st, "backbone_output": bo_arm})
+             finally:
+                 _restore_rng(outer)
+             self.records.append({"forward_idx": fidx, "aligned": False,
+@@ -187,6 +190,19 @@ class SpliceHandle:
+         return outputs[self._drive]
+ 
+ 
++def _with_masks(bo, src):
++    """A copy of backbone_output carrying the source's image and attention masks."""
++    import copy
++    out = copy.copy(bo)
++    for k in ("image_mask", "backbone_attention_mask"):
++        if k in src:
++            try:
++                out[k] = src[k]
++            except Exception:
++                setattr(out, k, src[k])
++    return out
++
++
+ def _get(bo, key):
+     if isinstance(bo, dict):
+         return bo.get(key)
