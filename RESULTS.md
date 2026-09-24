@@ -3819,7 +3819,7 @@ P/N not matching R-041's at the shared magnitudes.
 
 ---
 
-## R-048 — PRE-REGISTERED, NOT YET RUN: the three robustness checks on the camera-viewpoint row
+## R-048 — DONE: camera row confirmed (agent view 0.98, exact, stable); forward-0 rescue weak against a 43% no-correction flip rate
 
 **Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** EVAL ·
 **Queue** `experiments/queue_r048.sh` · **Instances** the 10 Camera
@@ -3871,6 +3871,59 @@ that lives in one input.
    same chunk up to render jitter). *High.*
 5. **Rescue: closest approach under A-drive improves over P on fewer than
    6/10.** *Medium*, same reasoning as 3.
+
+### RESULT, 2026-09-24 — the map holds; the rescue is weak and sits close to a 43% no-correction flip rate
+
+`runs/r048_reverse`, `runs/r048_seed{1,2}`, `runs/r048_rescue_{A,W,N}`; all rc=0.
+
+**Check 1, reverse direction (exactness):** `denoise_A` reproduces R-042 to
+0.01 on 10/10; `noise_A` 0.95–0.98, `noise_W` −0.02–0.01, `noise_S` 0.00 on
+10/10. **HELD.** The paired render is exact and the perturbation lives in
+one input.
+
+**Check 2, noise seeds:** A 0.98 / 0.97 under seeds 1 / 2, within 0.02 of
+seed 0 on 10/10, A > W on 10/10. **HELD.** Outcomes under the same
+rollouts: 7, 7 and 9 of 10 fail across the three seeds, agreeing with seed 0
+on 6/10 each.
+
+**Check 3, forward-0 rescue** (drive at forward 0 only; compared with
+R-042's drive-P, 7/10 fail):
+
+| driven at forward 0 | fails | P-failures flipped | successes broken | median closest approach |
+|---|---|---|---|---|
+| P (R-042) | 7/10 | — | — | 0.046 m |
+| **W** · wrist restored = a **no-op** here (wrist identical in P and N) | 6/10 | **3 of 7** | 1 | 0.047 m |
+| A · agent view restored | 4/10 | 4 of 7 | 1 | 0.037 m |
+| N · whole nominal chunk (≈ A) | 2/10 | 5 of 7 | 0 | 0.040 m |
+
+The W row is the finding that reframes the others: on this category the
+wrist arm's chunk equals P's up to render jitter, so driving it is a
+re-run, and **a re-run alone flipped 3 of the 7 failures.** Against that
+baseline the corrections add one (A) and two (N) flips. Camera-viewpoint
+outcomes at one seed are dominated by the ~40% flip rate, not by the first
+chunk.
+
+- **3 (A flips < half) — MISSED as written** (4/7), but the null flips 3/7,
+  so the correction-specific effect is small, which is what the
+  expectation was reaching for. The literal criterion did not anticipate a
+  no-correction baseline this high; recorded as a miss.
+- **4 (A and N agree ≥ 8/10) — MISSED** (6/10). Two chunks that differ only
+  by render jitter gave different outcomes on 4 of 10 instances. Same
+  chaos.
+- **5 (closest approach improves < 6/10) — MISSED** (9/10 improve, median
+  0.046 → 0.037 m). The corrected first chunk does improve the approach
+  even where it does not change the outcome.
+
+**Reading.** The camera-viewpoint row is confirmed at the action level:
+agent-view pixels, 0.98, exact, stable, necessary by construction. At the
+outcome level a single corrected chunk helps the approach on 9/10 but
+changes the outcome only marginally above a re-run, in contrast to start
+pose, where the null was not measured but the nominal chunk rescued 7/7 and
+the wrist chunk 4/7. Whether that contrast is "camera failures accumulate"
+or just outcome noise is what R-050 measures directly, on the action gap
+downstream of the correction, where the noise is an order of magnitude
+smaller. A no-op drive should be part of every rescue design from here on;
+R-044 lacked one and its 4/7 for W should be read with that in mind.
 
 ### What would make this uninterpretable
 
