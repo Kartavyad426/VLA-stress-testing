@@ -64,3 +64,24 @@ wrote /dev/null
 [10:02:02] smoke2 start
 [10:03:16] smoke2 rc=0
 [10:03:16] rescue_W start
+[10:09:01] rescue_W rc=0
+[10:09:01] rescue_A start
+[10:15:16] rescue_A rc=0
+[10:15:16] rescue_N start
+[10:20:07] rescue_N rc=0
+/home/imerit/Documents/Code/VLA/vla_harness/analysis/r039.py:90: RuntimeWarning: All-NaN slice encountered
+  "S_slope_per_forward": {"median": float(np.nanmedian(slopes)),
+runs/r044_rescue_W n = 10 residual = 0
+  Robot Initial States   n=10 fail= 3 f0 T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | anchor T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | dom {'IT': 10}
+wrote /dev/null
+/home/imerit/Documents/Code/VLA/vla_harness/analysis/r039.py:90: RuntimeWarning: All-NaN slice encountered
+  "S_slope_per_forward": {"median": float(np.nanmedian(slopes)),
+runs/r044_rescue_A n = 10 residual = 0
+  Robot Initial States   n=10 fail= 6 f0 T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | anchor T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | dom {'IT': 10}
+wrote /dev/null
+/home/imerit/Documents/Code/VLA/vla_harness/analysis/r039.py:90: RuntimeWarning: All-NaN slice encountered
+  "S_slope_per_forward": {"median": float(np.nanmedian(slopes)),
+runs/r044_rescue_N n = 10 residual = 0
+  Robot Initial States   n=10 fail= 1 f0 T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | anchor T=0.28 I=0.83 S=0.04 IT=0.96 A=0.17 W=0.88 | dom {'IT': 10}
+wrote /dev/null
+[10:20:08] RESCUE DONE

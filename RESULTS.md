@@ -221,7 +221,7 @@ Every entry records its expectation and **says when it was written**:
 | R-041 | 09-23 | EVAL | Boundary sweeps from a known success | PRE-REGISTERED, NOT RUN | Single-axis sweeps with the R-039 splice running |
 | R-042 | 09-23 | EVAL | Which camera carries start-pose perturbations | DONE | Wrist camera; lighting is a cross-camera interaction |
 | R-043 | 09-23 | EVAL | LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification | PRE-REGISTERED, NOT RUN | Decides whether the manifest applies to long-horizon failures |
-| R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | PRE-REGISTERED, QUEUED | behind R-041 |
+| R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | DONE | wrist necessary (noising 0.46) and stable (0.85 across seeds); nominal first chunk rescues 7/7 |
 
 ---
 
@@ -3413,7 +3413,7 @@ LIBERO-Plus stack.
 
 ---
 
-## R-044 — RUNNING (checks 1–2 done, 3 relaunched): three robustness checks on the wrist-camera claim
+## R-044 — DONE: the wrist claim survives; one corrected chunk at forward 0 rescues 7/7 start-pose failures
 
 **Date registered** 2026-09-23 · **Status** PRE-REGISTERED, QUEUED behind R-041 ·
 **Type** EVAL · **Spec** this entry + `docs/R042_WRIST_MATHS.html` §5 ·
@@ -3500,6 +3500,52 @@ of seed 0 on **10/10 and 9/10** (the one exception at 0.17); W > A on
 recorded. The outcomes, meanwhile, agreed with seed 0 on 8/10 and 7/10,
 the same instability as everywhere else; the action-level number is the
 stable one.
+
+**Check 3, forward-0 rescue** (`runs/r044_rescue_{W,A,N}`, noise seed 0,
+the driven arm executed at forward 0 only, then unspliced; compared with
+R-042's drive-P on the same instances and noise):
+
+| driven at forward 0 | fails | P-failures flipped to success | successes broken | median closest approach |
+|---|---|---|---|---|
+| P (R-042) | 7/10 | — | — | 0.071 m |
+| **W** · wrist restored | **3/10** | **4 of 7** | 0 | 0.057 m |
+| A · agent view restored | 6/10 | 3 of 7 | 1 | 0.056 m |
+| **N** · whole nominal chunk | **1/10** | **7 of 7** | 1 | 0.049 m |
+
+- **3a — HELD on both readouts for W** (closest approach better than P on
+  8/10; 4 of 7 failures flipped), **MISSED on "A ≈ P"**: A flipped 3 and
+  broke 1, which under a ~30% outcome flip rate at one seed is within noise
+  of P, but it is not "≈ P" as written.
+- **3b — HELD.** N ≥ W on both readouts.
+- **The finding that was not pre-registered and is the largest in the
+  entry:** executing the correct chunk for the **first 16 steps only**, then
+  handing back to the unmodified perturbed policy, turns **7 of 7
+  start-pose failures into successes**. The episode is decided in the
+  first forward. The perturbed policy can finish the task from a corrected
+  approach; what it cannot do is start it. This is the "coverage at the
+  start, not recovery" answer to R-039's expectation 4 from the other side,
+  and it makes the data specification cheap: demonstrations from new start
+  poses need to cover the approach, roughly the first second, because
+  after that the policy is back on its own manifold.
+
+### Status: DONE. What the three checks establish together
+
+The wrist claim survives all three: it is necessary (noising 0.46, nothing
+else reproduces the effect), sufficient at the action level (denoising
+0.88, stable to 0.15 across noise seeds, W > A on 30/30 instance-seeds),
+and sufficient at the outcome level for 4 of 7 failures when only the first
+chunk is corrected. The sharpened wording: **at a new start pose, the
+policy reads where it is from the wrist camera, checks it against the
+agent view, and commits in the first chunk.** Demonstrations must contain
+both views from the new pose; the approach phase is what they must cover.
+
+#### Scope
+
+Ten instances, one layout each, noise seeds 0–2, one checkpoint. Outcome
+counts are at one seed per drive and carry the ~30% flip rate measured in
+R-039; the N-drive result (7/7) is the one large enough to stand on its
+own, the W-drive result (4/7) is consistent with it and not independent
+evidence of the same strength.
 
 ### What would make this uninterpretable
 
