@@ -3876,3 +3876,65 @@ that lives in one input.
 
 Expectation 1 failing, or A at seed 0 not reproducing R-042's per-instance
 values within 0.05.
+
+---
+
+## R-049 — PRE-REGISTERED, NOT YET RUN: the three unmapped rows — object layout, background texture, language
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-048 ·
+**Type** EVAL · **Selection** `experiments/repro/r049_selection_rest.json` ·
+**Queue** `experiments/queue_r049.sh`
+
+### Why
+
+R-039/R-042 mapped four of the benchmark's seven categories to the input that
+carries them. This maps the other three with the same protocol (all eight
+arms per forward, one rollout per instance, env seed 0), so the map is
+complete before the per-row necessity checks are run on each.
+
+### The nominal, per category — it differs, and that is stated up front
+
+| category | what the variant changes | nominal source | why |
+|---|---|---|---|
+| Objects Layout (`_add_N`, `levelK_sampleN`) | object positions / added distractors: the WORLD differs | recorded control rollout of the scene's canonical layout, same noise | no paired render exists for a different world; exact at forward 0, a bound after |
+| Background Textures (`_tb_N`, `_table_N`) | scene-XML texture swap; world unchanged | recorded control rollout | textures are compiled into the model; the paired render cannot swap them. Forward 0 is exact (identical physics), later forwards a bound |
+| Language Instructions (`_language_N`) | the instruction rewrite only; frames and state identical | **paired text**: the same observation with the trained instruction | the exact counterfactual at every forward; the only differing input is the text |
+
+For language the per-camera arms A and W are identity (frames identical)
+and the T arm is the informative one; for the others A and W are informative
+and T should be leakage only, as in R-039.
+
+### Instances
+
+Objects Layout: 10 failures, 5 × L4 + 5 × L5 (pool 28). Language: 10
+failures, 5 × L4 + 5 × L5 (pool 16). Background Textures: the campaign
+produced only 2 failures; both, plus 8 successes (labels come from this
+run). 30 instances plus 10 control rollouts, ~40 minutes.
+
+### Pre-registered expectations
+
+1. **Layout: the image pathway, agent view dominant.** IT ≥ 0.9 on ≥ 8/10
+   (recorded source, state differs only if an object was moved into
+   contact, so S ≈ 0); A > W on ≥ 7/10. *Medium.* Distractors and moved
+   objects are in the third-person view; the wrist sees the near scene.
+2. **Texture: agent view dominant, effect small.** ‖P−N‖ at forward 0 below
+   the camera-viewpoint median (1.18) on ≥ 8/10; A > W on ≥ 7/10; the two
+   prior failures are not both reproduced (outcome chaos). *Medium.*
+3. **Language: the text positions carry it, with little leakage into image
+   positions.** T ≥ 0.8 and I ≤ 0.3 at forward 0 on ≥ 7/10. *Medium.*
+   R-039 found image content leaks into text positions inside the VLM;
+   this asks whether text content leaks into image positions. If I is
+   material, the leakage is symmetric and the T/I split is positional in
+   both directions.
+4. **Language: effect size is scene-dependent in the R-038 pattern.**
+   ‖P−N‖ at forward 0 is larger on stove, wooden-cabinet and top-drawer
+   instances than on the rest. *Medium-low* (depends on which scenes the
+   selection draws).
+5. **No category shows S > 0.2 at forward 0.** *High.* The state token is
+   near-inert (R-039, R-044).
+
+### What would make this uninterpretable
+
+Any control rollout failing; or, for language, the P instruction not
+differing from the N instruction on every instance (checked from the
+recorded `instruction_given`).

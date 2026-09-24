@@ -96,9 +96,22 @@ def build_policy():
         rename_map={"observation.images.image2": "observation.images.wrist_image"})
 
 
-def make_env(suite, task_id):
+LANG = "Language Instructions"
+RECORDED_CATS = {RIS, "Objects Layout", "Background Textures"}   # world or textures differ: no paired render
+
+
+def make_env(suite, task_id, base_instruction=True):
     return LiberoEnv(suite=suite, task_id=task_id, libero_plus=True,
-                     libero_plus_base_instruction=True, obs_size=360)
+                     libero_plus_base_instruction=base_instruction, obs_size=360)
+
+
+def text_nominal(obs, base_instruction: str):
+    """The language row's paired counterfactual: same frames, same state, the
+    trained instruction instead of the variant's rewrite."""
+    from copy import copy
+    o = copy(obs)
+    o.instruction = base_instruction
+    return o
 
 
 def target_names(env) -> list[str]:
@@ -182,10 +195,10 @@ def main():
         noise_key = lambda i, s=nseed: 1000 * s + i
 
         # --- source ----------------------------------------------------------
-        env = make_env(suite, tid)
+        env = make_env(suite, tid, base_instruction=(cat != LANG))   # language P carries the rewrite
         extra = None
         recorded_frames = None
-        if cat == RIS or a.source == "recorded":
+        if cat in RECORDED_CATS or a.source == "recorded":
             ctl = inst["control_task_id"]
             key = (ctl, seed)
             if key not in recorded_controls:
@@ -202,6 +215,9 @@ def main():
                 store.append(r_ctl)
             recs, recorded_frames = recorded_controls[key]
             source = lambda i, recs=recs: recs[i] if i < len(recs) else None
+        elif cat == LANG:
+            source = lambda i, env=env: (pol.features_for(text_nominal(pol.current_obs, env.base_instruction))
+                                         if pol.current_obs is not None else None)
         else:
             source = lambda i, env=env: pol.features_for(env.nominal_observation())
         if a.arms == "extended":
@@ -257,7 +273,9 @@ def main():
                "drive_until": a.drive_until, "category": cat,
                "label": inst.get("label"), "scene": inst.get("scene"),
                "variant": inst["variant"], "level": inst["level"], "prior_outcome": inst["prior_outcome"],
-               "drive": a.drive, "arms": present, "source": ("recorded" if (cat == RIS or a.source == "recorded") else "paired_render"),
+               "drive": a.drive, "arms": present,
+               "source": ("recorded" if (cat in RECORDED_CATS or a.source == "recorded") else ("paired_text" if cat == LANG else "paired_render")),
+               "instruction_given": r.instruction,
                "success": r.success, "termination": r.termination,
                "env_steps": r.env_steps, "forwards": F, "wall_s": round(r.wall_time_s, 1),
                "closest_approach_m": float(np.nanmin(ca)) if np.isfinite(ca).any() else None,
