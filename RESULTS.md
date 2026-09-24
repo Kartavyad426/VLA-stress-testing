@@ -3663,16 +3663,15 @@ train on 8 scenes with every direction and radius, test on 2 held-out
 scenes, five hold-outs; asks whether the pose read transfers across scenes
 and whether it is flat in radius once the pose range is covered.
 
-| features | r = 0 | r = 0.5 | median over all radii |
+| features (median over 5 hold-outs) | r = 0 | r = 0.5 | median over all radii |
 |---|---|---|---|
-| image tokens, flat | 1.2 cm | 1.8 cm | 1.4 cm |
-| image tokens, mean-pooled | 1.1 cm | 1.5 cm | 1.3 cm |
-| state token | 1.5 cm | 2.8 cm | 1.6 cm |
+| image tokens, flat | 1.9 cm | 1.6 cm | 1.4 cm |
+| image tokens, mean-pooled | 2.0 cm | 1.7 cm | 1.8 cm |
+| state token | 2.0 cm | 2.3 cm | 1.5 cm |
 
 The image tokens decode the arm's position on unseen scenes to about
-1.5 cm at every radius from 0 to 0.5, as well as or better than the state
-token does, with no rise across the range that the state token does not
-also show. **Read as exploratory:** the VLM's output carries the arm's
+1.5–2 cm at every radius from 0 to 0.5, no worse than the state token, and
+with no rise across the range (1.9 cm at r = 0, 1.6 cm at r = 0.5). **Read as exploratory:** the VLM's output carries the arm's
 position linearly, consistently across the full start-pose range, and it
 transfers across scenes. On this evidence the gap at new start poses is not
 that the pose is missing from the representation; the head has no mapping
