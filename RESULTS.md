@@ -222,6 +222,8 @@ Every entry records its expectation and **says when it was written**:
 | R-042 | 09-23 | EVAL | Which camera carries start-pose perturbations | DONE | Wrist camera; lighting is a cross-camera interaction |
 | R-043 | 09-23 | EVAL | LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification | PRE-REGISTERED, NOT RUN | Decides whether the manifest applies to long-horizon failures |
 | R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | DONE | wrist necessary (noising 0.46) and stable (0.85 across seeds); nominal first chunk rescues 7/7 |
+| R-045 | 09-24 | ANALYSIS | Linear pose probe on the VLM output across start-pose radius | RUNNING | predicts R-046 |
+| R-046 | 09-24 | EVAL | Frozen vs unfrozen VLM on minted start-pose demos (R-040 arm M, one category) | PRE-REGISTERED, OUT OF SCOPE | deferred 2026-09-24; R-045 probe is the predictor |
 
 ---
 
@@ -3626,3 +3628,59 @@ A linear probe is a lower bound on what the head could read; a nonlinear
 head may use more. A flat curve says the information is present linearly;
 a rising curve says it is not linearly present, not that it is absent.
 Either way R-040 is the definitive test and this only predicts its answer.
+
+---
+
+## R-046 — PRE-REGISTERED, OUT OF SCOPE FOR NOW: frozen vs unfrozen VLM on start-pose demonstrations (the R-040 mechanism arm for one category)
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED, NOT RUN — **out of
+scope for now** (user decision 2026-09-24) · **Type** EVAL (training)
+
+### The question
+
+R-045 asks whether the VLM's output still encodes the arm pose at new start
+poses. This is the definitive version of the same question: does training
+only the action head on demonstrations from new start poses close the gap,
+or does the top of the VLM have to move too? It is the R-040 mechanism arm
+(M) for the Robot Initial States category, run twice with different
+freeze sets, and it decides what "retrain" means for this failure family.
+
+### Design, fixed now so it can be picked up unchanged
+
+- **Demonstrations.** Minted in the simulator: R-044 showed that executing
+  the nominal chunk for the first forward from a perturbed start succeeds
+  9/10; those rollouts are valid successful trajectories from the perturbed
+  poses with both camera views, state and actions. Generate from the ten
+  control scenes × radii 0.1–0.5 rad × several directions, keep successes,
+  write as a LeRobot dataset (converter to be written). Hold out directions
+  and one scene entirely.
+- **Two runs, same data, same steps, same LR, same seed.** (a) *frozen*:
+  the port's defaults (DiT, projector, vlln trainable; `tune_llm`,
+  `tune_visual` off), LoRA on the DiT if a full optimiser does not fit
+  this 8 GB card. (b) *unfrozen top*: (a) plus `tune_top_llm_layers` = 4
+  via LoRA. Full-backbone unfreezing excluded (memory, grounding).
+- **Evaluation.** Held-out perturbed starts drawn from just beyond each
+  scene's R-041 outcome boundary, ≥ 3 noise seeds per instance because
+  outcomes flip ~30% under jitter; the R-029 nominal control for regression.
+  Readouts: success and closest approach; also W and A transfer at
+  forward 0 on the trained checkpoints, to see whether training moved the
+  pathway.
+
+### Pre-registered expectations
+
+1. **If R-045 finds a flat probe curve:** (a) closes ≥ 70% of the gap to
+   the nominal control on held-out starts and (b) adds < 10 pp over (a).
+   *Medium.* The head was the gap.
+2. **If R-045 finds a rising probe curve:** (b) beats (a) by ≥ 15 pp.
+   *Medium.* The encoding was part of the gap.
+3. **Neither regresses the nominal control by more than 5 pp.** *Medium-low.*
+4. **After training, W at forward 0 on the trained checkpoint falls**
+   (the perturbed start no longer moves the action much, so there is less
+   to transfer). *Medium.* A direct check that the data reached the pathway.
+
+### Cost and why it is out of scope now
+
+Two to three days: dataset converter (½ day), fitting the fine-tune on 8 GB
+with a smoke (1 day, may need the rented GPU on the pending list), training
+both arms and evaluating with repeated seeds (½–1 day). Deferred by the
+user on 2026-09-24; R-045's probe is the cheap predictor reported instead.
