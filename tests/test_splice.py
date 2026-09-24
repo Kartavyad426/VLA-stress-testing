@@ -299,3 +299,16 @@ def test_extra_arm_returning_none_is_skipped_for_that_forward(policy):
     policy.action_head.get_action(*_inputs(1))
     assert "W" not in h.records[0]["action"]
     h.detach()
+
+
+def test_drive_until_stops_executing_but_keeps_recording_every_arm(policy):
+    """R-050: after the driven forwards, the executed chunk is P, but every arm
+    is still computed and recorded so the downstream gap is measured."""
+    src = _source_from(policy, seed=7)
+    h = attach_splice(policy, source=lambda i: src, drive="I", noise_key=lambda i: 5, drive_until=1)
+    out0 = policy.action_head.get_action(*_inputs(1))
+    out1 = policy.action_head.get_action(*_inputs(2))
+    h.detach()
+    assert torch.equal(out0["action_pred"], h.records[0]["action"]["I"])      # forward 0 driven by I
+    assert torch.equal(out1["action_pred"], h.records[1]["action"]["P"])      # forward 1 executes P
+    assert "I" in h.records[1]["action"] and "N" in h.records[1]["action"]     # but I and N still recorded

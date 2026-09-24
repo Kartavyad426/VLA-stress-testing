@@ -3938,3 +3938,53 @@ run). 30 instances plus 10 control rollouts, ~40 minutes.
 Any control rollout failing; or, for language, the P instruction not
 differing from the N instruction on every instance (checked from the
 recorded `instruction_given`).
+
+---
+
+## R-050 — PRE-REGISTERED, NOT YET RUN: how a single corrected chunk flows downstream
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-049 ·
+**Type** EVAL · **Queue** `experiments/queue_r050.sh`
+
+### Why
+
+R-044 check 3 and R-048 check 3 execute a corrected chunk at forward 0 only
+and read the outcome. They recorded the arms at forward 0 only, because the
+switch that stopped the driving also stopped the measurement (a runner
+limitation, fixed: `--drive-until` now keeps every arm recorded at every
+forward and merely executes P after the driven forwards). So the question
+"what does the action gap do downstream of a single correction" was never
+measured. This measures it, on the same instances, same noise seed 0.
+
+### Design
+
+Start pose (10 instances, recorded control source) and camera viewpoint
+(10 instances, paired render): drive N and drive the dominant pixel arm (W
+for start pose, A for camera) at forward 0 only, then P, all arms recorded
+throughout. 40 rollouts, ~40 minutes. Readout per rollout: ‖P−N‖ at each
+forward, i.e. the distance of the executed chunk from the nominal
+reference at that state; compared with the drive-P rollouts of R-042.
+
+### Pre-registered expectations
+
+1. **Start pose, drive N at forward 0: ‖P−N‖ over forwards 1–3 falls below
+   the drive-P value (median 6.1) on ≥ 8/10, and by more than half on ≥ 6/10.**
+   *Medium-high.* R-044 says the corrected first chunk carries the episode;
+   if so the policy is back near the nominal manifold and its own chunks
+   agree with the reference again. This is "flows downstream" measured
+   directly, not inferred from the outcome.
+2. **Start pose, drive W at forward 0: same direction, smaller effect**
+   (between drive-P and drive-N on ≥ 7/10). *Medium.*
+3. **Camera, drive A (≈ N) at forward 0: ‖P−N‖ over forwards 1–3 does NOT
+   fall** (within 20% of drive-P on ≥ 7/10). *Medium.* The camera is still
+   moved at every later forward, so the gap re-opens immediately; the
+   correction cannot persist because its cause persists. This is the
+   mechanistic reason behind R-048 expectation 3.
+4. **Where the gap falls after the correction, the outcome is rescued; where
+   it does not, it is not** (agreement ≥ 8/10 across the 40 rollouts).
+   *Medium.* Links the downstream action measure to the outcome.
+
+### What would make this uninterpretable
+
+The recorded per-forward arms at forward 0 not matching R-044/R-048's
+values within 0.05 (same inputs, same noise: they must).

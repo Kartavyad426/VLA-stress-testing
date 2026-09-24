@@ -153,8 +153,8 @@ def main():
                          "Default: the env seed. Lets the noise vary while the env seed, and so the "
                          "object layout (init_state_id = seed %% n_init), stays fixed.")
     ap.add_argument("--drive-until", type=int, default=None,
-                    help="R-044: execute the driven arm only for forwards < N, then pass through "
-                         "unspliced (still under the fixed noise). Default: every forward.")
+                    help="execute the driven arm only for forwards < N, then execute P; every arm is "
+                         "still recorded at every forward (R-050; R-044/R-048 recorded forward 0 only).")
     ap.add_argument("--source", default="auto", choices=["auto", "recorded"],
                     help="auto: paired render for vision categories, recorded control for "
                          "Robot Initial States. recorded: the control rollout's per-forward "
@@ -239,10 +239,10 @@ def main():
             extra = {"A": per_camera("image"), "W": per_camera("image2")}
 
         # --- the spliced rollout ---------------------------------------------
-        if a.drive_until is not None:
-            source = until_forward(source, a.drive_until)
-            extra = {k: until_forward(v, a.drive_until) for k, v in (extra or {}).items()} or extra
-        h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key, extra=extra)
+        # --drive-until N: execute the driven arm for forwards < N only; every arm is
+        # still computed and recorded afterwards (R-050), so the downstream gap is measured.
+        h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key, extra=extra,
+                          drive_until=a.drive_until)
         try:
             r = rollout(env, pol, seed, PerturbationSpec(), video_dir=video_dir)
         finally:

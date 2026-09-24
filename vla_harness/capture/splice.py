@@ -56,7 +56,8 @@ def transfer_fraction(patched, target, source, live_dims: int) -> float:
 class SpliceHandle:
     def __init__(self, head, source: Callable[[int], dict | None],
                  drive: str | None, noise_key: Callable[[int], int],
-                 extra: dict[str, Callable[[int], dict | None]] | None = None):
+                 extra: dict[str, Callable[[int], dict | None]] | None = None,
+                 drive_until: int | None = None):
         """`extra` maps an arm name to a callable giving a WHOLE feature set
         (backbone_features, state_features, image_mask) for forward i, or
         None to skip that arm this forward. Used for R-042's per-camera
@@ -69,6 +70,7 @@ class SpliceHandle:
         self._source = source
         self._extra = dict(extra or {})
         self._drive = drive or "P"
+        self._drive_until = drive_until          # forwards >= this execute P; arms still recorded
         self._noise_key = noise_key
         self._fidx = 0
         self.records: list[dict] = []
@@ -163,6 +165,8 @@ class SpliceHandle:
             "forward_idx": fidx,
             "action": {arm: outputs[arm]["action_pred"].detach().clone() for arm in outputs},
         })
+        if self._drive_until is not None and fidx >= self._drive_until:
+            return outputs["P"]
         return outputs[self._drive]
 
 
@@ -176,7 +180,8 @@ def _get(bo, key):
 
 def attach_splice(policy, source: Callable[[int], dict | None], drive: str | None = None,
                   noise_key: Callable[[int], int] | None = None,
-                  extra: dict[str, Callable[[int], dict | None]] | None = None) -> SpliceHandle:
+                  extra: dict[str, Callable[[int], dict | None]] | None = None,
+                  drive_until: int | None = None) -> SpliceHandle:
     """Wrap the head so every forward runs all five arms and drives `drive`.
 
     `source(forward_idx)` returns the nominal features for that forward:
@@ -186,7 +191,7 @@ def attach_splice(policy, source: Callable[[int], dict | None], drive: str | Non
     head = find_action_head(policy)
     if head is None:
         raise RuntimeError("no GR00T action head found on the policy")
-    return SpliceHandle(head, source, drive, noise_key or (lambda i: i), extra)
+    return SpliceHandle(head, source, drive, noise_key or (lambda i: i), extra, drive_until)
 
 
 class RecorderHandle:
