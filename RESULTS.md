@@ -3235,6 +3235,20 @@ whole VL stack; W = wrist pixels nominal; IT = both token blocks post-adapter.
 - **The SAE question is settled for three of four categories:** nothing
   left to decompose. It remains open for lighting only.
 
+#### Correction 2026-09-24 — what A and W say about the VLM
+
+The "what it buys" bullets above, and the wrist maths page as first
+written, read the A arm's 0.97 as "the VLM and adapter pass the image
+through faithfully". That is an overclaim. A pixel swap before the VLM
+proves the VLM is in the causal path and transmits the difference between
+the two images; it cannot distinguish "the VLM encodes the new condition
+correctly and the head has no mapping for it" from "the VLM encodes it
+poorly and the head is handed something unusable". Both give the same
+numbers. The freeze rule for R-040 stands as a cost-and-risk default, not
+as a consequence of this result. Discriminating tests: a linear pose probe
+on the adapter output across start-pose radius (cheap, no rollouts), and
+R-040's frozen-vs-unfrozen mechanism arm (definitive).
+
 #### Scope
 
 One checkpoint, one suite, one seed per instance. A and W are pixel-level
