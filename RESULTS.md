@@ -222,7 +222,7 @@ Every entry records its expectation and **says when it was written**:
 | R-042 | 09-23 | EVAL | Which camera carries start-pose perturbations | DONE | Wrist camera; lighting is a cross-camera interaction |
 | R-043 | 09-23 | EVAL | LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification | PRE-REGISTERED, NOT RUN | Decides whether the manifest applies to long-horizon failures |
 | R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | DONE | wrist necessary (noising 0.46) and stable (0.85 across seeds); nominal first chunk rescues 7/7 |
-| R-045 | 09-24 | ANALYSIS | Linear pose probe on the VLM output across start-pose radius | RUNNING | predicts R-046 |
+| R-045 | 09-24 | ANALYSIS | Linear pose probe on the VLM output across start-pose radius | DONE | direction split failed its sanity gate; scene split: ~1.5 cm at every radius, as good as the state token |
 | R-046 | 09-24 | EVAL | Frozen vs unfrozen VLM on minted start-pose demos (R-040 arm M, one category) | PRE-REGISTERED, OUT OF SCOPE | deferred 2026-09-24; R-045 probe is the predictor |
 
 ---
@@ -3570,7 +3570,7 @@ Check 1's `denoise_W` not reproducing R-042's per-instance W within 0.1
 
 ---
 
-## R-045 — PRE-REGISTERED, NOT YET RUN: does the VLM's output still encode the arm pose at new start poses? A linear pose probe across radius
+## R-045 — DONE (pre-registered split failed its sanity gate; post-hoc scene split flat in radius): does the VLM's output still encode the arm pose at new start poses?
 
 **Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** ANALYSIS
 (forwards only, no rollouts) · **Script** `experiments/r045_pose_probe.py`
@@ -3621,6 +3621,72 @@ radius-0 RMSE.
    part of what has to be trained; R-040's unfrozen arm becomes the
    prediction.
 5. **The null decodes at chance** (RMSE ≈ the label spread). *High.*
+
+### RESULT, 2026-09-24 — the pre-registered split failed its own sanity gate; a post-hoc scene split says the encoding is flat in radius
+
+`runs/r045`: 360 resets, one backbone forward each, rc=0. `probe.json`
+(pre-registered direction split), `probe_scene_split.json` (post-hoc).
+
+**Pre-registered analysis (train directions 0–1, test direction 2), eef
+position RMSE in cm by radius 0 → 0.5:**
+
+| features | 0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | null |
+|---|---|---|---|---|---|---|---|
+| image tokens, flat | 0.1 | 1.2 | 2.2 | 3.3 | 4.4 | 6.2 | 9.0 |
+| image tokens, mean-pooled | 0.2 | 1.3 | 2.2 | 3.4 | 4.6 | 6.3 | 10.3 |
+| **state token (sanity ceiling)** | 0.3 | 1.0 | 2.1 | 3.0 | 4.0 | **5.1** | 6.8 |
+| label spread | | | | | | | 6.6 |
+
+1. **Sanity, load-bearing — FAILED.** The state token, which *is* the pose
+   after a nonlinear encoder, decodes at 5.1 cm at radius 0.5, not under
+   5 mm. The reason is the split, not the model: a test pose at radius r
+   lies about 0.55·r rad in joint space from the nearest training pose
+   (median nearest-neighbour distance 0.28 rad at r = 0.5), so the ridge
+   probe is extrapolating to an unseen direction, and a linear map from a
+   nonlinear embedding does not extrapolate. A nonlinear read (k-NN) does no
+   better for either feature set. **The direction split measures probe
+   extrapolation, and expectation 4 cannot be scored on it.** Recorded as a
+   design failure of the pre-registration.
+2. **Image tokens decode eef position at radius 0 to 0.1 cm — HELD** (< 2 cm).
+3. **Wrist block better than agent block — UNTESTABLE at the token level.**
+   The intervention that was to find the wrist positions changed **all
+   128 image token rows** (max-abs > 1e-3 on every one): inside the VLM the
+   two images attend to each other, so at the adapter output every image
+   token depends on both cameras. The "agent block" was therefore empty
+   and its rows in `probe.json` are the null. A per-camera split exists
+   only before the VLM, which is why R-042's A/W arms swap pixels.
+4. **Scored on the scene split only (post hoc, below).**
+5. **Null at chance — HELD.**
+
+**Post-hoc analysis, added after seeing the above and labelled as such:**
+train on 8 scenes with every direction and radius, test on 2 held-out
+scenes, five hold-outs; asks whether the pose read transfers across scenes
+and whether it is flat in radius once the pose range is covered.
+
+| features | r = 0 | r = 0.5 | median over all radii |
+|---|---|---|---|
+| image tokens, flat | 1.2 cm | 1.8 cm | 1.4 cm |
+| image tokens, mean-pooled | 1.1 cm | 1.5 cm | 1.3 cm |
+| state token | 1.5 cm | 2.8 cm | 1.6 cm |
+
+The image tokens decode the arm's position on unseen scenes to about
+1.5 cm at every radius from 0 to 0.5, as well as or better than the state
+token does, with no rise across the range that the state token does not
+also show. **Read as exploratory:** the VLM's output carries the arm's
+position linearly, consistently across the full start-pose range, and it
+transfers across scenes. On this evidence the gap at new start poses is not
+that the pose is missing from the representation; the head has no mapping
+for it. **Prediction for R-046 (out of scope):** the frozen arm suffices,
+expectation 1 there.
+
+#### Scope
+
+A linear probe on eef position only; orientation and the gripper were not
+decoded. The scene split was chosen after the pre-registered split failed,
+so its numbers are a hypothesis for a pre-registered replication (hold out
+scenes, pre-declared), not a result on the same footing as R-039–R-044.
+Features were captured once per reset with no rollout, so nothing here
+speaks to later forwards.
 
 ### What it cannot say
 

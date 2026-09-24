@@ -118,17 +118,18 @@ def probe(a):
                 best = (lam, err)
         lam = best[0]
         pred = ridge_fit_predict(X[tr], Y[tr], X[te], lam)
+        Yte, rad_te = Y[te], rad[te]
         per_r = {}
         for r in RADII:
-            m = te & (rad == r)
-            per_r[str(r)] = float(np.sqrt(((pred[m] - Y[m]) ** 2).sum(1).mean()))
+            m = rad_te == r
+            per_r[str(r)] = float(np.sqrt(((pred[m] - Yte[m]) ** 2).sum(1).mean()))
         Ysh = Y[tr][rng.permutation(tr.sum())]
         pnull = ridge_fit_predict(X[tr], Ysh, X[te], lam)
         out["per_feature"][name] = {"lambda": lam, "rmse_by_radius_m": per_r,
-                                    "rmse_all_m": float(np.sqrt(((pred - Y[te]) ** 2).sum(1).mean())),
+                                    "rmse_all_m": float(np.sqrt(((pred - Yte) ** 2).sum(1).mean())),
                                     "rmse_r0_m": per_r["0.0"], "rmse_r0p5_m": per_r["0.5"],
                                     "ratio_r0p5_over_r0": per_r["0.5"] / max(per_r["0.0"], 1e-9),
-                                    "null_rmse_m": float(np.sqrt(((pnull - Y[te]) ** 2).sum(1).mean()))}
+                                    "null_rmse_m": float(np.sqrt(((pnull - Yte) ** 2).sum(1).mean()))}
         print(f"{name:18s} lam={lam:<7g} rmse r0 {per_r['0.0']*100:5.2f} cm  r0.5 {per_r['0.5']*100:5.2f} cm  "
               f"ratio {out['per_feature'][name]['ratio_r0p5_over_r0']:.2f}  all {out['per_feature'][name]['rmse_all_m']*100:5.2f} cm  "
               f"null {out['per_feature'][name]['null_rmse_m']*100:5.2f} cm")
@@ -148,5 +149,41 @@ def main():
         probe(a)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--scene-split" not in sys.argv:
     main()
+
+
+def probe_scene_split(a):
+    """POST-HOC analysis added 2026-09-24 after the pre-registered direction
+    split failed its own sanity gate (the state token does not linearly
+    extrapolate to an unseen joint direction any better than the image
+    tokens do). Train on 8 scenes with every direction and radius, test on
+    2 held-out scenes: does the pose read transfer across scenes, and is it
+    flat in radius when the pose range is covered?"""
+    z = np.load(os.path.join(a.out, "features.npz"))
+    meta = json.loads(str(z["meta"]))
+    rad = np.array([m["radius"] for m in meta]); sc = np.array([m["scene"] for m in meta])
+    img = z["X_img"]; Y = z["Y_pos"]
+    feats = {"image_all_flat": img.reshape(len(img), -1), "image_mean_pool": img.mean(1), "state_token": z["X_state"]}
+    out = {"design": "train 8 scenes x 3 directions x 12 radii, test 2 held-out scenes; ridge lam=1; eef position RMSE (m) per radius",
+           "holds": {}}
+    for hold in ((1062, 1247), (984, 1327), (1030, 1201), (1090, 1132), (1169, 1282)):
+        tr, te = ~np.isin(sc, hold), np.isin(sc, hold)
+        res = {}
+        for n, X in feats.items():
+            p = ridge_fit_predict(X[tr], Y[tr], X[te], 1.0)
+            res[n] = {str(r): float(np.sqrt(((p[rad[te] == r] - Y[te][rad[te] == r]) ** 2).sum(1).mean())) for r in RADII}
+        out["holds"][f"{hold[0]}_{hold[1]}"] = res
+    # summary: median over holds of RMSE at r=0 and r=0.5, per feature
+    out["summary"] = {n: {"rmse_r0_m": float(np.median([h[n]["0.0"] for h in out["holds"].values()])),
+                          "rmse_r0p5_m": float(np.median([h[n]["0.5"] for h in out["holds"].values()])),
+                          "rmse_all_radii_median_m": float(np.median([v for h in out["holds"].values() for v in h[n].values()]))}
+                      for n in feats}
+    json.dump(out, open(os.path.join(a.out, "probe_scene_split.json"), "w"), indent=1)
+    for n, s in out["summary"].items():
+        print(f"scene-split {n:16s} r0 {s['rmse_r0_m']*100:4.1f} cm  r0.5 {s['rmse_r0p5_m']*100:4.1f} cm  all-radii median {s['rmse_all_radii_median_m']*100:4.1f} cm")
+
+
+if __name__ == "__main__" and "--scene-split" in sys.argv:
+    class _A: out = "runs/r045"
+    probe_scene_split(_A())
