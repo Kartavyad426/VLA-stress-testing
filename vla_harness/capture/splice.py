@@ -57,7 +57,7 @@ class SpliceHandle:
     def __init__(self, head, source: Callable[[int], dict | None],
                  drive: str | None, noise_key: Callable[[int], int],
                  extra: dict[str, Callable[[int], dict | None]] | None = None,
-                 drive_until: int | None = None):
+                 drive_until: int | None = None, allow_unaligned: bool = False):
         """`extra` maps an arm name to a callable giving a WHOLE feature set
         (backbone_features, state_features, image_mask) for forward i, or
         None to skip that arm this forward. Used for R-042's per-camera
@@ -71,6 +71,7 @@ class SpliceHandle:
         self._extra = dict(extra or {})
         self._drive = drive or "P"
         self._drive_until = drive_until          # forwards >= this execute P; arms still recorded
+        self._allow_unaligned = allow_unaligned  # language row: token counts differ; record P, N, S only
         self._noise_key = noise_key
         self._fidx = 0
         self.records: list[dict] = []
@@ -113,9 +114,25 @@ class SpliceHandle:
         vl_s = src["backbone_features"]
         st_s = src["state_features"]
         if vl_s.shape != vl_t.shape:
-            raise RuntimeError(
-                f"token count differs: source {tuple(vl_s.shape)} vs target "
-                f"{tuple(vl_t.shape)} -- a paired render must tokenise identically")
+            if not self._allow_unaligned:
+                raise RuntimeError(
+                    f"token count differs: source {tuple(vl_s.shape)} vs target "
+                    f"{tuple(vl_t.shape)} -- a paired render must tokenise identically")
+            # positional arms are undefined; P, N and the state arm are not
+            device = vl_t.device
+            outer = _rng_state(device)
+            outputs = {}
+            try:
+                for arm, (vl, st) in {"P": (vl_t, st_t), "N": (vl_s, st_s), "S": (vl_t, st_s)}.items():
+                    torch.manual_seed(int(self._noise_key(fidx)))
+                    outputs[arm] = self._original(**{**kwargs, "backbone_features": vl, "state_features": st})
+            finally:
+                _restore_rng(outer)
+            self.records.append({"forward_idx": fidx, "aligned": False,
+                                 "action": {arm: outputs[arm]["action_pred"].detach().clone() for arm in outputs}})
+            if self._drive in outputs and not (self._drive_until is not None and fidx >= self._drive_until):
+                return outputs[self._drive]
+            return outputs["P"]
         if st_s.shape != st_t.shape:
             raise RuntimeError(
                 f"state token differs: source {tuple(st_s.shape)} vs target {tuple(st_t.shape)}")
@@ -162,7 +179,7 @@ class SpliceHandle:
             _restore_rng(outer)
 
         self.records.append({
-            "forward_idx": fidx,
+            "forward_idx": fidx, "aligned": True,
             "action": {arm: outputs[arm]["action_pred"].detach().clone() for arm in outputs},
         })
         if self._drive_until is not None and fidx >= self._drive_until:
@@ -181,7 +198,7 @@ def _get(bo, key):
 def attach_splice(policy, source: Callable[[int], dict | None], drive: str | None = None,
                   noise_key: Callable[[int], int] | None = None,
                   extra: dict[str, Callable[[int], dict | None]] | None = None,
-                  drive_until: int | None = None) -> SpliceHandle:
+                  drive_until: int | None = None, allow_unaligned: bool = False) -> SpliceHandle:
     """Wrap the head so every forward runs all five arms and drives `drive`.
 
     `source(forward_idx)` returns the nominal features for that forward:
@@ -191,7 +208,7 @@ def attach_splice(policy, source: Callable[[int], dict | None], drive: str | Non
     head = find_action_head(policy)
     if head is None:
         raise RuntimeError("no GR00T action head found on the policy")
-    return SpliceHandle(head, source, drive, noise_key or (lambda i: i), extra, drive_until)
+    return SpliceHandle(head, source, drive, noise_key or (lambda i: i), extra, drive_until, allow_unaligned)
 
 
 class RecorderHandle:

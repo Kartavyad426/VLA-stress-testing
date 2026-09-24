@@ -4042,6 +4042,19 @@ median ‖P−N‖ at forward 0 = 0.31, the smallest of any category):
   succeeded here; with ‖P−N‖ this small the category is near the outcome
   noise floor.
 
+**Language rerun, 2026-09-24 14:20 — a real limitation, recorded before
+the second rerun.** The paired-text rerun stopped at the first forward:
+the rewrite tokenises to 153 tokens against 151 for the trained wording, so
+the token positions of P and N do not align and the positional arms (T, I,
+IT) are undefined for this row, not merely uncomputed. This is inherent to
+language perturbations. What remains well-defined and is now measured
+instead: ‖P−N‖ at every forward (how much the rewrite moves the action, per
+scene) and the S arm (state, expected ≈ 0). The splice gained an
+unaligned mode that records exactly those (tested); the runner uses it for
+this category. Expectation 3 (T ≥ 0.8, I ≤ 0.3) is therefore untestable as
+written; expectation 4 (effect size scene-dependent in the R-038 pattern)
+and 5 (S ≤ 0.2) stand.
+
 **Where the map stands.** Six of seven rows now have a dominant input:
 agent view for camera and noise, wrist for start pose, agent view for
 layout (with the wrist leading when the near scene moves), both cameras
@@ -4056,7 +4069,7 @@ recorded `instruction_given`).
 
 ---
 
-## R-050 — PRE-REGISTERED, NOT YET RUN: how a single corrected chunk flows downstream
+## R-050 — DONE: a corrected first chunk halves the downstream gap on start pose (10/10) and re-opens it on camera (8/10)
 
 **Date registered** 2026-09-24 · **Status** PRE-REGISTERED, QUEUED behind R-049 ·
 **Type** EVAL · **Queue** `experiments/queue_r050.sh`
@@ -4098,6 +4111,48 @@ reference at that state; compared with the drive-P rollouts of R-042.
 4. **Where the gap falls after the correction, the outcome is rescued; where
    it does not, it is not** (agreement ≥ 8/10 across the 40 rollouts).
    *Medium.* Links the downstream action measure to the outcome.
+
+### RESULT, 2026-09-24 — a corrected first chunk keeps a start-pose episode near nominal; a camera correction re-opens at the next forward
+
+`runs/r050_ris_{N,W}`, `runs/r050_cam_{N,A}`, 40 rollouts, rc=0. Forward-0
+arms match R-042 within 0.05 on 40/40, so the runs are on the same footing.
+
+**‖P−N‖ over forwards 1–3, median across the ten instances** (the distance of
+the executed chunk from the nominal reference at that state, after the
+intervention has stopped):
+
+| row | drive P (R-042) | drive N at forward 0 | drive dominant pixel arm at forward 0 |
+|---|---|---|---|
+| start pose | 6.06 | **3.44** · falls on 10/10, by more than half on 5/10 | W: 3.58 · falls on 10/10, by more than half on 3/10 |
+| camera viewpoint | 1.46 | **1.90** · falls on 2/10, rises on 8/10 | A: 2.00 · falls on 1/10 |
+
+- **1 (start pose, N: falls on ≥ 8/10; by > half on ≥ 6/10) — HELD on the
+  first clause (10/10), MISSED by one on the second (5/10).** After one
+  correct chunk the policy's own chunks stay about twice as close to the
+  nominal reference for the rest of the approach. The correction persists
+  because its cause, the start pose, is behind the robot once it has moved.
+- **2 (start pose, W between P and N on ≥ 7/10) — HELD, 8/10.**
+- **3 (camera, N within 20% of P on ≥ 7/10) — MISSED as written, HELD in
+  substance.** The gap does not fall; it *rises* on 8/10 (median 1.46 →
+  1.90), by more than the 20% band anticipated. The camera is still moved
+  at every later forward, so the correction cannot persist and the
+  trajectory it produced is further from what the nominal policy would do
+  at those states.
+- **4 (gap-fell ↔ rescued agreement ≥ 8/10) — MISSED** (7/10 and 6/10 on
+  start pose; 2/10 and 3/10 on camera). The outcomes on these reruns also
+  differ from R-044's under identical seed and noise (N-drive: 1/10 failed
+  then, 3/10 now). The action-level measure is consistent across runs; the
+  outcome is not.
+
+**Reading.** This is the mechanistic contrast the outcome counts could not
+deliver. A start-pose failure is a wrong *start*: fix the first chunk and
+the perturbed policy proceeds near the nominal trajectory. A camera
+failure is a wrong *view* that persists: fix the first chunk and the next
+one is wrong again. The data specifications follow: demonstrations from
+new poses need only cover the approach; demonstrations under a new
+viewpoint have to cover the whole task. R-041's "the loop absorbs a camera
+change" and R-048's weak rescue are the same fact seen from the outcome
+side.
 
 ### What would make this uninterpretable
 

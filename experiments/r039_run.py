@@ -243,7 +243,7 @@ def main():
         # --drive-until N: execute the driven arm for forwards < N only; every arm is
         # still computed and recorded afterwards (R-050), so the downstream gap is measured.
         h = attach_splice(pol._policy, source=source, drive=a.drive, noise_key=noise_key, extra=extra,
-                          drive_until=a.drive_until)
+                          drive_until=a.drive_until, allow_unaligned=(cat == LANG))
         try:
             r = rollout(env, pol, seed, PerturbationSpec(), video_dir=video_dir)
         finally:
@@ -253,6 +253,7 @@ def main():
         # --- per-forward arrays ----------------------------------------------
         F = len(h.records)
         present = [arm for arm in (list(ARMS) + list(EXTENDED)) if all(arm in rec["action"] for rec in h.records)] if F else list(ARMS)
+        aligned = all(rec.get("aligned", True) for rec in h.records)
         acts = {arm: np.stack([rec["action"][arm][0, :, :LIVE_DIMS].float().cpu().numpy()
                                for rec in h.records]).astype(np.float16) for arm in present}
         tf_arms = [arm for arm in present if arm not in ("P", "N")]
@@ -274,7 +275,7 @@ def main():
                "drive_until": a.drive_until, "category": cat,
                "label": inst.get("label"), "scene": inst.get("scene"),
                "variant": inst["variant"], "level": inst["level"], "prior_outcome": inst["prior_outcome"],
-               "drive": a.drive, "arms": present,
+               "drive": a.drive, "arms": present, "aligned": aligned,
                "source": ("recorded" if (cat in RECORDED_CATS or a.source == "recorded") else ("paired_text" if cat == LANG else "paired_render")),
                "instruction_given": r.instruction,
                "success": r.success, "termination": r.termination,
@@ -282,7 +283,7 @@ def main():
                "closest_approach_m": float(np.nanmin(ca)) if np.isfinite(ca).any() else None,
                "closest_approach_basis": ca_basis, "targets": target_names(env),
                "anchor_step": anchor_step, "anchor_forward": anchor_fwd,
-               "tf_at_f0": {k: float(v[0]) for k, v in tf.items()} if F else None,
+               "tf_at_f0": {k: float(v[0]) for k, v in tf.items()} if F and tf else None,
                "tf_at_anchor": {k: float(v[anchor_fwd]) for k, v in tf.items()} if F and anchor_fwd >= 0 else None,
                "tf_mean": {k: float(np.nanmean(v)) for k, v in tf.items()} if F else None,
                "d_pn_f0": float(d_pn[0]) if F else None}

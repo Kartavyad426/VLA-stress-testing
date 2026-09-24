@@ -312,3 +312,19 @@ def test_drive_until_stops_executing_but_keeps_recording_every_arm(policy):
     assert torch.equal(out0["action_pred"], h.records[0]["action"]["I"])      # forward 0 driven by I
     assert torch.equal(out1["action_pred"], h.records[1]["action"]["P"])      # forward 1 executes P
     assert "I" in h.records[1]["action"] and "N" in h.records[1]["action"]     # but I and N still recorded
+
+
+def test_unaligned_token_counts_record_P_N_and_S_only_and_flag_it(policy):
+    """Language row: the rewrite tokenises to a different length, so the
+    positional arms are undefined. P, N and S (state is separate from the
+    token axis) are still computed and the record says it was unaligned."""
+    src = _source_from(policy, seed=7)
+    src["backbone_features"] = src["backbone_features"][:, :-1]
+    src["image_mask"] = src["image_mask"][:, :-1]
+    h = attach_splice(policy, source=lambda i: src, drive=None, noise_key=lambda i: 5, allow_unaligned=True)
+    out = policy.action_head.get_action(*_inputs(1))
+    h.detach()
+    rec = h.records[0]
+    assert rec["aligned"] is False
+    assert set(rec["action"]) == {"P", "N", "S"}
+    assert torch.equal(out["action_pred"], rec["action"]["P"])

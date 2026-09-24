@@ -32,7 +32,7 @@ def load_instances(run_root: str) -> list[dict]:
         row = json.loads(line)
         z = np.load(os.path.join(d, f"{row['rollout_id']}.npz"))
         arms = [k[3:] for k in z.files if k.startswith("tf_")]
-        arms = list(ARMS) + [a for a in arms if a not in ARMS]     # R-042 extras after the three
+        arms = [a for a in ARMS if f"tf_{a}" in z.files] + [a for a in arms if a not in ARMS]   # R-042 extras after the three; language rows have S only
         row["tf"] = {a: z[f"tf_{a}"].astype(np.float64) for a in arms if f"tf_{a}" in z.files}
         row["env_steps"] = z["env_steps"]
         row["d_pn"] = z["d_pn"].astype(np.float64)
@@ -69,7 +69,7 @@ def aggregate(instances: list[dict]) -> dict:
             "tf_mean": {a: float(np.nanmean(inst["tf"][a])) for a in inst["tf"]},
             "onset": {a: onset_forward(inst["tf"][a]) for a in inst["tf"]},
             "dominant": dominant_arm(at_anchor),
-            "S_slope": _slope(inst["tf"]["S"]),
+            "S_slope": _slope(inst["tf"]["S"]) if "S" in inst["tf"] else float("nan"),
         })
     by_cat: dict = {}
     for cat in sorted({p["category"] for p in per}):
