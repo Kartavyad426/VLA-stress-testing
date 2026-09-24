@@ -154,6 +154,59 @@
 <span class="eq"><span class="m">a</span><sub>A</sub> = h( V(<b>agent<sub>n</sub></b>, wrist<sub>p</sub>), E(state<sub>p</sub>); ε ) &nbsp;&nbsp; <span class="m">a</span><sub>W</sub> = h( V(agent<sub>p</sub>, <b>wrist<sub>n</sub></b>), E(state<sub>p</sub>); ε )</span>
 The nominal pixels of one camera are put in <em>before</em> the backbone, so everything downstream, including the text positions that R-039 showed carry image content, is recomputed. The other camera and the state stay perturbed. This is an interchange intervention on one input at the pixel level (Geiger et al. 2021), run as denoising (Heimersheim &amp; Nanda 2024).
 </div></div>
+<figure>
+<div class="svgbox">
+<svg viewBox="0 0 900 330" role="img" aria-label="Two simulator runs at forward 0, the perturbed instance and the nominal control, each yield an agent-view frame, a wrist frame and a state. Hybrid observations mix one frame from one run with the other frame and state from the other run, are pushed through the whole vision-language stack and the action head under one fixed noise, and the resulting chunks are compared by distance to the nominal chunk.">
+<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="IBM Plex Sans,system-ui,sans-serif" font-size="12" fill="currentColor">
+  <rect x="10" y="20" width="230" height="120" rx="4" fill="none" stroke="#A8481B" stroke-width="1.6"/>
+  <text x="125" y="42" text-anchor="middle" font-weight="600" fill="#A8481B">perturbed run · task 468</text>
+  <text x="125" y="58" text-anchor="middle" font-size="10" opacity=".7">arm starts at initstate 257</text>
+  <rect x="25" y="70" width="95" height="24" rx="3" fill="#A8481B" opacity=".18"/><text x="72" y="86" text-anchor="middle" font-size="11">agent<tspan font-size="8" dy="3">p</tspan></text>
+  <rect x="130" y="70" width="95" height="24" rx="3" fill="#A8481B" opacity=".18"/><text x="177" y="86" text-anchor="middle" font-size="11">wrist<tspan font-size="8" dy="3">p</tspan></text>
+  <rect x="25" y="104" width="200" height="24" rx="3" fill="#A8481B" opacity=".18"/><text x="125" y="120" text-anchor="middle" font-size="11">state<tspan font-size="8" dy="3">p</tspan><tspan dy="-3"> · 8 numbers</tspan></text>
+
+  <rect x="10" y="190" width="230" height="120" rx="4" fill="none" stroke="#1B6B4F" stroke-width="1.6"/>
+  <text x="125" y="212" text-anchor="middle" font-weight="600" fill="#1B6B4F">nominal run · control 1201</text>
+  <text x="125" y="228" text-anchor="middle" font-size="10" opacity=".7">same scene and layout, canonical pose</text>
+  <rect x="25" y="240" width="95" height="24" rx="3" fill="#1B6B4F" opacity=".18"/><text x="72" y="256" text-anchor="middle" font-size="11">agent<tspan font-size="8" dy="3">n</tspan></text>
+  <rect x="130" y="240" width="95" height="24" rx="3" fill="#1B6B4F" opacity=".18"/><text x="177" y="256" text-anchor="middle" font-size="11">wrist<tspan font-size="8" dy="3">n</tspan></text>
+  <rect x="25" y="274" width="200" height="24" rx="3" fill="#1B6B4F" opacity=".18"/><text x="125" y="290" text-anchor="middle" font-size="11">state<tspan font-size="8" dy="3">n</tspan></text>
+
+  <!-- hybrid W -->
+  <rect x="330" y="95" width="230" height="140" rx="4" fill="none" stroke="currentColor"/>
+  <text x="445" y="117" text-anchor="middle" font-weight="600">hybrid for arm W</text>
+  <text x="445" y="133" text-anchor="middle" font-size="10" opacity=".7">a state no robot was ever in</text>
+  <rect x="345" y="145" width="95" height="24" rx="3" fill="#A8481B" opacity=".18"/><text x="392" y="161" text-anchor="middle" font-size="11">agent<tspan font-size="8" dy="3">p</tspan></text>
+  <rect x="450" y="145" width="95" height="24" rx="3" fill="#1B6B4F" opacity=".18"/><text x="497" y="161" text-anchor="middle" font-size="11">wrist<tspan font-size="8" dy="3">n</tspan></text>
+  <rect x="345" y="179" width="200" height="24" rx="3" fill="#A8481B" opacity=".18"/><text x="445" y="195" text-anchor="middle" font-size="11">state<tspan font-size="8" dy="3">p</tspan></text>
+  <text x="445" y="225" text-anchor="middle" font-size="10" opacity=".7">only the wrist frame is swapped</text>
+
+  <path d="M120 82 H300 V157 H343" fill="none" stroke="#A8481B" marker-end="url(#arw)"/>
+  <path d="M225 252 H310 V157 H448" fill="none" stroke="#1B6B4F" marker-end="url(#arw)"/>
+  <path d="M225 116 H320 V191 H343" fill="none" stroke="#A8481B" marker-end="url(#arw)"/>
+
+  <!-- stack -->
+  <rect x="620" y="110" width="120" height="110" rx="4" fill="none" stroke="currentColor"/>
+  <text x="680" y="140" text-anchor="middle" font-size="11">VLM + adapter</text>
+  <text x="680" y="158" text-anchor="middle" font-size="10" opacity=".7">every token recomputed</text>
+  <text x="680" y="182" text-anchor="middle" font-size="11">state encoder</text>
+  <text x="680" y="204" text-anchor="middle" font-size="11">action head · ε fixed</text>
+  <line x1="560" y1="165" x2="618" y2="165" stroke="currentColor" marker-end="url(#arw)"/>
+
+  <rect x="780" y="140" width="110" height="50" rx="4" fill="none" stroke="currentColor"/>
+  <text x="835" y="161" text-anchor="middle" font-size="11">chunk <tspan font-style="italic">a</tspan><tspan font-size="8" dy="3">W</tspan></text>
+  <text x="835" y="179" text-anchor="middle" font-size="10" opacity=".7">40 × 7 numbers</text>
+  <line x1="740" y1="165" x2="778" y2="165" stroke="currentColor" marker-end="url(#arw)"/>
+
+  <text x="835" y="225" text-anchor="middle" font-size="10" opacity=".8">same for (agent<tspan font-size="7" dy="2">p</tspan><tspan dy="-2">, wrist</tspan><tspan font-size="7" dy="2">p</tspan><tspan dy="-2">, state</tspan><tspan font-size="7" dy="2">p</tspan><tspan dy="-2">) → </tspan><tspan font-style="italic">a</tspan><tspan font-size="7" dy="2">P</tspan></text>
+  <text x="835" y="241" text-anchor="middle" font-size="10" opacity=".8">and (agent<tspan font-size="7" dy="2">n</tspan><tspan dy="-2">, wrist</tspan><tspan font-size="7" dy="2">n</tspan><tspan dy="-2">, state</tspan><tspan font-size="7" dy="2">n</tspan><tspan dy="-2">) → </tspan><tspan font-style="italic">a</tspan><tspan font-size="7" dy="2">N</tspan></text>
+  <text x="835" y="265" text-anchor="middle" font-size="11">W = 1 − ‖a<tspan font-size="8" dy="3">W</tspan><tspan dy="-3">−a</tspan><tspan font-size="8" dy="3">N</tspan><tspan dy="-3">‖ / ‖a</tspan><tspan font-size="8" dy="3">P</tspan><tspan dy="-3">−a</tspan><tspan font-size="8" dy="3">N</tspan><tspan dy="-3">‖</tspan></text>
+</g>
+</svg>
+</div>
+<figcaption><span class="fignum">Figure.</span> How a "wrist-only" input is made. Nothing is perturbed in isolation inside the simulator; both cameras in the perturbed run see the displaced arm. The hybrid takes the wrist frame from the nominal run and everything else from the perturbed run, so it describes a state no robot was in. It is pushed through the whole stack, and the resulting chunk is compared with the two real ones.</figcaption>
+</figure>
 <div class="thm trig"><div class="thm-label">Transfer, as in R-039</div><div class="thm-body">
 <span class="eq">τ<sub>X</sub> = 1 − ‖<span class="m">a</span><sub>X</sub> − <span class="m">a</span><sub>N</sub>‖ / ‖<span class="m">a</span><sub>P</sub> − <span class="m">a</span><sub>N</sub>‖, &nbsp; X ∈ {A, W}</span>
 The share of the perturbed-to-nominal gap in the 280-number action chunk that restoring one camera alone closes. The control of the state token, r<sub>0</sub> = 0.10 (R-039), is the third leg: restoring the state alone closes 4 percent, deleting it changes the action by 10 percent of the gap.
