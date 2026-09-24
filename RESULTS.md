@@ -3749,3 +3749,70 @@ Two to three days: dataset converter (½ day), fitting the fine-tune on 8 GB
 with a smoke (1 day, may need the rented GPU on the pending list), training
 both arms and evaluating with repeated seeds (½–1 day). Deferred by the
 user on 2026-09-24; R-045's probe is the cheap predictor reported instead.
+
+---
+
+## R-047 — PRE-REGISTERED, NOT YET RUN: the SHAPE of the flip region — success probability against magnitude with replicates, benchmark-matched ranges
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Runner** `experiments/r047_run.py` · **Queue** `experiments/queue_r047.sh`
+
+### Why
+
+R-041 located, with one rollout per point, where the first action departs
+(everywhere) and bracketed where the outcome flips (some scenes, some
+axes). One rollout per magnitude cannot say whether the flip is a cliff or
+a slope, and outcomes flip ~30% under render jitter alone, so a bracket
+from bisection is a sample of a probability curve, not a threshold. This
+measures the curve. It also corrects R-041's ranges to the benchmark's:
+LIBERO-Plus sweeps camera azimuth to 75° and distance to 2.0×; R-041
+stopped at 40° and ~1.4×.
+
+### Design
+
+Fixed grids, several replicates per point, env seed 0 throughout (same
+layout as every run since R-039), splice attached with the base arms so
+‖P−N‖ at forward 0 is recorded on every rollout.
+
+| axis | grid | replicates per point | rollouts |
+|---|---|---|---|
+| start-pose radius (rad) | 0, 0.1, 0.2, 0.3, 0.4, 0.5 | 3 joint directions × 2 noise seeds = 6 | 10 scenes × 6 × 6 = 360 |
+| camera yaw (deg) | 0, 5, 10, 20, 30, 40, 50, 60, 75 | 4 noise seeds | 10 × 9 × 4 = 360 |
+
+Run per axis, start pose first (it is R-035's design at last: 20 episodes
+per radius pooled over scenes there, 60 here). ~4.5 h per axis at ~45 s
+per rollout. Camera distance and pitch are deferred to a second pass.
+
+**Readouts, per scene and axis.** (i) success probability per magnitude;
+(ii) the 50% crossing by logistic fit, and the **transition width** = the
+magnitude span over which the fit falls from 0.8 to 0.2; (iii) within each
+magnitude, the correlation across replicates between ‖P−N‖ at forward 0
+and success.
+
+### Pre-registered expectations
+
+1. **Pooled over replicates, success probability is non-increasing in
+   magnitude on every scene** (allowing single-replicate flips). *High.*
+   If it is not, the axis or the harness is suspect.
+2. **On scenes whose probability reaches 0.2 in range, the transition
+   width is less than a quarter of the range** (a cliff, not a slope).
+   *Medium-low, no strong prior.* This is the shape question.
+3. **The 50% point varies across scenes by more than the median transition
+   width** (scene-dependent cliffs rather than one policy-wide edge).
+   *Medium.* R-041's brackets suggest it.
+4. **Start pose: stove, wooden-cabinet and top-drawer have the three
+   lowest 50% points.** *Medium.* R-041 found stove and top-drawer earliest.
+5. **Within a magnitude, ‖P−N‖ at forward 0 does not predict success
+   across replicates** (|r| < 0.3 pooled). *Medium.* R-041 says the first
+   action moves everywhere; if its size predicted failure, the action
+   boundary would carry information the outcome boundary lacks, and it
+   should be the deployed detector. If it does not, failure is decided
+   later than the first action's magnitude.
+6. **Yaw to 75°: at least 8 of 10 scenes reach probability ≤ 0.2 by 75°.**
+   *Medium.* R-041 found 2 of 10 fail by 40°; the benchmark's authors
+   report collapse across its cone.
+
+### What would make this uninterpretable
+
+Magnitude-0 success below 100% pooled over replicates; or the base arms'
+P/N not matching R-041's at the shared magnitudes.

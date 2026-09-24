@@ -50,8 +50,8 @@ from vla_harness.schema import PerturbationSpec, TraceStore
 LIVE_DIMS = 7
 CONTROL_TASKS = [984, 1030, 1062, 1090, 1132, 1169, 1201, 1247, 1282, 1327]   # R-029 controls, one per scene
 AXES = {  # knob -> (max, is_state_axis)
-    "camera_yaw_deg": (40.0, False),
-    "camera_dist_m": (0.4, False),
+    "camera_yaw_deg": (75.0, False),     # benchmark cone reaches 75 deg (R-041 ran at 40)
+    "camera_dist_m": (0.8, False),       # benchmark scale reaches 2.0x, ~0.8 m along the ray (R-041 ran at 0.4)
     "light_intensity": (3.0, False),
     "joint_radius_rad": (0.5, True),
 }
