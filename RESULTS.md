@@ -3565,3 +3565,64 @@ evidence of the same strength.
 
 Check 1's `denoise_W` not reproducing R-042's per-instance W within 0.1
 (same inputs, same noise: it must), or any control rollout failing.
+
+---
+
+## R-045 — PRE-REGISTERED, NOT YET RUN: does the VLM's output still encode the arm pose at new start poses? A linear pose probe across radius
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** ANALYSIS
+(forwards only, no rollouts) · **Script** `experiments/r045_pose_probe.py`
+
+### The question
+
+R-042/R-044 show that a start-pose perturbation reaches the action through
+the wrist image, and the correction of 2026-09-24 says the pixel-swap arms
+cannot tell whether the VLM *encodes* the new pose adequately or the head
+merely lacks a mapping for it. This asks the first half directly: is the
+end-effector pose linearly decodable from the VLM's output tokens, and does
+that decodability hold as the start pose moves away from canonical?
+
+### Design
+
+Start poses: the ten `libero_spatial` control scenes × 12 radii
+(0, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5 rad) × 3
+joint directions (`joint_dir_seed` 0, 1, 2) = 360 resets; at each, one
+backbone forward captures the adapter-output tokens (the DiT's input) and
+the simulator's true end-effector position and orientation. Features:
+(a) all 128 image tokens flattened, (b) the agent-view block, (c) the wrist
+block, (d) mean-pooled image tokens, (e) the state token (ceiling), (f) a
+label-shuffled null. Which 64 image positions are the wrist's is **checked
+by intervention**, not assumed: swap the wrist pixels and record which
+positions change.
+
+Decoder: ridge regression, fit on directions 0 and 1 across **all radii**,
+tested on direction 2. Split by direction, not radius, so the test asks
+whether one linear map serves every radius, not whether it extrapolates.
+Readout: test RMSE of eef position, per radius bin, relative to the
+radius-0 RMSE.
+
+### Pre-registered expectations
+
+1. **Sanity, load-bearing:** the state token decodes eef position with RMSE
+   under 5 mm at every radius (it *is* the pose, encoded). If it does not,
+   the pipeline is wrong.
+2. **The image tokens decode eef position at radius 0 to within 2 cm.**
+   *High.* The head reads pose from images (R-039), so the pose must be
+   there for canonical starts.
+3. **Wrist block decodes better than agent block at every radius.**
+   *Medium-high.* The token-level echo of R-042's W > A.
+4. **The key test: image-token RMSE at radius 0.5 is within 1.5× the
+   radius-0 RMSE.** *Medium, no strong prior.* If it holds, the VLM's
+   encoding is consistent across the range and the gap is in the head;
+   the R-040 frozen arm should suffice. If RMSE grows with radius while the
+   state token's does not, the encoding degrades with radius and the VLM is
+   part of what has to be trained; R-040's unfrozen arm becomes the
+   prediction.
+5. **The null decodes at chance** (RMSE ≈ the label spread). *High.*
+
+### What it cannot say
+
+A linear probe is a lower bound on what the head could read; a nonlinear
+head may use more. A flat curve says the information is present linearly;
+a rising curve says it is not linearly present, not that it is absent.
+Either way R-040 is the definitive test and this only predicts its answer.
