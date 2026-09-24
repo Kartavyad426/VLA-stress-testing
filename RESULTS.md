@@ -3816,3 +3816,63 @@ and success.
 
 Magnitude-0 success below 100% pooled over replicates; or the base arms'
 P/N not matching R-041's at the shared magnitudes.
+
+---
+
+## R-048 — PRE-REGISTERED, NOT YET RUN: the three robustness checks on the camera-viewpoint row
+
+**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Queue** `experiments/queue_r048.sh` · **Instances** the 10 Camera
+Viewpoints instances of R-039/R-042 (`experiments/repro/r048_selection_cam.json`)
+
+### What R-042 established and what is missing
+
+Restoring the agent-view pixels alone recovers 0.98 of the first action's
+displacement (10/10 in 0.95–0.98); the wrist arm reads 0.00 ± 0.02. That is
+the denoising map only. The same checks R-044 ran on start pose are due,
+with one difference in meaning.
+
+### The difference: for a camera move, one input IS the perturbation
+
+A viewpoint variant re-renders the agent view of an unchanged world; the
+wrist frame and the state are identical between P and N. So corrupting the
+agent view of the nominal run reproduces the full effect *by construction*,
+and the reverse direction cannot test necessity here. It is kept as an
+**exactness check on the paired render**: `noise_A` must read ≈ 1 and
+`noise_W`, `noise_S` ≈ 0, or the render pairing is wrong. Necessity is
+already implied by the denoising number: nothing else can carry an effect
+that lives in one input.
+
+### Design
+
+1. **Reverse direction** (`experiments/r048_reverse.py`): forward 0, no
+   rollouts, nominal = the paired render of the same reset state.
+2. **Noise seeds**: the 10 instances with `--arms extended` under noise seeds
+   1 and 2, env seed 0. 20 rollouts.
+3. **Forward-0 rescue**: drive A, W and N for the first forward only, noise
+   seed 0, against R-042's drive-P outcomes (7/10 fail). 30 rollouts.
+   Here A ≈ N by construction, so the A and N drives are a replicate pair.
+
+### Pre-registered expectations
+
+1. **Reverse: `noise_A` ≥ 0.95, `noise_W` and `noise_S` within ±0.05 of 0 on
+   10/10.** *High, by construction.* Anything else is a harness fault.
+2. **Seeds: A within 0.1 of seed 0 on ≥ 9/10 under each seed; A > W on
+   10/10.** *High.*
+3. **Rescue, the informative one: driving A (or N) at forward 0 flips FEWER
+   than half of the 7 failures.** *Medium.* R-041 found the first action
+   moves at 2.5° while the outcome holds to 40°: the loop absorbs a camera
+   change for many forwards, so a camera failure is an accumulated one and
+   a single corrected chunk should not rescue it. This is the opposite
+   prediction from start pose (R-044: 7/7 rescued). If instead ≥ 5 of 7
+   flip, camera failures are also decided early and the "accumulation"
+   reading of R-041 is wrong.
+4. **Rescue: A-drive and N-drive agree on outcome on ≥ 8/10** (they are the
+   same chunk up to render jitter). *High.*
+5. **Rescue: closest approach under A-drive improves over P on fewer than
+   6/10.** *Medium*, same reasoning as 3.
+
+### What would make this uninterpretable
+
+Expectation 1 failing, or A at seed 0 not reproducing R-042's per-instance
+values within 0.05.
