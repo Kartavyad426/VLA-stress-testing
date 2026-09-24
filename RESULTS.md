@@ -3495,9 +3495,10 @@ R-042's per-instance W to **0.01 on 10/10**, so the check is interpretable.
 
 **Check 2, noise seeds** (`runs/r044_seed1`, `runs/r044_seed2`): W under
 seeds 1 and 2 is **0.85 / 0.85** (seed 0: 0.88); per instance within 0.15
-of seed 0 on **10/10 and 10/10**; W > A on **10/10 under each seed** (A 0.20
-/ 0.19). **HELD.** The outcomes, meanwhile, agreed with seed 0 on only 6/10
-and 6/10, the same chaos as everywhere else; the action-level number is the
+of seed 0 on **10/10 and 9/10** (the one exception at 0.17); W > A on
+**10/10 under each seed** (A 0.20 / 0.19). **HELD**, with the single 0.17
+recorded. The outcomes, meanwhile, agreed with seed 0 on 8/10 and 7/10,
+the same instability as everywhere else; the action-level number is the
 stable one.
 
 ### What would make this uninterpretable
