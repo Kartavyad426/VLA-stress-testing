@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+</style>
+<title>Retraining Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E;       /* trigger-independent / structure */
+    --trigger:#A8481B;      /* the perturbed trigger and what it reaches */
+    --ok:#1B6B4F; --warn:#8A6A12;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --trigger:#E5905E; --ok:#5DC79B; --warn:#D9B85C;
+  }
+
+  body{background:var(--bg); color:var(--ink); font-family:var(--serif);
+       font-size:17px; line-height:1.62; margin:0;}
+  .wrap{max-width:760px; margin:0 auto; padding-inline:20px; padding-block:0 96px;}
+  p{margin:0 0 1.05em;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  h1,h2,h3,h4{font-family:var(--sans); text-wrap:balance; line-height:1.22; margin:0;}
+  h2{font-size:1.44rem; font-weight:600; letter-spacing:-.01em;}
+  h3{font-size:1.1rem; font-weight:600;}
+  hr{border:0; border-top:1px solid var(--rule); margin:2.6em 0;}
+  code,.mono{font-family:var(--mono); font-size:.86em;}
+  code{background:var(--surface-2); padding:.1em .34em; border-radius:3px;}
+
+  /* masthead */
+  header.mast{border-bottom:1px solid var(--rule); padding-block:56px 30px; margin-bottom:38px;}
+  .eyebrow{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+           text-transform:uppercase; color:var(--trigger); margin:0 0 14px;}
+  h1{font-size:clamp(2.1rem,7vw,3.1rem); font-weight:600; letter-spacing:-.025em;}
+  .standfirst{font-size:1.16rem; color:var(--muted); margin-top:18px; max-width:62ch;}
+  .meta{font-family:var(--sans); font-size:.8rem; color:var(--faint); margin-top:24px;
+        display:flex; flex-wrap:wrap; gap:6px 18px;}
+
+  /* section numbering that means something: parts, then theorems */
+  .part{font-family:var(--sans); font-size:.72rem; font-weight:600; letter-spacing:.11em;
+        text-transform:uppercase; color:var(--faint); margin:0 0 8px;}
+  section{margin-block:0 2.8em;}
+  .lead-in{color:var(--muted);}
+
+  /* blocks */
+  .thm{border-left:2px solid var(--accent); padding:2px 0 2px 18px; margin:1.9em 0;}
+  .thm.trig{border-left-color:var(--trigger);}
+  .thm-label{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+             text-transform:uppercase; color:var(--accent); margin-bottom:7px;}
+  .thm.trig .thm-label{color:var(--trigger);}
+  .thm-body{font-size:1rem;}
+  .proof{font-size:.95rem; color:var(--muted); margin-top:.9em;}
+  .proof::before{content:"Proof. "; font-family:var(--sans); font-weight:600;
+                 font-size:.74rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);}
+  .qed{font-family:var(--sans);}
+  .note{background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+        padding:16px 18px; margin:1.7em 0; font-size:.95rem;}
+  .note .nh{font-family:var(--sans); font-size:.74rem; font-weight:600; letter-spacing:.08em;
+            text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;}
+  .note.measured{border-left:3px solid var(--warn);}
+  .note.repo{border-left:3px solid var(--ok);}
+
+  /* math */
+  .m{font-style:italic; font-family:var(--serif);}
+  .eq{display:block; text-align:center; margin:1.15em 0; font-size:1.02rem;
+      overflow-x:auto; padding-block:2px;}
+  .eq .tag{float:right; font-family:var(--sans); font-size:.78rem; color:var(--faint);}
+  sub,sup{font-size:.72em;}
+
+  /* tables */
+  .tbl-scroll{overflow-x:auto; margin:1.6em 0;}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:.86rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule-soft);
+        vertical-align:top;}
+  th{font-weight:600; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+     color:var(--muted); border-bottom:1px solid var(--rule);}
+  td.num{text-align:right; padding-right:16px;}
+  .yes{color:var(--ok); font-weight:600;} .no{color:var(--trigger); font-weight:600;}
+
+  /* figures */
+  figure{margin:2.2em 0; padding:0;}
+  figure svg{display:block; width:100%; max-width:100%; height:auto; color:var(--ink);}
+  figcaption{font-family:var(--sans); font-size:.82rem; color:var(--muted); margin-top:12px;
+             line-height:1.5; border-top:1px solid var(--rule-soft); padding-top:10px;}
+  .fignum{font-weight:600; color:var(--ink);}
+  .svgbox{background:var(--surface); border:1px solid var(--rule-soft); border-radius:4px;
+          padding:14px; overflow-x:auto;}
+
+  ol.proto{padding-left:0; list-style:none; counter-reset:step;}
+  ol.proto > li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:1.2em;}
+  ol.proto > li::before{content:counter(step); position:absolute; left:0; top:1px;
+      font-family:var(--mono); font-size:.8rem; color:var(--trigger);
+      border:1px solid var(--rule); border-radius:3px; width:26px; height:24px;
+      display:grid; place-items:center;}
+  ul.tight{padding-left:20px;} ul.tight li{margin-bottom:.4em;}
+  dl.gloss{margin:0;} dl.gloss dt{font-family:var(--sans); font-weight:600; margin-top:.9em;} dl.gloss dd{margin:.15em 0 0 0; font-size:.97rem;}
+  .caseref{font-family:var(--sans); font-size:.74rem; font-weight:600; color:var(--faint);}
+  .footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--sans);
+          font-size:.84rem; color:var(--muted);}
+  .footer a{word-break:break-word;}
+  @media (max-width:520px){ body{font-size:16px;} .thm{padding-left:14px;} }
+  :focus-visible{outline:2px solid var(--trigger); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="mast">
+  <p class="eyebrow">Plan · perturbation → correction map · retraining</p>
+  <h1>From the map to a retrained policy</h1>
+  <p class="standfirst">How many perturbation-and-correction pairs there are to find, what it takes to be sure of each, and what a retraining run costs, needs and should be expected to deliver.</p>
+  <div class="meta"><span>2026-09-24</span><span>Built on RESULTS.md R-039 to R-047</span><span>GR00T N1.7 · LIBERO-Plus</span></div>
+</header>
+
+<section>
+<p class="part">1 · The map</p>
+<h2>How many pairs there are</h2>
+<p>A pair is a perturbation category on one side and the input that carries it on the other. The inputs are fixed by the architecture, so the map is small. At the pixel level there are three: the agent-view image, the wrist image and the proprioceptive state. At the token level there are three more, text positions, image positions and the state token, plus the pairwise combination. The benchmark has seven perturbation categories, and the harness adds continuous axes for camera pose, lighting brightness and start pose.</p>
+<div class="tbl-scroll"><table>
+<thead><tr><th>perturbation</th><th>dominant input at forward 0</th><th>secondary</th><th>status</th><th>entry</th></tr></thead>
+<tbody>
+<tr><td>camera viewpoint</td><td>agent-view pixels, 0.98</td><td>none (wrist 0.00)</td><td class="yes">mapped</td><td>R-039, R-042</td></tr>
+<tr><td>sensor noise</td><td>agent-view pixels, 0.97</td><td>none (wrist 0.00)</td><td class="yes">mapped</td><td>R-039, R-042</td></tr>
+<tr><td>lighting</td><td>both cameras jointly (each alone ≤ 0.2)</td><td>a cross-camera interaction</td><td class="yes">mapped, interaction open</td><td>R-042</td></tr>
+<tr><td>robot initial state</td><td>wrist pixels, 0.88</td><td>agent view 0.17, state 0.04</td><td class="yes">mapped and checked three ways</td><td>R-042, R-044, R-045</td></tr>
+<tr><td>object layout</td><td>—</td><td>—</td><td class="no">not run</td><td></td></tr>
+<tr><td>background texture</td><td>—</td><td>—</td><td class="no">not run</td><td></td></tr>
+<tr><td>language instruction</td><td>—</td><td>—</td><td class="no">not run · the one where the text arm would be a real finding</td><td>R-038 context</td></tr>
+</tbody></table></div>
+<p>Four of seven rows are filled. The remaining three cost about the same each as the first four did. Language needs one design change: the text arm must swap the instruction before the VLM, since after it the text positions carry image content.</p>
+</section>
+
+<section>
+<p class="part">2 · The protocol per perturbation, and its size</p>
+<h2>What one row costs</h2>
+<p>Each rollout of an instance computes every arm at every forward from the same state and the same noise, so one rollout yields all the denoising numbers for that instance. Restoring an input and measuring how far the action returns toward nominal is the base measurement; the checks around it are what make it a claim.</p>
+<ol class="proto">
+<li><b>Denoising map.</b> 10 instances of the category, one rollout each with all eight arms (P, N, text, image, state, image+text, agent pixels, wrist pixels). About 10 minutes. Yields the dominant input and the residual.</li>
+<li><b>Reverse direction.</b> The same 10 instances at forward 0 only, corrupting one input of the nominal run. No rollouts, about 3 minutes. Yields necessity, and detects redundancy between inputs.</li>
+<li><b>Noise seeds.</b> The 10 instances under two more fixed-noise seeds. 20 rollouts, about 20 minutes. Yields stability of the dominant input.</li>
+<li><b>Forward-0 rescue.</b> Execute the corrected chunk for the first forward only, for the dominant input, a contrast input and the full nominal chunk. 30 rollouts, about 30 minutes. Yields whether the correction changes the outcome, and when the episode is decided.</li>
+</ol>
+<p>Roughly 60 rollouts and an hour of GPU per perturbation category, plus a second checkpoint (another hour) if the claim is to be about the architecture rather than one fine-tune. Seven categories at that rate is a day. The continuous sweeps are separate: seven rollouts per scene and axis for the bisection form (R-041), or 36 per scene and axis for the probability form with replicates (R-047).</p>
+<div class="note">
+<span class="nh">Decision rule for "sure", written before the remaining rows are run</span>
+An input is the correction mechanism for a category when: restoring it alone recovers at least 0.8 of the first action's displacement on at least 8 of 10 instances; corrupting it alone in the nominal run reproduces at least 0.4 of the effect and more than any other single input; both hold under two further noise seeds; and executing its corrected chunk at forward 0 flips at least half of the failures. Start pose passes all four. If the restoration is high but the corruption is low, the pose is readable from more than one input and the data specification must cover both.
+</div>
+</section>
+
+<section>
+<p class="part">3 · The test that matters</p>
+<h2>The map is a prediction until a policy is retrained</h2>
+<p>Everything above localises. None of it fixes anything. The claim that a category's data specification is right is only established by collecting that data, training, and measuring on held-out instances of the same category with repeated seeds. That is R-040 in general and R-046 for the start-pose category, and R-046 is out of scope for now by decision on 2026-09-24. What follows is what running it would take.</p>
+</section>
+
+<section>
+<p class="part">4 · Data</p>
+<h2>How much, and where it comes from</h2>
+<p>The original LIBERO-Spatial training set is 50 human demonstrations per task, 500 in all. The checkpoint in use was fine-tuned on that. A first retraining for the start-pose category should match that scale: 10 scenes × 5 radius bands (0.1 to 0.5 rad) × 10 demonstrations = 500, with an ablation at 100 and 250 to see how the gain scales. Each demonstration covers the approach, about one second of motion, since R-044 showed the episode is decided in the first forward.</p>
+<div class="tbl-scroll"><table>
+<thead><tr><th>source</th><th>how</th><th>cost for 500</th><th>quality</th><th>status</th></tr></thead>
+<tbody>
+<tr><td><b>Simulator-minted from rescue rollouts</b></td><td>start the scene at a perturbed pose, execute the nominal chunk for the first forward, run the policy to completion, keep the successes; both views, state and actions are recorded</td><td>~9 hours of the local GPU at 9 of 10 succeeding; no human time</td><td>valid successful trajectories, but the first chunk is the policy's own action for a different state that happened to work; smoother than teleop, possibly suboptimal</td><td class="yes">machinery exists; converter to a training dataset does not (½ day)</td></tr>
+<tr><td>Teleoperation in the simulator</td><td>LIBERO's own collection method, a 3D mouse; start each episode from a sampled perturbed pose</td><td>~1 to 2 minutes of operator time each, 10 to 15 hours for 500</td><td>the cleanest signal; matches how the original corpus was made</td><td class="no">no teleop setup in the repo</td></tr>
+<tr><td>Replaying the original demonstrations from perturbed starts</td><td>—</td><td>—</td><td>not valid: the recorded actions are deltas from the canonical pose and do not reach the object from another one</td><td class="no">ruled out</td></tr>
+<tr><td>Real-robot demonstrations</td><td>the eventual target; outside this project's harness</td><td>days of operator and robot time</td><td>the only kind that settles transfer</td><td class="no">out of scope</td></tr>
+</tbody></table></div>
+<p>Minted demonstrations are the practical first source and should be validated against a small teleoperated set, 20 to 50 episodes, before any conclusion about real data is drawn from them.</p>
+</section>
+
+<section>
+<p class="part">5 · Compute and setup</p>
+<h2>What a run needs</h2>
+<div class="tbl-scroll"><table>
+<thead><tr><th>item</th><th>local, 8 GB laptop GPU</th><th>rented, 40 to 80 GB</th></tr></thead>
+<tbody>
+<tr><td>model in bf16</td><td>6 GB of the 8, fits for inference (every result so far)</td><td>fits with room</td></tr>
+<tr><td>head-only full fine-tune, ~1.1 B trainable parameters with an Adam optimiser</td><td>does not fit (optimiser state alone ~18 GB)</td><td>fits; 500 demonstrations for a few epochs is 1 to 3 hours</td></tr>
+<tr><td>LoRA on the action head, rank 16 to 32, VLM frozen</td><td>probably fits at batch size 1 to 2 with gradient checkpointing; unverified, needs a smoke</td><td>fits; under an hour</td></tr>
+<tr><td>the unfrozen arm: LoRA on the top language layers as well</td><td>marginal</td><td>fits</td></tr>
+<tr><td>evaluation, 3 seeds × ~60 held-out instances × 2 arms</td><td>~5 hours</td><td>~2 hours</td></tr>
+<tr><td>cloud cost at typical A100/H100 hourly rates</td><td>—</td><td>under 100 USD per arm including evaluation; a full ablation set under 500 USD</td></tr>
+</tbody></table></div>
+<p>Setup work before any training: a converter from harness rollouts to the training dataset format (half a day); a training configuration for the port with the freeze set and LoRA (half a day, plus a memory smoke); the evaluation already exists. Two to three days end to end, most of it not GPU time. The pending decision on renting a GPU (item 25) is the gating one for the full-head arm.</p>
+</section>
+
+<section>
+<p class="part">6 · What to expect</p>
+<h2>Predictions, and what would count as failure</h2>
+<ul class="tight">
+<li><b>Starting point.</b> On the ten mapped start-pose instances the current checkpoint fails 6 to 9 of 10 depending on the noise seed; the nominal control succeeds 10 of 10.</li>
+<li><b>Prediction for the frozen arm.</b> Closes at least 70 percent of that gap on held-out perturbed starts. R-044 showed the correct first chunk exists and rescues 7 of 7; R-045 showed the pose is already in the VLM's output; so the head has the information and only lacks the mapping, which demonstrations supply directly.</li>
+<li><b>Prediction for the unfrozen arm.</b> Within 10 points of the frozen arm. If it is 15 or more points better, R-045's post-hoc reading was wrong and the VLM was part of the gap.</li>
+<li><b>Regression.</b> Under 5 points on the nominal control. Interference is the main risk of any targeted fine-tune.</li>
+<li><b>Mechanism check after training.</b> The wrist arm's transfer on the retrained checkpoint should fall, because a perturbed start no longer moves the first action much. If it does not fall while success rises, the policy learned to recover rather than to start correctly, which is a different fix than intended.</li>
+<li><b>What would count as failure.</b> Less than a third of the gap closed, or the frozen and unfrozen arms both flat: the data specification was wrong, and the direct corrective arm of R-040 becomes the comparison to run.</li>
+<li><b>Variance.</b> Outcomes flip about 30 percent under render jitter at one seed, so every number above is meaningful only over at least three seeds per instance. Closest approach is the continuous readout to report alongside.</li>
+</ul>
+</section>
+
+<section>
+<p class="part">7 · Order of work</p>
+<h2>If this is picked up</h2>
+<ol class="proto">
+<li>Run the three unmapped categories through the hour-long protocol, language with the pre-VLM text swap. One day.</li>
+<li>R-047 overnight for the probability curves on start pose and yaw; the held-out set for training is then drawn from just beyond each scene's 50 percent point.</li>
+<li>Mint 500 start-pose demonstrations and write the converter. One day.</li>
+<li>Memory smoke of the LoRA fine-tune locally; rent a GPU if it does not fit. Half a day.</li>
+<li>Train both arms, evaluate with three seeds, run the wrist arm on the result. One day.</li>
+<li>Validate 20 to 50 minted demonstrations against teleoperated ones before extending the claim to real data.</li>
+</ol>
+</section>
+
+<div class="footer">Sources: <code>RESULTS.md</code> R-039 to R-047, R-046 (out of scope) for the training design, <code>PENDING_DECISIONS.md</code> item 25 for the GPU rental question; LIBERO-Plus ranges from <a href="https://arxiv.org/html/2510.13626v1">arXiv 2510.13626</a>.</div>
+</div>
+</body>
+</html>
