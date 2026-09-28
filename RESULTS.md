@@ -212,18 +212,23 @@ Every entry records its expectation and **says when it was written**:
 | R-032 | 09-18 | EVAL | π0 family on 8 GB | DONE — NEITHER FITS | π0.5 OOM at 7.40/7.53 GiB; π0-FAST does not fit as published |
 | R-033 | 09-18 | BUG | Precision A/B reported rc=0 and produced nothing | BUG | MINERVA bf16 broken (dtype mismatch); fp32 is the control |
 | R-034 | 09-18 | BUG | Three harness bugs found via a drop-in checkpoint | FIXED | Rename map discarded, dual-declared settings, missing tokenizer subfolder |
-| R-035 | 09-22 | EVAL | Balanced radius sweep on robot initial state | PRE-REGISTERED, NOT RUN | ~2 h GPU; saturation vs monotone decline |
+| R-035 | 09-22 | EVAL | Balanced radius sweep on robot initial state | SUPERSEDED by R-047 | Never run; retired 2026-09-28. R-047's start-pose radius axis runs a superset of the design (10 scenes, 60 per radius vs 2 scenes, 40) |
 | R-036 | 09-22 | EVAL | VL embeddings vs GR00T's own failures | DONE — NEGATIVE, SCOPE CORRECTED | VL taps do not separate; sample had n=2 camera episodes, so the VL hypothesis was never tested |
-| R-037 | 09-23 | EVAL | Does a perturbation move the signals at all? | DONE (result filed under R-040's heading) | Vision moves the backbone output 46.6% vs 3.0%; gone after VL self-attention (1.37x → 1.02x) |
-| R-038 | 09-22 | EVAL | GR00T with an empty prompt | DONE (header still says launching) | 50/100 vs 100/100; language is not inert; scenes span 0/10 to 10/10 |
+| R-037 | 09-23 | EVAL | Does a perturbation move the signals at all? | DONE | Vision moves the backbone output 46.6% vs 3.0%; gone after VL self-attention (1.37x → 1.02x) |
+| R-038 | 09-22 | EVAL | GR00T with an empty prompt | DONE | 50/100 vs 100/100; language is not inert; scenes span 0/10 to 10/10 |
 | R-039 | 09-23 | EVAL | Which pathway carries a perturbation to the action | DONE | Image tokens for every category incl. robot init; state token near-inert |
 | R-040 | 09-23 | EVAL | Corrective demos vs mechanism-mined vs OOD-ranked vs nominal data | PRE-REGISTERED, NOT RUN | Was blocked on R-039, which is now done |
-| R-041 | 09-23 | EVAL | Boundary sweeps from a known success | PRE-REGISTERED, NOT RUN | Single-axis sweeps with the R-039 splice running |
+| R-041 | 09-23 | EVAL | Boundary sweeps from a known success | DONE | No boundary in the action (the first action moves at every magnitude); a wide, scene-dependent one in the outcome |
 | R-042 | 09-23 | EVAL | Which camera carries start-pose perturbations | DONE | Wrist camera; lighting is a cross-camera interaction |
 | R-043 | 09-23 | EVAL | LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification | PRE-REGISTERED, NOT RUN | Decides whether the manifest applies to long-horizon failures |
 | R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | DONE | wrist necessary (noising 0.46) and stable (0.85 across seeds); nominal first chunk rescues 7/7 |
 | R-045 | 09-24 | ANALYSIS | Linear pose probe on the VLM output across start-pose radius | DONE | direction split failed its sanity gate; scene split: ~1.5 cm at every radius, as good as the state token |
 | R-046 | 09-24 | EVAL | Frozen vs unfrozen VLM on minted start-pose demos (R-040 arm M, one category) | PRE-REGISTERED, OUT OF SCOPE | deferred 2026-09-24; R-045 probe is the predictor |
+| R-047 | 09-24 | EVAL | Shape of the flip region: success probability vs magnitude, with replicates, benchmark ranges | RUNNING (entry header still says NOT YET RUN) | As of 09-28: start-pose radius 232/360 rollouts, camera yaw 99/360; camera distance and pitch deferred, not queued |
+| R-048 | 09-24 | EVAL | Camera row: reverse direction, noise seeds, forward-0 rescue | DONE | Agent view 0.98, exact and stable; rescue weak against a 43% no-correction flip rate |
+| R-049 | 09-24 | EVAL | Layout, texture and language rows | DONE | Layout agent view 0.55; texture cross-camera; a language rewrite moves the first action by 1.4 (doubled on R-038's scenes) |
+| R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
+| R-051 | 09-25 | EVAL | Reverse direction, noise seeds and layout rescue for the remaining rows | DONE (scored 09-28) | 4 of 6 held: noise single-camera; lighting and texture joint; layout agent view; a corrected first chunk does not rescue layout |
 
 ---
 
@@ -1749,9 +1754,9 @@ its number is directly comparable to GR00T's on the same scenes.
 
 ---
 
-## R-035 — PRE-REGISTERED, NOT YET RUN: balanced radius sweep on robot initial state
+## R-035 — SUPERSEDED by R-047 (never run): balanced radius sweep on robot initial state
 
-**Date registered** 2026-09-22 · **Status** PRE-REGISTERED · **Spec** `res`,
+**Date registered** 2026-09-22 · **Status** SUPERSEDED by R-047 (retired 2026-09-28, user decision) · **Spec** `res`,
 `docs/FRAME_LABEL_METHODOLOGY.md` §8.10
 
 **Registered before the run, because the analysis is about SHAPE and shapes are
