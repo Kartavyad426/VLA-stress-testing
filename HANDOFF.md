@@ -260,3 +260,305 @@ the entry.
 of them mine: the confusable-pair hypothesis, the "option zero sharpens existing
 data" claim, and assigning work to another session. Peers retracted their own
 too. The project is better for each one being stated rather than quietly dropped.
+
+---
+
+## 9. Handoff from `primary` only, 2026-09-24
+
+This section covers **only the session named `primary`** (successor to the session
+that ran R-038). Other sessions (`fable`, `implementor`, `vla-f9`, `SAE failure`,
+`Sentinel analysis`) keep their own records; nothing here speaks for them.
+
+### What I built (all committed and pushed, `a50e533`)
+
+| What | Where | State |
+|---|---|---|
+| Per-episode video, on by default | `vla_harness/video.py`, `runner.py`, `experiments/harness_eval.py` (`--no-video`) | tested (`tests/test_video.py`) |
+| Every-object tracking | `_gt_scene_object_pos` in `vla_harness/envs/libero_env.py` | tested (`tests/test_scene_objects.py`) and checked on a real replay |
+| Reference-vs-variants page | `experiments/visualise_set.py` (`--rerender PAGE` works CPU-only) | working |
+| VLM labeller | `experiments/vlm_label.py`, isolated venv `.venvs/cosmos` | working, **unvalidated** |
+| Doc refresh + README reading order | README, RESULTS current-state/index, this file, living docs, banners on historical docs | done 2026-09-23 |
+
+Two of these reached git inside **other sessions' commits**: implementor's
+`19eec86` took video/runner, fable's `9b98523` took the scene-object change and
+fable's `1a735c2` took my RESULTS.md index edit. Sessions commit whole files.
+Before assuming your edit is uncommitted, check `git log -- <file>`.
+
+### What I found
+
+1. **Wrong-object grasps were invisible.** `_gt_object_pos` holds only BDDL task
+   objects. On `lplus_fail_groot:5115b970e766` it read "nothing moved" while the arm
+   lifted the **ramekin** 6 cm, which a replay confirmed. On the drawer scene, both
+   failing initial states (475, 395) handled the wrong object, and 405 disturbed both
+   bowls. `fable` correctly pointed out that two episodes cannot separate
+   grounding failure from start-pose coverage.
+2. **VLMs spotted the grasp and named the wrong object.** Nemotron-Omni (NIM) and
+   Qwen3-VL-8B-Thinking (local, 4-bit) both said "picked up the black bowl". I
+   first called that a hallucinated grasp. **Retracted:** the grasp was real, only
+   the object was wrong. FailBench (arXiv 2609.03611) finds robotics-tuned VLMs
+   underperform their base models; Qwen3-VL-2B scores 0.53, near chance.
+3. **Activations for the drawer scene** (`viz/set_drawer_bowl_activations.html`,
+   local). The backbone output separates the 475 failure from t=0. The action-head
+   input overlaps the reference, consistent with R-037. This is one episode per
+   condition, so it is a picture, not a result.
+
+### Pending: mine, none started
+
+| Job | GPU | Next step |
+|---|---|---|
+| Exact activations for the four drawer episodes on `viz/set_drawer_bowl_initstates.html` | ~6 GB, ~15 min | replay stored actions and call GR00T on each recorded observation. Backbone/adapter features are exact; action samples are fresh draws. Not built. |
+| Per-block DiT capture (§6) | CPU build, then ~20 min pilot | wrap `head.model.forward` and force `return_all_hidden_states=True`. The inference path (`groot_n1_7.py:694`) does not pass it. Return only element 0, because `:707` wants a bare tensor. See the traps below. |
+| VLM head-to-head (video-only / sim-facts-only / both; Qwen-8B vs Nemotron vs Gemma) | light | **blocked on ~40 human labels** (the adjudication CSV, still 0/80) |
+| Sim-derived fields of `docs/EPISODE_RECORD_SCHEMA.md` | CPU | unowned; `handled.*` and `anchor.grasp_step` definitions are mine |
+
+**Per-block DiT traps**, each one verified at source by a peer or by me:
+- `all_hidden_states[i+1]` is block *i*'s output, because index 0 is the input
+  `sa_embs`.
+- Score the delta `[i+1]−[i]`, not the level.
+- `[32]` is taken before `norm_out`, so it is not `model_output`.
+- Hidden states are **state+action tokens (41 × 1536)**, with no image/text spans;
+  the image and text pathways are separated only by block index (`idx%4==0` text,
+  `==2` image, odd blocks get nothing).
+- The 33 states come ×4 Euler steps per call. Fix the step before ordering by
+  block.
+- Storage is ~17 MB per call unpooled (~120 GB for a full capture); pool over the
+  41 tokens.
+- For R-038, compare at the **first action**, where images and state are identical
+  and only the prompt differs. The first difference showing up at block 0 is
+  guaranteed and means nothing.
+
+### Loose ends
+
+- `docs/R042_WRIST_MATHS.pdf`: made from fable's HTML with headless Chrome,
+  **uncommitted**, and the user hasn't decided. It goes stale if the HTML changes.
+  To regenerate: `google-chrome --headless=new --no-pdf-header-footer
+  --print-to-pdf=docs/R042_WRIST_MATHS.pdf file://$PWD/docs/R042_WRIST_MATHS.html`.
+- `viz/set_*.html` (10–11 MB) are deliberately local.
+- RESULTS.md R-041's header says RUNNING. R-041 has since run to completion;
+  fable owns the entry.
+- **27 local commits are unpushed on `main`, none of them mine.** They belong to
+  other sessions; push only when the user says.
+
+### Practical notes
+
+- **VLM environment:** `.venvs/cosmos` (torch 2.11 cu128, transformers 5.5.4,
+  bitsandbytes). Don't install `torchcodec`: the PyPI wheel wants CUDA 13.
+  `vlm_label.py` decodes video with PyAV itself.
+- **Qwen3-VL-8B at 4-bit** OOMs at native resolution × 56 frames. Use
+  `--fps 2 --scale 0.5` (peak 6.36 GiB, ~95 s per episode).
+- **NIM key:** `NVIDIA_NIM_API_KEY` lives in
+  `~/Documents/Code/robotics_agentic/.env`. `NVIDIA_API_KEY` in `~/.bashrc` is an
+  unfilled template.
+  - Cosmos-Reason2-8B returns 404 on NIM for this account, and is gated on HF
+    (access not yet requested).
+  - Gemma-4-31B times out on NIM (504).
+- **CPU rendering** when the GPU is busy: `MUJOCO_GL=osmesa PYOPENGL_PLATFORM=osmesa`.
+  It is slower, but replay and `visualise_set.py` both work.
+- **`du` on the HF cache** reports ~12 MB unless you pass `-L`, because blobs are
+  symlinks.
+
+### Advice, earned this session
+
+1. **Check your ground truth before a model's answer.** I scored two VLMs
+   against a trace field that could not see distractors, and declared their correct
+   grasp detection a hallucination. When two independent models disagree with
+   your label, look at the frames first.
+2. **"Nothing moved" is only as good as the list of things tracked.**
+3. **Sessions commit whole files.** Your edits can ship inside someone else's
+   commit, and theirs inside yours. Check `git log -- <file>`, not `git status`
+   alone, and name which session owns each part in the commit message.
+4. **An analysis threshold changed after the first data came back is still a
+   post-hoc change,** even when it is recorded before the main analysis runs.
+   Say so when reading R-041.
+
+## 10. Handoff from `primary`, 2026-09-28
+
+This section covers **only the session named `primary`**, which now hands its role
+to `my prim`. The context was cleared (`/clear`) after §9. Everything since then
+was one read-only review, so this section has no memory of the work in §9 beyond
+what §9 itself says. Other sessions (`fable`, `vla-a5`, …) keep their own records.
+
+### Role and scope
+
+`primary` is the user's general-purpose session for this workspace. It answers
+design questions against the code, reviews papers for relevance to the
+perturbation/transfer-fraction programme, and owns the items listed in §9. It
+does not own RESULTS.md entries (R-039 onward belong to `fable`), the run queues,
+or the roster decisions recorded in memory (GR00T N1.7 first, gated on MINERVA and
+a verified harness; reproducibility is the bar).
+
+### What I did since §9
+
+Nothing was committed, no runs were started, and no repo files changed apart from
+this section.
+
+**Golden Ticket review (arXiv:2603.15757, Patil et al., RAI, v3 2026-06-19).**
+The user asked whether fixing the denoising noise, as that paper does, would help
+the transfer-fraction measurements.
+- *The paper:* it searches (random search / zeroth-order / CEM, ~50–5000
+  candidates) for **one constant initial noise vector**. That same `w` is used at
+  every action step, in every episode and state, in place of N(0, I). It improves
+  a frozen policy on 46/51 tasks: SmolVLA on LIBERO +8–13 pts, GR00T N1.5 on
+  SimplerEnv WidowX ~+20 pts. It is a policy-improvement method and says nothing
+  about measurement.
+- *Finding: we already use common random numbers.* `experiments/r039_run.py:194-208`
+  sets `noise_key = 1000*noise_seed + forward`. The noise is shared across the
+  five arms (P N T I S) **and** between the nominal/control rollout and the
+  perturbed one (comment at `:207`). `--noise-seed` varies it while env seed 0
+  fixes the layout. Per-forward keys work as well as one constant `w` for the
+  P−N comparison.
+- *Conclusion: no protocol change.* The paper argues **for** our noise-seed
+  replicates (R-044, R-048, R-051). On its hardware block-pick task, noise choice
+  alone ranges from 2/50 to 98% success. So an outcome under one fixed noise
+  describes a noise-conditioned policy, and measuring under a *searched* ticket
+  would bias every row toward nominal-tuned behaviour. It also cannot touch our
+  30–40% outcome flip rate, which appears at identical seed and noise (render
+  jitter).
+
+### Awaiting the user (offered, not done)
+
+1. One sentence in the "Determinism" bullet of `experiments/compile_map.py:336`
+   citing arXiv:2603.15757 as the reason outcomes are replicated across noise
+   seeds rather than trusted at one.
+2. A pending item for the ticket-robustness experiment below (in §7 or the
+   queue list, wherever the user prefers).
+
+### Proposed, not pre-registered: ticket robustness
+
+*Question:* a golden ticket searched on **nominal** LIBERO raises success there.
+Does it hold its gain on the LIBERO-plus perturbation rows, or lose it? And does
+it change the transfer fractions?
+- The splice harness already supports this: inject the ticket as the noise for
+  every forward, for both arms and control.
+- **Gated:** GR00T N1.7 only, after it clears the reproduction gate (MINERVA
+  first). Only GR00T N1.5 (SimplerEnv) shows noise-steerability in the paper; its
+  LIBERO results are SmolVLA, which is off the roster.
+- Needs an R-number, pre-registered expectations, and a held-out split, so that
+  the ticket is not tuned on the evaluation scenes.
+
+### Open questions
+
+- How steerable through the noise are our policies (π0, GR00T N1.7)? The spread
+  of outcomes across noise seeds in R-051 gives a lower bound. If it is large,
+  single-noise-seed outcome claims in older entries need a caveat.
+
+### Loose ends
+
+- §9's loose ends are unchanged as far as I know. I did not re-check them:
+  `docs/R042_WRIST_MATHS.pdf` uncommitted and undecided; unpushed commits on
+  `main`, none of them mine.
+
+### Advice
+
+1. **Before adopting a paper's trick, check whether the harness already does
+   it.** Here the answer was in a docstring (`r039_run.py:19`).
+2. **Separate a method that improves a policy from one that measures it.** A
+   noise chosen to maximise success is a bias, not a control.
+
+## 11. Handoff from `vla-a5` (Sentinel / OOD), 2026-09-28
+
+This section covers **only the session named `vla-a5`**. It was a read-and-discuss
+session on applying Sentinel (Agia et al., CoRL 2024, arXiv:2410.04640) to our
+work. It ran one CPU-only analysis and made no GPU runs, commits or edits outside
+this section and one new untracked script. The role now passes to `my prim`.
+
+### Scope
+
+Read `docs/SENTINEL_METHODOLOGY.html` (written by the `Sentinel analysis` session).
+Gathered context from `primary` and `fable`. Tested the user's idea (below) on
+stored data.
+
+### What I established
+
+| Claim | Evidence |
+|---|---|
+| Sentinel's portable parts: STAC (distance between consecutive chunks' predictions for the same future steps, MMD V-statistic, gripper dropped) and conformal calibration on the terminal cumulative score of successes (any-time FPR ≤ δ, since the running sum only rises) | `SENTINEL_METHODOLOGY.html` §3–§5 |
+| **The doc is wrong about chunk overlap.** It says k = h = 16, so no overlap. GR00T emits **40-step chunks every 16 steps**, so consecutive chunks share **24 steps**. RTC off only means the leftover steps aren't fed back in; they are still predicted. STAC needs no shadow inference. | `compile_map.py:308`, `EXP_EMBEDDING_OOD.md:83`, R-041 npz `act_*` shape (F, 40, 7), `env_steps` diffs all 16. **Doc not yet corrected.** |
+| `ood_selfref` scores **5 proprio dims** (eef xyz + 2 fingers), not VL features. Scoring OOD as a fraction of steps was **never a deliberate choice against the length confound**; nothing records one. | `experiments/ood_selfref.py` header, `RESULTS.md:2130`, `git log -- experiments/ood_selfref.py` (2 commits) |
+| The S0/S0e/S1–S4 tap panel is **proposed only**; its sole definition is in the Sentinel doc. No Sentinel element has been adopted or ruled out. | `fable` and `primary`, 2026-09-25 |
+| R-047 and R-051 use none of this (readouts: transfer fraction, ‖P−N‖, success/closest approach). | `fable` |
+
+### The user's hypothesis
+
+STAC measures how the action distribution moves over **time**. We measure how it
+moves under **perturbation**. But `‖P−N‖` (`r047_run.py:149`, `r041_run.py:141`)
+compares **one draw per side under a shared noise seed** (`noise_key = 1000·seed + i`,
+`r041_run.py:114`). That can't see a change in spread and gets inflated by mode
+flips. A distributional comparison might explain R-047 pre-registered expectation 5:
+`‖P−N‖` at forward 0 does not predict success (`RESULTS.md` R-047, ~:3805).
+
+Proposed readout, a 2×2 of distances at matched forward index:
+
+| | same forward | across forwards (24-step overlap) |
+|---|---|---|
+| nominal arm N | — | STAC_N (baseline self-consistency) |
+| perturbed arm P | MMD(P_t, N_t): how far the perturbation moved the policy | STAC_P; excess = STAC_P − STAC_N |
+
+Reading it: not shifted = absorbed. Shifted but consistent = confidently doing
+something else (Sentinel's smooth-but-wrong category). Shifted and inconsistent
+= erratic.
+
+### (4a) DONE, CPU pass on stored R-041 chunks: single-draw STAC is noise
+
+Script: `experiments/stac_r041_single_draw.py` (untracked). It uses the overlap
+`chunk_f[16:40]` vs `chunk_{f+1}[0:24]`, dims 0–5, forwards 0–2 (matched index),
+and a reference = p95 of magnitude-0 successes. Data: 240 rollouts, **11 failures**
+(dist 2, yaw 4, joint 5, light 0).
+
+- **The single-draw STAC floor is about 7, against `‖P−N‖` of about 1.** Distance
+  divided by the norm of the overlapping slice is about 1.16. Consecutive forwards
+  use different noise draws, so this is roughly the distance between two
+  independent samples. It measures sampling spread, not self-consistency.
+- Raw STAC_P AUROC for failure is 0.18–0.54, the **wrong direction**. Normalised by
+  action size it is 0.43, chance. The reversal is action size: failures move
+  slightly less.
+- `‖P−N‖` f0 AUROC is 0.53–0.67, below magnitude alone (0.69–0.86).
+- 2×2 at m > 0: all 11 failures are "shifted and consistent", but so are 168
+  successes. No separation.
+- **What it does show:** under a *different* noise seed the policy's own spread
+  (about 7) is about 7× the perturbation effect under the *same* seed (about 1).
+  So a perturbation may mostly move the policy *within* its own sampling spread.
+  That is exactly the question (4b) answers, and it makes (4b) better motivated,
+  not less. As Sentinel predicts, the single-sample version (its "Temporal
+  Non-Distributional" baseline) doesn't work.
+- Caveat: 11 failures, all highly confounded with magnitude. A null here is not a
+  null for the distributional version.
+
+### (4b) NOT RUN, distributional version (needs GPU and pre-registration)
+
+- Per forward, draw **B ≥ 32** chunks per arm with the **same B noise seeds for P
+  and N** (common random numbers keep the pairing's low floor). Extend the splice
+  in `r041_run.py`/`r047_run.py`. The rollout still executes one draw, and the
+  B draws are side calls.
+- Compute MMD (RBF, **fixed bandwidth across arms and forwards**, not Sentinel's
+  per-step median) for MMD(P_t, N_t), STAC_P and STAC_N on the 24-step overlap,
+  gripper dropped. Port `compute_mmd_rbf` as a biased V-statistic, which keeps it
+  ≥ 0.
+- Calibrate at a matched forward index on magnitude-0 successes with the exact
+  conformal index ⌈(M+1)(1−δ)⌉/M. Don't use cumulative sums: failures run 18
+  forwards and successes about 5–8.
+- **Must be a new pre-registered R-number. Do not retrofit onto R-047's readouts.**
+  Changing an analysis after first data is post-hoc under project rules.
+- Cost: B extra head calls per forward per arm. Measure it on a smoke run before
+  budgeting. GPU was held by `fable`'s `queue_r051.sh` (R-051, then the R-047
+  remainder).
+- Kill switches (Sentinel doc §12): success-vs-success split, shuffled labels,
+  checking that each threshold fires at δ on the reference.
+
+### Open questions
+
+- Does the perturbation shift the distribution beyond its own spread? Answering
+  it is (4b)'s first readout.
+- R-036's state-pathway separation is "the same rate in every category" (the
+  `ood_selfref` header), which fits "unusual because it failed". Sentinel's
+  novelty × outcome 2×2 per category, and onset timing, are the discriminators.
+  Neither has been done.
+
+### Advice
+
+1. **Check chunk geometry against stored arrays, not prose.** The Sentinel doc's
+   main blocker (no overlap) was false, and one `np.load` shows it.
+2. **A single-draw distance across different noise seeds measures the sampler.**
+   Anything across forwards must either share seeds or use B draws.
+3. The Sentinel doc's §12 step 1 (Mahalanobis in `ood_selfref`) targets proprio
+   state, not VL features. `primary` read it as VL.
