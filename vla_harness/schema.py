@@ -97,7 +97,8 @@ class Step:
 # --- G4: perturbation names mirror the LIBERO-plus taxonomy from day one -----
 
 LIBERO_PLUS_FACTORS = {
-    "camera_pose":   ["camera_yaw_deg", "camera_pitch_deg", "camera_dist_m"],
+    "camera_pose":   ["camera_yaw_deg", "camera_pitch_deg", "camera_dist_m",
+                      "camera_bench_yaw_deg", "camera_bench_pitch_deg", "camera_bench_scale"],
     "initial_state": ["ee_offset_x_m", "ee_offset_y_m", "joint_radius_rad", "joint_dir_seed"],
     "object_layout": ["object_shift_m", "distractor_count"],
     "lighting":      ["light_intensity"],
@@ -106,6 +107,15 @@ LIBERO_PLUS_FACTORS = {
     "language":      ["instruction_variant"],
 }
 _KNOB_TO_FACTOR = {k: f for f, ks in LIBERO_PLUS_FACTORS.items() for k in ks}
+
+# The value at which a knob does nothing. 0 for every knob except a scale
+# factor, where 0 would collapse the camera onto its pivot; `revert()` and
+# `is_nominal()` must use this, not a literal 0.
+KNOB_NEUTRAL = {"camera_bench_scale": 1.0}
+
+
+def knob_neutral(name: str) -> float:
+    return KNOB_NEUTRAL.get(name, 0.0)
 
 
 @dataclass(frozen=True)
@@ -129,15 +139,15 @@ class PerturbationSpec:
         return {_KNOB_TO_FACTOR[k] for k, _ in self.knobs}
 
     def is_nominal(self) -> bool:
-        return all(v == 0 for _, v in self.knobs)
+        return all(v == knob_neutral(k) for k, v in self.knobs)
 
     def revert(self, *knob_names) -> "PerturbationSpec":
         """Counterfactual probe: set these knobs back to nominal, keep the rest."""
-        return PerturbationSpec(tuple((k, 0.0 if k in knob_names else v)
+        return PerturbationSpec(tuple((k, knob_neutral(k) if k in knob_names else v)
                                       for k, v in self.knobs))
 
     def label(self) -> str:
-        active = [f"{k}={v:g}" for k, v in self.knobs if v != 0]
+        active = [f"{k}={v:g}" for k, v in self.knobs if v != knob_neutral(k)]
         return ", ".join(active) if active else "nominal"
 
 

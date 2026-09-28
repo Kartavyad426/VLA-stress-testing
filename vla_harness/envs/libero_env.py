@@ -17,6 +17,7 @@ import os
 
 import math
 import re
+import sys
 from typing import Any
 
 from ..schema import (Observation, Action, PerturbationSpec, derive_id,
@@ -113,8 +114,17 @@ SUPPORTED_KNOBS: set[str] = {
     "camera_yaw_deg", "camera_pitch_deg", "camera_dist_m",
     "ee_offset_x_m", "ee_offset_y_m", "light_intensity",
     "joint_radius_rad", "joint_dir_seed",
+    "camera_bench_yaw_deg", "camera_bench_pitch_deg", "camera_bench_scale",
 }
 MAIN_CAMERA = "agentview"
+
+# LIBERO-Plus's own camera geometry, knob for knob: view string
+# "view_{yaw}_{pitch}_{scale*100}_0_0". Not the same motion as camera_*: those
+# orbit the point the camera looks at; these rotate about LIBERO-Plus's fixed
+# pivots (z through the origin, y through (0, 0, 0.8)) and scale from
+# (0, 0, 0.8), with its 4-decimal rounding. The two families never mix.
+CAMERA_KEYS = ("camera_yaw_deg", "camera_pitch_deg", "camera_dist_m")
+BENCH_CAMERA_KEYS = ("camera_bench_yaw_deg", "camera_bench_pitch_deg", "camera_bench_scale")
 
 # LE-5: termination vocabulary is declared in L0 and adapters map onto it.
 # ARCHITECTURE §4 documents it and the manifest prints it, so divergence
@@ -353,10 +363,17 @@ class LiberoEnv:
         # render the trained condition at any later state of this episode.
         self._knob_nominal = self._snapshot_nominal(sim.model, sim.model.camera_name2id(MAIN_CAMERA))
 
+        if any(key in k for key in CAMERA_KEYS) and any(key in k for key in BENCH_CAMERA_KEYS):
+            raise ValueError(
+                f"{sorted(set(k) & set(CAMERA_KEYS + BENCH_CAMERA_KEYS))}: the harness "
+                f"camera knobs and the LIBERO-Plus bench knobs are different motions "
+                f"about different pivots; composing them has no benchmark meaning")
+        if any(key in k for key in BENCH_CAMERA_KEYS):
+            self._apply_bench_camera(sim, k)
+
         yaw, pitch = k.get("camera_yaw_deg", 0.0), k.get("camera_pitch_deg", 0.0)
         dist = k.get("camera_dist_m", 0.0)
-        cam_keys = ("camera_yaw_deg", "camera_pitch_deg", "camera_dist_m")
-        if any(key in k for key in cam_keys):
+        if any(key in k for key in CAMERA_KEYS):
             # A camera perturbation MOVES LIBERO's own camera; it never re-aims it.
             #
             # The previous version replaced the orientation with a look-at toward
@@ -560,6 +577,84 @@ class LiberoEnv:
 
     # --- R-039 / R-041 paired render: the trained condition at the CURRENT state
     _MODEL_FIELDS = ("light_diffuse", "light_dir", "light_specular", "light_pos")
+
+    def _apply_bench_camera(self, sim, k: dict) -> None:
+        """Put agentview where LIBERO-Plus puts it for the matching view string.
+
+        All-neutral knobs (0, 0, 1.0) leave the camera untouched, so the
+        nominal arm is the loaded camera bit for bit.
+        """
+        import numpy as np
+        yaw, pitch = k.get("camera_bench_yaw_deg", 0.0), k.get("camera_bench_pitch_deg", 0.0)
+        scale = k.get("camera_bench_scale", 1.0)
+        # LIBERO-Plus int()s the angles and stores the scale as an integer
+        # percent; a value it cannot express is not a benchmark view.
+        if yaw != int(yaw) or pitch != int(pitch):
+            raise ValueError(f"camera_bench_yaw_deg/pitch_deg must be integers, got {yaw}, {pitch}")
+        pct = round(scale * 100)
+        if abs(scale * 100 - pct) > 1e-9 or pct <= 0:
+            raise ValueError(f"camera_bench_scale must be a positive multiple of 0.01, got {scale}")
+        yaw, pitch, scale = int(yaw), int(pitch), pct / 100
+        if (yaw, pitch, scale) == (0, 0, 1.0):
+            return
+        cid = sim.model.camera_name2id(MAIN_CAMERA)
+        if int(sim.model.cam_bodyid[cid]) != 0:
+            raise NotImplementedError(
+                f"{MAIN_CAMERA} is attached to body {int(sim.model.cam_bodyid[cid])}, not the world")
+        # The knobs are absolute views, not offsets: refuse a camera that is not
+        # already LIBERO-Plus's canonical one (a camera variant, or a soft reset
+        # that kept the last episode's knob).
+        pos0, q0 = self._bench_camera_pose(0, 0, 1.0)
+        qm = np.array(sim.model.cam_quat[cid], dtype=float)
+        if (not np.allclose(sim.model.cam_pos[cid], pos0, atol=1e-6)
+                or min(np.abs(qm - q0).max(), np.abs(qm + q0).max()) > 1e-6):
+            raise ValueError(
+                f"{MAIN_CAMERA} is not at LIBERO-Plus's canonical pose before the bench "
+                f"knobs (pos {list(sim.model.cam_pos[cid])} vs {list(pos0)}); pick a "
+                f"variant whose camera is canonical")
+        pos, q = self._bench_camera_pose(yaw, pitch, scale)
+        if scale != 1.0 and np.array_equal(pos, self._bench_camera_pose(yaw, pitch, 1.0)[0]):
+            # Some scene classes' _setup_camera ignores scale_factor
+            # (the kitchen _table_marble/_bg_brick/_light_shadow variants).
+            raise NotImplementedError(
+                f"{type(self._env.unwrapped._env.env).__name__}._setup_camera ignores scale")
+        sim.model.cam_pos[cid] = pos
+        sim.model.cam_quat[cid] = q
+        sim.forward()
+
+    def _bench_camera_pose(self, yaw: int, pitch: int, scale: float):
+        """agentview (pos, quat [w, x, y, z]) for LIBERO-Plus view
+        `{yaw}_{pitch}_{scale*100}_0_0`.
+
+        Runs the scene class's own `_setup_camera` against a stub and a
+        recording arena, so the canonical pose, the pivots, the order (pitch
+        via rotate_around_y, then yaw via rotate_around_z, then
+        scale_distance_from_pivot) and the rounding to 4 decimals after each
+        step are all LIBERO-Plus's code. It is called whole rather than its
+        three helpers because the canonical pose is a local of that method,
+        and differs per scene class (tabletop, floor, living room, ...).
+        """
+        import types
+        import numpy as np
+        problem = self._env.unwrapped._env.env
+        setup = getattr(type(problem), "_setup_camera", None)
+        if not (self.libero_plus and setup is not None
+                and hasattr(sys.modules.get(type(problem).__module__), "rotate_around_z")):
+            raise NotImplementedError(
+                "camera_bench_* knobs need the LIBERO-Plus stack (libero_plus=True, "
+                "its fork on PYTHONPATH); vanilla LIBERO has no view geometry to match")
+        got = {}
+
+        class _Arena:
+            def set_camera(self, camera_name, pos, quat, **_):
+                got[camera_name] = (pos, quat)
+
+        stub = types.SimpleNamespace(horizon_view=yaw, vertical_view=pitch, scale_factor=scale,
+                                     end_point_rot=0, end_point_vertical=0)
+        setup(stub, _Arena())
+        pos, quat = got[MAIN_CAMERA]
+        q = np.array(quat, dtype=float)
+        return np.array(pos, dtype=float), q / np.linalg.norm(q)
 
     @staticmethod
     def _snapshot_nominal(model, cam_id: int) -> dict:

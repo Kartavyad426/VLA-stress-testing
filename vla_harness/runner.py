@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 
 from .schema import (Rollout, Step, PerturbationSpec, TraceStore, cell_hash,
                      make_fingerprint, fingerprint_diff, semantic_runtime,
-                     keyed_part)
+                     keyed_part, knob_neutral)
 
 
 def _sem(env) -> dict:
@@ -446,7 +446,7 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
     full = Cell(spec, len(seeds), sum(full_out), [])
     results = []
     for knob, val in spec.knobs:
-        if val == 0:
+        if val == knob_neutral(knob):
             continue
         rev_spec = spec.revert(knob)
         rev_out = outcomes(rev_spec)
@@ -479,12 +479,12 @@ def counterfactual_probe(env, policy, spec: PerturbationSpec, seeds,
     # across all ten checkpoints they tested; our short-circuited probe scored
     # it at zero. That disagreement is what surfaced this.
     attribution = None
-    active = [k for k, v in spec.knobs if v]
+    active = [k for k, v in spec.knobs if v != knob_neutral(k)]
     if len(active) >= 2:
         vals = dict(spec.knobs)
 
         def run_fn(on):
-            sp = PerturbationSpec.of(**{k: (vals[k] if k in on else 0.0)
+            sp = PerturbationSpec.of(**{k: (vals[k] if k in on else knob_neutral(k))
                                         for k in active})
             return run_cell(env, policy, sp, seeds, store).rate
 

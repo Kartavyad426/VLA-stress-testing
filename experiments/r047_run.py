@@ -31,7 +31,7 @@ from vla_harness.capture.splice import ARMS, attach_recorder, attach_splice, tra
 from vla_harness.envs.libero_env import LiberoEnv
 from vla_harness.policies.lerobot_policy import LeRobotPolicy
 from vla_harness.runner import rollout
-from vla_harness.schema import PerturbationSpec, TraceStore
+from vla_harness.schema import PerturbationSpec, TraceStore, knob_neutral
 
 LIVE_DIMS = 7
 ENV_SEED = 0
@@ -40,6 +40,15 @@ GRIDS = {  # axis -> (magnitudes, replicate spec)
     "joint_radius_rad": ([0.0, 0.1, 0.2, 0.3, 0.4, 0.5], {"dirs": [0, 1, 2], "noise": [0, 1]}),
     "camera_yaw_deg": ([0.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0], {"dirs": [0], "noise": [0, 1, 2, 3]}),
     "camera_dist_m": ([0.0, 0.1, 0.2, 0.4, 0.6, 0.8], {"dirs": [0], "noise": [0, 1, 2, 3]}),
+    # LIBERO-Plus's own camera geometry (camera_bench_*). Ranges from the Camera
+    # Viewpoints rows of docs/libero_plus_variants/*.csv, identical in all four
+    # suites: azimuth -75..75 (stored 285..359 for negative), elevation 0 or 15
+    # only, distance 100..200 %. Yaw reuses camera_yaw_deg's magnitudes so the
+    # two geometries compare point for point; pitch 5/10 interpolate below the
+    # benchmark's one value. Scale's nominal is 1.0, not 0.
+    "camera_bench_yaw_deg": ([0.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0], {"dirs": [0], "noise": [0, 1, 2, 3]}),
+    "camera_bench_pitch_deg": ([0.0, 5.0, 10.0, 15.0], {"dirs": [0], "noise": [0, 1, 2, 3]}),
+    "camera_bench_scale": ([1.0, 1.2, 1.4, 1.6, 1.8, 2.0], {"dirs": [0], "noise": [0, 1, 2, 3]}),
 }
 
 
@@ -57,7 +66,7 @@ def make_env(task_id):
 
 
 def spec_for(axis, m, d):
-    if m == 0:
+    if m == knob_neutral(axis):
         return PerturbationSpec()
     if axis == "joint_radius_rad":
         return PerturbationSpec.of(joint_radius_rad=float(m), joint_dir_seed=int(d))
