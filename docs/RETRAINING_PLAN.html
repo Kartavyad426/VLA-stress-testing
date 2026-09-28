@@ -135,7 +135,7 @@
   <p class="eyebrow">Plan · perturbation → correction map · retraining</p>
   <h1>From the map to a retrained policy</h1>
   <p class="standfirst">How many perturbation-and-correction pairs there are to find, what it takes to be sure of each, and what a retraining run costs, needs and should be expected to deliver.</p>
-  <div class="meta"><span>2026-09-24</span><span>Built on RESULTS.md R-039 to R-047</span><span>GR00T N1.7 · LIBERO-Plus</span></div>
+  <div class="meta"><span>2026-09-24, updated 2026-09-28</span><span>Built on RESULTS.md R-039 to R-051</span><span>GR00T N1.7 · LIBERO-Plus</span></div>
 </header>
 
 <section>
@@ -145,15 +145,15 @@
 <div class="tbl-scroll"><table>
 <thead><tr><th>perturbation</th><th>dominant input at forward 0</th><th>secondary</th><th>status</th><th>entry</th></tr></thead>
 <tbody>
-<tr><td>camera viewpoint</td><td>agent-view pixels, 0.98</td><td>none (wrist 0.00)</td><td class="yes">mapped</td><td>R-039, R-042</td></tr>
-<tr><td>sensor noise</td><td>agent-view pixels, 0.97</td><td>none (wrist 0.00)</td><td class="yes">mapped</td><td>R-039, R-042</td></tr>
-<tr><td>lighting</td><td>both cameras jointly (each alone ≤ 0.2)</td><td>a cross-camera interaction</td><td class="yes">mapped, interaction open</td><td>R-042</td></tr>
-<tr><td>robot initial state</td><td>wrist pixels, 0.88</td><td>agent view 0.17, state 0.04</td><td class="yes">mapped and checked three ways</td><td>R-042, R-044, R-045</td></tr>
-<tr><td>object layout</td><td>—</td><td>—</td><td class="no">not run</td><td></td></tr>
-<tr><td>background texture</td><td>—</td><td>—</td><td class="no">not run</td><td></td></tr>
-<tr><td>language instruction</td><td>—</td><td>—</td><td class="no">not run · the one where the text arm would be a real finding</td><td>R-038 context</td></tr>
+<tr><td>camera viewpoint</td><td>agent-view pixels, 0.98</td><td>none (wrist 0.00)</td><td class="yes">mapped, checked (reverse exact, stable over seeds, rescue barely above a re-run)</td><td>R-039, R-042, R-048, R-050</td></tr>
+<tr><td>sensor noise</td><td>agent-view pixels, 0.97</td><td>none (wrist 0.00)</td><td class="yes">mapped; reverse: agent view alone reproduces 0.97</td><td>R-039, R-042, R-051</td></tr>
+<tr><td>lighting</td><td>both cameras jointly (each alone ≤ 0.2)</td><td>a cross-camera interaction</td><td class="yes">mapped; reverse: agent view 0.14, wrist 0.24 alone at the median (joint), but the two largest-effect instances are agent-view (0.78, 0.79)</td><td>R-042, R-051</td></tr>
+<tr><td>robot initial state</td><td>wrist pixels, 0.88</td><td>agent view 0.17, state 0.04</td><td class="yes">mapped and checked three ways; one corrected chunk halves the later gap</td><td>R-042, R-044, R-045, R-050</td></tr>
+<tr><td>object layout</td><td>agent-view pixels, 0.55 (0.89 where the effect is large)</td><td>wrist where an object near the gripper moved</td><td class="yes">mapped; reverse: agent view 0.54, wrist 0.11</td><td>R-049, R-051</td></tr>
+<tr><td>background texture</td><td>both cameras jointly (each alone ≤ 0)</td><td>a cross-camera interaction, like lighting</td><td class="yes">mapped; reverse: the textured agent view alone moves the action away from P (−0.40)</td><td>R-049, R-051</td></tr>
+<tr><td>language instruction</td><td>the text, by construction</td><td>effect size only: ‖P−N‖ 1.4 at the median, 2.8 on R-038's null-prompt scenes</td><td class="yes">measured; positional text/image split undefined</td><td>R-038, R-049</td></tr>
 </tbody></table></div>
-<p>Four of seven rows are filled. The remaining three cost about the same each as the first four did. Language needs one design change: the text arm must swap the instruction before the VLM, since after it the text positions carry image content.</p>
+<p>All seven rows are measured. Language is measured as effect size only: the rewrite tokenises to a different length than the trained wording, so a positional text or image splice is undefined; a matched-length instruction swap before the VLM would restore it and is not built. The reverse direction now exists for every row except language (R-051); noise-seed replicates are stable on every row, and a corrected first chunk does not rescue layout (1 flip of 8, against 0 for a re-run). The state token is at or below 0.2 on every row.</p>
 </section>
 
 <section>
@@ -169,7 +169,7 @@
 <p>Roughly 60 rollouts and an hour of GPU per perturbation category, plus a second checkpoint (another hour) if the claim is to be about the architecture rather than one fine-tune. Seven categories at that rate is a day. The continuous sweeps are separate: seven rollouts per scene and axis for the bisection form (R-041), or 36 per scene and axis for the probability form with replicates (R-047).</p>
 <div class="note">
 <span class="nh">Decision rule for "sure", written before the remaining rows are run</span>
-An input is the correction mechanism for a category when: restoring it alone recovers at least 0.8 of the first action's displacement on at least 8 of 10 instances; corrupting it alone in the nominal run reproduces at least 0.4 of the effect and more than any other single input; both hold under two further noise seeds; and executing its corrected chunk at forward 0 flips at least half of the failures. Start pose passes all four. If the restoration is high but the corruption is low, the pose is readable from more than one input and the data specification must cover both.
+An input is the correction mechanism for a category when: restoring it alone recovers at least 0.8 of the first action's displacement on at least 8 of 10 instances; corrupting it alone in the nominal run reproduces at least 0.4 of the effect and more than any other single input; both hold under two further noise seeds; and executing its corrected chunk at forward 0 flips at least half of the failures <b>beyond a no-op drive</b> that re-runs the perturbed chunk. The no-op term was added after R-048 measured a 3-of-7 flip rate from render jitter alone. Start pose passes the first three; its rescue (7 of 7 with the nominal chunk, 4 of 7 with the wrist chunk) predates the no-op design, so the fourth is unconfirmed, though R-050 supports it independently: one corrected chunk halves ‖P−N‖ over the next forwards. Camera passes the first three and fails the fourth (one or two flips above the no-op). If the restoration is high but the corruption is low, the pose is readable from more than one input and the data specification must cover both.
 </div>
 </section>
 
@@ -215,7 +215,7 @@ An input is the correction mechanism for a category when: restoring it alone rec
 <h2>Predictions, and what would count as failure</h2>
 <ul class="tight">
 <li><b>Starting point.</b> On the ten mapped start-pose instances the current checkpoint fails 6 to 9 of 10 depending on the noise seed; the nominal control succeeds 10 of 10.</li>
-<li><b>Prediction for the frozen arm.</b> Closes at least 70 percent of that gap on held-out perturbed starts. R-044 showed the correct first chunk exists and rescues 7 of 7; R-045 showed the pose is already in the VLM's output; so the head has the information and only lacks the mapping, which demonstrations supply directly.</li>
+<li><b>Prediction for the frozen arm.</b> Closes at least 70 percent of that gap on held-out perturbed starts. R-044 showed the correct first chunk exists and rescues 7 of 7 (no no-op baseline; R-050 shows it keeps the episode near nominal afterwards); R-045 showed the pose is already in the VLM's output; so the head has the information and only lacks the mapping, which demonstrations supply directly.</li>
 <li><b>Prediction for the unfrozen arm.</b> Within 10 points of the frozen arm. If it is 15 or more points better, R-045's post-hoc reading was wrong and the VLM was part of the gap.</li>
 <li><b>Regression.</b> Under 5 points on the nominal control. Interference is the main risk of any targeted fine-tune.</li>
 <li><b>Mechanism check after training.</b> The wrist arm's transfer on the retrained checkpoint should fall, because a perturbed start no longer moves the first action much. If it does not fall while success rises, the policy learned to recover rather than to start correctly, which is a different fix than intended.</li>
@@ -237,7 +237,7 @@ An input is the correction mechanism for a category when: restoring it alone rec
 </ol>
 </section>
 
-<div class="footer">Sources: <code>RESULTS.md</code> R-039 to R-047, R-046 (out of scope) for the training design, <code>PENDING_DECISIONS.md</code> item 25 for the GPU rental question; LIBERO-Plus ranges from <a href="https://arxiv.org/html/2510.13626v1">arXiv 2510.13626</a>.</div>
+<div class="footer">Sources: <code>RESULTS.md</code> R-039 to R-051, R-046 (out of scope) for the training design, <code>PENDING_DECISIONS.md</code> item 25 for the GPU rental question; LIBERO-Plus ranges from <a href="https://arxiv.org/html/2510.13626v1">arXiv 2510.13626</a>.</div>
 </div>
 </body>
 </html>

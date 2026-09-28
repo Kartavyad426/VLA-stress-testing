@@ -59,7 +59,7 @@ def fmt_b(b):
 
 
 def plot(rows, axis, mx, tau, key, ylabel, ymax=None, tau_line=True):
-    W, H, pl, pr, pt, pb = 900, 300, 50, 16, 12, 34
+    W, H, pl, pr, pt, pb = 900, 300, 50, 130, 12, 34   # pr leaves room for the scene labels at the last point
     by_task = {}
     for r in rows:
         v = r.get(key) if key != "tf_I" else (r["tf_f0"]["I"] if r.get("tf_f0") else None)

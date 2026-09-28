@@ -4179,3 +4179,81 @@ side.
 
 The recorded per-forward arms at forward 0 not matching R-044/R-048's
 values within 0.05 (same inputs, same noise: they must).
+
+## R-051 — DONE: noise single-camera and exact; lighting and texture joint (neither camera alone reproduces them); layout agent view; a corrected first chunk does not rescue layout
+
+**Date registered** 2026-09-25 · **Run** 2026-09-25 15:34–17:21 · **Status** DONE · **Type** EVAL ·
+**Queue** `experiments/queue_r051.sh` (then the rest of R-047) · **Instances**
+the same 10 per row as R-042/R-049 (`experiments/repro/r051_selection_{noise,light,layout,texture}.json`,
+`r049_selection_lang.json`)
+
+### Why
+
+Necessity, seed and rescue checks exist only for camera (R-048) and start
+pose (R-044). The other five rows rest on a single denoising pass at noise
+seed 0. This applies the R-048 template to each, with no new code.
+
+### Design
+
+1. **Reverse direction**, forward 0, no rollouts: `r048_reverse.py`
+   (paired render) for noise and lighting; `r044_reverse.py` (recorded
+   control) for layout and texture.
+2. **Noise seeds 1 and 2**, `--arms extended`, env seed 0: noise, lighting,
+   layout, texture (80 rollouts); language with `--arms base` (20).
+3. **Forward-0 rescue on layout only** (the one row with enough failures,
+   8/10): drive P (the no-op baseline R-048 showed is required), A and N,
+   `--drive-until 1`, noise seed 0 (30 rollouts). Noise, lighting and
+   texture fail on 1, 1 and 0 of 10: a rescue there cannot be read.
+
+### Pre-registered expectations
+
+1. **Noise, reverse: `noise_A` ≥ 0.9, `noise_W`, `noise_S` within ±0.05 of 0
+   on ≥ 9/10.** *High, by construction* (one-input perturbation, as camera).
+2. **Lighting, reverse: `noise_A` + `noise_W` < 0.7 at the median, and
+   neither alone ≥ 0.5.** *Medium.* If lighting is a cross-camera property
+   (R-042), corrupting one camera of the nominal run reproduces little of
+   the effect. If either alone reproduces ≥ 0.8, the "joint" reading is
+   wrong and that camera is the channel.
+3. **Layout, reverse: `noise_A` > `noise_W` at the median.** *Medium*
+   (denoising A 0.55 > W 0.16).
+4. **Texture, reverse: neither `noise_A` nor `noise_W` ≥ 0.5 at the median.**
+   *Medium*, same reasoning as 2.
+5. **Seeds: the dominant-arm median per row within 0.1 of seed 0 under both
+   seeds** (noise A, layout A, lighting and texture IT, language ‖P−N‖ f0
+   within 25%). *High.*
+6. **Layout rescue: drive A flips more P-failures than drive P, by ≥ 2.**
+   *Low.* At a ~40% no-op flip rate and n = 8, only a large effect is
+   visible.
+
+### What would make this uninterpretable
+
+`denoise_*` recomputed by the reverse scripts not matching R-042/R-049 to
+0.05 (same inputs, same noise: they must).
+
+### RESULT, 2026-09-28 (run 2026-09-25, scored after the laptop's suspend) — four of six held; the layout rescue is null
+
+`runs/r051_reverse_{noise,light,layout,texture}`, `runs/r051_{noise,light,layout,texture,lang}_seed{1,2}`,
+`runs/r051_layout_rescue_{P,A,N}`; all 17 jobs rc=0 (`runs/r051/queue.log`).
+
+| row | noise_A | noise_W | noise_S | denoise_A (orig.) | denoise_W (orig.) |
+|---|---|---|---|---|---|
+| sensor noise | 0.97 | 0.02 | 0.00 | 0.97 (0.97) | 0.00 (0.00) |
+| lighting | 0.14 | 0.24 | 0.00 | 0.18 (0.16) | 0.20 (0.19) |
+| layout | 0.54 | 0.11 | −0.02 | 0.56 (0.55) | 0.16 (0.16) |
+| texture | −0.40 | 0.11 | 0.00 | −0.05 (−0.02) | −0.08 (−0.05) |
+
+Medians over 10 instances each.
+
+1. **Noise reverse: HELD.** noise_A ≥ 0.9 on 9/10 (the tenth 0.899); noise_W and noise_S within ±0.05 on 10/10.
+2. **Lighting reverse: HELD at the median, not on every instance.** noise_A + noise_W = 0.38 at the median, and neither median reaches 0.5. But the two instances with the largest effect are carried by the agent view alone: top-drawer · light 1 (‖P−N‖ 0.89, noise_A 0.78) and between-plate-ramekin · light 8 (1.83, 0.79); one small-effect instance is led by the wrist (on-ramekin · light 50, 0.18, noise_W 0.52). The joint reading holds for the small-effect majority; where lighting moves the action a lot, the agent view carries it, the same split R-049 found for layout.
+3. **Layout reverse: HELD.** noise_A 0.54 > noise_W 0.11; A > W on 9/10.
+4. **Texture reverse: HELD.** Neither reaches 0.5. noise_A is −0.40: a textured agent view placed beside a clean wrist view moves the action *away* from P on 8/10, consistent with the head responding to a cross-view mismatch rather than to the texture (as lighting).
+5. **Seeds: MISSED on one of ten checks.** Within 0.1 of seed 0: noise A 0.98/0.98 (0.97); lighting IT 1.00/1.00 and texture IT 1.00/1.00 (trivially, IT ≡ 1 under both nominal sources at f0); language ‖P−N‖ f0 median 1.47/1.47 (1.42), per instance within 25% on 9/10 under each seed. Layout A 0.39 under seed 1 against 0.55 (miss by 0.06), 0.56 under seed 2. The layout agent-view share is less stable than the single-input rows'.
+6. **Layout rescue: MISSED.** Original run 8/10 fail. Re-run P (no-op) 8/10, 0 flipped, 0 broken; drive A 8/10, 1 flipped, 1 broken; drive N 9/10, 0 flipped, 1 broken. Closest approach improved on 7/10 under drive A, 4/10 under N, 1/10 under the re-run. A corrected first chunk does not change layout outcomes: like camera, and unlike start pose, a layout failure is not decided at forward 0. The no-op flip rate here is 0/8, against 3/7 on camera.
+
+**Uninterpretability check (denoise within 0.05 of the original):** noise 10/10 A and W; layout 10/10 A and W; lighting A 8/10, W 4/10; texture A 10/10, W 7/10. **Missed on the lighting and texture wrist arm.** ‖P−N‖ itself differs by 1–10% between the two runs (render and bf16 jitter), and on instances with ‖P−N‖ of 0.15–0.25 that alone moves τ by ~0.1; instances with larger gaps agree to 0.01–0.03, and the medians agree to 0.03. One texture instance (task 87: W −0.53 here against −0.14) is larger than jitter explains and is left open. Read: the 0.05 tolerance was set on rows with ‖P−N‖ ≈ 1–4 and is too strict for rows at 0.3; the conclusions above rest on medians, which agree.
+
+**Outcome variance, again.** Lighting fails 1, 5 and 1 of 10 across noise seeds 0, 1, 2 with ‖P−N‖ f0 unchanged (0.29–0.31): the outcome at one seed is not a property of the instance.
+
+**What this changes in the map.** Necessity is now measured on five rows (all but language). The rescue criterion of the retraining plan's decision rule is failed by camera and layout and unconfirmed for start pose; start pose is the only row where the first chunk plausibly decides the episode (R-050).
+

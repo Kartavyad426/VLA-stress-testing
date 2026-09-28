@@ -61,7 +61,8 @@ def f2(x):
 
 # ----------------------------------------------------------------------------- html bits
 def table(headers, rows, cls=""):
-    th = "".join(f"<th>{h}</th>" for h in headers)
+    numcol = [bool(rows) and all(isinstance(r[i], (int, float)) for r in rows if i < len(r)) for i in range(len(headers))]
+    th = "".join(f"<th{' class=num' if n else ''}>{h}</th>" for h, n in zip(headers, numcol))   # numeric headers align with their right-aligned values
     tr = "".join("<tr>" + "".join(f"<td{' class=num' if isinstance(c, (int, float)) else ''}>{c if not isinstance(c, float) else f2(c)}</td>" for c in r) + "</tr>" for r in rows)
     return f'<div class="tbl-scroll"><table class="{cls}"><thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table></div>'
 
@@ -89,16 +90,14 @@ def figure_from(path, keyword):
 
 def denoise_table(cat, runs_labels):
     """Median transfer at forward 0 and at the anchor, per run, for one category."""
-    out = []
-    for run, label in runs_labels:
-        a = analysis(run)
-        if not a or cat not in a["by_category"]:
-            continue
-        c = a["by_category"][cat]
-        arms = list(c["median_tf_f0"])
-        out.append([label, c["n"], c["n_fail"], c["median_d_pn_f0"]] + [c["median_tf_f0"][x] for x in arms] + [c["median_tf_anchor"][x] for x in arms])
-        hdr = ["run", "n", "fail", "‖P−N‖ f0"] + [f"{x} f0" for x in arms] + [f"{x} anchor" for x in arms]
-    return table(hdr, out) if out else "<p>no runs</p>"
+    cs = [(label, analysis(run)["by_category"][cat]) for run, label in runs_labels if analysis(run) and cat in analysis(run)["by_category"]]
+    if not cs:
+        return "<p>no runs</p>"
+    arms = [x for x in ("T", "I", "S", "IT", "A", "W") if any(x in c["median_tf_f0"] for _, c in cs)]   # union: runs differ in which arms they recorded
+    hdr = ["run", "n", "fail", "‖P−N‖ f0"] + [f"{x} f0" for x in arms] + [f"{x} anchor" for x in arms]
+    out = [[label, c["n"], c["n_fail"], c["median_d_pn_f0"]] + [c["median_tf_f0"].get(x, "—") for x in arms] + [c["median_tf_anchor"].get(x, "—") for x in arms]
+           for label, c in cs]
+    return table(hdr, out)
 
 
 def instance_table(cat, run):
@@ -115,17 +114,41 @@ def instance_table(cat, run):
     return table(hdr, body)
 
 
-def curves(cat, run, title):
+def legend(arms):
+    return "<p class=legend>" + "".join(f'<span><i style="background:var(--arm-{x})"></i>{x} · {ARM_NAME[x]}</span>' for x in arms) + '<span><i class=dash></i>anchor forward</span></p>'
+
+
+def dpn_svg(inst):
+    """‖P−N‖ per forward, for rows where no transfer arm is defined (language)."""
+    d = np.asarray(inst["d_pn"], float); F = len(d)
+    W, H, pl, pr, pt, pb = 250, 130, 30, 8, 8, 22
+    hi = max(4.0, float(np.nanmax(d)) * 1.05)
+    x = lambda i: pl + (W - pl - pr) * (i / max(F - 1, 1))
+    y = lambda v: pt + (H - pt - pb) * (1 - v / hi)
+    parts = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="‖P−N‖ per forward for {E(str(inst.get("label")))}">']
+    for g in (0.0, hi / 2, hi):
+        parts.append(f'<line x1="{pl}" y1="{y(g):.1f}" x2="{W-pr}" y2="{y(g):.1f}" stroke="currentColor" opacity=".15"/>'
+                     f'<text x="{pl-4}" y="{y(g)+3.5:.1f}" font-size="9" text-anchor="end" fill="currentColor" opacity=".6">{g:.1f}</text>')
+    parts.append(f'<polyline points="{" ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in enumerate(d))}" fill="none" stroke="var(--arm-T)" stroke-width="2" stroke-linejoin="round"/>')
+    a = inst.get("anchor_forward")
+    if a is not None and 0 <= a < F:
+        parts.append(f'<line x1="{x(a):.1f}" y1="{pt}" x2="{x(a):.1f}" y2="{H-pb}" stroke="currentColor" stroke-dasharray="3 3" opacity=".5"/>')
+    parts.append(f'<text x="{pl}" y="{H-6}" font-size="9" fill="currentColor" opacity=".6">forward 0</text>'
+                 f'<text x="{W-pr}" y="{H-6}" font-size="9" text-anchor="end" fill="currentColor" opacity=".6">{F-1}</text></svg>')
+    return "".join(parts)
+
+
+def curves(cat, run, title, effect=False):
     from experiments.r039_report import curve_svg
-    try:
-        inst = [i for i in load_instances(f"runs/{run}") if i["category"] == cat]
-    except Exception:
-        return ""
+    inst = [i for i in load_instances(f"runs/{run}") if i["category"] == cat]   # no try: a missing figure must fail the build, not vanish
     if not inst:
-        return ""
-    figs = "".join(f"<figure class=small>{curve_svg(i, i['rollout_id'])}<figcaption>{lvl(i.get('level'))} {E(str(i.get('label')))} · {'success' if i.get('success') else 'fail'}</figcaption></figure>"
+        raise SystemExit(f"curves: no {cat} instances in runs/{run}")
+    draw = dpn_svg if effect else (lambda i: curve_svg(i, i["rollout_id"]))
+    figs = "".join(f"<figure class=small>{draw(i)}<figcaption>{lvl(i.get('level'))} {E(str(i.get('label')))} · {'success' if i.get('success') else 'fail'}</figcaption></figure>"
                    for i in sorted(inst, key=lambda p: p["task_id"]))
-    return f"<h4>{title}</h4><div class=grid>{figs}</div>"
+    key = ('<p class=legend><span><i style="background:var(--arm-T)"></i>‖P−N‖ per forward (effect size, policy action units)</span><span><i class=dash></i>anchor forward</span></p>'
+           if effect else legend([x for x in ("T", "I", "S", "IT", "A", "W") if x in inst[0]["tf"]]))
+    return f"<h4>{title}</h4>{key}<div class=grid>{figs}</div>"
 
 
 def rescue_table(base_run, cat, drives):
@@ -133,17 +156,18 @@ def rescue_table(base_run, cat, drives):
     D = {d: {r["task_id"]: r for r in manifest(run)} for d, run in drives.items() if manifest(run)}
     if not P or not D:
         return "", {}
-    hdr = ["task", "instance", "drive P"] + [f"drive {d}" for d in D] + ["closest P"] + [f"closest {d}" for d in D]
+    # the original run is kept apart from the drives: a "P" drive is a re-run (the no-op baseline), not the original
+    hdr = ["task", "instance", "original P"] + [f"drive {d}" + (" (re-run)" if d == "P" else "") for d in D] + ["closest, original"] + [f"closest {d}" for d in D]
     body = []
     for t in sorted(P):
         body.append([t, E(str(P[t]["label"])), ok(P[t]["success"])] + [ok(D[d][t]["success"]) if t in D[d] else "—" for d in D]
                     + [P[t]["closest_approach_m"]] + [D[d][t]["closest_approach_m"] if t in D[d] else float("nan") for d in D])
-    summ = {"P": (sum(1 for t in P if not P[t]["success"]), med([P[t]["closest_approach_m"] for t in P]))}
+    summ = {"original": (sum(1 for t in P if not P[t]["success"]), med([P[t]["closest_approach_m"] for t in P]))}
     for d in D:
         fails = sum(1 for t in D[d] if not D[d][t]["success"]); flips = sum(1 for t in P if not P[t]["success"] and t in D[d] and D[d][t]["success"])
         broke = sum(1 for t in P if P[t]["success"] and t in D[d] and not D[d][t]["success"])
         summ[d] = (fails, med([D[d][t]["closest_approach_m"] for t in D[d]]), flips, broke)
-    srows = [["P", summ["P"][0], "—", "—", summ["P"][1]]] + [[d, summ[d][0], summ[d][2], summ[d][3], summ[d][1]] for d in D]
+    srows = [["original run (P)", summ["original"][0], "—", "—", summ["original"][1]]] + [[d + (" (re-run, no-op)" if d == "P" else ""), summ[d][0], summ[d][2], summ[d][3], summ[d][1]] for d in D]
     return table(hdr, body) + table(["driven at forward 0", "fails /10", "P-failures flipped", "successes broken", "median closest (m)"], srows), summ
 
 
@@ -170,7 +194,110 @@ def downstream_table(base_run, cat, drives):
     return table(["task", "instance"] + [f"‖P−N‖ f0…f4 · drive {d}" for d in series], out), summ
 
 
+QUEUED = '<p class=lead-in><i>Queued in <code>experiments/queue_r051.sh</code>; not yet run.</i></p>'
+
+
+def r051_block(key, cat, base_run, rescue=False):
+    """R-051: reverse direction, noise seeds 1–2 and (layout only) the forward-0 rescue, for one row.
+    Every table reads the run files; anything not yet run says so instead of vanishing."""
+    out = []
+    rev = jsonf(f"runs/r051_reverse_{key}/summary.json")
+    if rev:
+        rows = [json.loads(l) for l in open(f"runs/r051_reverse_{key}/rows.jsonl")]
+        base = {r["task_id"]: r for r in rows_of(base_run, cat)}
+        agree = sum(abs(r["denoise_A"] - (base[r["task_id"]].get("tf_at_f0") or {}).get("A", np.nan)) <= 0.05 for r in rows if r["task_id"] in base)
+        out.append("<p><b>Reverse direction</b> (one perturbed input placed into the nominal run, forward 0). Medians: "
+                   + ", ".join(f"{k.split('_')[0]}<sub>{k.split('_')[1]}</sub> {f2(v)}" for k, v in rev["medians"].items())
+                   + f". denoise<sub>A</sub> reproduces {base_run} to 0.05 on {agree}/{len(rows)} (the uninterpretability check).</p>")
+        out.append(table(["task", "instance", "‖N−P‖", "denoise A", "denoise W", "noise A", "noise W", "noise S"],
+                         [[r["task_id"], E(str(r["label"])), r["gap_PN"], r["denoise_A"], r["denoise_W"], r["noise_A"], r["noise_W"], r["noise_S"]] for r in rows]))
+    else:
+        out.append("<p><b>Reverse direction.</b></p>" + QUEUED)
+    b0 = (analysis(base_run) or {"by_category": {}})["by_category"].get(cat)
+    seeds = [(f"seed 0 ({base_run})", b0)] + [(f"seed {s}", (analysis(f"r051_{key}_seed{s}") or {"by_category": {}})["by_category"].get(cat)) for s in (1, 2)]
+    arms = [x for x in ("T", "I", "S", "IT", "A", "W") if b0 and x in b0["median_tf_f0"]]
+    srows = [[lab, c["n"], c["n_fail"], c["median_d_pn_f0"]] + [c["median_tf_f0"].get(x, "—") for x in arms] if c else [lab, "queued", "", ""] + [""] * len(arms) for lab, c in seeds]
+    out.append("<p><b>Noise seeds</b> (medians at forward 0; seed 0 is the original pass):</p>" + table(["replicate", "n", "fails", "‖P−N‖ f0"] + [f"{x} f0" for x in arms], srows))
+    if rescue:
+        html_, _ = rescue_table(base_run, cat, {d: f"r051_{key}_rescue_{d}" for d in ("P", "A", "N")})
+        out.append("<p><b>Forward-0 rescue</b>, with the no-op drive (drive P re-runs the perturbed chunk: the outcome-noise baseline).</p>" + (html_ or QUEUED))
+    return f"<h3>Robustness (R-051)</h3>{''.join(out)}"
+
+
+def r051_language():
+    base = {r["task_id"]: r for r in rows_of("r049_lang", "Language Instructions")}
+    reps = [("seed 0 (r049_lang)", base)] + [(f"seed {s}", {r["task_id"]: r for r in rows_of(f"r051_lang_seed{s}", "Language Instructions")}) for s in (1, 2)]
+    if not any(m for _, m in reps[1:]):
+        return "<h3>Noise seeds (R-051)</h3>" + QUEUED
+    body = [[t, E(str(base[t]["label"]))] + [f2(m[t]["d_pn_f0"]) + (" ✗" if not m[t]["success"] else "") if t in m else "—" for _, m in reps] for t in sorted(base)]
+    summ = [[lab, len(m), sum(1 for r in m.values() if not r["success"]), med([r["d_pn_f0"] for r in m.values()])] for lab, m in reps]
+    return ("<h3>Noise seeds (R-051)</h3><p>‖P−N‖ at forward 0 per instance under each noise seed; ✗ marks a failed episode.</p>"
+            + table(["task", "instance"] + [lab for lab, _ in reps], body) + table(["replicate", "n", "fails", "median ‖P−N‖ f0"], summ))
+
+
+def r047_axis(axis, label):
+    p = f"runs/r047/{axis}/manifest.jsonl"
+    if not os.path.exists(p):
+        return f"<h4>{label}</h4>" + QUEUED
+    from experiments.r041_report import R038_NULL_FAIL
+    rs = [json.loads(l) for l in open(p)]
+    mags = sorted({r["magnitude"] for r in rs}); scenes = sorted({r["task_id"] for r in rs})
+    cell = {}
+    for r in rs:
+        cell.setdefault((r["task_id"], r["magnitude"]), []).append(r)
+    per = max(len(v) for v in cell.values())
+    complete = [t for t in scenes if all(len(cell.get((t, m), [])) == per for m in mags)]
+    frac = lambda v: f"{sum(r['success'] for r in v)}/{len(v)}" if v else "—"
+    body = [[SCENE.get(t, t) + (" <span class=fail>*</span>" if t in R038_NULL_FAIL else "")] + [frac(cell.get((t, m), [])) for m in mags] for t in scenes]
+    pooled = {m: [r for r in rs if r["magnitude"] == m and r["task_id"] in complete] for m in mags}
+    body.append(["<b>pooled, complete scenes</b>"] + [frac(pooled[m]) for m in mags])
+    W, H, pl, pr, pt, pb = 900, 260, 50, 150, 12, 34
+    x = lambda m: pl + (W - pl - pr) * (m / max(mags)); y = lambda v: pt + (H - pt - pb) * (1 - v)
+    svg = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="success probability against {E(label)}">']
+    for g in (0, .5, 1):
+        svg.append(f'<line x1="{pl}" y1="{y(g):.1f}" x2="{W-pr}" y2="{y(g):.1f}" stroke="currentColor" opacity=".12"/><text x="{pl-6}" y="{y(g)+3.5:.1f}" font-size="10" text-anchor="end" fill="currentColor" opacity=".6">{g:g}</text>')
+    for m in mags:
+        svg.append(f'<text x="{x(m):.1f}" y="{H-pb+14}" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">{m:g}</text>')
+    svg.append(f'<text x="{(pl+W-pr)/2:.0f}" y="{H-4}" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7">{E(label)}</text>')
+    for t in scenes + ["pooled"]:
+        pts = [(m, pooled[m] if t == "pooled" else cell.get((t, m), [])) for m in mags]
+        pts = [(m, sum(r["success"] for r in v) / len(v)) for m, v in pts if v]
+        if not pts:
+            continue
+        col = "var(--ink)" if t == "pooled" else ("var(--fail)" if t in R038_NULL_FAIL else "var(--accent)")
+        svg.append(f'<polyline points="{" ".join(f"{x(m):.1f},{y(v):.1f}" for m, v in pts)}" fill="none" stroke="{col}" stroke-width="{3 if t == "pooled" else 1.4}" opacity="{1 if t == "pooled" else .7}"/>')
+        m, v = pts[-1]
+        svg.append(f'<text x="{x(m)+6:.1f}" y="{y(v)+3:.1f}" font-size="9" fill="{col}">{"pooled" if t == "pooled" else SCENE.get(t, t)}</text>')
+    svg.append("</svg>")
+    status = (f"{len(rs)} rollouts, {len(complete)} of 10 scenes complete, {per} replicates per point"
+              + ("" if len(complete) == 10 else " — <b>partial: read the complete scenes only</b>"))
+    return (f"<h4>{label}</h4><p>{status}. Success over replicates per scene and magnitude; <span class=fail>*</span> R-038 null-prompt scenes.</p>"
+            + table(["scene"] + [f"{m:g}" for m in mags], body)
+            + f"<figure>{''.join(svg)}<figcaption>Success probability against {E(label)}: one line per scene, pooled over complete scenes in bold.</figcaption></figure>")
+
+
+def section_r047():
+    return f'''
+<section id="r047">
+<p class="part">8 · The shape of the flip region (R-047)</p>
+<h2>Success probability against magnitude, with replicates</h2>
+<p>R-041 bisected one rollout per point and could not tell a cliff from a slope; outcomes at one seed flip 30–40% under render jitter. Here every point has replicates (start pose: 3 joint directions × 2 noise seeds; camera yaw: 4 noise seeds), env seed 0, the benchmark's range. Expectations are scored in RESULTS.md R-047, not here.</p><p><b>Range and geometry.</b> Start-pose radius 0–0.5 rad is the benchmark's range. Camera yaw 0–75° is the benchmark's angular range, swept with the harness knob at pitch 0: comparable with R-041, not the benchmark's cone (see the geometry note in section 1). Camera distance (pre-registered to 0.8 m, about 1.77×) and pitch are deferred and not queued; lighting has no benchmark-matched knob.</p>
+{r047_axis("joint_radius_rad", "start-pose radius (rad)")}
+{r047_axis("camera_yaw_deg", "camera yaw (deg)")}
+</section>'''
+
+
 # ----------------------------------------------------------------------------- sections
+def gate_line():
+    g = jsonf("runs/r039_gate/gate.json")
+    if not g:
+        raise SystemExit("runs/r039_gate/gate.json missing")
+    return (f"Model-level gate (<code>runs/r039_gate/gate.json</code>): source features bitwise {'identical' if g['A_source_features']['backbone_bitwise'] else 'DIFFERENT'} "
+            f"(max |Δ| {g['A_source_features']['backbone_maxabs']:g}); head at a fixed seed bitwise {'identical' if g['B_head_fixed_seed']['bitwise'] else 'DIFFERENT'}; "
+            f"the unseeded control differs by up to {g['B_control_unseeded']['maxabs']:.3f}, so the seed is what makes the arms comparable. "
+            f"Verdict: A {'pass' if g['verdict']['A_pass'] else 'FAIL'}, B {'pass' if g['verdict']['B_pass'] else 'FAIL'} (torch {E(g['torch'])}).")
+
+
 def common():
     entry = figure_from("docs/FAILURE_TO_DATA_PIPELINE.html", "GR00T N1.7 data flow")
     arms = figure_from("docs/FAILURE_TO_DATA_PIPELINE.html", "Source run under the nominal condition")
@@ -207,7 +334,7 @@ One perturbed input placed into the nominal run; the share of the effect it prod
 ])}
 <h3>Conventions that hold throughout</h3>
 <ul class="tight">
-<li><b>Determinism.</b> The denoising noise is seeded per forward and shared across arms (common random numbers). Model-level gate: identical inputs and seed give bitwise-identical chunks; the unseeded control differs (R-039).</li>
+<li><b>Determinism.</b> The denoising noise is seeded per forward and shared across arms (common random numbers). {gate_line()}</li>
 <li><b>Outcome instability.</b> Two rollouts with identical seed and noise, differing only by render jitter, disagreed on success on 7 of 30, 9 of 40 and 4 of 10 occasions across experiments. Action-level numbers replicate to 0.03; outcomes at one seed carry a ~30–40% flip rate. Every outcome claim here is read against that.</li>
 <li><b>Env seed 0</b> on every rollout since R-039, so the object layout is fixed; replicates vary the noise seed and, for start pose, the joint direction.</li>
 <li><b>Levels</b> L1–L5 are the benchmark's difficulty presets; the failure campaign ran L4 and L5 only.</li>
@@ -219,6 +346,7 @@ One perturbed input placed into the nominal run; the share of the effect it prod
 def section_camera():
     a39 = analysis("runs/r039") if False else None
     rev = jsonf("runs/r048_reverse/summary.json")
+    revrows = [[r["task_id"], E(str(r["label"])), r["gap_PN"], r["denoise_A"], r["denoise_W"], r["noise_A"], r["noise_W"], r["noise_S"]] for r in (json.loads(l) for l in open("runs/r048_reverse/rows.jsonl"))]
     rescue_html, rs = rescue_table("r042", "Camera Viewpoints", {"A": "r048_rescue_A", "W": "r048_rescue_W", "N": "r048_rescue_N"})
     down_html, ds = downstream_table("r042", "Camera Viewpoints", {"N": "r050_cam_N", "A": "r050_cam_A"})
     seeds = []
@@ -246,6 +374,7 @@ def section_camera():
 {curves("Camera Viewpoints", "r042", "Transfer curves along each episode (R-042)")}
 <h3>Robustness (R-048)</h3>
 <p><b>Reverse direction.</b> A viewpoint change touches one input, so corrupting the agent view of the nominal run reproduces the whole effect by construction. This run is therefore an exactness check on the paired render: noise<sub>A</sub> {f2(rev["medians"]["noise_A"]) if rev else "—"}, noise<sub>W</sub> {f2(rev["medians"]["noise_W"]) if rev else "—"}, noise<sub>S</sub> {f2(rev["medians"]["noise_S"]) if rev else "—"} (medians), and denoise<sub>A</sub> reproduces R-042 to 0.01 on 10/10.</p>
+{table(["task", "instance", "‖N−P‖", "denoise A", "denoise W", "noise A", "noise W", "noise S"], revrows)}
 {table(["replicate", "A median", "W median", "A > W", "A within 0.1 of seed 0", "fails"], seeds)}
 <p><b>Forward-0 rescue.</b> The corrected chunk is executed for the first forward only, then the perturbed policy continues. On this row the wrist arm's chunk equals P's up to render jitter, so "drive W" is a re-run and gives the no-correction baseline.</p>
 {rescue_html}
@@ -254,6 +383,7 @@ def section_camera():
 <p>‖P−N‖ at each forward after the corrected chunk was executed at forward 0, against the drive-P rollouts. Median over forwards 1–3: {" · ".join(f"drive {d}: {f2(v)}" for d, v in ds.items())}.</p>
 {down_html}
 <h3>Continuous sweep (R-041)</h3>
+<p><b>Knob geometry.</b> The sweeps use the harness's camera knob, not the benchmark's variants. Both rotate the camera's orientation by the same angle, but the benchmark orbits the vertical through the world origin (radius 0.66 m) while the harness orbits the vertical through the point the camera looks at (0.16–0.35 m away horizontally, depending on the scene), so positions differ at equal yaw. Benchmark-geometry knobs that reuse LIBERO-Plus's own camera functions are being added; those sweeps will be a separate experiment. Distance: the benchmark scales range to a pivot at (0, 0, 0.8) by 1.0–2.0×, which is +0 to +1.04 m; the two failing distance instances (1.73×, 1.85×) sit at +0.76 and +0.89 m, beyond R-041's 0.4 m. Pitch is held at 0 in every sweep, while four of the ten mapped camera instances have pitch 15°. The denoising maps above use the benchmark's own variants and are unaffected.</p>
 <p>Bisection from the clean control, one rollout per point, τ = {f2(tau)} (paired-render noise floor). The first chunk departs at the smallest step on every scene; the outcome holds to 40° on 8 of 10 and to 0.4 m on 9 of 10.</p>
 <h4>Yaw, 0–40°</h4>{btable(yaw_b)}
 <figure>{r041_plot(yaw_rows, "camera_yaw_deg", 40.0, tau, "d_pn_f0", "‖P−N‖ at forward 0")}<figcaption>‖P−N‖ at forward 0 against yaw, one line per scene; squares are failures; red lines are R-038's null-prompt scenes.</figcaption></figure>
@@ -274,7 +404,8 @@ def section_noise():
 {instance_table("Sensor Noise", "r042")}
 <p>The token-level image arm reads only 0.45 at forward 0 and reaches 0.82 by the anchor, with onset at forwards 1–3 on six instances; the pixel-level agent-view arm reads 0.97 at forward 0 with the wrist at 0.00. The deficit in the token-level arm was image content in text positions, not an interaction. Four instances have ‖P−N‖ above 3, the largest first-action effect of any render category, yet only one to three of ten fail.</p>
 {curves("Sensor Noise", "r042", "Transfer curves (R-042)")}
-{note("Verdict", "<b>Dominant input:</b> agent-view pixels, 0.97; necessity by construction (one-input perturbation). <b>Not run:</b> the noising, seed and rescue checks (the camera row's R-048 is the template) and a continuous severity sweep. <b>Data spec:</b> augmentation of the agent-view stream with the noise family; the wrist stream is untouched.", "repo")}
+{r051_block("noise", "Sensor Noise", "r042")}
+{note("Verdict", "<b>Dominant input:</b> agent-view pixels, 0.97; necessity by construction (one-input perturbation). <b>Checked (R-051):</b> corrupting the agent view alone reproduces 0.97 of the effect, wrist 0.02, state 0.00; the agent-view share holds at 0.98 under two further noise seeds. <b>Not run:</b> a rescue (1 of 10 fail, nothing to rescue) and a continuous severity sweep. <b>Data spec:</b> augmentation of the agent-view stream with the noise family; the wrist stream is untouched.", "repo")}
 </section>'''
 
 
@@ -290,11 +421,12 @@ def section_light():
 {instance_table("Light Conditions", "r042")}
 <p>Restoring either camera's pixels alone recovers under 0.2 (A 0.16, W 0.19, wrist above agent on 4 of 10); restoring both cameras' tokens recovers 0.73. The sum of the single-camera arms falls short of the joint arm by up to 0.95: the head reads illumination as a joint property of the two views, and a mismatch between them is itself a perturbation. This is the one row where a finer decomposition would have something to explain.</p>
 {curves("Light Conditions", "r042", "Transfer curves (R-042)")}
+{r051_block("light", "Light Conditions", "r042")}
 <h3>Continuous sweep, brightness only (R-041)</h3>
 <p>Brightness scaled to 3× barely reaches the action: three scenes never cross the noise floor; none crosses the stricter floor; no scene fails. The benchmark's lighting variants change colour and direction, and those are the ones that fail.</p>
 {table(["scene", "action boundary", "outcome boundary", "note"], [[SCENE.get(b["task_id"], b["task_id"]), fmt_b(b.get("action_boundary")), fmt_b(b.get("outcome_boundary")), E(b.get("note", ""))] for b in sorted(light_b, key=lambda b: b["task_id"])])}
 <figure>{r041_plot(light_rows, "light_intensity", 3.0, tau, "d_pn_f0", "‖P−N‖ at forward 0")}<figcaption>‖P−N‖ at forward 0 against brightness multiplier.</figcaption></figure>
-{note("Verdict", "<b>Dominant input:</b> both cameras jointly; no single input. <b>Data spec:</b> re-render existing demonstrations under the new lighting with both cameras consistent; a single-camera augmentation would leave a cross-view mismatch. <b>Open:</b> a colour-and-direction knob for the sweep; the necessity checks; a per-region or dictionary decomposition of the interaction.", "repo")}
+{note("Verdict", "<b>Dominant input:</b> both cameras jointly where the effect is small (most instances); the agent view where it is large. <b>Checked (R-051):</b> at the median, corrupting one camera of the nominal run reproduces 0.14 (agent view) and 0.24 (wrist) of the effect; but the two largest-effect instances (‖P−N‖ 0.89 and 1.83) are reproduced 0.78–0.79 by the agent view alone. Stable over seeds; outcomes are not (1, 5, 1 of 10 fail). <b>Data spec:</b> re-render existing demonstrations under the new lighting with both cameras consistent; a single-camera augmentation would leave a cross-view mismatch. <b>Open:</b> a colour-and-direction knob for the sweep; a per-region or dictionary decomposition of the interaction.", "repo")}
 </section>'''
 
 
@@ -364,7 +496,8 @@ def section_layout():
 {instance_table("Objects Layout", "r049")}
 <p>On the two wooden-cabinet distractor instances the effect is large (‖P−N‖ ≈ 3) and the agent view carries 0.89. On the cookie-box distractor instances the effect is small (0.5–0.8) and no single arm dominates, with a third of it in the text positions as leakage. The one moved-object instance is led by the wrist (0.71): the near scene changed.</p>
 {curves("Objects Layout", "r049", "Transfer curves (R-049)")}
-{note("Verdict", "<b>Dominant input:</b> agent-view pixels where the effect is large; the wrist where an object near the gripper moved; state near zero. <b>Not run:</b> necessity, seed and rescue checks. <b>Data spec:</b> demonstrations with the distractor or the moved object present, in both views (coverage of object placement and clutter, families A1/A2/B).", "repo")}
+{r051_block("layout", "Objects Layout", "r049", rescue=True)}
+{note("Verdict", "<b>Dominant input:</b> agent-view pixels where the effect is large; the wrist where an object near the gripper moved; state near zero. <b>Checked (R-051):</b> corrupting the agent view alone reproduces 0.54, wrist 0.11 (A > W on 9/10); agent-view share 0.39 and 0.56 under two further seeds, the least stable of any row. <b>Rescue:</b> a corrected first chunk does not change the outcome (re-run 0 flips, drive A 1, drive N 0 of 8): a layout failure is not decided at forward 0. <b>Data spec:</b> demonstrations with the distractor or the moved object present, in both views (coverage of object placement and clutter, families A1/A2/B).", "repo")}
 </section>'''
 
 
@@ -379,7 +512,8 @@ def section_texture():
 {instance_table("Background Textures", "r049")}
 <p>Restoring either camera's pixels alone does nothing or makes the action worse (A −0.02, W −0.05, ranges to −0.6); restoring both cameras' tokens recovers 0.62. The table surface is in both views and the head treats a mismatch between them as a perturbation, as with lighting. No instance failed; with ‖P−N‖ this small the row sits near the outcome noise floor.</p>
 {curves("Background Textures", "r049", "Transfer curves (R-049)")}
-{note("Verdict", "<b>Dominant input:</b> both cameras jointly. <b>Data spec:</b> re-render under new textures with both cameras consistent. <b>Open:</b> whether the two campaign failures reproduce at all with replicates.", "repo")}
+{r051_block("texture", "Background Textures", "r049")}
+{note("Verdict", "<b>Dominant input:</b> both cameras jointly. <b>Checked (R-051):</b> neither camera alone reproduces the effect (wrist 0.11); a textured agent view beside a clean wrist view moves the action <i>away</i> from P (−0.40, 8/10), the mismatch signature. One instance (task 87) disagrees with R-049 beyond jitter and is open. <b>Data spec:</b> re-render under new textures with both cameras consistent. <b>Open:</b> whether the two campaign failures reproduce at all (0 and 1 of 10 fail across seeds).", "repo")}
 </section>'''
 
 
@@ -393,11 +527,11 @@ def section_language():
             return float(np.load(p)["d_pn"].mean()) if os.path.exists(p) else float("nan")
         body += table(["level", "instance", "task", "outcome", "‖P−N‖ f0", "‖P−N‖ mean over forwards", "S f0", "aligned", "instruction served"],
                       [[lvl(r["level"]), E(str(r["label"])), r["task_id"], ok(r["success"]), r["d_pn_f0"] if r["d_pn_f0"] is not None else float("nan"), dpn_mean(r),
-                        (r.get("tf_at_f0") or {}).get("S", float("nan")), "yes" if r.get("aligned") else "no", E(str(r.get("instruction_given", ""))[:70])]
+                        (r.get("tf_at_f0") or {}).get("S", float("nan")), "yes" if r.get("aligned") else "no", E(str(r.get("instruction_given", "")))]
                        for r in sorted(rs, key=lambda r: (-(r["level"] or 0), r["task_id"]))])
         d38 = [r["d_pn_f0"] for r in rs if r["scene"] in R038 and r["d_pn_f0"] is not None]; dother = [r["d_pn_f0"] for r in rs if r["scene"] not in R038 and r["d_pn_f0"] is not None]
         body += f"<p>{sum(1 for r in rs if not r['success'])} of {len(rs)} fail. ‖P−N‖ at forward 0: median {f2(med([r['d_pn_f0'] for r in rs]))} overall; {f2(med(d38))} on R-038's null-prompt scenes (n={len(d38)}) against {f2(med(dother))} elsewhere (n={len(dother)}). S at forward 0: median {f2(med([(r.get('tf_at_f0') or {}).get('S') for r in rs]))}.</p>"
-        body += curves("Language Instructions", "r049_lang", "‖P−N‖ is the row's curve here; the S arm is the only transfer defined")
+        body += curves("Language Instructions", "r049_lang", "‖P−N‖ per forward: the row's curve, since no positional transfer arm is defined", effect=True)
     else:
         body = "<p class=lead-in>Rerun pending.</p>"
     body = ("<p><b>Why this row has no T or I arm.</b> The rewrite tokenises to a different length than the trained wording (153 vs 151 tokens on the first instance), so the token positions of P and N do not correspond and a positional splice is undefined, not merely unmeasured. The pixel arms are identity (frames unchanged). What is well defined is the effect size ‖P−N‖ at every forward, from the paired text, and the state arm.</p>") + body
@@ -408,25 +542,26 @@ def section_language():
 <p><b>What the perturbation is.</b> The instruction is rewritten ("pick up the darkhued vessel situated adjacent to the small ramekin…"); frames and state are identical, so the nominal is the same observation with the trained wording. Ten campaign failures, five level-4 and five level-5, heavy on the wooden-cabinet and ramekin scenes. Context: R-038 found the empty prompt takes this policy from 100/100 to 50/100 with a scene-dependent spread, so "insensitive to language" is not this policy's property.</p>
 <h3>Denoising map (R-049 rerun)</h3>
 {body}
-{note("Verdict", "<b>Dominant input:</b> the text by construction, the only differing input. <b>What the row measures:</b> how far a rewrite moves the first action and whether that is scene-dependent in the R-038 pattern, since a positional text-vs-image split is undefined when token counts differ. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Not run:</b> seeds, rescue; a pre-VLM instruction swap with matched token counts would restore the positional arms.", "repo")}
+{r051_language()}
+{note("Verdict", "<b>Dominant input:</b> the text by construction, the only differing input. <b>What the row measures:</b> how far a rewrite moves the first action and whether that is scene-dependent in the R-038 pattern, since a positional text-vs-image split is undefined when token counts differ. <b>Data spec:</b> instruction augmentation over existing demonstrations (family A3). <b>Seeds (R-051):</b> ‖P−N‖ at forward 0 within 25% of seed 0 on 9/10 under each seed; 8 and 7 of 10 fail. <b>Not run:</b> rescue; a pre-VLM instruction swap with matched token counts would restore the positional arms.", "repo")}
 </section>'''
 
 
 def section_map_and_appendix():
     return f'''
 <section id="map">
-<p class="part">8 · The map, and what it says for data</p>
+<p class="part">9 · The map, and what it says for data</p>
 <h2>Seven rows</h2>
 {table(["perturbation", "dominant input at forward 0", "secondary", "necessity", "data specification"], [
     ["camera viewpoint", "agent-view pixels 0.98", "none", "by construction; exact and stable", "re-render under the new viewpoint"],
-    ["sensor noise", "agent-view pixels 0.97", "none", "by construction", "augment the agent-view stream"],
-    ["lighting", "both cameras jointly", "interaction", "not run", "re-render with both cameras consistent"],
+    ["sensor noise", "agent-view pixels 0.97", "none", "noising 0.97; stable", "augment the agent-view stream"],
+    ["lighting", "both cameras jointly (agent view where the effect is large)", "interaction", "noising A 0.14, W 0.24; stable", "re-render with both cameras consistent"],
     ["robot initial state", "wrist pixels 0.88", "agent view 0.17 (consistency check); state 0.04", "noising 0.46; stable; rescue 4/7 (no no-op)", "demonstrations from the new poses, both views, approach phase"],
-    ["object layout", "agent-view pixels 0.55 (0.89 where large)", "wrist when the near scene moves", "not run", "demonstrations with the objects present, both views"],
-    ["background texture", "both cameras jointly", "interaction", "not run", "re-render with both cameras consistent"],
-    ["language", "text tokens (by construction)", "see row 7", "degenerate", "instruction augmentation"],
+    ["object layout", "agent-view pixels 0.55 (0.89 where large)", "wrist when the near scene moves", "noising A 0.54, W 0.11; less stable; rescue null", "demonstrations with the objects present, both views"],
+    ["background texture", "both cameras jointly", "interaction", "noising A −0.40, W 0.11 (mismatch); stable", "re-render with both cameras consistent"],
+    ["language", "text tokens (by construction)", "see row 7", "degenerate; ‖P−N‖ stable over seeds", "instruction augmentation"],
 ])}
-<p>Two rows are single-input and exact (camera, noise), one is single-input with a secondary channel (start pose), two are joint properties of the two cameras (lighting, texture), one is mixed by effect size (layout), and one is text by construction (language). The state token is at or below 0.2 on every row, which traces to training-time state dropout. What no row establishes is that the specified data fixes anything: that is a retraining experiment, pre-registered as R-046 for the start-pose row and out of scope for now; the cost, data and expected outcome are in <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>.</p>
+<p>Two rows are single-input and exact (camera, noise), one is single-input with a secondary channel (start pose), one is a joint property of the two cameras (texture), two are mixed by effect size (layout, and lighting, joint when small and agent-view when large), a corrected first chunk rescues neither camera nor layout, and one is text by construction (language). The state token is at or below 0.2 on every row, which traces to training-time state dropout. What no row establishes is that the specified data fixes anything: that is a retraining experiment, pre-registered as R-046 for the start-pose row and out of scope for now; the cost, data and expected outcome are in <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>.</p>
 <h3>Boundaries across rows (R-041, one seed)</h3>
 <p>The first action departs from nominal by more than the noise floor at the smallest tested step on camera yaw, camera distance and start pose, and barely at all on brightness. The outcome holds to 40° on 8 of 10 scenes, 0.4 m on 9, 3× brightness on 10, 0.5 rad on 7. The boundary that matters is the loop's recovery, not the policy's sensitivity, and it is scene-dependent. Probability curves with replicates (R-047) are pre-registered and pending overnight.</p>
 </section>
@@ -463,7 +598,8 @@ def section_map_and_appendix():
     ["r048_reverse, r048_seed1/2, r048_rescue_A/W/N", "camera robustness", "R-048"],
     ["r049, r049_lang", "layout, texture, language maps", "R-049"],
     ["r050_ris_N/W, r050_cam_N/A", "downstream of a forward-0 correction", "R-050"],
-    ["r047 (pending)", "probability curves with replicates", "R-047"],
+    ["r047", "probability curves with replicates (section 8)", "R-047"],
+    ["r051_reverse_*, r051_*_seed1/2, r051_layout_rescue_P/A/N, r051_lang_seed1/2", "robustness for noise, lighting, layout, texture, language", "R-051"],
 ])}
 <h2>C · Corrections and misses, in order</h2>
 <ul class="tight">
@@ -486,6 +622,18 @@ def main():
     src = open("docs/R039_MATHS.html").read()
     head = src[:src.index("</head>")].replace("<title>Splice Maths</title>", "<title>Perturbation Map</title>")
     head = head.replace("  .footer{", "  .wrap{max-width:1180px}\n  td:nth-child(2){white-space:nowrap}\n  table{font-size:.8rem}\n  .footer{").replace("  .footer{", "  .lvl{display:inline-block;min-width:2.2em;text-align:center;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.78rem}\n  .L1{background:#e8f1fb}.L2{background:#cfe0f6}.L3{background:#a9c8ee}.L4{background:#7ea9e0}.L5{background:#4f86cf;color:#fff}\n  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}\n  figure.small{margin:0;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:8px}\n  figure.small svg{display:block;width:100%;height:auto;color:var(--ink)}\n  figure.small figcaption{border:0;padding-top:4px;margin-top:4px;font-size:.74rem}\n  h4{font-family:var(--sans);font-size:.95rem;margin:1.2em 0 .4em}\n  dl.gloss dt{font-family:var(--sans);font-weight:600;margin-top:.8em}dl.gloss dd{margin:.1em 0 0}\n  .toc a{margin-right:14px;font-family:var(--sans);font-size:.85rem}\n  .footer{")
+    # colours the reused figure code refers to (r039_report curves, r041_report sweeps); R039_MATHS.html does not define them
+    head += """<style>
+  :root{--arm-T:#2a78d6;--arm-I:#eb6834;--arm-S:#1baf7a;--arm-IT:#eda100;--arm-A:#e87ba4;--arm-W:#4a3aa7;--fail:#A8481B;--tau:#eda100}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;--fail:#E5905E;--tau:#c98500}}
+  :root[data-theme="dark"]{--arm-T:#3987e5;--arm-I:#d95926;--arm-S:#199e70;--arm-IT:#c98500;--arm-A:#d55181;--arm-W:#9085e9;--fail:#E5905E;--tau:#c98500}
+  .L1,.L2,.L3,.L4{color:#14181D}
+  th.num{text-align:right;padding-right:16px}
+  p.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--sans);font-size:.78rem;margin:.2em 0 .6em}
+  p.legend i{display:inline-block;width:14px;height:3px;margin-right:5px;vertical-align:middle;border-radius:2px}
+  p.legend i.dash{background:none;border-top:1.5px dashed currentColor;opacity:.6}
+</style>
+"""
     body = f'''</head>
 <body>
 <div class="wrap">
@@ -494,7 +642,7 @@ def main():
   <h1>The perturbation → correction map</h1>
   <p class="standfirst">Every result from R-039 to R-050, organised by row of the map: for each perturbation, which input carries it, how sure we are, how far it can be pushed, and what data would fix it. Method and maths first; glossary last. Numbers are read from the run files at build time.</p>
   <div class="meta"><span>{len(ROWS)} rows</span><span>RESULTS.md R-039 – R-050</span><span><a href="RETRAINING_PLAN.html">retraining plan</a></span><span><a href="R039_MATHS.html">maths</a></span></div>
-  <p class="toc"><a href="#common">0 common</a><a href="#camera">1 camera</a><a href="#noise">2 noise</a><a href="#light">3 lighting</a><a href="#startpose">4 start pose</a><a href="#layout">5 layout</a><a href="#texture">6 texture</a><a href="#language">7 language</a><a href="#map">8 map</a><a href="#appendix">appendix</a></p>
+  <p class="toc"><a href="#common">0 common</a><a href="#camera">1 camera</a><a href="#noise">2 noise</a><a href="#light">3 lighting</a><a href="#startpose">4 start pose</a><a href="#layout">5 layout</a><a href="#texture">6 texture</a><a href="#language">7 language</a><a href="#r047">8 R-047</a><a href="#map">9 map</a><a href="#appendix">appendix</a></p>
 </header>
 {common()}
 {section_camera()}
@@ -504,6 +652,7 @@ def main():
 {section_layout()}
 {section_texture()}
 {section_language()}
+{section_r047()}
 {section_map_and_appendix()}
 <div class="footer">Generated by <code>experiments/compile_map.py</code> from <code>runs/</code>; scored expectations and timestamps in <code>RESULTS.md</code>.</div>
 </div>
