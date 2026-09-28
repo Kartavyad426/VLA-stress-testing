@@ -163,6 +163,8 @@ def main():
                         log("max-rollouts reached"); return
                     log(f"scene {scene} m={m:<6} dir {d} noise {ns}: success={r.success} F={F} d_pn0={row['d_pn_f0']:.3f} ca={row['closest_approach_m']}")
                     del env
+                # the magnitude-0 features are GPU clones used only by this magnitude loop; keeping them OOM'd the first run
+                recorded.pop((scene, d, ns), None); torch.cuda.empty_cache()
     log("done")
 
 
