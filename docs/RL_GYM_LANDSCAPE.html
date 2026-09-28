@@ -1,0 +1,238 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>RL Gyms for Robot VLA Policies</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1baf7a;--warn:#c98500;--bad:#d95926;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#199e70;--warn:#eda100;--bad:#eb6834;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;
+ --rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#199e70;--warn:#eda100;--bad:#eb6834;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:20px;margin:44px 0 10px;padding-top:14px;border-top:1px solid var(--rule)}
+h3{font-size:16px;margin:26px 0 8px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 4px}
+code,.mono{font-family:var(--mono);font-size:.92em}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.5px;background:var(--surface)}
+th,td{border:1px solid var(--rule-soft);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;margin:14px 0}
+.lede{background:var(--surface-2);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px;border:1px solid var(--rule);color:var(--muted)}
+.yes{color:var(--ok);font-weight:600}.part{color:var(--warn);font-weight:600}.no{color:var(--bad);font-weight:600}
+a{color:var(--accent)}
+ul{margin:8px 0 8px 20px;padding:0}li{margin:4px 0}
+.small{font-size:13px;color:var(--muted)}
+</style></head><body><div class=wrap>
+
+<h1>RL gyms and closed-loop improvement for robot VLA policies</h1>
+<p class=sub>Survey + positioning · written 2026-09-24 · companion to <a href="LANDSCAPE.md">docs/LANDSCAPE.md</a> (238-source prior-art survey) and <a href="WHAT_OUR_CODE_DOES.md">docs/WHAT_OUR_CODE_DOES.md</a></p>
+
+<div class=lede>
+<b>Three findings up front.</b>
+<ol style="margin:8px 0 0 18px">
+<li><b>"RL gym" names three different products.</b> An <i>environment suite</i> (LIBERO, RoboCasa, Isaac&nbsp;Lab-Arena), an <i>RL training substrate</i> (RLinf-VLA, SimpleVLA-RL), and a <i>commercial environments-as-a-service</i> market (Surge, Mercor, Prime Intellect). Only the first two currently exist for robots.</li>
+<li><b>The commercial RL-environment market is almost entirely non-robotic.</b> A 2026 directory of 38 RL-environment vendors contains <b>zero</b> robotics or VLA specialists — it is coding agents, browser use and enterprise SaaS. Robotics has its own, separate supplier set (NVIDIA, Lightwheel, the data foundries).</li>
+<li><b>Nobody ships the complete autonomous closed loop.</b> The closest published attempt (AgenticRobotics, Aug 2026) ran it unattended on LIBERO and reports a <i>negative</i> headline: taking the final checkpoint beat every measurement-driven selector it tried, including its own. Every deployed system breaks the loop at the same seam — <b>diagnosis</b>, and <b>deciding what data to collect</b>. That seam is exactly where our harness lives.</li>
+</ol>
+</div>
+
+<h2>1. Disambiguating "gym"</h2>
+
+<table>
+<tr><th>Sense</th><th>What it actually sells</th><th>Robot examples</th><th>Mature?</th></tr>
+<tr><td><b>A. Environment suite / benchmark</b></td><td><code>reset()</code>/<code>step()</code>, tasks, assets, success predicate, a leaderboard</td><td>LIBERO, LIBERO-Plus, RoboCasa365, ManiSkill3, RLBench/COLOSSEUM, SimplerEnv, BEHAVIOR-1K, Isaac Lab-Arena, LeRobot EnvHub</td><td class=yes>Yes — crowded</td></tr>
+<tr><td><b>B. RL training substrate</b></td><td>Rollout collection, parallel rendering, PPO/GRPO, reward plumbing against a VLA</td><td>RLinf-VLA, SimpleVLA-RL, RIPT-VLA, RL-VLA3, LeRobot HIL-SERL</td><td class=part>Emerging — 2025/26</td></tr>
+<tr><td><b>C. Environments-as-a-service</b></td><td>Bespoke envs + verifiers + human data, sold to a lab</td><td class=no>Essentially none for robots</td><td class=no>Absent</td></tr>
+</table>
+
+<p>The thing the question implies — "take a VLA, find its errors, mine demonstrations for the failure scenarios, retrain, repeat, autonomously" — is a fourth thing: an <b>improvement loop</b> that <i>consumes</i> A and B. That is the genuinely open space.</p>
+
+<h2>2. Open-source options</h2>
+
+<h3>2.1 Environment suites (sense A)</h3>
+<table>
+<tr><th>Project</th><th>Engine</th><th>What it is for</th><th>Licence note</th></tr>
+<tr><td><b>LIBERO</b> / <b>LIBERO-Plus</b></td><td>MuJoCo/robosuite</td><td>The de-facto VLA manipulation benchmark: 130 tasks, 4 suites, Franka. LIBERO-Plus adds systematic perturbation axes (camera, robot init state, lighting, language, objects…). <b>Our current substrate.</b></td><td>MIT-ish; commercially usable</td></tr>
+<tr><td><b>RoboCasa</b> / <b>RoboCasa365</b></td><td>MuJoCo/robosuite</td><td>100 → 365 tasks, 2,500 kitchens, photorealistic scenes, mobile manipulation. A direct SmolVLA checkpoint exists.</td><td>MIT code; Objaverse asset licences vary</td></tr>
+<tr><td><b>ManiSkill3</b></td><td>SAPIEN / GPU PhysX</td><td>GPU-parallel, high-throughput contact-rich manipulation; built-in PPO/SAC/BC/DP baselines.</td><td class=warn>Assets CC BY-NC — <b>non-commercial</b></td></tr>
+<tr><td><b>Isaac Lab</b> + <b>Isaac Lab-Arena</b></td><td>Isaac Sim / PhysX</td><td>Arena is the important one: an open framework for <i>authoring benchmarks and evaluating policies at scale</i>. Composes envs from three primitives — <b>scene</b>, <b>embodiment</b>, <b>task</b> — and evaluates one policy across thousands of heterogeneous envs concurrently (~10× faster evaluation with higher-fidelity assets). v0.3 alpha, open source.</td><td>Apache-2.0 + Omniverse EULA</td></tr>
+<tr><td><b>LeRobot</b> + <b>EnvHub</b></td><td>agnostic (Gymnasium)</td><td>The distribution layer. EnvHub packages an environment so <code>make_env("Org/repo:envs/task.py")</code> pulls and runs it. Isaac Lab-Arena envs are registerable in EnvHub; Lightwheel's LeIsaac tasks already are. This is the closest thing robotics has to Prime Intellect's Environments Hub.</td><td>Apache-2.0</td></tr>
+<tr><td><b>SimplerEnv</b>, <b>RLBench/COLOSSEUM</b>, <b>BEHAVIOR-1K</b>, <b>MIKASA-Robo</b>, <b>RoboDojo</b>, <b>Nautilus</b></td><td>various</td><td>Sim-real correlation (SimplerEnv), perturbation axes (COLOSSEUM), long-horizon household (BEHAVIOR-1K), memory tasks (MIKASA-Robo), unified sim+real (RoboDojo), prompt-to-environment generation (Nautilus).</td><td>mixed; several academic-only</td></tr>
+<tr><td><b>RoboArena</b>, <b>AutoEval</b></td><td class=warn>real robots</td><td>Not sims. RoboArena: distributed real-world A/B evaluation of generalist policies. AutoEval: autonomous 24/7 real-robot evaluation using learned success classifiers and reset policies — <b>&gt;99% reduction in human supervision</b>, results track human-run ground truth.</td><td>open</td></tr>
+</table>
+
+<h3>2.2 RL training substrates (sense B)</h3>
+<ul>
+<li><b>RLinf / RLinf-VLA</b> — "RL infrastructure for embodied and agentic AI". Unified RL training of VLAs across architectures, algorithms and simulators. The nearest thing to a general-purpose robot RL gym stack.</li>
+<li><b>SimpleVLA-RL</b> (ICLR 2026) — veRL-based; VLA-specific trajectory sampling, multi-env rendering. Took OpenVLA-OFT to 97.6 on LIBERO-Long; from 17.3 → 91.7 with one cold-start trajectory per task.</li>
+<li><b>RIPT-VLA</b>, <b>RL-VLA3</b>, <b>on-the-fly test-time RL</b> — variants on the same idea: replace more demonstrations with interaction.</li>
+</ul>
+<p class=small>These matter to us for one reason: they all need a <b>reward/verifier</b>, and today that reward is almost always the binary task-success bit. See §6.</p>
+
+<h2>3. Enterprise options</h2>
+
+<h3>3.1 The "RL environments" market — and why robots aren't in it</h3>
+<p>2025–26 saw a real market form around RL environments for agents. Structure, as of 2026:</p>
+<ul>
+<li><b>Human-data incumbents that added environments:</b> Scale AI, Surge AI (EnterpriseBench / CoreCraft), Mercor (acquired Sepal AI, Feb 2026), Turing, Centific. Scale, Surge, Mercor and Handshake reportedly split &gt;75% of labelling revenue.</li>
+<li><b>Environment-native startups:</b> Mechanize (code, "replication training"), Fleet AI, HUD, Veris AI, Plato, Bespoke Labs — mostly simulating proprietary SaaS (Salesforce, Slack, ServiceNow) with SOC-2 and turnkey env+data+eval bundles.</li>
+<li><b>Open ecosystems:</b> Prime Intellect's Environments Hub (2,500+ community environments, bring-your-own, distributed compute), General Reasoning, Chakra Labs.</li>
+</ul>
+<div class=card><b>The load-bearing observation:</b> a 2026 directory of 38 RL-environment vendors — 25 commercial, 3 open-source, 4 incumbent, 6 infrastructure — lists <b>zero</b> robotics/VLA specialists. Focus areas are coding agents (21), computer-use (16), enterprise workflows (17). This is a clean market-segmentation boundary, not an oversight: physical-world environments need physics, assets and embodiments, which is a different supply chain.</div>
+
+<h3>3.2 The robotics supplier set (the one that does exist)</h3>
+<table>
+<tr><th>Player</th><th>Offer</th><th>Loop coverage</th></tr>
+<tr><td><b>NVIDIA</b> (Isaac GR00T platform)</td><td>The most complete vertical stack: Isaac Sim/Lab (sim), Isaac Lab-Arena (scaled eval), GR00T-Mimic + GR00T-Dreams on Cosmos (synthetic trajectory generation — 780K trajectories in 11 h reported), Isaac Teleop/CloudXR (collection), LeRobot-format conversion, GR00T N-series foundation models, closed-loop eval. Explicitly positioned as "the Android of generalist robotics".</td><td class=part>Every stage exists as a component; the <b>orchestration and the diagnosis</b> are left to the customer.</td></tr>
+<tr><td><b>Lightwheel</b></td><td>SimReady OpenUSD assets, EgoSuite (egocentric human data), <b>RoboFinals</b> — "the first industrial-grade simulation evaluation platform" for frontier VLA and world models. RoboFinals-100: 100 tasks across household/industrial/retail, rigid + articulated + deformable, unified success criteria, cross-embodiment (tabletop arm → mobile manipulator → humanoid). Built on Isaac Lab-Arena, eval/task layers co-designed with NVIDIA. Also ships LeIsaac into LeRobot EnvHub. Fine-tuned GR00T N1.5 on its own synthetic data.</td><td class=part>Strongest commercial <b>evaluation</b> product. Sells measurement and "bottleneck diagnosis"; not an autonomous retraining loop.</td></tr>
+<tr><td><b>JD (JDT AI Infra) + Tsinghua/PKU/Beihang</b></td><td>Cloud-native embodied simulation infrastructure: four-layer stack (scheduling / sim runtime / inference / data-and-eval), automatic trajectory recording, rule-based quality checks, failure-to-data feedback, environment randomisation.</td><td class=warn>A <b>white paper</b>, not a deployed system — validated only on single-task execution in Isaac Sim 5.1.</td></tr>
+<tr><td><b>Data foundries</b></td><td>Scale AI, XDOF, Mecka AI, Encord, DreamVu, Config, Human Archive and others supplying teleop/real-robot/synthetic data to robot foundation-model teams.</td><td class=no>Supply side only — they sell demonstrations, not a loop.</td></tr>
+<tr><td><b>World Labs</b></td><td>Generated 3D world layer feeding Lightwheel's evaluation scenes.</td><td class=no>Asset/scene generation.</td></tr>
+</table>
+
+<h2>4. Is anyone running the complete autonomous closed loop?</h2>
+<p>Decompose the loop into six stages and ask who automates each:</p>
+<table>
+<tr><th>#</th><th>Stage</th><th>State of the art</th><th>Automated end-to-end?</th></tr>
+<tr><td>1</td><td><b>Run the policy, get a score</b></td><td>Solved many times over: Isaac Lab-Arena (thousands of envs in parallel), RoboFinals, lerobot-eval, AutoEval on real hardware.</td><td class=yes>Yes</td></tr>
+<tr><td>2</td><td><b>Find failures / stress it</b></td><td>Perturbation benchmarks (LIBERO-Plus, COLOSSEUM, VLATest); adaptive search (<b>ROBOGATE</b>, two-stage boundary-focused sampling, emits a "failure dictionary", far fewer evaluations than uniform sweeps).</td><td class=yes>Yes</td></tr>
+<tr><td>3</td><td><b>Diagnose <i>why</i> it failed</b></td><td>RoboFAC, AHA, Sentinel, FIPER, verifier surveys ("No Free Checker"). Labels are largely <b>unvalidated</b>; robotics-specialised VLMs underperform their base models on failure benchmarks (FailBench).</td><td class=bad>No — this is the seam</td></tr>
+<tr><td>4</td><td><b>Decide what data would fix it</b></td><td>Demonstration scoring exists (CUPID, Demo-SCORE — rank demos by closed-loop impact). A costed, evidence-carrying <i>specification</i> of missing data does not.</td><td class=bad>No — this is the seam</td></tr>
+<tr><td>5</td><td><b>Mine / generate that data</b></td><td>MimicGen-family, GR00T-Mimic/Dreams, world-model rollouts (World-VLA-Loop, RISE), teleop foundries.</td><td class=part>Partly — generation is cheap, <i>targeting</i> is not</td></tr>
+<tr><td>6</td><td><b>Retrain and re-measure on a frozen set</b></td><td>RL substrates (§2.2) and plain SFT. LIBERO-Plus §6.2 did it once by hand: camera-viewpoint robustness 55.6% → 92.8% with 20k remediation trajectories.</td><td class=part>Mechanically yes; <b>as a governed, non-regressing gate, rarely</b></td></tr>
+</table>
+
+<h3>The two data points that should calibrate expectations</h3>
+<div class=card>
+<p><b>AgenticRobotics</b> (<a href="https://arxiv.org/abs/2608.07555">arXiv:2608.07555</a>, Aug 2026) — the most complete public attempt. It ports the coding-agent architecture (main agent + subagents) to policy improvement: an LLM controller driving disposable workers through durable <i>Bind→Analyze→Act→Measure→Score→Commit</i> transactions, with an immutable objective, controller-owned measurement, commit-keyed crash recovery, an evidence-graded skill library, and a tool registry where every tool's measured quality is recorded and <b>expired when the artifact behind it changes</b>. Backends (policy, trainer, evaluator, recorder, dataset editor, calibrator) are all swappable. Run on LIBERO-10 against π₀.₅, SmolVLA, MolmoAct2, GR00T N1.7, X-VLA.</p>
+<p><b>Its own headline is negative:</b> "on the measured lineage, taking the final checkpoint beat every measurement-driven selector, ours included." Campaign 2 targeted ≥70% on ten tasks and <b>stopped at 56.5% after 26 rounds</b>. What it <i>did</i> demonstrate is the infrastructure discipline: zero lost or duplicated effects under kill injection, 6/6 tampering classes detected, false-promotion rate cut from 0.005–0.021 to 0.001.</p>
+<p class=small>Read that as: the engineering of an autonomous loop is tractable; the <b>decision quality inside it</b> is not yet better than a human's crude default.</p>
+</div>
+<div class=card>
+<p><b>The Pebblous negative result</b> (Jul 2026, vendor blog, <span class=tag>unverified</span>) — 93 demonstrations targeted at known weaknesses <b>dropped closed-loop success from 73% → 43%</b>, with no offline signal predicting it. Targeted data is not automatically good data. Any loop that does not re-measure closed-loop on a frozen regression set, including non-targeted cells, can make the policy worse and report success.</p>
+</div>
+
+<p><b>Conclusion.</b> Stages 1, 2 and 6 are commodity. Stages 3 and 4 are unsolved, and stage 5 is only as good as stage 4. So no — there is no autonomous, closed, VLA-to-data-to-retraining loop in production, open or commercial. What exists is a stack of well-built components with a human judgement call wedged between evaluation and data collection.</p>
+
+<h2>5. How our framework compares</h2>
+
+<h3>5.1 We are not a gym, and the overlap is smaller than it looks</h3>
+<table>
+<tr><th>Capability</th><th>Gyms (Arena / RoboFinals / LIBERO-Plus)</th><th>Our harness</th></tr>
+<tr><td>Environment authoring, assets, embodiments</td><td class=yes>Core product</td><td class=no>None — we borrow LIBERO/LIBERO-Plus</td></tr>
+<tr><td>Throughput / parallel evaluation</td><td class=yes>Thousands of envs concurrently, ~10×</td><td class=no>One shared 8 GB GPU, sequential</td></tr>
+<tr><td>Cross-embodiment, humanoid, deformables</td><td class=yes>RoboFinals-100 spans all three</td><td class=no>Franka tabletop only</td></tr>
+<tr><td>Leaderboard / hosted ranking</td><td class=yes>Yes</td><td class=no>Explicitly not the goal</td></tr>
+<tr><td>Per-step privileged trace (<code>_gt_</code> object poses, contacts, distances, every free-joint object)</td><td class=no>Evaluators emit one success bit + mp4</td><td class=yes>Core</td></tr>
+<tr><td>Phase localisation (approach / pre-grasp / grasp / transport / retry)</td><td class=no>—</td><td class=yes>Yes</td></tr>
+<tr><td><b>Paired counterfactual attribution</b> — same seed, one knob reverted, McNemar on paired outcomes</td><td class=no><b>Structurally impossible</b> on an aggregate <code>eval_info.json</code>: the pairing is discarded and cannot be recovered</td><td class=yes>Yes</td></tr>
+<tr><td>Mechanism work — activation taps and <b>pathway splicing</b> (copy text/image/state tokens from the paired nominal run under fixed noise)</td><td class=no>—</td><td class=yes>R-037, R-039</td></tr>
+<tr><td>Failure cost (benign / disruptive / safety)</td><td class=no>No benchmark found weights failures by consequence</td><td class=part>Computed in <code>classify()</code>; not yet in the manifest</td></tr>
+<tr><td>Costed Data Gap Manifest</td><td class=no>Nothing comparable</td><td class=part>Partial — <code>fixability</code>, <code>discriminators</code>, <code>failure_cost</code> not emitted</td></tr>
+<tr><td>Provenance discipline (content-addressed rollouts, three-bucket fingerprint, verified cache hits, env-bound regression sets)</td><td class=part>Arena has versioning; nothing enforces "a stale cache reports a number, not an exception"</td><td class=yes>Yes</td></tr>
+<tr><td>Scene descriptor in physical units (rebuildable on a bench)</td><td class=no>—</td><td class=yes>Yes</td></tr>
+</table>
+
+<p><b>The shape of the difference:</b> a gym answers <i>how well</i> and <i>which policy is better</i>. Our harness answers <i>where, why, through which pathway, at what cost, and what data would fix it</i>. RoboArena is the clean precedent for that framing — it answers "which policy is better", we answer "where does this one break". Those are complementary, not competing.</p>
+
+<h3>5.2 Where we are genuinely ahead</h3>
+<p>Three things survived the 238-source survey, and the gym landscape does not threaten any of them:</p>
+<ol>
+<li><b>The Data Gap Manifest as a costed artifact</b> — severity, fixability, discriminators, validation status per row. The ideas are published; the artifact is not.</li>
+<li><b>Counterfactual attribution of policy failure to environment factors</b> — formalised for LLM agents, essentially unexploited in robot policy evaluation. And it is <i>not retrofittable</i> onto a gym's output.</li>
+<li><b>Failure-cost weighting</b> — no perturbation benchmark found weights failures by consequence.</li>
+</ol>
+
+<h3>5.3 Where we are behind, honestly</h3>
+<ul>
+<li><b>Scale.</b> Arena evaluates across thousands of envs; we queue on one shared card. Any claim that needs <i>n</i> in the thousands is not ours to make today.</li>
+<li><b>Validation.</b> Failure-family labels are unvalidated (adjudication sheet 0 of 80); VLM labels named the wrong grasped object on their first real test. A gym that ships a wrong success predicate is embarrassing; a diagnostic layer that ships wrong <i>diagnoses</i> is worthless.</li>
+<li><b>The loop is not closed even once.</b> No frozen regression set, no remediation arm run. Until that lands we are a measurement instrument, not a loop.</li>
+<li><b>Breadth.</b> One benchmark, one embodiment, two policies (GR00T N1.7, MINERVA).</li>
+</ul>
+
+<h2>6. Could we extend into a gym? Three options, ranked</h2>
+
+<p>Direct answer: <b>we should not try to become sense-A</b>. Competing with Isaac Lab-Arena and RoboFinals on environment authoring, assets and throughput is a losing fight against NVIDIA's supply chain, and it would trade away the only three things that are ours. But "gym" has two other meanings, and one of them is a strong fit.</p>
+
+<h3>Option A — Ship as an EnvHub environment <span class=tag>cheapest</span></h3>
+<p>Package the perturbation + privileged-trace wrapper as a LeRobot EnvHub entry, so <code>make_env("&lt;org&gt;/vla_stress:envs/libero_plus_perturbed.py")</code> yields a Gymnasium env that emits our <code>Rollout</code> contract instead of a success bit. Distribution, not new capability.</p>
+<ul>
+<li><b>For:</b> EnvHub is the real distribution channel now; Isaac Lab-Arena and LeIsaac both route through it. Low effort — our Env protocol is already <code>reset(seed, spec)</code> / <code>step(action)</code>.</li>
+<li><b>Against:</b> gives away the wrapper without the mining layer, which is where the value is. Adds no science.</li>
+<li><b>Blockers:</b> none technical. Licence check on LIBERO-Plus redistribution.</li>
+</ul>
+
+<h3>Option B — Become the verifier/reward layer for an RL gym <span class=tag>highest value</span></h3>
+<p>Every RL substrate in §2.2 — RLinf-VLA, SimpleVLA-RL, RIPT-VLA — trains against a <b>binary task-success bit</b>. That is the weakest possible reward, and it is exactly the signal our harness replaces. We already compute, per step and per episode: phase segmentation, divergence from a nominal reference, failure family, and <b>failure cost</b> (benign / disruptive / safety). Expose those as a verifier and you get:</p>
+<ul>
+<li><b>Dense, phased reward</b> instead of a terminal bit — reward shaped by <i>where</i> the rollout broke, not just that it did.</li>
+<li><b>Cost-weighted reward</b> — a safety failure and a benign timeout stop being worth the same. No published VLA-RL work does this.</li>
+<li><b>A verifier that survives audit</b> — deterministic rules first, LLM adjudication only for the residue, never overriding a deterministic verdict. The "No Free Checker" survey is the argument for why this is scarce.</li>
+</ul>
+<ul>
+<li><b>For:</b> uses the two-fifths of the code that is the contribution; the RL gyms are complements, not competitors; it is a publishable claim (<i>cost-weighted, phase-aware verifier beats binary success at equal interaction budget</i>) that sits alongside the existing open claim (<i>targeted collection beats broad collection at equal budget</i>).</li>
+<li><b>Against:</b> needs a second GPU at minimum — RL fine-tuning on one shared 8 GB card is not viable.</li>
+<li><b>Blockers, in order:</b> (1) <b>family labels must be validated</b> — an unvalidated taxonomy used as a reward function trains the policy on our mistakes; (2) the 0-of-80 adjudication sheet; (3) compute (PENDING #25).</li>
+</ul>
+
+<h3>Option C — Curriculum gym: turn the manifest into scenario generation <span class=tag>the natural extension</span></h3>
+<p>This is the sense-A-adjacent version that <i>does</i> play to our strengths. <code>find_boundary()</code> plus the (still unbuilt) <code>adaptive_sweep()</code> already locate the edge of competence per factor; ROBOGATE independently validated that boundary-focused sampling finds failures far cheaper than uniform sweeps. Extend that from <i>measurement</i> to <i>emission</i>: the manifest row becomes a machine-readable scenario spec, and <code>scene_descriptor</code> (already in physical units, already bench-rebuildable) becomes the collection instruction — in sim, or handed to a teleop foundry.</p>
+<ul>
+<li><b>For:</b> it closes stages 4→5, the exact seam nobody has closed. It is the only option that makes the loop autonomous rather than better-instrumented. It also makes the manifest <i>executable</i> instead of a report.</li>
+<li><b>Against:</b> the Pebblous result is a direct warning — targeted data made a policy worse, 73%→43%, with no offline signal. Emitting a curriculum without a frozen regression set and non-targeted-cell regression reporting is how you ship a loop that degrades policies confidently.</li>
+<li><b>Blockers:</b> (1) <code>RegressionSet</code> must be frozen <i>before</i> any remediation data — it is built but unfrozen; (2) <code>adaptive_sweep()</code> and the <code>coverage_required</code> validator are the two remaining OPEN items in ARCHITECTURE §0; (3) <code>fixability</code>, <code>discriminators</code>, <code>failure_cost</code> must actually be emitted.</li>
+</ul>
+
+<h3>Recommended sequencing</h3>
+<ol>
+<li><b>Do not start any of them</b> until the family labels are validated. Everything downstream — reward, curriculum, manifest row — inherits that error.</li>
+<li>Then <b>C</b>, because it needs nothing we don't have on one GPU and it closes the seam that defines the project.</li>
+<li>Then <b>B</b>, when a rented GPU exists. It is the larger claim and the better story, and it converts the mining layer from a report generator into an RL component.</li>
+<li><b>A</b> whenever, as distribution — but after B or C exists, so what ships is the diagnostic layer and not just a perturbation wrapper.</li>
+</ol>
+
+<h2>7. What would invalidate this reading</h2>
+<ul>
+<li>Isaac Lab-Arena shipping per-step privileged state and paired counterfactual probes in a later alpha. It is at v0.3 and explicitly moving toward "agent-ready and agent-injected workflows" — that is the direction of travel, and it is NVIDIA's to take.</li>
+<li>Lightwheel's "bottleneck diagnosis" turning out to mean per-factor attribution rather than per-task scores. Worth a direct look at RoboFinals output format.</li>
+<li>A follow-up to AgenticRobotics reporting a measurement-driven selector that <i>does</i> beat last-checkpoint. That would mean the loop's decision layer is solved and the remaining gap is only diagnosis quality.</li>
+</ul>
+
+<h2>Sources</h2>
+<p class=small>
+Closed loop: <a href="https://arxiv.org/abs/2608.07555">AgenticRobotics (2608.07555)</a> ·
+<a href="https://arxiv.org/html/2606.27962">JD cloud-native embodied sim infra (2606.27962)</a> ·
+<a href="https://blog.pebblous.ai/report/robot-data-curation-closed-loop-gap/en/">Pebblous, Robot Data Curation &amp; the Closed-Loop Gap</a> ·
+<a href="https://arxiv.org/pdf/2609.09250">No Free Checker: verifiers for robot policies</a> ·
+<a href="https://arxiv.org/pdf/2603.22126">ROBOGATE (2603.22126)</a><br>
+Gyms / eval: <a href="https://developer.nvidia.com/isaac/lab-arena">Isaac Lab-Arena</a> ·
+<a href="https://github.com/isaac-sim/IsaacLab-Arena">Arena repo</a> ·
+<a href="https://developer.nvidia.com/blog/develop-humanoid-robot-policies-end-to-end-with-nvidia-isaac-gr00t/">Isaac GR00T end-to-end</a> ·
+<a href="https://huggingface.co/docs/lerobot/en/envhub_leisaac">LeRobot EnvHub × LeIsaac</a> ·
+<a href="https://lightwheel.ai/robofinals">Lightwheel RoboFinals</a> ·
+<a href="https://www.worldlabs.ai/case-studies/2-lightwheel">World Labs × Lightwheel</a> ·
+<a href="https://arxiv.org/abs/2503.24278">AutoEval (2503.24278)</a> ·
+<a href="https://arxiv.org/abs/2506.18123">RoboArena (2506.18123)</a> ·
+<a href="https://arxiv.org/pdf/2607.04434">RoboDojo</a> ·
+<a href="https://arxiv.org/pdf/2511.04831">Isaac Lab (2511.04831)</a><br>
+RL substrates: <a href="https://github.com/RLinf/RLinf">RLinf</a> ·
+<a href="https://arxiv.org/pdf/2510.06710">RLinf-VLA (2510.06710)</a> ·
+<a href="https://github.com/PRIME-RL/SimpleVLA-RL">SimpleVLA-RL</a> ·
+<a href="https://arxiv.org/pdf/2509.09674">SimpleVLA-RL paper (2509.09674)</a> ·
+<a href="https://arxiv.org/abs/2505.18719">VLA-RL (2505.18719)</a><br>
+Market: <a href="https://www.rl-list.com/">RL List vendor directory (2026)</a> ·
+<a href="https://dev.to/lukeo/the-rl-environment-platform-landscape-in-2026-3j5g">RL environment platform landscape 2026</a> ·
+<a href="https://blog.pebblous.ai/blog/labeling-to-rl-environments/en/">Pebblous, labelling → RL environments market map</a> ·
+<a href="https://techcrunch.com/2025/09/21/silicon-valley-bets-big-on-environments-to-train-ai-agents/">TechCrunch, Silicon Valley bets on environments</a> ·
+<a href="https://newsletter.semianalysis.com/p/rl-environments-and-rl-for-science">SemiAnalysis, RL environments and data foundries</a> ·
+<a href="https://www.primeintellect.ai/blog/environments">Prime Intellect Environments Hub</a> ·
+<a href="https://www.dreamvu.ai/blog/robot-training-data-companies-2026">Robot training data companies 2026</a> ·
+<a href="https://techcrunch.com/2026/01/05/nvidia-wants-to-be-the-android-of-generalist-robotics/">TechCrunch, NVIDIA CES 2026</a>
+</p>
+
+</div></body></html>

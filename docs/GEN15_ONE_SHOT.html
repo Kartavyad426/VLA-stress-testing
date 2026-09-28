@@ -1,0 +1,292 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>GEN-1.5 One-Shot Review</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --c-prompt:#2a78d6;--c-roll:#9aa3af;--c-now:#1baf7a;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --c-prompt:#3987e5;--c-roll:#4b5563;--c-now:#199e70;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--c-prompt:#3987e5;--c-roll:#4b5563;--c-now:#199e70;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul{padding-left:1.2em}li{margin:.25em 0}
+.ctx{display:flex;height:34px;border-radius:4px;overflow:hidden;font-size:.72rem;font-family:var(--mono);color:#fff;margin:10px 0 4px}
+.ctx div{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.ctxlab{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);font-family:var(--mono)}
+.tl{position:relative;margin:10px 0 0 6px;padding-left:20px;border-left:2px solid var(--rule)}
+.tl .e{position:relative;margin:0 0 14px}
+.tl .e::before{content:'';position:absolute;left:-27px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--muted)}
+.tl .e.gen::before{background:var(--accent);border-color:var(--accent)}
+.tl .y{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.tl .t{font-weight:600}
+.pill{display:inline-block;font-size:.7rem;font-family:var(--mono);padding:0 6px;border-radius:3px;background:var(--surface-2);color:var(--muted);margin-left:6px;vertical-align:1px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.part2{margin-top:4em;padding:28px 20px 8px;border:2px solid var(--accent);border-radius:8px;background:var(--surface)}
+.part2 h2{border-top-color:var(--rule-soft)}
+.part2 .card{background:var(--surface-2)}
+.partlab{display:inline-block;font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:3px 10px;border-radius:3px;margin-bottom:12px}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface-2);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+@media (max-width:600px){.part2{padding:18px 12px 4px}}
+</style></head><body><div class=wrap>
+
+<h1>GEN-1.5: one-shot learning, and what it means for us</h1>
+<div class=meta>2026-09-23 · Source: <a href="https://generalistai.com/blog/gen-1.5">Generalist AI blog, "GEN-1.5: Embodied Foundation Models are One-Shot Learners"</a> (2026-08-19), its predecessors, and the papers it cites · Compared against this repo's GR00T N1.7 / LIBERO-Plus work (R-026 to R-042)</div>
+
+<div class="card tldr">
+<div class=q>Summary</div>
+<ul>
+<li><b>What it is.</b> GEN-1.5 is a closed, unreleased robot foundation model. You give it a 3 to 12 second demonstration of a new task in its context window, and it does the task with <b>no weight updates</b>. Across 10 short tasks it averages 59% success. With 1 to 10 gradient steps on 1 to 5 minutes of demos it reaches 83%.</li>
+<li><b>Imitation or generalisation?</b> It infers the task, not the exact trajectory. It runs closed-loop from what the cameras currently see, so object positions, object sizes and which hand it uses can differ from the demo. The strong generalisation examples (new tools, obstacles, unseen jars) come from the <b>fine-tuned</b> models, not the in-context ones. Generalist itself calls the in-context skills "more brittle".</li>
+<li><b>Static or retrained?</b> There are three regimes. In-context: weights frozen. Few-step: 1 to 10 gradient steps that change the weights by less than 0.15%. Full post-training: GEN-1-style, about 1 hour of robot data plus RL, for 99%+ success. The one-shot headline refers to the first regime.</li>
+<li><b>How they made it work.</b> By their own account, scale alone: more than 500k hours of real human-worn-gripper interaction data, models above ~7B parameters, and 30 s of video memory. They did no meta-learning and added no in-context-learning objective. The ability appeared during 8+ months of continued pretraining.</li>
+<li><b>Relevance to us.</b> The thesis matches ours: failures are coverage gaps, and a broad enough prior makes closing them cheap. We <span class=warn>cannot replicate in-context learning with GR00T N1.7 as it stands</span>. Our checkpoint sees one frame (<code>n_obs_steps: 1</code>), so there is no place to put a demo. We <span class=ok>can run the few-step analogue now</span> as an add-on to R-040. RoboTTT from NVIDIA (built on GR00T N1.7) and BPP from Stanford (open code, with a LIBERO-based benchmark) are the realistic paths to a true in-context version.</li>
+</ul>
+</div>
+
+<h2>1. What GEN-1.5 is</h2>
+<div class=grid2>
+<div class=card><div class=stat>59% <span class=small>±10</span></div><div class=statl>One-shot, in-context, 10 tasks, 0 gradient steps, 3 to 12 s of one demo</div></div>
+<div class=card><div class=stat>83% <span class=small>±9</span></div><div class=statl>Few-shot, 10 gradient steps on ~5 min (~50 demos) per task</div></div>
+<div class=card><div class=stat>66.5%</div><div class=statl>1 gradient step on 1 min of data, one held-out task</div></div>
+<div class=card><div class=stat>&lt;0.15%</div><div class=statl>Weight change after 10 steps on held-out tasks</div></div>
+</div>
+<ul>
+<li><b>Model.</b> A "large multimodal model". It takes video with <b>30 s of memory</b>, plus other sensors, language and proprioception, and outputs <b>100 Hz action trajectories</b>. Architecture and parameter count are not disclosed. GEN-0 was scaled to 10B+ parameters.</li>
+<li><b>Data.</b> Real physical interaction only, from homes, warehouses and factories. The data is mostly recorded by people using <b>handheld grippers</b>, i.e. wearable UMI-style devices. GEN-1 reported "over half a million hours" of this data and "no robot data" in pretraining. GEN-1.5 has <b>no simulation data</b>. It was pretrained on "randomly sampled continuous spans" with no special packing of demo-then-execute examples.</li>
+<li><b>Tasks.</b> Short-horizon atomic tasks: unzipping a pencil pouch, twisting a lid off a jar, brushing a cube into a bowl, removing a vacuum pad, taking money out of a wallet, putting a marker into a cup, pouring bolts.</li>
+<li><b>Other claimed capabilities.</b> Chaining two independently recorded prompts into one behaviour. Zero-shot sim-to-real: a demo recorded in simulation prompts the real robot. Human-hand-to-robot imitation "in some cases".</li>
+</ul>
+
+<h2>2. How the one-shot learning works</h2>
+<div class=card>
+<div class=q>Mechanism: "physical prompting"</div>
+<p style="margin-top:0">It works the way GPT-3's one-shot prompting does. A demonstration is placed in the model's context window as <b>sensor data plus action trajectory</b>, and the rest of the window holds the robot's live observations. The model then keeps predicting actions. Because the prompt has just shown a task, the most likely continuation is to do that task again in the current scene.</p>
+<div class=ctx>
+ <div style="flex:10;background:var(--c-prompt)">physical prompt: 3–12 s demo (obs + actions)</div>
+ <div style="flex:17;background:var(--c-roll)">rolling live observations</div>
+ <div style="flex:3;background:var(--c-now)">now → act</div>
+</div>
+<div class=ctxlab><span>t − 30 s</span><span>30 s context window</span><span>t</span></div>
+<p class=small>The demo is selected in a drag-and-drop UI and inserted into the buffer. The join between demo and live stream is a discontinuous jump in time, which the model never saw in pretraining. It works anyway.</p>
+</div>
+
+<h3>Why it emerges, according to Generalist</h3>
+<ul>
+<li>They did <b>not</b> train for it. The post rules out architectural changes, a meta-learning inner or outer loop, and auxiliary objectives.</li>
+<li><b>Hypothesis 1: data distribution.</b> Physical data may be "bursty" and Zipfian, the same distributional properties that <a href="https://arxiv.org/abs/2205.05055">Chan et al. 2022</a> linked to in-context learning emerging in transformers.</li>
+<li><b>Hypothesis 2: repetition.</b> Physical work has repeating cycles, such as the same pick done over and over within one 30 s span. A long-context model learns to "detect and extend" the pattern, as LLMs do (<a href="https://arxiv.org/abs/2307.04721">Mirchandani et al. 2023</a>). Read this way, "do what the last few seconds showed, but in the current scene" is an ordinary next-action prediction.</li>
+<li><b>Precondition: scale.</b> GEN-0 found "ossification" below ~7B parameters: small models stop absorbing pretraining data. The few-step ability was seen to get stronger as pretraining went on, from hundreds of steps to tens to 1. Only after that did they try zero steps.</li>
+</ul>
+<p>What the blog does not show is an ablation that would confirm either hypothesis. Both are offered as guesses.</p>
+
+<h2>3. Does one-shot generalise, or just replay the demo?</h2>
+<div class=tw><table>
+<tr><th>Claim</th><th>Regime</th><th>Evidence quality</th></tr>
+<tr><td>Executes the demoed task from new initial conditions: new object positions and sizes, the other hand</td><td>In-context</td><td class=amb>Shown in videos (sim-to-real section), no numbers</td></tr>
+<tr><td>"Can generalize to some perturbations, improvise, and recover from mistakes"</td><td>In-context</td><td class=amb>Qualitative. Also "more brittle than finetuned"</td></tr>
+<tr><td>Chains two prompts and invents the transition motions between them</td><td>In-context</td><td class=amb>One example (pouch then money)</td></tr>
+<tr><td>Uses a banana or dustpan as a tool after seeing a brush demo. Removes paper covering the bowl</td><td><b>Fine-tuned</b> (1 to 10 steps)</td><td class=amb>Videos. Nearest-neighbour search over 1.89M pretraining scenes finds nothing similar</td></tr>
+<tr><td>Jar lid skill transfers to unseen cups and bottles. Ambidexterity</td><td><b>Fine-tuned</b></td><td class=amb>Videos</td></tr>
+<tr><td>59% average across 10 tasks</td><td>In-context</td><td class=warn>No per-task table, trial counts, success criteria, test-scene protocol or baselines</td></tr>
+</table></div>
+<p><b>Answer:</b> it is <b>not a trajectory replay</b>. The policy is closed-loop at 100 Hz on live camera input, so it has to re-ground the task in whatever scene it is in. The demo tells it <i>what</i> to do. The pretrained prior supplies <i>how</i>. The tasks are atomic, though, and the post never states how different the test scene is from the demo scene. The claims about strategy-level generalisation (new tools, obstacles) belong to the fine-tuned models. The honest reading is "the task generalises to nearby variations, and the in-context version is fragile". It does not show open-ended generalisation from one demo.</p>
+
+<h2>4. Is the model retrained, or static?</h2>
+<div class=tw><table>
+<tr><th>Regime</th><th>Weights</th><th>Data</th><th>Compute</th><th>Result</th></tr>
+<tr><td><b>In-context (one-shot)</b></td><td class=ok>Frozen</td><td>1 demo, 3–12 s</td><td>Inference only. "Seconds"</td><td>59% avg, brittle</td></tr>
+<tr><td><b>Few-step adaptation</b></td><td>Updated, &lt;0.15% change</td><td>1–5 min (~10–50 demos)</td><td>1–10 gradient steps at pretraining-like hyperparameters, untuned</td><td>66.5% (1 step), 83% (10 steps)</td></tr>
+<tr><td><b>Post-training to mastery</b> (GEN-1)</td><td>Updated</td><td>~1 h robot data per task, plus RL</td><td>Standard fine-tune plus RL</td><td>99%+ on selected tasks</td></tr>
+</table></div>
+<p>They describe the middle regime as <b>test-time training</b> (<a href="https://arxiv.org/abs/2411.07279">Akyürek et al. 2024</a>) and "reminding the model of something it nearly knows". Each task pushes the weights a tiny distance in its own direction. For contrast, our GR00T LIBERO checkpoint was fine-tuned for <b>20,000 steps</b> (<code>train_config.json: steps 20000</code>).</p>
+
+<h2>5. Relevance to what we are doing</h2>
+<div class=tw><table>
+<tr><th>Our finding</th><th>What GEN-1.5 suggests</th></tr>
+<tr><td>Behaviour-cloned policies fail where the demos did not cover the situation (robot initial state 32.8% fail, camera viewpoint; R-026 and R-031)</td><td>They agree failures are coverage gaps. Their answer is to make the prior broad enough that a gap takes one demo or one gradient step to close. Ours is targeted collection. These are complementary. The shared open question is how much data a gap needs, and that is what R-040 measures.</td></tr>
+<tr><td>Perturbations reach the action through image tokens. The state token is nearly unused because of <code>state_dropout_prob: 0.2</code> (R-039)</td><td>GEN-1.5 pairs 30 s of video memory with proprioception. Its action is conditioned on a history of how the arm moved, not a single frame. A one-frame policy has no way to use an example.</td></tr>
+<tr><td>Empty prompt gives 50/100. The drawer/bowl scene is 0/10 and grabs the wrong object (R-038)</td><td>This is a <b>task-specification</b> failure, and a demo-as-prompt is a way of specifying the task that does not use language. Generalist's argument is that some tasks are easier to show than to say. For our LIBERO checkpoint this can only be tested with an in-context model (§6 B/C).</td></tr>
+<tr><td>Outcomes are chaotic at render-jitter level: 23/30 agreement (R-039)</td><td>A warning for any few-shot comparison. At N=10 trials a 59% vs 83% gap is inside our noise floor. Any replication needs ≥50 rollouts per cell.</td></tr>
+<tr><td>R-040: D (corrective demos of the failed instances) vs M (mechanism-chosen) vs O vs R, tested on held-out instances</td><td>GEN-1.5 predicts that <b>with a strong enough prior, D alone generalises to held-out neighbours</b>, and a tiny D at that. For GR00T N1.7 this is a falsifiable prediction, and we already have the harness to test it.</td></tr>
+</table></div>
+<p>Also worth noting: <a href="https://arxiv.org/abs/2606.30457">BPP (Patel et al. 2026)</a> found <b>task diversity matters more than demos-per-task</b> for promptability. That bears directly on how a Data Gap Manifest should weight "more variants" against "more repeats".</p>
+
+<h2>6. Can we replicate it?</h2>
+<div class=tw><table>
+<tr><th>Path</th><th>What</th><th>Feasible here?</th></tr>
+<tr><td><b>A. GEN-1.5 itself</b></td><td>Prompt their model</td><td class=warn>No. Closed: no weights, API or paper. Under our <i>reproducibility-is-the-bar</i> rule its numbers are unverified claims.</td></tr>
+<tr><td><b>B. True in-context with GR00T N1.7 as-is</b></td><td>Put a demo in the context</td><td class=warn>No. <code>n_obs_steps: 1</code>, so there is no history slot. The model was never trained on sequences, and bolting on a context would mean retraining the backbone, which does not fit in 8 GB.</td></tr>
+<tr><td><b>C. RoboTTT</b> (<a href="https://arxiv.org/abs/2607.15275">Jiang et al., NVIDIA GEAR, Jul 2026</a>)</td><td>GR00T N1.7 plus test-time-training layers in each of the 16 DiT layers (538M → ~690M action head). The context is compressed into fast weights, up to 8K steps. One-shot imitation from a single human video: 6/10 on unseen circuit configurations.</td><td class=amb>Closest match to our model family. No code or weights released yet. Watch it.</td></tr>
+<tr><td><b>D. BPP</b> (<a href="https://github.com/real-stanford/behavior_prompting">code</a>)</td><td>Diffusion policy trained explicitly with (prompt demo, other demo of the same task) pairs. <b>LIBERO-Gen</b> benchmark built from LIBERO: 67% on unseen Combination tasks vs 40% goal-image. Rivals π0.5 fine-tuned.</td><td class=ok>Yes. Open code, small model, on LIBERO. The cheapest real testbed for "demo as prompt" under our perturbations.</td></tr>
+<tr><td><b>E. Few-step adaptation on GR00T N1.7</b></td><td>The GEN-1.5 §"Few Gradient Step" experiment in miniature, run on our failures</td><td class=ok>Yes, now. Uses the existing R-040 recipe (action head, projector and VLLN only).</td></tr>
+</table></div>
+
+<h3>Proposed: R-040 extension, a gradient-step response curve</h3>
+<div class=card>
+<ol style="margin:0;padding-left:1.2em">
+<li>Take one R-026 failure bucket with enough instances. Robot-initial-state is the largest.</li>
+<li>Collect k ∈ {1, 5, 10, 50} corrective demos on mined failed instances (arm D data).</li>
+<li>Fine-tune from the released checkpoint for s ∈ {1, 10, 100, 1000} steps with the R-040 recipe. Record ‖Δθ‖/‖θ‖ for each run.</li>
+<li>Evaluate on (a) the exact failed instances, (b) <b>held-out instances of the same category</b>, and (c) the R-029 nominal control for regression. Use ≥50 rollouts per cell, given R-039's 23/30 agreement.</li>
+<li><b>Pre-registered prediction:</b> GR00T N1.7-LIBERO is far below GEN-1.5's scale, so s ≤ 10 will not move (b) outside noise, and the curve will look like an ordinary fine-tune. If s ≤ 10 <i>does</i> move (b), GR00T's pretrained prior already covers the gap, and the manifest's cost estimates should shrink sharply.</li>
+</ol>
+<p class=small style="margin-bottom:0">Cost: 16 fine-tunes, each tiny except s = 1000, plus 16 × 3 evaluation sets. This fits the current GPU queue (flock + announce).</p>
+</div>
+
+<h2>7. Progression: prior work → GEN-1.5</h2>
+<div class=tl>
+<div class=e><div class=y>1954 / 1970</div><div class=t>Unimate patent (Devol) · MIT Copy Demo (Winston)</div>Teach-by-guiding, and a robot copying a block structure it sees. The first "show, don't program" systems.</div>
+<div class=e><div class=y>2017</div><div class=t><a href="https://arxiv.org/abs/1703.03400">MAML</a> (Finn) · <a href="https://arxiv.org/abs/1703.07326">One-Shot Imitation Learning</a> (Duan)</div>Explicit meta-learning for fast adaptation, and a demo-conditioned policy trained across block-stacking tasks. This is the "train for it on purpose" approach GEN-1.5 says it did not need.</div>
+<div class=e><div class=y>2021</div><div class=t><a href="https://arxiv.org/abs/2105.06411">Coarse-to-Fine Imitation</a> (Johns)</div>One demo plus pose estimation, with the final approach replayed. Real one-shot, but limited to replaying a trajectory.</div>
+<div class=e><div class=y>2022–2023</div><div class=t><a href="https://arxiv.org/abs/2205.05055">Data properties drive in-context learning</a> (Chan) · <a href="https://arxiv.org/abs/2307.04721">LLMs as pattern machines</a> (Mirchandani)</div>The theory GEN-1.5 relies on: burstiness and Zipfian data give rise to in-context learning, and sequence models extend patterns.</div>
+<div class=e><div class=y>2024</div><div class=t><a href="https://arxiv.org/abs/2408.15980">ICRT</a> (Fu) · <a href="https://arxiv.org/abs/2411.12633">Instant Policy</a> (Vosylius &amp; Johns) · <a href="https://arxiv.org/abs/2411.07279">TTT for ARC</a> (Akyürek)</div>In-context imitation by next-token prediction over prompt trajectories, and in-context imitation via graph diffusion trained on procedurally generated pseudo-demos. Both work, but only within restricted task families. TTT shows that a few gradient steps at test time are powerful.</div>
+<div class="e gen"><div class=y>Sep 2025</div><div class=t><a href="https://generalistai.com/blog/sep-24-2025-the-robots-build-now-too">Generalist: The Robots Build Now, Too</a></div>A person builds a 3-brick Lego structure and the robot copies it, end to end from pixels to 100 Hz actions. Generalist's own earlier in-context result, limited to one task family.</div>
+<div class="e gen"><div class=y>Nov 2025</div><div class=t><a href="https://generalistai.com/blog/gen-0">GEN-0</a> <span class=pill>270k h · 10B+</span></div>Scaling laws for embodied pretraining (downstream error as a power law in data). "Ossification" below ~7B parameters. "Harmonic Reasoning": asynchronous streams of sensing and acting tokens. Post-training on ~5.6 h per task.</div>
+<div class="e gen"><div class=y>Jan 2026</div><div class=t><a href="https://generalistai.com/blog/jan-29-2026-physical-commonsense">Physical Commonsense</a></div>Argues that data must "preserve the loop" (reflexes, micro-corrections) and that ergonomic handheld devices beat teleop for this.</div>
+<div class="e gen"><div class=y>Apr 2026</div><div class=t><a href="https://generalistai.com/blog/apr-02-2026-GEN-1">GEN-1</a> <span class=pill>500k+ h · no robot data in pretraining</span></div>~1 h robot data plus RL gives 99% on tasks where earlier models got 64%. 10× less task data than GEN-0. First signs of improvisation.</div>
+<div class=e><div class=y>Jun–Jul 2026</div><div class=t><a href="https://arxiv.org/abs/2606.30457">BPP</a> (Patel, Song) · <a href="https://arxiv.org/abs/2607.08639">LingBot-VA 2.0</a> (Zhang) · <a href="https://arxiv.org/abs/2607.15275">RoboTTT</a> (Jiang, Fan, Zhu)</div>Explicitly trained demo-prompting, with LIBERO-Gen and the finding that task diversity drives it. Video-action pretraining with few-shot generalisation. GR00T N1.7 plus TTT layers for 8K-step context and one-shot imitation from human video.</div>
+<div class="e gen"><div class=y>Aug 2026</div><div class=t><a href="https://generalistai.com/blog/gen-1.5">GEN-1.5</a> <span class=pill>8+ months pretraining</span></div>One-shot in-context at 59% and few-step adaptation at 83% across a broad task set, emerging without any training for it. Sim prompts and human-hand prompts also work.</div>
+</div>
+
+<h2>8. Caveats</h2>
+<ul>
+<li>This is a <b>blog post, not a paper</b>. The architecture, trial counts, per-task results, success criteria and test-scene protocol are not given, and nothing is compared against π0, GR00T or anything else. The "±10%" is a standard deviation across tasks, not a confidence interval.</li>
+<li>"Tasks not engineered into pretraining" was checked only by a nearest-neighbour <i>language</i> search over 1.89M scenes. A similar motion could still be in the corpus.</li>
+<li>Our rule is that a policy stays on the roster only if it reproduces its published number. GEN-1.5 cannot be checked against that rule, so treat its figures as directional.</li>
+<li>Human-to-robot transfer works only "in some cases", and no numbers are given.</li>
+</ul>
+
+<div class=part2>
+<div class=partlab>Part II · Follow-up Q&amp;A · 2026-09-23</div>
+<h1 style="font-size:1.6rem">Getting in-context prompting into our stack: BPP, RoboTTT, and how VLA "context" works</h1>
+<p class=small>This part answers the follow-up questions from the same session. BPP facts come from its paper (<a href="https://arxiv.org/abs/2606.30457">arXiv:2606.30457</a>) and from reading its code at <code>real-stanford/behavior_prompting@main</code> (pushed 2026-09-01). GR00T facts come from our checkpoint's <code>config.json</code>.</p>
+
+<h2>II.1 Is GEN-1.5's in-context learning really emergent?</h2>
+<p>It is emergent <b>in the sense that nobody trained for it</b>. The only objective was next-action prediction on random 30 s spans. There were no demo-then-execute training pairs, no meta-learning and no auxiliary loss. Three qualifications:</p>
+<ul>
+<li><b>The data probably teaches it implicitly.</b> Physical work repeats within 30 s (the same pick, again and again). So "continue the pattern from the last few seconds in the current scene" is already rewarded by next-action prediction. This is the same data-driven mechanism as in LLMs (Chan et al. 2022). It is not magic.</li>
+<li><b>No emergence curve is shown.</b> There is no plot of one-shot success against model size, data or compute. They also mention undisclosed "surgical architectural and algorithmic changes" made during training.</li>
+<li><b>The contrast with other work is real.</b> BPP and RoboTTT get prompting by training for it explicitly. GEN-1.5 is the first to claim it without doing so, across a broad range of tasks.</li>
+</ul>
+<p>What this means for us: if the ability comes from scale, breadth and long context, it cannot be added to GR00T N1.7 afterwards. The workable route is to train for it explicitly, which is what BPP does.</p>
+
+<h2>II.2 Can we get RoboTTT or BPP?</h2>
+<div class=tw><table>
+<tr><th></th><th>BPP (Stanford)</th><th>RoboTTT (NVIDIA GEAR)</th></tr>
+<tr><td>Code</td><td class=ok>Official, MIT, <a href="https://github.com/real-stanford/behavior_prompting">real-stanford/behavior_prompting</a>. Supports LIBERO and LIBERO-Gen.</td><td class=warn>No official release. Unofficial: <a href="https://github.com/lucidrains/robo_ttt">lucidrains/robo_ttt</a> (MIT) and a LeRobot π0 port. Both are code only.</td></tr>
+<tr><td>Weights</td><td class=ok>On Hugging Face: <code>austinpatel/libero</code>, <code>liberogen_spatial_combination</code>, <code>liberogen_goal_chain</code> (+ no-second-step ablation)</td><td class=warn>None</td></tr>
+<tr><td>Size</td><td>~208M params: a 57M prompt encoder (6-layer transformer, 768-d) and a 151M CNN U-Net diffusion decoder. The 6.9 GB checkpoint files also hold the EMA copy and optimiser state.</td><td>GR00T N1.7 (~3B). Action head 538M → ~690M with TTT layers.</td></tr>
+<tr><td>Inference on our 8 GB GPU</td><td class=ok>Yes, easily</td><td>Would fit, but there are no weights</td></tr>
+<tr><td>Training here</td><td class=warn>No. The prompting config says "fits in 46gb" (batch size 100, 4 GPUs)</td><td class=warn>No. It needs 8K-step sequence training</td></tr>
+<tr><td>Env pins</td><td><code>mujoco==3.3.0</code>, <code>robosuite==1.4.0</code>, custom robomimic fork. We run MuJoCo 3.3.7 for LIBERO-Plus, so BPP needs its own venv and must be checked against the MuJoCo-version LIBERO task.</td><td>—</td></tr>
+</table></div>
+<div class=tw><table>
+<tr><th>BPP checkpoint files</th><th>Size</th><th>Trained on</th></tr>
+<tr><td><code>austinpatel/libero</code> → <code>libero_behavior_prompting.ckpt</code>, <code>libero_language.ckpt</code></td><td>6.9 GB, 1.6 GB</td><td>All 130 LIBERO tasks (libero_all)</td></tr>
+<tr><td><code>austinpatel/liberogen_spatial_combination</code> → prompting / goal-image / language</td><td>6.9 / 3.8 / 1.6 GB</td><td>Generated spatial pick-place combinations</td></tr>
+<tr><td><code>austinpatel/liberogen_goal_chain</code> → prompting / goal-image / language</td><td>6.9 / 3.8 / 4.8 GB</td><td>Generated two-step tasks</td></tr>
+</table></div>
+<p>Published clean-LIBERO numbers, which are what we reproduce first (paper Table 2): BPP spatial <b>97.4%</b>, object 98.9%, goal 98.3%, LIBERO-10 95.3%. The language version gets spatial 97.8%. On unseen LIBERO-Gen Combination tasks: BPP ~65%, language ~55%, goal-image ~30%, π0.5 after 100K LoRA steps ~62%.</p>
+
+<h2>II.3 Will BPP survive perturbations if it gets a good prompt?</h2>
+<div class=card>
+<div class=q>Prediction (not yet tested)</div>
+<p style="margin:0"><b>Probably not for camera or robot-initial-state failures. Possibly yes for language and task-ambiguity failures.</b></p>
+</div>
+<ul>
+<li><b>A prompt specifies the task. It does not fix perception.</b> R-039 found every perturbation category reaches the action through image tokens, meaning the policy misreads the current scene. A demo tells the policy <i>what</i> to do, but it still has to see a shifted camera correctly.</li>
+<li><b>A nominal prompt may even hurt.</b> BPP's attention works as a "prompt lookup", matching current frames to milestones in the demo. A clean-camera demo won't match a rotated live view.</li>
+<li><b>No robustness evidence.</b> BPP is ~208M parameters trained only on LIBERO. The paper reports no camera, lighting, distractor or initial-pose experiments, and lists "occasionally completes a different task than instructed" as a failure mode.</li>
+<li><b>Where it could help.</b> Language perturbations and R-038's empty prompt: the demo replaces the text, so these vanish by construction. The drawer/bowl wrong-object failure: the demo shows which bowl. Initial state is uncertain: BPP uses end-effector pose with a 2-step history plus the wrist camera, so its sensitivity may differ from GR00T's, which ignores its state input.</li>
+</ul>
+<h3>Proposed experiment: clean prompt vs matched prompt</h3>
+<div class=tw><table>
+<tr><th>Arm</th><th>Conditioning</th><th>Question it answers</th></tr>
+<tr><td>1</td><td><code>libero_language.ckpt</code></td><td>Baseline with the same architecture and data</td></tr>
+<tr><td>2</td><td>BPP, <b>clean prompt</b> (nominal demo of the same task)</td><td>Does specifying the task by demo help under perturbation?</td></tr>
+<tr><td>3</td><td>BPP, <b>matched prompt</b> (a successful demo recorded <i>under the same perturbation</i>)</td><td>Does one demo from the new condition adapt the policy with no training? This is GEN-1.5 in miniature.</td></tr>
+</table></div>
+<p>Matched demos are cheap: 468 of R-026's 623 hard variants were GR00T successes. Their actions convert mechanically to BPP's format. If 3 beats 2 on held-out instances, in-context adaptation works at this scale and competes directly with R-040's fine-tuning arms. If 3 ≈ 2 ≈ 1, prompting only specifies the task, and our failures are perception gaps that need data.</p>
+<p><b>Checkpoint choice: <code>austinpatel/libero</code></b>, both the prompting and language files (~8.5 GB).</p>
+<ul>
+<li>It is trained on all LIBERO suites, including <code>libero_spatial</code>, the suite LIBERO-Plus perturbs.</li>
+<li>The two files use the same architecture and data and differ only in conditioning, so the comparison between them is clean.</li>
+<li>It has a published number to reproduce first.</li>
+</ul>
+<p>The LIBERO-Gen checkpoints test generalisation to unseen task <i>combinations</i>, not perturbation robustness. They are for a later phase.</p>
+
+<h2>II.4 Do VLAs normally have context? Does GR00T?</h2>
+<div class=tw><table>
+<tr><th>Model</th><th>What it sees on each call</th></tr>
+<tr><td><b>GR00T N1.7 (our checkpoint)</b></td><td>The current frame per camera, 8-D state and the instruction. <code>n_obs_steps: 1</code>: <b>no past frames</b>. It predicts a 16-step action chunk.</td></tr>
+<tr><td>OpenVLA, π0, π0.5, SmolVLA</td><td>Also a single current frame (plus state for some)</td></tr>
+<tr><td>Octo, Diffusion Policy</td><td>A short history, typically 2 frames</td></tr>
+<tr><td><b>BPP</b></td><td>2 current frames (<code>img_obs_horizon: 2</code>) <b>plus a separate prompt demo</b></td></tr>
+<tr><td>RoboTTT</td><td>Up to 8K timesteps (~4.5 min), compressed into fast weights</td></tr>
+<tr><td>GEN-1.5</td><td>30 s of video plus sensors</td></tr>
+</table></div>
+<ul>
+<li><b>Two meanings of "context".</b> Within one call, GR00T's image, text and state tokens sit in one sequence and attend to each other. That is spatial context. <i>Temporal</i> context means frames from earlier moments are in the sequence too. GR00T has none, so it has no memory of two seconds ago.</li>
+<li><b>Action chunking is not memory.</b> Executing 16 predicted actions before looking again is an open-loop commitment. The model does not remember anything.</li>
+<li><b>How temporal context works.</b> Each past frame goes through the vision encoder and becomes a block of tokens. The blocks are stacked in time order with time or position embeddings, and the transformer attends across them, so the action can depend on "what I saw 3 s ago". A demo in context is the same idea: tokens from another episode, placed where the model can attend to them.</li>
+<li><b>Why most VLAs skip it: cost.</b> Every frame adds hundreds of tokens per camera, and attention is quadratic in sequence length. Every long-context model has a workaround. GEN-1.5 pays for it at scale. RoboTTT compresses history into weights. BPP subsamples the demo to 1 Hz, encodes it once and caches it.</li>
+</ul>
+
+<h2>II.5 How BPP takes a demo, in code</h2>
+<p>You don't pass a link or a video file. The prompt is a <b>dictionary of tensors</b>: images, proprioception <i>and actions</i>, cut into 1-second chunks. Source: <code>train_network/model/prompt/prompt_obs_encoder.py</code> (<code>PairPromptTransformerTokenizer</code>, <code>PairPromptObsEncoder</code>) and <code>train_network/env_runner/libero_image_runner.py</code>.</p>
+<pre class=code>prompt = {
+  "obs": {
+    "agentview_rgb":   [L, 3, 224, 224],   # one frame per second (20 Hz data, chunk of 20)
+    "eye_in_hand_rgb": [L, 3, 224, 224],
+    "ee_pos":  [L, 3],  "ee_ori": [L, 6],  # rot6d
+    "gripper_states": [L, 2],
+  },
+  "action": [L, 20, 10],                   # all actions kept: 20 per chunk × (pos3 + rot6 + grip1)
+}                                          # L = demo length in seconds
+
+policy.reset()
+policy.prompt(prompt)                      # encoded ONCE -> self.prompt_tokens_cache
+while not done:
+    action = policy.predict_action(current_obs)   # current 2 frames only</pre>
+<div class=card>
+<div class=q>Data flow</div>
+<ol style="margin:0;padding-left:1.2em">
+<li><b><code>prompt()</code>, called once.</b> Each 1 s chunk produces image tokens (both cameras), proprio tokens and one action token (a linear projection of the chunk's 20 actions). The chunks are flattened into one sequence, given position embeddings (capped by <code>prompt_sequence_length: 768</code>), encoded by the 6-layer prompt transformer, and <b>cached</b>.</li>
+<li><b>Every control step.</b> Tokens from the current 2-frame observation <b>cross-attend</b> to the cached prompt tokens, which is the "where am I in the demo" lookup; attention-sink tokens are prepended. The output is concatenated with the raw current-observation tokens and passed to the diffusion U-Net, which outputs actions.</li>
+<li><b><code>reset()</code></b> clears the cache. A new demo is just another <code>prompt()</code> call. No gradient steps are involved.</li>
+</ol>
+</div>
+<p>In their own evaluation, the runner builds the prompt from a LIBERO <code>.hdf5</code> demo of the same task via <code>LiberoReplayImageDataset(..., only_prompt=True)</code>, from a different initial state than the test episode. In <code>pair</code> mode each parallel environment gets its own prompt.</p>
+
+<h2>II.6 Can we put videos in its context?</h2>
+<div class=tw><table>
+<tr><th>Prompt source</th><th>Works with released checkpoints?</th><th>Why</th></tr>
+<tr><td>Sim rollout (e.g. a GR00T success in a perturbed LIBERO-Plus scene)</td><td class=ok>Yes</td><td>The sim records actions and proprio. Log both cameras, EE pose, gripper and 20 Hz actions, convert axis-angle to rot6d, write LIBERO-format hdf5, and pass it to <code>prompt()</code>.</td></tr>
+<tr><td>Teleop demo (spacemouse)</td><td class=ok>Yes</td><td>The repo ships <code>scripts/libero/collect_demonstration.py</code></td></tr>
+<tr><td>Plain video without actions (phone clip, human hand)</td><td class=warn>No</td><td>The checkpoints were trained with actions in the prompt (<code>ignore_prompt_action: False</code>). The code has flags to drop prompt actions or proprio, but a checkpoint would have to be <i>trained</i> that way. Learning from action-free video is the extra step RoboTTT and GEN-1.5's human-to-robot demos take.</td></tr>
+</table></div>
+<p class=small>Integration gotchas: match BPP's LIBERO image flip and orientation convention, resize to 224, keep the prompt under the 768-token position-embedding limit (a normal LIBERO demo fits), and use the same camera keys (agentview + wrist).</p>
+</div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://generalistai.com/blog/gen-1.5">GEN-1.5</a> · <a href="https://generalistai.com/blog/gen-0">GEN-0</a> · <a href="https://generalistai.com/blog/apr-02-2026-GEN-1">GEN-1</a> · <a href="https://generalistai.com/blog/sep-24-2025-the-robots-build-now-too">The Robots Build Now, Too</a> · <a href="https://generalistai.com/blog/jan-29-2026-physical-commonsense">Physical Commonsense</a> · <a href="https://arxiv.org/abs/2607.15275">RoboTTT</a> · <a href="https://research.nvidia.com/labs/gear/robottt/">RoboTTT project page</a> · <a href="https://arxiv.org/abs/2606.30457">BPP</a> · <a href="https://arxiv.org/abs/2607.08639">LingBot-VA 2.0</a> · <a href="https://github.com/real-stanford/behavior_prompting">BPP code</a> · <a href="https://huggingface.co/austinpatel/libero">BPP LIBERO checkpoints</a> · <a href="https://github.com/lucidrains/robo_ttt">robo_ttt (unofficial)</a> · <a href="https://www.marktechpost.com/2026/08/24/generalist-ai-releases-gen-1-5-a-robot-foundation-model-that-learns-new-tasks-from-one-3-12-second-demo/">MarkTechPost coverage</a>. Repo facts: <code>RESULTS.md</code> (R-026, R-038, R-039, R-040), the GR00T checkpoint's <code>config.json</code> / <code>train_config.json</code>.</p>
+</div></body></html>

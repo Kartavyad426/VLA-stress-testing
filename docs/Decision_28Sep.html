@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decisions 28 Sep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Decision tracker · VLA perturbation programme</p>
+  <h1>Decisions and pending work, 28 September</h1>
+  <p class="stand">Everything waiting on a call from you, every pre-registered experiment not yet run, every proposal that stopped short of a pre-registration, and the ideas you raised that have not come to fruition. Assembled from RESULTS.md, HANDOFF.md (§0–§11), PENDING_DECISIONS.md, the docs/ write-ups, and status reports from all five peer sessions on 2026-09-28.</p>
+  <div class="meta"><span>Compiled by <code>my prim</code>, which now holds the <code>primary</code> and <code>vla-a5</code> (Sentinel/OOD) roles</span><span>Snapshot: 2026-09-28 ~12:00</span><span>Last commit on main: <code>cc9f633</code> (27 unpushed)</span></div>
+</header>
+
+<section class="check" id="actioned">
+  <h2>Checklist: acted on</h2>
+  <p class="small" style="margin:0 0 8px">Newest at the bottom. ✓ = done and verified; ◐ = decided, work in progress.</p>
+  <ul>
+    <li><span class="box">✓</span><span><b>Roles consolidated.</b> <code>primary</code> and <code>vla-a5</code> (Sentinel/OOD) wrote handoffs (HANDOFF.md §10, §11) and stood down; <code>my prim</code> holds both roles.</span><span class="who">09-28 · primary, vla-a5</span></li>
+    <li><span class="box">✓</span><span><b>Option 4a run</b>: single-draw STAC on stored R-041 chunks. It was noise-dominated (floor ~7 vs ‖P−N‖ ~1; AUROC at chance), which motivates D2. Script: <code>experiments/stac_r041_single_draw.py</code> (untracked).</span><span class="who">09-28 · vla-a5</span></li>
+    <li><span class="box">✓</span><span><b>RESULTS.md index brought up to date</b>: R-041 → DONE; R-047 → RUNNING; rows added for R-048 to R-051; stale notes on R-037 and R-038 cleared.</span><span class="who">09-28 · my prim</span></li>
+    <li><span class="box">✓</span><span><b>D3</b>: <code>docs/SENTINEL_METHODOLOGY.html</code> corrected. The overlap is 24 steps (40 predicted, 16 executed); shadow inference is not needed; a dated correction note is at the top.</span><span class="who">09-28 · impl, verified</span></li>
+    <li><span class="box">✓</span><span><b>D6</b>: R-035 retired, SUPERSEDED by R-047 (heading, status line, index row).</span><span class="who">09-28 · impl, verified</span></li>
+    <li><span class="box">✓</span><span><b>D15 (part)</b>: <code>docs/PERTURBATION_MAP_tmp.html</code> and <code>experiments/tmp_run.py</code> deleted, with your approval.</span><span class="who">09-28 · fable</span></li>
+    <li><span class="box">✓</span><span><b>SFT briefed</b> on the retraining plan: context and the seven undecided items, no task attached.</span><span class="who">09-28 · my prim</span></li>
+    <li><span class="box">✓</span><span><b>D5 done</b>: R-047 yaw runs as-is (with a caveat). <code>camera_bench_yaw_deg / _pitch_deg / _scale</code> were added in <code>vla_harness/envs/libero_env.py</code>. They call the scene class's own LIBERO-Plus <code>_setup_camera</code>, so each scene's canonical pose is picked up. <code>schema.knob_neutral</code> makes scale's nominal 1.0. Grids are in <code>r047_run.py</code>. <code>tests/test_bench_camera.py</code>: 10/10, matching 7 real LIBERO-Plus views to 1e-4 (re-run by my prim); the existing suite is 93/93. The old knobs are byte-for-byte unchanged, so the pending R-047 yaw resume is unaffected. Uncommitted.</span><span class="who">09-28 · impl, verified</span></li>
+    <li><span class="box">✓</span><span><b>D5 caveat recorded in the map.</b> <code>docs/PERTURBATION_MAP.html</code> now gives the 0.16–0.35 m pivot offset and says R-047 yaw is "comparable with R-041, not the benchmark's cone". The R-047 entry gets the same caveat when scored.</span><span class="who">09-28 · fable</span></li>
+    <li class="wip"><span class="box">◐</span><span><b>D16 decided: R-052 pre-registered</b>. Benchmark camera cone on the <code>camera_bench_*</code> axes: yaw 0–75, scale 1.0–2.0, pitch 0–15 (5/10 marked as interpolation), 10 scenes × 4 seeds, ~760 rollouts, ~9.5 h, queued after R-047. No look-away knobs.</span><span class="who">09-28 · my prim, impl</span></li>
+    <li class="wip"><span class="box">◐</span><span><b>D1: commit and push in 8 revertible stages</b>: S1 R-051 (fable) · S2 R-047 runner fixes (fable) · S3 bench camera knobs · S4 index + R-035 · S5 Sentinel correction · S6 handoffs + STAC script · S7 R-052 pre-registration · S8 docs. Held back: <code>FINE_TUNING_101.html</code>, <code>R042_WRIST_MATHS.pdf</code>, <code>viz/*</code>, <code>r049_selection_smoke.json</code>, <code>runs/r047*</code>, <code>runs/r041</code> arrays and logs.</span><span class="who">09-28 · impl</span></li>
+  </ul>
+</section>
+
+<nav><ol>
+  <li><a href="#actioned">Checklist: acted on</a></li>
+  <li><a href="#decisions">Decisions needed from you</a></li>
+  <li><a href="#running">Running now</a></li>
+  <li><a href="#prereg">Pre-registered, not run</a></li>
+  <li><a href="#proposed">Proposed, not pre-registered</a></li>
+  <li><a href="#yours">Your ideas not yet realised</a></li>
+  <li><a href="#work">Pending work (not experiments)</a></li>
+  <li><a href="#legacy">Older PENDING_DECISIONS items</a></li>
+  <li><a href="#tau">Other workspace: Tau harness</a></li>
+</ol></nav>
+
+<!-- ============================================================ -->
+<section id="decisions">
+  <h2>1 · Decisions needed from you</h2>
+  <p class="lead">Ordered by what each one unblocks soonest. "Recommend" is my suggestion, not a decision; nothing here has been actioned.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Decision</th><th>Options</th><th>Recommend</th><th>Unblocks</th></tr></thead>
+    <tbody>
+    <tr><td class="id">D1</td><td><b>Commit the uncommitted work.</b> fable's map fixes, R-051 scoring, the R-047 leak fix and queue change, RETRAINING_PLAN; HANDOFF §10 and §11; today's RESULTS index; untracked docs (GEN15, HUMAN_VIDEO, RL_GYM, ROBOTTT) and <code>queue_r051.sh</code>, the r051 selection files.</td><td>commit now · after R-047 finishes · per-session commits</td><td class="rec">After R-047 finishes; each session's files under its own message. Push the 27 unpushed commits only on your word.</td><td>Protects ~3 days of work that has already survived one suspend</td></tr>
+    <tr><td class="id">D2</td><td><b>Pre-register the distributional P-vs-N readout</b> (your idea; vla-a5's option 4b) as a new R-number.</td><td>pre-register now and queue after R-047 · wait for R-047 · drop</td><td class="rec">Pre-register now, smoke to measure the cost of B≥32 draws, queue after R-047. Option 4a found single-draw spread is ~7× the perturbation effect, which is the question 4b answers.</td><td>Explaining R-047 expectation 5; any Sentinel-style detector</td></tr>
+    <tr><td class="id">D3</td><td><b>Correct <code>docs/SENTINEL_METHODOLOGY.html</code></b>: it says k = h = 16 (no chunk overlap). GR00T emits 40-step chunks every 16 steps, so 24 steps overlap and STAC needs no shadow inference.</td><td>correct · leave with a banner</td><td class="rec">Correct it; verified from stored R-041 arrays (shape F×40×7, env-step diffs 16).</td><td>Anyone reusing the Sentinel doc</td></tr>
+    <tr><td class="id">D4</td><td><b>primary's two small edits</b>: (a) one sentence at <code>experiments/compile_map.py:336</code> ("Determinism") citing arXiv:2603.15757 as why outcomes are replicated over noise seeds; (b) a pending item for ticket robustness.</td><td>both · (a) only · neither</td><td class="rec">Both; (b) lives in this doc now, so HANDOFF only needs a pointer.</td><td>Nothing; documentation</td></tr>
+    <tr><td class="id">D5</td><td><b>Camera geometry before R-047's second pass.</b> The harness orbits the world origin; LIBERO-Plus orbits the look-at point (~0.2 m apart). R-041 distance stopped at 0.4 m while failing benchmark instances sit at +0.76 to +0.89 m. Pitch has never been swept.</td><td>fix pivot, then run distance and pitch at benchmark ranges · run as-is with a caveat · skip</td><td class="rec"><b>DECIDED 09-28: (a).</b> R-047 yaw runs as-is on the old pivot, with a geometry caveat. impl is adding benchmark-geometry knobs (<code>camera_bench_*</code>, reusing LIBERO-Plus's own functions, tested against its view variants to 1e-4). Benchmark yaw, distance and pitch then run as a new experiment. Note that 2.0× scale moves the camera 1.04 m, not 0.8 m.</td><td>R-047 distance and pitch axes</td></tr>
+    <tr><td class="id">D6</td><td><b>Retire R-035?</b> R-047's radius axis runs a superset of its design (10 scenes, 60 per radius, against 2 scenes, 40).</td><td>mark SUPERSEDED by R-047 once the radius axis is scored · keep</td><td class="rec">Mark SUPERSEDED after R-047's radius axis is analysed, checking that its three shape hypotheses are answered.</td><td>Index hygiene</td></tr>
+    <tr><td class="id">D7</td><td><b>Retraining: rent a GPU?</b> (PENDING #25, now a budget question.) Gates the full-head arm of R-040/R-046 and π0.5 / OpenVLA-OFT.</td><td>rent ≥40 GB · LoRA smoke locally first · stay local, no training</td><td class="rec">LoRA memory smoke locally first (half a day, RETRAINING_PLAN §5); rent only if it fails. Budget under 500 USD for the full ablation.</td><td>R-040, R-046, the whole "map → retrained policy" test</td></tr>
+    <tr><td class="id">D8</td><td><b>Bring R-046 back into scope?</b> You deferred it on 2026-09-24. RETRAINING_PLAN §7 lists it as the test that turns the map from a prediction into a result.</td><td>bring back after R-047 · keep deferred</td><td>Your call; depends on D7.</td><td>Validating the start-pose data specification</td></tr>
+    <tr><td class="id">D9</td><td><b>Schedule R-043 (LIBERO-10 long-horizon)?</b> Needs prerequisites P1–P3 built first (articulated-joint qpos, a BDDL conjunct evaluator, demo stage distributions).</td><td>build P1–P3 now on CPU · defer</td><td class="rec">Build P1–P3 while the GPU is busy; they are CPU work.</td><td>Whether the manifest applies to long-horizon failures at all</td></tr>
+    <tr><td class="id">D10</td><td><b>Language row: build the matched-length pre-VLM instruction swap?</b> Without it the text/image positional split for language is undefined.</td><td>build · leave language as effect-size only</td><td class="rec">Build; it is the one row the map cannot localise.</td><td>Completing the map's seventh row</td></tr>
+    <tr><td class="id">D11</td><td><b>Second checkpoint on any row?</b> Every row is one fine-tune (spatial-640). RETRAINING_PLAN §2: ~1 h per row to make the claim about the architecture.</td><td>run on camera and start pose · skip</td><td>Your call; cheap once the GPU is free.</td><td>Any architecture-level claim</td></tr>
+    <tr><td class="id">D12</td><td><b>The adjudication CSV is still 0 of 80.</b> It gates VLM labeller validation and the VLM head-to-head, and has been open for ten days.</td><td>you label · a named person labels · drop VLM validation</td><td>Your call; ~40 human labels is the minimum.</td><td>VLM labels, failure taxonomy claims, any RL reward built on labels</td></tr>
+    <tr><td class="id">D13</td><td><b>Human video → policy (res's doc).</b> Pick a metric-scale source (stereo, depth, or one annotated fixture dimension); choose the S2 policy (GR00T N1.7 vs BPP); review <code>docs/HUMAN_VIDEO_TO_POLICY.html</code>.</td><td>—</td><td class="rec">Start S0 (CPU, free) regardless; it is the first validation of <code>vlm_label.py</code>.</td><td>S1–S3 of that route</td></tr>
+    <tr><td class="id">D14</td><td><b>R-027 is STALLED</b> since 2026-09-18 at 506 episodes (MINERVA on R-026's variants), no result written.</td><td>write up the partial · re-run · close</td><td class="rec">Write up the partial as-is, marked incomplete.</td><td>Index honesty</td></tr>
+    <tr><td class="id">D15</td><td><b>Loose files.</b> <code>docs/R042_WRIST_MATHS.pdf</code> (undecided since 09-24); <code>experiments/stac_r041_single_draw.py</code>; <code>experiments/repro/r049_selection_smoke.json</code>. <span class="small">Closed 09-28: <code>PERTURBATION_MAP_tmp.html</code> and <code>tmp_run.py</code> were deleted with your approval.</span></td><td>commit · delete · leave</td><td class="rec">Commit the STAC script (it produced a result). The PDF is your call.</td><td>—</td></tr>
+    <tr><td class="id">D16</td><td><b>Pre-register the benchmark-geometry camera sweep</b> as a new R-number, using the <code>camera_bench_*</code> axes. Sub-choices: (i) pitch grid: the benchmark only uses 0 and 15, and impl's grid adds 5 and 10; (ii) add look-away knobs (<code>end_point_rot/vertical</code>, ±10 in steps of 2 in the benchmark), not built; (iii) the scale axis cannot run on the kitchen marble, brick and shadow scene classes, whose <code>_setup_camera</code> ignores scale.</td><td>pre-register after R-047 · wait for R-047's yaw result first</td><td class="rec">Pre-register now, queue after R-047. Keep pitch 5/10 as marked interpolation. Skip look-away for now.</td><td>The benchmark's real camera cone; a clean comparison with R-047 yaw</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="running">
+  <h2>2 · Running now</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>What</th><th>Progress (manifests, 28 Sep)</th><th>Owner</th><th>Notes</th></tr></thead>
+    <tbody>
+    <tr><td class="id">R-047</td><td>Success probability against magnitude, with replicates, on start-pose radius and camera yaw (to 75°)</td><td><span class="pill p-run">RUNNING</span><br>radius 232 / 360<br>yaw 99 / 360</td><td>fable</td><td>~4–6 h GPU left. The laptop suspended 09-25 17:49 → 09-28 11:28; <code>systemd-inhibit</code> now blocks sleep but a lid close may still suspend. Holds <code>/tmp/vla_gpu.lock</code>. RESULTS header still reads NOT YET RUN.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="prereg">
+  <h2>3 · Pre-registered, not run</h2>
+  <p class="lead">Each has expectations written into RESULTS.md before any data. Numbers are that entry's own estimates.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>Question</th><th>Status</th><th>Cost</th><th>Gate / blocker</th></tr></thead>
+    <tbody>
+    <tr><td class="id">R-035</td><td>Balanced radius sweep on robot initial state: monotone decline vs saturation vs flat. The two prescribe opposite corrective data.</td><td><span class="pill p-pre">PRE-REG</span></td><td>~2 h</td><td>Effectively absorbed by R-047's radius axis (D6)</td></tr>
+    <tr><td class="id">R-040</td><td>At a matched demo budget: direct corrective (D) vs mechanism-targeted (M) vs OOD-ranked (O) vs nominal (R). Held-out instances decide whether localisation is worth anything over direct demos.</td><td><span class="pill p-pre">PRE-REG</span> unblocked since R-039</td><td>Several days + training</td><td>Training does not fit 8 GB at full head (D7); the budget N was never fixed</td></tr>
+    <tr><td class="id">R-043</td><td>LIBERO-10 long-horizon: drift vs coverage cascade vs stage identification. Decides whether the manifest's "more demos" remedy applies.</td><td><span class="pill p-pre">PRE-REG</span></td><td>500 + 1,228 + 500 rollouts</td><td>P1–P3 not built (D9); GR00T libero_10 must reproduce 93% first</td></tr>
+    <tr><td class="id">R-046</td><td>Frozen vs top-unfrozen VLM trained on minted start-pose demos: does the head alone close the gap?</td><td><span class="pill p-def">OUT OF SCOPE</span> your decision 09-24</td><td>2–3 days</td><td>D7, D8; the demo converter is not written</td></tr>
+    <tr><td class="id">R-047 part 2</td><td>Camera distance (to 2.0×) and pitch</td><td><span class="pill p-def">DEFERRED</span> not queued</td><td>~4.5 h per axis</td><td>Camera pivot mismatch (D5)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="proposed">
+  <h2>4 · Proposed, not pre-registered</h2>
+  <p class="lead">Designed in a doc or a session but with no R-number. CPU items can run while R-047 holds the GPU.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Proposal</th><th>From</th><th>Resource</th><th>State / next step</th></tr></thead>
+    <tbody>
+    <tr><td><b>Distributional P-vs-N readout</b>: B≥32 draws per arm with shared seeds; MMD(P<sub>t</sub>, N<sub>t</sub>) and STAC<sub>P</sub>/STAC<sub>N</sub> over the 24-step overlap; a 2×2 of absorbed / shifted-consistent / shifted-erratic; conformal thresholds at matched forward index</td><td>you, designed by vla-a5 (HANDOFF §11)</td><td>GPU</td><td>D2. Must be a new R-number, not retrofitted onto R-047.</td></tr>
+    <tr><td><b>Golden-ticket robustness</b>: does a noise vector searched on nominal LIBERO keep its gain on the perturbation rows, and does it change transfer fractions?</td><td>primary (HANDOFF §10), from your question</td><td>GPU</td><td>Gated on GR00T clearing the reproduction gate; needs a held-out split so the ticket is not tuned on evaluation scenes</td></tr>
+    <tr><td><b>Per-block DiT capture</b>: text and image pathways separable by block index alone (odd blocks nothing; <code>idx%4==0</code> text; <code>==2</code> image). Pilot on R-038's two arms at the first action.</td><td>primary (HANDOFF §6, §9)</td><td>CPU build, ~20 min GPU</td><td>Not built. The traps are listed in HANDOFF §9.</td></tr>
+    <tr><td><b>Exact activations for the four drawer episodes</b> (<code>viz/set_drawer_bowl_initstates.html</code>)</td><td>primary (HANDOFF §9)</td><td>~6 GB, ~15 min</td><td>Not built</td></tr>
+    <tr><td><b>Category-balanced OOD de-risk</b>: ~40 episodes weighted to camera viewpoint, testing what R-036 (n = 2 camera episodes) could not</td><td>HANDOFF §5, §7</td><td>GPU</td><td>Not started</td></tr>
+    <tr><td><b>Sentinel S0–S4 tap panel</b>; novelty × outcome 2×2 per category; failure-onset timing</td><td>Sentinel analysis session, vla-a5</td><td>mostly CPU</td><td>Proposed only; no element adopted or ruled out</td></tr>
+    <tr><td><b>Few-step adaptation curve</b>: k ∈ {1,5,10,50} corrective demos × s ∈ {1,10,100,1000} steps on one failure bucket</td><td><code>docs/GEN15_ONE_SHOT.html</code> §E</td><td>16 small fine-tunes</td><td>An R-040 extension; same training blocker (D7)</td></tr>
+    <tr><td><b>BPP clean prompt vs matched prompt</b> (<code>austinpatel/libero</code>): does one demo from the new condition adapt with no training?</td><td><code>docs/GEN15_ONE_SHOT.html</code></td><td>~8.5 GB checkpoints; training needs 46 GB</td><td>Must reproduce its published number first</td></tr>
+    <tr><td><b>Human video route S0–S3</b>: S0 score <code>vlm_label.py</code> against human stage captions; S1 hand-pose extractor with a sim round-trip gate (&lt;1 cm, &lt;5°); S2 LIBERO mechanism proof; S3 the assembly cell</td><td>res (<code>docs/HUMAN_VIDEO_TO_POLICY.html</code>)</td><td>S0 CPU; S1+ GPU</td><td>D13. S0 can start now.</td></tr>
+    <tr><td><b>Retraining preparation</b>: mint 500 start-pose demos from rescue rollouts (~9 h GPU), write the dataset converter (½ day), LoRA memory smoke (½ day)</td><td><code>docs/RETRAINING_PLAN.html</code> §7</td><td>GPU + CPU</td><td>Waits on D7/D8</td></tr>
+    <tr><td><b>Continuous severity sweep for sensor noise</b>; rescues on noise, lighting and texture (0–1 failures of 10, so unreadable at this n)</td><td><code>docs/PERTURBATION_MAP.html</code></td><td>GPU</td><td>Not run; needs instances that fail</td></tr>
+    <tr><td><b>Texture task 87</b>: wrist τ −0.53 against −0.14 originally; larger than jitter explains</td><td>fable (R-051)</td><td>CPU / small GPU</td><td>Left open in R-051</td></tr>
+    <tr><td><b>Regress LIBERO-Plus Table 1 robustness against backbone properties</b> across its eight models</td><td>primary's Q2 (<code>FRAME_LABEL_METHODOLOGY.md</code> ~:540)</td><td>desk work</td><td>Not done</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="yours">
+  <h2>5 · Your ideas not yet realised</h2>
+  <p class="lead">Only items the record attributes to you. Agent-originated ideas are in §4.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Idea</th><th>Recorded</th><th>What happened</th><th>State</th></tr></thead>
+    <tbody>
+    <tr><td><b>Compare P and N as distributions, not single draws</b>; STAC as the time-axis analogue of ‖P−N‖</td><td>HANDOFF §11, 2026-09-25/28</td><td>Single-draw CPU pass on R-041 (4a) done: noise-dominated (floor ~7 vs ‖P−N‖ ~1, AUROC at chance, 11 failures). The distributional version (4b) is designed.</td><td><span class="pill p-idea">HALF DONE</span> D2</td></tr>
+    <tr><td><b>"Why is localisation needed at all?"</b>: direct corrective demos on the failed instances as the baseline</td><td>RESULTS R-040, 2026-09-23</td><td>Added to R-040 as arm D, the baseline the method has to beat</td><td><span class="pill p-pre">IN R-040, NOT RUN</span></td></tr>
+    <tr><td><b>Would fixed denoising noise (Golden Ticket) help measurement?</b></td><td>HANDOFF §10, 2026-09-28</td><td>Answered: the harness already uses common random numbers, so no change. A ticket-robustness experiment was spun off.</td><td><span class="pill p-ok">ANSWERED</span> follow-up in §4</td></tr>
+    <tr><td><b>Would a stronger VLM help GR00T?</b></td><td><code>FRAME_LABEL_METHODOLOGY.md</code> ~:534</td><td>Answered from the literature and our numbers: little, except possibly camera; the leverage is action-side. Not tested on our stack.</td><td><span class="pill p-ok">ANSWERED</span> untested</td></tr>
+    <tr><td><b>Hand-adjudicate failures against rendered episodes</b> (your directive, 2026-09-18)</td><td>RESULTS ~:1264</td><td>The CSV exists; 0 of 80 verdicts</td><td><span class="pill p-blk">STALLED</span> D12</td></tr>
+    <tr><td><b>Head-camera assembly video with dense captions → policy training</b></td><td><code>docs/HUMAN_VIDEO_TO_POLICY.html</code></td><td>Method doc written: four routes, retargeting recommended, S0–S3 staged</td><td><span class="pill p-idea">DOC ONLY</span> D13</td></tr>
+    <tr><td><b>Frozen vs unfrozen VLM retraining</b> (R-046)</td><td>RESULTS R-046</td><td>You deferred it on 2026-09-24; the R-045 probe was reported instead</td><td><span class="pill p-def">DEFERRED</span> D8</td></tr>
+    <tr><td><b>GR00T N1.7 as priority, via MINERVA reproduction → verified harness</b></td><td>PENDING #10, memory</td><td>MINERVA and the harness are verified (R-016, R-022). The action-atlas repro of GR00T's layer ordering (arXiv:2603.19233) is blocked under its own pin; assigned to <code>implementor</code>.</td><td><span class="pill p-blk">BLOCKED</span> (the repro only)</td></tr>
+    <tr><td><b>A fourth, frontier, general, robust policy</b></td><td>PENDING #25</td><td>π0.5 and π0-FAST do not fit 8 GB (R-032); OpenVLA-OFT needs ≥16 GB</td><td><span class="pill p-blk">BUDGET</span> D7</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small" style="margin-top:10px">If you remember an idea that is not here, it was probably said in a session that never wrote it down; tell me and I will add it.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="work">
+  <h2>6 · Pending work (not experiments)</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Item</th><th>Owner</th><th>Note</th></tr></thead>
+    <tbody>
+    <tr><td>Score R-047 when it finishes; update its header and map section 8</td><td>fable</td><td>Expectation 5 is where D2 plugs in</td></tr>
+    <tr><td>RESULTS.md "Current state of knowledge" is dated 2026-09-23 and predates R-041 to R-051</td><td>my prim</td><td>Index updated today; the narrative section is not</td></tr>
+    <tr><td>R-047's RESULTS header still reads "NOT YET RUN"</td><td>fable</td><td>The index shows RUNNING; the header belongs to its author</td></tr>
+    <tr><td>Sim-derived fields of <code>docs/EPISODE_RECORD_SCHEMA.md</code></td><td>unowned</td><td><code>handled.*</code> and <code>anchor.grasp_step</code> definitions came from primary</td></tr>
+    <tr><td><code>vlm_label.py</code> unvalidated; Cosmos-Reason2 HF access not requested</td><td>my prim</td><td>Validation route: D12 or res's S0</td></tr>
+    <tr><td>Action-atlas repro: make the bare <code>except</code> at <code>model_adapters.py:443</code> re-raise, then try an older transformers</td><td>implementor</td><td>Blocked since 09-23</td></tr>
+    <tr><td>Failure taxonomy predicates still weak (<code>manipulation</code> fires on ~99%); redesign waits on consumer input</td><td>—</td><td>PENDING #15, #17</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="legacy">
+  <h2>7 · Older PENDING_DECISIONS items (2026-09-16/17)</h2>
+  <p class="lead">Still open in <code>PENDING_DECISIONS.md</code> with no closing status line. Most belong to the SmolVLA/taxonomy phase and may be moot now; I have not verified each against the code. Worth one pass to close or reopen.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Item</th><th>Cost</th><th>Likely state</th></tr></thead>
+    <tbody>
+    <tr><td class="id">1</td><td>Make <code>by_lift</code> the holding label; report <code>by_gripper</code> agreement</td><td>free</td><td>Partly superseded by #2</td></tr>
+    <tr><td class="id">2</td><td>GPU re-run capturing <code>_check_grasp</code> bilateral contact</td><td>~3.4 h</td><td>Open; <code>_gt_scene_object_pos</code> covers part of it</td></tr>
+    <tr><td class="id">4, 5</td><td>Rename <code>visual_grounding</code>, reorder <code>classify()</code>; document as O5</td><td>free</td><td>#17 says "leave as-is"; confirm it closes #4</td></tr>
+    <tr><td class="id">6</td><td>Run <code>fit_from_demos()</code> for the toy-derived thresholds</td><td>~1 h</td><td>Open</td></tr>
+    <tr><td class="id">7</td><td>Bit-exact replay in the video visualiser (9.5 mm median deviation)</td><td>~1 h</td><td>Possibly superseded by <code>visualise_set.py</code></td></tr>
+    <tr><td class="id">8</td><td>Read LIBERO-PRO's perturbation API</td><td>reading</td><td>Open</td></tr>
+    <tr><td class="id">13</td><td><code>failure_cost</code> is a constant; add a real signal and an abstention contract</td><td>~1 h</td><td>Open; blocks any severity claim</td></tr>
+    <tr><td class="id">17</td><td>Confirm the decisions relayed by vla-81 were yours</td><td>—</td><td>Never confirmed</td></tr>
+    <tr><td class="id">18</td><td>Adopt MuJoCo 3.3.2 as the canonical pin</td><td>—</td><td>Open (the LIBERO-Plus stack already runs 3.3.2)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="tau">
+  <h2>8 · Other workspace: Tau harness (tau2-bench banking_knowledge)</h2>
+  <p class="lead">Reported by <code>tau-harness-29</code>; a different repo, listed for completeness.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>State</th></tr></thead>
+    <tbody>
+    <tr><td><code>div35_repair_stripargs</code> (09-17): 38/51 infra errors from NIM 429s; 13 clean, 4 pass. The strip-args check matched 2/3, against 1/8 before.</td><td>run</td><td><span class="pill p-blk">NOT FULLY ANALYSED</span> no gap analysis or judge pass; artifacts untracked</td></tr>
+    <tr><td><code>hashreset_impact15_temp1</code> stopped at 4/15 (09-07)</td><td>run</td><td><span class="pill p-blk">INCOMPLETE</span></td></tr>
+    <tr><td>Clean STRIP_ARGS=1 arm; <code>harness_ox</code> control; finish impact15; neutral examiner plus an A/A pair on nemotron-ultra; ~50 judge adjudications for per-check false-positive rate</td><td>proposed</td><td><span class="pill p-def">NOT LAUNCHED</span></td></tr>
+    <tr><td><b>Your call:</b> the source of "stock harness leaks internal info to customers". No measurement found; a keyword scan was mixed.</td><td>decision</td><td><span class="pill p-idea">NEEDS YOU</span></td></tr>
+    <tr><td><b>Your call:</b> keep spending on free-tier NIM (~40 rpm shared by agent and examiner) or get a separate key or paid tier</td><td>decision</td><td><span class="pill p-idea">NEEDS YOU</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div>
+</body>
+</html>

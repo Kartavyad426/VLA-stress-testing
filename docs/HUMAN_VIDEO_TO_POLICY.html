@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Video to Policy — Method &amp; Capability</title>
+<style>
+:root{
+  --bg:#fbfaf8; --panel:#ffffff; --ink:#191614; --muted:#645c55; --line:#e3ded7;
+  --accent:#8c4a2f; --accent-soft:#f3e7e0; --ok:#2f6f4f; --warn:#8a6d1f; --bad:#8f3030;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15130f; --panel:#1d1a16; --ink:#efe9e1; --muted:#a79c90; --line:#302b24;
+    --accent:#e0a184; --accent-soft:#2c211b; --ok:#7fc3a0; --warn:#d8be76; --bad:#e39191;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15130f; --panel:#1d1a16; --ink:#efe9e1; --muted:#a79c90; --line:#302b24;
+  --accent:#e0a184; --accent-soft:#2c211b; --ok:#7fc3a0; --warn:#d8be76; --bad:#e39191;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.65 ui-serif,Georgia,"Times New Roman",serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:56px 16px 96px}
+h1,h2,h3{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.25;letter-spacing:-.01em}
+h1{font-size:2.1rem;margin:0 0 .3em}
+h2{font-size:1.32rem;margin:2.6em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:1.8em 0 .4em;color:var(--accent)}
+p{margin:.7em 0}
+a{color:var(--accent)}
+.sub{color:var(--muted);font-size:.95rem;margin-top:0}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:1.2em 0}
+.card.flag{border-left:3px solid var(--accent)}
+.card h3{margin-top:0}
+ul,ol{padding-left:1.2em}
+li{margin:.35em 0}
+table{width:100%;border-collapse:collapse;margin:1.1em 0;font-size:.9rem;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{font-family:var(--mono);white-space:nowrap}
+blockquote{margin:1.1em 0;padding:.2em 0 .2em 16px;border-left:3px solid var(--accent-soft);
+  color:var(--ink);font-style:italic}
+blockquote cite{display:block;font-style:normal;font-size:.85rem;color:var(--muted);margin-top:.4em}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.tag{display:inline-block;font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.tag.warn{color:var(--warn);border-color:var(--warn)}
+.tag.bad{color:var(--bad);border-color:var(--bad)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:1.2em 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat b{display:block;font-family:var(--mono);font-size:1.32rem;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:.84rem;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+hr{border:0;border-top:1px solid var(--line);margin:2.4em 0}
+.foot{color:var(--muted);font-size:.85rem}
+@media (max-width:600px){ h1{font-size:1.7rem} .wrap{padding:36px 16px 72px} }
+</style>
+<style>
+.route{border-left:3px solid var(--line);padding-left:14px;margin:1.1em 0}
+.route.pick{border-left-color:var(--accent)}
+.stage{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:16px 18px;margin:1em 0}
+.stage .kicker{display:block;margin-bottom:.2em}
+.eq{font-family:var(--mono);font-size:.85rem;background:var(--accent-soft);
+  padding:10px 12px;border-radius:6px;overflow-x:auto;white-space:pre}
+.two{display:grid;gap:14px;grid-template-columns:1fr;margin:1.2em 0}
+@media(min-width:680px){.two{grid-template-columns:1fr 1fr}}
+figure{margin:1.4em 0}
+figcaption{color:var(--muted);font-size:.85rem;margin-top:.5em;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+svg{max-width:100%;height:auto;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Method &amp; capability argument · drafted 2026-09-25</p>
+<h1>From one captioned human video to a policy</h1>
+<p class="sub">We hold egocentric footage of an operator working an assembly line, cut into captioned stages, and no robot actions at all. This file argues what that asset is worth, which of the four published routes out of it survives contact with our constraints, and what has to be measured before any of it is believed.</p>
+
+<div class="card flag">
+<h3>Bottom line</h3>
+<p>From human video, <b>the actions transfer and the pixels do not.</b> Our own R-039 found that every perturbation category reaches the action through the <i>image tokens</i>; a head-mounted human view is the largest camera-and-embodiment perturbation we could construct on purpose. Pre-training a policy on those pixels is Mind's route (§7 P1) and it is affordable at their scale, not ours.</p>
+<p>So the recommendation inverts the usual pipeline: spend the engineering on <b>recovering an action stream</b> from the hands, use the <b>captions</b> to specify and segment, and render the <b>observations</b> from simulation or the robot — never from the human footage. That is route <b>B&prime;</b> below, and it is the only route whose error can be measured before a single frame of real footage is processed.</p>
+</div>
+
+<div class="grid">
+<div class="stat"><b>0</b><span>Action labels in the asset</span></div>
+<div class="stat"><b>4</b><span>Published routes out of it</span></div>
+<div class="stat"><b>1</b><span>That fits an 8&nbsp;GB GPU today</span></div>
+<div class="stat"><b>&lt;1 cm</b><span>Retargeting error budget (§6)</span></div>
+</div>
+
+<h2>Part I · What the asset is worth</h2>
+
+<h3>1 · What we hold, stated precisely</h3>
+<p>A long egocentric recording from a head-worn camera; the operator's hands are visible throughout; the recording has been cut into stages, one stage per step of the assembly, each carrying a dense caption. This is, almost exactly, the substrate Mind Robotics says it collects — <q>video data at industrial scale, capturing live, high-variability work as it happens on the line</q>, gathered on <q>wearable head- and body-worn capture rigs</q> — and it comes with the same structural hole.</p>
+
+<table>
+<tr><th>Present</th><th>Absent</th></tr>
+<tr><td>RGB frames of expert, in-distribution work</td><td>Joint commands, end-effector poses, gripper state</td></tr>
+<tr><td>Stage boundaries (a temporal segmentation)</td><td>Metric scale — monocular video does not carry it</td></tr>
+<tr><td>Dense per-stage natural language</td><td>Failures. An expert at takt time mostly succeeds</td></tr>
+<tr><td>A camera that moves with attention</td><td>A camera that matches any robot's viewpoint</td></tr>
+</table>
+
+<p>Three of those four absences are recoverable with work. The fourth — failures — is not recoverable from expert footage at all, and is worth flagging early because it is the same gap Mind's teleoperation cockpit exists to fill (§7 P6). A policy trained only on this asset will have no model of what a failed seat looks like or how to recover from one.</p>
+
+<h3>2 · The three things a captioned human video can actually buy</h3>
+
+<div class="two">
+<div class="card">
+<h3>A motor prior</h3>
+<p>What the hand does, as a trajectory. This is the expensive one and the only one that teaches the policy <i>how</i>. It requires inverting the video into actions — §5.</p>
+</div>
+<div class="card">
+<h3>A task specification</h3>
+<p>What to do, and in what order. The captions give this for free, and it is not nothing: R-038 found GR00T scores 50/100 with an empty prompt against 100/100 with the instruction, and 0/10 on the drawer scene where it grabs the wrong object.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>A curriculum</h3>
+<p>The stage cuts are a decomposition of a long-horizon job into atomic units. Every route in the field — GEN-1.5's atomic tasks, Mind's inferred two-level policy (§7 P3), our own perturbation rows — operates on atomic units. Somebody has to produce that decomposition, and here it already exists and is human-authored rather than VLM-guessed.</p>
+</div>
+
+<p>That last point deserves its weight. Our own <code>experiments/vlm_label.py</code> is unvalidated, and on the first real failure both working models detected the grasp and <b>named the wrong object</b>; FailBench (arXiv:2609.03611) finds robotics-specialised VLMs underperform their base models. Mind's P3 assumes machine-generated episode labels because hand annotation does not scale to industrial hours. A <i>human-authored</i> dense caption track is therefore the part of this asset that the large labs explicitly cannot afford, and the part whose value is easiest to defend commercially.</p>
+
+<h3>3 · Where annotation converts into capability</h3>
+<p>Ordered by how directly each label type becomes model behaviour, not by how hard it is to produce.</p>
+
+<table>
+<tr><th>Label</th><th>Converts into</th><th>Cost</th><th>Defensible?</th></tr>
+<tr><td>Stage boundaries (already held)</td><td>Atomic task units; the planner's output vocabulary</td><td>done</td><td><span class="tag ok">yes</span></td></tr>
+<tr><td>Dense stage captions (already held)</td><td>Language conditioning; the instruction set at inference</td><td>done</td><td><span class="tag ok">yes</span></td></tr>
+<tr><td>Grasp / release frame marks</td><td>Gripper-channel supervision; the hardest signal to recover automatically</td><td>low</td><td><span class="tag ok">yes</span></td></tr>
+<tr><td>Contact events and tool identity</td><td>Force-phase segmentation; Mind's <q>actions, tools, context, decisions</q></td><td>medium</td><td><span class="tag ok">yes</span></td></tr>
+<tr><td>Per-stage failure / retry marks</td><td>The corrective distribution expert data structurally lacks</td><td>medium</td><td><span class="tag warn">only if failures exist in the footage</span></td></tr>
+<tr><td>2D/3D hand keypoints</td><td>The action stream itself</td><td>high</td><td><span class="tag warn">machine-estimable; annotate only to validate</span></td></tr>
+<tr><td>Metric scale references</td><td>Resolves monocular scale ambiguity (§5)</td><td>low</td><td><span class="tag ok">yes — a fixture dimension is enough</span></td></tr>
+</table>
+
+<p class="foot">Read commercially: the rows a model cannot produce for itself are the product. Hand keypoints are estimable and therefore weak as a service; grasp frames, contact events, retry marks and a single known dimension in the scene are cheap for a human, unreliable for a VLM, and each one unblocks a specific downstream channel.</p>
+
+<h2>Part II · Method</h2>
+
+<h3>4 · The four routes, and which survive</h3>
+
+<div class="route">
+<p><b>A · Caption layer only.</b> <span class="tag ok">runs today</span> Use the captions as subtask language and the cuts as boundaries. Feeds GR00T N1.7 with no new machinery. Teaches the policy what to do and never how. Necessary, not sufficient.</p>
+</div>
+
+<div class="route">
+<p><b>B · Latent actions from action-free video.</b> <span class="tag warn">scale-gated</span> Learn a VQ codebook or inverse-dynamics model over consecutive frames, pretrain to predict latent actions conditioned on the caption, then decode latents to actuator commands with a small paired robot set. This is LAPA's recipe, GR00T N1.x's human-video branch, and Mind's inferred P1. The confound is specific to our footage: on a head-mounted camera most inter-frame pixel motion is the operator's <i>head</i>. A codebook trained naively spends its capacity modelling gaze. GEN-0's <q>ossification</q> finding — models below ~7B stop absorbing pretraining data — also says this route wants a scale we do not have.</p>
+</div>
+
+<div class="route pick">
+<p><b>B&prime; · Explicit hand-pose retargeting.</b> <span class="tag ok">recommended</span> Hands are visible throughout, so do not <i>learn</i> the action space — extract it. Detailed in §5. Converts the asset into supervised action data with a measurable error bar.</p>
+</div>
+
+<div class="route">
+<p><b>C · Demo-as-prompt, no training.</b> <span class="tag bad">blocked</span> Put the clip in context: GEN-1.5 §2, RoboTTT, BPP. GR00T is <code>n_obs_steps: 1</code> — there is no history slot, and adding one means retraining the backbone. BPP's released checkpoints were trained with <code>ignore_prompt_action: False</code>, so an action-free prompt needs a retrained prompt encoder, and BPP training wants ~46&nbsp;GB against our 8. RoboTTT is the right shape — GR00T N1.7 plus TTT layers, one-shot imitation from a single human video at 6/10 on unseen configurations — and has released no weights. Watch item, not a plan.</p>
+</div>
+
+<h3>5 · The recommended pipeline</h3>
+
+<figure>
+<svg viewBox="0 0 860 300" role="img" aria-label="Pipeline from egocentric video to policy: pose and ego-motion produce an action stream, captions condition, observations come from simulation.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+    <style>
+      .bx{fill:var(--panel);stroke:var(--line);stroke-width:1.2;rx:8}
+      .hl{stroke:var(--accent);stroke-width:2}
+      .tx{font:12px ui-sans-serif,system-ui,sans-serif;fill:var(--ink)}
+      .tl{font:10px ui-monospace,monospace;fill:var(--muted);letter-spacing:.08em}
+      .ln{stroke:var(--muted);stroke-width:1.4;fill:none;marker-end:url(#ar)}
+      .la{stroke:var(--accent);stroke-width:1.8;fill:none;marker-end:url(#ar)}
+    </style>
+  </defs>
+  <g color="var(--muted)">
+  <rect class="bx" x="8" y="118" width="120" height="58"/>
+  <text class="tl" x="20" y="140">ASSET</text><text class="tx" x="20" y="158">ego video</text>
+
+  <rect class="bx" x="185" y="16" width="150" height="52"/>
+  <text class="tx" x="198" y="38">3D hand pose</text><text class="tl" x="198" y="54">wrist 6-DoF, fingers</text>
+
+  <rect class="bx" x="185" y="82" width="150" height="52"/>
+  <text class="tx" x="198" y="104">camera ego-motion</text><text class="tl" x="198" y="120">VIO / SLAM</text>
+
+  <rect class="bx" x="185" y="148" width="150" height="52"/>
+  <text class="tx" x="198" y="170">metric scale</text><text class="tl" x="198" y="186">known fixture dim</text>
+
+  <rect class="bx" x="185" y="222" width="150" height="52"/>
+  <text class="tx" x="198" y="244">stage captions</text><text class="tl" x="198" y="260">human-authored</text>
+
+  <rect class="bx hl" x="392" y="82" width="152" height="66"/>
+  <text class="tx" x="404" y="106">world-frame</text><text class="tx" x="404" y="122">action stream</text>
+  <text class="tl" x="404" y="138">pos3 + rot6 + grip1</text>
+
+  <rect class="bx" x="392" y="222" width="152" height="52"/>
+  <text class="tx" x="404" y="244">conditioning</text><text class="tl" x="404" y="260">instruction + stage</text>
+
+  <rect class="bx" x="600" y="16" width="150" height="66"/>
+  <text class="tx" x="612" y="40">paired set</text><text class="tl" x="612" y="56">teleop / sim,</text><text class="tl" x="612" y="70">embodiment decoder</text>
+
+  <rect class="bx" x="600" y="118" width="150" height="66"/>
+  <text class="tx" x="612" y="142">observations</text><text class="tl" x="612" y="158">rendered from sim</text><text class="tl" x="612" y="172">NOT human pixels</text>
+
+  <rect class="bx hl" x="600" y="220" width="150" height="56"/>
+  <text class="tx" x="612" y="244">policy</text><text class="tl" x="612" y="262">GR00T N1.7 / other</text>
+
+  <path class="ln" d="M128 140 C155 140 155 44 181 44"/>
+  <path class="ln" d="M128 145 C155 145 155 108 181 108"/>
+  <path class="ln" d="M128 152 C155 152 155 174 181 174"/>
+  <path class="ln" d="M128 162 C150 162 150 248 181 248"/>
+  <path class="la" d="M335 44 C365 44 365 104 388 104"/>
+  <path class="la" d="M335 108 L388 112"/>
+  <path class="la" d="M335 174 C365 174 365 128 388 128"/>
+  <path class="ln" d="M335 248 L388 248"/>
+  <path class="la" d="M544 104 C570 104 570 52 596 52"/>
+  <path class="la" d="M544 126 C570 126 570 150 596 150"/>
+  <path class="ln" d="M544 248 L596 248"/>
+  <path class="ln" d="M675 82 L675 114"/>
+  <path class="ln" d="M675 184 L675 216"/>
+  </g>
+</svg>
+<figcaption>The asset enters on the left. Three estimation channels plus the caption track leave it. Only the <b>action stream</b> and the <b>language</b> cross into training; the human pixels stop at the estimator, which is the design's entire argument.</figcaption>
+</figure>
+
+<p>Per frame, recover:</p>
+<ul>
+<li><b>Wrist pose</b> in the camera frame from a 3D hand-pose estimator.</li>
+<li><b>Camera ego-motion</b> from visual-inertial odometry or SLAM over the same footage, and compose it with the wrist pose. This is the step that kills the head-motion confound in route B: a trajectory expressed in the world frame no longer moves when the operator merely looks away.</li>
+<li><b>Grip aperture</b> as a continuous scalar from thumb–index separation, thresholded into open/closed using the human-marked grasp and release frames (§3) rather than a learned cutoff.</li>
+</ul>
+
+<div class="eq">action_t = [ p_xyz (3) , R_6d (6) , g (1) ]        # world frame, resampled to the control rate
+p_xyz   = T_world&larr;cam(t) &middot; p_wrist_cam(t) &middot; s
+s       = metric scale, fixed once from a known fixture dimension</div>
+
+<p>That is the same action space BPP already consumes — <code>[L, 20, 10]</code>, <code>pos3 + rot6 + grip1</code> — and it is adjacent to GR00T's LIBERO 8-D. The human video stops being action-free.</p>
+
+<div class="card flag">
+<h3>The scale trap</h3>
+<p>Monocular video does not carry metric scale; a hand-pose estimator returns a trajectory up to an unknown multiplier. Everything downstream — grasp offsets, approach distances, the whole error budget in §6 — is in centimetres, so <code>s</code> must come from somewhere real: a stereo head rig, a depth channel, or one measured dimension of a fixture that appears in the footage. The last is the cheapest and is an annotation task, not a research problem. <b>If scale cannot be fixed, B&prime; degrades to B</b> and the recommendation changes.</p>
+</div>
+
+<h3>6 · The validation gate</h3>
+
+<p>The dossier's verdict on Mind is that it is <q>a claims ledger, not a results ledger</q>. A file from us proposing the same pipeline with no verification step earns the same line. So the method's spine is a round trip against ground truth we already own:</p>
+
+<div class="stage">
+<span class="kicker">The round trip</span>
+<p>Take a sim rollout whose true action sequence is recorded. Re-render it from a simulated head-mounted viewpoint with a hand model in place of the gripper. Run the full B&prime; extractor over that render. Compare the recovered action stream to the actions we already have.</p>
+</div>
+
+<p>This yields a number before any real footage is touched, and it satisfies the roster's reproducibility rule in the only form available here — there is no published figure to reproduce, so the pipeline has to reproduce <i>itself</i>. Proposed thresholds, set by what LIBERO grasps actually tolerate:</p>
+
+<table>
+<tr><th>Channel</th><th>Budget</th><th>Why that number</th></tr>
+<tr><td class="num">wrist position</td><td class="num">&lt; 1 cm RMS</td><td>R-038's failing episodes miss by 25.2 cm against a 4.4 cm control; a grasp tolerance of order 1–2 cm is the relevant scale</td></tr>
+<tr><td class="num">wrist rotation</td><td class="num">&lt; 5&deg; RMS</td><td>Approach-axis error compounds over a 16-step chunk</td></tr>
+<tr><td class="num">grip transition</td><td class="num">&lt; 100 ms</td><td>Early release drops the part; late close collides. Timing, not value, is what matters</td></tr>
+<tr><td class="num">scale <code>s</code></td><td class="num">&lt; 3% </td><td>3% of a 30 cm reach is ~1 cm, i.e. the position budget</td></tr>
+</table>
+
+<p class="foot">Two honest caveats on the gate. A sim render is an easy case for a pose estimator — clean lighting, no motion blur, a hand model rather than a hand — so passing it is necessary and not sufficient; the real-footage number will be worse and must be bounded separately against a small hand-annotated keypoint set. And R-039 measured 23/30 agreement at render-jitter level, so any <i>downstream</i> success-rate comparison built on this needs &ge;50 rollouts per cell regardless of how clean the extraction looks.</p>
+
+<h3>7 · Staged plan</h3>
+
+<div class="stage">
+<span class="kicker">S0 · Caption layer</span>
+<p>Ingest the stage cuts and captions into the episode record schema. Score the existing VLM labeller against the human captions on the same stages — this is the first validated measurement of <code>vlm_label.py</code> we would have, and it is free. <b>Output:</b> a human-vs-VLM agreement number, and an instruction set.</p>
+</div>
+
+<div class="stage">
+<span class="kicker">S1 · Extractor, validated in sim</span>
+<p>Build the B&prime; extractor and run the §6 round trip. <b>Gate:</b> all four budgets met on sim renders before any real footage is processed. <b>Kill condition:</b> if position error exceeds ~3 cm, retargeting cannot support grasping and the programme falls back to B or to teleop-only.</p>
+</div>
+
+<div class="stage">
+<span class="kicker">S2 · Mechanism proof on LIBERO</span>
+<p>Does a retargeted action stream plus caption conditioning beat the language baseline on held-out instances? Run it where we already know the noise floor, the perturbation rows and the failure buckets. This is the cheap, falsifiable half, and it does not need the assembly cell to exist.</p>
+</div>
+
+<div class="stage">
+<span class="kicker">S3 · The assembly cell</span>
+<p>Only now: build the cell in sim or on hardware, collect the paired teleop set that grounds the decoder, and test transfer. This is where Mind's M5 — co-designing fixtures and presentation around the robot rather than imitating the human motion path — becomes available to us too, and it quietly lowers the bar S2's policy has to clear.</p>
+</div>
+
+<table>
+<tr><th>Stage</th><th>Needs</th><th>GPU</th><th>Blocked by</th></tr>
+<tr><td class="num">S0</td><td>captions, episode schema</td><td>fits 8 GB</td><td>nothing</td></tr>
+<tr><td class="num">S1</td><td>pose estimator, SLAM, sim renderer</td><td>fits 8 GB</td><td>metric scale decision</td></tr>
+<tr><td class="num">S2</td><td>fine-tune budget, &ge;50 rollouts/cell</td><td>fits 8 GB</td><td>S1 gate</td></tr>
+<tr><td class="num">S3</td><td>cell build, teleop rig, paired set</td><td>beyond current</td><td>S2 result; hardware</td></tr>
+</table>
+
+<h3>8 · Falsifiable predictions</h3>
+<ol>
+<li><b>The extractor passes in sim and degrades on real footage by more than 2&times;.</b> Motion blur, occlusion by parts and tools, and glove texture are all absent from the render. If it degrades by less, the sim gate is a stronger instrument than claimed here.</li>
+<li><b>Caption conditioning alone (route A) moves nothing on perturbation rows.</b> R-039 says perturbations reach the action through image tokens; language cannot repair perception. It should, however, close R-038's empty-prompt and wrong-object gaps by construction.</li>
+<li><b>Human pixels used as observations underperform sim-rendered observations at matched action data.</b> This is the thesis. If it fails — if training on the human frames helps — then the pixel channel carries transferable information at our scale, and Mind's P1 is cheaper than argued here.</li>
+<li><b>Occlusion-heavy stages (fastening, connectors) fail the extractor first.</b> Same stages Mind names as hardest. Expect route B as the fallback exactly there, and expect it to need the paired set it does not have.</li>
+</ol>
+
+<h3>9 · Open decisions</h3>
+<ul>
+<li><b>Where metric scale comes from.</b> Stereo rig, depth, or an annotated fixture dimension. Blocks S1.</li>
+<li><b>Which policy S2 runs on.</b> GR00T N1.7 is the roster priority and has the harness; BPP already speaks this action space and has published numbers to reproduce, but cannot be trained here.</li>
+<li><b>Whether failures exist anywhere in the footage.</b> If the operator never fumbles, the corrective distribution has to come from teleop intervention later — Mind's P6 — and that is an S3 cost, not an S1 one.</li>
+<li><b>Sim or hardware for the cell.</b> Mind's P5 reads simulation as a release gate and not a data source, which is the correct call for contact-rich work; if S3 goes to sim, that tension has to be argued rather than assumed.</li>
+</ul>
+
+<hr>
+<p class="foot">Repo facts are from <code>RESULTS.md</code> (R-026, R-038, R-039, R-041), <code>HANDOFF.md</code>, and the GR00T checkpoint's <code>config.json</code>. Third-party facts are carried over from <code>docs/GEN15_ONE_SHOT.html</code> and <code>docs/MIND_ROBOTICS_METHODOLOGY.html</code> and inherit those files' evidence grades — in particular, everything attributed to Mind Robotics is positioning, not evidence, and everything attributed to GEN-1.5 is a blog post. The specific choice of hand-pose estimator, SLAM front-end and their published accuracies are <b>not</b> settled in this file and must be benchmarked in S1 rather than taken from a citation. Drafted 2026-09-25.</p>
+
+</div>
+</body>
+</html>

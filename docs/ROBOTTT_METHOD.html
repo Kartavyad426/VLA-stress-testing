@@ -1,0 +1,288 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>RoboTTT Method Notes</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-attn:#2a78d6;--b-ttt:#eb6834;--b-gate:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-attn:#3987e5;--b-ttt:#d95926;--b-gate:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-attn:#3987e5;--b-ttt:#d95926;--b-gate:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+/* equations, rendered in plain HTML so the file works offline */
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.bold{font-weight:600;font-style:normal}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.where dt{display:inline;font-family:var(--serif);font-style:italic}
+.where dd{display:inline;margin:0 14px 0 4px}
+/* block diagram */
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.attn{border-left:4px solid var(--b-attn)}.blk.ttt{border-left:4px solid var(--b-ttt)}.blk.gate{border-left:4px solid var(--b-gate)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+.tok{display:inline-block;font-family:var(--mono);font-size:.74rem;padding:1px 6px;border-radius:3px;background:var(--surface-2);margin:1px 2px}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style></head><body><div class=wrap>
+
+<h1>RoboTTT: the maths and the method</h1>
+<div class=meta>2026-09-23 · Jiang, Chebotar, Zheng, Hu, Ge, Wu, Dai, Reed, Fei-Fei, Zhu, Fan (NVIDIA GEAR / Stanford), <a href="https://arxiv.org/abs/2607.15275">arXiv:2607.15275</a>, July 2026 · TTT-layer maths from Sun et al., <a href="https://arxiv.org/abs/2407.04620">arXiv:2407.04620</a> · Implementation details cross-checked against the unofficial <a href="https://github.com/lucidrains/robo_ttt">lucidrains/robo_ttt</a>. Facts marked <span class="tag p">paper</span> are stated in the paper; <span class="tag i">inferred</span> is my reading where the paper is silent.</div>
+
+<div class="card tldr">
+<div class=q>Direct answer to "do we just add layers after the model and train those?"</div>
+<ul>
+<li><b>Not after: inside.</b> One TTT layer is inserted into <i>each</i> of the 16 DiT blocks of GR00T's action head, right after that block's self- and cross-attention. Attention keeps handling the current timestep; the TTT layer handles the time axis. Its output is added through a gate <var>tanh(α)</var> initialised near zero, so at the start of training the model is exactly the pretrained GR00T.</li>
+<li><b>Yes, train only the new layers, but not only that.</b> Phase 1 (pretraining) freezes all of GR00T and trains only the TTT layers, 30K steps on 16 GB200 GPUs at contexts up to 8K timesteps. Phase 2 (per-task post-training) unfreezes <i>everything</i>, 20K steps at 1K context.</li>
+<li><b>The "layers" are learners.</b> Each TTT layer holds a small 2-layer MLP whose weights are overwritten during every rollout by gradient descent on a self-supervised loss. The training loop learns how that inner learner should start (<var>W</var><sub>0</sub>), how fast it should learn (<var>η</var>), and what it should store (<var>θ</var><sub>K</sub>, <var>θ</var><sub>V</sub>, <var>θ</var><sub>Q</sub>). It is meta-learning, done end to end.</li>
+<li><b>The data recipe matters as much as the layers.</b> Long trajectories, per-chunk noise levels ("sequence action forcing", without which training collapses), and truncated backprop through time so memory doesn't grow with context.</li>
+<li><b>For us:</b> the architecture is a 160M-parameter add-on to the 538M action head we already run. The compute is the problem: the paper's regime is far beyond an 8 GB laptop GPU. A minimal LIBERO-scale version is conceivable because GR00T is frozen in phase 1, so its VL tokens can be precomputed. See §8.</li>
+</ul>
+</div>
+
+<h2>1. The problem RoboTTT sets out to solve</h2>
+<p>GR00T N1.7 and most VLAs act from a single observation (see <a href="GEN15_ONE_SHOT.html">GEN15_ONE_SHOT.html</a> §II.4). The authors want a policy that conditions on <i>thousands</i> of past timesteps (8K at 30 Hz is about 4.5 minutes) so it can: identify which stage of a multi-stage task it's in, recover after a perturbation, imitate a human video shown earlier in the same episode, and improve on the fly from its own mistakes. Three constraints:</p>
+<ol>
+<li><b>Capacity.</b> An RNN's vector hidden state is too small to hold minutes of video.</li>
+<li><b>Actually using the context.</b> Naively appending history frames hurts: GR00T N1.7 with one history frame scored 39.5% vs 57% without on Pup Go Car. History lets the policy latch on to spurious correlations with its own past actions.</li>
+<li><b>Constant inference cost.</b> A transformer with a KV cache still grows linearly per step; at 8K steps, 30 Hz control is impossible.</li>
+</ol>
+<p>Their answer: make the recurrent state a small neural network's weights, updated by gradient descent as observations stream in. That is a <b>Test-Time Training (TTT) layer</b>.</p>
+
+<h2>2. The TTT layer (Sun et al. 2024), the building block</h2>
+<p>Think of it as attention whose key–value store is replaced by a tiny model that gets <i>trained</i> on the keys and values as they arrive.</p>
+
+<h3>2.1 Slow weights and fast weights</h3>
+<ul>
+<li><b>Slow weights</b> <var>θ</var>: everything the outer optimiser trains. Frozen at deployment. Includes the projections <var>θ</var><sub>Q</sub>, <var>θ</var><sub>K</sub>, <var>θ</var><sub>V</sub>, the fast-weight initialisation <var>W</var><sub>0</sub>, and the inner learning rate.</li>
+<li><b>Fast weights</b> <var>W</var><sub>t</sub>: the parameters of a small function <var>f</var><sub>W</sub> : ℝ<sup>d</sup> → ℝ<sup>d</sup>. They are the <i>hidden state</i>. Reset to <var>W</var><sub>0</sub> at the start of each episode and rewritten at every timestep, in training <i>and</i> at deployment.</li>
+</ul>
+
+<h3>2.2 Update then apply</h3>
+<p>Tokens <var>x</var><sub>t</sub> are projected into three views:</p>
+<div class=eq><span><var>K</var><sub>t</sub> = <var>θ</var><sub>K</sub> <var>x</var><sub>t</sub>, &nbsp;&nbsp; <var>V</var><sub>t</sub> = <var>θ</var><sub>V</sub> <var>x</var><sub>t</sub>, &nbsp;&nbsp; <var>Q</var><sub>t</sub> = <var>θ</var><sub>Q</sub> <var>x</var><sub>t</sub></span><span class=n>views</span></div>
+<p>The inner loss asks the fast model to map this timestep's key to its value:</p>
+<div class=eq><span>ℒ<sub>FW</sub>(<var>W</var>; <var>x</var><sub>t</sub>) = ‖ <var>f</var><sub>W</sub>(<var>K</var><sub>t</sub>) − <var>V</var><sub>t</sub> ‖<sup>2</sup></span><span class=n>inner loss</span></div>
+<p><b>Update</b> (one step of gradient descent on that loss), then <b>apply</b> (read out with the query):</p>
+<div class=eq><span><var>W</var><sub>t</sub> = <var>W</var><sub>t−1</sub> − <var>η</var> ∇<sub>W</sub> ℒ<sub>FW</sub>(<var>W</var><sub>t−1</sub>; <var>x</var><sub>t</sub>)</span><span class=n>(1) update</span></div>
+<div class=eq><span><var>O</var><sub>t</sub> = <var>f</var><sub>W<sub>t</sub></sub>(<var>Q</var><sub>t</sub>)</span><span class=n>(2) apply</span></div>
+<p>What this does: the update step <i>writes</i> the association "when you see something like <var>K</var><sub>t</sub>, produce <var>V</var><sub>t</sub>" into the weights. The apply step <i>reads</i> with the query. Old associations persist in <var>W</var> as long as later updates don't overwrite them, which is how history is compressed into a fixed-size state.</p>
+
+<h3>2.3 Why this is "attention with a learned compressor"</h3>
+<p>Sun et al. prove: if <var>f</var><sub>W</sub>(<var>x</var>) = <var>Wx</var> (linear), <var>W</var><sub>0</sub> = 0, and one batch gradient step with <var>η</var> = ½ is taken over the whole sequence, the TTT layer's output is exactly <b>linear attention</b>. So a TTT layer generalises linear attention in two ways: the fast model can be non-linear (an MLP), and it takes <i>many</i> gradient steps, one per timestep, rather than one. The RoboTTT ablation confirms the non-linearity matters: replacing the MLP by a linear fast model costs 27% of task score.</p>
+
+<h3>2.4 The fast model itself</h3>
+<div class=eq><span><var>f</var><sub>W</sub>(<var>x</var>) = <var>x</var> + LN( <var>W</var><sub>2</sub> GeLU(<var>W</var><sub>1</sub> <var>x</var>) ) &nbsp;&nbsp;&nbsp; (TTT-MLP; RoboTTT uses a 2-layer GeLU MLP)</span><span class=n>fast model</span></div>
+<p class=small>The residual and LayerNorm are from Sun et al.'s TTT-MLP; the RoboTTT paper says only "two-layer MLP with GeLU". Each RoboTTT TTT layer adds ~10M parameters, which for <var>d</var> around 1–1.5K is consistent with a 4× hidden width plus the three projections.</p>
+
+<h3>2.5 The learned inner learning rate</h3>
+<p>The step size is not a fixed hyperparameter. RoboTTT: "we learn the inner test-time learning rate on top of a constant base learning rate of 0.1". In Sun et al. the form is input-dependent:</p>
+<div class=eq><span><var>η</var>(<var>x</var><sub>t</sub>) = <var>η</var><sub>base</sub> · σ(<var>θ</var><sub>lr</sub> · <var>x</var><sub>t</sub>)</span><span class=n>inner lr</span></div>
+<p>so the model can learn to write strongly on informative tokens and barely at all on redundant ones. This is the mechanism behind the paper's claim that TTT "retains salient features and discards redundant ones in the dense, repetitive streams of robot observations".</p>
+
+<h3>2.6 Cost</h3>
+<p>Per timestep: one forward and one backward pass through a tiny MLP, plus one forward for the readout. Constant in <var>t</var>. Total cost over an episode is linear in its length. Nothing is stored except <var>W</var><sub>t</sub>. Compare attention: per-step cost grows with <var>t</var> even with a KV cache, and memory grows with <var>t</var>.</p>
+
+<h2>3. Where the layers go in GR00T N1.7</h2>
+<div class=diag>
+<div class=row>
+<div class="blk vl"><b>Eagle VLM backbone</b> images + language → VL tokens <var>Φ</var><sub>t</sub>. Frozen in phase 1, tuned in phase 2. Never passed through TTT.</div>
+</div>
+<div class=arrow>↓ per timestep <var>t</var>, tokens entering the DiT</div>
+<div class=row>
+<div class=blk><span class=tok>R<sub>t</sub> ×16</span> learned register tokens, new <span class=tok>q<sub>t</sub></span> proprio token <span class=tok>Ã<sub>t</sub> ×H</span> noised action chunk &nbsp;&nbsp; (cross-attend to <span class=tok>Φ<sub>t</sub></span>)</div>
+</div>
+<div class=arrow>↓ inside each of the 16 DiT blocks</div>
+<div class=row>
+<div class="blk attn"><b>Self-attention + cross-attention</b> within timestep <var>t</var> only. Mixes R, q, Ã; reads Φ<sub>t</sub>. Pretrained GR00T weights. Output <var>O</var><sub>attn</sub>.</div>
+<div class="blk ttt"><b>TTT layer (new)</b> operates across time on the sequence <var>X</var> = [R<sub>1</sub>, q<sub>1</sub>, Ã<sub>1</sub>, …, R<sub>T</sub>, q<sub>T</sub>, Ã<sub>T</sub>]. Eq. (1)–(2). RoPE on Q, K. Output <var>O</var><sub>TTT</sub>.</div>
+<div class="blk gate"><b>Gate</b> <var>O</var> = tanh(<var>α</var>) ⊙ <var>O</var><sub>TTT</sub> + <var>O</var><sub>attn</sub>, &nbsp;<var>α</var> ∈ ℝ<sup>d</sup> init 0.001. Then the block's usual MLP/AdaLN.</div>
+</div>
+<div class=arrow>↓ after 16 blocks</div>
+<div class=row><div class=blk><b>Flow-matching output</b> velocity for the action chunk <var>A</var><sub>t</sub> = [<var>a</var><sub>t</sub>, …, <var>a</var><sub>t+H−1</sub>]; <var>k</var>-step denoising at inference.</div></div>
+</div>
+<div class=eq><span><var>O</var> = tanh(<var>α</var>) ⊙ <var>O</var><sub>TTT</sub> + <var>O</var><sub>attn</sub></span><span class=n>(3) gate</span></div>
+<p>Design points, each of which they ablate:</p>
+<ul>
+<li><b>Attention within a timestep, TTT across timesteps.</b> A clean split. GR00T's pretrained attention is untouched.</li>
+<li><b>Register tokens</b> <var>R</var><sub>t</sub> (<var>N</var> = 16) are prepended per timestep and attend to everything, including the VL tokens. They are the only carriers of visual/language information into the TTT layer, because pushing all the VL tokens through TTT would be too expensive. Adding them gave +18% relative; adding the same tokens to plain GR00T gave nothing, so they only pay off with a temporal model to feed.</li>
+<li><b>Action tokens go through TTT too.</b> "Aware of its past actions, the model better captures environment dynamics": +23% relative over state tokens only.</li>
+<li><b>The tanh gate</b> starts at ≈0.001, so on step 0 the network computes exactly what pretrained GR00T computes and the TTT path grows in only as far as it helps.</li>
+<li><b>Parameters:</b> DiT 538M → ~690M. GR00T's ~1.5B backbone is unchanged.</li>
+</ul>
+<p><span class="tag i">inferred</span> How the tokens of one timestep are batched into the inner loop is not spelled out. The natural reading, and what the unofficial implementation does, is <b>mini-batch TTT with one timestep per batch</b>: the gradient in Eq. (1) is the sum over all 33 tokens (16 + 1 + 16) of timestep <var>t</var>, taken at <var>W</var><sub>t−1</sub>, then all 33 are read out with the updated <var>W</var><sub>t</sub>. Also unspecified: during <var>k</var>-step denoising at inference, the action tokens <var>Ã</var><sub>t</sub> are noisy; which denoising iteration's tokens perform the fast-weight write is not stated.</p>
+
+<h2>4. Training: learning to learn</h2>
+<h3>4.1 The outer loss is a sequence loss</h3>
+<p>Training sequences are whole trajectories (or contiguous sub-trajectories up to the context length) <var>ξ</var> = {(<var>l</var>, <var>o</var><sub>t</sub>, <var>q</var><sub>t</sub>, <var>A</var><sub>t</sub>)}<sub>t=1..T</sub>. The inner loop runs forward through the sequence exactly as it would at deployment, and the task loss is averaged over every timestep:</p>
+<div class=eq><span>ℒ<sub>fm</sub>(<var>ξ</var>; <var>W</var><sub>0</sub>) = (1/<var>T</var>) Σ<sub>t=1..T</sub> ℓ<sub>t</sub>( (<var>l</var>, <var>o</var><sub>t</sub>, <var>q</var><sub>t</sub>, <var>A</var><sub>t</sub>); <var>W</var><sub>t−1</sub> )</span><span class=n>(4)</span></div>
+<p>The important part is what backprop through this does:</p>
+<ul>
+<li><var>θ</var><sub>Q</sub>, <var>θ</var><sub>K</sub>, <var>θ</var><sub>V</sub> and the gate get ordinary gradients: "what should be written, and how should it be read, so that future actions come out right".</li>
+<li><var>W</var><sub>0</sub> gets its gradient <i>through the inner updates</i>, i.e. through ∇<sub>W</sub>ℒ<sub>FW</sub>. That is a gradient of a gradient. This is MAML-style meta-learning of the initialisation, done implicitly. The paper cites Finn et al. 2017 here.</li>
+<li>The inner learning rate is learned the same way.</li>
+</ul>
+<p>So "training the TTT layers" means training a learner, not training a memory: the outer loop shapes <i>how</i> the fast weights will be updated on data it has never seen.</p>
+
+<h3>4.2 Flow matching with sequence action forcing</h3>
+<p>The action head is flow-matching, as in GR00T. Noised chunk and target:</p>
+<div class=eq><span><var>Ã</var><sub>t</sub> = <var>A</var><sub>t</sub><sup>τ</sup> = <var>τ</var> <var>A</var><sub>t</sub> + (1 − <var>τ</var>) <var>ε</var>, &nbsp;&nbsp; <var>ε</var> ~ 𝒩(0, I)</span><span class=n>noising</span></div>
+<div class=eq><span>ℒ<sub>fm</sub>(<var>ξ</var>; <var>W</var><sub>0</sub>) = (1/<var>T</var>) Σ<sub>t</sub> 𝔼<sub>τ<sub>t</sub>, ε</sub> ‖ <var>v</var><sub>θ</sub>(<var>Φ</var><sub>t</sub>, <var>A</var><sub>t</sub><sup>τ<sub>t</sub></sup>, <var>q</var><sub>t</sub>; <var>W</var><sub>t−1</sub>) − (<var>A</var><sub>t</sub> − <var>ε</var>) ‖<sup>2</sup></span><span class=n>(5)</span></div>
+<div class=eq><span><var>τ</var><sub>t</sub> = <var>s</var>(1 − <var>u</var>), &nbsp; <var>u</var> ~ Beta(1.5, 1), &nbsp; <var>s</var> = 0.999, &nbsp; sampled <b>independently for every timestep</b> <var>t</var></span><span class=n>action forcing</span></div>
+<p>The target <var>A</var><sub>t</sub> − <var>ε</var> is the velocity d<var>Ã</var>/d<var>τ</var> along the straight path from noise to data. The one non-obvious choice is the last line. If one <var>τ</var> were shared across the whole sequence, every sequence would be uniformly easy (low noise) or uniformly hard (high noise). Sampling <var>τ</var><sub>t</sub> per chunk fixes that, and the ablation is stark: without it "the resulting inaccurate motions leave the robot unable to make meaningful progress". The name is by analogy to teacher/diffusion forcing.</p>
+<p><span class="tag i">inferred</span> A side effect: the action tokens that enter the TTT layer during training carry noise at a different level every step. The fast weights therefore learn to store action information robustly to noise, which is also what they face during <var>k</var>-step denoising at deployment.</p>
+
+<h3>4.3 Truncated backprop through time (TBPTT)</h3>
+<p>Full BPTT over 8K timesteps would need activations for every step. Instead the sequence is cut into segments:</p>
+<ul>
+<li>Gradients flow only within a segment.</li>
+<li>Fast weights <var>W</var> are <b>carried across</b> segment boundaries, but <b>detached</b> there. So the inner loop runs over the whole trajectory; only the outer gradient is truncated.</li>
+<li>GPU memory is set by the segment length, not the context length.</li>
+<li><var>W</var><sub>0</sub> still gets a gradient, but only through the first segment.</li>
+</ul>
+<p>In pseudocode (mirrors <code>TTTWrapper.forward</code> in the unofficial implementation):</p>
+<pre class=code>W = W0                                   # slow-weight parameter, meta-learned
+for t in range(T):
+    x_t   = attn_block(tokens[t], Φ[t])  # attention within timestep t
+    K, V, Q = θK·x_t, θV·x_t, θQ·x_t     # three views; RoPE on K, Q
+    g     = ∇_W ‖ f_W(K) − V ‖²          # inner gradient, taken at current W
+    W     = W − η·g                      # (1) update  — differentiable w.r.t. θ, W0
+    O_ttt = f_W(Q)                       # (2) apply
+    out_t = x_t + tanh(α) ⊙ O_ttt        # (3) gate
+    loss += flow_matching_loss(out_t → v_θ, A_t, τ_t)
+    if (t+1) % segment_len == 0:
+        W = W.detach()                   # TBPTT: keep the state, cut the gradient
+loss / T → backprop → AdamW on slow weights</pre>
+
+<h3>4.4 Two phases, and what is trainable in each</h3>
+<div class=tw><table>
+<tr><th>Phase</th><th>Data</th><th>Context</th><th>Trainable</th><th>Steps · hardware</th><th>Optimiser</th></tr>
+<tr><td><b>Pretraining</b></td><td>Mixture of tabletop bimanual robot data and egocentric human video, curated for long trajectories</td><td>Grown gradually up to the target (8K for RoboTTT-8K)</td><td><b>Only the new TTT layers.</b> Backbone and DiT frozen.</td><td>30K steps · 16 × GB200; batch 4/GPU at ≤4K context, 1/GPU above</td><td>AdamW, wd 1e-5, WSD schedule, peak lr 2e-5</td></tr>
+<tr><td><b>Post-training</b></td><td>Per task: 8 h / 6 h / 5 h of real robot data</td><td>1K</td><td><b>All parameters</b></td><td>20K steps · 8 × GB200; batch 1/GPU</td><td>AdamW, cosine, peak lr 5e-5</td></tr>
+</table></div>
+<p>Two things worth noticing. The context-scaling result (Fig. 8) is about the <i>pretraining</i> context: post-training is always 1K, and the 8K-pretrained model still wins at test time on 2–5-minute episodes. And 1K timesteps is only ~30 s at 30 Hz, shorter than every task episode, so at deployment the fast weights are updated well past the horizon they were trained on, and RoPE positions go out of range; they note that models pretrained below 1K suffer from this.</p>
+
+<h2>5. Loss masking: how "context" and "target" are decoupled</h2>
+<p>This is the trick that gives RoboTTT its two headline capabilities, and it costs nothing architecturally. Every timestep <b>always</b> updates the fast weights. The flow-matching loss can be <b>masked</b> on any timestep. A masked timestep is pure context: it teaches the fast weights but is not an imitation target.</p>
+<div class=eq><span>ℒ = ( Σ<sub>t</sub> <var>m</var><sub>t</sub> ℓ<sub>t</sub>(<var>ξ</var><sub>t</sub>; <var>W</var><sub>t−1</sub>) ) / Σ<sub>t</sub> <var>m</var><sub>t</sub>, &nbsp;&nbsp; <var>m</var><sub>t</sub> ∈ {0, 1}, &nbsp; while <var>W</var><sub>t</sub> is updated for every <var>t</var></span><span class=n>masked sequence loss</span></div>
+
+<h3>5.1 One-shot imitation from a human video</h3>
+<ul>
+<li>Training sequence = [ <var>ξ</var><sup>video</sup> ; <var>ξ</var><sup>robot</sup> ], a human doing the task by hand (robot idle, seen through the robot's cameras) followed by a robot trajectory of the <i>same</i> configuration. <var>m</var><sub>t</sub> = 0 on the video part, 1 on the robot part.</li>
+<li>The language prompt is the same for all 80 Circuit configurations ("assemble circuit"), so the target configuration is recoverable only from the video.</li>
+<li>Trained on 20 configurations with 5–20 videos each; tested on the 60 unseen ones.</li>
+<li>Result: 6/10 full successes, 65% completion score. GDN (same layout, recurrent state without gradient descent): 0/10, 33%.</li>
+</ul>
+<p>This is the sense in which RoboTTT "learns from video without actions": the video frames write into <var>W</var> through the self-supervised inner loss, which needs no action labels. But note it is explicitly trained to do this on video-then-robot pairs; it is not emergent. <span class="tag i">inferred</span> What <var>q</var><sub>t</sub> and <var>Ã</var><sub>t</sub> contain during the video segment (idle robot proprio; noised zero or idle actions?) is not stated.</p>
+
+<h3>5.2 DAgger Distillation: learning to improve on the fly</h3>
+<ul>
+<li>Collect DAgger-style rollouts: the policy runs, a human intervenes when it goes wrong. Each executed chunk is either a robot action <var>A</var><sup>R</sup><sub>t</sub> or a human correction <var>A</var><sup>H</sup><sub>t</sub>.</li>
+<li>Standard DAgger fine-tunes on corrections and throws the robot's own bad actions away.</li>
+<li>Distillation keeps them: <var>m</var><sub>t</sub> = 1 only on human corrections, but the fast weights see everything, including the failures. "Failures as context, corrections as targets." The model learns to produce a correction <i>in response to</i> the failure it just made.</li>
+<li>At deployment its own corrections enter the history the same way and are absorbed into <var>W</var>, so the loop is closed without a human.</li>
+<li>Result on Pup Go Car, same 100 DAgger trajectories: standard DAgger +9% average (+13% on sequence models); distillation +33% average (+36% RoboTTT, +29% GDN). Fine-tuning plain GR00T on the full trajectories including bad actions did nothing (57% either way): the bad actions have value only as context.</li>
+</ul>
+<p>They frame this as Algorithm Distillation (Laskin et al. 2022) for robotics: the improvement procedure, not just the policy, is distilled into the fast-weight dynamics.</p>
+
+<h2>6. Results, in one place</h2>
+<div class=grid2>
+<div class=card><div class=stat>79%</div><div class=statl>average completion score across 3 assembly tasks vs 42% single-step GR00T N1.7 (+87% relative) and 56% GDN</div></div>
+<div class=card><div class=stat>71.5%</div><div class=statl>score at 8K pretraining context vs 43.9% at 1K (+63%); no saturation seen; GDN flat</div></div>
+<div class=card><div class=stat>6 / 10</div><div class=statl>one-shot imitation from a human video on unseen Circuit configurations; GDN 0/10</div></div>
+<div class=card><div class=stat>−27%</div><div class=statl>score if the MLP fast model is replaced by a linear one</div></div>
+</div>
+<div class=tw><table>
+<tr><th>Full successes</th><th class=num>Pup Go Car (/20)</th><th class=num>Circuit (/20)</th><th class=num>Gear Bot (/10, 5-min)</th><th class=num>Roof perturbation (/20)</th><th class=num>Tire perturbation (/20)</th></tr>
+<tr><td><b>RoboTTT</b></td><td class=num>9</td><td class=num>13</td><td class=num><b>2</b></td><td class=num>15</td><td class=num>18</td></tr>
+<tr><td>GR00T N1.7 (single step)</td><td class=num>3</td><td class=num>3</td><td class=num>0</td><td class=num>10</td><td class=num>11</td></tr>
+<tr><td>GR00T N1.7 Hist. (1 history frame)</td><td class=num>0</td><td class=num>8</td><td class=num>0</td><td class=num>3</td><td class=num>5</td></tr>
+<tr><td>GDN (Gated DeltaNet in place of TTT)</td><td class=num>3</td><td class=num>8</td><td class=num>0</td><td class=num>13</td><td class=num>18</td></tr>
+</table></div>
+<p class=small>YAM bimanual robot, four RealSense D405 cameras at 480p, 30 Hz control on an RTX 5090. Rubric-scored. All methods post-trained on the same data; perturbation rows include 30 min of co-trained perturbation data for all methods.</p>
+<p><b>The GDN comparison is the most informative one.</b> Gated DeltaNet has the same placement, gating and parameter count and also keeps a fixed-size state, but updates it with a linear associative rule and no test-time gradient descent. It helps on some tasks, gets nothing from longer pretraining context, and fails completely at one-shot imitation from video. The authors' reading: it can <i>encode</i> context but not <i>use</i> it, whereas a non-linear fast model updated by gradient descent, with <var>W</var><sub>0</sub> and <var>η</var> meta-learned, is the more expressive compressor. This is their evidence that the gradient-descent inner loop, not merely "having a recurrent state", is what matters.</p>
+
+<h2>7. Honest limits of the evidence</h2>
+<ul>
+<li>Three tasks, one robot, 10–20 trials per cell, no seeds reported. The effect sizes are large but the counts are small.</li>
+<li>No public code or weights, so nothing here has been reproduced by anyone outside NVIDIA. The unofficial implementation is a reading of the paper, not a port.</li>
+<li>Pretraining used 16 GB200s for 30K steps on a proprietary long-trajectory mixture including egocentric human video. The paper does not isolate how much of the gain comes from that data versus the architecture.</li>
+<li>The authors list their own: training cost grows with context; the inner objective is generic (plain key→value MSE, plain GD), not robotics-specific; and "it does not handle every failure mode".</li>
+<li>Unspecified details that an implementer has to guess: mini-batching of tokens within a timestep, behaviour of the write during multi-step denoising, contents of <var>q</var>/<var>Ã</var> in the video segment, TBPTT segment length, MLP hidden width, whether LN/residual are inside the fast model.</li>
+</ul>
+
+<h2>8. What this means for our stack</h2>
+<h3>8.1 What the paper did, mapped onto what we have</h3>
+<div class=tw><table>
+<tr><th></th><th>RoboTTT</th><th>Us</th></tr>
+<tr><td>Base model</td><td>GR00T N1.7</td><td class=ok>GR00T N1.7 (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>), same DiT head</td></tr>
+<tr><td>New parameters</td><td>16 TTT layers, ~160M total</td><td>Same; ~0.3 GB in bf16, ~2 GB with AdamW state in fp32</td></tr>
+<tr><td>Phase-1 trainable set</td><td>TTT layers only; backbone + DiT frozen</td><td class=ok>Same, and frozen means Φ<sub>t</sub> can be <b>precomputed once per episode</b>, so the 1.5B VLM never runs in the training loop</td></tr>
+<tr><td>Sequence training memory</td><td>Batch 1–4 per GB200 (192 GB)</td><td class=warn>8 GB. DiT forward+backward over a TBPTT segment of <var>S</var> timesteps × 33 tokens × 16 blocks, plus cross-attention to cached Φ<sub>t</sub>. Feasible only at small <var>S</var> and batch 1, with activation checkpointing. Untested.</td></tr>
+<tr><td>Context</td><td>Up to 8K steps (4.5 min)</td><td>LIBERO episodes are ~100–300 steps, so a whole episode fits well under 1K. Prompt + rollout for one-shot ≈ 2 episodes.</td></tr>
+<tr><td>Pretraining data</td><td>Proprietary long-trajectory mix, 30K steps × 16 GPUs</td><td class=warn>LIBERO-spatial: 10 tasks × 50 demos. Nothing like the same breadth.</td></tr>
+<tr><td>Phase 2 (all parameters)</td><td>20K steps × 8 GPUs</td><td class=warn>Cannot unfreeze the backbone (R-001). Could unfreeze DiT + TTT only.</td></tr>
+</table></div>
+
+<h3>8.2 A minimal, honest version</h3>
+<p>Not a replication. A test of whether the <i>mechanism</i> does anything at LIBERO scale on our GPU.</p>
+<ol>
+<li><b>Cache Φ.</b> Run the frozen Eagle backbone once over every LIBERO-spatial demo (and over the LIBERO-Plus perturbed variants we care about); store the VL tokens per timestep on disk.</li>
+<li><b>Add the layers.</b> Insert a gated TTT layer after attention in each of the 16 DiT blocks, <var>α</var> = 0.001, 2-layer GeLU MLP fast model, learned inner lr on a base of 0.1, RoPE on Q/K, 16 register tokens. Verify that at step 0 the action output equals stock GR00T's (the gate guarantees this; check it).</li>
+<li><b>Train only the TTT layers</b> on full LIBERO-spatial episodes with per-timestep <var>τ</var><sub>t</sub> and TBPTT. Segment length is whatever fits in 8 GB at batch 1.</li>
+<li><b>Gate 0: does it still reproduce?</b> Nominal LIBERO-spatial must stay at the R-022 level (98/100). If the sequence model regresses on nominal, stop.</li>
+<li><b>Then the one-shot test that matches our question.</b> Training sequences = [demo of task <var>k</var> ; another demo of task <var>k</var>], loss masked on the first. At test: [demo recorded under a LIBERO-Plus perturbation ; live rollout under that perturbation]. Compare against the same model given a nominal demo, and against stock GR00T. Same held-out instances as R-040 so the numbers are comparable to the fine-tuning arms.</li>
+</ol>
+<p><b>Prediction, pre-registered here:</b> step 4 is likely to pass (the gate protects the pretrained path) and step 5 is likely to show little, because the paper's own evidence is that in-context use of history "emerges only once context length is sufficiently scaled", on a data mixture we do not have. If it does show something on the drawer/bowl wrong-object failure (a task-specification failure), that would be the interesting outcome. Cost: caching Φ is a few GPU-hours; training is unknown until the memory footprint is measured, and that measurement is the first thing to do.</p>
+
+<h3>8.3 The cheaper alternative</h3>
+<p>BPP (see <a href="GEN15_ONE_SHOT.html">GEN15_ONE_SHOT.html</a> §II) already gives demo-as-prompt on LIBERO with released weights and no training. It answers "does a demo help under perturbation?" faster. RoboTTT is the path if the answer is yes and we want it on GR00T itself.</p>
+
+<h2>Glossary</h2>
+<div class=tw><table>
+<tr><th>Term</th><th>Meaning here</th></tr>
+<tr><td>Fast weights</td><td>Parameters of the small in-layer MLP, rewritten by gradient descent every timestep; the hidden state. Reset per episode.</td></tr>
+<tr><td>Slow weights</td><td>Everything the outer optimiser trains; frozen at deployment.</td></tr>
+<tr><td>Inner loop / outer loop</td><td>Inner: the per-timestep GD step on ℒ<sub>FW</sub>. Outer: AdamW on the flow-matching loss, backpropagated through the inner loop.</td></tr>
+<tr><td>Meta-learning</td><td>Learning <var>W</var><sub>0</sub>, <var>η</var>, <var>θ</var><sub>Q,K,V</sub> so that the inner loop adapts well. <var>W</var><sub>0</sub>'s gradient is second-order.</td></tr>
+<tr><td>Register tokens</td><td>16 learned tokens per timestep that attend to all others (incl. VL tokens) and are the only path for visual information into the TTT layer.</td></tr>
+<tr><td>Sequence action forcing</td><td>Independent flow-matching noise level per action chunk in a training sequence.</td></tr>
+<tr><td>TBPTT</td><td>Truncated backprop through time: fast weights carried across segments, gradients cut at boundaries.</td></tr>
+<tr><td>Loss masking</td><td>Timesteps with <var>m</var><sub>t</sub> = 0 update the fast weights but contribute no imitation loss: pure context.</td></tr>
+<tr><td>GDN</td><td>Gated DeltaNet: the linear-recurrent control baseline with matched placement and parameter count.</td></tr>
+<tr><td>Algorithm Distillation</td><td>Training a sequence model on learning histories so that the learning algorithm itself is imitated in-context.</td></tr>
+</table></div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2607.15275">RoboTTT paper</a> (§2, §3, §4, App. A–B) · <a href="https://research.nvidia.com/labs/gear/robottt/">project page</a> · <a href="https://arxiv.org/abs/2407.04620">Sun et al. 2024, Learning to (Learn at Test Time)</a> · <a href="https://github.com/lucidrains/robo_ttt">lucidrains/robo_ttt</a> (<code>MemoryKeyValueBind</code>, <code>TTTWrapper</code>) · <a href="https://arxiv.org/abs/1703.03400">Finn et al. 2017, MAML</a> · <a href="https://arxiv.org/abs/2210.14215">Laskin et al. 2022, Algorithm Distillation</a> · Our checkpoint <code>config.json</code> (<code>n_obs_steps: 1</code>, 16-step action chunk) · RESULTS.md R-001, R-022, R-040.</p>
+</div></body></html>
