@@ -144,6 +144,7 @@
     <span>arXiv:2410.04640v2</span>
     <span>github.com/agiachris/sentinel</span>
     <span>Read 2026-09-22</span>
+    <span>Corrected 2026-09-28: the original said k = h = 16 (no overlap); GR00T predicts 40 and executes 16, so 24 steps overlap.</span>
   </div>
 </header>
 
@@ -1037,14 +1038,13 @@ model at all:</p>
 <tbody>
 <tr><td><strong>Stochastic and samplable</strong> — <span class="m">B</span> draws from <span class="m">π</span>(·|<span class="m">s<sub>t</sub></span>) that actually differ</td><td>A deterministic regression head (ACT without a sampled latent, OpenVLA-OFT's L1 head) gives <span class="m">B</span> identical samples and <span class="m">D̂ ≡ 0</span>. The score degenerates silently.</td><td class="yes">✓ flow-matching DiT; unseeded <code>randn</code> at <code>groot_n1_7.py:657</code></td></tr>
 <tr><td><strong>Continuous action space with a meaningful metric</strong></td><td>The RBF kernel needs ‖x−y‖ to mean something. This is why the binary gripper channel is dropped — and it hides an unstated choice, since linear and angular velocities are concatenated and compared without rescaling.</td><td class="yes">✓ 132-dim, sliced to the 7 live LIBERO dims</td></tr>
-<tr class="hi"><td><strong>Chunked prediction with overlap</strong>, <span class="m">h &gt; k</span></td><td>Not an architecture property — an <em>execution</em> property. A single-action policy has no overlap; a chunked policy that executes the whole chunk has none either.</td><td class="no">✗ RTC off, <span class="m">k = h</span> = 16</td></tr>
+<tr class="hi"><td><strong>Chunked prediction with overlap</strong>, <span class="m">h &gt; k</span></td><td>Not an architecture property — an <em>execution</em> property. A single-action policy has no overlap; a chunked policy that executes the whole chunk has none either.</td><td class="yes">✓ <span class="m">h</span> = 40 predicted, <span class="m">k</span> = 16 executed: overlap 24</td></tr>
 </tbody>
 </table>
 </div>
 
-<p>Two of three already hold. That is a materially better position than "STAC does not apply to
-our stack" — it is <em>one missing precondition</em>, and it is the one that can be
-manufactured offline.</p>
+<p>All three already hold. STAC applies to our stack as it stands; the overlap comes from
+the policy predicting more actions than it executes, not from anything we would have to add.</p>
 
 <div class="note ours">
 <span class="nh">Nobody has run this on a VLA</span>
@@ -1055,27 +1055,22 @@ extension the authors flagged and did not do. Worth pricing as such — includin
 it simply does not transfer.</p>
 </div>
 
-<h3>The blocking structural fact: we have no chunk overlap</h3>
+<h3>The overlap is already there: 24 steps</h3>
 
-<p>GR00T N1.7 on our eval path runs with RTC off and executes all 16 actions of each chunk, so
-<span class="m">k = h = 16</span> and the overlap band in F2 has width zero. STAC's
-<span class="m">D̂(π̄<sub>t</sub>, π̃<sub>t+k</sub>)</span> is undefined — the repo's own
-<code>compute_temporal_error</code> asserts <code>pred_horizon - exec_horizon &gt; 0</code> and
-would refuse to run. <strong>STAC's core signal is not available to us as the pipeline currently
-stands.</strong> Two routes restore it:</p>
+<p>GR00T N1.7 predicts <span class="m">h</span> = 40 actions per chunk and executes
+<span class="m">k</span> = 16 of them, so consecutive chunks overlap by 24 steps
+(<code>experiments/compile_map.py:308</code>; <code>docs/EXP_EMBEDDING_OOD.md:83</code>; the stored
+R-041 arrays <code>act_P</code>/<code>act_N</code> in <code>runs/r041/*/*.npz</code> have shape
+<span class="m">(F, 40, 7)</span> and <code>env_steps</code> step by 16). RTC off only means the
+leftover 24 are not fed back into the next call; they are still predicted. The repo's
+<code>compute_temporal_error</code> assert, <code>pred_horizon - exec_horizon &gt; 0</code>, holds,
+and <span class="m">D̂(π̄<sub>t</sub>, π̃<sub>t+k</sub>)</span> compares
+<code>prev[:, 16:40]</code> against <code>curr[:, 0:24]</code>. No shadow inference and no change to
+<code>n_action_steps</code> is needed.</p>
 
-<div class="tbl-scroll">
-<table>
-<thead><tr><th>Route</th><th>What it costs</th><th>What it preserves</th></tr></thead>
-<tbody>
-<tr><td><strong>Reduce <span class="m">k</span> at eval</strong> — set <code>n_action_steps</code> to e.g. 4, giving overlap 12</td><td>A new campaign; and it is a <em>different controller</em>, so existing failure cases do not transfer</td><td>True STAC, online, cheapest per episode</td></tr>
-<tr class="hi"><td><strong>Shadow inference on stored traces</strong> — re-query the policy at intermediate steps <span class="m">t+k</span> using the already-stored observation, producing a chunk that overlaps the committed one</td><td>GPU re-run over stored obs; needs seed control because <code>groot_n1_7.py:657</code> draws <code>torch.randn</code> unseeded</td><td><strong>The existing trajectories exactly.</strong> Every failure case we already have stays valid; the overlap is manufactured offline without changing what the robot did</td></tr>
-</tbody>
-</table>
-</div>
-
-<p>Shadow inference is the better first move: it is post-hoc forensics on stored traces, which is
-the posture the rest of our programme already takes, and it does not invalidate the failure set.</p>
+<p>What STAC still needs is <span class="m">B</span> draws per forward, with seeded noise:
+<code>groot_n1_7.py:657</code> draws <code>torch.randn</code> unseeded, so the draws have to be
+seeded before scores can be reproduced.</p>
 
 <div class="note ours">
 <span class="nh">S4 is not STAC — and Sentinel already measured what S4 is worth</span>
@@ -1289,8 +1284,8 @@ trajectories within existing scenes.</li>
 </div>
 </div>
 
-<p>And if shadow inference (§11) restores chunk overlap, STAC itself becomes a sixth signal in
-that vector — an action-side self-consistency measure that is, per Table 1, substantially
+<p>And since our chunks already overlap by 24 steps (§11), STAC itself can become a sixth signal
+in that vector once each forward takes <span class="m">B</span> seeded draws — an action-side self-consistency measure that is, per Table 1, substantially
 stronger than anything the embedding taps provide. That would be the single highest-value
 addition to the panel.</p>
 
@@ -1324,8 +1319,9 @@ afternoon, CPU only, and it directly tests whether a min-over-samples statistic 
 distributional shape. <strong>2.</strong> Re-express the calibration percentile as the exact
 conformal index so <span class="m">δ</span> becomes a guarantee. <strong>3.</strong> Cross-tabulate
 the existing OOD scores against outcome per perturbation category (F7) before any new capture.
-<strong>4.</strong> Price shadow inference against the 40-episode de-risk; if STAC is reachable
-offline it outranks S4 by a wide, already-measured margin.</p>
+<strong>4.</strong> Price <span class="m">B</span> seeded draws per forward against the 40-episode
+de-risk; the chunk overlap STAC needs is already there, and STAC outranks S4 by a wide,
+already-measured margin.</p>
 </div>
 </section>
 
