@@ -229,6 +229,7 @@ Every entry records its expectation and **says when it was written**:
 | R-049 | 09-24 | EVAL | Layout, texture and language rows | DONE | Layout agent view 0.55; texture cross-camera; a language rewrite moves the first action by 1.4 (doubled on R-038's scenes) |
 | R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
 | R-051 | 09-25 | EVAL | Reverse direction, noise seeds and layout rescue for the remaining rows | DONE (scored 09-28) | 4 of 6 held: noise single-camera; lighting and texture joint; layout agent view; a corrected first chunk does not rescue layout |
+| R-052 | 09-28 | EVAL | Benchmark camera cone: yaw, pitch and distance about LIBERO-Plus's own pivots | PRE-REGISTERED, NOT RUN | ~760 rollouts, ~9.5 h; runs after R-047; knobs camera_bench_* |
 
 ---
 
@@ -4262,3 +4263,96 @@ Medians over 10 instances each.
 
 **What this changes in the map.** Necessity is now measured on five rows (all but language). The rescue criterion of the retraining plan's decision rule is failed by camera and layout and unconfirmed for start pose; start pose is the only row where the first chunk plausibly decides the episode (R-050).
 
+
+---
+
+## R-052 — PRE-REGISTERED, NOT YET RUN: the benchmark's own camera cone — yaw, pitch and distance about LIBERO-Plus's pivots
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Runner** `experiments/r047_run.py` (axes `camera_bench_*`) · **Queue** to be
+written (`experiments/queue_r052.sh`); runs after R-047 releases the GPU ·
+**Knobs** `vla_harness/envs/libero_env.py` `_apply_bench_camera`, tested by
+`tests/test_bench_camera.py`
+
+### Why
+
+Every camera curve so far (R-041, and R-047's yaw axis) moves the camera with
+the harness knobs. Those knobs orbit the point the camera looks at (the optical
+axis meeting the object plane, `libero_env.py` `_camera_pivot`). LIBERO-Plus
+uses fixed pivots instead (`third_party/LIBERO-plus/.../problems/*_manipulation.py`,
+`_setup_camera`):
+- yaw rotates about the world vertical axis through the origin;
+- pitch rotates about a y-parallel axis through (0, 0, 0.8);
+- distance scales the camera's offset from (0, 0, 0.8) by 1.0–2.0×.
+
+For the spatial-suite camera the two yaw pivots are 0.16–0.35 m apart, and 2.0×
+moves the camera 1.04 m, not the ~0.8 m assumed at `r041_run.py:54`. So no
+existing curve describes the benchmark's cone. R-047's yaw axis was kept on the
+old geometry by user decision (2026-09-28), for comparability with R-041. This
+entry measures the benchmark's geometry.
+
+The `camera_bench_*` knobs call each scene class's own LIBERO-Plus
+`_setup_camera`. They match 7 real LIBERO-Plus views to 1e-4 (yaw ±75, pitch 15,
+scale 2.0, combined), and the neutral knobs are bit-identical to nominal.
+
+### Design
+
+The same as R-047 except the camera geometry: the same 10 scenes (`SCENES` in
+`r047_run.py`), env seed 0, splice with the base arms, ‖P−N‖ recorded at
+forward 0.
+
+| axis | grid | replicates per point | rollouts |
+|---|---|---|---|
+| `camera_bench_yaw_deg` | 0, 5, 10, 20, 30, 40, 50, 60, 75 | 4 noise seeds | 10 × 9 × 4 = 360 |
+| `camera_bench_scale` | 1.0, 1.2, 1.4, 1.6, 1.8, 2.0 | 4 noise seeds | 10 × 6 × 4 = 240 |
+| `camera_bench_pitch_deg` | 0, 5, 10, 15 | 4 noise seeds | 10 × 4 × 4 = 160 |
+
+Run order: yaw, then scale, then pitch. That is ~760 rollouts, ~9.5 h at ~45 s
+each.
+
+- **Yaw reuses R-047's magnitudes**, so the two geometries compare point for
+  point on the same scenes and seeds.
+- **Only positive yaw is run.** The benchmark spans −75..75, so the asymmetry is
+  untested and is reported as such.
+- **Pitch:** the benchmark uses only 0 and 15. Points 5 and 10 are interpolation
+  and are marked as such.
+- **Not run:** the benchmark's look-away rotations (`end_point_rot/vertical`,
+  ±10 in steps of 2). No knob exists for them.
+- **A scene whose `_setup_camera` ignores scale** (the kitchen marble, brick and
+  shadow classes; the knob raises `NotImplementedError`) is dropped from the scale
+  axis and listed.
+
+**Readouts, per scene and axis, as R-047:**
+- (i) success probability per magnitude;
+- (ii) the 50% crossing by logistic fit, and the transition width (0.8 → 0.2);
+- (iii) within a magnitude, the correlation between ‖P−N‖ at forward 0 and
+  success.
+
+Plus (iv): at each shared yaw magnitude, bench vs harness success per scene
+against R-047's yaw axis.
+
+### Pre-registered expectations
+
+1. **Magnitude-neutral success is 10/10 per scene pooled over seeds**, and
+   non-increasing in magnitude on every scene (allowing single-replicate flips).
+   *High.* Otherwise the knobs or the harness are suspect.
+2. **Bench yaw is at least as damaging as harness yaw:** pooled success at 75°
+   is at or below R-047's yaw at 75°, and the pooled 50% crossing comes at a
+   smaller angle. *Medium.* About the origin, the scene also translates across
+   the image; about the look-at point it stays centred.
+3. **At least 8 of 10 scenes reach success ≤ 0.2 by bench yaw 75°.** *Medium.*
+   This is R-047 expectation 6 moved to the benchmark's geometry. LIBERO-Plus
+   reports camera among its worst categories.
+4. **Scale: pooled success ≥ 0.8 up to 1.4×, and at least 5 of 10 scenes below
+   0.5 at 2.0×.** *Low, no strong prior.* R-041 never reached the benchmark's
+   range.
+5. **Pitch 15° (the benchmark's one value): pooled success ≥ 0.8.** *Low.*
+6. **Within a magnitude, ‖P−N‖ at forward 0 does not predict success**
+   (|r| < 0.3 pooled). *Medium.* This replicates R-047 expectation 5 on new
+   geometry.
+
+### What would make this uninterpretable
+
+Magnitude-neutral success below 100% pooled; `tests/test_bench_camera.py`
+failing on the code state recorded in `runs/r052/code_state`; or more than 3 of
+the 10 scenes dropped from the scale axis.
