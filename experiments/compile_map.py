@@ -251,7 +251,11 @@ def r047_axis(axis, label):
     body = [[SCENE.get(t, t) + (" <span class=fail>*</span>" if t in R038_NULL_FAIL else "")] + [frac(cell.get((t, m), [])) for m in mags] for t in scenes]
     pooled = {m: [r for r in rs if r["magnitude"] == m and r["task_id"] in complete] for m in mags}
     body.append(["<b>pooled, complete scenes</b>"] + [frac(pooled[m]) for m in mags])
-    W, H, pl, pr, pt, pb = 900, 260, 50, 150, 12, 34
+    clean = [t for t in complete if all(r["success"] for r in cell.get((t, mags[0]), []))]   # R-047's uninterpretability rule, per scene
+    if len(clean) < len(complete):
+        body.append([f"<b>pooled, excluding scenes that fail unperturbed</b> ({', '.join(SCENE.get(t, t) for t in complete if t not in clean)})"]
+                    + [frac([r for r in pooled[m] if r["task_id"] in clean]) for m in mags])
+    W, H, pl, pr, pt, pb = 900, 300, 50, 150, 12, 34
     x = lambda m: pl + (W - pl - pr) * (m / max(mags)); y = lambda v: pt + (H - pt - pb) * (1 - v)
     svg = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="success probability against {E(label)}">']
     for g in (0, .5, 1):
@@ -259,6 +263,7 @@ def r047_axis(axis, label):
     for m in mags:
         svg.append(f'<text x="{x(m):.1f}" y="{H-pb+14}" font-size="10" text-anchor="middle" fill="currentColor" opacity=".6">{m:g}</text>')
     svg.append(f'<text x="{(pl+W-pr)/2:.0f}" y="{H-4}" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7">{E(label)}</text>')
+    labels = []
     for t in scenes + ["pooled"]:
         pts = [(m, pooled[m] if t == "pooled" else cell.get((t, m), [])) for m in mags]
         pts = [(m, sum(r["success"] for r in v) / len(v)) for m, v in pts if v]
@@ -266,8 +271,11 @@ def r047_axis(axis, label):
             continue
         col = "var(--ink)" if t == "pooled" else ("var(--fail)" if t in R038_NULL_FAIL else "var(--accent)")
         svg.append(f'<polyline points="{" ".join(f"{x(m):.1f},{y(v):.1f}" for m, v in pts)}" fill="none" stroke="{col}" stroke-width="{3 if t == "pooled" else 1.4}" opacity="{1 if t == "pooled" else .7}"/>')
-        m, v = pts[-1]
-        svg.append(f'<text x="{x(m)+6:.1f}" y="{y(v)+3:.1f}" font-size="9" fill="{col}">{"pooled" if t == "pooled" else SCENE.get(t, t)}</text>')
+        labels.append((y(pts[-1][1]), x(pts[-1][0]) + 6, col, "pooled" if t == "pooled" else SCENE.get(t, t)))
+    labels.sort(); prev = -1e9
+    for ly, lx, col, txt in labels:            # stack end labels that land on the same value
+        ly = max(ly, prev + 10); prev = ly
+        svg.append(f'<text x="{lx:.1f}" y="{ly+3:.1f}" font-size="9" fill="{col}">{txt}</text>')
     svg.append("</svg>")
     status = (f"{len(rs)} rollouts, {len(complete)} of 10 scenes complete, {per} replicates per point"
               + ("" if len(complete) == 10 else " — <b>partial: read the complete scenes only</b>"))
@@ -281,7 +289,7 @@ def section_r047():
 <section id="r047">
 <p class="part">8 · The shape of the flip region (R-047)</p>
 <h2>Success probability against magnitude, with replicates</h2>
-<p>R-041 bisected one rollout per point and could not tell a cliff from a slope; outcomes at one seed flip 30–40% under render jitter. Here every point has replicates (start pose: 3 joint directions × 2 noise seeds; camera yaw: 4 noise seeds), env seed 0, the benchmark's range. Expectations are scored in RESULTS.md R-047, not here.</p><p><b>Range and geometry.</b> Start-pose radius 0–0.5 rad is the benchmark's range. Camera yaw 0–75° is the benchmark's angular range, swept with the harness knob at pitch 0: comparable with R-041, not the benchmark's cone (see the geometry note in section 1). Camera distance (pre-registered to 0.8 m, about 1.77×) and pitch are deferred and not queued; lighting has no benchmark-matched knob.</p>
+<p>R-041 bisected one rollout per point and could not tell a cliff from a slope; outcomes at one seed flip 30–40% under render jitter. Here every point has replicates (start pose: 3 joint directions × 2 noise seeds; camera yaw: 4 noise seeds), env seed 0, the benchmark's range. Expectations are scored in RESULTS.md R-047, not here.</p><p><b>Scored (RESULTS.md R-047), two of six held.</b> on-ramekin fails with nothing perturbed under one noise seed on both axes, and on-wooden-cabinet once on yaw; the pre-registered condition excludes them from the reading (their curves are still shown). Start pose: a slope from 0.2 rad, not a cliff, except stove (0.67 → 0.00 between 0.2 and 0.3 rad); the three most fragile scenes are stove, wooden-cabinet and top-drawer (tied with table-center), as predicted. Within a radius, directions that move the first action more fail more often (r = −0.36); on yaw there is no such link (r = 0.11). Yaw: only 1 of 8 scored scenes falls to ≤ 0.2 by 75° against a predicted 8 of 10; four replicates cannot resolve the non-monotone cells after 40°.</p><p><b>Range and geometry.</b> Start-pose radius 0–0.5 rad is the benchmark's range. Camera yaw 0–75° is the benchmark's angular range, swept with the harness knob at pitch 0: comparable with R-041, not the benchmark's cone (see the geometry note in section 1). Camera distance (pre-registered to 0.8 m, about 1.77×) and pitch are deferred and not queued; lighting has no benchmark-matched knob.</p>
 {r047_axis("joint_radius_rad", "start-pose radius (rad)")}
 {r047_axis("camera_yaw_deg", "camera yaw (deg)")}
 </section>'''
@@ -389,7 +397,7 @@ def section_camera():
 <figure>{r041_plot(yaw_rows, "camera_yaw_deg", 40.0, tau, "d_pn_f0", "‖P−N‖ at forward 0")}<figcaption>‖P−N‖ at forward 0 against yaw, one line per scene; squares are failures; red lines are R-038's null-prompt scenes.</figcaption></figure>
 <h4>Distance, 0–0.4 m</h4>{btable(dist_b)}
 <figure>{r041_plot(dist_rows, "camera_dist_m", 0.4, tau, "d_pn_f0", "‖P−N‖ at forward 0")}<figcaption>‖P−N‖ at forward 0 against camera distance.</figcaption></figure>
-{note("Verdict", "<b>Dominant input:</b> agent-view pixels, 0.98, exact, stable across noise seeds, necessary by construction. <b>Necessity:</b> established (one-input perturbation). <b>Outcome:</b> a camera change moves the first action immediately and is absorbed for 20–40°; a single corrected chunk changes the outcome only marginally above a re-run. <b>Data spec:</b> re-render existing demonstrations under the new viewpoint (condition gap, family B); the wrist stream is untouched. <b>Open:</b> the benchmark's full 75° cone and probability curves with replicates (R-047, pending); whether the accumulation reading holds on the downstream measurement above.", "repo")}
+{note("Verdict", "<b>Dominant input:</b> agent-view pixels, 0.98, exact, stable across noise seeds, necessary by construction. <b>Necessity:</b> established (one-input perturbation). <b>Outcome:</b> a camera change moves the first action immediately and is absorbed for 20–40°; a single corrected chunk changes the outcome only marginally above a re-run. <b>Data spec:</b> re-render existing demonstrations under the new viewpoint (condition gap, family B); the wrist stream is untouched. <b>Probability curve (R-047, harness knob):</b> pooled success 0.93 to 20°, 0.80 at 30–40°, 0.58–0.73 from 50° to 75°; only 1 of 10 scenes falls to ≤ 0.2. <b>Open:</b> the benchmark's own cone (R-052), since the harness knob uses a different pivot.", "repo")}
 </section>'''
 
 
@@ -481,7 +489,7 @@ def section_startpose():
 <h3>Continuous sweep, radius 0–0.5 rad (R-041)</h3>
 {table(["scene", "action boundary", "outcome boundary", "note"], [[SCENE.get(b["task_id"], b["task_id"]), fmt_b(b.get("action_boundary")), fmt_b(b.get("outcome_boundary")), E(b.get("note", ""))] for b in sorted(joint_b, key=lambda b: b["task_id"])])}
 <figure>{r041_plot(joint_rows, "joint_radius_rad", 0.5, tau, "d_pn_f0", "‖P−N‖ at forward 0")}<figcaption>‖P−N‖ at forward 0 against start-pose radius. The stove and top-drawer scenes, two of R-038's null-prompt scenes, fail earliest.</figcaption></figure>
-{note("Verdict", "<b>Dominant input:</b> wrist pixels, 0.88 at forward 0, stable across seeds, necessary (noising 0.46, nothing else reproduces the effect); the agent view is a secondary channel and consistency check (0.17; the full effect needs both); the state token is near-inert (0.04). <b>Decided early:</b> one corrected chunk at forward 0 rescued 7/7 with the nominal chunk and 4/7 with the wrist chunk, without a no-op baseline. <b>Representation:</b> the pose is in the VLM output at every radius (post-hoc). <b>Data spec:</b> demonstrations that start from the new poses, containing both views, covering the approach (about the first second). <b>Retraining:</b> head and adapter with the VLM frozen predicted sufficient; the definitive test (R-046) is out of scope. <b>Open:</b> gripper-region vs near-scene inside the wrist frame; a second checkpoint; probability curves with replicates (R-047).", "repo")}
+{note("Verdict", "<b>Dominant input:</b> wrist pixels, 0.88 at forward 0, stable across seeds, necessary (noising 0.46, nothing else reproduces the effect); the agent view is a secondary channel and consistency check (0.17; the full effect needs both); the state token is near-inert (0.04). <b>Decided early:</b> one corrected chunk at forward 0 rescued 7/7 with the nominal chunk and 4/7 with the wrist chunk, without a no-op baseline. <b>Representation:</b> the pose is in the VLM output at every radius (post-hoc). <b>Data spec:</b> demonstrations that start from the new poses, containing both views, covering the approach (about the first second). <b>Retraining:</b> head and adapter with the VLM frozen predicted sufficient; the definitive test (R-046) is out of scope. <b>Open:</b> gripper-region vs near-scene inside the wrist frame; a second checkpoint. <b>Probability curve (R-047):</b> pooled success (nine scenes) 1.00 → 0.37 by 0.5 rad, a slope from 0.2 rad; stove falls off a cliff between 0.2 and 0.3; within a radius, a larger first-action displacement predicts failure (r = −0.36).", "repo")}
 </section>'''
 
 
@@ -563,7 +571,7 @@ def section_map_and_appendix():
 ])}
 <p>Two rows are single-input and exact (camera, noise), one is single-input with a secondary channel (start pose), one is a joint property of the two cameras (texture), two are mixed by effect size (layout, and lighting, joint when small and agent-view when large), a corrected first chunk rescues neither camera nor layout, and one is text by construction (language). The state token is at or below 0.2 on every row, which traces to training-time state dropout. What no row establishes is that the specified data fixes anything: that is a retraining experiment, pre-registered as R-046 for the start-pose row and out of scope for now; the cost, data and expected outcome are in <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>.</p>
 <h3>Boundaries across rows (R-041, one seed)</h3>
-<p>The first action departs from nominal by more than the noise floor at the smallest tested step on camera yaw, camera distance and start pose, and barely at all on brightness. The outcome holds to 40° on 8 of 10 scenes, 0.4 m on 9, 3× brightness on 10, 0.5 rad on 7. The boundary that matters is the loop's recovery, not the policy's sensitivity, and it is scene-dependent. Probability curves with replicates (R-047) are pre-registered and pending overnight.</p>
+<p>The first action departs from nominal by more than the noise floor at the smallest tested step on camera yaw, camera distance and start pose, and barely at all on brightness. The outcome holds to 40° on 8 of 10 scenes, 0.4 m on 9, 3× brightness on 10, 0.5 rad on 7. The boundary that matters is the loop's recovery, not the policy's sensitivity, and it is scene-dependent. With replicates (R-047, section 8) the start-pose edge is a scene-dependent slope and harness yaw degrades gently to 75°.</p>
 </section>
 
 <section id="appendix">

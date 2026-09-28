@@ -224,7 +224,7 @@ Every entry records its expectation and **says when it was written**:
 | R-044 | 09-23 | EVAL | Wrist-claim robustness: reverse direction, noise seeds, forward-0 rescue | DONE | wrist necessary (noising 0.46) and stable (0.85 across seeds); nominal first chunk rescues 7/7 |
 | R-045 | 09-24 | ANALYSIS | Linear pose probe on the VLM output across start-pose radius | DONE | direction split failed its sanity gate; scene split: ~1.5 cm at every radius, as good as the state token |
 | R-046 | 09-24 | EVAL | Frozen vs unfrozen VLM on minted start-pose demos (R-040 arm M, one category) | PRE-REGISTERED, OUT OF SCOPE | deferred 2026-09-24; R-045 probe is the predictor |
-| R-047 | 09-24 | EVAL | Shape of the flip region: success probability vs magnitude, with replicates, benchmark ranges | RUNNING (entry header still says NOT YET RUN) | As of 09-28: start-pose radius 232/360 rollouts, camera yaw 99/360; camera distance and pitch deferred, not queued |
+| R-047 | 09-24 | EVAL | Shape of the flip region: success probability vs magnitude, with replicates | DONE | Start pose: pooled success (nine scenes) 1.00 → 0.37 by 0.5 rad, a slope from 0.2 with scene-dependent edges (stove a cliff at 0.2–0.3). Harness yaw: 0.73 at 75° (all ten), 1 of 10 scenes ≤ 0.2 (harness knob, not the benchmark cone; R-052). on-ramekin fails unperturbed under noise seed 1. 2 of 6 held |
 | R-048 | 09-24 | EVAL | Camera row: reverse direction, noise seeds, forward-0 rescue | DONE | Agent view 0.98, exact and stable; rescue weak against a 43% no-correction flip rate |
 | R-049 | 09-24 | EVAL | Layout, texture and language rows | DONE | Layout agent view 0.55; texture cross-camera; a language rewrite moves the first action by 1.4 (doubled on R-038's scenes) |
 | R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
@@ -3758,9 +3758,9 @@ user on 2026-09-24; R-045's probe is the cheap predictor reported instead.
 
 ---
 
-## R-047 — PRE-REGISTERED, NOT YET RUN: the SHAPE of the flip region — success probability against magnitude with replicates, benchmark-matched ranges
+## R-047 — DONE: start pose slopes down from 0.2 rad with scene-dependent edges (stove a cliff); harness yaw barely fails to 75°; one scene fails unperturbed
 
-**Date registered** 2026-09-24 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Date registered** 2026-09-24 · **Run** 2026-09-24 23:03 (OOM, partial) and 2026-09-25 17:21 → 2026-09-28 14:46 (resumed; laptop suspended 09-25 17:49 → 09-28 11:28) · **Status** DONE · **Type** EVAL ·
 **Runner** `experiments/r047_run.py` · **Queue** `experiments/queue_r047.sh`
 
 ### Why
@@ -3822,6 +3822,37 @@ and success.
 
 Magnitude-0 success below 100% pooled over replicates; or the base arms'
 P/N not matching R-041's at the shared magnitudes.
+
+### RESULT, 2026-09-28 — two of six held; the start-pose edge is a scene-dependent slope, harness yaw barely fails, and one scene fails with nothing perturbed
+
+`runs/r047/{joint_radius_rad,camera_yaw_deg}/manifest.jsonl`, 360 rollouts each, both axes rc=0 (`runs/r047/queue.log`); scoring in `runs/r047/score.json`. The first launch (09-24 23:03) died of a GPU memory leak in the runner (per-scene magnitude-0 features kept on the GPU; fixed, `7ebd0a2`) after 60 and 99 rollouts; the resumed run kept those and completed the rest.
+
+**Pooled success by magnitude** (all ten scenes; in brackets without on-ramekin, see below):
+
+| start-pose radius (rad) | 0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 |
+|---|---|---|---|---|---|---|
+| success /60 | 57 (54/54) | 57 (51/54) | 44 (38/54) | 34 (30/54) | 33 (29/54) | 23 (20/54) |
+
+| camera yaw (deg) | 0 | 5 | 10 | 20 | 30 | 40 | 50 | 60 | 75 |
+|---|---|---|---|---|---|---|---|---|---|
+| success /40 | 37 (35/36) | 40 | 39 | 37 | 32 | 32 | 23 | 27 | 29 (25/36) |
+
+**Uninterpretability conditions.**
+- *Magnitude-0 success below 100%: TRIGGERED, by one scene.* on-ramekin (task 1169) times out at magnitude 0 under noise seed 1 on both axes, and under seed 2 on yaw, 3–4 cm from the target: a grasp or placement failure of the unperturbed episode under a different denoising draw. R-029's 100/100 was one noise seed per episode; this scene is not 100% across noise seeds. on-wooden-cabinet also fails once at yaw 0 (seed 2). Applied strictly per scene, the condition excludes on-ramekin on both axes and on-wooden-cabinet on yaw; both are excluded from scoring below (forced by the pre-registered condition, applied after the run). The remaining magnitude-0 cells are 54/54 on start pose and 32/32 on yaw. Excluding on-wooden-cabinet changes no verdict (it is monotone on yaw and never reaches 0.2).
+- *P/N not matching R-041 at shared magnitudes: HELD.* ‖P−N‖ at forward 0 matches R-041 within 10% at 18/20 shared start-pose points and 48/50 shared yaw points; the misses are all at magnitude 0, where ‖P−N‖ is 0.02–0.09, at the noise floor.
+
+**Design note found in scoring.** At radius 0 the three joint directions are the same episode, so the start-pose magnitude-0 cell has two independent draws (the noise seeds), not six; on-ramekin's "3 of 6" is one failed seed counted three times.
+
+1. **Non-increasing in magnitude on every scene (single-replicate flips allowed): MISSED.** Start pose: 8/9 scored scenes (next-to-ramekin rises 0.50 → 0.83 at 0.4 rad). Yaw: 4/8 (between-plate-ramekin 0/4 at 50–60° then 2/4 at 75°; on-cookie-box 1/4 at 50° then 4/4; top-drawer, table-center, next-to-plate similar). With four replicates a 1/4 → 4/4 swing is within binomial noise at p ≈ 0.6 (each ~0.14), so this says four replicates cannot resolve yaw's curve, not that the policy improves with angle.
+2. **Transition width < ¼ of the range on scenes reaching ≤ 0.2: MISSED.** Start pose (¼ range = 0.125 rad): on-stove 0.07 (a cliff, 0.67 → 0.00 between 0.2 and 0.3 rad), table-center 0.25, top-drawer 0.25. Yaw: only between-plate-ramekin reaches ≤ 0.2 (width 29° against 19°). One cliff in four; the typical start-pose edge is a slope.
+3. **50% point varies across scenes by more than the median transition width: HELD narrowly on start pose, not measurable on yaw.** Start pose: 50% points 0.21–0.60 rad (range 0.38) against a median width of 0.34; but the spread's SD (0.13) is below the median width, and three 50% points lie beyond the range (extrapolated). Yaw: 5 of 8 scored scenes' 50% points lie past 75° (one never crosses).
+4. **Start pose: stove, wooden-cabinet, top-drawer have the three lowest 50% points: HELD, with a tie.** on-stove 0.21, on-wooden-cabinet 0.25, then top-drawer and table-center tie at 0.34 (identical sufficient statistics). R-041's two earliest (stove, top-drawer) and R-038's null-prompt scenes are again the most fragile.
+5. **‖P−N‖ at forward 0 does not predict success within a magnitude (|r| < 0.3): MISSED on start pose, HELD on yaw.** Start pose r = −0.36 over 31 mixed cells (186 rollouts, excluded scenes removed): within a radius, the joint directions that move the first action more fail more often. The first action's size carries outcome information for start pose, so a first-forward detector has something to read there. Yaw r = +0.11 (24 cells, 96 rollouts): none.
+6. **Yaw: ≥ 8/10 scenes reach ≤ 0.2 by 75°: MISSED badly.** 1/8 scored scenes (1/10 including the excluded). Pooled success is 0.93 to 20°, 0.80 at 30–40°, 0.58–0.73 from 50° to 75°. **Geometry caveat (recorded 2026-09-28, from my prim's note and the LIBERO-Plus source):** the harness yaw knob orbits the vertical through the camera's look-at point; LIBERO-Plus rotates about the world z-axis through the origin (0.16–0.35 m apart, scene-dependent), pitches about a y-parallel axis through (0, 0, 0.8), and scales distance from (0, 0, 0.8) by 1.0–2.0× (+1.04 m at 2.0×). This curve is comparable with R-041's, not with the benchmark's cone; the benchmark-geometry sweep is R-052. The miss may be the knob, not the policy.
+
+**Provenance.** `runs/r047/code_state` was written at the first launch (09-24) and does not record two later changes the resumed run executed: the leak fix (`7ebd0a2`) and impl's additive `camera_bench_*` knobs (`790bdf6`), loaded by the yaw process only. Neither touches the harness yaw path (`knob_neutral('camera_yaw_deg') == 0`, the `camera_*` branch only renamed); checked 2026-09-28 before the yaw axis started.
+
+**What this changes.** Start pose, the one row where the first chunk plausibly decides the episode (R-044, R-050), is also the row where the first action's size predicts failure (r = −0.36) and where the edge is scene-dependent: stove fails by 0.3 rad, next-to-plate holds to 0.3. A data specification for start pose should weight the fragile scenes (stove, wooden-cabinet, top-drawer, table-center) and radii 0.2–0.5. For camera yaw with the harness knob the policy is robust to 40° and degrades gently after; whether the benchmark's geometry is harsher is R-052's question.
 
 ---
 
