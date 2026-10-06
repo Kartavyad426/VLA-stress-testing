@@ -1,0 +1,30 @@
+{
+ "suite": "libero_spatial",
+ "selection_seed": 49,
+ "n": 2,
+ "note": "R-049: the three unmapped categories. Layout and language 5 x L4 + 5 x L5 failures; textures all 2 failures + 8 successes (the campaign produced only 2). Env seed 0.",
+ "instances": [
+  {
+   "task_id": 1180,
+   "seed": 0,
+   "category": "Language Instructions",
+   "label": "on-ramekin \u00b7 language language 20",
+   "scene": "on-ramekin",
+   "level": 4,
+   "prior_outcome": "fail",
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_language_20_view_0_0_100_0_0_initstate_0",
+   "control_task_id": 1169
+  },
+  {
+   "task_id": 254,
+   "seed": 0,
+   "category": "Background Textures",
+   "label": "on-wooden-cabinet \u00b7 background tb 12",
+   "scene": "on-wooden-cabinet",
+   "level": 4,
+   "prior_outcome": "fail",
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_tb_12",
+   "control_task_id": 1327
+  }
+ ]
+}
