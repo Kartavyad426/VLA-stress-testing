@@ -1,0 +1,429 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Spatial Adaptation Maths</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style></head><body><div class=wrap>
+
+<h1>"VLA models are more generalizable than you think": the maths, the method, and what holds up</h1>
+<div class=meta>2026-10-06 · Li, Zhang, Zhai, Lin, Wang (Sun Yat-sen University / X-Era AI Lab), <a href="https://arxiv.org/abs/2512.02902">arXiv:2512.02902v2</a> (31 Mar 2026), CVPR 2026 · No code released (searched 2026-10-06) · Implementation facts checked against <a href="https://github.com/Physical-Intelligence/openpi">openpi</a> <code>main</code> (<code>pi0_config.py</code>, <code>pi0.py</code>, <code>lora.py</code>, <code>gemma.py</code>, <code>siglip.py</code>). Tags: <span class="tag p">paper</span> stated in the paper · <span class="tag v">verified</span> checked by me against code or by arithmetic · <span class="tag i">inferred</span> my reading where the paper is silent.</div>
+
+<div class="card tldr">
+<div class=q>Bottom line</div>
+<ul>
+<li><b>The claim.</b> When a VLA fails under a new camera viewpoint, the fault is in the vision encoder ("Spatial Modeling"), not in the language model or action expert ("Physical Modeling"). So adapting only the vision side, with one demo per task, should restore performance. On π0.5 in LIBERO with novel cameras: zero-shot <b>48.5%</b>; a 4K-parameter per-channel affine on the visual tokens (FTM) reaches <b>87.1%</b>; rank-16 LoRA inside SigLIP (FLA, 4.7M params) reaches <b>90.8%</b>; the paper's "LoRA" baseline, at 467M params, reaches <b>90.3%</b>.</li>
+<li><b>What holds up.</b> The direction is plausible, and FTM is a striking result: 4,096 numbers, applied identically to every visual token, recover most of the camera gap. That says the drift is largely a <i>global per-channel statistics shift</i>, the kind AdaBN-style recalibration fixes. That is a real and cheap-to-test finding.</li>
+<li><b>What doesn't.</b>
+ <ol>
+ <li>The 467M "LoRA" baseline is mostly a <b>full fine-tune of SigLIP</b> (414.8M). openpi's LoRA freeze filter never freezes the vision tower <span class="tag v">verified</span>. The "99× fewer parameters" comparison is therefore low-rank vision tuning vs <i>full</i> vision tuning plus LoRA elsewhere.</li>
+ <li>The control that would isolate the claim is missing. That control is to adapt the language model and action expert with vision frozen.</li>
+ <li>FLA beats LoRA by 0.5 pt, against a ≈1.9 pt 95% interval on a single seed.</li>
+ <li>The appendix theory proves bounds against a single mean token. It says nothing about closed-loop success.</li>
+ </ol></li>
+<li><b>A table error.</b> Table 3 prints FTM's Libero-V average as 90.5%; its own row averages to <b>93.2%</b>, so the paper under-sells its smallest method <span class="tag v">verified</span>.</li>
+<li><b>For us.</b> Our GR00T retrains (R-053..R-058) adapt the action head and VL self-attention with <code>tune_visual: False</code>. That is exactly the "Physical Modeling" side, the opposite of FLA. R-039 already found that image tokens carry every perturbation category to the action. A training-free version of FTM, moment matching on cached Eagle features, is an afternoon's experiment on 8 GB. See §10.</li>
+</ul>
+</div>
+
+<h2>1. The claim, and what it would take to prove it</h2>
+<p>The paper splits a VLA <var>π</var> into two functional halves <span class="tag p">paper</span>:</p>
+<div class=diag>
+<div class=row>
+<div class="blk vis"><b>Spatial Modeling</b>the vision encoder <var>f</var><sub>v</sub> (SigLIP So400m/14 in π0/π0.5): image → visual tokens <var>z</var>. Supposed to encode positions, orientations, contacts, occlusion.</div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk phys"><b>Physical Modeling</b>the VLM (Gemma 2B) + action expert (Gemma 300M): <var>z</var>, language <var>ℓ</var>, state → action chunk. Supposed to do the task reasoning and control.</div>
+</div></div>
+<p>The argument is a short syllogism:</p>
+<ol>
+<li>A viewpoint shift changes how the scene looks, not what the task is or how the arm moves.</li>
+<li>So the Physical half should still be competent; it is being fed tokens from the wrong distribution.</li>
+<li>So adapting only <var>f</var><sub>v</sub> (or its output) with a tiny number of parameters should recover most of the loss.</li>
+</ol>
+<p>Step 3 is <i>evidence consistent with</i> the hypothesis, not proof of it. Proving "the fault is in Spatial, not Physical" needs a 2×2:</p>
+<div class=tw><table>
+<tr><th></th><th>Adapt vision only</th><th>Adapt VLM + expert only (vision frozen)</th></tr>
+<tr><td>Prediction if the claim is true</td><td class=ok>recovers most of the gap</td><td class=warn>recovers little, at matched parameter count and data</td></tr>
+<tr><td>In the paper?</td><td>Yes (FTM, FLA)</td><td class=warn>No. The "LoRA" baseline adapts <i>both</i>, and its vision part is a full fine-tune (§5).</td></tr>
+</table></div>
+<p>Without the right-hand column, "adapting vision is sufficient" is shown. "The brittleness originates in vision" is not. A large enough network can usually route around a fault from either side. That vision-side adaptation is <i>cheaper</i> is the more defensible reading of the results.</p>
+
+<h2>2. π0.5 from first principles</h2>
+<p>The paper's §3.1 (Eq. 1–2) describes π0.5 as autoregressively emitting discrete action tokens. That is wrong for how π0.5 acts. The appendix (§11) then describes the flow-matching action expert correctly. Here is the model as openpi implements it.</p>
+
+<h3>2.1 Architecture</h3>
+<div class=diag>
+<div class=row>
+<div class="blk vis"><b>SigLIP So400m/14</b>224×224 → 16×16 = 256 patches per camera; width 1152, 27 layers, MLP 4304 <span class="tag v">verified</span></div>
+<div class="blk vis"><b>Projector ("head")</b>Dense 1152 → 2048 per token. <b>FTM sits here</b> (§3)</div>
+<div class="blk phys"><b>Gemma 2B (VLM)</b>width 2048, depth 18, 8 heads, 1 KV head, head dim 256, MLP 16384 <span class="tag v">verified</span></div>
+<div class="blk phys"><b>Gemma 300M (action expert)</b>width 1024, depth 18, MLP 4096; shares attention with the VLM layer by layer</div>
+</div></div>
+<p>The prefix is image tokens from both cameras (agent view and wrist), then language tokens. In π0.5 the discretised state also goes in as text. The prefix uses bidirectional attention. The suffix is <var>H</var> noisy action tokens, attending to the prefix and to each other; the prefix cannot attend to the suffix. The paper's "Physical Modeling" is everything in orange.</p>
+
+<h3>2.2 Flow matching, in openpi's convention</h3>
+<p>Let <var>A</var> = <var>a</var><sub>t:t+H</sub> be a ground-truth action chunk and <var>ε</var> ~ 𝒩(0, I). openpi interpolates <i>from data at τ = 0 to noise at τ = 1</i> <span class="tag v">verified</span> (<code>pi0.py:197–200</code>):</p>
+<div class=eq><span><var>x</var><sub>τ</sub> = τ ε + (1 − τ) <var>A</var>,&nbsp;&nbsp;&nbsp; <var>u</var> = d<var>x</var><sub>τ</sub>/dτ = ε − <var>A</var></span><span class=n>(2.1)</span></div>
+<div class=eq><span>ℒ<sub>flow</sub>(θ) = 𝔼<sub>τ, ε, (o, ℓ, A)</sub> ‖ <var>v</var><sub>θ</sub>(<var>x</var><sub>τ</sub>, τ, o, ℓ) − (ε − <var>A</var>) ‖²</span><span class=n>(2.2)</span></div>
+<div class=eq><span>τ = 0.999 · <i>s</i> + 0.001,&nbsp;&nbsp; <i>s</i> ~ Beta(1.5, 1)</span><span class=n>(2.3)</span></div>
+<p>Beta(1.5, 1) has density ∝ <i>s</i><sup>0.5</sup>, mean 0.6, mass piled toward <i>s</i> = 1. In this convention τ = 1 is pure noise, so training <b>over-samples the noisy end</b>. At inference, start at <var>x</var><sub>1</sub> = ε and Euler-integrate backwards with <var>K</var> = 10 steps (<code>dt = −1/K</code>, <code>pi0.py:228</code>):</p>
+<div class=eq><span><var>x</var><sub>τ−1/K</sub> = <var>x</var><sub>τ</sub> − (1/K) · <var>v</var><sub>θ</sub>(<var>x</var><sub>τ</sub>, τ, o, ℓ),&nbsp;&nbsp;&nbsp; τ = 1, 1 − 1/K, …, 1/K</span><span class=n>(2.4)</span></div>
+<p class=small>Why this works: the conditional field <var>u</var> = ε − <var>A</var> is a straight line from data to noise. The network learns its conditional expectation 𝔼[ε − <var>A</var> | <var>x</var><sub>τ</sub>, o]. That marginal field transports noise to the action distribution (Lipman et al. 2023). Integrating it backwards from noise gives a sample from π(<var>A</var> | o).</p>
+
+<div class="card fix"><div class=q>Corrections to the paper's §11</div>
+<ul>
+<li>The paper writes <var>a</var><sub>τ</sub> = τ<var>A</var> + (1−τ)ω (data at τ = 1) and then regresses onto ω − <var>A</var>. With its own interpolation, the derivative is <var>A</var> − ω. It notes the sign ambiguity but does not resolve it. Use (2.1)–(2.2).</li>
+<li>"Beta(1.5, 1) to emphasise learning at low-noise levels" is backwards in openpi's convention: it emphasises <i>high</i> noise. The π0 paper also states its timestep schedule emphasises noisier timesteps.</li>
+<li>Eq. 1–2 (autoregressive discrete action tokens) describe π0-FAST or π0.5's FAST co-training head, not the policy that produces actions in these experiments.</li>
+</ul></div>
+
+<h3>2.3 Time conditioning: adaRMSNorm</h3>
+<p>π0.5 injects τ into the action expert by modulating every RMSNorm <span class="tag p">paper</span> <span class="tag v">verified</span> (<code>time_mlp_in/out</code> in <code>pi0.py</code>):</p>
+<div class=eq><span>adaRMS(<var>x</var>, τ) = (<var>x</var> / rms(<var>x</var>)) ⊙ (1 + γ(τ)) + β(τ),&nbsp;&nbsp;&nbsp; [γ(τ), β(τ)] = MLP(sincos(τ))</span><span class=n>(2.5)</span></div>
+<p>Note the form: <b>(1 + γ) ⊙ · + β</b>. That is exactly FTM's form (§3), except FTM's γ, β are constant rather than functions of τ. FTM is "FiLM with no conditioning input", applied to the visual tokens.</p>
+
+<h3>2.4 Attention mask and knowledge insulation</h3>
+<p>The paper lists three mask rules <span class="tag p">paper</span>:</p>
+<ol>
+<li>The expert attends to the VLM.</li>
+<li>The VLM does not attend to the expert.</li>
+<li>The expert does not attend to discrete FAST action tokens, so it cannot copy the answer.</li>
+</ol>
+<p>The joint pretraining loss is ℒ = ℒ<sub>discrete</sub> + α ℒ<sub>flow</sub>. None of this matters for FTM/FLA: during adaptation only the flow loss can be in play, and only the visual parameters receive gradients <span class="tag i">inferred</span>. The paper does not say which loss the adaptation uses.</p>
+
+<h2>3. Feature Token Modulation (FTM)</h2>
+<h3>3.1 The operation</h3>
+<p>Let <b>F</b> ∈ ℝ<sup><var>N</var>×<var>D</var></sup> be the visual tokens for one image, with <var>N</var> = 256 patches and <var>D</var> = 2048. Learn γ, β ∈ ℝ<sup><var>D</var></sup>, shared across all tokens, both cameras, all tasks <span class="tag p">paper</span>:</p>
+<div class=eq><span><b>F̂</b><sub><var>n</var>,<var>c</var></sub> = (1 + γ<sub><var>c</var></sub>) · <b>F</b><sub><var>n</var>,<var>c</var></sub> + β<sub><var>c</var></sub>&nbsp;&nbsp;&nbsp; for every token <var>n</var>, channel <var>c</var></span><span class=n>(3.1)</span></div>
+<p>Trainable parameters: 2<var>D</var> = <b>4,096</b> <span class="tag v">verified</span>. Everything else is frozen. The objective is ℒ<sub>flow</sub> (2.2) on one demonstration per task from the new viewpoint. Initialising γ = β = 0 makes the adapted model start as exactly the pretrained one.</p>
+
+<div class="card fix"><div class=q>Where FTM actually sits</div>
+<p>The paper calls <var>D</var> the "hidden dimension of the visual encoder" and sets it to 2048. SigLIP So400m's width is <b>1152</b>. 2048 is Gemma 2B's width, i.e. the output of the 1152→2048 projector <span class="tag v">verified</span> (<code>siglip.py</code> widths; <code>pi0.py:83</code> <code>num_classes=paligemma_config.width</code>). So FTM modulates <b>post-projector</b> tokens, at the boundary between Spatial and Physical. Fig. 4a also shows a dashed "Learnable tokens → MLP" box "used only during training and removed at inference". That suggests γ, β may be produced by a small MLP during training and frozen to constants afterwards. If so, the training-time parameter count exceeds 4K. The text never explains this <span class="tag i">inferred</span>.</p></div>
+
+<h3>3.2 What a per-channel affine can and cannot fix</h3>
+<p>Write the map as <var>A</var>(<var>z</var>) = <var>M</var><var>z</var> + <var>b</var> with <var>M</var> = diag(1 + γ). Three consequences:</p>
+<ul>
+<li><b>It cannot move information between tokens.</b> The same map applies to every patch. A viewpoint change moves the bowl from patch 37 to patch 112; FTM cannot "move it back". The frozen VLM must already be tolerant to <i>where</i> things appear. FTM can only fix <i>how each channel is scaled and centred</i>.</li>
+<li><b>It cannot rotate or mix channels.</b> Diagonal <var>M</var> has no off-diagonal terms. A drift that is a rotation in feature space is invisible to it.</li>
+<li><b>It has a closed-form, gradient-free version.</b> If the drift were purely a per-channel shift in mean and scale, the optimal γ, β just match first and second moments. With μ<sup>s</sup>, σ<sup>s</sup> the source-view channel means and standard deviations (over tokens and frames), and μ<sup>t</sup>, σ<sup>t</sup> the target-view ones:</li>
+</ul>
+<div class=eq><span>1 + γ<sub><var>c</var></sub> = σ<sup>s</sup><sub><var>c</var></sub> / σ<sup>t</sup><sub><var>c</var></sub>,&nbsp;&nbsp;&nbsp; β<sub><var>c</var></sub> = μ<sup>s</sup><sub><var>c</var></sub> − (1 + γ<sub><var>c</var></sub>) μ<sup>t</sup><sub><var>c</var></sub></span><span class=n>(3.2)</span></div>
+<p>This is AdaBN (Li et al. 2016) or test-time normalisation, applied at the token boundary. It needs <i>target images only</i>: no actions and no demo. The paper never runs it. If (3.2) gets close to 87%, the "one-shot demonstration" is not what is doing the work. The demo's actions would be irrelevant and only its images matter. This is the single most informative missing baseline, and it is cheap (§10, E1).</p>
+<p>FTM's 87.1% therefore says something specific: <b>most of the camera-shift damage, as seen by π0.5, is a global per-channel distribution shift of the visual tokens</b>, not a spatial rearrangement the VLM cannot handle.</p>
+
+<h2>4. Feature Linear Adaptation (FLA) and LoRA</h2>
+<h3>4.1 The operation</h3>
+<p>For a frozen linear map <var>h</var> = <var>W</var><var>x</var>, <var>W</var> ∈ ℝ<sup><var>d</var><sub>out</sub>×<var>d</var><sub>in</sub></sup>, LoRA (Hu et al. 2022) adds a rank-<var>r</var> update:</p>
+<div class=eq><span><var>h</var> = <var>W</var><var>x</var> + (α / <var>r</var>) · <var>B</var><var>A</var><var>x</var>,&nbsp;&nbsp;&nbsp; <var>A</var> ∈ ℝ<sup><var>r</var>×<var>d</var><sub>in</sub></sup>, <var>B</var> ∈ ℝ<sup><var>d</var><sub>out</sub>×<var>r</var></sup></span><span class=n>(4.1)</span></div>
+<p>Trainable parameters per matrix: <var>r</var>(<var>d</var><sub>in</sub> + <var>d</var><sub>out</sub>). The paper's Eq. 5 omits the α/<var>r</var> scale. openpi uses α = <var>r</var>, so the scale is 1, and it initialises <i>both</i> <var>A</var> and <var>B</var> as 𝒩(0, 0.01²) <span class="tag v">verified</span> (<code>lora.py:20,30</code>). The textbook init is <var>B</var> = 0. With openpi's init the adapted model is not exactly the pretrained one at step 0, but the error is tiny (each entry of <var>BA</var> ~ <var>r</var>·10<sup>−4</sup>). The paper does not say which LoRA implementation FLA uses for SigLIP.</p>
+
+<h3>4.2 Which matrices: the parameter count tells us</h3>
+<p>The paper says FLA is applied to "the linear layers (27 layers) of the SigLIP ViT encoder", 4.7M parameters at <var>r</var> = 16 and 9.4M at <var>r</var> = 32. Each SigLIP block has six linear maps: Q, K, V, O (1152→1152) and MLP fc1 (1152→4304), fc2 (4304→1152). Counting <var>r</var>(<var>d</var><sub>in</sub>+<var>d</var><sub>out</sub>) × 27 <span class="tag v">verified</span>:</p>
+<div class=tw><table>
+<tr><th>Target set</th><th class=num>r = 16</th><th class=num>r = 32</th><th>Matches paper?</th></tr>
+<tr><td>all six (Q, K, V, O, fc1, fc2)</td><td class=num>8.70M</td><td class=num>17.39M</td><td>no</td></tr>
+<tr><td>attention only (Q, K, V, O)</td><td class=num>3.98M</td><td class=num>7.96M</td><td>no</td></tr>
+<tr><td><b>MLP only (fc1, fc2)</b></td><td class=num><b>4.71M</b></td><td class=num><b>9.43M</b></td><td class=ok>yes, both</td></tr>
+</table></div>
+<p>So FLA is <b>rank-r LoRA on the two MLP matrices of each of SigLIP's 27 blocks, attention untouched</b>. That is useful information the paper doesn't state. It also means FLA cannot change which patches attend to which. It can only re-map what each patch's features become.</p>
+
+<h3>4.3 What FLA can do that FTM cannot</h3>
+<p>FTM is a fixed affine map applied after the encoder. FLA changes the encoder's internal MLPs, so its correction is <i>input-dependent and nonlinear</i>. The update <var>BA</var><var>x</var> passes through GELU and 26 further blocks. It can mix channels and respond differently to different image content. The rank gives a budget: each layer's correction lives in an <var>r</var>-dimensional subspace of the input features. The paper's Table 8 rank sweep (8 → 64) is flat to within noise for π0.5 (91.05 → 90.8 → 91.2 → 90.6). <var>r</var> = 8, at 2.36M parameters, already saturates. That is consistent with the needed correction being low-dimensional.</p>
+
+<h2>5. The baselines, decoded</h2>
+<h3>5.1 The "One-Shot LoRA" baseline is mostly a full SigLIP fine-tune</h3>
+<p>The paper describes the π0.5 LoRA baseline as Gemma 2B LoRA <var>r</var> = 16 plus Gemma 300M LoRA <var>r</var> = 32, attention and FFN, "keeping all non-LoRA weights frozen via the model-provided freeze filter" <span class="tag p">paper</span>. openpi's freeze filter is <span class="tag v">verified</span> (<code>pi0_config.py:88–117</code>):</p>
+<pre class=code>gemma_params_filter = PathRegex(".*llm.*")      # freezes the LLM + expert ...
+filters.append(Not(PathRegex(".*lora.*")))      # ... except their LoRA params
+# nothing matches the SigLIP tower ("img") or the action/time projections</pre>
+<p>Only parameters whose path contains <code>llm</code> are frozen. The vision tower and the projection layers stay <b>fully trainable</b>. The count reproduces the paper's Table 4 to the hundredth of a million <span class="tag v">verified</span>:</p>
+<div class=tw><table>
+<tr><th>Component</th><th class=num>π0.5</th><th class=num>π0</th></tr>
+<tr><td>LoRA on Gemma 2B (r 16, attn + FFN, 18 layers)</td><td class=num>27.87M</td><td class=num>27.87M</td></tr>
+<tr><td>LoRA on Gemma 300M expert (r 32)</td><td class=num>22.12M</td><td class=num>22.12M</td></tr>
+<tr><td><b>SigLIP So400m + 1152→2048 projector, fully trainable</b></td><td class=num><b>414.80M</b></td><td class=num><b>414.80M</b></td></tr>
+<tr><td>Action in/out, time or state MLPs</td><td class=num>2.17M</td><td class=num>3.25M</td></tr>
+<tr><td><b>Total</b></td><td class=num><b>466.96M</b></td><td class=num><b>468.04M</b></td></tr>
+<tr><td>Paper, Table 4</td><td class=num>466.96M</td><td class=num>468.04M</td></tr>
+</table></div>
+<p>Three things follow:</p>
+<ul>
+<li><b>The "99× fewer parameters" claim compares FLA with a full vision fine-tune.</b> 89% of the baseline's trainable parameters <i>are</i> the Spatial module. "FLA matches LoRA" really means rank-16 MLP updates to SigLIP match a full SigLIP update plus LoRA on the rest. That is a fair PEFT result, but not "vision-only beats whole-model".</li>
+<li><b>It modestly supports the spatial hypothesis</b> in one direction. Adding LoRA capacity to the Physical half on top of a full vision update buys nothing over FLA (90.3 vs 90.8).</li>
+<li><b>It does not supply the missing control</b> (§1): there is no run with SigLIP frozen.</li>
+</ul>
+
+<h3>5.2 Prompt learning (0.131M)</h3>
+<p>Learnable tokens, 𝒩(0, 0.02²) init, are concatenated as a prefix to the multimodal sequence (width 2048) and as a suffix between the state and action tokens (width 1024). The backbone is frozen; "the action head" is also trained <span class="tag p">paper</span>, presumably the small action in/out projections <span class="tag i">inferred</span>. Its Libero-V score is <b>75.1%</b>. That is <i>below π0.5 zero-shot (83.6%)</i>, so the prompt-learning baseline makes the model worse. The paper presents this as "modest improvement". A baseline that underperforms doing nothing usually signals a tuning problem.</p>
+
+<h3>5.3 GeoAware-VLA and OpenVLA-OFT-m</h3>
+<p>GeoAware-VLA replaces the encoder with frozen VGGT plus a trained projector, and trains the policy from scratch. Its numbers are copied from its paper <span class="tag p">paper</span>. OpenVLA-OFT-m is fine-tuned on LIBERO-Plus. Both are <b>zero-shot on the test viewpoint</b>. Every π0/π0.5 row in Tables 1–2 saw a demonstration <i>from the test viewpoint</i>. The headline table therefore ranks zero-shot generalisers against one-shot adapted models.</p>
+
+<h2>6. The Libero-V benchmark</h2>
+<h3>6.1 Camera pose</h3>
+<p>Following Adapt3R, the agent-view camera is moved and the wrist camera left alone <span class="tag p">paper</span>. Continuous mode orbits the end-effector in the horizontal plane:</p>
+<div class=eq><span><var>r</var> = ‖<var>p</var><sup>xy</sup><sub>cam</sub> − <var>p</var><sup>xy</sup><sub>eef</sub>‖₂,&nbsp;&nbsp; <var>p</var>′<sub>cam</sub> = ( <var>r</var> cos θ + <var>p</var><sup>x</sup><sub>eef</sub>, <var>r</var> sin θ + <var>p</var><sup>y</sup><sub>eef</sub>, <var>p</var><sup>z</sup><sub>cam</sub> ),&nbsp;&nbsp; <var>R</var>′ = <var>R</var><sub>z</sub>(θ) <var>R</var><sub>ref</sub></span><span class=n>(6.1)</span></div>
+<p>Two points about (6.1). It places the camera at absolute angle θ around the end-effector, not at θ <i>relative to</i> its original bearing. And composing <var>R</var><sub>z</sub>(θ) with <var>R</var><sub>ref</sub> keeps the camera pointed at the workspace only if the original camera already pointed at the end-effector's vertical axis <span class="tag i">inferred</span>. Discrete mode defines Small / Medium / Large as fixed translation offsets Δ<var>p</var> plus fixed quaternions. The offsets themselves are <b>not given</b>, so the levels cannot be reproduced from the paper.</p>
+
+<h3>6.2 Lighting, texture, noise</h3>
+<p>These are taken from LIBERO-Plus <span class="tag p">paper</span>:</p>
+<ul>
+<li><b>Lighting:</b> procedurally regenerated MuJoCo XML, changing diffuse RGB, light direction <var>d</var> ∈ ℝ³, specular and shadows.</li>
+<li><b>Texture:</b> PBR floor and wall materials swapped at init; geometry unchanged.</li>
+<li><b>Sensor noise:</b> motion blur, Gaussian blur (σ ∈ [1, 10]), zoom blur, fog (plasma fractal), glass blur, each at 10 severities, applied in <code>step()</code>.</li>
+</ul>
+<p>Our own LIBERO-Plus reading (<code>docs/LIBERO_PLUS_LEVELS.md</code>) found that noise is applied <b>to the agent view only; the wrist camera is clean</b>. The same holds for camera pose. So in every Libero-V perturbation, π0.5 still has an unperturbed wrist view. How much of the adapted policies' recovery leans on the wrist camera is not measured (§9).</p>
+
+<h3>6.3 What "one-shot" means here</h3>
+<ul>
+<li><b>Data:</b> one human demonstration per task, recorded from the new viewpoint. In LIBERO that is 10 demos per suite, 40 for all four suites.</li>
+<li><b>Training:</b> batch 32 for 1,500 (FLA) or 5,000 (FTM) steps, with heavy repetition of a single trajectory per task.</li>
+<li><b>Not stated:</b>
+ <ul>
+ <li>whether one adapted model serves all tasks and suites, or one per suite or per viewpoint level <span class="tag i">inferred</span>: probably per suite;</li>
+ <li>whether the evaluated viewpoint equals the demo viewpoint;</li>
+ <li>where the "human" demos come from in simulation.</li>
+ </ul></li>
+<li><b>Evaluation:</b> 50 trials per task <span class="tag p">paper</span>.</li>
+</ul>
+<p>"Generalizable" in the title therefore means <i>adaptable with one in-domain demo</i>. Zero-shot, π0.5 drops from in-distribution to 48.5% under the camera shift.</p>
+
+<h3>6.4 Training recipes (Table 7)</h3>
+<div class=tw><table>
+<tr><th></th><th>FTM</th><th>FLA</th><th>π0.5 LoRA baseline</th></tr>
+<tr><td>Optimiser</td><td colspan=3>AdamW, β = (0.9, 0.95), ε = 1e-8, wd 1e-10, clip 1.0</td></tr>
+<tr><td>Peak LR / min</td><td>5e-4 / 5e-5</td><td>5e-4 / 5e-6</td><td>2.5e-5 / 2.5e-6</td></tr>
+<tr><td>Warmup / decay</td><td>500 / 5,000</td><td>500 / 2,000</td><td>1,000 / cosine</td></tr>
+<tr><td>Steps × batch</td><td>5,000 × 32</td><td>1,500 × 32 (§4.3 says 2,000)</td><td>2,000 × 32</td></tr>
+<tr><td>Precision / EMA</td><td>—</td><td>fp32, EMA off</td><td>—</td></tr>
+</table></div>
+<p class=small>The baseline's peak LR is 20× lower than FLA's, and it uses π0's default pretraining schedule with a 1,000-step warmup over a 2,000-step run. The baseline was not tuned for one-shot adaptation, while the proposed methods were.</p>
+
+<h2>7. The theory appendix, restated and checked</h2>
+<h3>7.1 Setup and assumptions</h3>
+<p>Fix the decoder's other inputs (<var>a</var><sub>&lt;t</sub>, ℓ). Write <var>g</var><sub>a|z</sub> for the action distribution given visual tokens <var>z</var>. 𝒟<sub>s</sub>, 𝒟<sub>t</sub> are the source and target image distributions <span class="tag p">paper</span>.</p>
+<ul>
+<li><b>A1 (Lipschitz):</b> d<sub>TV</sub>(<var>g</var><sub>a|z</sub>, <var>g</var><sub>a|z′</sub>) ≤ <var>L</var> ‖<var>z</var> − <var>z</var>′‖ locally.</li>
+<li><b>A2 (semantic invariance):</b> the optimal action distribution is the same under 𝒟<sub>s</sub> and 𝒟<sub>t</sub>.</li>
+<li><b>A3 (affine / low-rank):</b> the map from target tokens to source tokens is approximately affine, or a low-rank linear correction.</li>
+</ul>
+
+<h3>7.2 Theorem 1 measures the wrong distance</h3>
+<div class=eq><span>𝔼<sub><var>v</var>~𝒟<sub>t</sub></sub> d<sub>TV</sub>( <var>g</var><sub>a|f<sub>v</sub>(v)</sub>, <var>g</var><sub>a|z<sup>⋆</sup><sub>s</sub></sub> ) ≤ <var>L</var> 𝔼<sub><var>v</var>~𝒟<sub>t</sub></sub> ‖ <var>f</var><sub>v</sub>(<var>v</var>) − <var>z</var><sup>⋆</sup><sub>s</sub> ‖,&nbsp;&nbsp;&nbsp; <var>z</var><sup>⋆</sup><sub>s</sub> = 𝔼<sub><var>v</var>~𝒟<sub>s</sub></sub> <var>f</var><sub>v</sub>(<var>v</var>)</span><span class=n>(7.1)</span></div>
+<p>The algebra is correct; it is A1 plus taking expectations. But <var>z</var><sup>⋆</sup><sub>s</sub> is <b>one vector, the mean source token</b>, and the bound compares every target observation's action distribution against the action distribution <i>for that average image</i>. A good policy must act differently at different states, so the right-hand side is large for the <i>source</i> distribution too. The adaptation that minimises the bound maps every image to <var>z</var><sup>⋆</sup><sub>s</sub>, which destroys the policy. The quantity that matters compares each target observation with the <i>same state</i> seen from the source camera.</p>
+
+<h3>7.3 Theorem 2 assumes its conclusion</h3>
+<p>The theorem says: if an affine map achieves 𝔼‖<var>M</var><var>f</var><sub>v</sub>(<var>v</var>) + <var>b</var> − <var>z</var><sup>⋆</sup><sub>s</sub>‖² ≤ ε², then 𝔼 d<sub>TV</sub> ≤ <var>L</var>ε, via Jensen. The step is valid. But the conclusion is the hypothesis multiplied by <var>L</var>. It inherits the mean-token problem of (7.1). It also says nothing about whether a <i>diagonal</i> <var>M</var>, which is what FTM is, can achieve small ε. A3 is called "mild and empirically verifiable", and the paper never verifies it.</p>
+
+<h3>7.4 Theorem 3 mixes weight error with feature error</h3>
+<p>Eckart–Young is correct. If ΔW<sup>⋆</sup> has singular values σ₁ ≥ σ₂ ≥ …, the best rank-<var>r</var> approximation has ‖ΔW<sup>⋆</sup> − ΔW<sub><var>r</var></sub>‖<sub>F</sub>² = Σ<sub><var>i</var>&gt;<var>r</var></sub> σ<sub><var>i</var></sub>². Four problems:</p>
+<ul>
+<li><b>No defined target.</b> ΔW<sup>⋆</sup>, "the optimal linear correction to a vision layer", is never defined. FLA does not approximate a target matrix at all; it is trained end-to-end on the behaviour-cloning loss.</li>
+<li><b>The wrong norm for one layer.</b> For a single layer the feature error is ‖(ΔW<sup>⋆</sup> − ΔW<sub><var>r</var></sub>)<var>x</var>‖ ≤ σ<sub><var>r</var>+1</sub> ‖<var>x</var>‖, the spectral tail, not the Frobenius tail.</li>
+<li><b>27 nonlinear layers, not one.</b> FLA edits 54 matrices across 27 blocks. Errors pass through GELU, LayerNorm and attention, and are amplified by the Lipschitz constants of every later layer. "Propagates linearly" holds for one isolated linear layer only.</li>
+<li><b>No closed loop.</b> Every bound is per-step. A policy runs for many steps, and small per-step errors move it into states it never trained on.</li>
+</ul>
+
+<h3>7.5 A version that would mean something</h3>
+<p>Let (<var>v</var><sub>s</sub>, <var>v</var><sub>t</sub>) be the <i>same simulator state</i> rendered from the source and target cameras. LIBERO makes this coupling free. Define the paired adaptation error and use A1 per state:</p>
+<div class=eq><span>ε<sub>pair</sub> = 𝔼<sub><var>s</var>~<var>d</var><sub>π̂</sub></sub> ‖ <var>A</var>(<var>f</var><sub>v</sub>(<var>v</var><sub>t</sub>(<var>s</var>))) − <var>f</var><sub>v</sub>(<var>v</var><sub>s</sub>(<var>s</var>)) ‖,&nbsp;&nbsp;&nbsp; δ = 𝔼<sub><var>s</var>~<var>d</var><sub>π̂</sub></sub> d<sub>TV</sub>(π̂(·|<var>s</var>), π<sub>s</sub>(·|<var>s</var>)) ≤ <var>L</var> ε<sub>pair</sub></span><span class=n>(7.2)</span></div>
+<p>Here π̂ is the adapted policy on the target camera and π<sub>s</sub> is the original policy on the source camera. For a binary success reward over <var>T</var> policy decisions (chunks), the standard simulation-lemma argument bounds the success gap by the total-variation distance between trajectory distributions, which sums per-step TV under π̂'s own state distribution:</p>
+<div class=eq><span>| SR(π̂, target) − SR(π<sub>s</sub>, source) | ≤ Σ<sub><var>k</var>=1</sub><sup><var>T</var></sup> 𝔼<sub><var>s</var><sub>k</sub>~<var>d</var><sup>π̂</sup><sub>k</sub></sub> d<sub>TV</sub>(π̂(·|<var>s</var><sub>k</sub>), π<sub>s</sub>(·|<var>s</var><sub>k</sub>)) ≤ <var>T</var> · <var>L</var> · ε<sub>pair</sub></span><span class=n>(7.3)</span></div>
+<p>The <var>T</var> factor is the cost of being closed-loop. A LIBERO episode of a few hundred control steps, executed in chunks, is tens of decisions. This bound is loose but honest, and its ingredients are measurable. ε<sub>pair</sub> can be computed for zero-shot, FTM, FLA, and the closed form (3.2), on the same paired states. That replaces the t-SNE figure (§9) with a number.</p>
+
+<h2>8. Results ledger</h2>
+<h3>8.1 Novel camera, by suite (Table 1, success %)</h3>
+<div class=tw><table>
+<tr><th>Model</th><th>Shot</th><th class=num>Spatial</th><th class=num>Object</th><th class=num>Goal</th><th class=num>Long</th><th class=num>Avg</th></tr>
+<tr><td>GeoAware (VQ-BeT)</td><td>zero, from paper</td><td class=num>54.3</td><td class=num>99.0</td><td class=num>85.7</td><td class=num>72.7</td><td class=num>77.9</td></tr>
+<tr><td>GeoAware (BAKU)</td><td>zero, from paper</td><td class=num>94.3</td><td class=num>98.0</td><td class=num>90.7</td><td class=num>47.3</td><td class=num>82.6</td></tr>
+<tr><td>OpenVLA-OFT</td><td>zero</td><td class=num>90.0</td><td class=num>15.7</td><td class=num>81.7</td><td class=num>13.7</td><td class=num>50.3</td></tr>
+<tr><td>OpenVLA-OFT-m (LIBERO-Plus FT)</td><td>zero</td><td class=num>67.1</td><td class=num>72.4</td><td class=num>72.0</td><td class=num>49.2</td><td class=num>65.2</td></tr>
+<tr><td>π0 LoRA (incl. full SigLIP)</td><td>one</td><td class=num>95.4</td><td class=num>96.6</td><td class=num>79.1</td><td class=num>63.2</td><td class=num>83.6</td></tr>
+<tr><td>π0.5 LoRA (incl. full SigLIP)</td><td>one</td><td class=num>97.2</td><td class=num>95.3</td><td class=num>91.4</td><td class=num>77.1</td><td class=num>90.3</td></tr>
+<tr><td><b>π0.5 FTM</b> (4K)</td><td>one</td><td class=num>95.4</td><td class=num>95.5</td><td class=num>87.7</td><td class=num>70.0</td><td class=num>87.1</td></tr>
+<tr><td><b>π0.5 FLA</b> r16 (4.7M)</td><td>one</td><td class=num>96.5</td><td class=num>97.5</td><td class=num>91.7</td><td class=num>77.5</td><td class=num>90.8</td></tr>
+</table></div>
+<p class=small>All row averages recomputed and consistent <span class="tag v">verified</span>. By level (Table 2), FLA is 94.6 / 90.0 / 87.9 for Small / Medium / Large, against π0.5 LoRA 94.8 / 90.5 / 85.6. FLA's only clear margin is at Large (+2.3), and that is still inside a per-level 95% interval of about ±3.</p>
+
+<h3>8.2 Libero-V, all perturbations (Table 3)</h3>
+<div class=tw><table>
+<tr><th>Model</th><th class=num>camera</th><th class=num>light</th><th class=num>texture</th><th class=num>noise</th><th class=num>Avg (paper)</th><th class=num>Avg (recomputed)</th></tr>
+<tr><td>OpenVLA-OFT</td><td class=num>50.3</td><td class=num>92.7</td><td class=num>92.3</td><td class=num>78.6</td><td class=num>78.5</td><td class=num>78.5</td></tr>
+<tr><td>OpenVLA-OFT-m</td><td class=num>65.2</td><td class=num>94.9</td><td class=num>93.9</td><td class=num>89.9*</td><td class=num>86.0</td><td class=num>86.0</td></tr>
+<tr><td>π0 LoRA</td><td class=num>83.6</td><td class=num>90.7</td><td class=num>86.7</td><td class=num>87.0*</td><td class=num>87.0</td><td class=num>87.0</td></tr>
+<tr><td>π0.5 zero-shot</td><td class=num>48.5</td><td class=num>96.2</td><td class=num>96.0</td><td class=num>93.5</td><td class=num>83.6</td><td class=num>83.6</td></tr>
+<tr><td>π0.5 LoRA</td><td class=num>90.3</td><td class=num>96.5</td><td class=num>97.2</td><td class=num>94.5</td><td class=num>94.6</td><td class=num>94.6</td></tr>
+<tr><td>π0.5 FTM</td><td class=num>87.1</td><td class=num>96.0</td><td class=num>96.0</td><td class=num>93.6</td><td class="num warn">90.5</td><td class="num ok">93.2</td></tr>
+<tr><td>π0.5 FLA</td><td class=num>90.8</td><td class=num>96.8</td><td class=num>97.1</td><td class=num>94.6</td><td class=num>94.8</td><td class=num>94.8</td></tr>
+</table></div>
+<ul class=small>
+<li><b>FTM's average is wrong in the paper.</b> 90.5 printed, 93.2 from its own row <span class="tag v">verified</span>. The wrong value propagates to Table 4 and the Fig. 1 narrative.</li>
+<li><b>Libero-V is a camera benchmark with three easy columns.</b> Zero-shot π0.5 already scores 93.5–96.2 on light, texture and noise. Every method is within ~1 pt of zero-shot there, and nearly all of the spread comes from the camera column.</li>
+<li><b>* marks numbers copied from LIBERO-Plus</b> for a different model and protocol: LIBERO-Plus's π0, not a one-shot LoRA π0. They are averaged in as if comparable.</li>
+</ul>
+
+<h3>8.3 Is FLA &gt; LoRA real?</h3>
+<p>For a success rate near <var>p</var> = 0.9 over <var>n</var> independent episodes, SE = √(<var>p</var>(1−<var>p</var>)/<var>n</var>). The difference of two independent arms has a 95% interval of ±1.96·√2·SE <span class="tag v">verified</span>:</p>
+<div class=tw><table>
+<tr><th>Episodes per arm</th><th class=num>SE (pt)</th><th class=num>95% interval on a difference (pt)</th><th>Where</th></tr>
+<tr><td class=num>500</td><td class=num>1.34</td><td class=num>±3.7</td><td>one suite (10 tasks × 50)</td></tr>
+<tr><td class=num>2,000</td><td class=num>0.67</td><td class=num>±1.9</td><td>Table 1 average, if one viewpoint per suite</td></tr>
+<tr><td class=num>6,000</td><td class=num>0.39</td><td class=num>±1.1</td><td>if the average pools three levels</td></tr>
+</table></div>
+<p>FLA − LoRA = +0.5 pt and FLA r32 − r16 = +0.4 pt: both inside the interval at any plausible <var>n</var>, one seed, and no error bars reported. FTM vs zero-shot (+38.6) is unambiguous. FTM vs FLA (−3.7) is real at <var>n</var> ≥ 2000.</p>
+
+<h3>8.4 Rank sweep (Table 8, novel camera)</h3>
+<div class=tw><table>
+<tr><th>Base</th><th class=num>zero-shot</th><th class=num>r 8</th><th class=num>r 16</th><th class=num>r 32</th><th class=num>r 64</th></tr>
+<tr><td>OpenVLA-OFT</td><td class=num>50.3</td><td class=num>89.0</td><td class=num>88.0</td><td class=num>88.0</td><td class=num>85.6</td></tr>
+<tr><td>π0</td><td class=num>49.5</td><td class=num>82.8</td><td class=num>84.0</td><td class=num>84.5</td><td class=num>84.8</td></tr>
+<tr><td>π0.5</td><td class=num>48.5</td><td class=num>91.05</td><td class=num>90.8</td><td class=num>91.2</td><td class=num>90.6</td></tr>
+</table></div>
+<p>Two readings. First, the method transfers across three architectures, including OpenVLA-OFT, which uses DINOv2 + SigLIP and a different action head: 50 → 88–89 with one demo. This is the strongest evidence in the paper that the effect is general. Second, rank barely matters: for π0.5 and OpenVLA-OFT the best cell is at <var>r</var> = 8 or 32, and <var>r</var> = 64 is slightly worse for both. That is consistent with a low-dimensional correction, and with mild over-fitting to a single demo at high rank.</p>
+
+<h3>8.5 Real robot</h3>
+<p>Franka Panda, GELLO teleoperation, one third-person and one wrist camera. Five tasks: stack, drawer, button, pick, microwave door. FLA <var>r</var> = 32, 750 steps, one demo from a new viewpoint <span class="tag p">paper</span>. Results are <b>qualitative only</b>: "consistent success across all five tasks", with no trial counts and no zero-shot comparison on the robot. A "90.7% with imperfect demos" figure appears in §7.4 without saying which benchmark or how many trials.</p>
+
+<h2>9. What would actually test the claim</h2>
+<div class=tw><table>
+<tr><th>Missing piece</th><th>Why it matters</th><th>Cost</th></tr>
+<tr><td><b>Physical-only control:</b> LoRA on VLM + expert, SigLIP frozen, matched parameter budget (~4.7M) and the same one demo</td><td>The only direct test of "the fault is in Spatial, not Physical"</td><td>Same as one LoRA run</td></tr>
+<tr><td><b>Closed-form moment matching</b> (3.2), no gradients, target images only</td><td>Shows whether the demo's actions matter at all, or only its images</td><td>Minutes, no training</td></tr>
+<tr><td><b>Fair LoRA baseline:</b> LoRA with SigLIP frozen, or rank-matched LoRA everywhere</td><td>Makes "N× fewer parameters" mean what it says</td><td>One run</td></tr>
+<tr><td><b>Paired drift metric</b> ε<sub>pair</sub> (7.2), CKA, MMD, a linear probe for object position, before and after adaptation</td><td>Replaces t-SNE, which does not preserve global distances; "the clusters adjoin" is not evidence of alignment</td><td>Inference only</td></tr>
+<tr><td><b>Wrist-camera ablation:</b> mask or perturb the wrist view during evaluation</td><td>All Libero-V perturbations leave the wrist camera clean; the adapted policy may be leaning on it</td><td>Evaluation only</td></tr>
+<tr><td><b>Held-out viewpoint:</b> adapt at one camera pose, test at a different one</td><td>Separates "recalibrated to a new view" from "learned that one view"</td><td>Evaluation only</td></tr>
+<tr><td><b>Seeds and error bars</b></td><td>Every comparison between the top three methods is inside noise</td><td>3× training</td></tr>
+<tr><td><b>Forgetting:</b> source-view success after adaptation</td><td>A one-view recalibration that breaks the original view is a swap, not generalisation</td><td>Evaluation only</td></tr>
+</table></div>
+
+<h2>10. Future experiments on our stack</h2>
+<p class=small>Scope: what this paper suggests we could test, with what we already have. How it ranks against the rest of the roadmap is prim's call.</p>
+
+<h3>10.1 Why this is already close to our questions</h3>
+<div class=tw><table>
+<tr><th>Paper</th><th>Us</th></tr>
+<tr><td>π0.5, SigLIP + Gemma</td><td class=warn>π0.5 does not fit on 8 GB (R-001: OOM loading weights). Any test here is on <b>GR00T N1.7</b> (Eagle vision–language backbone + flow-matching DiT action head, <code>nvidia/gr00t17-lerobot-libero_spatial-640</code>).</td></tr>
+<tr><td>"Brittleness lives in the visual tokens"</td><td class=ok>R-039: on GR00T, image tokens carry the perturbation to the action for <i>every</i> LIBERO-Plus category, including robot init; the state token is near-inert. R-048: for the camera row, the agent view carries it (0.98). That is the paper's hypothesis, measured on our model by a different route.</td></tr>
+<tr><td>Adapts the Spatial side only</td><td class=warn>Our retrains (R-053..R-058) do the opposite. The R-056 adapter is LoRA r16 on the 32 DiT blocks and the 4 VL self-attention blocks of the action head; <code>tune_visual</code>, <code>tune_llm</code> and <code>tune_projector</code> are all <code>False</code> (checked in <code>runs/impl_smoke/r056fix_v1/…/adapter_config.json</code>, <code>config.json</code>). <b>So we already have the paper's missing "Physical-only" arm as a recipe.</b></td></tr>
+<tr><td>LIBERO-Plus camera, light, texture, noise</td><td class=ok>Same benchmark, with paired nominal sources (<code>vla_harness/envs/nominal.py</code>), so ε<sub>pair</sub> (7.2) is directly computable.</td></tr>
+<tr><td>A100 80 GB</td><td class=warn>8 GB laptop GPU. Vision frozen means features can be cached; FLA (backprop through the vision encoder) is the expensive arm.</td></tr>
+</table></div>
+
+<h3>10.2 Proposed experiments, cheapest first</h3>
+<div class=card>
+<div class=q>E1 · Training-free moment matching on GR00T (no gradients)</div>
+<p><b>Question:</b> is GR00T's camera-shift damage a per-channel token-statistics shift that closed-form recalibration fixes?</p>
+<p><b>Method:</b></p>
+<ol>
+<li>Cache the backbone's output tokens (the input to the action head's VL self-attention) on nominal and camera-perturbed renders of the same LIBERO-Plus states.</li>
+<li>Compute per-channel μ, σ for each set and form γ, β by (3.2).</li>
+<li>Apply them to the agent-view tokens only, using R-048's camera finding.</li>
+<li>Re-run the camera-row rollouts.</li>
+</ol>
+<p><b>Report:</b> success rate before and after; ε<sub>pair</sub> before and after; and the first-chunk action deviation, R-050-style.</p>
+<p><b>Cost:</b> inference only, so it fits on 8 GB.</p>
+<p><b>Reading:</b> a large recovery means the "one-shot demo" is unnecessary for camera shift. Little recovery means the drift is not a moment shift on GR00T, which is still informative and rules out the cheapest fix.</p>
+<p><b>Caveat:</b> it is not yet checked where in GR00T's backbone a clean per-camera token boundary exists. The vision tokens may be fused with language before the action head sees them <span class="tag i">inferred</span>.</p>
+</div>
+<div class=card>
+<div class=q>E2 · FTM on GR00T (4K-scale parameters, cached features)</div>
+<p>Same token boundary as E1. Learn γ, β by the flow-matching loss on a handful of demos at a fixed camera variant, with everything else frozen. The backbone sits below the modulation, so its outputs can be <b>cached once</b>. Training then needs only forward and backward through the frozen action head, which is cheaper than our R-056 runs.</p>
+<p>Compare with E1. If FTM ≈ moment matching, the actions in the demo carry no extra information.</p>
+<p>Demo source: minted or rescued demos at the perturbed camera, as in R-056's pipeline <span class="tag i">inferred</span>, or a scripted replay of a nominal demo under the new camera. In simulation the trajectory is the same; only the render differs.</p>
+</div>
+<div class=card>
+<div class=q>E3 · The 2×2 the paper didn't run</div>
+<p>Same demos, same step budget, same camera variants. Four arms:</p>
+<ol>
+<li>vision-side only (E2's FTM, or FLA-lite on the top few vision blocks if VRAM allows);</li>
+<li>physical-side only: our existing action-head LoRA recipe;</li>
+<li>both;</li>
+<li>neither (zero-shot).</li>
+</ol>
+<p>Evaluate on the camera row <i>and</i> on nominal, to measure forgetting, and at a held-out camera pose. This decides, on GR00T, whether camera brittleness is a Spatial fault or just cheapest to fix on the Spatial side.</p>
+<p>It also bears on the R-056 post-mortem. If action-head-only LoRA cannot fix a visual shift that a 4K-parameter token affine can, part of what our retrains have been asking the action head to do may belong upstream.</p>
+</div>
+<div class=card>
+<div class=q>E4 · Wrist-camera dependence</div>
+<p>For the camera and noise rows, LIBERO-Plus leaves the wrist camera clean. Re-run zero-shot, E1 and E2 with the wrist view replaced by a nominal-episode frame or by noise. This measures how much "robustness" is really the policy falling back on the unperturbed camera. That matters for any real deployment where both cameras drift.</p>
+</div>
+<div class=card>
+<div class=q>E5 · Drift as a failure signal (links to mining)</div>
+<p>R-036 tested whether VL embeddings separate GR00T's failures. It was underpowered on camera, with only n = 2 camera episodes. The per-channel statistics from E1 give a cheap, per-episode drift score ‖(σ<sup>t</sup>/σ<sup>s</sup> − 1, μ<sup>t</sup> − μ<sup>s</sup>)‖, computed from a few frames. Test whether it predicts which camera variants GR00T fails on before rolling out. If it does, it is a pre-rollout OOD triage signal for the miner, and it costs one forward pass.</p>
+</div>
+
+<h3>10.3 What would change our minds</h3>
+<ul>
+<li>E1 recovers ≳ half the camera gap: per-camera feature recalibration becomes a deployment-time knob and should precede any camera retrain.</li>
+<li>E1 fails but E2 succeeds: the demo's supervision matters. The cheap path is FTM with cached features, not action-head LoRA.</li>
+<li>E3's physical-only arm ≈ vision-only arm: the paper's localisation claim does not transfer to GR00T, and "where to adapt" is a cost question, not a diagnosis.</li>
+<li>E4 shows large wrist dependence: the camera-row numbers (ours and the paper's) overstate single-view robustness.</li>
+</ul>
+
+<h2>Glossary</h2>
+<div class=tw><table>
+<tr><th>Term</th><th>Meaning here</th></tr>
+<tr><td>Spatial / Physical Modeling</td><td>The paper's names for the vision encoder and for (VLM + action expert) respectively.</td></tr>
+<tr><td>FTM</td><td>Feature Token Modulation: constant per-channel affine (1+γ)⊙F + β on post-projector visual tokens; 2×2048 parameters.</td></tr>
+<tr><td>FLA</td><td>Feature Linear Adaptation: LoRA rank <var>r</var> on SigLIP's MLP matrices (fc1, fc2) in all 27 blocks; 4.71M at <var>r</var> = 16.</td></tr>
+<tr><td>One-shot</td><td>One demonstration per task, recorded at the new viewpoint, used for gradient-based adaptation.</td></tr>
+<tr><td>Libero-V</td><td>LIBERO with Adapt3R-style camera moves plus LIBERO-Plus light, texture and noise perturbations; agent view only.</td></tr>
+<tr><td>AdaBN / moment matching</td><td>Re-estimating per-channel mean and scale on target data and correcting features in closed form; (3.2).</td></tr>
+<tr><td>d<sub>TV</sub></td><td>Total variation distance between two distributions: the largest difference in probability they assign to any event.</td></tr>
+<tr><td>ε<sub>pair</sub></td><td>Paired adaptation error: distance between adapted target tokens and source tokens for the same simulator state; (7.2).</td></tr>
+<tr><td>Eckart–Young</td><td>The truncated SVD is the best rank-<var>r</var> approximation of a matrix in Frobenius and spectral norm.</td></tr>
+<tr><td>adaRMSNorm</td><td>RMSNorm whose scale and shift are produced from the flow timestep τ; π0.5's time conditioning.</td></tr>
+</table></div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2512.02902">Li et al., arXiv:2512.02902v2</a> (§3–4, App. 7–13, Tables 1–8) · <a href="https://openaccess.thecvf.com/content/CVPR2026/papers/Li_VLA_Models_Are_More_Generalizable_Than_You_Think_Revisiting_Physical_CVPR_2026_paper.pdf">CVPR 2026 version</a> · <a href="https://github.com/Physical-Intelligence/openpi">openpi</a> <code>src/openpi/models/{pi0_config,pi0,lora,gemma,siglip}.py</code> · <a href="https://arxiv.org/abs/2106.09685">Hu et al., LoRA</a> · <a href="https://arxiv.org/abs/2210.02747">Lipman et al., Flow Matching</a> · <a href="https://arxiv.org/abs/2410.24164">Black et al., π0</a> · <a href="https://arxiv.org/abs/1603.04779">Li et al., AdaBN</a> · <a href="https://arxiv.org/abs/1709.07871">Perez et al., FiLM</a> · LIBERO-Plus (Fei et al. 2025) · Our <code>RESULTS.md</code> R-001, R-036, R-039, R-048, R-050, R-056; <code>docs/LIBERO_PLUS_LEVELS.md</code>; <code>runs/impl_smoke/r056fix_v1/checkpoints/000160/pretrained_model/{adapter_config,config}.json</code>. Parameter counts and table averages recomputed in this session.</p>
+</div></body></html>
