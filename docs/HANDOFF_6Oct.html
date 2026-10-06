@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handoff 6 Oct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 6 October</h1>
+  <p class="stand">One section per peer session, written by that session: what it was working on, the state of every artefact, what was decided, what is open, and what a successor needs to pick the work up cold. Open decisions are tracked as D17–D25 in <a href="Decision_28Sep.html#decisions">Decision_28Sep.html</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-06</span><span>Last commit on main: <code>ad52625</code></span></div>
+</header>
+
+<section class="check" id="state">
+  <h2>State at a glance (from the 10-06 status sweep)</h2>
+  <ul>
+    <li><span class="box">·</span><span>No session has had user contact since <b>09-30</b>. The GPU has been idle since <b>09-30 10:57</b>, when the kernel OOM-killed <code>vla-r056-cont</code> at R-058 r=64, opt 1900/2000.</span><span class="who">all</span></li>
+    <li><span class="box">·</span><span><b>Nothing is committed since 09-28</b>: RESULTS.md amendments R-053 to R-059, impl's F1–F6 code, and every doc from 09-29/30.</span><span class="who">D25</span></li>
+    <li><span class="box">·</span><span><b>R-056 r=16</b>: held-out 59/108 vs base 67/108 (McNemar p=0.24). The whole drop is scene 1327 at the grasp. <b>R-058 r=4</b>: 65/108. Neither is in RESULTS.md yet.</span><span class="who">D17</span></li>
+    <li><span class="box">·</span><span>Did not run: the R-058 r=64 eval, R-056 WiSE α=0.5, the R-052 pitch resume (34/160), the R-054 minting extension.</span><span class="who">D18, D19</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#impl">impl</a></li><li><a href="#SFT">SFT</a></li><li><a href="#my-prim">my prim</a></li><li><a href="#res">res</a></li><li><a href="#SAE">SAE</a></li></ol></nav>
+
+<!-- ============================================================ -->
+<section class="sess" id="impl">
+  <h2>impl</h2>
+  <p class="lead"><span class="owner">owner: impl</span> · Implementation: R-056 LR fix, overnight chain, training/eval code</p>
+  <!-- HANDOFF-SLOT:impl filled -->
+  <h3>impl: the R-056 LR-schedule fix, the overnight chain, training and eval code</h3>
+  <p><b>Scope and role.</b> impl is the implementor. It builds what SFT and my prim specify, runs GPU jobs under <code>flock /tmp/vla_gpu.lock</code> and announces them to my prim. It does not interpret results: that belongs to SFT and the user. It built the R-053 to R-058 pipeline (09-28) and the R-056 fix F1–F6 (09-29), and it ran the overnight chain (09-29 → 09-30). Last user contact was 09-30. This section was written 10-06 from files on disk; <b>no state has been re-checked since 09-30 12:43 except where marked "checked 10-06"</b>.</p>
+
+  <h3>1 · What was done</h3>
+  <ul class="tight">
+    <li><b>The bug.</b> lerobot_train builds its Accelerator with <code>step_scheduler_with_optimizer=False</code> (<code>third_party/lerobot/src/lerobot/configs/accelerator.py:239</code>) and steps the scheduler <i>every micro-batch</i>. R-056's first run built a cosine over optimizer steps, so with accumulation 8 its LR cycled. That run is kept, not deleted: <code>runs/r056_r16_cyclic_train</code>, <code>runs/r056_r16_cyclic_eval</code> and <code>runs/r056_r16_cyclic_train_report.json</code>, each with a <code>MOVED.txt</code>.</li>
+    <li><b>F1 schedule.</b> <code>vla_harness/training/schedule.py</code> holds a LambdaLR with lr·L(s // accum), stepped per micro-batch, where L is diffusers' lambda over optimizer steps. It is exact at every update. SFT's suggested micro-count construction lags by (accum−1)/accum of a step: 8.75e-7 at 2000 steps, but 4.4e-5 on a 40-step run.</li>
+    <li><b>F2 guard.</b> <code>experiments/r056_train.py</code>:
+      <ul class="tight">
+        <li>At startup, a CPU subprocess drives the run's construction through lerobot's own <code>AcceleratorConfig</code> and <code>update_policy</code>, and aborts if any applied LR is more than 1e-6 from the closed form.</li>
+        <li>An optimizer pre-hook records the LR of every real update. The trace is re-checked at each checkpoint, and <code>schedule_verified</code> plus the LR go into <code>vla_train_meta.json</code>.</li>
+        <li>The cached-features loop gets the same.</li>
+        <li><code>--scheduler-builder legacy_scheduler</code> exists only for the negative test.</li>
+      </ul></li>
+    <li><b>F3 memory.</b> <code>_from_pretrained_cast</code> in <code>vla_harness/policies/lerobot_policy.py</code> streams the checkpoint in bf16 in chunks of ≤512 MiB, and turns GR00T's <code>model_params_fp32</code> off during the build (restored afterwards). <code>experiments/r056_eval.py</code> refuses adapters without <code>schedule_verified</code>, logs RSS (anon/file) and CUDA after every load, frees between loads (del, gc, empty_cache, malloc_trim), and has a <code>loadcheck</code> phase.</li>
+    <li><b>F4/F6 units.</b> <code>experiments/launch_r056_fixed.sh</code> wraps a command in <code>systemd-run --user --unit=$UNIT --collect</code> plus <code>systemd-inhibit</code>. The queues are <code>experiments/queue_r056_fixed.sh</code> (unit <code>vla-r056</code>, launched 09-29 19:37) and <code>experiments/queue_r056_cont.sh</code> (unit <code>vla-r056-cont</code>, 19:51). The continuation:
+      <ul class="tight">
+        <li>stopped <code>vla-r056</code> at 23:32 via <code>experiments/r056_cut.sh</code>, only once the chain was blocked on the lock with no python in its cgroup;</li>
+        <li>meters every step with <code>experiments/stepmeter.py</code>, writing <code>runs/overnight/&lt;step&gt;.peaks.json</code>;</li>
+        <li>appends headlines via <code>experiments/r056fix_summary.py</code> to <code>runs/overnight/SUMMARY_r056fix.txt</code>.</li>
+      </ul></li>
+    <li><b>Small additions:</b> <code>experiments/r054_mint.py --start-attempt</code> (default 0, so behaviour is unchanged), for the minting extension. <code>tests/test_schedule.py</code> has 10 CPU tests.</li>
+    <li><b>Relaunching the remainder</b> (skip-safe: finished steps are detected and partial ones resume; <i>do not run before D18/D19 are decided</i>):<br><code>UNIT=vla-r056-cont bash experiments/launch_r056_fixed.sh -- bash experiments/queue_r056_cont.sh</code><br>Dry run: <code>DRY_RUN=1 bash experiments/queue_r056_cont.sh</code>. Watch with <code>systemctl --user status vla-r056-cont</code> and the <code>[r056cont]</code> lines in <code>runs/overnight/queue.log</code>. Note that the queue would retry r=64 resident training only if <code>runs/overnight/r058_r64_resident_oom</code> is absent; the marker is present, so it would go straight to the cached path and resume from 001500.</li>
+  </ul>
+
+  <h3>2 · Results</h3>
+  <p>Both training runs are schedule-verified: applied LR equals the formula at all 2000 updates, max error 1.4e-20. Sources: <code>runs/overnight/SUMMARY_r056fix.txt</code>, <code>runs/r056_r16/score.json</code>, <code>runs/r058_r4/score.json</code>.</p>
+  <div class="tbl"><table>
+    <tr><th>run</th><th>selected (val /10)</th><th>held-out base → retrained</th><th>McNemar b / c, p</th><th>gap closed</th><th>nominal 9×3</th><th>W transfer (base 0.88)</th><th>offset ≤8 cm / &gt;8 cm (exploratory)</th></tr>
+    <tr><td class="id">R-056 r16</td><td>opt1000 (6; others 5/3/3)</td><td>67/108 0.62 [0.53,0.71] → 59/108 0.55 [0.45,0.64]</td><td>14 / 22, p 0.243</td><td>−0.20</td><td>27/27 → 26/27</td><td>0.84</td><td>27/27 → 21/27 · 40/81 → 38/81</td></tr>
+    <tr><td class="id">R-058 r4</td><td>opt500 (5; others 5/4/5)</td><td>67/108 → 65/108 0.60 [0.51,0.69]</td><td>14 / 16, p 0.856</td><td>−0.05</td><td>27/27 → 25/27</td><td>0.82</td><td>27/27 → 20/27 · 40/81 → 45/81</td></tr>
+    <tr><td class="id">R-058 r64</td><td colspan="7">Resident training: CUDA OOM at start (7.4 GiB in use). Cache-equiv signal passed (worst_rel 0.0). Cached-features training (<code>runs/r058_r64_cached_train</code>, cache <code>runs/r058_r64_cache</code>, 34 GB) reached opt ~1900/2000. Then the <b>kernel OOM-killed <code>vla-r056-cont</code></b> at 09-30 10:57 (unit memory peak 19.9 GB). Checkpoints 500, 1000 and 1500 are saved and all schedule-verified (checked 10-06). <b>Not evaluated.</b></td></tr>
+  </table></div>
+  <ul class="tight">
+    <li>R-056: expectations E1, E2, E4 and E6 false; E3 and E5 true. Its own uninterpretability check fired: the base held-out rate is inconsistent with the R-047 curve. On-ramekin was 3/3 → 3/3, reported apart.</li>
+    <li>Did not run: the R-058 r64 eval, R-056 WiSE α=0.5, the R-052 pitch resume (34/160 rollouts on record, checked 10-06), and the R-054 extension (<code>runs/r054_ext</code> does not exist, checked 10-06).</li>
+    <li>Memory per step, from <code>*.peaks.json</code>: R-058 r4 training RSS-tree max 16.5 GiB (anon 8.8), GPU 6.5 GiB; r4 eval up to 18.3 GiB RSS (anon 10.4), GPU 7.4 GiB.</li>
+  </ul>
+
+  <h3>3 · Verified vs not verified</h3>
+  <ul class="tight">
+    <li><b>Verified</b> (09-29; evidence in <code>runs/impl_smoke/</code>, re-checked independently by SFT):
+      <ul class="tight">
+        <li>V1: a 40-step GPU run applied exactly the registered LR at every step, and AdamW step = 40 in all 496 states (<code>r056fix_v1*</code>).</li>
+        <li>V2: the legacy construction aborts before training (error 9.95e-5).</li>
+        <li>V3: old and new load paths give identical params and buffers (sha1 <code>153bd99b…</code>). On frozen observations, forward-0 chunks are bit-identical (<code>v3f_*</code>, <code>v3_frozen_obs.pkl</code>). Peak <i>anonymous</i> RSS 12.3 → 7.5 GiB.</li>
+        <li>V4: CUDA returns to 0 between loads (<code>v4_loadcheck.log</code>).</li>
+        <li>V5: alpha 0 is bit-identical to base; alpha 1 differs, max 1.99 and mean 0.076 (<code>v5_alpha*</code>).</li>
+        <li>V6: the units run outside the editor scope.</li>
+        <li>CPU tests: 112 passed and 1 skipped in the libero-plus venv.</li>
+      </ul></li>
+    <li><b>Not verified:</b>
+      <ul class="tight">
+        <li><b>resume</b> of a fixed-schedule run (<code>--resume</code> through the guard and live trace) was never exercised;</li>
+        <li><code>malloc_trim</code>'s effect (the V4 repeat was skipped);</li>
+        <li>whether the R-058 r64 cached path can finish within RAM;</li>
+        <li>the D17 interpretation (scene 1327 at the grasp; that is SFT's analysis);</li>
+        <li>total VmHWM during a load stays ~16 GB, mostly file-backed mmap pages the kernel can drop, which is not proven harmless under pressure.</li>
+      </ul></li>
+  </ul>
+
+  <h3>4 · User decisions (dated)</h3>
+  <ul class="tight">
+    <li>09-28: micro-batch 1 × accumulation 8; augmentation off; 9-scene nominal (base ≥ 26/27); gripper {0,1}.</li>
+    <li>09-29 15:15: R-055's overfit check made informational.</li>
+    <li>09-29 evening: option (b), retrain with the fixed schedule after F1–F6 were verified.</li>
+    <li>09-29 19:33: launch.</li>
+    <li>09-29 ~19:45: overnight run, signals not gates, extra steps queued in SFT's order. All of these were relayed by SFT.</li>
+  </ul>
+
+  <h3>5 · Open decisions (see <a href="Decision_28Sep.html">Decision_28Sep.html</a>)</h3>
+  <ul class="tight">
+    <li><b>D18</b>, R-058 r64: evaluate opt1500 as it is (cheapest, no new OOM risk), resume to 2000 (~1 h, same RSS risk: the cached loop peaked near 20 GB of 30), or retrain with a memory fix.</li>
+    <li><b>D19</b>, relaunch the rest: WiSE, R-052 pitch, R-054 extension. Use the command above after D18, with AC connected.</li>
+    <li><b>D20</b>: the fit test and the achieved-radius check are not approved and not built.</li>
+    <li><b>D22</b>: whether the raw LIBERO-Spatial HDF5 demos can be fetched has not been checked.</li>
+    <li><b>D24</b>: the R-059 spec has not been received.</li>
+    <li><b>D25</b>: commits; prim owns them, see the table below.</li>
+    <li><b>D17</b> (RESULTS.md scoring) is owned by SFT.</li>
+  </ul>
+
+  <h3>6 · Known bugs, risks and gotchas</h3>
+  <ul class="tight">
+    <li><b>RAM / OOM.</b> 30 GB RAM, 7 GB swap, and systemd-oomd watches <code>user@1000.service</code> at 50% pressure. A GR00T load peaks ~16 GB total RSS (7.5 GiB anon). Eval processes reach 17–18 GiB RSS tree. The r64 cached loop reached 19.9 GB and was kernel-OOM-killed. Never run two GPU or GR00T loads at once. The VS Code scope was oomd-killed on 09-29 17:23, which is why runs go in separate units.</li>
+    <li><b>GPU.</b> An 8 GB card: r64 resident training does not fit (7.4 GiB in use, then OOM). Every job takes <code>flock /tmp/vla_gpu.lock</code>; <code>r056_cut.sh</code> relies on that lock.</li>
+    <li><b>AC power.</b> The 09-29 launch was on battery (94%). <code>systemd-inhibit</code> blocks sleep and lid-switch but cannot stop a flat battery. Plug in before any relaunch.</li>
+    <li><b>Render nondeterminism.</b> LIBERO renders differ between runs on some instances (313 and 281 at forward 0), so action-level comparisons need frozen observations. Old vs old differed by up to 0.0098.</li>
+    <li><b><code>rollout_id</code> ignores the noise seed.</b> <code>runner._cell_id(env, policy, seed, spec)</code> has no noise term, so rollouts that differ only by noise seed share an id. <code>r056_eval</code>'s exploratory offset breakdown looks start states up by <code>rollout_id</code>. The start state depends only on the env seed and spec, so the offset values should be unaffected, but any per-rollout join on that id across noise seeds is ambiguous. Not fixed (D25).</li>
+    <li><b>Directory names</b> under <code>checkpoints/</code> count lerobot micro-steps (004000 = opt 500); <code>vla_train_meta.json</code> has the optimizer step. A manifest's <code>adapter</code> paths inside the cyclic dirs still say <code>runs/r056_r16_train</code>.</li>
+    <li>accelerate warns "lr_scheduler.step() before optimizer.step()" every run. This is expected with accumulation and harmless.</li>
+  </ul>
+
+  <h3>7 · Uncommitted work I own (prim commits; I commit nothing)</h3>
+  <div class="tbl"><table>
+    <tr><th>path</th><th>what it is</th><th>commit?</th><th>commit group</th></tr>
+    <tr><td><code>vla_harness/training/</code> (schedule.py, groot_lora.py, mix.py, feature_cache.py…)</td><td>LoRA training path, 1:1 mix, cached features, LR schedule and guard</td><td>yes (not <code>__pycache__</code>)</td><td>F1–F6 schedule fix (schedule.py) · R-055/56 training code (rest)</td></tr>
+    <tr><td><code>vla_harness/data/</code></td><td>record contract, rescue source, LeRobot export (R-054)</td><td>yes</td><td>R-053/54 data pipeline</td></tr>
+    <tr><td><code>vla_harness/policies/lerobot_policy.py</code> (M)</td><td>LoRA adapter / WiSE alpha in identity(); streaming bf16 load</td><td>yes</td><td>F1–F6 schedule fix (it also holds the 09-28 adapter support; one commit is fine)</td></tr>
+    <tr><td><code>experiments/r044_reverse.py</code> (M)</td><td><code>--adapter</code>/<code>--adapter-alpha</code> for R-056 transfer</td><td>yes</td><td>R-055/56 training code</td></tr>
+    <tr><td><code>experiments/r047_run.py</code> (M)</td><td>SIGTERM at a rollout boundary, dropped-scene handling for R-052. I believe this is mine (written for <code>queue_r052.sh</code>'s deadline); prim, please confirm against R-052's owner</td><td>yes</td><td>R-052 runner support</td></tr>
+    <tr><td><code>tests/test_schedule.py</code>, <code>tests/test_adapter_policy.py</code>, <code>tests/test_data_export.py</code></td><td>CPU tests: schedule/guard/streaming load; adapter policy; export</td><td>yes</td><td>F1–F6 (test_schedule) · R-053/54 and R-056 code (others)</td></tr>
+    <tr><td><code>experiments/r056_train.py</code>, <code>r056_eval.py</code>, <code>r055_gates.py</code>, <code>r054_mint.py</code>, <code>r054_gates.py</code>, <code>r053_score.py</code>, <code>r057_score.py</code></td><td>runners and scorers R-053 to R-058</td><td>yes</td><td>R-053..58 runners (with the F1–F6 edits in r056_*)</td></tr>
+    <tr><td><code>experiments/launch_r056_fixed.sh</code>, <code>queue_r056_fixed.sh</code>, <code>queue_r056_cont.sh</code>, <code>r056_cut.sh</code>, <code>stepmeter.py</code>, <code>r056fix_summary.py</code></td><td>units, overnight queue, safe cut, meter, summary</td><td>yes</td><td>F1–F6 schedule fix / overnight chain</td></tr>
+    <tr><td><code>experiments/queue_overnight.sh</code>, <code>queue_overnight_continue.sh</code>, <code>queue_r052.sh</code>, <code>queue_r053.sh</code>, <code>queue_r055_rerun.sh</code>, <code>queue_r056.sh</code>, <code>queue_r057.sh</code></td><td>earlier queues (09-28/29); the record of what ran</td><td>yes</td><td>queues (record)</td></tr>
+    <tr><td><code>experiments/repro/r056_heldout.json</code>, <code>r056_val.json</code></td><td>held-out 108 / validation 10 lists (G4 inputs)</td><td>yes</td><td>R-053..58 runners</td></tr>
+    <tr><td><code>runs/r056_r16/</code>, <code>runs/r058_r4/</code></td><td>evals: manifest, score, selection, <code>transfer/{summary.json,rows.jsonl}</code>, postmortem_coverage.json</td><td>metadata only (rollouts.jsonl is already ignored)</td><td>R-056/58 runs</td></tr>
+    <tr><td><code>runs/r056_r16_train/</code>, <code>runs/r058_r4_train/</code>, <code>runs/r058_r64_cached_train/</code>, <code>runs/r056_r16_cyclic_train/</code></td><td>checkpoints (878 / 221 MB / 2.6 GB)</td><td>metadata only: <code>checkpoints/*/pretrained_model/{vla_train_meta.json,adapter_config.json,train_config.json}</code> and <code>training_state/{scheduler_state.json,training_step.json}</code>; no safetensors</td><td>R-056/58 runs</td></tr>
+    <tr><td><code>runs/*_train_report.json</code> (r056_r16, r058_r4, r056_r16_cyclic, smoke)</td><td>train reports incl. the full LR trace</td><td>yes (small)</td><td>R-056/58 runs</td></tr>
+    <tr><td><code>runs/r056_r16_cyclic_eval/</code></td><td>10 validation rollouts of the cyclic run plus MOVED.txt</td><td>metadata only</td><td>R-056/58 runs</td></tr>
+    <tr><td><code>runs/r058_r64_cache/</code> (34 GB), <code>runs/r058_r64_cache_equiv/</code></td><td>backbone feature cache</td><td>no: local only (deletable once D18 is settled; I did not delete it)</td><td>—</td></tr>
+    <tr><td><code>runs/overnight/</code></td><td>queue.log, SUMMARY*.txt, steps*.tsv, *.peaks.json, r058_r64_resident_oom, step logs (up to 25 MB each)</td><td>metadata only: queue.log, SUMMARY*.txt, steps*.tsv, *.peaks.json; no step logs</td><td>overnight chain</td></tr>
+    <tr><td><code>runs/impl_smoke/</code> (452 MB)</td><td>V1–V6 evidence and earlier smokes</td><td>metadata only, plus the small V-evidence: <code>v3f_*.{npz,json}</code>, <code>v5_alpha*.{npz,json}</code>, <code>r056fix_v1_report.json</code>, <code>r056fix_v1/checkpoints/*/pretrained_model/vla_train_meta.json</code>, <code>*_loadcheck.log</code>, <code>r056fix_fwd0.py</code>, <code>r056fix_peakprof.py</code>; not the pkl (7.5 MB) or checkpoints</td><td>F1–F6 evidence</td></tr>
+    <tr><td><code>runs/r053*</code>, <code>runs/r054/</code> (5 GB), <code>runs/r054_smoke/</code>, <code>runs/r055/</code>, <code>runs/r055_smoke/</code>, <code>runs/r057*</code></td><td>R-053 to R-057 runs</td><td>metadata only: manifest.jsonl, gates.json, yield.json, score/summary json, code_state/; not episodes/, images/, splice/, nominal_features/, g7_videos/</td><td>R-053..57 runs</td></tr>
+    <tr><td><code>runs/r052/</code></td><td>R-052, run by my queues; the experiment belongs to my prim</td><td>metadata only</td><td>R-052 (my prim's group)</td></tr>
+    <tr><td><code>data/r054_*</code></td><td>minted LeRobot data</td><td>already committed in <code>4672adc</code></td><td>—</td></tr>
+  </table></div>
+  <p><b>Not mine</b> (flagged for prim): <code>experiments/compile_map.py</code> (the gripper-offset note; likely SFT or my prim), <code>runs/r051/queue.log</code> and <code>runs/r050</code>, <code>runs/r051</code> logs, <code>runs/r041/*</code>, <code>runs/r044</code>–<code>r049</code>, <code>experiments/analysis_r056_postmortem/</code>, <code>experiments/repro/r049_selection_smoke.json</code> (I don't recognise it).</p>
+
+  <h3>8 · Next steps and owners</h3>
+  <ul class="tight">
+    <li><b>User</b>: decide D18 and D19; plug in AC.</li>
+    <li><b>impl</b>, on the user's word (directly or via SFT): run the R-058 r64 eval on the chosen checkpoint, then relaunch the continuation (WiSE → R-052 → R-054 extension). Build the D20 diagnostics and the R-059 runner (D24) if approved. Fix <code>rollout_id</code> to include the noise seed (D25); this changes ids, so old caches miss.</li>
+    <li><b>SFT</b>: D17 (RESULTS.md scoring of R-056/R-058) and interpretation.</li>
+    <li><b>prim</b>: commits per the table above (D25).</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="SFT">
+  <h2>SFT</h2>
+  <p class="lead"><span class="owner">owner: SFT</span> · Start-pose retraining pilot R-053 to R-058, post-mortem, pre-registration</p>
+  <!-- HANDOFF-SLOT:SFT filled -->
+  <h3>SFT: the GR00T N1.7 start-pose retraining pilot</h3>
+  <p><b>Scope and role.</b> SFT designs and pre-registers the retraining pilot. It reviews and verifies work, briefs the other sessions and keeps the docs. <code>impl</code> writes and runs all code; <code>analyzer</code> did the post-mortem; <code>res</code> researched data sourcing. Last user contact: 2026-09-30. The GPU has been idle since 09-30 10:57. Nothing is committed (prim commits; see the table at the end).</p>
+
+  <h3>Experiments R-053 to R-058</h3>
+  <div class="tbl"><table>
+  <tr><th>ID</th><th>What it pre-registered</th><th>Status</th><th>Result</th><th>Source</th></tr>
+  <tr><td>R-053</td><td>Start-pose no-op baseline: is the forward-0 rescue real or render jitter?</td><td>Run 09-29; not scored into RESULTS.md</td><td>All 4 expectations held. N success 24/30; the re-run (no-op) flipped 0 failures.</td><td><code>runs/r053/score.json</code></td></tr>
+  <tr><td>R-054</td><td>Rescue-minting pilot: 100 demos, LeRobot converter, data gates</td><td>Run 09-29; not scored</td><td>Yield 100/146 (0.1–0.2: 34/38, 0.2–0.3: 28/36, 0.3–0.4: 18/36, 0.4–0.5: 20/36). G1, G4, spot check and G6 pass.</td><td><code>runs/r054/{yield.json,gates.json}</code>, <code>data/r054_train48/meta/</code></td></tr>
+  <tr><td>R-055</td><td>Fine-tune gates: conformance, checkpointing equivalence, overfit, memory</td><td>Run 09-29</td><td>Conformance exact (max |Δa| 0.0). Checkpointing equivalent. Memory 6.73 GiB. Overfit <b>missed</b> twice: 12.1% under the schedule deviation, 13.9% as registered. A 1500-step diagnostic reached 5.3%, so the bar was miscalibrated.</td><td><code>runs/r055/gates.json</code>, <code>runs/r055/overfit_diag_1500.json</code></td></tr>
+  <tr><td>R-056</td><td>Arm (a): LoRA r=16 on the action head, VLM frozen, 100 minted demos + 1:1 replay</td><td>Run 09-29 (fixed-schedule retrain); <b>not scored</b> (D17)</td><td>Held-out base 67/108 vs retrained 59/108, gap closed −0.20. Nominal 27/27 → 26/27. W 0.88 → 0.84. Its uninterpretability check fired: base vs R-047 curve inconsistent. E3 and E5 held; E1, E2, E4 and E6 missed.</td><td><code>runs/r056_r16/score.json</code>, <code>runs/overnight/SUMMARY_r056fix.txt</code></td></tr>
+  <tr><td>R-057</td><td>When is the episode decided: a drive-until k-sweep</td><td>Run 09-29; not scored</td><td>Start pose k* = 1 (P 6/30, k1 24, k2 22, k4 21, all 19). Camera "throughout" (P 7/30, k1 24, k4 23, all 30).</td><td><code>runs/r057/</code>, <code>runs/overnight/SUMMARY.txt</code></td></tr>
+  <tr><td>R-058</td><td>LoRA rank sweep r ∈ {4, 64}</td><td>r=4 run; r=64 <b>incomplete</b> (D18)</td><td>r=4: held-out 65/108, gap closed −0.05, nominal 25/27, W 0.82. r=64: resident training OOM; the cached run was OOM-killed at opt 1900/2000, with checkpoints at 500, 1000 and 1500.</td><td><code>runs/r058_r4/score.json</code>, <code>runs/r058_r64_cached_train/</code></td></tr>
+  </table></div>
+  <p><b>Dated amendments</b> (all in RESULTS.md):</p>
+  <ul class="tight">
+    <li><b>09-28 19:11</b>, R-054/R-055/R-056: impl's 11 rulings (gripper {0,1}, micro-batch 1 × accumulation 8, no augmentation, 9-scene nominal control at ≥ 26/27, held-out radii 0.45/0.5).</li>
+    <li><b>09-29</b>, notes on R-053/R-054: gripper offset vs outcome; achieved radius about 25% below requested.</li>
+    <li><b>09-29 12:00</b>, R-055: overfit gate rerun.</li>
+    <li><b>09-29 15:15</b>, R-055: overfit made informational (user decision).</li>
+    <li><b>09-29 17:31</b>, R-056: cycling-LR deviation, eval OOM-killed, retrain (user decision). The cycling run is kept as <code>runs/r056_r16_cyclic_*</code> and is not a result.</li>
+  </ul>
+
+  <h3>Post-mortem and the data faults</h3>
+  <p><code>docs/R056_POSTMORTEM.html</code>: analyzer wrote §1–§9; SFT added §10.</p>
+  <ul class="tight">
+    <li><b>One scene.</b> The held-out drop is scene 1327 (12/12 → 4/12 at r16, 2/12 at r4), failing at the grasp (the gripper closes about 1.5 cm high). Excluding it: r16 55/96 vs base 55/96; r4 63/96. Pooled, neither differs from base.</li>
+    <li><b>Five data faults:</b>
+      <ul class="tight">
+        <li>coverage: kept demos have a median 6.1 cm offset, while failures are beyond 12 cm (45 held-out starts vs 9 demos);</li>
+        <li>dilution: 83% of draws were labels the base already produces, and each frame 0 was seen fewer than once;</li>
+        <li>pollution: 16/100 demos contain a failed first grasp, and 7 were truncated before their recovery;</li>
+        <li>phase skew: 91% of frames are approach;</li>
+        <li>borrowed labels: "act as if at the canonical pose".</li>
+      </ul></li>
+    <li><b>Baseline mismatch explained.</b> Achieved radius is 0.74–0.78 × requested, and two held-out directions per scene give very different offsets.</li>
+    <li><b>Hygiene bug</b> (impl): <code>rollout_id</code> ignores the noise seed. The scorer joins by position, so it is unaffected.</li>
+  </ul>
+  <p><b>Research.</b> <code>docs/DATA_SOURCING_RESEARCH.html</code> (res) recommends replacing rescue minting with bridge-and-join (a MimicGen-lite) or a scripted expert. LIBERO-Plus's own replay fine-tune moved robot initial state only from 21.7% to 30.3%.</p>
+
+  <h3>User decisions</h3>
+  <ul class="tight">
+    <li><b>09-28:</b> start pose is the first target; framework option C (R-040 research first, a reusable tool second); pre-register R-053 to R-058; approve impl's 11 rulings; no hard deadline.</li>
+    <li><b>09-29:</b>
+      <ul class="tight">
+        <li>rerun R-055 overfit, then a diagnostic;</li>
+        <li>overfit check informational;</li>
+        <li>R-056 before R-052;</li>
+        <li>option (b): retrain with the fixed LR after all fixes are verified;</li>
+        <li>an overnight queue with signals, not gates;</li>
+        <li>offset breakdown plus a map note.</li>
+      </ul></li>
+    <li><b>09-30:</b> brief analyzer and res; add §10 to the post-mortem. Robust data sourcing comes before any further training.</li>
+  </ul>
+
+  <h3>Open decisions (docs/Decision_28Sep.html)</h3>
+  <ul class="tight">
+    <li><b>D17, scoring R-056/R-058 into RESULTS.md.</b> SFT's position: <b>SFT writes it.</b> SFT owns the pre-registrations, and this is analysis text, not code; the "impl implements" rule covers code. It also needs the uninterpretability flag and analyzer's paired numbers stated.</li>
+    <li><b>D18,</b> R-058 r=64: evaluate opt1500 as-is, resume, or drop it.</li>
+    <li><b>D19,</b> relaunch the rest of the queue: WiSE, the R-052 pitch resume (34/160), the minting extension.</li>
+    <li><b>D20,</b> fit test and the achieved-radius check (the radius part is already measured).</li>
+    <li><b>D21,</b> the next demo source.</li>
+    <li><b>D22,</b> obtain the raw LIBERO-Spatial HDF5 with its initial states.</li>
+    <li><b>D23,</b> pre-register the replay-only control and the bridge probe.</li>
+    <li><b>D25,</b> commit and housekeeping. Also add the "pilot as run" section to FINE_TUNING_101 (the user said to ask first), and spot-check res's unverified 2026 citations.</li>
+  </ul>
+
+  <h3>Docs SFT owns</h3>
+  <ul class="tight">
+    <li><code>docs/FINE_TUNING_101.html</code>: complete. §12's memory figures are pre-measurement estimates; the "pilot as run" section is pending user approval.</li>
+    <li><code>docs/DATA_MINER_SPEC.html</code>: complete, with a §2 note on how "decided" is measured. Superseded in part by res's report: S2 should no longer be the main source.</li>
+    <li><code>docs/R056_POSTMORTEM.html</code> §10 only; the rest is analyzer's.</li>
+  </ul>
+
+  <h3>Next steps (recommended order)</h3>
+  <ol>
+    <li><b>Score R-053 to R-058 into RESULTS.md</b> (SFT, once D17 is confirmed).</li>
+    <li><b>Commit</b> per the table below (prim).</li>
+    <li><b>Pre-register the replay-only control</b> with a corrected recipe: larger effective batch, original augmentation and state dropout (SFT pre-registers; impl runs; a few GPU-hours).</li>
+    <li><b>Ask impl about D22</b> (the HDF5 demos), then <b>pre-register the bridge-controller probe</b> (impl: ~1 day of code plus ~1 GPU-hour).</li>
+    <li><b>Decide D21</b> (A or B), then a three-arm comparison (~25–35 GPU-hours). Use res's pre-training data-quality gates and analyzer's skill <code>.claude/skills/finetune-postmortem/</code> to evaluate.</li>
+    <li>Low priority: D18, D19.</li>
+  </ol>
+
+  <h3>Verified vs not verified</h3>
+  <p><b>Verified by SFT directly from artifacts:</b></p>
+  <ul class="tight">
+    <li>R-056/R-058 paired counts (base 67, r16 59, r4 65; scene 1327 at 12/4/2; excluding 1327, 55/55 and 55/63).</li>
+    <li>The LR fix: the applied LR equals the registered schedule to 1.7e-20 over 40 steps, and the startup guard reproduces it over 2000 steps.</li>
+    <li>V2: the guard aborts on the old schedule.</li>
+    <li>V3: the bf16 load is bit-identical to the old load.</li>
+    <li>V5: α=0 equals base; α=1 differs by mean 0.076.</li>
+    <li>Data: 16 driven frames per episode, gripper in {0,1}, the padding mask reaches the loss, processor stats are byte-identical to the checkpoint.</li>
+    <li>Offset tables (minting yield vs offset; R-053 per instance).</li>
+    <li>The 17:23 09-29 OOM kill, from the journal.</li>
+  </ul>
+  <p><b>Not verified by SFT:</b> analyzer's McNemar p-values, grasp-height and dose figures; res's literature claims and 2026 arXiv IDs; impl's V4 memory trend (the malloc_trim repeat was skipped); the R-052 progress counts.</p>
+
+  <h3>Uncommitted work</h3>
+  <div class="tbl"><table>
+  <tr><th>Path</th><th>What it is</th><th>Commit?</th><th>Commit group</th></tr>
+  <tr><td><code>RESULTS.md</code>: SFT's hunks</td><td>R-053 to R-058 entries; index rows R-053 to R-058; the 09-28 19:11 amendments (R-054/55/56); the 09-29 notes (R-053/R-054); the 09-29 12:00 and 15:15 amendments (R-055); the 09-29 17:31 amendment (R-056). <b>Not SFT's:</b> R-059 (my prim).</td><td>yes</td><td>R-053..R-058 pre-registration + amendments</td></tr>
+  <tr><td><code>docs/FINE_TUNING_101.html</code></td><td>Fine-tuning primer plus GR00T Part II</td><td>yes</td><td>SFT docs</td></tr>
+  <tr><td><code>docs/DATA_MINER_SPEC.html</code></td><td>Demo-source spec (S1–S7, contract, gates, rescue-minting analysis)</td><td>yes</td><td>SFT docs</td></tr>
+  <tr><td><code>docs/R056_POSTMORTEM.html</code> §10</td><td>SFT's data-fault synthesis inside analyzer's doc</td><td>yes (with analyzer's doc)</td><td>R-056 post-mortem (analyzer)</td></tr>
+  <tr><td colspan="4"><b>Not SFT's</b>, listed for routing: <code>experiments/analysis_r056_postmortem/</code> and <code>.claude/skills/finetune-postmortem/</code> are analyzer's (recommend committing both; the skill reproduces the post-mortem numbers). <code>docs/DATA_SOURCING_RESEARCH.html</code> is res's. Every r053–r058 script, queue, launcher and test, plus <code>vla_harness/data/</code>, <code>vla_harness/training/</code>, the <code>lerobot_policy.py</code> diff, <code>compile_map.py</code> and the map note, are impl's; SFT only specified them.</td></tr>
+  </table></div>
+  <p><b>Essential evidence for R-053 to R-058 (metadata only).</b></p>
+  <ul class="tight">
+    <li><b>Commit:</b>
+      <ul class="tight">
+        <li><code>runs/r053/score.json</code>;</li>
+        <li><code>runs/r054/{yield.json,gates.json}</code> and <code>runs/r054/episodes/*.json</code>;</li>
+        <li><code>data/r054_train48/meta/</code> (export.json, provenance.jsonl, stats.json, info) and the same for <code>data/r054_full/meta/</code>;</li>
+        <li><code>runs/r055/{gates.json,overfit_diag_1500.json,overfit_report.json,memory_*.json}</code>;</li>
+        <li><code>runs/r056_r16/{manifest.jsonl,score.json,selection.json,transfer/summary.json}</code>;</li>
+        <li><code>runs/r056_r16_train_report.json</code> and every checkpoint's <code>pretrained_model/vla_train_meta.json</code>;</li>
+        <li><code>runs/r058_r4/{manifest.jsonl,score.json}</code> and <code>runs/r058_r4_train_report.json</code>;</li>
+        <li><code>runs/r057/</code> score files and the per-run manifests;</li>
+        <li><code>runs/r047/nominal_starts.json</code>;</li>
+        <li><code>runs/overnight/{queue.log,SUMMARY.txt,SUMMARY_r056fix.txt,steps*.tsv}</code>;</li>
+        <li><code>experiments/repro/r056_{heldout,val}.json</code>;</li>
+        <li>each run's <code>code_state/</code>.</li>
+      </ul></li>
+    <li><b>Do not commit:</b>
+      <ul class="tight">
+        <li>rollouts.jsonl, images/, PNGs, videos, npz;</li>
+        <li>adapter checkpoints and training_state;</li>
+        <li>the <code>data/*/data</code> and <code>videos</code> parquet/mp4;</li>
+        <li><code>runs/r058_r64_cache</code> (34 GB);</li>
+        <li><code>runs/impl_smoke</code> scratch.</li>
+      </ul></li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="my-prim">
+  <h2>my prim</h2>
+  <p class="lead"><span class="owner">owner: my prim</span> · Primary/Sentinel: project scoring, directions, R-059, decision tracker</p>
+  <!-- HANDOFF-SLOT:my-prim filled -->
+  <h3>my prim: coordination, Sentinel / OOD, scope and literature</h3>
+  <p><b>Scope and role.</b> On 09-28 <code>my prim</code> took over the <code>primary</code> role (coordination, decision tracking in <code>docs/Decision_28Sep.html</code>, splice and perturbation-map work) and the <code>vla-a5</code> role (Sentinel and OOD detection). Their handoffs are <code>HANDOFF.md</code> §10 and §11. Standing rules from memory: <code>impl</code> implements; I send it minimal what/where specs and don't edit code. No subagents. Deliverables are local HTML in <code>docs/</code>, never published. Every GPU job goes under <code>flock /tmp/vla_gpu.lock</code>. Pre-register before running. My last working turn was 09-30 ~12:00. Nothing has been done since, apart from the status reply to prim on 10-06.</p>
+
+  <h3>Docs written 09-29 / 09-30, and their conclusions</h3>
+  <div class="tbl"><table>
+  <tr><th>Doc</th><th>State</th><th>Key conclusion</th></tr>
+  <tr><td><code>docs/VLA_doc_pending.html</code></td><td>Status as of 09-29 16:05; not updated for the overnight results</td><td>About 55–60% of <code>VLA Scenario Testing.md</code> is done. Stress-testing and mechanism work go well beyond the doc. Missing: the Data Gap Manifest, the taxonomy agreement score (adjudication sheets at 0/80 and 0/24 verdicts), a re-frozen regression set (the only ones predate the camera fix), and a validated retrain before/after.</td></tr>
+  <tr><td><code>docs/AMBITIOUS_DIRECTIONS.html</code></td><td>Seven directions, a literature table under each, a cross-policy section, a Sentinel caveat line</td><td>Recommended spine: a matched-budget comparison of five repairs on the start-pose boundary (demos targeted by mechanism, demos targeted by failure, random demos, a parameter-only adapter, and a first-chunk fix while running). Run-time failure <i>detection</i> is crowded (8+ 2026 papers); fixing a <i>bad start</i> is open. Cross-policy: perturbation, mining and the manifest work on a black box; feature capture, splices and LoRA need internals. Proposed check: use GR00T's white-box results as ground truth to score black-box methods.</td></tr>
+  <tr><td><code>docs/FAILURE_MINING_RELEVANCE.html</code></td><td>Complete</td><td>Measure at (policy, task, perturbation and its size). What matters to a client is that times P(condition | the client's operating domain) times cost. Most VLA work doesn't weight by deployment; self-driving practice (ISO 34503, D2RL) does. PLAN §9.3 already makes <code>condition_prevalence</code> client-supplied; it isn't built. A possible direction #8: importance-weighted failure search over a declared operating domain.</td></tr>
+  <tr><td><code>docs/SENTINEL_METHODOLOGY.html</code> §13</td><td>A separate section dated 2026-09-29, linked in the table of contents</td><td>Our adoption plan, i.e. R-059 below. Three obstacles: length (failures all time out at 18 forwards; successes end at a median of 7), sampler noise (single-draw floor about 7 vs ‖P−N‖ about 1), and failure type (STAC is for erratic failures; ours look smooth and wrong).</td></tr>
+  </table></div>
+  <p>Also assessed in chat, not written up: <b>StableVLA</b> (2605.18287) only ever puts its IB-Adapter in its own model, and moving the projector means redoing vision-language alignment. It targets noise and lighting, where GR00T already scores 91–93% (R-031). The user deprioritised it. <b>2512.02902</b> (CVPR 2026): F̂=(1+γ)⊙F+β on the ViT tokens, a one-shot adaptation of π0.5 with one target-view demo per task, 48.5→87.1 on Libero-V camera. More relevant. The user is reading it; I pointed to its §3.3, §8 (assumption A3), §4.4 Table 2 and Fig. 10 without giving the answer. Caveat: it sits before the LLM, so training backpropagates through the frozen backbone and the feature cache can't be used. It needs an 8 GB memory smoke test.</p>
+
+  <h3>R-059: Sentinel STAC on GR00T (pre-registered 09-29 16:40; user approved; nothing run)</h3>
+  <ul class="tight">
+    <li><b>Part A (CPU, stored <code>runs/r047/</code>):</b> A1 classifies each failure as erratic, stalled or smooth-progressing over forwards 0–4, using M1 reversal rate, M2 gripper toggles and M3 progress toward the target, with thresholds from successes. A2 is the clock baseline f_c, the first forward where the share of successes still running is ≤ 5%. A3 is single-draw overlap AUROC per forward.</li>
+    <li><b>Part B (GPU smoke, ~20 min):</b> seeded head noise per forward, and B ∈ {8, 32} draws batched by repeating the backbone and state features. Draw 0 is executed and the rest are shadow draws. Measure time and memory, check draw 0 is bit-identical across same-seed runs, and measure the null MMD². <b>Gate for C:</b> median STAC₀ ≥ 3× the null at radius 0.4, else try B=64 once.</li>
+    <li><b>Part C:</b> C1 is 240 start-pose rollouts (radius {0, 0.2, 0.3, 0.4} × 10 scenes × 3 directions × 2 seeds). C2 is optional camera, 160. Scores per forward: STAC (MMD², RBF, dims 0–5, frozen median-heuristic bandwidth), Spread (S4), Single, and Clock. Detectors: (i) per-forward γ_f from successes still running, conformal, δ = 0.05, leave-one-scene-out; (ii) per-forward cumulative; (iii) Sentinel as published, as a demonstration of the length confound. Primary readout: the share of failures caught before f_c.</li>
+    <li><b>Eight expectations</b>, e.g. E1 ≤ 40% of failures are erratic; E6 STAC catches ≥ 30% before f_c (low confidence).</li>
+    <li><b>Runner spec still to send to impl (D24):</b> add B-draw capture to <code>experiments/r047_run.py</code>, with a <code>torch.Generator</code> per forward seeded from hash(rollout seed, forward), passed into <code>torch.randn</code> at <code>groot_n1_7.py:657</code>. Repeat <code>backbone_features</code> and <code>state_features</code> B× along the batch dimension, execute draw 0, and store all B chunks (F×B×40×7) in the rollout npz. Flags <code>--draws B --seed-noise</code>. Part A needs no spec and can run on CPU now.</li>
+  </ul>
+
+  <h3>User decisions in my conversation</h3>
+  <ul class="tight">
+    <li>09-29: R-059 pre-registered and approved, plus the dated Sentinel §13.</li>
+    <li>09-29: StableVLA deprioritised until after R-056; the 2512.02902 approach kept as the parameter-only arm of direction #1.</li>
+    <li>09-29 15:15 (recorded in RESULTS R-055): R-055's overfit check made informational. 09-29 ~17:30: R-056 retrained after the cycling-LR bug. Both were made via SFT/impl; I only logged them.</li>
+  </ul>
+
+  <h3>Open decisions (cross-referenced)</h3>
+  <ul class="tight">
+    <li><b>D17</b>: score R-056 and R-058 into RESULTS.md. <b>D18</b>: R-058 r=64 (evaluate opt1500 or retrain). <b>D19</b>: relaunch WiSE, R-052 and minting.</li>
+    <li><b>D20</b>: the two diagnostics I proposed, below. <b>D24</b>: send the R-059 runner spec. <b>D25</b>: commit.</li>
+    <li>Not yet a D-number: which ambitious direction to pursue, and the black-box calibration experiment (step 1 of the cross-policy section), which isn't pre-registered.</li>
+  </ul>
+
+  <h3>Unanswered user question: how the transfer splice metrics changed</h3>
+  <div class="tbl"><table>
+  <tr><th>Median over 10 instances, forward 0</th><th>R-042 base (Robot Initial States)</th><th>R-056 r16 (opt1000)</th><th>R-058 r4 (opt500)</th></tr>
+  <tr><td>denoise_W (wrist pixels nominal)</td><td>0.88</td><td>0.84</td><td>0.82</td></tr>
+  <tr><td>denoise_A (agent view nominal)</td><td>0.17</td><td>0.34</td><td>0.19</td></tr>
+  <tr><td>noise_W</td><td>not pulled</td><td>0.26</td><td>0.38</td></tr>
+  <tr><td>noise_A</td><td>not pulled</td><td>0.018</td><td>0.010</td></tr>
+  <tr><td>noise_S</td><td>not pulled</td><td>0.045</td><td>0.036</td></tr>
+  </table></div>
+  <p>The base W and A values are from the R-042 table in RESULTS.md, but I haven't checked that R-042's "W" and "A" columns are the same arm as the eval's <code>denoise_*</code>. The noise_* base values need <code>runs/r042/analysis.json</code>. Sources: <code>runs/r056_r16/transfer/summary.json</code>, <code>runs/r058_r4/transfer/summary.json</code>. Tentative reading: W barely moved, so the wrist-pathway dependence wasn't unlearned (E4 not met). r16 doubled the agent-view share (0.17 → 0.34). That's a possible sign the adapter shifted weight to the agent view, but it's n = 10 and unverified.</p>
+
+  <h3>Proposed diagnostics (D20, not approved)</h3>
+  <ul class="tight">
+    <li><b>Fit test (~30 min GPU):</b> run the retrained adapter on its own <i>training</i> starts. Can't reproduce the minted first chunks → a pipeline or capacity fault (consistent with R-055's overfit check missing at 0.139). Reproduces on training starts but not held-out → a data problem; scaling up is justified.</li>
+    <li><b>Start-pose radius check:</b> achieved radius is about 77% of requested (0.239 → 0.184 in <code>runs/r056_r16/score.json</code>). That likely explains base 0.62 vs the predicted 0.46, which fired R-056's uninterpretable rule. Check whether R-047's curve has the same shortfall (it is plotted against requested radius). SFT recorded a related note on 09-29 (about 25% below requested).</li>
+    <li>Since then <code>docs/R056_POSTMORTEM.html</code> (analyzer, then SFT) found the held-out drop is mostly one scene, 1327. I haven't read it; the successor should, before acting on D20.</li>
+  </ul>
+
+  <h3>Verified vs not verified</h3>
+  <ul class="tight">
+    <li><b>Verified by me against files:</b> R-047 lengths (failures 109/109 and 67/67 time out at 18 forwards; success median 7, range 5–18); the R-056 score fields (McNemar b=14, c=22, p=0.24; ≤8 cm 27/27 → 21/27; base vs R-047 consistent = False); R-058 r4 65/108; the r64 OOM-kill at opt 1900 with checkpoints 500, 1000 and 1500; that the single-draw STAC result exists (HANDOFF §11); that GR00T's randn is unseeded at line 657; that the StableVLA and 2512.02902 details come from their arXiv HTML.</li>
+    <li><b>Not verified:</b> literature entries in the three docs were mostly checked against arXiv abstracts only; R-059's B-draw memory and time are estimates; the transfer-metric arm mapping above; ownership of <code>docs/SUITES_AND_CHECKPOINTS.html</code> (written 09-28 18:27 during my robustness work, but it has no author line).</li>
+  </ul>
+
+  <h3>Uncommitted work</h3>
+  <div class="tbl"><table>
+  <tr><th>Path</th><th>What it is</th><th>Commit?</th><th>Commit group</th></tr>
+  <tr><td><code>docs/VLA_doc_pending.html</code></td><td>Status against the scenario doc (09-29)</td><td>yes</td><td>my-prim docs 09-29</td></tr>
+  <tr><td><code>docs/AMBITIOUS_DIRECTIONS.html</code></td><td>Directions, literature review, cross-policy section</td><td>yes</td><td>my-prim docs 09-29</td></tr>
+  <tr><td><code>docs/FAILURE_MINING_RELEVANCE.html</code></td><td>Failure-mining unit and deployment-relevance review</td><td>yes</td><td>my-prim docs 09-29</td></tr>
+  <tr><td><code>docs/SENTINEL_METHODOLOGY.html</code></td><td>The dated §13 and its table-of-contents entry</td><td>yes</td><td>R-059</td></tr>
+  <tr><td><code>RESULTS.md</code> (R-059 hunk + index row)</td><td>The R-059 pre-registration</td><td>yes</td><td>R-059 (commit before any part runs)</td></tr>
+  <tr><td><code>docs/Decision_28Sep.html</code> (my lines)</td><td>Checklist lines 09-29/30: three docs, the R-056 launch, R-059, R-056 superseded, the fixed chain running, overnight results</td><td>yes</td><td>together with prim's edits</td></tr>
+  <tr><td><code>docs/FAIL_DETECT_MATHS.html</code></td><td>FAIL-Detect write-up (09-28)</td><td>yes</td><td>my-prim docs 09-28</td></tr>
+  <tr><td><code>docs/robustness_of_exps.html</code></td><td>Robustness gap review plus benchmark ranges (09-28)</td><td>yes</td><td>my-prim docs 09-28</td></tr>
+  <tr><td><code>docs/SUITES_AND_CHECKPOINTS.html</code></td><td>Suites and checkpoints (09-28); probably mine, unverified</td><td>yes</td><td>my-prim docs 09-28</td></tr>
+  <tr><td><code>viz/set_drawer_bowl_activations.html</code>, <code>viz/set_drawer_bowl_initstates.html</code></td><td>Inherited from primary (09-23). 11 MB and 10 MB</td><td><b>flag: no</b> unless the user wants large generated HTML in git</td><td>—</td></tr>
+  <tr><td><code>docs/R042_WRIST_MATHS.pdf</code></td><td>A PDF export of the HTML (D15; the user's call since 09-24)</td><td><b>ask the user</b></td><td>—</td></tr>
+  <tr><td>Not mine: <code>docs/SWEEP_DESIGN_LITERATURE.html</code></td><td>Written by session <code>sweep</code> (its own header says so)</td><td>sweep's call</td><td>—</td></tr>
+  <tr><td>Not mine: the <code>docs/PERTURBATION_MAP.html</code> diff</td><td>A one-line gripper-offset note added 09-29 12:28, while I was writing docs; probably SFT</td><td>owner's call</td><td>—</td></tr>
+  </table></div>
+
+  <h3>Next steps and owners</h3>
+  <ul class="tight">
+    <li><b>Successor to my prim:</b> answer the transfer-metric question (pull the R-042 noise_* values and confirm the arm mapping); read <code>docs/R056_POSTMORTEM.html</code>; update <code>docs/VLA_doc_pending.html</code> with the overnight results; send the R-059 spec (D24).</li>
+    <li><b>impl:</b> R-059 part A (CPU) once asked; the B-draw runner; D17 scoring; D20 diagnostics if approved.</li>
+    <li><b>prim:</b> commit per the table above (D25).</li>
+    <li><b>User:</b> D17–D20, D24; which direction to pursue; R042 PDF.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="res">
+  <h2>res</h2>
+  <p class="lead"><span class="owner">owner: res</span> · Research: data sourcing for retraining</p>
+  <!-- HANDOFF-SLOT:res filled -->
+  <h3>1. Brief</h3>
+  <p>Received on 2026-09-30 from session <code>SFT</code>, on the user's behalf. The user never typed into this session directly. The question: how to source demonstrations robustly for targeted fine-tuning of GR00T N1.7 (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>) against the LIBERO-Plus robot-initial-state perturbation, after the R-056/R-058 LoRA pilot failed. Five questions:</p>
+  <ul class="tight">
+    <li>Q1: survey the field.</li>
+    <li>Q2: recommend a source, mapped to post-mortem failure modes 1–6.</li>
+    <li>Q3: data-quality metrics to apply before training.</li>
+    <li>Q4: is "localise the mechanism, then target the data" novel?</li>
+    <li>Q5: cost and the cheapest discriminating experiment.</li>
+  </ul>
+  <p>Constraints: no subagents, no GPU jobs, no commits, and the deliverable is a local HTML file. Inputs: <code>docs/DATA_MINER_SPEC.html</code>, <code>docs/R056_POSTMORTEM.html</code>, and RESULTS.md R-053 → R-058. Deliverable: <code>docs/DATA_SOURCING_RESEARCH.html</code>. A summary went back to SFT. On 2026-10-06 I also sent a status reply to <code>prim</code>.</p>
+
+  <h3>2. Findings</h3>
+  <ul class="tight">
+    <li><b>The area is established.</b> Every source in our spec has a precedent:
+      <ul class="tight">
+        <li>MimicGen <code>2310.17596</code>, SkillMimicGen <code>2410.18907</code>, DexMimicGen <code>2410.24185</code>, MimicLabs <code>2506.13536</code> (robosuite + LIBERO + MimicGen, the best code fit), DemoGen <code>2502.16932</code>, CP-Gen <code>2508.03944</code>;</li>
+        <li>DAgger <code>1011.0686</code>, HG-DAgger <code>1810.02890</code>, DART <code>1703.09327</code>, CCIL <code>2310.12972</code>, IntervenGen <code>2405.01472</code>, RaC <code>2509.07953</code>, MAGMA-GEN <code>2609.20056</code>;</li>
+        <li>RoboCat <code>2306.11706</code>, Scaling Up and Distilling Down <code>2307.14535</code>, DATAFARM <code>2609.12316</code>, Blindfolded Experts <code>2510.24194</code>;</li>
+        <li>RL alternatives RIPT-VLA <code>2505.17016</code> and SimpleVLA-RL <code>2509.09674</code>, which I judge infeasible on 8 GB.</li>
+      </ul></li>
+    <li><b>The key external result is LIBERO-Plus <code>2510.13626</code>.</b> Its robustness training set re-executed the original demos' (state, action) pairs in perturbed environments and kept the successes, which is the same idea as our S2 (&gt;20k trajectories). On robot initial state, OpenVLA-OFT moved only from 21.7% to 30.3% (+8.6 pp), the smallest gain of any row except language and light.</li>
+    <li><b>DATAFARM:</b> raw TAMP data fine-tuned a pretrained VLA to only 8.3% success, against 56.7% once the data was aligned to the pretraining style (teleop: 61.7%). Style mismatch is the main risk for a scripted expert.</li>
+    <li><b>Our own data:</b> beyond 16 cm, the base succeeds on 16 of 33 held-out starts, while S2 minting keeps 2 of 10. This suggests the borrowed nominal chunk is worse than the policy's own at far offsets. It is a hypothesis: the directions differ and n is small.</li>
+    <li><b>Q4 novelty.</b> The parts are covered:
+      <ul class="tight">
+        <li>failure-targeted data: VLAMotor <code>2606.00053</code>, RECALL <code>2606.23617</code>, FLARE <code>2608.26645</code>, failure taxonomies <code>2506.06570</code>;</li>
+        <li>interventional interpretability: <code>2509.00328</code>, Embodied Interpretability <code>2605.00321</code>, FACT <code>2608.01402</code>;</li>
+        <li>closest single paper: Jung &amp; Park <code>2608.11769</code>, on initial-pose dependence and wrist-camera influence, then targeted pose augmentation.</li>
+      </ul>
+      Not found: a causal intervention on the policy's inputs and timing, used to set the data specification, and then checked with a pre-registered mechanism readout. That is defensible, but narrow.</li>
+    <li><b>Data-quality references:</b> Belkhale et al. <code>2306.02437</code> (action divergence), Demo-SCORE <code>2503.03707</code>, CUPID <code>2506.19121</code>, DataMIL <code>2505.09603</code>.</li>
+  </ul>
+
+  <h3>3. Options and the S2 verdict</h3>
+  <ul class="tight">
+    <li><b>Option A, bridge-and-join (recommended).</b> A one-skill MimicGen-lite:
+      <ul class="tight">
+        <li>reset to a LIBERO human demo's recorded initial state, which also gives layout variation;</li>
+        <li>apply a joint-space start perturbation, stratified by gripper offset in cm;</li>
+        <li>a privileged controller drives a speed-aligned bridge to a join point on that demo's end-effector path, then tracks the demo's end-effector target poses to the end;</li>
+        <li>optionally add DART noise on the bridge, with clean labels;</li>
+        <li>record the full episode, with frame tags.</li>
+      </ul></li>
+    <li><b>Option B.</b> A full scripted privileged expert (spec S3) with DART noise and DATAFARM-style alignment. Use it if the probe below shows that far-offset failures are not decided early. It is also the prerequisite for DAgger later.</li>
+    <li><b>S2 verdict.</b> Stop using it as the main source. Fix it (clean filter, full episodes) and keep it only as a matched-budget comparison arm.</li>
+  </ul>
+  <div class="tbl"><table>
+    <tr><th>Failure mode</th><th>A: bridge-and-join</th><th>B: scripted expert</th><th>S2, fixed</th></tr>
+    <tr><td>1 Coverage</td><td>Yield is set by the controller, not the policy, so it should be flat across bands (to be measured). Stratified sampling.</td><td>Same; grasp reliability is unknown (gate G3 ≥ 80%).</td><td>Cannot be fixed: yield falls with offset.</td></tr>
+    <tr><td>2 Dilution</td><td>All bridge frames are new signal, and the bridge is longer where it is needed. Explicit dose: 25–50% of draws, with frame 0 oversampled.</td><td>Same dose on forwards 0–3.</td><td>16 frames per episode; up-weighting only.</td></tr>
+    <tr><td>3 Pollution</td><td>Human grasp plus the clean-demo gate; full episodes.</td><td>Grasp height set from human statistics; keep only complete recoveries.</td><td>Gate helps but lowers far-band yield.</td></tr>
+    <tr><td>4 Phase skew</td><td>Full episodes; phases weighted in the sampler.</td><td>Same.</td><td>Fixed by full episodes.</td></tr>
+    <tr><td>5 Labels</td><td>State-conditional bridge labels, then human labels.</td><td>Purposeful but scripted, so alignment is needed.</td><td>Unchanged (borrowed).</td></tr>
+    <tr><td>6 Layout</td><td>About 50 recorded initial states per task. The eval must vary layout too.</td><td>Any layout or env seed.</td><td>Possible; yield unknown.</td></tr>
+  </table></div>
+  <p>Caveats for A:</p>
+  <ul class="tight">
+    <li>The raw LIBERO-Spatial HDF5 demos, with their sim initial states, are not on this machine (D22).</li>
+    <li>The LIBERO-Plus eval scenes (984…1327) may not share layouts with those demos. If they don't, A needs MimicGen's object-frame transform.</li>
+    <li>Tracking from a different arm null-space configuration still needs checking against gates G2/G6.</li>
+  </ul>
+
+  <h3>4. Proposed pre-registered thresholds (report §4)</h3>
+  <p>All are proposals, to be fixed before the data is seen.</p>
+  <div class="tbl"><table>
+    <tr><th>Gate</th><th>Proposed pass rule</th></tr>
+    <tr><td>Coverage per band (0–5 / 5–8 / 8–12 / 12–16 / &gt;16 cm, per scene)</td><td>≥ 10 kept demos in every band the eval occupies; kept share ≥ eval share in the bands beyond 8 cm.</td></tr>
+    <tr><td>Offset distribution</td><td>W1(kept, eval) ≤ 2 cm; also report direction-angle W1.</td></tr>
+    <tr><td>Nearest-demo distance</td><td>p90 over eval starts ≤ 5 cm (EEF position plus joint L2, same scene). Also report the fraction within 3 cm.</td></tr>
+    <tr><td>Yield by band</td><td>Flag any band below 0.5 as selection-biased.</td></tr>
+    <tr><td>Layouts</td><td>≥ 10 distinct (task, initial state) pairs per task, with eval layouts held out.</td></tr>
+    <tr><td>Clean demo</td><td>Success; exactly one close before the first lift (object z rises &gt; 2 cm); close height inside the human p5–p95 band; no reopen before the place; ≤ 2 gripper transitions; no non-target contact or joint-limit hits; no stall over 20 steps; length ≤ human p95; never truncated mid-phase.</td></tr>
+    <tr><td>Phase mix</td><td>The training mix is within ±10 pp of the original training data per phase, except declared up-weights (closed-gripper reference: 54%).</td></tr>
+    <tr><td>Dose</td><td>Every new-signal frame is seen ≥ 5 times in expectation; new-signal frames are 25–50% of draws.</td></tr>
+    <tr><td>Label consistency (one inference pass)</td><td>Base-vs-label divergence is high on bridge frames and at the flow-seed noise floor elsewhere. Cross-source kNN label spread ≤ 2× within-source. Style statistics (per-dimension action mean and std, speed, jerk, time to grasp) within the human p5–p95. G1 and G6 round trip.</td></tr>
+  </table></div>
+
+  <h3>5. Proposed experiment sequence and cost</h3>
+  <ul class="tight">
+    <li><b>Step 0 (D23a).</b> The post-mortem's replay-only control, with the corrected recipe (effective batch 32–64; augmentation either kept or ablated). Without it, no data change can be attributed.</li>
+    <li><b>Step 1 (D23b).</b> Build only the bridge controller (~1 day). Then:
+      <ul class="tight">
+        <li>CPU yield check on ~60 non-held-out starts across the bands. Pass: clean yield ≥ 0.7 in every band.</li>
+        <li>~1 GPU-hour rescue probe on ~30 starts beyond 12 cm × 3 seeds. Arms: P (no-op), B1 (bridge drives forward 0), B* (bridge until the join), each then handed back to the base.</li>
+      </ul>
+      Reading:
+      <ul class="tight">
+        <li>rescue well above P → Option A;</li>
+        <li>B* fails as well → Option B;</li>
+        <li>P already matches B* → the far failures are jitter, so stop.</li>
+      </ul></li>
+    <li><b>Step 2.</b> Build the chosen generator:
+      <ul class="tight">
+        <li>A: 3–4 engineering days.</li>
+        <li>B: 4–5 engineering days.</li>
+        <li>Generation: sim only, about 2–5 CPU-hours per 500 demos (my estimate).</li>
+        <li>The §4 checks need about 1 GPU-hour.</li>
+      </ul></li>
+    <li><b>Step 3.</b> A three-arm comparison (replay only / S2 fixed / new source) at the same recipe and a matched budget:
+      <ul class="tight">
+        <li>about 6–8 GPU-hours of training per arm, plus 2–3 hours of eval on a redesigned held-out set (≥ 4 directions per scene, stratified by cm, with layout variation);</li>
+        <li>about 25–35 GPU-hours in total.</li>
+      </ul></li>
+  </ul>
+  <p>No R-number has been assigned. SFT pre-registers and impl builds.</p>
+
+  <h3>6. Open decisions (see <code>docs/Decision_28Sep.html</code>)</h3>
+  <ul class="tight">
+    <li><b>D21</b>, the next demo source: A, B, or keep S2. res recommends A, with S2 only as a comparison arm. Not decided.</li>
+    <li><b>D22</b>, whether to fetch the raw LIBERO-Spatial HDF5 with its initial states. Skipping it rules out A. Ask impl.</li>
+    <li><b>D23</b>, pre-registering the probes: (a) the replay-only control; (b) the bridge rescue probe; the §4 thresholds; later the three-arm comparison. All GPU work needs the user's go.</li>
+  </ul>
+
+  <h3>7. Verified vs not verified</h3>
+  <p><b>Verified (this session):</b></p>
+  <ul class="tight">
+    <li>All arXiv IDs listed above were matched to their titles in search results on 2026-09-30.</li>
+    <li>LIBERO-Plus's data generation method and the 21.7 → 30.3% figure, from the arXiv HTML.</li>
+    <li>DATAFARM's 8.3 / 56.7 / 61.7%, from its abstract page.</li>
+    <li>Code repositories seen in search results: NVlabs/mimicgen, NVlabs/dexmimicgen, GaTech-RL2/mimiclabs, TEA-Lab/DemoGen, Ariostgx/ript-vla, PRIME-RL/SimpleVLA-RL, UT-Austin-RobIn/datamil, alessing/demo-score.</li>
+    <li>From our own artifacts: R-056 training took 113 min per 2,000 optimiser steps at batch 8 (peak 6.3–6.7 GB), and eval took about 70 min (<code>runs/overnight/SUMMARY_r056fix.txt</code>).</li>
+    <li>Yield and held-out numbers come from <code>docs/R056_POSTMORTEM.html</code> §5.1.</li>
+  </ul>
+  <p><b>Not verified, needs a spot-check:</b></p>
+  <ul class="tight">
+    <li>The 2026 papers were read at abstract or summary level only: FLARE <code>2608.26645</code> (how the bridges are generated is unknown), Jung &amp; Park <code>2608.11769</code>, VLAMotor <code>2606.00053</code>, RECALL <code>2606.23617</code>, MAGMA-GEN <code>2609.20056</code>, STRONG-VLA <code>2604.10055</code>, Embodied Interpretability <code>2605.00321</code>, FACT <code>2608.01402</code> (read from its project page), DATAFARM beyond the abstract.</li>
+    <li>The "46% → 18% with 40k targeted samples" figure attributed to <code>2506.06570</code> comes from a search snippet only.</li>
+    <li>No code was found for SkillMimicGen, CP-Gen, CCIL, IntervenGen, CUPID, FLARE, VLAMotor or RECALL. DATAFARM's code link (prpl-group.com/datafarm) is stated only in its abstract.</li>
+    <li>Author lists I wrote from memory: SkillMimicGen "Garrett et al.", DexMimicGen "Jiang et al.", RoboCat "Bousmalis et al.".</li>
+    <li>LIBERO-Plus numbers are for OpenVLA-OFT, not GR00T.</li>
+    <li>Sim-only generation speeds and all engineering-day estimates are guesses. Option A's join and tracking feasibility is untested.</li>
+  </ul>
+
+  <h3>8. Files</h3>
+  <ul class="tight">
+    <li><code>docs/DATA_SOURCING_RESEARCH.html</code>, owned by res and uncommitted. It is the full report, with §1 survey tables, §3 options, §4 gates and §5 costs.</li>
+    <li>This handoff section.</li>
+    <li>No scratchpad files are worth keeping; nothing was written there.</li>
+    <li>No other repo files were created or edited, and no runs were launched.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="SAE">
+  <h2>SAE</h2>
+  <p class="lead"><span class="owner">owner: SAE</span> · SAE-on-VLA paper analysis</p>
+<!-- HANDOFF-SLOT:SAE filled -->
+  <p>This session was <b>discussion only</b>. The user wanted to understand the paper <a href="https://arxiv.org/abs/2603.19183">arXiv:2603.19183</a> (Swann et al., Stanford, v2 of 6 Jun 2026, "Sparse Autoencoders Reveal Interpretable and Steerable Features in VLA Models"). Nothing was decided, no runs were launched, and nothing else in the repo was edited.</p>
+
+  <h3>1. The paper in brief</h3>
+  <ul class="tight">
+    <li><b>Models.</b> π0.5-LIBERO and π0.5-DROID: both the PaliGemma backbone (PG) and the action expert (AE). Also OpenVLA fine-tuned on LIBERO.</li>
+    <li><b>Activations.</b> The residual stream at layers 0, 5, 11 and 17. At each timestep, all tokens are averaged into one vector. That means about 768 image tokens plus about 20 text and state tokens.</li>
+    <li><b>SAE.</b> TopK with AuxK (the Gao et al. recipe), one SAE per layer. The expansion ratio is <b>1</b>: 2048 features with k = 100 on PG, and k = 64 on AE. Larger ratios gave many dead features on these small datasets: 273k timesteps for LIBERO and 567k for the 2k-episode DROID subset.</li>
+    <li><b>Generality metrics.</b> Four numbers per feature: episode coverage <code>c</code>, mean onset count <code>ō</code>, mean peak activation <code>ā</code>, and relative run length <code>ℓ̄r</code>. A logistic regression trained on <b>30 hand-labelled features</b> (15 general, 15 memorized) classifies every feature as general or memorized.</li>
+    <li><b>Claims.</b>
+      <ul class="tight">
+        <li>79% of 120 sampled SAE features are interpretable, against 6/20 FFN neurons.</li>
+        <li>Share of features classified as general: 2.6% (π0.5-LIBERO), 10.8% (π0.5-DROID), 0.45% (OpenVLA).</li>
+      </ul>
+    </li>
+    <li><b>Causal tests.</b>
+      <ul class="tight">
+        <li>On the real robot, removing the 4 most general features drops success from 39/40 to 0/40. Removing 4 random memorized features gives 37/40, and 4 random general features give 26/40.</li>
+        <li>The LIBERO single-feature ablation sweep covers 135 features and 20,250 episodes. Success stays at the baseline (about 95%) until P(general) reaches about 0.5, then drops.</li>
+        <li>With an empty instruction, steering one object feature shifts target-object choice by +9 to +21 out of 25.</li>
+        <li>Steering feature F586 closes the gripper (mean closure 0.65), where the prompt "close the gripper" gives 0.005.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>2. Critique</h3>
+  <ul class="tight">
+    <li><b>The ablation result is confounded by how often and how strongly a feature fires.</b> "General" features have high coverage and high activation by construction. "Memorized" features barely fire on held-out tasks, so removing them does almost nothing. There is no control that removes a matched amount of signal, such as a random direction or a frequently firing non-general feature. So Table 2 and Fig. 10 could partly just show that removing a heavily used direction breaks the policy.</li>
+    <li><b>The labels and the classifier partly check themselves.</b> Manual labelling criterion 3 (Stage 3) already uses <code>c</code>, <code>ō</code> and <code>ā</code>, and the classifier is trained on the same metrics. So 100% leave-one-out accuracy on 30 labels is weak evidence.</li>
+    <li><b>The ablation doesn't quite match the SAE.</b> The removal is <code>y − (yᵀv)v</code> on the raw residual stream. But the SAE subtracts a learned bias (<code>b_pre</code>) and normalizes each input, and its decoder directions are not orthogonal. The removal is also applied to every token and every denoising step.</li>
+    <li><b>Averaging over tokens washes out language.</b> About 97% of the averaged vector comes from image tokens, so the features are mostly about the scene and the task phase. The authors' own per-token SAEs were less interpretable.</li>
+    <li><b>The steering comparisons are small and tilted toward the SAE.</b>
+      <ul class="tight">
+        <li>The steering strength α is tuned per task.</li>
+        <li>The paper does not say how the object features (F1784, F8, F1727, F39) were chosen.</li>
+        <li>"Success" only means getting close enough to grasp.</li>
+        <li>The gripper test compares the best SAE feature against the average of 3 FFN neurons, with n = 5 each.</li>
+        <li>α is never stated relative to the residual stream's norm.</li>
+      </ul>
+    </li>
+    <li><b>"The features emerge during fine-tuning" uses the wrong control.</b> The comparison is with frozen SigLIP. The right baseline is the π0.5 base checkpoint before fine-tuning.</li>
+    <li><b>The authors admit the classifier mistakes rarity for memorization.</b> One example is the lid-grasp feature F1381: it fires in 86% of lid episodes but is still labelled memorized. So the classifier ranks features; it does not split them into "memorizes" and "generalizes".</li>
+    <li><b>What is solid:</b>
+      <ul class="tight">
+        <li>the LIBERO ablation curve, with the confound above;</li>
+        <li>SAEs trained from 6 different seeds recover the same top features (shown only visually);</li>
+        <li>the action expert's features follow the manipulation phases;</li>
+        <li>the recipe is cheap: averaged activations, a 1× dictionary, and no rollouts needed for the metrics.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>3. Concepts explained to the user</h3>
+  <ul class="tight">
+    <li><b>Feature.</b> A fixed direction <code>v_i</code> in a layer's activation space. The model is assumed to represent each timestep as a sparse sum <code>x ≈ Σ z_i·v_i</code>, with only about k terms nonzero. The coefficient <code>z_i</code> is that feature's activation. This is the superposition hypothesis.</li>
+    <li><b>Dictionary.</b> The set of all <code>v_i</code>, which are the columns of <code>W_dec</code>. Think of it as a vocabulary: each activation vector is "spelled" with a few entries from it.</li>
+    <li><b>Learning.</b> The encoder computes <code>z = TopK(ReLU(W_enc·x))</code> and the decoder computes <code>x̂ = W_dec·z</code>. The loss is <code>‖x − x̂‖²</code>, with no labels. Sparsity plus a dictionary shared across all timesteps pushes the SAE to learn directions that recur.</li>
+    <li><b>One SAE learns all the features of one layer.</b> Each layer gets its own SAE, and a feature index such as "F586" only means something within that SAE. Training a new seed or fine-tuning the policy reshuffles the indices.</li>
+    <li><b>Observation is not causation.</b> A feature's meaning is assigned by a human who looks at its highest-activating frames. Whether pushing it changes behaviour has to be tested with rollouts. The paper's own limitations section says many clean features do not steer reliably, and F399 behaves in a way the label wouldn't predict: it causes early lift-off.</li>
+  </ul>
+
+  <h3>4. Suggested workflow for finding a feature that steers</h3>
+  <ul class="tight">
+    <li><b>Rank candidates from data.</b> Use frames labelled with the target event. Rank features by how differently they fire at those frames than elsewhere. Optionally, rank by attribution instead: the gradient of the action output with respect to <code>z_i</code>, or single-feature patching on logged observations.</li>
+    <li><b>Screen offline.</b> Replay recorded observations with <code>+α·v_i</code> added and measure how far the predicted action chunk moves, sweeping α. No rollouts are needed for this step.</li>
+    <li><b>Confirm in closed loop.</b> Roll out only the few survivors. This is the only step that establishes a change in behaviour.</li>
+    <li>The framing given to the user: the SAE narrows the search to candidates, but it is not a control panel.</li>
+  </ul>
+
+  <h3>5. Idea, not adopted: diagnose R-056 with SAE features</h3>
+  <p><b>The idea:</b> compare SAE features before and after a fine-tune (base GR00T against the R-056 r16 checkpoint) on scene 1327 against the other scenes. The question is whether the grasp regression on 1327 shows up as a grasp-phase feature that disappeared, moved, or was replaced by a feature specific to that scene.</p>
+  <ul class="tight">
+    <li><b>Key constraint:</b> R-056 trained LoRA on the action head with the VLM frozen (see <code>start-pose-retrain-pilot</code>). On the same input, the backbone activations should therefore be <b>identical</b> before and after fine-tuning. The comparison only means something on the <b>action-head (DiT) layers</b>, or on backbone features driven by the different states the policy visits in closed loop. That second case is a confound, not a mechanism.</li>
+    <li><b>What it would need:</b>
+      <ul class="tight">
+        <li>forward hooks on GR00T action-head blocks (a new adapter; no SAE code exists in <code>vla_harness/</code>);</li>
+        <li>activation collection on a fixed set of observations: the logged 1327 rollouts plus a nominal control, run through both checkpoints;</li>
+        <li>one SAE trained on the pooled activations, so both checkpoints share one dictionary;</li>
+        <li>the paper's four metrics, plus per-feature activation deltas around the grasp window.</li>
+      </ul>
+    </li>
+    <li><b>Estimated cost (not measured):</b>
+      <ul class="tight">
+        <li>collection is a few hours of forward passes on the 8 GB laptop GPU and has to share the flock;</li>
+        <li>SAE training at a 1× expansion ratio on averaged vectors takes minutes;</li>
+        <li>the main cost is the engineering for the hooks and adapter, about 1 day for <code>impl</code>.</li>
+      </ul>
+    </li>
+    <li><b>What it would and wouldn't tell you:</b>
+      <ul class="tight">
+        <li>it only produces candidates;</li>
+        <li>any causal claim needs the matched-ablation control from §2;</li>
+        <li>it is unvalidated on GR00T, since the paper only used π0.5 and OpenVLA.</li>
+      </ul>
+    </li>
+    <li><b>Next to existing work:</b> the existing post-mortem (<code>docs/R056_POSTMORTEM.html</code>) already gives behavioural causes: the gripper closes about 5.5 cm high, the dose was weak, and there is a coverage gap. This would be a mechanistic complement, not a replacement.</li>
+  </ul>
+
+  <h3>6. Open questions</h3>
+  <ul class="tight">
+    <li>Does the user want to pursue SAE diagnostics at all? If so, it needs pre-registration and the user's go, and <code>impl</code> would build it.</li>
+    <li>Does the paper's general-vs-memorized ranking survive an ablation control that removes a matched amount of signal? It's an open question about the paper, which nobody here has tested.</li>
+    <li>The user said they may have more questions about the paper.</li>
+  </ul>
+
+  <h3>7. Files</h3>
+  <ul class="tight">
+    <li>The paper's PDF and its text extraction are only in this session's scratchpad (<code>/tmp/claude-1000/…/scratchpad/p.pdf</code>, <code>p.txt</code>), not in the repo.</li>
+    <li>This slot is the only repo edit.</li>
+  </ul>
+
+  <h3>Verified vs not verified</h3>
+  <div class="tbl"><table>
+    <tr><th>Verified</th><th>Not verified</th></tr>
+    <tr><td>All paper numbers above, read from the full PDF text (v2)</td><td>Any of the paper's results; nothing was reproduced</td></tr>
+    <tr><td>R-056 r16 checkpoints exist: <code>runs/r056_r16_train/checkpoints/{004000…016000,last}</code></td><td>That backbone activations are identical between base and r16. This is inferred from the "VLM frozen" setup, not measured.</td></tr>
+    <tr><td>GPU is an RTX PRO 1000, 8 GB</td><td>The cost estimates in §5; they are rough guesses</td></tr>
+    <tr><td>The repo has no SAE code: a grep of all <code>.py</code> files outside <code>.venvs/</code> finds nothing</td><td>Whether SAE features would localise the 1327 regression</td></tr>
+  </table></div>
+</section>
+
+</div>
+</body>
+</html>
