@@ -55,7 +55,7 @@ pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(
 </style></head><body><div class=wrap>
 
 <h1>"VLA models are more generalizable than you think": the maths, the method, and what holds up</h1>
-<div class=meta>2026-10-06 · Li, Zhang, Zhai, Lin, Wang (Sun Yat-sen University / X-Era AI Lab), <a href="https://arxiv.org/abs/2512.02902">arXiv:2512.02902v2</a> (31 Mar 2026), CVPR 2026 · No code released (searched 2026-10-06) · Implementation facts checked against <a href="https://github.com/Physical-Intelligence/openpi">openpi</a> <code>main</code> (<code>pi0_config.py</code>, <code>pi0.py</code>, <code>lora.py</code>, <code>gemma.py</code>, <code>siglip.py</code>). Tags: <span class="tag p">paper</span> stated in the paper · <span class="tag v">verified</span> checked by me against code or by arithmetic · <span class="tag i">inferred</span> my reading where the paper is silent.</div>
+<div class=meta>2026-10-06 · res21 · Paper: Li, Zhang, Zhai, Lin, Wang (Sun Yat-sen University / X-Era AI Lab), <a href="https://arxiv.org/abs/2512.02902">arXiv:2512.02902v2</a> (31 Mar 2026), CVPR 2026 · No code released (searched 2026-10-06) · Implementation facts checked against <a href="https://github.com/Physical-Intelligence/openpi">openpi</a> <code>main</code> (<code>pi0_config.py</code>, <code>pi0.py</code>, <code>lora.py</code>, <code>gemma.py</code>, <code>siglip.py</code>). Tags: <span class="tag p">paper</span> stated in the paper · <span class="tag v">verified</span> checked by me against code or by arithmetic · <span class="tag i">inferred</span> my reading where the paper is silent.</div>
 
 <div class="card tldr">
 <div class=q>Bottom line</div>
@@ -70,7 +70,7 @@ pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(
  <li>The appendix theory proves bounds against a single mean token. It says nothing about closed-loop success.</li>
  </ol></li>
 <li><b>A table error.</b> Table 3 prints FTM's Libero-V average as 90.5%; its own row averages to <b>93.2%</b>, so the paper under-sells its smallest method <span class="tag v">verified</span>.</li>
-<li><b>For us.</b> Our GR00T retrains (R-053..R-058) adapt the action head and VL self-attention with <code>tune_visual: False</code>. That is exactly the "Physical Modeling" side, the opposite of FLA. R-039 already found that image tokens carry every perturbation category to the action. A training-free version of FTM, moment matching on cached Eagle features, is an afternoon's experiment on 8 GB. See §10.</li>
+<li><b>For us.</b> Our GR00T retrains (R-053..R-058) adapt the action head and VL self-attention with <code>tune_visual: False</code>. That is exactly the "Physical Modeling" side, the opposite of FLA. R-039 already found that image tokens carry every perturbation category to the action. A training-free version of FTM, moment matching on cached backbone features, is an afternoon's experiment on 8 GB. See §9A (portability) and §10.</li>
 </ul>
 </div>
 
@@ -346,13 +346,102 @@ filters.append(Not(PathRegex(".*lora.*")))      # ... except their LoRA params
 <tr><td><b>Forgetting:</b> source-view success after adaptation</td><td>A one-view recalibration that breaks the original view is a swap, not generalisation</td><td>Evaluation only</td></tr>
 </table></div>
 
+<h2>9A. Portability to GR00T N1.7</h2>
+<p class=small>Added 2026-10-06 at the user's request. It answers whether FTM, FLA and moment matching are π0.5-specific or carry over to our model. Tags as elsewhere: <span class="tag v">verified</span> read in code, config or RESULTS.md; <span class="tag i">inferred</span> my reading.</p>
+
+<h3>9A.1 The two pipelines side by side</h3>
+<div class=tw><table>
+<tr><th>Stage</th><th>π0.5 (paper)</th><th>GR00T N1.7 (ours)</th></tr>
+<tr><td>Vision encoder</td><td>SigLIP So400m/14, width 1152, 27 blocks</td><td>Qwen3-VL ViT inside <code>nvidia/Cosmos-Reason2-2B</code>: 24 blocks, width 1024, patch 16, 256×256 per camera <span class="tag v">verified</span> (cached <code>config.json</code>; <code>EXP_EMBEDDING_OOD.md</code> §2)</td></tr>
+<tr><td>Vision → LLM</td><td>one projector 1152 → 2048, prefix tokens</td><td><b>Four entry points</b> <span class="tag v">verified</span>:
+ <ul>
+ <li>the patch merger (2×2 → 2048-d, 64 tokens per camera; 128 image tokens of 156 total per the R-039 gate);</li>
+ <li><b>three DeepStack mergers</b> that take ViT layers 5, 11 and 17 and <i>add</i> them to the visual positions of LLM layers 0, 1 and 2 (<code>modeling_qwen3_vl.py</code> <code>_deepstack_process</code>; <code>deepstack_visual_indexes=[5,11,17]</code>).</li>
+ </ul></td></tr>
+<tr><td>LLM</td><td>Gemma 2B, 18 layers, bidirectional prefix</td><td>Qwen3 LLM truncated to <code>select_layer=16</code> of 28 layers (<code>groot_n1_7.py:86</code>, <code>:305</code>); output 2048-d = tap S1 <span class="tag v">verified</span></td></tr>
+<tr><td>Adapter</td><td>none</td><td><code>vlln</code> (LayerNorm, S1.5) then a 4-block <code>vl_self_attention</code> (S2); trainable in our recipe, <code>tune_vlln: True</code> <span class="tag v">verified</span></td></tr>
+<tr><td>Action head conditioning</td><td>Expert shares attention with the VLM at every layer, so it reads the VLM's KV throughout.</td><td>The 32-block DiT <b>cross-attends only to S2</b>. State is concatenated with the noised actions inside the DiT and never enters the VLM <span class="tag v">verified</span> (<code>VLA_JOIN_TOPOLOGY.html</code>, topology C).</td></tr>
+</table></div>
+
+<h3>9A.2 Candidate modulation sites</h3>
+<div class=tw><table>
+<tr><th>Site</th><th>Per-camera separable?</th><th>Shift there (R-037, nearest-neighbour distance ratio vs nominal)</th><th>Action-relevant? (R-039 image-token transfer at forward 0)</th><th>Cacheable for training?</th><th>On 8 GB?</th></tr>
+<tr><td><b>Merger + 3 DeepStack outputs</b> (pre-LLM); the paper's analogue</td><td class=ok><b>Yes</b> <span class="tag v">verified</span>: ViT attention is block-diagonal per image (<code>cu_seqlens</code> from <code>grid_thw</code>), so each camera's tokens depend only on that camera</td><td>not measured; there is no tap here today</td><td>not measured</td><td class=warn>No. The 16 LLM layers and the adapter sit between modulation and loss <span class="tag i">inferred</span></td><td>Inference yes; training probably no <span class="tag i">inferred</span></td></tr>
+<tr><td><b>S1</b> (LLM layer-16 output, pre-<code>vlln</code>)</td><td class=amb>Partly <span class="tag i">inferred</span>: the LLM is causal, so the first camera's tokens shouldn't see the second, but the second sees the first. Camera order not checked</td><td><b>1.37×</b> <span class="tag v">verified</span></td><td>not measured at S1 (a pre-registered secondary in R-039)</td><td class=ok>Yes</td><td class=ok>Yes</td></tr>
+<tr><td><b>S1.5</b> (post-<code>vlln</code>)</td><td>as S1</td><td>1.38× <span class="tag v">verified</span></td><td>not measured</td><td class=ok>Yes</td><td class=ok>Yes</td></tr>
+<tr><td><b>S2</b> (post-<code>vl_self_attention</code>, what the DiT reads)</td><td class=warn><b>No</b> <span class="tag v">verified</span>: R-045 found that swapping the wrist image changed all 128 image tokens</td><td><b>1.02×</b> <span class="tag v">verified</span></td><td><b>Yes</b> <span class="tag v">verified</span>: camera 0.69, light 0.73, noise 0.45, start pose 0.83</td><td class=ok>Yes</td><td class=ok>Yes, cheapest</td></tr>
+</table></div>
+<p class=small>Our capture taps (<code>vla_harness/capture/groot_features.py</code>) cover S1, S1.5, S2, the state token and the decoder output. There is <b>no tap inside the backbone</b>, so the pre-LLM site needs new hooks on the Qwen3-VL visual <code>merger</code> and <code>deepstack_merger_list</code> <span class="tag v">verified</span>. This is also why our per-camera arms (A, W) swap pixels rather than tokens <span class="tag v">verified</span> (<code>PERTURBATION_MAP.html</code> §0).</p>
+
+<h3>9A.3 Why the DeepStack paths matter</h3>
+<p>π0.5 has one place where vision becomes language-model input. GR00T has four. An FTM applied only to the merger output leaves three unmodulated visual paths adding raw ViT features into LLM layers 0–2.</p>
+<ul>
+<li><b>FTM:</b> a faithful port puts (γ, β) on all four entry points: 4 × 2 × 2048 ≈ <b>16K parameters</b> <span class="tag i">inferred</span>, instead of the paper's 4K.</li>
+<li><b>FLA:</b> the analogue is LoRA on the Qwen3-VL ViT's MLPs (24 blocks, width 1024). Its parameter count depends on the ViT MLP width, which I did not read <span class="tag i">inferred</span>. It needs gradients through the ViT, the mergers <i>and</i> 16 LLM layers.</li>
+</ul>
+
+<h3>9A.4 What R-037 and R-039 jointly predict</h3>
+<p>Two verified results <span class="tag v">verified</span>:</p>
+<ul>
+<li><b>R-037:</b> a vision perturbation moves the backbone output strongly (S1: 1.37× nominal nearest-neighbour distance; 46.6% of forwards outside the nominal cloud). The 4-block <code>vl_self_attention</code> removes almost all of that displacement before the DiT (S2: 1.02×; 7.5%).</li>
+<li><b>R-039:</b> spliced at S2, the image tokens still carry most of the effect on the action.</li>
+</ul>
+<p>Together they predict:</p>
+<ul>
+<li><b>The adapter already normalises most of the pooled first- and second-moment shift. What still reaches the action is not a per-channel moment shift</b> <span class="tag i">inferred</span> (a prediction).</li>
+<li><b>E1</b> (closed-form moment matching) therefore has little to correct at S2. At S1 or pre-LLM, it would correct roughly what the adapter already removes. <b>Predict E1 weak on GR00T.</b> Run it anyway: it is cheap and directly falsifies "it's a statistics shift".</li>
+<li><b>E2</b> (γ, β learned by the flow loss) can move whatever directions the loss rewards, including the action-relevant residual at S2. <b>E2 is the real test of the paper's idea on GR00T.</b></li>
+</ul>
+<p>In π0.5 the expert reads modulated tokens at every layer. In GR00T, a modulation upstream of S2 acts only through what survives 16 LLM layers and the adapter <span class="tag i">inferred</span>.</p>
+
+<h3>9A.5 The theory, restated for GR00T</h3>
+<p>The paper's Eq. 3, <var>g</var>(<var>a</var>; [<var>A</var>(<var>f</var><sub>v</sub>(<var>v</var>)); ℓ]), assumes visual tokens reach the decoder unfused beside language. In GR00T the decoder sees a fused tensor:</p>
+<div class=eq><span><var>a</var> ~ <var>g</var><sub>DiT</sub>( <var>a</var>; <var>h</var>( <var>A</var>(<var>f</var><sub>v</sub>(<var>v</var>)), ℓ ), <var>s</var> ),&nbsp;&nbsp;&nbsp; <var>h</var> = vl_self_attn ∘ vlln ∘ LLM<sub>16</sub></span><span class=n>(9A.1)</span></div>
+<p>If <var>A</var> sits upstream of S2, A1's constant becomes a product: d<sub>TV</sub> ≤ <var>L</var><sub>DiT</sub> · <var>L</var><sub>h</sub> · ‖<var>A</var>(<var>f</var><sub>v</sub>(<var>v</var>)) − <var>z</var>‖. At S2 it is <var>L</var><sub>DiT</sub> alone.</p>
+<div class=tw><table>
+<tr><th>Part of the paper's theory (§7)</th><th>Architecture-agnostic?</th></tr>
+<tr><td>A1 Lipschitz policy, A2 semantic invariance, the Theorem 1–2 algebra, Eckart–Young in Theorem 3</td><td class=ok>Yes, with <var>L</var> replaced by the composed constant above</td></tr>
+<tr><td>Our critique in §7.2–7.5: mean-token target, missing horizon factor <var>T</var>, the paired-coupling fix (7.2)–(7.3)</td><td class=ok>Yes, unchanged</td></tr>
+<tr><td>Eq. 3's unfused visual tokens beside language</td><td class=warn>No: π0.5-shaped; use (9A.1)</td></tr>
+<tr><td>Theorem 3 / FLA as LoRA on SigLIP MLPs; FTM at D = 2048 post-projector</td><td class=warn>No: the sites and dimensions differ (§9A.2–9A.3)</td></tr>
+<tr><td>The two-zone Spatial / Physical split</td><td class=warn>No: GR00T has four zones: ViT, LLM, adapter, and DiT + state path</td></tr>
+<tr><td>§2's flow-matching and adaRMS specifics</td><td class=warn>No: GR00T uses its own DiT with 4 Euler steps at inference <span class="tag v">verified</span></td></tr>
+</table></div>
+
+<h3>9A.6 Verdicts</h3>
+<div class=tw><table>
+<tr><th>Experiment</th><th>Verdict</th><th>Changes needed</th></tr>
+<tr><td>E1 moment matching</td><td class=amb>Transfers with changes</td><td>Site: merger + 3 DeepStack (per camera possible) or S1 (global); not S2. Inference only, fits on 8 GB. Prior: likely negative (§9A.4) <span class="tag i">inferred</span></td></tr>
+<tr><td>E2 learned FTM</td><td class=amb>Transfers with changes</td><td>
+ <ul>
+ <li><b>Cheap, local:</b> at S2 (or S1 with the adapter frozen). Global γ, β on the image-token positions (<code>image_mask</code>), cached features.</li>
+ <li><b>Paper-faithful:</b> at merger + DeepStack. The LLM is in the backward pass and nothing can be cached, so probably a rented GPU <span class="tag i">inferred</span>.</li>
+ </ul></td></tr>
+<tr><td>E3 the 2×2</td><td class=amb>Transfers with changes</td><td>Define vision-side = ViT / merger / DeepStack and physical-side = DiT + state encoder. Hold the adapter fixed or give it its own arm. Our R-056 adapter is <b>not</b> a clean physical arm: it LoRAs the DiT <i>and</i> <code>vl_self_attention</code> <span class="tag v">verified</span>, so a DiT-only variant is needed. Run on two rows (§10, E3).</td></tr>
+</table></div>
+
+<h3>9A.7 Corrections made in this revision</h3>
+<ul>
+<li>§10.1 previously called GR00T's backbone "Eagle". N1.7 uses Cosmos-Reason2-2B (Qwen3-VL) <span class="tag v">verified</span>. The same slip in the bottom-line card is also corrected.</li>
+<li>E1 previously said "the backbone's output tokens (the input to the action head's VL self-attention)" without naming the tap. That is S1, and the site choice is now explicit.</li>
+<li>Byline added.</li>
+</ul>
+
+<h3>9A.8 Not yet verified</h3>
+<ul>
+<li>The order of the two cameras' tokens in the LLM sequence, which decides how much S1 mixes them under causal attention.</li>
+<li>GR00T memory with the backbone in the backward pass on 8 GB.</li>
+<li>Whether <code>tune_visual</code> or a LoRA on the Qwen3-VL ViT is wired in our LeRobot fork.</li>
+<li>The ViT MLP width, and so FLA's exact parameter count on GR00T.</li>
+</ul>
+
 <h2>10. Future experiments on our stack</h2>
-<p class=small>Scope: what this paper suggests we could test, with what we already have. How it ranks against the rest of the roadmap is prim's call.</p>
+<p class=small>Scope: what this paper suggests we could test, with what we already have. How it ranks against the rest of the roadmap is prim's call. Sites, costs and the architecture differences behind E1–E3 are in §9A.</p>
 
 <h3>10.1 Why this is already close to our questions</h3>
 <div class=tw><table>
 <tr><th>Paper</th><th>Us</th></tr>
-<tr><td>π0.5, SigLIP + Gemma</td><td class=warn>π0.5 does not fit on 8 GB (R-001: OOM loading weights). Any test here is on <b>GR00T N1.7</b> (Eagle vision–language backbone + flow-matching DiT action head, <code>nvidia/gr00t17-lerobot-libero_spatial-640</code>).</td></tr>
+<tr><td>π0.5, SigLIP + Gemma</td><td class=warn>π0.5 does not fit on 8 GB (R-001: OOM loading weights). Any test here is on <b>GR00T N1.7</b> (Cosmos-Reason2-2B, a Qwen3-VL vision–language backbone, + flow-matching DiT action head, <code>nvidia/gr00t17-lerobot-libero_spatial-640</code>).</td></tr>
 <tr><td>"Brittleness lives in the visual tokens"</td><td class=ok>R-039: on GR00T, image tokens carry the perturbation to the action for <i>every</i> LIBERO-Plus category, including robot init; the state token is near-inert. R-048: for the camera row, the agent view carries it (0.98). That is the paper's hypothesis, measured on our model by a different route.</td></tr>
 <tr><td>Adapts the Spatial side only</td><td class=warn>Our retrains (R-053..R-058) do the opposite. The R-056 adapter is LoRA r16 on the 32 DiT blocks and the 4 VL self-attention blocks of the action head; <code>tune_visual</code>, <code>tune_llm</code> and <code>tune_projector</code> are all <code>False</code> (checked in <code>runs/impl_smoke/r056fix_v1/…/adapter_config.json</code>, <code>config.json</code>). <b>So we already have the paper's missing "Physical-only" arm as a recipe.</b></td></tr>
 <tr><td>LIBERO-Plus camera, light, texture, noise</td><td class=ok>Same benchmark, with paired nominal sources (<code>vla_harness/envs/nominal.py</code>), so ε<sub>pair</sub> (7.2) is directly computable.</td></tr>
@@ -365,19 +454,19 @@ filters.append(Not(PathRegex(".*lora.*")))      # ... except their LoRA params
 <p><b>Question:</b> is GR00T's camera-shift damage a per-channel token-statistics shift that closed-form recalibration fixes?</p>
 <p><b>Method:</b></p>
 <ol>
-<li>Cache the backbone's output tokens (the input to the action head's VL self-attention) on nominal and camera-perturbed renders of the same LIBERO-Plus states.</li>
+<li>Cache tokens on nominal and camera-perturbed renders of the same LIBERO-Plus states, at two sites:<ul><li><b>S1</b> (LLM layer-16 output, pre-<code>vlln</code>; already tapped);</li><li>with new hooks, the <b>merger + 3 DeepStack outputs</b> (pre-LLM, per camera).</li></ul>Not at S2: the shift there is 1.02× (§9A.2) <span class="tag v">verified</span>.</li>
 <li>Compute per-channel μ, σ for each set and form γ, β by (3.2).</li>
-<li>Apply them to the agent-view tokens only, using R-048's camera finding.</li>
+<li>Pre-LLM: apply them to the agent-view tokens only, using R-048's camera finding. At S1, apply them globally to the image positions, because the cameras are partly mixed there <span class="tag i">inferred</span>.</li>
 <li>Re-run the camera-row rollouts.</li>
 </ol>
 <p><b>Report:</b> success rate before and after; ε<sub>pair</sub> before and after; and the first-chunk action deviation, R-050-style.</p>
 <p><b>Cost:</b> inference only, so it fits on 8 GB.</p>
 <p><b>Reading:</b> a large recovery means the "one-shot demo" is unnecessary for camera shift. Little recovery means the drift is not a moment shift on GR00T, which is still informative and rules out the cheapest fix.</p>
-<p><b>Caveat:</b> it is not yet checked where in GR00T's backbone a clean per-camera token boundary exists. The vision tokens may be fused with language before the action head sees them <span class="tag i">inferred</span>.</p>
+<p><b>Per-camera boundary (resolved, §9A.2):</b> clean only before the LLM, where ViT attention is per image <span class="tag v">verified</span>; partial at S1; absent at S2 (R-045) <span class="tag v">verified</span>.</p><p><b>Prior:</b> R-037 + R-039 predict E1 is weak on GR00T. The adapter already removes most of the moment shift, while the action-relevant residual survives (§9A.4) <span class="tag i">inferred</span>.</p>
 </div>
 <div class=card>
 <div class=q>E2 · FTM on GR00T (4K-scale parameters, cached features)</div>
-<p>Same token boundary as E1. Learn γ, β by the flow-matching loss on a handful of demos at a fixed camera variant, with everything else frozen. The backbone sits below the modulation, so its outputs can be <b>cached once</b>. Training then needs only forward and backward through the frozen action head, which is cheaper than our R-056 runs.</p>
+<p>Learn γ, β by the flow-matching loss on a handful of demos at a fixed camera variant, with everything else frozen. Two versions (§9A.6):</p><ul><li><b>Cheap, local:</b> γ, β on the image-token positions at <b>S2</b> (or at S1 with the adapter frozen).<ul><li>Backbone outputs are <b>cached once</b>. Training needs only forward and backward through the frozen DiT (plus the adapter for S1), which is cheaper than our R-056 runs.</li><li>It is global across both cameras, since S2 is mixed <span class="tag v">verified</span>.</li><li>S2 is where R-039 shows the action-relevant signal lives <span class="tag v">verified</span>.</li></ul></li><li><b>Paper-faithful:</b> γ, β on the merger and all three DeepStack outputs (≈16K parameters). The 16 LLM layers sit in the backward pass and nothing can be cached, so probably a rented GPU <span class="tag i">inferred</span>.</li></ul>
 <p>Compare with E1. If FTM ≈ moment matching, the actions in the demo carry no extra information.</p>
 <p>Demo source: minted or rescued demos at the perturbed camera, as in R-056's pipeline <span class="tag i">inferred</span>, or a scripted replay of a nominal demo under the new camera. In simulation the trajectory is the same; only the render differs.</p>
 </div>
@@ -385,12 +474,12 @@ filters.append(Not(PathRegex(".*lora.*")))      # ... except their LoRA params
 <div class=q>E3 · The 2×2 the paper didn't run</div>
 <p>Same demos, same step budget, same camera variants. Four arms:</p>
 <ol>
-<li>vision-side only (E2's FTM, or FLA-lite on the top few vision blocks if VRAM allows);</li>
-<li>physical-side only: our existing action-head LoRA recipe;</li>
+<li>vision-side only: E2's paper-faithful FTM on the merger + DeepStack, or LoRA on the top Qwen3-VL ViT blocks (rented GPU);</li>
+<li>physical-side only: a <b>DiT-only</b> LoRA. Our existing R-056 recipe also LoRAs <code>vl_self_attention</code>, so it mixes in the adapter zone (§9A.6);</li>
 <li>both;</li>
 <li>neither (zero-shot).</li>
 </ol>
-<p>Evaluate on the camera row <i>and</i> on nominal, to measure forgetting, and at a held-out camera pose. This decides, on GR00T, whether camera brittleness is a Spatial fault or just cheapest to fix on the Spatial side.</p>
+<p>Keep the adapter frozen in all arms, or add it as a fifth arm. Evaluate on the camera row <i>and</i> on nominal, to measure forgetting, and at a held-out camera pose. This decides, on GR00T, whether camera brittleness is a Spatial fault or just cheapest to fix on the Spatial side.</p><p><b>Run it on two rows for a double dissociation</b> <span class="tag i">inferred</span>:</p><ul><li><b>Camera:</b> predict the vision-side arm wins (agent-view pixels carry 0.98, R-048).</li><li><b>Start pose:</b> predict the physical-side arm wins (R-045: arm pose decodes from S2 image tokens to ~1.5–2 cm at every radius, so the gap is in the head's mapping).</li></ul><p>That crossed outcome would localise faults by row, which the paper's single-row result cannot.</p>
 <p>It also bears on the R-056 post-mortem. If action-head-only LoRA cannot fix a visual shift that a 4K-parameter token affine can, part of what our retrains have been asking the action head to do may belong upstream.</p>
 </div>
 <div class=card>
