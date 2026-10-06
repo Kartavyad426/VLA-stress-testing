@@ -1,0 +1,284 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>FAIL-Detect Maths</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-obs:#2a78d6;--b-score:#eb6834;--b-cp:#1baf7a;--b-pol:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.caution{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.bold{font-weight:600;font-style:normal}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.where dt{display:inline;font-family:var(--serif);font-style:italic}
+.where dd{display:inline;margin:0 14px 0 4px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:140px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.obs{border-left:4px solid var(--b-obs)}.blk.score{border-left:4px solid var(--b-score)}.blk.cp{border-left:4px solid var(--b-cp)}.blk.pol{border-left:4px solid var(--b-pol)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.c{background:var(--b-cp);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+.tag.r{background:var(--b-obs);color:var(--bg)}
+</style></head><body><div class=wrap>
+
+<h1>FAIL-Detect: the maths, and whether it runs on a frozen GR00T</h1>
+<div class=meta>2026-09-28 · Xu, Nguyen, Dixit, Leung, Itkina et al. (Toyota Research Institute), "Can We Detect Failures Without Failure Data? Uncertainty-Aware Runtime Failure Detection for Imitation Learning Policies", RSS 2025, <a href="https://arxiv.org/abs/2503.08558">arXiv:2503.08558</a> · Code <a href="https://github.com/CXU-TRI/FAIL-Detect">CXU-TRI/FAIL-Detect</a> @ <code>b758e55</code> (2025-06-18), read in full for the scorers and the band. Tags: <span class="tag p">paper</span> stated in the paper · <span class="tag c">code</span> read from the repo, file cited · <span class="tag r">ours</span> from our RESULTS.md / captures · <span class="tag i">inferred</span> my reading, not verified.</div>
+
+<div class="card tldr">
+<div class=q>Direct answers</div>
+<ul>
+<li><b>Mechanism.</b> There are two stages, and neither uses failure data. <b>(1) Score.</b> Fit a small, separate network to the policy's own <i>observation embeddings</i> <var>O</var><sub>t</sub> (and, for some scorers, its action chunks <var>A</var><sub>t</sub>) on nominal data. It outputs one scalar per policy forward, and that scalar rises when the input is off-distribution. <b>(2) Threshold.</b> Functional conformal prediction over a few hundred <i>successful</i> rollouts gives a time-varying upper band. A rollout is flagged as failing at the <b>first</b> forward where its score crosses the band.</li>
+<li><b>The score they recommend, logpZO</b>, is one Euler step of a flow-matching model that maps <var>O</var><sub>t</sub> to Gaussian noise. The score is the squared norm of the noise it lands on: <var>s</var> = ‖<var>O</var> + <var>f</var><sub>θ</sub>(<var>O</var>, 0)‖². This equals −2 log <var>p</var><sub>Z</sub>(<var>z</var>) up to a constant. It is a density-style OOD score on <var>O</var><sub>t</sub> <b>alone</b>, and the code never passes actions to it (§3).</li>
+<li><b>Can we use it with a checkpoint we will not retrain? <span class=ok>Yes.</span></b> The policy stays frozen, and their own pipeline loads <code>latest.ckpt</code> and only reads it. What you do train is the <b>scorer</b>, a separate small model. Three things are needed: access to the policy's internal embedding (we have this: <code>vla_harness/capture/groot_features.py</code>), a nominal dataset of <var>O</var><sub>t</sub> to fit the scorer, and roughly 20 to 1,000 successful rollouts to calibrate the band.</li>
+<li><b>The catch for GR00T, from our own results.</b> Which tensor you use as <var>O</var><sub>t</sub> matters a great deal. The one the action head actually conditions on (S2, <code>vl_adapted</code>) <b>does not move</b> under vision perturbations (R-037: 1.02×), while pre-adapter S1 does (1.37×). And in R-037 even S1 <b>detected</b> the perturbation without <b>predicting failure</b> within the vision arm. logpZO is an observation-only OOD score, so expect it to inherit that limit: it is an alarm for "off-distribution", not for "about to fail" (§11).</li>
+<li><b>Licence: CC BY-NC 4.0.</b> The code is non-commercial. Reimplement from the maths below (about 200 lines); don't vendor their repo.</li>
+</ul>
+</div>
+
+<h2>1. The problem, and the one design decision that shapes everything</h2>
+<p>An imitation-learning policy <var>g</var>(<var>A</var><sub>t</sub> | <var>O</var><sub>t</sub>) emits an action chunk <var>A</var><sub>t</sub> = (<var>A</var><sub>t|t</sub>, …, <var>A</var><sub>t+H−1|t</sub>) from an observation <var>O</var><sub>t</sub>. The goal is a runtime decision function <var>D</var>(τ<sub>t</sub>) ∈ {0, 1} on the trajectory so far, which flags failure <b>before</b> the episode ends <span class="tag p">paper</span>.</p>
+<p>The design decision is to have <b>no failure data</b> at training or calibration time. Everything is fitted to successes and nominal demonstrations. That leaves two sub-problems:</p>
+<ol>
+<li>a <b>scalar score</b> <var>D</var><sub>M</sub>(<var>A</var><sub>t</sub>, <var>O</var><sub>t</sub>; θ) that is small on the training distribution and large away from it; and</li>
+<li>a <b>threshold</b> that controls false alarms on successful rollouts, with a guarantee that does not depend on how the score is distributed.</li>
+</ol>
+<p>The paper's bet is that "far from what the policy was trained on" is a good proxy for "about to fail", because an imitation policy has no competence outside its data.</p>
+
+<div class=diag>
+ <div class=row>
+  <div class="blk pol"><b>Frozen policy</b>obs encoder → <var>O</var><sub>t</sub> ; action head → <var>A</var><sub>t</sub>. Never updated.</div>
+  <div class="blk obs"><b>Stage 0 · extract</b>run demos through the frozen encoder → {(<var>O</var><sub>t</sub>, <var>A</var><sub>t</sub>)}. <code>save_data.py</code></div>
+ </div>
+ <div class=arrow>↓</div>
+ <div class=row>
+  <div class="blk score"><b>Stage 1 · fit a scorer</b>logpZO / RND / CFM / NatPN / DER, trained on successes only. <code>UQ_baselines/*/train.py</code></div>
+  <div class="blk cp"><b>Stage 2 · calibrate the band</b>score <var>N</var><sub>1</sub>+<var>N</var><sub>2</sub> successful rollouts → μ<sub>t</sub>, <var>m</var><sub>t</sub>, <var>h</var>. <code>UQ_test/plot_with_CP_band.py</code></div>
+ </div>
+ <div class=arrow>↓</div>
+ <div class=row>
+  <div class="blk cp"><b>Runtime</b>at each forward: <var>s</var><sub>t</sub> = score(<var>O</var><sub>t</sub>[, <var>A</var><sub>t</sub>]); flag at the first <var>t</var> with <var>s</var><sub>t</sub> ≥ upper<sub>t</sub>.</div>
+ </div>
+</div>
+
+<h2>2. What <var>O</var><sub>t</sub> and <var>A</var><sub>t</sub> actually are in their code</h2>
+<ul>
+<li><b><var>O</var><sub>t</sub> is the policy's own conditioning vector</b>, <code>global_cond</code>. That is the output of <code>obs_encoder</code> (ResNet features for each camera, concatenated with robot state) over <code>n_obs_steps = 2</code> frames, flattened. For Square that is <b>274-d</b>, and 548-d for Transport <span class="tag c">code</span> <code>train_diffusion_unet_hybrid_workspace_get_data.py:86-88</code>.</li>
+<li><b><var>A</var><sub>t</sub> is the normalised demonstration action chunk</b>, horizon 16 × action dim 10 (Square), flattened to 160 <span class="tag c">code</span> <code>:79, :83</code>.</li>
+<li><b>The scorer's training set is the policy's training demonstrations, not rollouts.</b> <code>save_data.py</code> loads the checkpoint and walks <code>train_dataloader</code> with <code>shuffle=False</code> through the frozen <code>ema_model</code> <span class="tag c">code</span>. So "nominal" here means "what the policy was trained on".</li>
+<li><b>At runtime, <var>O</var><sub>t</sub> is the rollout's <code>global_cond</code> and <var>A</var><sub>t</sub> is the policy's sampled <code>action_pred</code></b>, scored once per forward, every 8 env steps (<code>n_action_steps = 8</code>) <span class="tag c">code</span> <code>robomimic_image_runner_FAIL-Detect.py:407-458</code>.</li>
+<li><b>A layout hack worth knowing about.</b> The scorers reuse Diffusion Policy's 1-D temporal U-Net. To feed it a flat vector, <code>adjust_xshape</code> zero-pads 274 → 280 and reshapes to a fake sequence of 28 "tokens" of width 10, padded to a multiple of 4 <span class="tag c">code</span> <code>UQ_baselines/data_loader.py</code>. The convolution runs across chunks of an embedding that have no temporal order. This is a convenience, not part of the method.</li>
+</ul>
+
+<h2>3. logpZO, the recommended score</h2>
+<h3>3.1 Fit a flow from observations to noise</h3>
+<p>This is a standard rectified-flow / flow-matching objective, with <b>data at <var>s</var> = 0 and noise at <var>s</var> = 1</b>:</p>
+<div class=eq><span><var>O</var>[<var>s</var>] = <var>O</var> + <var>s</var>(<var>Z</var> − <var>O</var>), &nbsp; <var>Z</var> ~ 𝒩(0, <var>I</var>), &nbsp; <var>s</var> ~ U[0, 1]</span><span class=n>(1)</span></div>
+<div class=eq><span>ℒ(θ) = 𝔼<sub><var>O</var>, <var>Z</var>, <var>s</var></sub> ‖ <var>f</var><sub>θ</sub>(<var>O</var>[<var>s</var>], <var>s</var>) − (<var>Z</var> − <var>O</var>) ‖²</span><span class=n>(2)</span></div>
+<dl class=where><dt>f</dt><dd>velocity network (unconditional 1-D U-Net, 256/512/1024)</dd><dt>O</dt><dd>observation embedding only; <var>A</var> is loaded and ignored</dd></dl>
+<p><span class="tag c">code</span> <code>UQ_baselines/logpZO/train.py</code>: <code>x0 = observation; x1 = randn; vtrue = x1 - x0; xnow = x0 + t*vtrue; loss = (vhat - vtrue)^2</code>. Time enters as the integer <code>long(100·s)</code>. It trains for 200 epochs, Adam 1e-4, batch 128.</p>
+
+<h3>3.2 Map a test observation to noise in one step</h3>
+<p>If the flow is straight (which is what the objective encourages), a single Euler step from <var>s</var> = 0 to <var>s</var> = 1 lands on the noise sample:</p>
+<div class=eq><span><var>Z</var><sub><var>O</var></sub> = <var>O</var> + <var>f</var><sub>θ</sub>(<var>O</var>, 0)</span><span class=n>(3)</span></div>
+<p>If <var>O</var> is in distribution, <var>Z</var><sub><var>O</var></sub> should look like a draw from 𝒩(0, <var>I</var>). If it is not, the network extrapolates and <var>Z</var><sub><var>O</var></sub> lands somewhere unlikely, usually at a large norm.</p>
+
+<h3>3.3 The score, and where the name comes from</h3>
+<div class=eq><span>log <var>p</var><sub>Z</sub>(<var>Z</var><sub><var>O</var></sub>) = −<sup><var>d</var></sup>⁄<sub>2</sub> log 2π − ½‖<var>Z</var><sub><var>O</var></sub>‖² &nbsp;&nbsp;⟹&nbsp;&nbsp; <span class=bold>s<sub>logpZO</sub>(O) = ‖O + f<sub>θ</sub>(O, 0)‖²₂</span></span><span class=n>(4)</span></div>
+<p>"logpZO" means <b>log p of Z given O</b>. It is the Gaussian log-likelihood of the latent code, <b>not</b> the likelihood of <var>O</var>. By change of variables the two differ by the Jacobian term:</p>
+<div class=eq><span>log <var>p</var>(<var>O</var>) = log <var>p</var><sub>Z</sub>(<var>Z</var><sub><var>O</var></sub>) + log |det ∂<var>Z</var><sub><var>O</var></sub>/∂<var>O</var>| = log <var>p</var><sub>Z</sub>(<var>Z</var><sub><var>O</var></sub>) + log |det(<var>I</var> + <var>J</var><sub>f</sub>)|</span><span class=n>(5)</span></div>
+<p>logpZO simply <b>drops the Jacobian term</b>. That makes it cheap: one network call, and 0.033 to 0.04 s per step against STAC's 1.45 s, a 36 to 44× speedup <span class="tag p">paper</span>. It also makes it the best-performing score in their benchmark (§9). The version that keeps the Jacobian term is logpO (§3.4). It exists in the code and lost.</p>
+<pre class=code># UQ_test/eval_load_baseline.py : logpZO_UQ   (action_pred is never passed at the call site)
+pred_v = net(O, t=0)
+Z      = O + pred_v
+score  = Z.reshape(B, -1).pow(2).sum(-1)</pre>
+<p class=small>The padded zero dimensions from <code>adjust_xshape</code> are included in the norm. Their target is 0, so they add only the network's residual there, which is small in distribution <span class="tag i">inferred</span>.</p>
+
+<h3>3.4 logpO, the version with the Jacobian (a baseline in their table)</h3>
+<p>Because <var>J</var><sub>f</sub> is small for a near-identity map, they use log det(<var>I</var> + <var>J</var>) ≈ tr(<var>J</var>) and estimate the trace with a single-probe Hutchinson estimator and a finite difference:</p>
+<div class=eq><span>tr(<var>J</var><sub>f</sub>) ≈ ε<sup>⊤</sup> [ <var>f</var><sub>θ</sub>(<var>O</var> + σε, 0) − <var>f</var><sub>θ</sub>(<var>O</var>, 0) ] ⁄ σ, &nbsp; σ = 10<sup>−3</sup>/√<var>d</var>, &nbsp; ε ~ 𝒩(0, <var>I</var>) fixed</span><span class=n>(6)</span></div>
+<div class=eq><span>s<sub>logpO</sub>(<var>O</var>) = −[ log 𝒩(<var>Z</var><sub><var>O</var></sub>; 0, <var>I</var>) + tr(<var>J</var><sub>f</sub>) ]</span><span class=n>(7)</span></div>
+<p><span class="tag c">code</span> <code>logpO_UQ</code>. The score is negated in <code>plot_with_CP_band.py</code> so that higher means more anomalous. It reuses the logpZO network, so there is no separate training.</p>
+
+<h2>4. RND (random network distillation): the only one of the five that uses the action</h2>
+<p>There are two identical conditional 1-D U-Nets over the action chunk, each conditioned on <var>O</var>: a <b>frozen random target</b> <var>f</var><sub>T</sub> and a <b>trained predictor</b> <var>f</var><sub>θ</sub>. The predictor learns to imitate the target <i>only on training pairs</i>, so its error grows off-distribution:</p>
+<div class=eq><span>ℒ(θ) = 𝔼<sub>(<var>A</var>, <var>O</var>)</sub> <span style="font-size:1.1em">[</span> <sup>1</sup>⁄<sub><var>H</var></sub> Σ<sub><var>k</var>=1..<var>H</var></sub> ‖ <var>f</var><sub>T</sub>(<var>A</var>, <var>O</var>)<sub><var>k</var></sub> − <var>f</var><sub>θ</sub>(<var>A</var>, <var>O</var>)<sub><var>k</var></sub> ‖₂ <span style="font-size:1.1em">]</span></span><span class=n>(8)</span></div>
+<div class=eq><span>s<sub>RND</sub>(<var>A</var><sub>t</sub>, <var>O</var><sub>t</sub>) = Σ<sub><var>k</var>=1..<var>H</var></sub> ‖ <var>f</var><sub>T</sub>(<var>A</var><sub>t</sub>, <var>O</var><sub>t</sub>)<sub><var>k</var></sub> − <var>f</var><sub>θ</sub>(<var>A</var><sub>t</sub>, <var>O</var><sub>t</sub>)<sub><var>k</var></sub> ‖₂</span><span class=n>(9)</span></div>
+<dl class=where><dt>k</dt><dd>index within the H = 16 action chunk; the norm is per step over the action width</dd><dt>A<sub>t</sub></dt><dd>train: demonstration chunk · test: the policy's own sampled <code>action_pred</code></dd></dl>
+<p><span class="tag c">code</span> <code>UQ_baselines/RND/net.py</code>: <code>nn.PairwiseDistance(p=2)</code> over the last axis, <code>.mean()</code> in training, <code>.sum(dim=1)</code> at test. The paper writes the objective with a squared norm; the code uses the un-squared L2 <span class="tag c">code</span>. The difference is harmless for ranking.</p>
+<p><b>Why it matters to us.</b> RND scores the <i>pair</i>. It can fire when the observation looks normal but the sampled action is unusual <i>for that observation</i>. No O-only score can do that. In their table it is top-3 in 9/16 sim cases, against 14/16 for logpZO <span class="tag p">paper</span>.</p>
+
+<h2>5. CFM (consistency flow matching): a curvature score</h2>
+<p>This is the same flow as logpZO, with a consistency penalty added to make the trajectories straight. The penalty asks that the predicted endpoint be the same from two nearby times:</p>
+<div class=eq><span><var>F</var><sub>s</sub>(<var>x</var>) = <var>x</var> + (1 − <var>s</var>) <var>f</var><sub>θ</sub>(<var>x</var>, <var>s</var>), &nbsp;&nbsp; ℒ = ℒ<sub>FM</sub> + β ‖<var>F</var><sub>s</sub>(<var>O</var>[<var>s</var>]) − sg[<var>F</var><sub>s+δ</sub>(<var>O</var>[<var>s</var>+δ])]‖², &nbsp; δ = 5·10<sup>−3</sup></span><span class=n>(10)</span></div>
+<p>β is rescaled every batch so that β·ℒ<sub>f</sub> = 0.01·ℒ<sub>FM</sub> (both read as <code>.item()</code>, so β carries no gradient) <span class="tag c">code</span> <code>UQ_baselines/CFM/train.py</code>. sg means stop-gradient.</p>
+<p><b>The score</b> integrates 5 Euler steps and measures how much the velocity <b>changes</b> along the path. On a well-learned, straight flow the velocity is constant, and off-distribution it bends:</p>
+<div class=eq><span>s<sub>CFM</sub>(<var>O</var>) = <sup>1</sup>⁄<sub><var>d</var></sub> Σ<sub><var>j</var>=1..<var>d</var></sub> std<sub><var>i</var>=1..5</sub> [ <var>f</var><sub>θ</sub>(<var>x</var><sub><var>i</var></sub>, <var>s</var><sub><var>i</var></sub>) ]<sub><var>j</var></sub>, &nbsp; <var>x</var><sub>1</sub> = <var>O</var>, &nbsp; <var>x</var><sub><var>i</var>+1</sub> = <var>x</var><sub><var>i</var></sub> − <var>f</var><sub>θ</sub>(<var>x</var><sub><var>i</var></sub>, <var>s</var><sub><var>i</var></sub>)/5, &nbsp; <var>s</var> = 1, .8, .6, .4, .2</span><span class=n>(11)</span></div>
+<p class=small><span class="tag c">code</span> <code>CFM_UQ</code>. <b>Oddity:</b> the test-time integration puts <var>O</var> at <var>s</var> = 1 (the noise end) and steps toward <var>s</var> = 0, which is the reverse of the training convention in (1). A commented-out line in <code>train.py</code> shows the direction was once flipped. As a curvature probe it still yields a number, but it is not the path the model was trained on <span class="tag i">inferred</span>. If we reimplement, integrate from <var>s</var> = 0 upward.</p>
+
+<h2>6. NatPN (natural posterior network): density in a latent space, with pseudo-labels</h2>
+<p>NatPN needs a classification or regression target, and there are no labels here. So they <b>invent one</b>: k-means with <var>K</var> = 64 clusters on <var>O</var> gives each training point a cluster id <var>y</var> <span class="tag c">code</span> <code>UQ_baselines/NatPN/train.py</code>. Then:</p>
+<div class=eq><span><var>z</var> = enc<sub>φ</sub>(<var>O</var>), &nbsp; <var>n</var>(<var>O</var>) = <var>N</var><sub>H</sub> · <var>p</var><sub>ψ</sub>(<var>z</var>), &nbsp; α<sup>post</sup> = α<sup>prior</sup> + <var>n</var>(<var>O</var>) · χ<sub>φ</sub>(<var>z</var>)</span><span class=n>(12)</span></div>
+<dl class=where><dt>enc</dt><dd>"tabular" MLP encoder</dd><dt>p<sub>ψ</sub></dt><dd>16-layer normalising flow over <var>z</var></dd><dt>χ</dt><dd>predicted class probabilities over the 64 clusters</dd><dt>α</dt><dd>Dirichlet concentration</dd></dl>
+<p>Training minimises the Bayesian (expected-NLL plus entropy) loss of the Dirichlet posterior against the cluster labels. The evidence <var>n</var> can only be large where the flow density <var>p</var><sub>ψ</sub>(<var>z</var>) is high, so low density means low evidence, which means uncertain. <b>The score used is the flow's log density, negated:</b></p>
+<div class=eq><span>s<sub>NatPN</sub>(<var>O</var>) = −log <var>p</var><sub>ψ</sub>(enc<sub>φ</sub>(<var>O</var>))</span><span class=n>(13)</span></div>
+<p class=small><span class="tag c">code</span> <code>NatPN_UQ</code> returns <code>log_prob</code> from <code>posterior_update</code> (the <code>flow.forward(z)</code> term). It is negated in <code>plot_with_CP_band.py</code>. The 64 k-means classes only shape the encoder; the score is a learned-latent density. Note that <var>z</var> is <i>learned</i>, so this density is on a space trained to separate clusters, not on <var>O</var> itself.</p>
+
+<h2>7. DER (multivariate deep evidential regression): epistemic variance of the action</h2>
+<p>This regresses the (normalised, flattened) action chunk <var>Y</var> ∈ ℝ<sup><var>p</var></sup>, <var>p</var> = 160, from <var>O</var>, predicting the parameters of a <b>Normal-Inverse-Wishart</b> prior over the Gaussian's mean and covariance:</p>
+<div class=eq><span>(μ, ν, κ, <var>L</var>) = head(U-Net(<var>O</var>)), &nbsp; ν = softplus(·) + <var>p</var> + 1, &nbsp; κ = softplus(·) + 1, &nbsp; <var>L</var> lower-triangular with softplus diagonal</span><span class=n>(14)</span></div>
+<p>Training uses the NIW negative log-likelihood (the marginal is a multivariate Student-t) with AdamW and a one-cycle schedule <span class="tag c">code</span> <code>DER/train.py</code>, <code>losses.py:NIW_NLL</code>. The score is the trace of the epistemic covariance:</p>
+<div class=eq><span>Σ<sub>alea</sub> = <var>LL</var><sup>⊤</sup> ⁄ (ν − <var>p</var> − 1), &nbsp;&nbsp; Σ<sub>epi</sub> = Σ<sub>alea</sub> ⁄ ν, &nbsp;&nbsp; <span class=bold>s<sub>DER</sub>(O) = tr Σ<sub>epi</sub></span></span><span class=n>(15)</span></div>
+<p class=small><span class="tag c">code</span> <code>networks_chen.py:get_prediction</code>. The code divides by <b>ν</b>. In the textbook NIW, the variance of the mean is <var>E</var>[Σ]/κ, so κ is what it should divide by, and κ is predicted but unused in the score. Treat (15) as "what they ran", not a canonical definition <span class="tag i">inferred</span>. It uses only <var>O</var> as input. The action is the regression target, not an input.</p>
+
+<h3>7.1 The rest of their comparison set, in one table</h3>
+<div class=tw><table>
+<tr><th>score</th><th>input</th><th>formula</th><th>trained?</th></tr>
+<tr><td>logpZO</td><td><var>O</var></td><td>‖<var>O</var> + <var>f</var>(<var>O</var>, 0)‖²  (4)</td><td>flow net</td></tr>
+<tr><td>logpO</td><td><var>O</var></td><td>(4) + Hutchinson Jacobian trace  (7)</td><td>reuses logpZO net</td></tr>
+<tr><td>RND</td><td><var>O</var>, <var>A</var></td><td>Σ<sub>k</sub> ‖<var>f</var><sub>T</sub> − <var>f</var><sub>θ</sub>‖  (9)</td><td>predictor net</td></tr>
+<tr><td>CFM</td><td><var>O</var></td><td>velocity std along 5 Euler steps  (11)</td><td>flow net + consistency</td></tr>
+<tr><td>NatPN</td><td><var>O</var></td><td>−log <var>p</var><sub>ψ</sub>(enc(<var>O</var>))  (13)</td><td>encoder + flow, k-means labels</td></tr>
+<tr><td>DER</td><td><var>O</var> → <var>A</var></td><td>tr Σ<sub>epi</sub>  (15)</td><td>NIW head</td></tr>
+<tr><td>PCA-kmeans</td><td><var>O</var></td><td>min<sub>c</sub> ‖PCA(<var>O</var>) − μ<sub>c</sub>‖, 64 centroids</td><td>closed form</td></tr>
+<tr><td>STAC</td><td><var>A</var> only</td><td>MMD between overlapping parts of consecutive chunks, 256 samples each, RBF with median bandwidth, cumulative</td><td>none (post hoc)</td></tr>
+</table></div>
+<p class=small>STAC is the method we already ran as single-draw on R-041 (noise-dominated, AUROC at chance; <code>experiments/stac_r041_single_draw.py</code>, Decision_28Sep option 4a) <span class="tag r">ours</span>. FAIL-Detect uses a <b>single constant</b> threshold on STAC's cumulative sum, not the band.</p>
+
+<h2>8. The conformal band: from a score to a decision</h2>
+<p>All scorers share this stage, and it is the part with a guarantee. It is <b>functional</b> conformal prediction (Diquigiovanni et al., "The Importance of Being a Band", <a href="https://arxiv.org/abs/2102.06746">arXiv:2102.06746</a>). The whole score trajectory is treated as one sample, so the guarantee covers <b>every timestep at once</b>, not each step separately.</p>
+
+<h3>8.1 Data</h3>
+<p>Run <var>N</var> rollouts in the nominal environment and keep the <b>successful</b> ones. Each one gives a score trajectory <var>s</var><sup><var>i</var></sup> = (<var>s</var><sup><var>i</var></sup><sub>1</sub>, …, <var>s</var><sup><var>i</var></sup><sub><var>T</var></sub>) of the <b>same length <var>T</var></b>. Split them in the ratio num_train : num_cal = 300 : 700 into a shaping set 𝒜 (size <var>N</var><sub>1</sub>) and a calibration set ℬ (size <var>N</var><sub>2</sub>) <span class="tag c">code</span> <code>plot_with_CP_band.py</code>, defaults <code>--num_train 300 --num_cal 700</code>.</p>
+
+<h3>8.2 Shape: a mean and a modulation, from 𝒜</h3>
+<div class=eq><span>μ<sub>t</sub> = <sup>1</sup>⁄<sub><var>N</var><sub>1</sub></sub> Σ<sub><var>i</var>∈𝒜</sub> <var>s</var><sup><var>i</var></sup><sub>t</sub>, &nbsp;&nbsp; <var>r</var><sup><var>i</var></sup><sub>t</sub> = |<var>s</var><sup><var>i</var></sup><sub>t</sub> − μ<sub>t</sub>|, &nbsp;&nbsp; <var>R</var><sup><var>i</var></sup> = max<sub>t</sub> <var>r</var><sup><var>i</var></sup><sub>t</sub></span><span class=n>(16)</span></div>
+<div class=eq><span>γ = <var>R</var><sub>(⌈(<var>N</var><sub>1</sub>+1)(1−α)⌉)</sub>, &nbsp;&nbsp; <var>m</var><sub>t</sub> = max<sub><var>i</var>∈𝒜 : <var>R</var><sup><var>i</var></sup> ≤ γ</sub> <var>r</var><sup><var>i</var></sup><sub>t</sub> + 10<sup>−8</sup></span><span class=n>(17)</span></div>
+<p>In words, <var>m</var><sub>t</sub> ("Tfunc" modulation) is the per-timestep envelope of the shaping residuals once the most extreme α-fraction of trajectories is dropped. It makes the band <b>wide where successes are naturally noisy and narrow where they are consistent</b>. That is the reason the band varies over time instead of being a flat line. If ⌈(<var>N</var><sub>1</sub>+1)(1−α)⌉ &gt; <var>N</var><sub>1</sub>, all trajectories are kept <span class="tag c">code</span> <code>functional_predictor.py:_get_modulation_trajectory</code>.</p>
+
+<h3>8.3 Calibrate: one number per calibration trajectory, from ℬ</h3>
+<div class=eq><span><var>D</var><sub><var>j</var></sub> = max<sub>t</sub> ( <var>s</var><sup><var>j</var></sup><sub>t</sub> − μ<sub>t</sub> ) ⁄ <var>m</var><sub>t</sub>, &nbsp; <var>j</var> ∈ ℬ &nbsp;&nbsp;&nbsp;&nbsp; <var>h</var> = Quantile<sub>1−α</sub>{<var>D</var><sub><var>j</var></sub>}</span><span class=n>(18)</span></div>
+<div class=eq><span>upper<sub>t</sub> = μ<sub>t</sub> + <var>h</var> · <var>m</var><sub>t</sub></span><span class=n>(19)</span></div>
+<p>The max over <var>t</var> in (18) is what makes the band simultaneous. A calibration trajectory's "badness" is its worst-normalised excursion anywhere, so <var>h</var> is chosen so that only an α-fraction of successful trajectories ever touch the band.</p>
+
+<h3>8.4 Decide</h3>
+<div class=eq><span><var>D</var>(τ<sub>t</sub>) = 𝟙[ ∃ <var>t</var>′ ≤ <var>t</var> : <var>s</var><sub><var>t</var>′</sub> ≥ upper<sub><var>t</var>′</sub> ], &nbsp;&nbsp; detection time = 8 · (first such <var>t</var>′)</span><span class=n>(20)</span></div>
+<p>It fires once and latches. The metrics reported are TPR, TNR, balanced accuracy (TPR+TNR)/2, and the mean detection time over true positives <span class="tag c">code</span> <code>get_detection_with_plot</code>, <code>get_metric</code>.</p>
+
+<h3>8.5 The guarantee, precisely, and what it is not</h3>
+<div class="card">
+<p style="margin-top:0"><b>What it says.</b> If a new successful rollout is <b>exchangeable</b> with the calibration successes (same environment, same policy, same distribution), then</p>
+<div class=eq><span>P( <var>s</var><sub>t</sub> ≤ upper<sub>t</sub> for all <var>t</var> ) ≥ 1 − α &nbsp;&nbsp;⟺&nbsp;&nbsp; false-alarm rate on nominal successes ≤ α</span><span class=n>(21)</span></div>
+<p><b>What it does not say:</b></p>
+<ul>
+<li><b>Nothing about detecting failures.</b> TPR is purely empirical. The guarantee is one-sided and only about successes.</li>
+<li><b>Nothing about successes in a <i>shifted</i> environment.</b> Those are not exchangeable with the nominal calibration set. An OOD rollout that succeeds anyway is likely to be flagged, and the α bound does not apply to it. The paper lists this as a limitation for hardware <span class="tag p">paper</span>.</li>
+<li><b>The code's quantile is not the finite-sample one.</b> Exact split CP takes the ⌈(<var>N</var><sub>2</sub>+1)(1−α)⌉-th order statistic. The code uses <code>np.quantile(·, 1−α)</code>, with the exact line commented out beside it <span class="tag c">code</span> <code>functional_predictor.py:get_one_sided_prediction_band</code>. At <var>N</var><sub>2</sub> = 700 the difference is negligible. At our scale (<var>N</var><sub>2</sub> ≈ 20) it matters, so use the exact form. That form also requires <var>N</var><sub>2</sub> ≥ ⌈1/α⌉ − 1 (19 for α = 0.05) before the band is finite at all.</li>
+<li><b>α is tuned per task in the code, not fixed at 0.05.</b> For flow policies it is 0.025, or 0.01 on Transport; for diffusion policies 0.0125, or 0.05 on Transport <span class="tag c">code</span> <code>get_alpha()</code>. Keep this in mind when reading their operating points.</li>
+</ul>
+</div>
+
+<h2>9. What they report</h2>
+<div class=tw><table>
+<tr><th>claim</th><th>value</th><th>source</th></tr>
+<tr><td>Best score overall</td><td>logpZO: top-1 in 10/16 sim and 8/12 real cases; top-3 in 14/16 sim. RND top-3 in 9/16 sim.</td><td><span class="tag p">paper</span></td></tr>
+<tr><td>Balanced accuracy (best method, average)</td><td>≈ 78% sim, ≈ 72% real</td><td><span class="tag p">paper</span></td></tr>
+<tr><td>Post-hoc baselines</td><td>STAC top-1 3/16, PCA-kmeans 0/16. STAC's detection time often exceeds the mean <i>success</i> duration, i.e. it fires too late to matter.</td><td><span class="tag p">paper</span></td></tr>
+<tr><td>Cost</td><td>logpZO 0.033–0.04 s per step; STAC 1.45 s (256 samples per step)</td><td><span class="tag p">paper</span></td></tr>
+<tr><td>Sim OOD perturbation</td><td><b>The camera is translated along x</b> by δ at env step 50 (15 for Can) and restored after the episode</td><td><span class="tag c">code</span> <code>robomimic_image_wrapper.py:modify_environment</code>; <code>eval_together.py</code></td></tr>
+<tr><td>Hardware</td><td>FoldRedTowel (bimanual Franka), CleanUpSpill; FM and DP policies; <b>20–50 successful calibration rollouts</b> per condition, 50 test rollouts</td><td><span class="tag p">paper</span></td></tr>
+<tr><td>Policies</td><td>Their own robomimic Diffusion Policy and a flow-matching variant, same U-Net, ResNet obs encoder. <b>No VLA was tested.</b></td><td><span class="tag c">code</span></td></tr>
+</table></div>
+<p>Their sim OOD is <b>the same axis as our R-041 <code>camera_dist_m</code> sweep</b>, a camera translation. That makes a like-for-like comparison unusually easy to set up (§10.3).</p>
+
+<h2>10. Using it on a checkpoint we don't retrain: GR00T N1.7</h2>
+<h3>10.1 What it needs, and what we already have</h3>
+<div class=tw><table>
+<tr><th>requirement</th><th>their version</th><th>our status</th></tr>
+<tr><td>Frozen policy</td><td><code>latest.ckpt</code>, read only</td><td><span class=ok>have</span> <code>gr00t17-lerobot-libero_spatial-640</code></td></tr>
+<tr><td>Access to <var>O</var><sub>t</sub> at each forward</td><td><code>global_cond</code>, returned by their patched <code>predict_action</code></td><td><span class=ok>have</span> taps S1 / S1.5 / S2 / S0e, image- and text-pooled, per forward (<code>capture/groot_features.py</code>) <span class="tag r">ours</span></td></tr>
+<tr><td>Access to <var>A</var><sub>t</sub> (for RND)</td><td><code>action_pred</code></td><td><span class=ok>have</span> <code>action_pred</code> 40 × 7 (sliced from 132) <span class="tag r">ours</span></td></tr>
+<tr><td>Nominal data to fit the scorer</td><td>the policy's training demos through the frozen encoder, tens of thousands of samples</td><td><span class=warn>missing</span> The largest nominal capture is R-037 arm A: <b>163 forwards / 20 episodes</b>. Far too few (§10.2).</td></tr>
+<tr><td>Successful rollouts to calibrate</td><td>up to 700 sim, 20–50 real</td><td><span class=warn>missing</span> needs a dedicated nominal capture run, separate from the fitting data</td></tr>
+<tr><td>Fixed-length score trajectories</td><td>robomimic runs to the horizon (400 steps → 50 scores)</td><td><span class=amb>mismatch</span> LIBERO ends on success, so lengths vary (5–8+ forwards)</td></tr>
+<tr><td>Licence to reuse code</td><td>CC BY-NC 4.0</td><td><span class=warn>no</span> reimplement from §3–§8</td></tr>
+</table></div>
+
+<h3>10.2 The GR00T-specific decisions, in the order they bite</h3>
+<ol>
+<li><b>Which tensor is <var>O</var><sub>t</sub>.</b> The literal analogue of <code>global_cond</code> is what GR00T's action head conditions on, [pool(S2) ‖ S0e]. <b>Our results say that is the wrong choice for vision.</b> R-037 found S2 flat under camera, lighting and noise perturbations (median NN distance ratio 1.02×), because <code>vl_self_attention</code> removes the signal, while pre-adapter S1 moves 1.37× <span class="tag r">ours</span>. The recommended <var>O</var><sub>t</sub> is <b>[<code>vl_encoder_img_mean</code> (S1, image tokens) ‖ <code>state_encoded</code> (S0e)]</b>, 2048 + 1536 = 3,584-d. Keep the S2 variant as a control, because the result lives in the difference, as it did in R-037.</li>
+<li><b>Dimension and network.</b> Their flow net sees 274-d through a U-Net hack. At 3,584-d with fp16 activations that can peak at 15k (S1 is pre-LayerNorm; R-036 fp16 overflow note), use this recipe: standardise per dimension in fp32, apply PCA to about 128–256, then use an <b>MLP</b> velocity net with time embedding for logpZO and CFM, and an MLP pair for RND <span class="tag i">inferred</span>. None of these choices change the maths in §3–§5.</li>
+<li><b>What "nominal" data fits the scorer.</b> The faithful choice is the policy's LIBERO-spatial fine-tuning demos, run once through the frozen backbone. This costs one backbone forward per frame and needs no simulator. The cheaper choice is successful nominal rollouts. <b>Either way, the fitting set and the calibration set must be disjoint</b>, or (18) is scored on points the scorer was fitted to. This is the same leave-one-out trap that produced a 4.9e7× artefact in R-036 <span class="tag r">ours</span>.</li>
+<li><b>Cadence.</b> One score per model forward, every <code>n_action_steps = 16</code> env steps, so about 8 per episode. The band is indexed by <b>forward index</b>, not env step. Their resolution is every 8 steps, so ours is half as fine.</li>
+<li><b>Variable length.</b> (16)–(18) need a common <var>T</var>. There are two options. <b>(a)</b> Run the nominal calibration episodes to a fixed horizon without success termination. That is closest to their protocol, but it changes what a "success trajectory" looks like after the task is done. <b>(b)</b> Pad each finished trajectory with its last score up to <var>T</var><sub>max</sub>. That is cheap, but it makes the band's late section depend on episodes that already ended <span class="tag i">inferred</span>. This choice is yours to make before any run.</li>
+<li><b>Labels come from the capture run.</b> GR00T's denoise starts from an unseeded <code>torch.randn</code>, so outcomes do not reproduce across runs. Successes for calibration, and failures for testing, must come from the run that produced the scores <span class="tag r">ours</span> (R-036 convention).</li>
+<li><b>Calibration size.</b> α = 0.05 with the exact quantile needs <var>N</var><sub>2</sub> ≥ 19 successes, plus <var>N</var><sub>1</sub> for shaping. Their hardware setting (20–50) is the realistic target, so that means about 50–70 nominal successes for 𝒜 ∪ ℬ, plus the fitting set.</li>
+</ol>
+
+<h3>10.3 Cost, only where measured</h3>
+<ul>
+<li><b>Capture:</b> 2.208 s per forward at k = 4 resampling, 26.3 KB per forward (R-036, measured) <span class="tag r">ours</span>. FAIL-Detect needs k = 1, so it should cost less; that figure is not measured.</li>
+<li><b>Scorer training:</b> a small MLP on at most tens of thousands of 256-d vectors. This is CPU/GPU minutes in principle, <b>not measured</b>.</li>
+<li><b>Runtime cost of logpZO:</b> one small MLP call per forward, negligible next to GR00T's 2B backbone <span class="tag i">inferred</span>.</li>
+<li><b>A CPU-only dry run is possible today</b> on R-037's stored npz files (all needed keys are present: <code>vl_encoder_img_mean</code>, <code>state_encoded</code>, <code>action_pred</code>). It would validate shapes and plumbing, but it is <b>not a result</b>: 163 nominal forwards cannot fit a 256-d density, and 20 episodes cannot be split into shaping and calibration sets.</li>
+</ul>
+
+<h2>11. What to expect, honestly</h2>
+<div class="card caution">
+<ul style="margin:0">
+<li><b>logpZO on GR00T is our R-037 nearest-neighbour detector with a better density model and a proper temporal threshold.</b> Both are observation-only OOD scores on the same embeddings. R-037 found S1 <b>detects</b> vision perturbations (46.6% of forwards outside the nominal cloud against a 3.0% self-rate) but does <b>not predict failure within them</b> (pass/fail separation 0.00×, p = 0.53) <span class="tag r">ours</span>. A sharper density does not obviously fix a signal that was not there. The functional band then adds exactly what R-036/R-037 lacked: a false-alarm rate with a guarantee, and a time-varying threshold.</li>
+<li><b>The state pathway will likely dominate, as the paper warns.</b> The paper's limitations section says learned scores "focus on simpler robot state information over visual features" <span class="tag p">paper</span>. Our R-036 found the same: S0e separated at 12.95× and the VL taps were flat <span class="tag r">ours</span>. R-036 also noted the causation caveat, that a failing episode reaches unusual states almost by definition. An S0e-driven alarm may fire <i>after</i> the failure has begun, which is detection, not prediction. Report detection time against failure onset, not only TPR.</li>
+<li><b>RND is the only one of the five that can see "normal scene, wrong action".</b> R-041's headline was "no boundary in the action; a wide one in the outcome" <span class="tag r">ours</span>, so I would not expect much from the action side either. It is still the experiment that tests something R-036/R-037 did not.</li>
+<li><b>Under the perturbations we care about, the guarantee covers less than it appears to.</b> The α bound is for nominal successes. On LIBERO-Plus-style shifted scenes, where our failures live, successes are not exchangeable with the calibration set, so the false-alarm rate there is <b>empirical</b>.</li>
+</ul>
+</div>
+
+<h2>Glossary</h2>
+<div class=tw><table>
+<tr><th>term</th><th>meaning here</th></tr>
+<tr><td><var>O</var><sub>t</sub></td><td>The policy's internal observation embedding at a forward. In their code, <code>global_cond</code>; for us, a chosen concatenation of GR00T taps.</td></tr>
+<tr><td><var>A</var><sub>t</sub></td><td>Action chunk. Train: demo chunk; test: the policy's sampled chunk.</td></tr>
+<tr><td>Flow matching</td><td>Learning a velocity field <var>f</var>(<var>x</var>, <var>s</var>) whose ODE carries data to noise along straight lines (1)–(2).</td></tr>
+<tr><td>logpZO</td><td>‖<var>O</var> + <var>f</var>(<var>O</var>, 0)‖²: Gaussian log-likelihood of the one-step latent, Jacobian dropped.</td></tr>
+<tr><td>Hutchinson estimator</td><td>tr(<var>J</var>) ≈ ε<sup>⊤</sup><var>J</var>ε for ε ~ 𝒩(0, <var>I</var>); here with a finite-difference Jacobian-vector product.</td></tr>
+<tr><td>RND</td><td>Random network distillation: prediction error against a frozen random network, low only where training data was.</td></tr>
+<tr><td>NIW</td><td>Normal-Inverse-Wishart: the conjugate prior over a Gaussian's mean and covariance; DER predicts its parameters.</td></tr>
+<tr><td>Functional CP</td><td>Conformal prediction over whole trajectories: one nonconformity score per trajectory (a max over time), giving a band valid for all <var>t</var> jointly.</td></tr>
+<tr><td>Modulation <var>m</var><sub>t</sub></td><td>The per-timestep width profile of the band, the envelope of shaping-set residuals (17).</td></tr>
+<tr><td>Exchangeable</td><td>The condition CP needs: the test success is statistically indistinguishable from calibration successes. It fails under environment shift.</td></tr>
+</table></div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2503.08558">FAIL-Detect paper</a> (§III–IV, limitations) · <a href="https://github.com/CXU-TRI/FAIL-Detect">CXU-TRI/FAIL-Detect</a> @ <code>b758e55</code>: <code>save_data.py</code>, <code>diffusion_policy/workspace/train_diffusion_unet_hybrid_workspace_get_data.py</code>, <code>UQ_baselines/{data_loader.py, logpZO, RND, CFM, NatPN, DER, PCA_kmeans}</code>, <code>UQ_test/{eval_load_baseline.py, eval_together.py, plot_with_CP_band.py, timeseries_cp/methods/functional_predictor.py}</code>, <code>diffusion_policy/env_runner/robomimic_image_runner_FAIL-Detect.py</code>, <code>diffusion_policy/env/robomimic/robomimic_image_wrapper.py</code> · <a href="https://arxiv.org/abs/2102.06746">Diquigiovanni et al. 2021, functional CP</a> · Ours: RESULTS.md R-036, R-037, R-041; <code>docs/EXP_EMBEDDING_OOD.md</code> §2; <code>vla_harness/capture/groot_features.py</code>; <code>runs/r037_*/capture/*.npz</code> (keys and forward counts read 2026-09-28); <code>docs/Decision_28Sep.html</code> (STAC 4a).</p>
+</div></body></html>

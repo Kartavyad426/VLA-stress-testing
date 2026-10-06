@@ -162,6 +162,7 @@
     <li><a href="#s10">Where the method is soft</a></li>
     <li><a href="#s11">Transfer: our pipeline, our two questions</a></li>
     <li><a href="#s12">A concrete design, and its kill switches</a></li>
+    <li><a href="#s13">Our approach: STAC at matched forward index, against a clock (added 2026-09-29)</a></li>
   </ol>
 </nav>
 
@@ -1322,6 +1323,93 @@ the existing OOD scores against outcome per perturbation category (F7) before an
 <strong>4.</strong> Price <span class="m">B</span> seeded draws per forward against the 40-episode
 de-risk; the chunk overlap STAC needs is already there, and STAC outranks S4 by a wide,
 already-measured margin.</p>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="s13">
+<p class="part">Part V · Our approach · added 2026-09-29</p>
+<h2>Our approach: STAC at matched forward index, against a clock</h2>
+
+<div class="note ours">
+<span class="nh">Dated addition, 2026-09-29 16:40 · session my prim</span>
+<p>This section is separate from the teardown above and doesn't change it. It records how we
+plan to adopt Sentinel's consistency detector, pre-registered as <strong>R-059</strong> in
+<code>RESULTS.md</code>. Numbers marked <em>stored</em> come from <code>runs/r047/rollouts.jsonl</code>
+as of this date.</p>
+</div>
+
+<h3>Three things stand between Sentinel and our data</h3>
+<table>
+<thead><tr><th>Problem</th><th>Evidence</th><th>Our response</th></tr></thead>
+<tbody>
+<tr><td><strong>Length.</strong> Our failures never end early.</td>
+<td><em>Stored:</em> every R-047 failure is a timeout at 18 forwards (109/109 start pose, 67/67 camera). Successes end at a median of 7 (range 5–17/18). Sentinel's sum η<sub>t</sub> only rises, so it separates the two on duration alone (§11, F6).</td>
+<td>Score each forward on its own. Calibrate a threshold γ<sub>f</sub> per forward index from the successes <em>still running at f</em>. Report the published single-γ sum only as a demonstration of the confound.</td></tr>
+<tr><td><strong>Sampler noise.</strong> One draw per forward is mostly noise.</td>
+<td>Option 4a (HANDOFF §11): the single-draw STAC noise floor is about 7, against ‖P−N‖ of about 1, and AUROC was at chance on R-041.</td>
+<td>B seeded draws per forward, batched through the DiT head only (backbone features repeated along the batch). Draw 0 is executed; the rest are shadow draws. Gate: STAC must be at least 3× the MMD² between two independent B-sets at the same observation.</td></tr>
+<tr><td><strong>Failure type.</strong> STAC is built for erratic failures.</td>
+<td>The R-038 traces show arms hovering near the wrong object until the timeout: smooth and wrong. That's the category Sentinel gives to the VLM progress detector (§6).</td>
+<td>Before any GPU time, classify the stored R-047 failures as erratic, stalled or smooth-progressing over the window every episode has (forwards 0–4), with thresholds taken from successes.</td></tr>
+</tbody>
+</table>
+
+<h3>The clock is the baseline to beat</h3>
+<p>Once lengths differ, "still running" is itself a detector. The <strong>clock</strong> fires
+at forward f if the episode hasn't ended. Its false-positive rate at f is the share of successes
+still running at f, and <span class="m">f<sub>c</sub></span> is the first forward where that
+share is ≤ δ = 0.05. The clock catches every failure, but only at
+<span class="m">f<sub>c</sub></span>. A consistency detector earns its place only by catching
+failures <em>before</em> <span class="m">f<sub>c</sub></span> at the same false-positive rate.
+That is R-059's primary readout. It also turns the length confound from a trap into a stated
+control: any score that merely tracks duration ties the clock and gains nothing.</p>
+
+<div class="thm trig">
+<div class="thm-label">Per-forward calibration (our variant)</div>
+<div class="thm-body">Let <span class="m">S<sub>f</sub></span> be the successes still running at forward
+f, with M = |S<sub>f</sub>|. Set γ<sub>f</sub> to the ⌈(M+1)(1−δ)⌉-th smallest
+score among S<sub>f</sub>, using leave-one-scene-out. Fire at the first f with
+score<sub>f</sub> &gt; γ<sub>f</sub>. Under exchangeability of a new success with
+S<sub>f</sub>, the probability of a false alarm <em>at forward f</em> is ≤ δ.</div>
+<div class="proof">What this gives up: Sentinel's any-time bound over the whole episode, which rests on
+the monotone sum. A new success can falsely fire at several forwards, so the episode-level
+false-positive rate can exceed δ. We measure it directly on held-out successes rather than claim
+it. A second caveat: S<sub>f</sub> shrinks and becomes the slow successes as f grows, so
+γ<sub>f</sub> beyond about forward 6 rests on few episodes. The design reads detection mainly at
+f ≤ 3.</div>
+</div>
+
+<h3>What gets scored</h3>
+<ul class="tight">
+<li><strong>STAC<sub>f</sub></strong>: MMD² (RBF kernel) between the B draws of chunk f at steps
+16:40 and the B draws of chunk f+1 at steps 0:24, dims 0–5 (gripper dropped, as Sentinel does).
+The bandwidth is set by the median heuristic on radius-0 successes, then frozen.</li>
+<li><strong>Spread<sub>f</sub></strong>: mean pairwise distance within the B draws. This is
+Sentinel's output-variance baseline and our S4, expected to be weak (§8).</li>
+<li><strong>Single<sub>f</sub></strong>: the same overlap distance on draw 0 alone, the 4a
+statistic, as a control.</li>
+<li><strong>Clock</strong>, as above.</li>
+</ul>
+
+<h3>Why the early forwards are enough</h3>
+<p>R-057 found start-pose episodes are decided at the first forward (a corrected first chunk gives
+24/30). Camera episodes are decided throughout. A detector that fires by forward 2 can still hand
+over to a fix while it matters. After forward 6 or so, the clock is nearly as good and a warning
+is too late to act on. So the matched-index window where both classes exist is also the window
+where detection is useful.</p>
+
+<h3>If our failures turn out to be smooth</h3>
+<p>If part A finds most failures stalled or smooth-progressing, STAC is the wrong half of
+Sentinel for us. The next step is a progress detector: simulator state (closest approach, lift,
+contact) inside our harness, or a VLM on the video for a black-box client. That is Sentinel's
+second branch, with the same per-forward calibration. R-059 records this as a result, not a
+failure of the plan.</p>
+
+<div class="note measured">
+<span class="nh">Status at writing</span>
+<p>Pre-registered only. Part A runs on CPU against stored R-047 data. Parts B and C queue after
+the R-056 chain on the shared GPU lock. Results go into R-059 in <code>RESULTS.md</code>, not here.</p>
 </div>
 </section>
 

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Failure Mining Relevance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code{font:13px var(--mono);background:var(--surface-2);padding:1px 4px;border-radius:3px}
+  ul{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .tag{display:inline-block;font:500 12px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);margin-left:6px;vertical-align:2px}
+  .tag.pick{background:var(--accent);color:var(--surface)}
+  .risk{color:var(--warn)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  .lit{margin-top:10px;border-top:1px dashed var(--rule);padding-top:8px}
+  .lit h4{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .lit table{min-width:600px}
+  .lit td:first-child{width:30%}
+  .verdict{margin:10px 0 2px;padding:8px 12px;border-radius:5px;background:var(--surface-2);font-size:14px}
+  .crowd{color:var(--bad);font-weight:600}.open{color:var(--ok);font-weight:600}
+  a{color:var(--accent)}
+  td.ok,.ok{color:var(--ok);font-weight:600} td.no,.no{color:var(--bad);font-weight:600} td.part,.part{color:var(--warn);font-weight:600}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>What unit do people mine failures over, and does it matter to a client?</h1>
+<p class="sub">Literature review, 2026-09-29. Most papers were checked against their arXiv abstract page only, not read in full; the standards and blogs from search summaries. Check before citing.</p>
+
+<div class="rec">
+<p><strong>Short answer.</strong> Measure at <strong>(policy, task, perturbation and its size)</strong>. Report what matters to a client by weighting that with <strong>how often each perturbation actually happens in the client's deployment</strong>, times what a failure costs them.</p>
+<ul>
+<li>Almost all VLA papers stop at the measurement. They report (policy, perturbation) averaged over tasks, or they hunt for as many failures as possible with no idea of how likely each one is.</li>
+<li>Self-driving car safety answered your question years ago: an <em>operational design domain</em> (ODD) scopes which conditions count, and <em>exposure</em> weights how often they occur.</li>
+<li>Our own <code>PLAN.md</code> §9.3 already says this: we ship P(fail | condition), the client supplies P(condition), and severity is computed at delivery. It hasn't been built.</li>
+</ul>
+</div>
+
+<h2>How other people do it</h2>
+<div class="tw"><table>
+<thead><tr><th>Approach</th><th>Unit of analysis</th><th>Weighted by deployment?</th><th>Examples</th></tr></thead>
+<tbody>
+<tr><td><strong>Perturbation benchmarks</strong></td><td>(policy, perturbation), usually averaged over tasks; sometimes per level</td><td class="no">No. The benchmark picks the axes and the ranges</td><td>LIBERO-Plus <a href="https://arxiv.org/abs/2510.13626">2510.13626</a>, LIBERO-PRO <a href="https://arxiv.org/abs/2510.03827">2510.03827</a>, COLOSSEUM <a href="https://arxiv.org/abs/2402.08191">2402.08191</a>, LIBERO-CTRL <a href="https://arxiv.org/abs/2609.15940">2609.15940</a> (pairs of perturbations)</td></tr>
+<tr><td><strong>Generalisation taxonomies</strong></td><td>(policy, axis) at three levels: factor, axis, category (visual / semantic / behavioural)</td><td class="no">No. Aims at standardisation, not a particular deployment</td><td>STAR-Gen, Gao et al. <a href="https://arxiv.org/abs/2503.01238">2503.01238</a> (RA-L)</td></tr>
+<tr><td><strong>Searching for failures</strong></td><td>(policy, point in the parameter space)</td><td class="no">No. Maximises the number of failures found, so it can surface implausible ones</td><td>RoboGate <a href="https://arxiv.org/abs/2603.22126">2603.22126</a> (8-D space, sampling focused on the 30–70% success zone; LIBERO 97.65% vs 0% on its industrial scenes), FATE-VLA <a href="https://arxiv.org/abs/2606.02307">2606.02307</a> (+29.7% more failures; GR00T N1.6 drops 64.4% → 34.7%), RoboMD <a href="https://arxiv.org/abs/2412.02818">2412.02818</a> (RL in a vision-language embedding space), Predictive Red Teaming <a href="https://arxiv.org/abs/2502.06575">2502.06575</a></td></tr>
+<tr><td><strong>Active, factor-based evaluation</strong></td><td>(policy, task, factor)</td><td class="part">No. Chooses tests by information gain, not by how relevant they are</td><td>Liao et al. <a href="https://arxiv.org/abs/2607.14439">2607.14439</a> (2,331 real trials; needs 20–40% of random testing's trials), Anwar et al. <a href="https://arxiv.org/abs/2502.09829">2502.09829</a>, Factored Scaling Curves <a href="https://arxiv.org/abs/2505.07728">2505.07728</a></td></tr>
+<tr><td><strong>Mining deployment logs</strong></td><td>Deployment episodes, clustered into failure modes</td><td class="ok">Yes, implicitly: the data comes from production, so frequency is real</td><td>Gupta, Ciftci &amp; Bansal <a href="https://arxiv.org/abs/2506.06570">2506.06570</a> (VLM explanations then clustering; guides targeted data), Learning While Deploying <a href="https://arxiv.org/abs/2605.00416">2605.00416</a> (fleet-scale RL), runtime monitors like SAFE and Sentinel</td></tr>
+<tr><td><strong>Importance-weighted testing</strong> (from self-driving)</td><td>Scenarios drawn from a naturalistic distribution, with failures oversampled then reweighted</td><td class="ok">Yes, explicitly and without bias</td><td>D2RL, Feng et al., <a href="https://www.nature.com/articles/s41586-023-05732-2">Nature 2023</a> (adversarial agents trained on naturalistic driving; faster testing, still unbiased); criticality model <a href="https://arxiv.org/abs/2607.28251">2607.28251</a> (same group, now applied to VLAs: 51–67% relative drop in failure rate); forecasting failure rates at deployment scale, Schwarzer &amp; Niekum <a href="https://arxiv.org/abs/2605.15134">2605.15134</a></td></tr>
+<tr><td><strong>Safety standards</strong> (self-driving)</td><td>A scenario inside a declared ODD</td><td class="ok">Yes. Risk = severity × exposure × controllability</td><td><a href="https://www.iso.org/standard/78952.html">ISO 34503</a> (ODD taxonomy), ISO 26262 (exposure classes), ISO 21448 SOTIF (hazards when nothing is broken)</td></tr>
+<tr><td><strong>Industry framing</strong></td><td>Failures per day at one site</td><td class="ok">Yes, by definition</td><td><a href="https://www.a16z.news/p/the-physical-ai-deployment-gap">a16z, Jan 2026</a>: 95% success in research is about 50 failures a day at deployment volume; factories need 99.9%. Deployment protocol ROEP (<a href="https://doi.org/10.3390/s26154757">Sensors 2026</a>) found but not read (403).</td></tr>
+</tbody></table></div>
+
+<h2>Which unit is right</h2>
+<div class="tw"><table>
+<thead><tr><th>Unit</th><th>What it tells you</th><th>What it hides</th></tr></thead>
+<tbody>
+<tr><td>(policy, task)</td><td>The leaderboard number</td><td>Everything about why it fails. This is the "aggregate success is incomplete" problem the base doc starts from.</td></tr>
+<tr><td>(policy, perturbation)</td><td>What LIBERO-Plus reports: "camera and start pose hurt most"</td><td><strong>Scene dependence.</strong> Our R-047: on stove the success curve crosses 50% at 0.21 rad of start-pose offset, while next-to-plate still holds at 0.3. Averaging over tasks blurs a cliff into a slope.</td></tr>
+<tr><td><strong>(policy, task, perturbation and its size)</strong></td><td>The measurement: P(fail | condition), with a boundary and a CI. This is what our harness produces.</td><td>Whether the condition ever happens to <em>this</em> client</td></tr>
+<tr><td>+ (client deployment)</td><td>Expected failures in their setting: Σ P(fail | task, condition) · P(condition | ODD) · P(task | ODD) · cost</td><td>Nothing, but the prevalence has to come from them</td></tr>
+</tbody></table></div>
+
+<h2>What this means for us</h2>
+<div class="card"><ol>
+<li><strong>Take the client's ODD as input.</strong> Ask what their deployment looks like: camera mount tolerance, how much start poses vary, lighting range, clutter, instruction style. Map each answer onto our perturbation axes, which gives each axis a range. Test densely inside it, plus a margin band just outside.</li>
+<li><strong>Estimate prevalence from their logs if they have them</strong> (camera extrinsics drift, the spread of joint start poses, lux). If they don't, a short site survey. This fills <code>condition_prevalence</code>, the field PLAN §9.3 already defines.</li>
+<li><strong>The headline number becomes margin, not robustness</strong>: how far the edge of their ODD sits from our measured failure boundary. "Your camera can drift 12° before failures start; your mounts drift 3°" is a finding they can act on. A boundary well outside their ODD is good news, and it goes in the appendix.</li>
+<li><strong>Report three tiers:</strong> (a) failure rate inside the ODD, weighted by prevalence; (b) margin to the boundary on each axis; (c) findings outside the ODD, labelled as out of scope for them. Brittleness out there is still a warning sign, because ODDs drift: a camera gets bumped, a new site is added.</li>
+<li><strong>When a client can't describe an ODD, fall back to runtime monitoring and log mining</strong> (Gupta et al.). Their production failures define what's relevant, and our harness reproduces and explains them in simulation.</li>
+</ol></div>
+
+<h2>The gap, and a possible direction #8</h2>
+<p class="verdict"><span class="open">Open:</span> no VLA paper found combines failure search with an explicit deployment distribution (D2RL-style oversampling plus reweighting, over a declared ODD). The self-driving world does this; robot manipulation doesn't yet (the criticality-model paper, <a href="https://arxiv.org/abs/2607.28251">2607.28251</a>, is the first step, and it targets training, not evaluation). A pilot: define a mock ODD (e.g. "camera within ±10° yaw, start pose within 0.15 rad"), give it a prevalence distribution, and compare three estimates of the failure rate: uniform-grid LIBERO-Plus, failure search, and importance-weighted search. Show that only the weighted one matches brute-force Monte Carlo inside the ODD, at a fraction of the rollouts.</p>
+
+<footer>Related: PLAN.md §9 and §9.3 (manifest severity), docs/FAILURE_MINING_METHODS.md (detection, localisation and classification survey), docs/SWEEP_DESIGN_LITERATURE.html (adaptive sampling), docs/AMBITIOUS_DIRECTIONS.html.</footer>
+</main>
+</body>
+</html>

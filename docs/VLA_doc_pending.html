@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VLA Doc Pending</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:980px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .lede{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--accent);padding:14px 16px;border-radius:6px}
+  code{font:13px var(--mono);background:var(--surface-2);padding:1px 4px;border-radius:3px}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:720px}
+  th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule)}
+  th{background:var(--surface-2);font-weight:600;font-size:13px}
+  tr:last-child td{border-bottom:0}
+  td.pct{font:500 14px var(--mono);white-space:nowrap}
+  .bar{height:6px;background:var(--surface-2);border-radius:3px;margin-top:4px;width:60px}
+  .bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}
+  .ok{color:var(--ok);font-weight:600}.part{color:var(--warn);font-weight:600}.no{color:var(--bad);font-weight:600}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:4px 16px}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>VLA Scenario Testing: what's done, what's pending</h1>
+<p class="sub">Status as of 2026-09-29 ~12:10 IST. Scored against <code>VLA Scenario Testing.md</code>, using <code>RESULTS.md</code> (R-001 to R-058), <code>runs/overnight/queue.log</code> and the code.</p>
+
+<div class="lede"><strong>Bottom line.</strong> Stress-testing and "why does it fail" are done, and taken well beyond the doc. Its final steps are not: the Data Gap Manifest, a human-checked taxonomy, and "retrain and re-measure", which is the last clause of the core thesis. Roughly <strong>55–60%</strong> of the doc as written.</div>
+
+<h2>Phase by phase (doc §9 / §7.3)</h2>
+<div class="tw"><table>
+<thead><tr><th>Phase</th><th>Doc asks for</th><th>Where we are</th><th>Rough %</th></tr></thead>
+<tbody>
+<tr><td><strong>1. Baseline</strong></td><td>OpenVLA-OFT on Spatial and Object, within ±5 pp of the published number</td>
+<td><span class="ok">Met, with different policies.</span> OpenVLA-OFT needs ~15 GB and was never run. The same bar was passed with MINERVA (95.3% vs 95.75%, R-016) and GR00T (98 vs 97, R-022). The unperturbed LIBERO-Plus control scored 100/100 (R-029). Environments are pinned: one venv per policy, with a conformance gate.</td>
+<td class="pct">90<div class="bar"><i style="width:90%"></i></div></td></tr>
+<tr><td><strong>2. Stress matrix</strong></td><td>Camera, start pose and object layout at 4 levels, ~20 episodes per cell, 95% CIs, a failure boundary</td>
+<td><span class="ok">Start pose and camera yaw have full curves:</span> 360 rollouts each with replicates and a logistic 50% crossing per scene (R-047). On stove the policy falls apart by 0.3 rad. R-026 screened 623 of the hardest LIBERO-Plus variants (L4+L5). <span class="no">Object layout has no curve yet</span>, only the pathway result (R-049). R-052 (camera cone) is partly done and still running: yaw 317/360, distance 65/78.</td>
+<td class="pct">75<div class="bar"><i style="width:75%"></i></div></td></tr>
+<tr><td><strong>3. Cross-model</strong></td><td>GR00T as a second policy</td>
+<td><span class="ok">Reversed:</span> GR00T became the main policy and MINERVA the control (R-027).</td>
+<td class="pct">80<div class="bar"><i style="width:80%"></i></div></td></tr>
+<tr><td><strong>4. Failure mining</strong></td><td>Phase detectors, classification, clustering, counterfactual attribution, double-labelled human review with an agreement score</td>
+<td><span class="part">Uneven.</span> Attribution went far beyond the doc: R-039/R-042/R-044/R-048–R-051 show which input channel carries each perturbation (image tokens; the wrist camera for start pose). Re-running with one perturbation reverted is done for start pose and camera. <span class="no">But</span> the failure-family labels are still unvalidated (R-008, PENDING #15). Both human-review sheets have <strong>0 verdicts</strong> (0/80 GR00T, 0/24 MINERVA), so there is no agreement score. The phase detectors and clustering code exist, but no validated cluster report has come out of them.</td>
+<td class="pct">50<div class="bar"><i style="width:50%"></i></div></td></tr>
+<tr><td><strong>5. Data Gap Manifest</strong></td><td>Evidence-backed, prioritised rows another team could act on</td>
+<td><span class="no">Mostly missing.</span> <code>vla_harness/manifest.py</code> exists and 12 early rows came out of it, but PENDING says they aren't reportable (the severity column is uninformative; the taxonomy isn't settled). No manifest is built on the R-047/R-052 boundaries. In practice start pose has been picked as the top row and fed into retraining.</td>
+<td class="pct">20<div class="bar"><i style="width:20%"></i></div></td></tr>
+<tr><td><strong>6. Regression + retrain and re-measure</strong></td><td>A frozen failure set; fine-tune on the top row; before/after (plus a data-budget curve if possible)</td>
+<td><span class="part">In progress, and blocked at one gate</span> (see the next section). The only frozen <code>regression_set.json</code> files are from the 16 Sep campaigns, which were run before the camera perturbation was fixed. They need re-freezing.</td>
+<td class="pct">35<div class="bar"><i style="width:35%"></i></div></td></tr>
+<tr><td><strong>7. Operationalise</strong></td><td>Versioned storage, lineage, MLflow-style tracking</td>
+<td>Local only: one rollout format (jsonl + npz + mp4), run metadata saved with each run, R-numbered pre-registration. No MLflow. S3 and Databricks are listed in the doc as "future" anyway.</td>
+<td class="pct">40<div class="bar"><i style="width:40%"></i></div></td></tr>
+</tbody></table></div>
+
+<h2>Retraining pipeline (last night and now)</h2>
+<div class="card"><ul>
+<li><span class="ok">R-053 done:</span> 24/30 unperturbed successes; all four pre-registered expectations held.</li>
+<li><span class="ok">R-054 done:</span> 100 corrected start-pose demos generated from 146 attempts; all dataset checks pass.</li>
+<li><span class="no">R-055: one gate failed.</span> The overfit check reached 12.1% of the starting loss against a &lt;10% bar. The overnight run used a cosine learning-rate schedule instead of the constant rate that was registered. <code>experiments/queue_r055_rerun.sh</code> reruns it at the registered constant rate and is waiting for the GPU lock. If it passes, it chains R-056 train, R-056 eval, WiSE-FT and R-058 r=4.</li>
+<li><span class="part">R-056 (the actual retrain) and R-058 were skipped</span> because R-055 didn't pass.</li>
+<li><span class="ok">R-057 done.</span> For start pose, correcting only the first action chunk gives 24/30 (k* = 1). For camera the policy has to be corrected throughout (all forwards: 30/30).</li>
+<li><strong>Update 16:05:</strong> the constant-LR rerun of the overfit check still missed (0.139). By the user's decision (RESULTS R-055 amendment, 15:15) the check is now informational, not blocking. The diagnostic curve drops below 10% from about step 500 of 1500. <code>experiments/queue_r056.sh</code> started at 15:13: R-056 train (r=16, 2000 steps) → R-056 eval → WiSE-FT → R-058 r=4 → R-052 resume. R-052's camera-distance axis finished at 12:24.</li>
+<li><strong>Running at 12:10:</strong> the camera-distance part of R-052 (<code>camera_bench_scale</code>), ~7 GB on the GPU, 2 h in.</li>
+</ul></div>
+
+<h2>Doc's success criteria (§9)</h2>
+<div class="tw"><table>
+<thead><tr><th>Criterion</th><th>Status</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>At least 3 failure modes with CIs, one at task/stage level</td><td class="ok">Met</td><td>Start pose, camera, an empty prompt giving 50/100 (R-038), and grasping the wrong object.</td></tr>
+<tr><td>A boundary with an explicit definition and a CI</td><td class="ok">Met*</td><td>R-047's 50% crossing per scene. *I didn't find a confidence interval on the crossing itself, so check that before claiming it.</td></tr>
+<tr><td>Failures traced to conditions by counterfactuals, plus inter-annotator agreement</td><td class="part">Partial</td><td>Counterfactuals are done. The agreement score it also requires has not been measured (0 verdicts).</td></tr>
+<tr><td>A manifest another team could act on without reading every rollout</td><td class="no">Not met</td><td>—</td></tr>
+<tr><td>Current failures frozen into a regression set</td><td class="no">Not met</td><td>Only regression sets from before the camera fix exist.</td></tr>
+</tbody></table></div>
+
+<h2>Where we went beyond the doc</h2>
+<p>Most of the extra work is mechanism: which camera or input channel carries each perturbation, whether it survives into the action (R-037/R-039/R-042), and when the episode is decided (R-050/R-057). That is stronger evidence for a manifest's "trigger" column than the doc's clustering approach. It hasn't yet been turned into the manifest.</p>
+
+<h2>If you want to close the doc before expanding</h2>
+<div class="card"><ol>
+<li>Let the R-055 rerun and then R-056 finish. That gives the before/after the core thesis requires.</li>
+<li>Write the manifest from what already exists: the R-047 boundaries, the pathway results and the R-057 findings. A few rows, each with its evidence, is enough.</li>
+<li>Fill in the human-review sheets (<code>runs/lplus_fail_groot/adjudication.csv</code>, <code>runs/lplus_fail_minerva/adjudication.csv</code>). Even two people each labelling 40 failures gives the agreement score.</li>
+<li>Re-freeze a regression set from the R-047/R-052 failures.</li>
+<li>Optional: an object-layout dose-response curve, so all three priority axes have one.</li>
+</ol></div>
+<p>Once those are in, you'd be free to expand: a data-budget curve, R-043 long-horizon tasks, or R-040's comparison of ways to choose training data.</p>
+
+<footer>Sources: VLA Scenario Testing.md · RESULTS.md · runs/overnight/queue.log and SUMMARY.txt · runs/r055/gates.json · vla_harness/.</footer>
+</main>
+</body>
+</html>

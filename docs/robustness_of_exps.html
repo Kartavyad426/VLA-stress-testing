@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robustness of Experiments</title>
+<style>
+:root{
+  --bg:#fbfaf7; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a65; --rule:#e4e1d9;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8;
+  --unk:#4a4f8c; --unk-bg:#ebecf8; --ok:#2e6b3a; --ok-bg:#e5f2e7;
+  --accent:#1f5f8b; --scene:#c2410c; --scene2:#7c3aed; --pooled:#1d1d1b;
+  --code-bg:#f2f0ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+    --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+    --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+    --accent:#7cb8e4; --scene:#fb923c; --scene2:#c4b5fd; --pooled:#e8e6e1; --code-bg:#2a2c31;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+  --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+  --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+  --accent:#7cb8e4; --scene:#fb923c; --scene2:#c4b5fd; --pooled:#e8e6e1; --code-bg:#2a2c31;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+h2{font-size:21px;margin:44px 0 10px;padding-top:12px;border-top:1px solid var(--rule)}
+h3{font-size:17px;margin:26px 0 8px}
+p{margin:8px 0}
+.sub{color:var(--muted);font-size:14px}
+code{font:13px/1.4 ui-monospace,"JetBrains Mono",Menlo,monospace;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border-bottom:1px solid var(--rule);padding:7px 9px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.bad{color:var(--bad);background:var(--bad-bg)} .warn{color:var(--warn);background:var(--warn-bg)}
+.unk{color:var(--unk);background:var(--unk-bg)} .ok{color:var(--ok);background:var(--ok-bg)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px}
+.card h4{margin:6px 0 4px;font-size:15px}
+.card p{font-size:13.5px;color:var(--muted);margin:0}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:12px 0}
+figure{margin:0;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px}
+figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+svg{width:100%;height:auto;display:block}
+svg .grid{stroke:var(--rule);stroke-width:1}
+svg .grid.mark{stroke-dasharray:3 3}
+svg .tick{fill:var(--muted);font-size:10px}
+svg .axis{fill:var(--muted);font-size:10.5px}
+svg polyline{fill:none;stroke-width:2}
+svg .pooled{stroke:var(--pooled);stroke-width:3} svg .pooled-dot{fill:var(--pooled)}
+svg .scene{stroke:var(--scene)} svg .scene-dot{fill:var(--scene)}
+svg .scene2{stroke:var(--scene2)} svg .scene2-dot{fill:var(--scene2)}
+.legend{font-size:12.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+.sw{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.callout{border-left:4px solid var(--accent);background:var(--panel);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.callout.bad{border-color:var(--bad);color:inherit;background:var(--panel)}
+.timeline{list-style:none;padding:0;margin:12px 0;border-left:2px solid var(--rule)}
+.timeline li{position:relative;padding:6px 0 12px 20px}
+.timeline li::before{content:"";position:absolute;left:-7px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--muted)}
+.timeline li.done::before{background:var(--ok);border-color:var(--ok)}
+.timeline li.pending::before{background:var(--warn);border-color:var(--warn)}
+.timeline li.none::before{background:var(--bg);border-color:var(--bad)}
+ol li,ul li{margin:4px 0}
+td.num.dim{color:var(--muted)}
+td.num.mid{color:var(--warn);background:var(--warn-bg)} td.num.lo{color:var(--bad);background:var(--bad-bg)}
+.chip.mid{color:var(--warn);background:var(--warn-bg)} .chip.lo{color:var(--bad);background:var(--bad-bg)}
+tr.total td{border-top:2px solid var(--ink);font-weight:600}
+table.ledger th,table.ledger td{padding:6px 7px}
+table.ledger td:first-child{min-width:150px}
+table.ledger .sub{font-size:12px}
+td:first-child>b{white-space:nowrap}
+footer{margin-top:50px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Robustness of experiments</h1>
+<p class="sub">GR00T N1.7 · <code>nvidia/gr00t17-lerobot-libero_spatial-640</code> · LIBERO-Plus fork of <code>libero_spatial</code> · written 2026-09-28 from <code>RESULTS.md</code> (R-041, R-047, R-052) and <code>docs/PERTURBATION_MAP.html</code></p>
+
+<p>Section 0 counts what has been run so far, task by task. Section 1 lists every perturbation the benchmark applies and its range. The rest of the page asks two questions. First, given how far each perturbation was pushed compared with the benchmark's range, where is the policy <strong>not robust</strong>? Second, which rows cannot be judged yet because the sweep stopped short or used a different knob? The second half covers the status of the <strong>continuous sweep programme</strong>: start from a known success and push one axis until it fails.</p>
+
+<div class="cards">
+  <div class="card"><span class="chip bad">not robust · measured</span><h4>Start pose</h4><p>Full benchmark range, replicated. Pooled success is 0.37 at 0.5 rad. On-stove falls to 0/6 from 0.3 rad.</p></div>
+  <div class="card"><span class="chip bad">fragile · no curve</span><h4>Layout, language</h4><p>Discrete instances only: 8/10 and 7–8/10 fail. There is no magnitude axis.</p></div>
+  <div class="card"><span class="chip warn">degrades · wrong pivot</span><h4>Camera yaw</h4><p>0.93 → 0.58–0.73 by 50–75°. Measured with the harness pivot, not the benchmark's.</p></div>
+  <div class="card"><span class="chip unk">unknown · range short</span><h4>Distance, pitch, −yaw, lighting, noise</h4><p>The sweeps stopped short, or measured a different quantity. The lighting knob only brightens and clips at 1.25×, while the benchmark mostly dims.</p></div>
+</div>
+
+<h2 id="ledger">0 · What has been run so far, task by task</h2>
+<p>Every GR00T rollout on <code>libero_spatial</code> that is still on disk, counted per task. The counts come from <code>runs/*/rollouts.jsonl</code> (our harness) and <code>experiments/repro/runs/*/eval_info.json</code> (lerobot-eval), tallied on 2026-09-28 by one script, not copied from <code>RESULTS.md</code> prose. The totals were checked against RESULTS.md: R-026 has 155 failures in 623, R-029 is 100/100, R-038 is 50/100, and R-047 has 720 rollouts.</p>
+<div class="cards">
+  <div class="card"><span class="chip ok">GR00T · libero_spatial</span><h4>2,712 rollouts across 18 experiments</h4><p>All 10 tasks. Each task has 166–351 rollouts.</p></div>
+  <div class="card"><span class="chip ok">nominal</span><h4>552 / 567 succeed (0.97)</h4><p>Nothing perturbed. The 15 failures sit mostly on on-ramekin (49/59), the scene that fails unperturbed under one noise seed.</p></div>
+  <div class="card"><span class="chip warn">perturbed</span><h4>1,446 / 2,025 succeed (0.71)</h4><p>Start pose (556) and camera (568) are over half of it. Texture has 59 rollouts in total.</p></div>
+  <div class="card"><span class="chip unk">corrected chunk</span><h4>68 / 120 succeed</h4><p>Rescue arms (R-044, R-048, R-050, R-051): a perturbed episode with its first chunk replaced.</p></div>
+</div>
+<p><b>How a rollout is classed.</b> <em>Nominal</em> means nothing is perturbed. That is the canonical LIBERO-Plus view with initstate 0 and the base instruction, a harness knob at magnitude 0, or vanilla LIBERO. <em>Perturbed</em> means exactly one perturbation, either a LIBERO-Plus variant (its category in <code>task_classification.json</code>) or a harness knob at a nonzero magnitude. The <em>camera</em> column pools harness yaw and distance with the benchmark's camera variants. <em>Corrected chunk</em> is a perturbed episode that had its first action chunk swapped, so it counts in neither column. Cells show successes/rollouts, and each cell's hover gives the rate. <span class="chip mid">0.5–0.8</span> <span class="chip lo">&lt; 0.5</span></p>
+<div class="tablewrap"><table class="ledger">
+<thead><tr><th>Task (black bowl …)</th><th>Rollouts</th><th>Expts</th><th>Nominal</th><th>Perturbed</th><th>start pose</th><th>camera</th><th>lighting</th><th>noise</th><th>layout</th><th>texture</th><th>language</th><th>empty prompt</th><th>Corrected chunk</th></tr></thead><tbody>
+<tr><td><b>between-plate-ramekin</b><br><span class="sub">between the plate and the ramekin</span></td><td class="num"><b>257</b></td><td class="num" title="R-022, R-023, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-049, R-050, R-051">17</td><td class="num" title="1.00 success">62/62</td><td class="num" title="0.84 success">158/188</td><td class="num mid" title="0.74 success">42/57</td><td class="num mid" title="0.76 success">32/42</td><td class="num" title="1.00 success">27/27</td><td class="num" title="1.00 success">5/5</td><td class="num" title="0.85 success">29/34</td><td class="num dim">—</td><td class="num" title="1.00 success">13/13</td><td class="num" title="1.00 success">10/10</td><td class="num lo" title="0.14 success">1/7</td></tr>
+<tr><td><b>next-to-ramekin</b><br><span class="sub">next to the ramekin</span></td><td class="num"><b>321</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-048, R-049, R-050, R-051">17</td><td class="num" title="0.98 success">55/56</td><td class="num mid" title="0.65 success">155/240</td><td class="num mid" title="0.51 success">37/72</td><td class="num mid" title="0.77 success">69/90</td><td class="num" title="1.00 success">1/1</td><td class="num" title="1.00 success">25/25</td><td class="num mid" title="0.62 success">5/8</td><td class="num" title="1.00 success">3/3</td><td class="num lo" title="0.42 success">13/31</td><td class="num lo" title="0.20 success">2/10</td><td class="num" title="0.84 success">21/25</td></tr>
+<tr><td><b>table-center</b><br><span class="sub">from table center</span></td><td class="num"><b>236</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-047, R-049, R-051">14</td><td class="num" title="1.00 success">50/50</td><td class="num" title="0.84 success">156/186</td><td class="num mid" title="0.63 success">29/46</td><td class="num mid" title="0.80 success">35/44</td><td class="num" title="1.00 success">15/15</td><td class="num" title="1.00 success">3/3</td><td class="num" title="0.92 success">24/26</td><td class="num" title="0.97 success">33/34</td><td class="num" title="1.00 success">8/8</td><td class="num" title="0.90 success">9/10</td><td class="num dim">—</td></tr>
+<tr><td><b>on-cookie-box</b><br><span class="sub">on the cookie box</span></td><td class="num"><b>166</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-037, R-038, R-041, R-047">9</td><td class="num" title="0.98 success">45/46</td><td class="num" title="0.86 success">103/120</td><td class="num mid" title="0.74 success">31/42</td><td class="num" title="0.93 success">39/42</td><td class="num" title="1.00 success">1/1</td><td class="num mid" title="0.75 success">3/4</td><td class="num" title="1.00 success">4/4</td><td class="num dim">—</td><td class="num" title="1.00 success">17/17</td><td class="num" title="0.80 success">8/10</td><td class="num dim">—</td></tr>
+<tr><td><b>top-drawer</b><br><span class="sub">in the top drawer of the wooden cabinet</span></td><td class="num"><b>297</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-049, R-050, R-051">16</td><td class="num" title="1.00 success">59/59</td><td class="num mid" title="0.75 success">175/233</td><td class="num lo" title="0.45 success">28/62</td><td class="num mid" title="0.75 success">33/44</td><td class="num" title="1.00 success">32/32</td><td class="num" title="0.96 success">22/23</td><td class="num" title="0.97 success">36/37</td><td class="num" title="0.83 success">5/6</td><td class="num" title="1.00 success">19/19</td><td class="num lo" title="0.00 success">0/10</td><td class="num" title="1.00 success">5/5</td></tr>
+<tr><td><b>on-ramekin</b><br><span class="sub">on the ramekin</span></td><td class="num"><b>351</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-048, R-049, R-050, R-051">17</td><td class="num" title="0.83 success">49/59</td><td class="num mid" title="0.73 success">202/277</td><td class="num mid" title="0.68 success">39/57</td><td class="num mid" title="0.69 success">48/70</td><td class="num mid" title="0.68 success">41/60</td><td class="num" title="0.94 success">15/16</td><td class="num" title="0.97 success">34/35</td><td class="num" title="1.00 success">7/7</td><td class="num mid" title="0.55 success">12/22</td><td class="num mid" title="0.60 success">6/10</td><td class="num lo" title="0.47 success">7/15</td></tr>
+<tr><td><b>next-to-cookie-box</b><br><span class="sub">next to the cookie box</span></td><td class="num"><b>289</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-049, R-050, R-051">16</td><td class="num" title="1.00 success">62/62</td><td class="num mid" title="0.68 success">138/202</td><td class="num mid" title="0.53 success">30/57</td><td class="num" title="0.88 success">37/42</td><td class="num" title="1.00 success">5/5</td><td class="num" title="1.00 success">11/11</td><td class="num lo" title="0.48 success">28/58</td><td class="num dim">—</td><td class="num" title="1.00 success">19/19</td><td class="num" title="0.80 success">8/10</td><td class="num lo" title="0.40 success">10/25</td></tr>
+<tr><td><b>on-stove</b><br><span class="sub">on the stove</span></td><td class="num"><b>267</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-048, R-049, R-050, R-051">17</td><td class="num" title="1.00 success">56/56</td><td class="num mid" title="0.51 success">95/186</td><td class="num lo" title="0.23 success">14/60</td><td class="num mid" title="0.62 success">47/76</td><td class="num" title="1.00 success">5/5</td><td class="num" title="1.00 success">6/6</td><td class="num" title="0.83 success">10/12</td><td class="num" title="1.00 success">3/3</td><td class="num mid" title="0.71 success">10/14</td><td class="num lo" title="0.00 success">0/10</td><td class="num mid" title="0.60 success">15/25</td></tr>
+<tr><td><b>next-to-plate</b><br><span class="sub">next to the plate</span></td><td class="num"><b>232</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-048, R-049, R-050, R-051">17</td><td class="num" title="1.00 success">62/62</td><td class="num" title="0.86 success">136/158</td><td class="num" title="0.81 success">39/48</td><td class="num" title="0.85 success">46/54</td><td class="num" title="1.00 success">1/1</td><td class="num" title="1.00 success">15/15</td><td class="num" title="0.90 success">19/21</td><td class="num dim">—</td><td class="num" title="1.00 success">9/9</td><td class="num mid" title="0.70 success">7/10</td><td class="num mid" title="0.67 success">8/12</td></tr>
+<tr><td><b>on-wooden-cabinet</b><br><span class="sub">on the wooden cabinet</span></td><td class="num"><b>296</b></td><td class="num" title="R-022, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-047, R-049, R-051">14</td><td class="num" title="0.95 success">52/55</td><td class="num mid" title="0.54 success">128/235</td><td class="num lo" title="0.33 success">18/55</td><td class="num mid" title="0.80 success">51/64</td><td class="num" title="0.89 success">8/9</td><td class="num mid" title="0.67 success">22/33</td><td class="num lo" title="0.31 success">8/26</td><td class="num mid" title="0.67 success">4/6</td><td class="num mid" title="0.53 success">17/32</td><td class="num lo" title="0.00 success">0/10</td><td class="num lo" title="0.17 success">1/6</td></tr>
+<tr class=total><td><b>All 10 tasks</b></td><td class="num"><b>2712</b></td><td class="num" title="R-022, R-023, R-024, R-025, R-026, R-029, R-036, R-037, R-038, R-039, R-041, R-042, R-044, R-047, R-048, R-049, R-050, R-051">18</td><td class="num" title="0.97 success">552/567</td><td class="num mid" title="0.71 success">1446/2025</td><td class="num mid" title="0.55 success">307/556</td><td class="num mid" title="0.77 success">437/568</td><td class="num" title="0.87 success">136/156</td><td class="num" title="0.90 success">127/141</td><td class="num mid" title="0.75 success">197/261</td><td class="num" title="0.93 success">55/59</td><td class="num mid" title="0.74 success">137/184</td><td class="num mid" title="0.50 success">50/100</td><td class="num mid" title="0.57 success">68/120</td></tr>
+</tbody></table></div>
+<p class="sub">Hover the "Expts" count to see which R-numbers touched a task. Left out: 66 rollouts from void runs (R-023's non-language arms and its 4-variant harness check, whose instructions were contaminated, and R-024's first contaminated attempt), plus all smoke tests (R-021, <code>*_smoke</code>, <code>oracle_test</code>). R-045 is analysis only and adds no rollouts. R-040, R-043, R-046 and R-052 have not run.</p>
+<ul>
+<li><strong>Perturbed rollouts are not distinct variants.</strong> The splice runs (R-039, R-042, R-044, R-048 to R-051) replay the same 7–10 instances under new noise seeds or rescue arms. So each task's layout, language and texture counts come from only a few distinct variants, even where the rollout count looks larger.</li>
+<li><strong>Coverage is uneven by design.</strong> Start pose and camera were swept on all 10 tasks (R-041, R-047). The other rows are thin per task: lighting 1–60 rollouts, noise 3–33, texture 0–34. A per-task rate on those rows is anecdotal. Four tasks have no texture rollouts at all. Most of the lighting count is R-041's brightening knob, which §1 shows is clipped.</li>
+<li><strong>The "Perturbed" column mixes different perturbations</strong>, so read it together with the per-type columns. Perturbed success is lowest on on-stove (95/186, 0.51), on-wooden-cabinet (128/235, 0.54) and next-to-ramekin (155/240, 0.65). The first two are also among §3's most fragile start-pose scenes. The three R-038 null-prompt scenes (on-stove, on-wooden-cabinet, top-drawer) are the ones at 0/10 in the empty-prompt column.</li>
+</ul>
+
+<h3>By experiment (GR00T, libero_spatial)</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>ID</th><th>What it ran</th><th>Tasks</th><th>Rollouts</th><th>Nominal</th><th>Perturbed</th><th>Perturbation mix</th><th>Corrected chunk</th></tr></thead>
+<tbody>
+<tr><td><b>R-022</b></td><td>Harness parity, nominal (our harness + lerobot-eval)</td><td class="num">10</td><td class="num"><b>200</b></td><td class="num">195/200</td><td class="num">—</td><td>—</td><td class="num">—</td></tr>
+<tr><td><b>R-023</b></td><td>LIBERO-Plus level 1, first look (language arm only; the rest is void)</td><td class="num">1</td><td class="num"><b>8</b></td><td class="num">—</td><td class="num">8/8</td><td>language 8</td><td class="num">—</td></tr>
+<tr><td><b>R-024</b></td><td>Hard L4/L5 variants, first look</td><td class="num">10</td><td class="num"><b>42</b></td><td class="num">—</td><td class="num">34/42</td><td>6 per category</td><td class="num">—</td></tr>
+<tr><td><b>R-025</b></td><td>Same variants, raw vs clean instruction</td><td class="num">10</td><td class="num"><b>42</b></td><td class="num">—</td><td class="num">33/42</td><td>6 per category</td><td class="num">—</td></tr>
+<tr><td><b>R-026</b></td><td>Failure hunt over 623 L4/L5 variants</td><td class="num">10</td><td class="num"><b>623</b></td><td class="num">—</td><td class="num">468/623</td><td>layout 198, language 117, start pose 116, noise 69, camera 62, lighting 44, texture 17</td><td class="num">—</td></tr>
+<tr><td><b>R-029</b></td><td>Unperturbed control on the LIBERO-Plus stack</td><td class="num">10</td><td class="num"><b>100</b></td><td class="num">100/100</td><td class="num">—</td><td>—</td><td class="num">—</td></tr>
+<tr><td><b>R-036</b></td><td>VL embeddings vs failures</td><td class="num">9</td><td class="num"><b>40</b></td><td class="num">—</td><td class="num">22/40</td><td>start pose 12, layout 11, language 7, noise 4, lighting 4, camera 2</td><td class="num">—</td></tr>
+<tr><td><b>R-037</b></td><td>Does a perturbation move the signals (captures)</td><td class="num">10</td><td class="num"><b>70</b></td><td class="num">20/20</td><td class="num">29/50</td><td>start pose 20, camera 16, lighting 8, noise 6</td><td class="num">—</td></tr>
+<tr><td><b>R-038</b></td><td>Empty prompt</td><td class="num">10</td><td class="num"><b>100</b></td><td class="num">—</td><td class="num">50/100</td><td>empty prompt 100</td><td class="num">—</td></tr>
+<tr><td><b>R-039</b></td><td>Pathway splice (paired render + recorded)</td><td class="num">9</td><td class="num"><b>86</b></td><td class="num">16/16</td><td class="num">49/70</td><td>camera 20, lighting 20, noise 20, start pose 10</td><td class="num">—</td></tr>
+<tr><td><b>R-041</b></td><td>Bisection sweeps, 1 rollout per point</td><td class="num">10</td><td class="num"><b>240</b></td><td class="num">40/40</td><td class="num">189/200</td><td>camera (yaw 54, distance 52), start pose 56, lighting 38</td><td class="num">—</td></tr>
+<tr><td><b>R-042</b></td><td>Wrist vs agent camera</td><td class="num">9</td><td class="num"><b>47</b></td><td class="num">7/7</td><td class="num">24/40</td><td>camera, lighting, noise, start pose: 10 each</td><td class="num">—</td></tr>
+<tr><td><b>R-044</b></td><td>Start-pose row: noise seeds, forward-0 rescue</td><td class="num">7</td><td class="num"><b>85</b></td><td class="num">33/35</td><td class="num">5/20</td><td>start pose 20</td><td class="num">20/30</td></tr>
+<tr><td><b>R-047</b></td><td>Replicated curves: start pose 0–0.5 rad, harness yaw 0–75°</td><td class="num">10</td><td class="num"><b>720</b></td><td class="num">94/100</td><td class="num">450/620</td><td>harness yaw 320, start pose 300</td><td class="num">—</td></tr>
+<tr><td><b>R-048</b></td><td>Camera row: noise seeds, forward-0 rescue</td><td class="num">4</td><td class="num"><b>50</b></td><td class="num">—</td><td class="num">4/20</td><td>camera 20</td><td class="num">18/30</td></tr>
+<tr><td><b>R-049</b></td><td>Layout, texture and language rows</td><td class="num">9</td><td class="num"><b>47</b></td><td class="num">7/7</td><td class="num">18/40</td><td>language 20, layout 10, texture 10</td><td class="num">—</td></tr>
+<tr><td><b>R-050</b></td><td>How one corrected chunk flows downstream</td><td class="num">7</td><td class="num"><b>54</b></td><td class="num">14/14</td><td class="num">—</td><td>—</td><td class="num">27/40</td></tr>
+<tr><td><b>R-051</b></td><td>Remaining rows: noise seeds, layout rescue</td><td class="num">9</td><td class="num"><b>158</b></td><td class="num">26/28</td><td class="num">63/110</td><td>layout 30, language 20, lighting 20, noise 20, texture 20</td><td class="num">3/20</td></tr>
+<tr class="total"><td><b>Total</b></td><td></td><td class="num">10</td><td class="num"><b>2,712</b></td><td class="num">552/567</td><td class="num">1,446/2,025</td><td></td><td class="num">68/120</td></tr>
+</tbody></table></div>
+
+<h3>Other policies and suites</h3>
+<p>These are here for scale only. The rest of this page is about GR00T.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Policy</th><th>Suite</th><th>Rollouts</th><th>Nominal</th><th>Perturbed</th><th>Perturbation mix</th><th>Experiments</th></tr></thead>
+<tbody>
+<tr><td>MINERVA</td><td><code>libero_spatial</code></td><td class="num"><b>1,106</b></td><td class="num">582/600</td><td class="num">225/506</td><td>LIBERO-Plus L4/L5 variants (R-027, stopped at 506)</td><td>R-014, R-016, R-027</td></tr>
+<tr><td>MINERVA</td><td><code>libero_object</code></td><td class="num"><b>950</b></td><td class="num">698/700</td><td class="num">234/250</td><td>camera yaw/pitch (R-015)</td><td>R-014, R-015, R-016</td></tr>
+<tr><td>MINERVA</td><td><code>libero_goal</code></td><td class="num"><b>500</b></td><td class="num">487/500</td><td class="num">—</td><td>—</td><td>R-016</td></tr>
+<tr><td>MINERVA</td><td><code>libero_10</code></td><td class="num"><b>500</b></td><td class="num">439/500</td><td class="num">—</td><td>—</td><td>R-016</td></tr>
+<tr><td>SmolVLA</td><td><code>libero_spatial</code></td><td class="num"><b>735</b></td><td class="num">363/525</td><td class="num">21/210</td><td>camera 160*, compound 20*, empty prompt 30</td><td>R-002–005, R-009, R-017</td></tr>
+<tr><td>SmolVLA</td><td><code>libero_object</code></td><td class="num"><b>535</b></td><td class="num">289/325</td><td class="num">8/210</td><td>camera 160*, compound 20*, empty prompt 30</td><td>R-002–005</td></tr>
+<tr><td>SmolVLA</td><td><code>libero_goal</code></td><td class="num"><b>1,030</b></td><td class="num">455/620</td><td class="num">175/410</td><td>camera 340*, compound 40*, empty prompt 30</td><td>R-002–005, R-018–020</td></tr>
+<tr><td>SmolVLA</td><td><code>libero_10</code></td><td class="num"><b>415</b></td><td class="num">124/295</td><td class="num">15/120</td><td>camera 100*, compound 20*</td><td>R-002, R-003, R-005</td></tr>
+</tbody></table></div>
+<p class="sub">* R-005 campaign camera and compound arms are invalid (camera re-aim bug, R-010). SmolVLA is off the roster (it never reproduced a published number). MINERVA's R-027 run stalled with no result written.</p>
+
+<h2>1 · What the benchmark perturbs, and over what range</h2>
+<p>Everything in this section is decoded from LIBERO-Plus's own source for <code>libero_spatial</code>, 2,402 variants:
+<code>benchmark/task_classification.json</code> (category and level per variant), <code>envs/env_wrapper.py</code> (how the variant name is parsed, and the noise functions), <code>envs/robots/new_init.py</code> and <code>mounted_panda_variants.txt</code> (start poses), <code>assets/scenes/lights/*.xml</code> (lighting), and the variant <code>.bddl</code> files (layout, texture, language). Levels L1–L5 are the benchmark's difficulty labels; our failure campaign ran L4 and L5 only.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Category (variants)</th><th>Parameter and how it is encoded</th><th>Range in libero_spatial</th><th>Shape of the space</th></tr></thead>
+<tbody>
+<tr><td><b>Camera</b> (376)</td><td>Name suffix <code>_view_{yaw}_{pitch}_{scale%}_{rotA}_{rotB}</code>. Yaw about the world z-axis through the origin; pitch about a y-parallel axis through (0,0,0.8); scale of the offset from (0,0,0.8); rotA/rotB tilt the look-at direction.</td><td>Four disjoint families, never mixed:<br>• yaw only: |yaw| 1–75°, both signs (108)<br>• yaw + pitch 15° (130); pitch only ever takes the value 15, and only together with yaw<br>• scale only: 1.15–2.00× (76)<br>• look-away only: rotA and rotB each in ±2…±10°, even steps, always together (62)</td><td>Continuous yaw and scale, one pitch value, a small look-away grid. <b>L4/L5 lean negative and pitched:</b> 33 of the 50 yaw variants at L4/L5 have negative yaw, and 37 of the 50 carry pitch 15.</td></tr>
+<tr><td><b>Robot initial state</b> (350)</td><td><code>_initstate_N</code>, N = 1–500, selecting <code>MountedPandaN</code>. Pose = default joints + r·u, with u a random unit vector in 7-D joint space (seed 42).</td><td>r = 0.1 rad for N 1–100, 0.2 for 101–200, … 0.5 for 401–500. Checked: every variant's ‖Δq‖ equals its block's radius exactly.</td><td>Continuous radius × random direction. Levels mix radii: L5 includes r = 0.2.</td></tr>
+<tr><td><b>Sensor noise</b> (351)</td><td><code>_noise_N</code>, N = 1–50 = <b>five families × severity 1–10</b>: 1–10 motion blur, 11–20 Gaussian blur (σ 1–10), 21–30 zoom blur (to 1.56×), 31–40 fog, 41–50 glass blur. Agent view only; the wrist image is clean.</td><td>Glass 85, Gaussian 82, motion 76, zoom 56, fog 52 variants. L4/L5 are severities 4–10, mostly 7–10.</td><td>Five separate 1-D severity scales, not one 0–50 axis. The index is <em>not</em> a severity.</td></tr>
+<tr><td><b>Lighting</b> (292)</td><td><code>_light_N</code>. Each variant is a new scene XML (<code>lights/*_light_sync_modified_*.xml</code>) that redefines both lights.</td><td>Per light: diffuse 0–1 (93% grey, i.e. equal RGB); specular 0–1; direction components in {−1, 0, 1}; shadows on for 53%; position one of two. Nominal is diffuse 0.8, specular 0.3, dir (0, −0.15, −1), no shadows.<br><b>Total diffuse relative to nominal:</b> median 0.62×, quartiles 0.37–0.87×, 16% below 0.25×, at least 10% at 0 (both lights off). Only 4% are brighter than nominal.</td><td>Discrete random draws over intensity, direction, specular and shadow. Mostly <b>dimmer</b> than nominal.</td></tr>
+<tr><td><b>Layout</b> (385)</td><td><code>_add_N</code> (208) or <code>_levelK_sampleM</code> (177).</td><td>add: 1–5 extra distractor objects (L4/L5 are mostly 2–4). levelK: every object's placement region shifted by K cm (1–5 cm), all objects moved.</td><td>Two ordinal axes: distractor count 1–5 and displacement 1–5 cm. Both are sweepable.</td></tr>
+<tr><td><b>Texture</b> (258)</td><td><code>_table_N</code> (140): table texture swapped. <code>_tb_N</code> (118): table and wall swapped together.</td><td>Draws from the added texture library (e.g. Bricks, Tiles, Fabric; wall colours).</td><td>Categorical, no magnitude.</td></tr>
+<tr><td><b>Language</b> (390)</td><td><code>_language_N</code>, N = 1–50 rewrites per scene, written into the <code>.bddl</code>.</td><td>9–37 words against 14 nominal. The rewrites range from polite rephrasing ("Could you move the black bowl…") to obfuscation ("the darkhued vessel on the cooking appliance").</td><td>Categorical. Length or edit distance is the only candidate magnitude.</td></tr>
+</tbody></table></div>
+
+<div class="callout bad"><strong>Two findings from decoding the source.</strong>
+<p><b>Our lighting sweep never reached the benchmark's range.</b> The harness knob sets <code>diffuse × (1 + m)</code>, clipped to 1 (<code>vla_harness/envs/libero_env.py:444–448</code>). With nominal diffuse 0.8, it saturates at m = 0.25, so R-041's "0–3×" is really 1.00–1.25× brightening, flat beyond 0.25. That matches R-041 finding action boundaries below 0.19 on six scenes and none elsewhere. The benchmark mostly dims (median 0.62×) and changes direction and shadows. The knob covers about 4% of the benchmark's lighting variants.</p>
+<p><b>Our noise instances used three of the five families.</b> The ten mapped noise instances are indices 16, 17, 18, 20, 29 and 39: Gaussian blur at severities 6–10, zoom blur at 9, and fog at 9. Motion blur and glass blur (161 of 351 variants; glass is the largest family) were never tested. <code>docs/PERTURBATION_MAP.html</code> §2 says "severities to 50" and "severities 16 to 39"; those are indices, not severities, and the sentence needs correcting in <code>experiments/compile_map.py:409</code>.</p></div>
+
+<h2>2 · Range coverage, row by row</h2>
+<p>Here "Swept" means a continuous single-axis sweep from a success. "Instances" means discrete benchmark variants (R-039 to R-051), which give no curve.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Row / axis</th><th>Benchmark range</th><th>What we swept</th><th>Knob = benchmark?</th><th>Reading</th></tr></thead>
+<tbody>
+<tr><td>Start-pose radius</td><td>0.1–0.5 rad, random joint direction</td><td>0–0.5 rad, 10 scenes × 6 replicates (R-047)</td><td>Yes</td><td><span class="chip bad">not robust</span></td></tr>
+<tr><td>Camera yaw (+)</td><td>|yaw| 1–75°, about the world origin; 130 of 238 yaw variants also carry pitch 15°</td><td>0–75°, 10 × 4 (R-047); 0–40° bisection (R-041)</td><td>No: orbits the look-at point, 0.16–0.35 m from the benchmark's pivot</td><td><span class="chip warn">degrades, geometry unverified</span></td></tr>
+<tr><td>Camera yaw (−)</td><td>down to −75°; 33 of 50 L4/L5 yaw variants are negative</td><td>never</td><td>—</td><td><span class="chip unk">unknown</span> Two campaign failures at about −45° and −63°</td></tr>
+<tr><td>Camera distance</td><td>1.15–2.00× about (0,0,0.8), i.e. up to +1.04 m</td><td>0–0.4 m (~1.4×), bisection, 1 rollout per point (R-041)</td><td>No: different pivot, and range too short</td><td><span class="chip unk">unknown</span> Failing instances at 1.73× and 1.85× (+0.76, +0.89 m)</td></tr>
+<tr><td>Camera pitch</td><td>15° only, always combined with yaw</td><td>never (held at 0)</td><td>—</td><td><span class="chip unk">unknown</span> 4 of 10 mapped camera failures have pitch 15°</td></tr>
+<tr><td>Camera look-away</td><td>two tilts, each ±2…±10° in even steps, always together</td><td>never; no knob exists</td><td>—</td><td><span class="chip unk">unknown</span></td></tr>
+<tr><td>Lighting</td><td>mostly dimmer (median 0.62× total diffuse, 16% below 0.25×) plus direction, specular and shadows; 4% brighter than nominal</td><td>knob "0–3×", which saturates at 1.25× brightening from m = 0.25 (R-041); 10 instances (R-039/42/51)</td><td>No: brightening only, clipped. It covers ~4% of the benchmark's variants.</td><td><span class="chip unk">unknown</span> 10/10 success says nothing about dimming, direction or shadows</td></tr>
+<tr><td>Sensor noise</td><td>5 families (motion, Gaussian, zoom, fog, glass) × severity 1–10</td><td>10 instances: Gaussian 6–10, zoom 9, fog 9; no sweep</td><td>Instances yes, sweep none</td><td><span class="chip unk">unknown on 2 of 5 families</span> Motion and glass blur (161 of 351 variants) never tested; 1–3 of 10 fail</td></tr>
+<tr><td>Texture</td><td>table swap (140) or table + wall swap (118)</td><td>10 instances (R-049/51)</td><td>Instances yes</td><td><span class="chip unk">inconclusive</span> Campaign failures barely reproduce (0 and 1 of 10 across seeds)</td></tr>
+<tr><td>Layout</td><td>1–5 distractors added, or all objects shifted 1–5 cm</td><td>10 instances (R-049/51); no sweep over either ordinal axis</td><td>Instances yes</td><td><span class="chip bad">fragile</span> 8/10 fail; a corrected first chunk does not rescue</td></tr>
+<tr><td>Language</td><td>50 rewrites per scene, 9–37 words (nominal 14)</td><td>10 instances (R-049/51)</td><td>Instances yes</td><td><span class="chip bad">fragile</span> 7/10 fail (8 and 7 under two more seeds)</td></tr>
+</tbody></table></div>
+
+<h2>3 · Measured and not robust</h2>
+<h3>Start pose: the one row swept over the benchmark's full range</h3>
+<div class="charts">
+<figure>
+<svg viewBox="0 0 360 200" role="img" aria-label="start pose">
+<line x1="40" x2="348" y1="166.0" y2="166.0" class="grid"/>
+<text x="34" y="170.0" class="tick" text-anchor="end">0</text>
+<line x1="40" x2="348" y1="135.6" y2="135.6" class="grid mark"/>
+<text x="34" y="139.6" class="tick" text-anchor="end">0.2</text>
+<line x1="40" x2="348" y1="90.0" y2="90.0" class="grid"/>
+<text x="34" y="94.0" class="tick" text-anchor="end">0.5</text>
+<line x1="40" x2="348" y1="44.4" y2="44.4" class="grid mark"/>
+<text x="34" y="48.4" class="tick" text-anchor="end">0.8</text>
+<line x1="40" x2="348" y1="14.0" y2="14.0" class="grid"/>
+<text x="34" y="18.0" class="tick" text-anchor="end">1</text>
+<text x="40.0" y="182" class="tick" text-anchor="middle">0</text>
+<text x="101.6" y="182" class="tick" text-anchor="middle">0.1</text>
+<text x="163.2" y="182" class="tick" text-anchor="middle">0.2</text>
+<text x="224.8" y="182" class="tick" text-anchor="middle">0.3</text>
+<text x="286.4" y="182" class="tick" text-anchor="middle">0.4</text>
+<text x="348.0" y="182" class="tick" text-anchor="middle">0.5</text>
+<text x="194.0" y="197" class="axis" text-anchor="middle">start-pose radius (rad) — benchmark range 0.1–0.5</text>
+<polyline points="40.0,14.0 101.6,14.0 163.2,64.7 224.8,166.0 286.4,166.0 348.0,166.0" class="scene"/>
+<circle cx="40.0" cy="14.0" r="2" class="scene-dot"><title>on-stove: 1.00</title></circle>
+<circle cx="101.6" cy="14.0" r="2" class="scene-dot"><title>on-stove: 1.00</title></circle>
+<circle cx="163.2" cy="64.7" r="2" class="scene-dot"><title>on-stove: 0.67</title></circle>
+<circle cx="224.8" cy="166.0" r="2" class="scene-dot"><title>on-stove: 0.00</title></circle>
+<circle cx="286.4" cy="166.0" r="2" class="scene-dot"><title>on-stove: 0.00</title></circle>
+<circle cx="348.0" cy="166.0" r="2" class="scene-dot"><title>on-stove: 0.00</title></circle>
+<polyline points="40.0,14.0 101.6,14.0 163.2,64.7 224.8,90.0 286.4,64.7 348.0,166.0" class="scene2"/>
+<circle cx="40.0" cy="14.0" r="2" class="scene2-dot"><title>table-center: 1.00</title></circle>
+<circle cx="101.6" cy="14.0" r="2" class="scene2-dot"><title>table-center: 1.00</title></circle>
+<circle cx="163.2" cy="64.7" r="2" class="scene2-dot"><title>table-center: 0.67</title></circle>
+<circle cx="224.8" cy="90.0" r="2" class="scene2-dot"><title>table-center: 0.50</title></circle>
+<circle cx="286.4" cy="64.7" r="2" class="scene2-dot"><title>table-center: 0.67</title></circle>
+<circle cx="348.0" cy="166.0" r="2" class="scene2-dot"><title>table-center: 0.00</title></circle>
+<polyline points="40.0,14.0 101.6,22.4 163.2,59.0 224.8,81.6 286.4,84.4 348.0,109.7" class="pooled"/>
+<circle cx="40.0" cy="14.0" r="3" class="pooled-dot"><title>pooled (9 scenes): 1.00</title></circle>
+<circle cx="101.6" cy="22.4" r="3" class="pooled-dot"><title>pooled (9 scenes): 0.94</title></circle>
+<circle cx="163.2" cy="59.0" r="3" class="pooled-dot"><title>pooled (9 scenes): 0.70</title></circle>
+<circle cx="224.8" cy="81.6" r="3" class="pooled-dot"><title>pooled (9 scenes): 0.56</title></circle>
+<circle cx="286.4" cy="84.4" r="3" class="pooled-dot"><title>pooled (9 scenes): 0.54</title></circle>
+<circle cx="348.0" cy="109.7" r="3" class="pooled-dot"><title>pooled (9 scenes): 0.37</title></circle>
+</svg>
+<div class="legend"><span><span class="sw" style="background:var(--pooled)"></span>pooled, 9 scenes (on-ramekin excluded)</span><span><span class="sw" style="background:var(--scene)"></span>on-stove</span><span><span class="sw" style="background:var(--scene2)"></span>table-center</span></div>
+<figcaption>R-047, 6 replicates per point (3 joint directions × 2 noise seeds). Dashed lines at 0.8 and 0.2 bound the transition width.</figcaption>
+</figure>
+<figure>
+<svg viewBox="0 0 360 200" role="img" aria-label="camera yaw">
+<line x1="40" x2="348" y1="166.0" y2="166.0" class="grid"/>
+<text x="34" y="170.0" class="tick" text-anchor="end">0</text>
+<line x1="40" x2="348" y1="135.6" y2="135.6" class="grid mark"/>
+<text x="34" y="139.6" class="tick" text-anchor="end">0.2</text>
+<line x1="40" x2="348" y1="90.0" y2="90.0" class="grid"/>
+<text x="34" y="94.0" class="tick" text-anchor="end">0.5</text>
+<line x1="40" x2="348" y1="44.4" y2="44.4" class="grid mark"/>
+<text x="34" y="48.4" class="tick" text-anchor="end">0.8</text>
+<line x1="40" x2="348" y1="14.0" y2="14.0" class="grid"/>
+<text x="34" y="18.0" class="tick" text-anchor="end">1</text>
+<text x="40.0" y="182" class="tick" text-anchor="middle">0</text>
+<text x="60.5" y="182" class="tick" text-anchor="middle">5</text>
+<text x="81.1" y="182" class="tick" text-anchor="middle">10</text>
+<text x="122.1" y="182" class="tick" text-anchor="middle">20</text>
+<text x="163.2" y="182" class="tick" text-anchor="middle">30</text>
+<text x="204.3" y="182" class="tick" text-anchor="middle">40</text>
+<text x="245.3" y="182" class="tick" text-anchor="middle">50</text>
+<text x="286.4" y="182" class="tick" text-anchor="middle">60</text>
+<text x="348.0" y="182" class="tick" text-anchor="middle">75</text>
+<text x="194.0" y="197" class="axis" text-anchor="middle">camera yaw (°), harness pivot — benchmark 0–75°</text>
+<polyline points="40.0,14.0 60.5,14.0 81.1,14.0 122.1,14.0 163.2,14.0 204.3,14.0 245.3,166.0 286.4,166.0 348.0,90.0" class="scene"/>
+<circle cx="40.0" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="60.5" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="81.1" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="122.1" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="163.2" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="204.3" cy="14.0" r="2" class="scene-dot"><title>between-plate-ramekin: 1.00</title></circle>
+<circle cx="245.3" cy="166.0" r="2" class="scene-dot"><title>between-plate-ramekin: 0.00</title></circle>
+<circle cx="286.4" cy="166.0" r="2" class="scene-dot"><title>between-plate-ramekin: 0.00</title></circle>
+<circle cx="348.0" cy="90.0" r="2" class="scene-dot"><title>between-plate-ramekin: 0.50</title></circle>
+<polyline points="40.0,14.0 60.5,14.0 81.1,18.8 122.1,23.5 163.2,47.2 204.3,42.5 245.3,80.5 286.4,66.2 348.0,56.8" class="pooled"/>
+<circle cx="40.0" cy="14.0" r="3" class="pooled-dot"><title>pooled (8 scenes): 1.00</title></circle>
+<circle cx="60.5" cy="14.0" r="3" class="pooled-dot"><title>pooled (8 scenes): 1.00</title></circle>
+<circle cx="81.1" cy="18.8" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.97</title></circle>
+<circle cx="122.1" cy="23.5" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.94</title></circle>
+<circle cx="163.2" cy="47.2" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.78</title></circle>
+<circle cx="204.3" cy="42.5" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.81</title></circle>
+<circle cx="245.3" cy="80.5" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.56</title></circle>
+<circle cx="286.4" cy="66.2" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.66</title></circle>
+<circle cx="348.0" cy="56.8" r="3" class="pooled-dot"><title>pooled (8 scenes): 0.72</title></circle>
+</svg>
+<div class="legend"><span><span class="sw" style="background:var(--pooled)"></span>pooled, 8 scenes (on-ramekin, on-wooden-cabinet excluded)</span><span><span class="sw" style="background:var(--scene)"></span>between-plate-ramekin</span></div>
+<figcaption>R-047, 4 noise seeds per point, harness yaw knob at pitch 0. After 40° the cells are non-monotone at n = 4.</figcaption>
+</figure>
+</div>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Start-pose radius (rad)</th><th>0</th><th>0.1</th><th>0.2</th><th>0.3</th><th>0.4</th><th>0.5</th></tr></thead>
+<tbody>
+<tr><td>Pooled, 9 scenes</td><td class="num">54/54</td><td class="num">51/54</td><td class="num">38/54</td><td class="num">30/54</td><td class="num">29/54</td><td class="num">20/54</td></tr>
+<tr><td>on-stove *</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">4/6</td><td class="num">0/6</td><td class="num">0/6</td><td class="num">0/6</td></tr>
+<tr><td>table-center</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">4/6</td><td class="num">3/6</td><td class="num">4/6</td><td class="num">0/6</td></tr>
+<tr><td>top-drawer *</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">4/6</td><td class="num">4/6</td><td class="num">2/6</td><td class="num">1/6</td></tr>
+<tr><td>on-wooden-cabinet *</td><td class="num">6/6</td><td class="num">3/6</td><td class="num">3/6</td><td class="num">2/6</td><td class="num">2/6</td><td class="num">2/6</td></tr>
+<tr><td>next-to-plate (most robust)</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">6/6</td><td class="num">4/6</td><td class="num">4/6</td></tr>
+</tbody></table></div>
+<p class="sub">* R-038 null-prompt scenes. The same scenes come out most fragile in R-041, R-047 and R-038.</p>
+<ul>
+<li><strong>Shape:</strong> mostly a slope starting at 0.2 rad (median transition width 0.34 rad). On-stove is the exception, a cliff with width 0.07 rad. The 50% points run from 0.21 rad (stove) to about 0.60 rad (extrapolated).</li>
+<li><strong>The first action predicts the outcome here:</strong> within a radius, the directions that move the first chunk more fail more often (r = −0.36). Start pose is the only swept row with a signal a first-forward detector could read. Yaw shows r = +0.11.</li>
+<li><strong>Data specification:</strong> weight stove, wooden-cabinet, top-drawer and table-center at radii 0.2–0.5.</li>
+</ul>
+
+<h3>Layout and language: fragile, but only as instances</h3>
+<p>Both rows fail most of their instances (layout 8/10, language 7/10). There is no magnitude knob, so the question "how far can it be pushed" is not defined yet for them. The layout failure is carried by the agent view (0.55) and is not rescued by a corrected first chunk. For language, a rewrite moves the first action by a median of 1.42, and by 2.81 on R-038's null-prompt scenes.</p>
+
+<h2>4 · Measured, but possibly too kind: camera yaw</h2>
+<p>Pooled success is 0.93 up to 20°, about 0.80 at 30–40°, and 0.58–0.73 from 50° to 75°. Only 1 of 8 scored scenes (between-plate-ramekin) falls to ≤ 0.2; the prediction was 8 of 10. The harness knob orbits the vertical through the camera's look-at point, so the scene stays centred in the image. LIBERO-Plus orbits the world origin, which also translates the scene across the frame. The benchmark's cone is therefore probably harsher than this curve. R-052 measures it.</p>
+
+<h2>5 · Unknown: the range stopped short, or the knob measured something else</h2>
+<ol>
+<li><strong>Camera distance.</strong> We reached ~1.4×; the benchmark goes to 2.0×. Both failing campaign distance instances lie beyond our maximum. R-041 still succeeds at max on 9/10 scenes, but that is at a distance the benchmark barely uses.</li>
+<li><strong>Camera pitch.</strong> Never swept, yet it is present in 4 of 10 mapped camera failures.</li>
+<li><strong>Negative yaw.</strong> Never swept. Two campaign failures sit there. R-052 also runs positive yaw only.</li>
+<li><strong>Look-away rotation.</strong> No knob exists.</li>
+<li><strong>Lighting.</strong> "Robust to lighting" (10/10 at "3×") is an artefact of the knob. It only brightens, and it clips at 1.25× nominal from m = 0.25 onwards. The benchmark mostly <em>dims</em> (median 0.62×, some variants with both lights off) and moves the light direction and shadows. Of all the gaps, this one is the most likely to be misread as good news.</li>
+<li><strong>Noise.</strong> Our instances are Gaussian blur 6–10, zoom blur 9 and fog 9 (indices 16–39). Motion blur and glass blur, 161 of the 351 variants, were never tested, and there is no severity sweep in any family. Rescue is unreadable at 1 failure in 10.</li>
+<li><strong>Texture.</strong> The two campaign failures barely reproduce (0 and 1 of 10 across seeds). This is not evidence of robustness, only an unreadable row at this n.</li>
+</ol>
+<div class="callout bad"><strong>Baseline caveat.</strong> On-ramekin fails with nothing perturbed under one noise seed, on both R-047 axes. On-wooden-cabinet fails once at yaw 0. R-029's 100/100 used one noise seed per episode, so "start from a success" is not 100% across seeds on every scene. Those scenes are excluded from the pooled numbers above.</div>
+
+<h2>6 · Status of the continuous sweep programme</h2>
+<p>The design: start from a known success (the R-029 control, 100/100), move one axis at a time, and find where the <em>action</em> first departs from nominal and where the <em>outcome</em> flips.</p>
+<ul class="timeline">
+<li class="done"><strong>R-041: bisection, one rollout per point. DONE 2026-09-23.</strong> 4 axes × 10 scenes, 240 rollouts, magnitude-0 40/40. The action departs at the smallest resolvable magnitude on every axis except light. Outcome boundaries were found only on some scenes: yaw 21–40° (top-drawer, table-center), distance 0.31–0.4 m (on-ramekin), start pose 0.15–0.5 rad (stove, table-center, top-drawer), light none. Still succeeding at max: yaw 8/10, distance 9/10, light 10/10, start pose 7/10. <em>Limit:</em> one rollout per point, while outcomes flip 30–40% under jitter, so a bracket is a sample, not a threshold. <code>docs/R041_RESULTS.html</code>.</li>
+<li class="done"><strong>R-047: replicated probability curves. DONE 2026-09-28 14:46.</strong> This corrected R-041's ranges to the benchmark's on start pose (0–0.5 rad) and yaw (0–75°), 720 rollouts. Results are in sections 3 and 4; 2 of 6 expectations held. Yaw kept the old pivot by decision D5, for comparability with R-041.</li>
+<li class="done"><strong>Single-draw STAC on R-041's stored chunks. DONE (CPU, vla-a5).</strong> The noise floor (~7) is far above ‖P−N‖ (~1), and AUROC is at chance. This motivates the distributional readout (D2), which is designed but has no R-number yet.</li>
+<li class="pending"><strong>R-047 part 2 (distance to 2.0×, pitch). DEFERRED, superseded by R-052.</strong></li>
+<li class="pending"><strong>R-052: the benchmark's own camera cone. PRE-REGISTERED 2026-09-28, NOT QUEUED.</strong> Axes <code>camera_bench_yaw_deg</code> 0–75 (the same grid as R-047, for a point-for-point comparison), <code>camera_bench_scale</code> 1.0–2.0, and <code>camera_bench_pitch_deg</code> 0–15. 10 scenes × 4 seeds, ~760 rollouts, ~9.5 h GPU. The knobs call each scene's own LIBERO-Plus <code>_setup_camera</code> and match 7 real views to 1e-4 (<code>tests/test_bench_camera.py</code>). <strong>Blocker:</strong> <code>experiments/queue_r052.sh</code> has not been written. The GPU is idle now, since R-047 released the lock at 14:46.</li>
+<li class="none"><strong>Not registered anywhere:</strong>
+  <ul>
+  <li>negative yaw</li>
+  <li>look-away rotation (a knob is needed)</li>
+  <li>a benchmark-matched lighting knob (dimming, direction, shadows)</li>
+  <li>a severity sweep, 1–10, for each of the five noise families</li>
+  <li>layout sweeps over distractor count (1–5) and displacement (1–5 cm), both already ordinal in the benchmark</li>
+  <li>a magnitude axis for language</li>
+  </ul></li>
+</ul>
+
+<h3>What the programme has established so far</h3>
+<ul>
+<li>The <strong>first action</strong> departs from nominal at almost any magnitude on every axis. The <strong>outcome</strong> is much more tolerant and scene-dependent. So the fixed boundary we set out to find exists only in the outcome, and only on some scenes.</li>
+<li>Start pose is where the programme answered its question over the benchmark's range. Every camera axis still needs to be re-measured on the benchmark's geometry (R-052).</li>
+</ul>
+
+<h2>7 · What the literature says about this design</h2>
+<p class="sub">Summary of the <code>sweep</code> session's review, <a href="SWEEP_DESIGN_LITERATURE.html"><code>docs/SWEEP_DESIGN_LITERATURE.html</code></a> (2026-09-28). Citations and details are there. Two of its 2026 papers were read from abstracts only.</p>
+<ul>
+<li><strong>Is it a continuous space with definite boundaries?</strong> Not in the outcome. The review's answer is to model each axis as a <em>psychometric curve</em>: a logistic success probability against magnitude, with a lapse term (on-ramekin fails at zero perturbation, so p(0) &lt; 1) and scene effects partially pooled (hierarchical logistic). Report the 50% point with a CI, the transition width and the lapse. ‖P−N‖ is a local-sensitivity covariate, never a boundary. This matches what R-041 and R-047 found.</li>
+<li><strong>Keep one-axis replicated grids; drop bisection.</strong> Add an <em>adaptive second stage</em> that samples where the fitted curve is most uncertain, near its 50% point (level-set estimation, the "straddle" rule). Robotics evidence puts the saving at 20–40% of rollouts, not 10×.</li>
+<li><strong>Interactions matter.</strong> Add a small layer of pairwise cells, because combined perturbations cost far more than their parts (Colosseum; LIBERO-Plus's own compositional result).</li>
+<li><strong>Minimal-set coverage (covering arrays, t-way testing)</strong> fits the <em>discrete</em> factors (texture, lighting draws, language rewrites) later, with ≥ 4 seeds per row. It assumes deterministic faults, so it does not fit Bernoulli outcomes over continuous axes on its own.</li>
+<li><strong>Statistical claims:</strong> Clopper–Pearson intervals, or sequential tests for comparing policies, over point success rates.</li>
+</ul>
+<p><b>Its proposed R-052</b> (revised 2026-09-28 after the benchmark facts in §1): ≈920 rollouts, ≈11.8 h, against the 760 registered.</p>
+<ul>
+<li>an 8-seed nominal anchor;</li>
+<li>yaw at <b>both signs</b> ±20/40/60/75;</li>
+<li>scale 1.15–2.0;</li>
+<li>pitch 15° alone as a 4-seed diagnostic only (40 rollouts), since the benchmark always pairs pitch with yaw;</li>
+<li>about 100 adaptive rollouts;</li>
+<li>a stage of about 160 joint cells, led by yaw × pitch 15° at both yaw signs and then yaw × scale at negative yaw;</li>
+<li>a calibration check against about 60 real LIBERO-Plus camera variants.</li>
+</ul>
+<p>A lean version (≈780) keeps only the yaw × pitch joint cells.</p>
+<p>This follows section 1: the benchmark uses pitch only at 15°, always with yaw, and its hard camera variants are mostly negative-yaw and pitched.</p>
+
+<h2>8 · Recommended order</h2>
+<ol>
+<li><strong>Amend R-052, then write <code>queue_r052.sh</code> and run it.</strong> The amendment is a timestamped pre-registration change taking in the §7 proposal: both yaw signs, pitch 15° always paired with yaw, scale from 1.15×, and an adaptive stage. It clears the distance, pitch and pivot gaps in one pass (~10–12 h).</li>
+<li><strong>Replace the lighting knob.</strong> Add a dimming axis (total diffuse 1.0 → 0) and a direction/shadow axis modelled on LIBERO-Plus's light XMLs, then pre-register a lighting sweep. It is the gap most likely to be misread as robust, and the current knob is clipped.</li>
+<li><strong>Noise: a severity sweep of 1–10 in each of the five families</strong>, agent view only (R-051 shows the wrist is inert here), starting with motion and glass blur, which were never tested. It is cheap (a post-render filter, no new knob) and gives the rescue arm failures to work with.</li>
+<li><strong>Layout sweeps</strong> over distractor count and displacement. The benchmark's variants already define both axes, and layout is the most fragile instance row.</li>
+<li>Only after that: look-away knobs, and a magnitude for language (word count or edit distance).</li>
+<li><strong>Fix the map text:</strong> <code>experiments/compile_map.py:409</code> calls noise indices "severities"; send to impl.</li>
+</ol>
+
+<footer>
+Sources: <code>RESULTS.md</code> §R-041 (l. 2902), §R-047 (l. 3761), §R-052 (l. 4300); <code>docs/PERTURBATION_MAP.html</code> §1–8; <code>docs/Decision_28Sep.html</code> D2, D5, D16; <code>runs/r047/queue.log</code>; <code>third_party/LIBERO-plus</code> (task_classification.json, env_wrapper.py, robots/, assets/scenes/lights/, bddl_files/libero_spatial/); <code>docs/SWEEP_DESIGN_LITERATURE.html</code>. Section 0 is tallied from <code>runs/*/rollouts.jsonl</code> and <code>experiments/repro/runs/*/eval_info.json</code> (2026-09-28). The rest was written by hand from those files. It is not rebuilt by <code>experiments/compile_map.py</code>, so update it when R-052 lands.
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambitious VLA Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code{font:13px var(--mono);background:var(--surface-2);padding:1px 4px;border-radius:3px}
+  ul{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .tag{display:inline-block;font:500 12px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);margin-left:6px;vertical-align:2px}
+  .tag.pick{background:var(--accent);color:var(--surface)}
+  .risk{color:var(--warn)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  .lit{margin-top:10px;border-top:1px dashed var(--rule);padding-top:8px}
+  .lit h4{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .lit table{min-width:600px}
+  .lit td:first-child{width:30%}
+  .verdict{margin:10px 0 2px;padding:8px 12px;border-radius:5px;background:var(--surface-2);font-size:14px}
+  .crowd{color:var(--bad);font-weight:600}.open{color:var(--ok);font-weight:600}
+  a{color:var(--accent)}
+  td.ok,.ok{color:var(--ok);font-weight:600} td.no,.no{color:var(--bad);font-weight:600} td.part,.part{color:var(--warn);font-weight:600}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Ambitious directions for the VLA project</h1>
+<p class="sub">Discussion draft, 2026-09-29. Each direction builds on something we have already shown. See <code>docs/VLA_doc_pending.html</code> for where the base doc stands. Literature added 2026-09-29: about 35 papers found by web search. Most were checked against their arXiv abstract page only, not read in full; rows marked "I haven't read it" were only seen in search results. Classic references are from memory. Check before citing.</p>
+
+<h2>What we have that others don't</h2>
+<div class="card"><ul>
+<li><strong>Mechanism evidence.</strong> Every perturbation reaches the action through the image tokens. For start pose it's the wrist camera, and correcting only the first action chunk rescues it. Camera shifts need correcting throughout the episode (R-039, R-042, R-057).</li>
+<li><strong>A way to generate corrected demos in simulation</strong> (R-054), and LoRA fine-tuning of GR00T that fits the 8 GB card.</li>
+<li><strong>Discipline:</strong> pre-registration, reproduction gates, no-op controls. Most VLA robustness papers don't have these.</li>
+</ul></div>
+
+<h2>Directions</h2>
+
+<div class="card top">
+<h3>1. The data-efficiency law for repairing a policy <span class="tag pick">top pick</span></h3>
+<p>R-040 generalised. Take one failure region and compare equal data budgets of four kinds: demos targeted by mechanism, demos targeted by failure, random extra demos, and nominal demos. Plot a data-response curve for each.</p>
+<ul>
+<li>Target headline: "targeted demos close X% of the gap at 1/10th the data."</li>
+<li>That's iMerit's whole pitch as a measured number, and a publishable result.</li>
+<li>It's the base doc's thesis done properly, and the R-053 to R-058 pipeline already runs it.</li>
+</ul>
+<p class="risk"><strong>Risk:</strong> it needs many training runs. On 8 GB each LoRA run takes hours, so this probably wants a rented GPU.</p>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/2505.07728">Zha et al., Factored Scaling Curves</a>, 2025</td><td>Measure how success scales with data along each factor (or pair) and collect where the curve is steepest. Up to +26% real-world success in new environments.</td><td>The nearest prior work to #1. It chooses data by scaling curves over factors. It doesn't use failure mechanism, and it isn't built on a perturbation benchmark.</td></tr><tr><td><a href="https://arxiv.org/abs/2506.19121">Agia et al., CUPID</a>, CoRL 2025</td><td>Influence functions estimate how much each demo contributes to closed-loop success, then filter or pick demos. Matches state of the art on Robomimic with &lt;33% of the data.</td><td>A strong selection baseline for the "which demos" arm. It picks from data you already have; it doesn't generate new data.</td></tr><tr><td><a href="https://arxiv.org/abs/2502.06575">Majumdar et al., Predictive Red Teaming (RoboART)</a>, 2025</td><td>Edits images to simulate adverse conditions and predicts how much the policy degrades. Fine-tuning on targeted data gave 2–7× the baseline.</td><td>Evidence that targeted data beats baseline, but not at a matched budget against mechanism-targeted or random data.</td></tr><tr><td><a href="https://arxiv.org/abs/2405.01472">Hoque et al., IntervenGen</a>, 2024</td><td>Turns ~10 human corrections into many synthetic ones. Up to 39× more robust.</td><td>Close in spirit to our R-054 rescue minting. It's also the natural baseline for #5.</td></tr><tr><td><a href="https://arxiv.org/abs/2502.16932">Xue et al., DemoGen</a>, RSS 2025</td><td>Makes spatially shifted demos from one human demo by editing point clouds and trajectories. About 20× less human data.</td><td>A cheap generator for layout and start-pose data. It works on point-cloud policies, not RGB VLAs.</td></tr><tr><td><a href="https://arxiv.org/abs/2609.12316">Sahoo et al., DATAFARM</a>, Sep 2026</td><td>Planner-generated demos barely help VLA fine-tuning (8.3%) unless their joints, motion style and timing match the pretraining data (56.7%, against 61.7% for teleop).</td><td><strong>A direct warning for R-054:</strong> our minted rescues are planner-like. Check their style against the IPEC demos before reading anything into R-056.</td></tr><tr><td><a href="https://arxiv.org/abs/2512.02902">Li et al., "VLA models are more generalizable than you think"</a>, CVPR 2026</td><td>Camera-view failures come from visual-token misalignment. A 4K-parameter affine rescaling of the visual tokens takes LIBERO viewpoint success from 48.5% to 87.1%; visual LoRA reaches 90.8%.</td><td><strong>The most relevant paper on this page.</strong> It fixes the camera with parameters, not data, and agrees with our finding that it's all image tokens (R-039). It doesn't cover start pose.</td></tr><tr><td><a href="https://arxiv.org/abs/2410.18647">Lin et al., Data Scaling Laws in IL</a>, ICLR 2025</td><td>Success follows a power law in the number of environments and objects; diversity matters more than demo count.</td><td>Gives the functional form to fit to our data-response curves.</td></tr></tbody></table></div><p class="verdict"><span class="open">Open niche:</span> nobody compares demos targeted by mechanism, demos targeted by failure, random demos and <em>parameter-only fixes</em> (the 2512.02902-style token rescaling) at a matched budget on one measured failure boundary. Add the token-rescaling fix as a fifth arm: it is cheap, and it asks whether data is needed at all. For a start-pose fix aimed at the wrist camera, the answer isn't known.</p></div>
+</div>
+
+<div class="card">
+<h3>2. Fixing the policy while it runs, with no retraining</h3>
+<p>R-057 says start-pose failures are decided in the first chunk. Correcting that chunk rescues 24/30, and the first action's size predicts failure (r = −0.36, R-047).</p>
+<ul>
+<li>Build a monitor that flags "this start pose is off-distribution" from the first forward pass.</li>
+<li>Then apply a cheap correction: re-home the arm, blend the first chunk, or steer the wrist-camera features.</li>
+<li>Test-time repair versus retraining is an interesting comparison in its own right, and it's something customers could actually deploy.</li>
+</ul>
+<p class="risk"><strong>Risk:</strong> R-037 found that nothing predicts failure well yet, so the monitor is the hard part.</p>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td>SAFE, <a href="https://arxiv.org/abs/2506.09937">Gu et al.</a>, NeurIPS 2025</td><td>A failure detector trained on VLA internal features that generalises to unseen tasks, calibrated with conformal prediction.</td><td>The standard baseline for detection from internal features. Detection only.</td></tr><tr><td>VLA-FAIL, <a href="https://arxiv.org/abs/2606.21386">Seligmann et al.</a>, Jun 2026</td><td>Mahalanobis distance on the last layer, plus how much consecutive action chunks agree. Introduces a metric that scores detection speed as well as accuracy.</td><td>Chunk agreement is cheap for us to compute. Detection only.</td></tr><tr><td>VLA-Scope, <a href="https://arxiv.org/abs/2609.21246">Zhu et al.</a>, Sep 2026</td><td>Stage 1 classifies the kind of distribution shift from pooled embeddings (91% accuracy). Stage 2 updates the failure risk as the episode runs; AUROC reaches 0.85 after 60 actions. OpenVLA, LIBERO-Spatial.</td><td><strong>Possibly the "distribution shift across time" paper you meant.</strong> It predicts but doesn't correct. Our R-057 says start-pose failures are decided in the first chunk, so predicting after 60 actions is too late for them.</td></tr><tr><td>Early warning signals, <a href="https://arxiv.org/abs/2606.29699">Mahato &amp; Ren</a>, Jun 2026</td><td>A probe on OpenVLA's layer-16 activations separates failures after the fact (AUROC 0.972), but raises 3.3 false warnings per clean episode.</td><td>A cautionary result: separating failures after the fact is not prediction. The same trap as our R-037.</td></tr><tr><td>Hide-and-Seek, <a href="https://arxiv.org/abs/2605.30834">Park et al.</a>, NeurIPS 2026</td><td>Learns failure signals from episode-level labels alone. OpenVLA, π0 and π0.5 on LIBERO and VLABench.</td><td>State-of-the-art detection. It could be applied to our rollouts as they are.</td></tr><tr><td>VLA-Corrector, <a href="https://arxiv.org/abs/2607.01804">Pan et al.</a>, Jul 2026</td><td>A small latent monitor compares predicted and actual visual change. On a drift it drops the rest of the chunk and replans, guided by gradients. No retraining.</td><td><strong>The closest to "fix it while it runs".</strong> It handles drift during the episode, not a bad start.</td></tr><tr><td>CheckVLA, <a href="https://arxiv.org/abs/2607.26789">2026</a></td><td>A world model checks whether observations match what the committed chunk should have done, then rewrites what's left of the chunk. 36.1% against 27.6% on RoboCasa365.</td><td>Detect-and-repair with conformal false-alarm control. Mobile manipulation.</td></tr><tr><td>Rewind-IL, <a href="https://arxiv.org/abs/2604.16683">Zheng et al.</a>, Apr 2026</td><td>A training-free detector based on disagreement between chunks, then rewinds the robot to a safe checkpoint picked by a VLM.</td><td>"Re-home and retry" is one of our proposed fixes, and this is published prior work for it.</td></tr><tr><td>Sentinel, <a href="https://arxiv.org/abs/2410.04640">Agia et al.</a>, 2024</td><td>Watches for inconsistent actions and stalled progress in generative policies.</td><td>Already in docs/SENTINEL_METHODOLOGY.html.</td></tr><tr><td>Simchowitz et al., <a href="https://arxiv.org/abs/2507.09061">action chunking and exploratory data</a>, 2025</td><td>Theory: in continuous control, imitation errors compound exponentially; action chunking and exploratory data avoid it through control-theoretic stability.</td><td>The theory behind "decided early vs corrected throughout". Another candidate for the paper you meant.</td></tr></tbody></table></div><p class="verdict"><span class="crowd">Detection is crowded</span>: at least eight papers in 2026. <span class="open">Open niche:</span> fixing a <em>bad start</em>, where the episode is decided in the first chunk (R-057 k* = 1), rather than drift in the middle. Plus a cost comparison: repairing at run time against retraining on the same failure. Don't build another detector; use chunk agreement (VLA-FAIL) or SAFE as the trigger.</p></div>
+</div>
+
+<div class="card">
+<h3>3. Steering the policy's internal features (mechanistic interpretability)</h3>
+<p>We know where perturbations live: the backbone output, the image tokens, the wrist camera.</p>
+<ul>
+<li>Try activation patching or steering vectors that remove the start-pose or camera shift inside the network, so the policy corrects itself with no data at all.</li>
+<li>If it works, it's a strong paper. If it doesn't, it bounds how far the "localised pathway" story goes.</li>
+<li>It overlaps with the blocked action-atlas reproduction (arXiv:2603.19233), and we'd do it properly.</li>
+</ul>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td>Not All Features Are Created Equal, <a href="https://arxiv.org/abs/2603.19233">Grant et al.</a>, 2026</td><td>A mechanistic study across six VLAs, including a GR00T pathway ordering.</td><td>Our reproduction of it is blocked (the artifact fails under its own pin). Its GR00T is an N1.5 community fine-tune.</td></tr><tr><td>COAST, <a href="https://arxiv.org/abs/2605.17144">Miao et al.</a>, May 2026</td><td>Steers hidden states toward success subspaces using a few success and failure examples. +20 points in simulation, +40 on a real robot, with no training. Finds that failure modes share structure across tasks.</td><td>A strong steering baseline to test on our start-pose and camera failures.</td></tr><tr><td>SAE features in VLAs, <a href="https://arxiv.org/abs/2603.19183">Swann et al.</a>, 2026</td><td>Sparse autoencoders find motion-primitive and semantic features on LIBERO and DROID. Amplifying them steers behaviour; ablating them breaks the policy.</td><td>A method we could reuse. They don't target robustness.</td></tr><tr><td>Steering world-action models, <a href="https://arxiv.org/abs/2607.14943">Hong et al.</a>, Jul 2026</td><td>Features that decide robustness under camera, gripper and noise shifts are linearly separable in some models and not others. They steer those with contrastive directions plus a small LQR controller.</td><td><strong>The closest to #3:</strong> steering aimed at robustness, including camera. Not GR00T, and not start pose.</td></tr><tr><td>StableVLA, <a href="https://arxiv.org/abs/2605.18287">Fu et al.</a>, ICML 2026</td><td>Finds the vision-to-LLM projector is the main source of vulnerability to corruptions; replaces it with a gated bottleneck adapter.</td><td>Agrees with our R-037: the shift is visible at the backbone and suppressed after the adapter.</td></tr><tr><td><a href="https://arxiv.org/abs/2512.02902">Li et al.</a>, CVPR 2026</td><td>Rescaling the visual tokens fixes camera views (see #1).</td><td>Evidence that a low-dimensional fix exists for the camera.</td></tr></tbody></table></div><p class="verdict"><span class="crowd">Steering methods are crowded.</span> <span class="open">Open niche:</span> steering <em>guided by mechanism</em>. We know which channel carries the fault (the wrist-camera image tokens for start pose). Test whether a fix confined to that channel beats generic steering like COAST, on GR00T N1.7, which none of these papers study.</p></div>
+</div>
+
+<div class="card">
+<h3>4. Do the mechanisms hold across architectures?</h3>
+<p>Rent a 24–80 GB GPU for about $50–200 and repeat the pathway study (R-039, R-042) on OpenVLA-OFT and π0.5.</p>
+<ul>
+<li>If "vision tokens carry everything and the state input is inert" holds across three architectures, it's a general finding. If not, it's a comparison of architectures.</li>
+<li>This also closes the base doc's OpenVLA-OFT gap.</li>
+</ul>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td>LIBERO-Plus, <a href="https://arxiv.org/abs/2510.13626">Fei et al.</a>, 2025</td><td>Compares many policies' success rates under 7 kinds of perturbation.</td><td>Behaviour only, no mechanism.</td></tr><tr><td>StableVLA, <a href="https://arxiv.org/abs/2605.18287">2026</a></td><td>Corruption robustness across OpenVLA, OpenVLA-OFT, π0.5 and VLA-Adapter; the projector is the weak link.</td><td>A cross-model mechanism claim, for image corruptions only.</td></tr><tr><td>Reasoning as a double-edged sword, <a href="https://arxiv.org/abs/2607.17786">2026</a></td><td>Robustness across architectures and stages.</td><td>Found in search; I haven't read it.</td></tr><tr><td>Not All Features, <a href="https://arxiv.org/abs/2603.19233">2026</a></td><td>Six models, from 80M to 7B.</td><td>Unverified here.</td></tr></tbody></table></div><p class="verdict"><span class="open">Fairly open:</span> nobody has run the same pathway experiment across GR00T, OpenVLA-OFT and π0.5 for the benchmark's perturbations (start pose and camera especially). It's a clean, modest contribution. It needs a rented GPU.</p></div>
+</div>
+
+<div class="card">
+<h3>5. Price human-made demos against simulated corrections</h3>
+<p>iMerit's actual business is human data.</p>
+<ul>
+<li>Have annotators produce corrective demos in the simulator by teleoperation, or label failures, and compare their value per hour with our simulated corrections.</li>
+<li>It answers the question the business needs answered: where are humans worth paying for?</li>
+<li>Filling the empty human-review sheets (0/80 and 0/24) comes along for free.</li>
+</ul>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/2405.01472">IntervenGen</a>, 2024</td><td>Scales ~10 human interventions into many synthetic ones; beats 100× more MimicGen demos by 34–62% in some settings.</td><td>The anchor for "a few human corrections plus synthetic scaling".</td></tr><tr><td>MimicGen, Mandlekar et al., CoRL 2023</td><td>Generates about 50K demos from roughly 200 human ones; 200 generated from 10 human perform about like 200 human.</td><td>The standard reference for how much a synthetic demo is worth.</td></tr><tr><td><a href="https://arxiv.org/abs/2604.03613">Human-Robot Copilot</a>, 2026 · <a href="https://arxiv.org/abs/2603.12769">Easy-IIL</a>, 2026</td><td>Reduce how much operators have to do in interactive imitation learning.</td><td>Human-in-the-loop comparators. I haven't read them.</td></tr><tr><td><a href="https://arxiv.org/abs/2509.07953">RaC</a>, 2025</td><td>Scales recovery and correction data for long tasks.</td><td>A recovery-data analogue.</td></tr></tbody></table></div><p class="verdict"><span class="open">Open as a measurement:</span> there is no controlled price of a <em>human correction per hour</em> against a <em>simulated rescue per GPU-hour</em> on the same measured failure. Industry teleop runs about $28–60 per operator-hour (vendor blogs, not verified), which makes this a concrete business number for iMerit.</p></div>
+</div>
+
+<div class="card">
+<h3>6. Search for failures instead of sweeping grids</h3>
+<p>Replace fixed grids with Bayesian optimisation or active search over perturbation space. Find each boundary with 5–10x fewer rollouts, then scale to Isaac Lab-Arena. It's mostly engineering and less novel, but it's what a product would need.</p>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td>Already surveyed in docs/SWEEP_DESIGN_LITERATURE.html</td><td>Adaptive stress testing, Bayesian level-set estimation, rare-event sampling, active selection of which policy experiments to run (<a href="https://arxiv.org/abs/2502.09829">Anwar et al.</a>), <a href="https://arxiv.org/abs/2607.14439">Liao et al.</a>.</td><td>The methods exist; apply them rather than invent new ones.</td></tr><tr><td>LIBERO-CTRL, <a href="https://arxiv.org/abs/2609.15940">Sawada &amp; Kasahara</a>, Sep 2026</td><td>Combining perturbations causes new failures and also cancels others; changes in up to 34.5% of cases are hidden in one-axis averages.</td><td>Our sweeps are one axis at a time. Any search should include pairs of perturbations.</td></tr><tr><td><a href="https://arxiv.org/abs/2509.08638">AutoODD</a>, 2025</td><td>Uses Bayesian red-teaming to audit a black-box model's operating envelope.</td><td>A candidate method. I haven't read it.</td></tr></tbody></table></div><p class="verdict"><span class="crowd">Engineering, not a research gap.</span> Worth doing only as tooling for a product, or to cut the cost of #1.</p></div>
+</div>
+
+<div class="card">
+<h3>7. Sim-to-real on a cheap arm</h3>
+<p>A LeRobot SO-101 costs about $250. Check whether the start-pose and camera boundaries found in simulation show up on a real arm.</p>
+<p class="risk"><strong>Risk:</strong> it's the most convincing demo possible, but also the most hardware risk and the least reproducible.</p>
+<div class="lit"><h4>Literature</h4><div class="tw"><table><thead><tr><th>Paper</th><th>What they did</th><th>Relation to us</th></tr></thead><tbody><tr><td><a href="https://arxiv.org/abs/2606.10366">Wang et al., sim-and-real correlation recipe</a>, Jun 2026</td><td>Measures whether sim evaluation preserves real rankings, success and per-perturbation failure patterns.</td><td>The protocol to follow.</td></tr><tr><td><a href="https://arxiv.org/abs/2512.19562">REALM</a>, 2025</td><td>A benchmark checked against about 800 paired sim and real rollouts under 15 perturbations; strong correlation.</td><td>Proof that it can be done; the paired design is one to copy.</td></tr><tr><td>SimplerEnv, Li et al. 2024</td><td>Real-to-sim evaluation with correlated rankings.</td><td>The standard reference.</td></tr></tbody></table></div><p class="verdict"><span class="crowd">Partly covered:</span> sim-real correlation for perturbations has been shown. What's new would be <em>transferring a mechanism</em>: does the wrist camera carry start pose on a real SO-101 as well? That's niche, and GR00T's LIBERO checkpoint won't run on an SO-101 without retraining.</p></div>
+</div>
+
+<h2>At a glance</h2>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Direction</th><th>Main output</th><th>Compute</th><th>Novelty</th><th>Business fit</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Data-efficiency law for repair</td><td>Paper + pitch number</td><td>High (rent)</td><td>High</td><td>Very high</td></tr>
+<tr><td>2</td><td>Fix while running</td><td>Deployable monitor + fix</td><td>Low–medium</td><td>Medium–high</td><td>High</td></tr>
+<tr><td>3</td><td>Steer internal features</td><td>Paper</td><td>Low–medium</td><td>High</td><td>Medium</td></tr>
+<tr><td>4</td><td>Across architectures</td><td>Generality of findings</td><td>Rent ($50–200)</td><td>Medium</td><td>Medium</td></tr>
+<tr><td>5</td><td>Human demos vs simulated</td><td>Value per annotator-hour</td><td>Low</td><td>Medium</td><td>Very high</td></tr>
+<tr><td>6</td><td>Search for failures</td><td>Tooling</td><td>Medium</td><td>Low</td><td>High</td></tr>
+<tr><td>7</td><td>Sim-to-real arm</td><td>Real-world demo</td><td>Low + hardware</td><td>Medium</td><td>High</td></tr>
+</tbody></table></div>
+<p class="sub">The at-a-glance ratings are my rough judgement, not measured.</p>
+
+<h2>Recommendation</h2>
+<div class="rec">
+<p><strong>Updated after the literature review: #1 is still the spine, but the cheapest fix is now an arm inside it.</strong> The central experiment: on one measured failure boundary (start pose, R-047), compare equal budgets of five repairs.</p>
+<ol>
+<li>Demos targeted by mechanism (the wrist-camera path, R-042).</li>
+<li>Demos targeted by failure (the R-054 rescues).</li>
+<li>Random extra demos.</li>
+<li>A parameter-only fix: visual-token rescaling or visual LoRA, the <a href="https://arxiv.org/abs/2512.02902">2512.02902</a> approach.</li>
+<li>A run-time fix at the first chunk (from #2), with no training at all.</li>
+</ol>
+<p>The headline is one figure: gap closed against cost (demos, GPU-hours, parameters). As far as I can find, nobody has published this comparison. #3, steering guided by mechanism, is the high-upside side project on the same failure.</p>
+<p><strong>Two checks the literature forces before R-056 is read:</strong> (i) whether the style of the minted rescue demos matches the pretraining demos (<a href="https://arxiv.org/abs/2609.12316">DATAFARM</a>: planner-style demos barely transfer); (ii) whether the camera token-rescaling result reproduces on GR00T. If it does, the camera row may not need data at all.</p>
+<p>For any of this to count, R-055 → R-056 has to pass first. #4 is the cheapest way to make everything more general, if there's any budget.</p>
+</div>
+
+<h2>Cross-policy generality: evaluating a model we can't see inside</h2>
+<p>When a client hands us their model, they won't give us its architecture. <strong>Most of the harness survives a black box. The part that doesn't is the internal-pathway work, and most of it can be replaced by perturbing the inputs instead of the internals.</strong> Design around levels of access, and know which of our techniques each level supports.</p>
+
+<h3 style="font-size:15px;margin:18px 0 8px">What in our harness depends on GR00T internals (checked in the code)</h3>
+<div class="tw"><table>
+<thead><tr><th>Part</th><th>Needs internals?</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Environment, perturbations, runner, rollout schema (<code>envs/</code>, <code>runner.py</code>, <code>schema.py</code>)</td><td class="ok">No</td><td>The policy is just observation in, action out (<code>__call__(obs) -&gt; Action</code>)</td></tr>
+<tr><td>Phase detection, failure classes, clustering, manifest (<code>mining/</code>, <code>manifest.py</code>)</td><td class="ok">No</td><td>They read simulator state and actions, never the model</td></tr>
+<tr><td>Sweeps and failure boundaries (R-041, R-047, R-052), counterfactual reverts (R-044, R-048)</td><td class="ok">No</td><td>They only change the environment</td></tr>
+<tr><td>First-chunk correction and drive-until (R-050, R-057)</td><td class="ok">No, in principle</td><td>We decide which actions get executed. Today it's routed through the head hook, but that's an implementation detail</td></tr>
+<tr><td>Feature capture (<code>capture/groot_features.py</code>)</td><td class="no">Yes</td><td>Hardcoded to <code>find_action_head</code>, the <code>vlln</code> layer and GR00T's backbone outputs</td></tr>
+<tr><td>Pathway splices, R-037/R-039/R-042 (<code>capture/splice.py</code>)</td><td class="no">Yes</td><td>They swap internal token tensors</td></tr>
+<tr><td>LoRA retraining (<code>training/groot_lora.py</code>)</td><td class="no">Yes</td><td>Needs the weights and the training code</td></tr>
+</tbody></table></div>
+<p>Roughly the doc's whole scope (stress, mine, explain, recommend) survives. What breaks is our mechanism layer and retraining.</p>
+
+<h3 style="font-size:15px;margin:18px 0 8px">Levels of access a client might give us</h3>
+<div class="card">
+<p><strong>Level 0: API only.</strong> We send observations and get action chunks back.</p>
+<ul>
+<li>Everything in the "No" rows above works.</li>
+<li>Pathway attribution moves to <em>the inputs</em>. For example, perturb only the agent-view image and keep the wrist image nominal, or the reverse. That approximates R-042's which-camera answer without touching tokens. It isn't identical: a token splice isolates one internal channel exactly, while swapping input images also changes how the model combines the two cameras. But it answers the question a client cares about: which sensor is the policy fragile through.</li>
+<li>Language pathway: swap only the instruction and hold the images fixed. We already do this at the input level (R-038, R-049).</li>
+<li>Uncertainty, if the policy is stochastic: call it several times on the same observation and measure how much the samples spread.</li>
+</ul>
+<p><strong>Level 1: weights without documentation</strong>, e.g. a <code>.pt</code> file, ONNX or TorchScript.</p>
+<ul>
+<li>We can find the hooks automatically. Walk the module graph and hook every block. Feed matched pairs (nominal vs perturbed image, image vs instruction change) and rank layers by how much each input moves them. The action head is the last block before the output with an action-sized shape.</li>
+<li>That's our R-037 method turned into a search. It finds "where the image shift dies" without anyone telling us the architecture. It works on ONNX too, because the graph is inspectable.</li>
+</ul>
+<p><strong>Level 2: weights plus training access.</strong> Adds retraining, the pilot we're running now.</p>
+<p><strong>Level 3: full source.</strong> What we have with GR00T today.</p>
+</div>
+
+<h3 style="font-size:15px;margin:18px 0 8px">Detecting failures in real time is the right black-box tool, with limits</h3>
+<p>The detectors that only need actions work at level 0:</p>
+<ul>
+<li><strong>Chunk agreement:</strong> do consecutive action chunks disagree? This is <a href="https://arxiv.org/abs/2606.21386">VLA-FAIL</a>'s ACC and <a href="https://arxiv.org/abs/2604.16683">Rewind-IL</a>'s TIDE.</li>
+<li><strong>Consistency across repeated samples:</strong> <a href="https://arxiv.org/abs/2410.04640">Sentinel</a>'s STAC. Caveat: Sentinel's score adds up over the episode, and our failures don't end early (all run to the 281-step timeout, against about 113 for successes), so used as published it partly measures episode length. Compare at the same forward index instead (<code>docs/SENTINEL_METHODOLOGY.html</code> §11).</li>
+<li><strong>Progress stalls:</strong> from simulator state.</li>
+</ul>
+<p>Detectors that read internal features (<a href="https://arxiv.org/abs/2506.09937">SAFE</a>, Mahalanobis distance on the last layer) need level 1. The limit, as the literature review found: detection is not diagnosis. It tells you <em>when</em> a run is going wrong, not <em>why</em>. The "why" at level 0 has to come from input counterfactuals.</p>
+
+<h3 style="font-size:15px;margin:18px 0 8px">What we'd still need from a client: a minimal input/output contract</h3>
+<p>A true zero-knowledge black box won't even run nominal episodes correctly. Our own history shows it: the SmolVLA gap, the 180° LIBERO image flip, gripper conventions, fp32 vs bf16. The minimum spec:</p>
+<div class="card"><ul>
+<li><strong>Inputs:</strong> which cameras, resolution, orientation, state vector layout, instruction format.</li>
+<li><strong>Actions:</strong> action space, normalisation, chunk length, control rate, gripper convention.</li>
+<li><strong>Controls:</strong> can we seed and reset it, and is it deterministic?</li>
+<li><strong>Gate:</strong> their own reported nominal number. We reproduce it before anything else, the same bar as MINERVA and SmolVLA.</li>
+</ul></div>
+<p>That reproduction step is our conformance gate turned into a product feature: "we check we're running your model correctly before we judge it."</p>
+
+<h3 style="font-size:15px;margin:18px 0 8px">How to prove the harness works across policies</h3>
+<div class="rec"><ol>
+<li><strong>Use our white-box results as ground truth for the black-box methods.</strong> On GR00T we <em>know</em> the answers: wrist camera for start pose, image tokens for everything, first chunk decides start pose. Run only the level-0 tools on GR00T as if it were a black box and score them: does input-level attribution recover what the token splices found, and do action-only detectors flag the failures that R-047 recorded? No one else has the internal ground truth to do this calibration.</li>
+<li><strong>Repeat on a second policy with a different architecture</strong>, MINERVA, which we already have in its own venv. Run level-1 automatic hook discovery on it without using its source, then check the result against its real architecture.</li>
+<li><strong>Write a level-by-level spec in the harness:</strong> a <code>BlackBoxPolicy</code> wrapper that exposes only <code>reset(seed)</code> and <code>act(obs) -&gt; chunk</code>, plus an optional <code>probe()</code> for automatic hooks. Every technique declares its minimum access level, and the manifest records the level it was produced at.</li>
+</ol>
+<p>Step 1 is cheap, needs no new GPU campaign beyond short runs, and gives a headline: "our black-box diagnosis agrees with white-box ground truth X% of the time." It also slots straight into direction #4.</p></div>
+
+<h2>Open questions</h2>
+<div class="card"><ul>
+<li>What should this produce by the time the boss is back: a paper, an iMerit-facing demo or pitch, or a capability (a reusable repair tool)?</li>
+<li>Is renting a GPU (tens to low hundreds of dollars) on the table?</li>
+<li>Which "distribution shift across time" paper did you have in mind? Candidates: VLA-Scope (2609.21246), Simchowitz et al. on compounding error (2507.09061), Early Warning Signals (2606.29699).</li>
+</ul></div>
+
+<footer>Sources: RESULTS.md (R-037, R-039, R-040, R-042, R-047, R-054, R-057), docs/VLA_doc_pending.html.</footer>
+</main>
+</body>
+</html>

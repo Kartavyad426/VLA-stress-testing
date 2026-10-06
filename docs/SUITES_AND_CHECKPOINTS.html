@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suites and Checkpoints</title>
+<style>
+:root{
+  --bg:#fbfaf7; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a65; --rule:#e4e1d9;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8;
+  --unk:#4a4f8c; --unk-bg:#ebecf8; --ok:#2e6b3a; --ok-bg:#e5f2e7;
+  --accent:#1f5f8b; --scene:#c2410c; --scene2:#7c3aed; --pooled:#1d1d1b;
+  --code-bg:#f2f0ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+    --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+    --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+    --accent:#7cb8e4; --scene:#fb923c; --scene2:#c4b5fd; --pooled:#e8e6e1; --code-bg:#2a2c31;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+  --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+  --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+  --accent:#7cb8e4; --scene:#fb923c; --scene2:#c4b5fd; --pooled:#e8e6e1; --code-bg:#2a2c31;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+h2{font-size:21px;margin:44px 0 10px;padding-top:12px;border-top:1px solid var(--rule)}
+h3{font-size:17px;margin:26px 0 8px}
+p{margin:8px 0}
+.sub{color:var(--muted);font-size:14px}
+code{font:13px/1.4 ui-monospace,"JetBrains Mono",Menlo,monospace;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border-bottom:1px solid var(--rule);padding:7px 9px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.bad{color:var(--bad);background:var(--bad-bg)} .warn{color:var(--warn);background:var(--warn-bg)}
+.unk{color:var(--unk);background:var(--unk-bg)} .ok{color:var(--ok);background:var(--ok-bg)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px}
+.card h4{margin:6px 0 4px;font-size:15px}
+.card p{font-size:13.5px;color:var(--muted);margin:0}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:12px 0}
+figure{margin:0;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px}
+figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+svg{width:100%;height:auto;display:block}
+svg .grid{stroke:var(--rule);stroke-width:1}
+svg .grid.mark{stroke-dasharray:3 3}
+svg .tick{fill:var(--muted);font-size:10px}
+svg .axis{fill:var(--muted);font-size:10.5px}
+svg polyline{fill:none;stroke-width:2}
+svg .pooled{stroke:var(--pooled);stroke-width:3} svg .pooled-dot{fill:var(--pooled)}
+svg .scene{stroke:var(--scene)} svg .scene-dot{fill:var(--scene)}
+svg .scene2{stroke:var(--scene2)} svg .scene2-dot{fill:var(--scene2)}
+.legend{font-size:12.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+.sw{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.callout{border-left:4px solid var(--accent);background:var(--panel);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.callout.bad{border-color:var(--bad);color:inherit;background:var(--panel)}
+.timeline{list-style:none;padding:0;margin:12px 0;border-left:2px solid var(--rule)}
+.timeline li{position:relative;padding:6px 0 12px 20px}
+.timeline li::before{content:"";position:absolute;left:-7px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--muted)}
+.timeline li.done::before{background:var(--ok);border-color:var(--ok)}
+.timeline li.pending::before{background:var(--warn);border-color:var(--warn)}
+.timeline li.none::before{background:var(--bg);border-color:var(--bad)}
+ol li,ul li{margin:4px 0}
+td.num.dim{color:var(--muted)}
+td.num.mid{color:var(--warn);background:var(--warn-bg)} td.num.lo{color:var(--bad);background:var(--bad-bg)}
+.chip.mid{color:var(--warn);background:var(--warn-bg)} .chip.lo{color:var(--bad);background:var(--bad-bg)}
+tr.total td{border-top:2px solid var(--ink);font-weight:600}
+table.ledger th,table.ledger td{padding:6px 7px}
+table.ledger td:first-child{min-width:150px}
+table.ledger .sub{font-size:12px}
+td:first-child>b{white-space:nowrap}
+footer{margin-top:50px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Suites, checkpoints and cross-task robustness</h1>
+<p class="sub">Written 2026-09-28. The question: all our GR00T robustness work runs on one LIBERO suite with a suite-specific fine-tune. Could we evaluate more general policies across more tasks, and would the harness and the localisation methods carry over? Sources for every claim are listed in §9.</p>
+
+<div class="cards">
+  <div class="card"><span class="chip warn">today</span><h4>GR00T: 1 suite, 10 tasks</h4><p>2,712 rollouts, all on <code>libero_spatial</code> with the spatial-only fine-tune. The other 30 tasks have only MINERVA and SmolVLA runs.</p></div>
+  <div class="card"><span class="chip ok">why fine-tunes</span><h4>Base VLAs aren't benchmark-ready</h4><p>Every published LIBERO number is a LIBERO fine-tune, and our roster rule needs a published number to reproduce.</p></div>
+  <div class="card"><span class="chip ok">general option</span><h4>One checkpoint, all 40 tasks</h4><p>MINERVA already does this and reproduced (R-016). π0.5 does too, but needs a bigger GPU.</p></div>
+  <div class="card"><span class="chip unk">harness</span><h4>Knobs carry over; methods need work</h4><p>The perturbation knobs are suite-agnostic. Localisation needs goal-based scoring for goal tasks and stage awareness for libero_10.</p></div>
+</div>
+
+<h2>1 · The four LIBERO suites</h2>
+<p>Each suite has 10 tasks, with 50 demonstrations and 50 fixed initial states per task. There is also LIBERO-90, 90 short tasks usually used for pretraining; we have never run it. LIBERO-Plus builds perturbed variants of all four suites.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Suite</th><th>What varies (what it tests)</th><th>The 10 tasks</th><th>LIBERO-Plus variants</th><th>What we have run on it</th></tr></thead>
+<tbody>
+<tr><td><b>libero_spatial</b></td><td>Same objects, different <b>layouts</b>. The only thing that tells the policy which bowl to pick is where the instruction says it is.</td><td>"pick up the black bowl … and place it on the plate", where … is: between the plate and the ramekin · next to the ramekin · from table center · on the cookie box · in the top drawer of the wooden cabinet · on the ramekin · next to the cookie box · on the stove · next to the plate · on the wooden cabinet</td><td class="num">2,402</td><td>GR00T 2,712 rollouts (all of <code>robustness_of_exps.html</code>). MINERVA 1,106. SmolVLA 735.</td></tr>
+<tr><td><b>libero_object</b></td><td>Same layout, different <b>objects</b>.</td><td>"pick up the … and place it in the basket", where … is: alphabet soup · cream cheese · salad dressing · bbq sauce · ketchup · tomato sauce · butter · milk · chocolate pudding · orange juice</td><td class="num">2,518</td><td>MINERVA 950: reproduction, parity, harness camera yaw/pitch (R-014–016). SmolVLA 535. GR00T none.</td></tr>
+<tr><td><b>libero_goal</b></td><td>Same scene and objects, different <b>goals</b>. The instruction is the only cue.</td><td>open the middle drawer of the cabinet · open the top drawer and put the bowl inside · push the plate to the front of the stove · put the bowl on the plate · put the bowl on the stove · put the bowl on top of the cabinet · put the cream cheese in the bowl · put the wine bottle on the rack · put the wine bottle on top of the cabinet · turn on the stove</td><td class="num">2,591</td><td>MINERVA 500 (reproduction). SmolVLA 1,030. GR00T none.</td></tr>
+<tr><td><b>libero_10</b><br><span class="sub">LIBERO-Long</span></td><td><b>Long horizon</b>: two sub-tasks chained, across kitchen, living-room and study scenes. An early mistake carries through, so scores are lowest here.</td><td>turn on the stove and put the moka pot on it · put the black bowl in the bottom drawer of the cabinet and close it · put the yellow and white mug in the microwave and close it · put both moka pots on the stove · put both the alphabet soup and the cream cheese box in the basket · put both the alphabet soup and the tomato sauce in the basket · put both the cream cheese box and the butter in the basket · put the white mug on the left plate and the yellow and white mug on the right plate · put the white mug on the plate and the chocolate pudding to the right of the plate · pick up the book and place it in the back compartment of the caddy</td><td class="num">2,519<br><span class="sub">1,228 at L4/L5</span></td><td>MINERVA 500 (reproduction; 87.8% vs 89.2% published, weakest tasks 6 at 58% and 4 at 78%). SmolVLA 415. GR00T none; R-043 is pre-registered but hasn't run.</td></tr>
+</tbody></table></div>
+<p class="sub">Rollout counts are the on-disk tally from <code>robustness_of_exps.html</code> §0. SmolVLA's R-005 camera arms are invalid (R-010).</p>
+
+<h2>2 · Which checkpoints exist</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Policy</th><th>LIBERO checkpoint</th><th>Scope</th><th>Published</th><th>Fits our 8 GB?</th><th>Status here</th></tr></thead>
+<tbody>
+<tr><td><b>GR00T N1.7</b></td><td><code>nvidia/gr00t17-lerobot-libero_spatial-640</code></td><td>spatial only</td><td class="num">95%</td><td>yes, bf16 5.87 GiB (R-021)</td><td><span class="chip ok">in use</span> lerobot-eval 97/100 vs harness 98/100 (R-022); 100/100 unperturbed on the LIBERO-Plus stack (R-029)</td></tr>
+<tr><td></td><td><code>…libero_object-640</code></td><td>object only</td><td class="num">100%</td><td>yes (same architecture)</td><td><span class="chip unk">registered, not downloaded</span></td></tr>
+<tr><td></td><td><code>…libero_goal-640</code></td><td>goal only</td><td class="num">98%</td><td>yes</td><td><span class="chip unk">registered, not downloaded</span></td></tr>
+<tr><td></td><td><code>…libero_10-640</code></td><td>libero_10 only</td><td class="num">93%</td><td>yes</td><td><span class="chip unk">registered, not downloaded</span>; R-043 would use it</td></tr>
+<tr><td><b>MINERVA</b></td><td><code>k1000dai/MINERVA</code> (<code>t05_l1_0.54M</code>)</td><td><b>one checkpoint, all 4 suites</b></td><td class="num">95.75% avg</td><td>yes (fp32; bf16 broken, R-033)</td><td><span class="chip ok">reproduced</span> 95.3% avg, all four suites inside their CIs (R-016)</td></tr>
+<tr><td><b>π0.5</b></td><td><code>lerobot/pi05_libero_finetuned</code></td><td><b>one checkpoint, all 4 suites</b></td><td class="num">97.5% avg (LeRobot)</td><td><span class="chip bad">no</span> OOM at 7.40/7.53 GiB (R-032)</td><td>needs a rented GPU</td></tr>
+<tr><td><b>SmolVLA</b></td><td><code>HuggingFaceVLA/smolvla_libero</code></td><td>one checkpoint, all 4 suites</td><td class="num">87.3%</td><td>yes</td><td><span class="chip bad">vetoed</span> 67% ours; 32-layer build with no published target (R-011, R-017)</td></tr>
+<tr><td><b>OpenVLA-OFT</b></td><td>per-suite (per our survey)</td><td>per suite</td><td>—</td><td><span class="chip bad">no</span> ~15 GB</td><td>"stretch", rented GPU</td></tr>
+</tbody></table></div>
+<p class="sub">GR00T's per-suite numbers are from the LeRobot GR00T docs as recorded in <code>MODELS_AND_COMPUTE.md</code> (at <code>n_episodes ≥ 50</code>). All four GR00T checkpoints are registered in <code>vla_harness/conformance.py:97–112</code> with embodiment tag <code>libero_sim</code>. Only the spatial one is in the local HF cache.</p>
+
+<h2>3 · Why fine-tuned checkpoints</h2>
+<ul>
+<li><strong>A base VLA isn't set up for LIBERO's robot.</strong> Base models such as <code>nvidia/GR00T-N1.7-3B</code> (cached locally) are pretrained on many robots. Before running on a given setup they are post-trained on its robot, its cameras (LIBERO: agent view plus wrist), its control mode and rate (delta end-effector pose at 20 Hz) and its action normalisation. Every published LIBERO number, for GR00T, π0/π0.5, OpenVLA, SmolVLA or MINERVA, comes from a LIBERO fine-tune.</li>
+<li><strong>Our roster rule needs a published number.</strong> A policy stays on the roster only if it reproduces its published result; that is why SmolVLA was vetoed. As far as we know, the base checkpoints have no published LIBERO number (not verified exhaustively). Without one we cannot tell a weak model from a harness bug. <code>MODELS_AND_COMPUTE.md</code> §R1 gives an example: a hand-translated config means guessing normalisation statistics, which "can manufacture apparent model failures".</li>
+<li><strong>What a fine-tune still tells us.</strong> Robustness here means "how far from its training distribution does this trained policy hold up". That is a fair question for a behaviour-cloned policy (RESULTS "Current state" item 3). Its answer carries over to the base model only in part: a fine-tune inherits the backbone, not the base model's behaviour.</li>
+</ul>
+
+<h2>4 · Options for robustness across tasks</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>What it measures</th><th>Cost and blockers</th></tr></thead>
+<tbody>
+<tr><td><b>A. GR00T, four per-suite checkpoints</b></td><td>The same model family across 40 tasks, but each suite has its own weights, so differences mix task and checkpoint.</td><td>Download 3 checkpoints. A reproduction run per suite (R-022 size, 10×10) comes first. Fits 8 GB.</td></tr>
+<tr><td><b>B. MINERVA, one checkpoint</b></td><td>One policy across all 40 tasks. The most general option we can run today.</td><td>No new model, and reproduction is already done (R-016). But it is a tiny model (0.54M) and "cannot read" (R-027). It is the control, not the object of study.</td></tr>
+<tr><td><b>C. π0.5, one checkpoint</b></td><td>A frontier VLA, one checkpoint across 40 tasks.</td><td>Doesn't fit 8 GB (R-032). Rented GPU: a budget question (PENDING #25).</td></tr>
+<tr><td><b>D. Beyond LIBERO</b></td><td>Base or generalist models on a benchmark they are evaluated on directly (e.g. SimplerEnv).</td><td>A new environment adapter and a new reproduction gate. A scope change, not an extension.</td></tr>
+</tbody></table></div>
+
+<h2>5 · Does the perturbation harness carry over?</h2>
+<p>Mostly yes. The knobs and the LIBERO-Plus loader aren't specific to spatial.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Component</th><th>Carries over?</th><th>Evidence</th><th>Work needed</th></tr></thead>
+<tbody>
+<tr><td>LIBERO-Plus variant loading</td><td><span class="chip ok">yes</span></td><td>All four suites are in <code>task_classification.json</code>. The instruction stripper already handles libero_10's <code>KITCHEN_SCENE3_</code> prefix and the <code>_moved</code> marker (R-028, <code>libero_env.py</code> <code>_LPLUS_SUFFIX_RE</code>).</td><td>none</td></tr>
+<tr><td>Harness camera knobs (yaw, pitch, distance)</td><td><span class="chip ok">yes</span></td><td>Each is a rigid motion about the point the camera looks at, computed per scene from its task objects (<code>libero_env.py:537</code>). The comment at 377 covers floor and tabletop scenes.</td><td>none (the pivot differs from the benchmark's on every suite, as §4 of the robustness doc says)</td></tr>
+<tr><td>Benchmark camera knobs <code>camera_bench_*</code></td><td><span class="chip warn">probably</span></td><td>They call each scene's own LIBERO-Plus <code>_setup_camera</code>, but were matched only against 7 spatial views (<code>tests/test_bench_camera.py</code>).</td><td>extend the test to real views from each suite</td></tr>
+<tr><td>Start-pose knob <code>joint_radius_rad</code></td><td><span class="chip ok">yes</span></td><td>Joint indices come from robosuite (<code>libero_env.py:432</code>). Same Panda in every suite.</td><td>none</td></tr>
+<tr><td>Lighting knob</td><td><span class="chip bad">broken everywhere</span></td><td>Scales whatever lights exist, but only brightens and clips at 1.25× (<code>libero_env.py:444</code>; robustness doc §1).</td><td>the replacement knob, same as for spatial</td></tr>
+<tr><td>Step limits</td><td><span class="chip ok">yes</span></td><td><code>MAX_STEPS</code> is set per suite (<code>libero_env.py:100</code>).</td><td>none</td></tr>
+<tr><td>Run scripts and reports</td><td><span class="chip warn">hardcoded</span></td><td>Checkpoint and <code>task="libero_spatial"</code> are fixed in <code>r039_run.py:91</code> and <code>r047_run.py:57–64</code>. Scene-name tables in <code>r041_report.py:18</code>.</td><td>make the suite a parameter; mechanical</td></tr>
+<tr><td>Baselines</td><td><span class="chip warn">per checkpoint</span></td><td>R-022 (parity) and R-029 (unperturbed on the LIBERO-Plus stack) exist for spatial only.</td><td>one of each per new checkpoint</td></tr>
+</tbody></table></div>
+
+<h2>6 · Do the localisation methods carry over?</h2>
+<p>By localisation we mean the methods that ask where a perturbation enters and whether it can be undone:</p>
+<ul>
+<li>the backbone-signal captures (R-037);</li>
+<li>the pathway splice, i.e. image versus state tokens (R-039);</li>
+<li>the wrist-versus-agent camera split (R-042);</li>
+<li>first-chunk rescue (R-044, R-048, R-050, R-051).</li>
+</ul>
+<p>They work on the model's inputs, so in principle they are suite-agnostic. Four things need changing:</p>
+<ol>
+<li><strong>Goal tasks with no object to carry.</strong> For "open the middle drawer", "turn on the stove" and "push the plate", the closest-approach metric (<code>r039_run.py:136</code>, basis "targets" or else "all_objects") has no meaningful target. These tasks need progress measured against the goal condition in the task's BDDL file instead.</li>
+<li><strong>libero_10's two stages.</strong> A corrected first chunk tests only the start of stage 1. Localisation has to be stage-aware, with stage labels taken from each task's goal conditions via <code>_gt_scene_object_pos</code>. R-043 already designs this, including a check that failures cluster at stage transitions.</li>
+<li><strong>Language will behave differently.</strong> In spatial the instruction only picks out which bowl. In goal it is the only cue. So R-038 (empty prompt, 50/100) and R-049's language rows are predictions to test on the other suites, not results that transfer.</li>
+<li><strong>Paired references.</strong> Every splice run pairs a perturbed episode with a nominal one on the same scene. That needs the unperturbed control per checkpoint (see §5, Baselines).</li>
+</ol>
+
+<h2>7 · Cost and recommended order</h2>
+<ul>
+<li><strong>GR00T reproduction runs for object, goal and libero_10:</strong> about 1 h each at 10×10 (estimate; GR00T rollouts run ~20–35 s in R-029/R-047).</li>
+<li><strong>A failure hunt the size of R-026</strong> (~600 L4/L5 variants): one overnight run per suite.</li>
+<li><strong>R-043 as designed</strong> (500 nominal + 1,228 variants + repeats): several days of GPU.</li>
+</ul>
+<p>The GPU queue already holds R-052 (~9.5 h) and SFT's R-053–R-056, whose order is waiting on the user.</p>
+<ol>
+<li><strong>MINERVA failure hunt on object and goal</strong>, R-026 style. It needs no new model and no new reproduction run, and it shows whether goal's no-object tasks need item 6.1 fixed first.</li>
+<li><strong>GR00T reproduction runs for the three other checkpoints.</strong> Cheap, and they decide whether option A is usable.</li>
+<li><strong>Then choose</strong> between R-043 (libero_10, mechanism) and GR00T object/goal failure hunts (coverage).</li>
+<li>π0.5 on a rented GPU if one policy across 40 tasks is the goal and MINERVA is too weak to stand in.</li>
+</ol>
+
+<h2>8 · Correction to the chat answer</h2>
+<p>In chat on 2026-09-28 I said OpenVLA-OFT has a combined four-suite checkpoint. <code>MODELS_AND_COMPUTE.md</code> lists it as per-suite. This doc follows the project record; a combined checkpoint is unverified here.</p>
+
+<h2>9 · Sources</h2>
+<ul>
+<li><code>RESULTS.md</code>:
+  <ul>
+  <li>R-016 (MINERVA reproduction, l. 733);</li>
+  <li>R-021/R-022 (GR00T fit and parity, l. 906, 1001);</li>
+  <li>R-026 (L4/L5 failure hunt, l. 1262);</li>
+  <li>R-027 (MINERVA "cannot read");</li>
+  <li>R-028 (instruction stripper);</li>
+  <li>R-029 (unperturbed control, l. 1435);</li>
+  <li>R-032 (π0.5 OOM, l. 1580);</li>
+  <li>R-011/R-017 (SmolVLA veto);</li>
+  <li>R-038 (empty prompt);</li>
+  <li>R-043 (libero_10 design, l. 3274–3400);</li>
+  <li>"Current state of knowledge" item 3.</li>
+  </ul></li>
+<li><code>MODELS_AND_COMPUTE.md</code>: §1 model table (l. 49–57); GR00T checkpoint correction (l. 64–95); LeRobot π0.5 per-suite table (l. 336–341); checkpoint list (l. 395–401); GR00T per-suite published numbers (l. 300–306).</li>
+<li><code>vla_harness/conformance.py:97–112</code>: the four GR00T checkpoints registered.</li>
+<li><code>vla_harness/envs/libero_env.py</code>:
+  <ul>
+  <li><code>MAX_STEPS</code> (l. 100);</li>
+  <li>knob list (l. 114–127);</li>
+  <li><code>_apply_perturbation</code> (l. 352–448);</li>
+  <li><code>_camera_pivot</code> (l. 537);</li>
+  <li><code>_apply_bench_camera</code> (l. 581);</li>
+  <li>LIBERO-Plus suffix grammar (after l. 449).</li>
+  </ul></li>
+<li><code>experiments/r039_run.py:91, 136</code>; <code>experiments/r047_run.py:57–64</code>; <code>experiments/r041_report.py:18</code>; <code>tests/test_bench_camera.py</code>.</li>
+<li><code>third_party/LIBERO-plus/libero/libero/benchmark/task_classification.json</code> (variant counts per suite) and <code>…/bddl_files/{libero_goal,libero_10}/</code> (task names). Task instructions come from <code>runs/control_pass/rollouts.jsonl</code>.</li>
+<li><a href="robustness_of_exps.html"><code>docs/robustness_of_exps.html</code></a> §0 (rollout tally) and §1 (lighting knob).</li>
+<li>External:
+  <ul>
+  <li><a href="https://huggingface.co/docs/lerobot/main/en/groot">LeRobot GR00T docs</a> (per-suite checkpoints, <code>libero_sim</code> tag);</li>
+  <li><a href="https://huggingface.co/nvidia/GR00T-N1.7-LIBERO">nvidia/GR00T-N1.7-LIBERO</a>;</li>
+  <li><a href="https://huggingface.co/k1000dai/MINERVA">k1000dai/MINERVA</a>;</li>
+  <li><a href="https://huggingface.co/lerobot/pi05_libero_finetuned">lerobot/pi05_libero_finetuned</a>;</li>
+  <li><a href="https://libero-project.github.io/">LIBERO</a>.</li>
+  </ul>
+  These links are as recorded in the project docs; I did not re-fetch them today.</li>
+</ul>
+
+<footer>Written by hand on 2026-09-28 from the sources above. Rollout counts come from <code>docs/robustness_of_exps.html</code> §0. Update this doc when R-043 runs or when the other GR00T checkpoints are downloaded.</footer>
+</main>
+</body>
+</html>
