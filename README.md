@@ -9,11 +9,13 @@ The output is not a leaderboard score. It is a repeatable method for turning mod
 behaviour into a data strategy: what failed, under what conditions, how often, what it
 would cost, and whether more data would fix it at all.
 
-> **Status (2026-09-23): research prototype.** The harness reproduces published LIBERO
-> numbers and runs GR00T N1.7 on LIBERO-Plus. The work has moved from *measuring*
-> failures to *locating* them inside the policy (which pathway carries a perturbation
-> to the action) and designing the data that would fix them. Nothing here is
-> client-facing yet. New readers: start with [Reading order](#reading-order).
+> **Status (2026-10-06): research prototype.** The harness reproduces published LIBERO
+> numbers and runs GR00T N1.7 on LIBERO-Plus. A perturbation → correction map now covers
+> all seven LIBERO-Plus perturbation types. The first retraining pilot, a LoRA fine-tune
+> on start-pose demos (R-053 to R-058), did not close the gap, and its diagnosis is
+> under way. Nothing here is client-facing yet. New readers: start with
+> [Reading order](#reading-order). For what is running and open right now, see
+> [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html).
 
 ---
 
@@ -74,6 +76,8 @@ Two invariants worth knowing before reading the code:
 ```
 vla_harness/          the harness (L0–L4)
   capture/            activation taps on GR00T (backbone, adapter, action head)
+  training/           GR00T LoRA fine-tuning: replay mix, cached features, verified LR schedule
+  data/               demo record contract, rescue source, LeRobot export
   video.py            per-episode mp4, recorded by default
 experiments/
   harness_eval.py     run a policy over LIBERO / LIBERO-Plus tasks through the harness
@@ -82,7 +86,9 @@ experiments/
   oracle_test.py      the Phase-1 acceptance gate
   phase0/             supply-side coverage + predictions committed before measurement
   repro/              LIBERO reproduction via lerobot-eval, outside vla_harness
-runs/                 one folder per run: metadata in git, traces and video not
+runs/                 one folder per run: metadata in git, traces, video, weights not
+data/                 minted training demos (LeRobot format)
+.claude/skills/       project skills (e.g. finetune-postmortem)
 viz/                  generated pages (local; large ones are not committed)
 docs/                 see Reading order below
 ```
@@ -153,6 +159,22 @@ section and its **Index** of every experiment (R-001 onward). The headlines:
   the robot-state token.
 - **Some failures are wrong-object grasps**, which the original traces could not see.
   The environment now records every object's position, not just the task objects.
+- **The perturbation → correction map is complete** for all seven rows
+  ([`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html)). For start pose, the
+  wrist camera carries the effect, and one corrected first action chunk rescues 20 of 24
+  failures, where a plain re-run rescues 0 of 22 (R-053). The outcome is decided at the
+  first chunk (R-057).
+- **Success falls with start-pose distance** (R-047): about 0.93 at a gripper offset of
+  8 cm or less, 0.65 at 8–12 cm, 0.22 at 12–16 cm and 0.15 beyond 16 cm, and it depends
+  on the direction of the offset, not only its size.
+- **The first retraining pilot did not help.** A LoRA fine-tune on 100 minted start-pose
+  demos scored 59/108 on held-out starts against the base model's 67/108 (R-056, p = 0.24).
+  Rank 4 scored 65/108 (R-058). The whole drop is one scene (1327) at the grasp. The model
+  did fit its training frames, and why that did not carry over to held-out starts is
+  being tested. The demos stop at 8 cm while failures sit beyond 12 cm, so the next round
+  needs a different data source
+  ([`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html),
+  [`docs/DATA_SOURCING_RESEARCH.html`](docs/DATA_SOURCING_RESEARCH.html)).
 
 Early findings that still stand: MuJoCo is pinned to 3.3.7, because ≥ 3.4.0 silently
 changes a LIBERO task; the fine-tuning data contains no camera-pose variation (Phase
@@ -167,7 +189,8 @@ changes a LIBERO task; the fine-tuning data contains no camera-pose variation (P
 |---|---|
 | Failure labels | Failure-family labels are unvalidated, and the human adjudication sheet is at 0 of 80 verdicts. VLM labels are unvalidated too: the first test named the wrong grasped object. |
 | Correlation, not cause | The "signal vanishes in the adapter" localisation is correlational. The pathway result (R-039) is an intervention, but on 40 instances. |
-| Compute | One 8 GB GPU is shared by several sessions. The π0 family does not fit, so a second modern policy needs a rented GPU (PENDING #25). |
+| Compute | One 8 GB GPU and 30 GB RAM are shared by several sessions. A GR00T load peaks around 16–18 GB of RAM; the R-058 rank-64 run was OOM-killed. The π0 family does not fit, so a second modern policy needs a rented GPU (PENDING #25). |
+| Retraining data | Rescue-minted demos cover start-pose offsets of 8 cm or less, but failures sit beyond 12 cm. Minting with the current method yields about 20% beyond 16 cm. A new source (bridge-and-join or a scripted expert) is undecided (D21). |
 | External claims | The action-atlas paper's GR00T layer ordering (arXiv:2603.19233) could not be reproduced: its code does not load under its own pinned versions. Treat it as unverified. |
 | Manifest | `fixability`, `discriminators` and `failure_cost` are still not emitted. The regression set named in the proposal does not exist yet and must be frozen before any remediation data. |
 
@@ -184,9 +207,11 @@ and what is happening now. About an hour, in this order:
 | 2 | This README | What the project is for and what it has found |
 | 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
 | 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
-| 5 | [`HANDOFF.md`](HANDOFF.md) | What is running now, what is open, and the working conventions |
-| 6 | [`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html) | Where the work is heading: from a failure to a data specification |
-| 7 | [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) | The latest headline experiment: which pathway carries a perturbation to the action |
+| 5 | [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
+| 6 | [`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html) | Which input carries each perturbation to the action, and what corrects it |
+| 7 | [`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html) | The first retraining pilot and why it did not help |
+
+Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md).
 
 ### Extended reading
 
@@ -201,6 +226,12 @@ original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.m
 [`docs/EXPERIMENT_PROCEDURE.md`](docs/EXPERIMENT_PROCEDURE.md) ·
 [`docs/BASELINE_FORENSICS.md`](docs/BASELINE_FORENSICS.md)
 
+**Retraining:** [`docs/FINE_TUNING_101.html`](docs/FINE_TUNING_101.html) ·
+[`docs/RETRAINING_PLAN.html`](docs/RETRAINING_PLAN.html) ·
+[`docs/DATA_MINER_SPEC.html`](docs/DATA_MINER_SPEC.html) ·
+[`docs/DATA_SOURCING_RESEARCH.html`](docs/DATA_SOURCING_RESEARCH.html) ·
+[`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html)
+
 **Decisions and history:** [`PENDING_DECISIONS.md`](PENDING_DECISIONS.md) ·
 [`FINDINGS.md`](FINDINGS.md) · [`NEXT_STEPS.md`](NEXT_STEPS.md) ·
 [`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) and [`docs/reviews/`](docs/reviews/)
@@ -212,7 +243,8 @@ original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.m
 [`docs/RETRAINING_DEFAULT_TAXONOMY.md`](docs/RETRAINING_DEFAULT_TAXONOMY.md) ·
 [`docs/COVERAGE_GAP_METHOD.md`](docs/COVERAGE_GAP_METHOD.md)
 
-**Inside the policy (advanced):** [`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
+**Inside the policy (advanced):** [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) ·
+[`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
 [`docs/EXP_EMBEDDING_OOD.md`](docs/EXP_EMBEDDING_OOD.md) ·
 [`docs/R039_MATHS.html`](docs/R039_MATHS.html) ·
 [`docs/EPISODE_RECORD_SCHEMA.md`](docs/EPISODE_RECORD_SCHEMA.md) ·
