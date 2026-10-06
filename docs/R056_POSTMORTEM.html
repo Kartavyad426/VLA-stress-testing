@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R-056 Post-mortem</title>
+<style>
+:root{
+  --bg:#fbfaf7;--fg:#1d1d1b;--muted:#5d5b55;--line:#dedad2;--card:#ffffff;
+  --accent:#2f5d8a;--bad:#a2352b;--good:#2d6a3e;--warn:#8a5a12;--code:#f1eee7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161614;--fg:#e9e6df;--muted:#a19d94;--line:#34322e;--card:#1e1d1a;
+    --accent:#86b1dc;--bad:#e2837a;--good:#7fc493;--warn:#d9a95a;--code:#26241f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161614;--fg:#e9e6df;--muted:#a19d94;--line:#34322e;--card:#1e1d1a;
+  --accent:#86b1dc;--bad:#e2837a;--good:#7fc493;--warn:#d9a95a;--code:#26241f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:880px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:1.75rem;line-height:1.25;margin:0 0 6px}
+h2{font-size:1.25rem;margin:44px 0 10px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:24px 0 6px}
+p,li{max-width:74ch}
+.sub{color:var(--muted);margin:0 0 24px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em;word-break:break-word}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;font-size:.92rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.hl td{background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;margin:16px 0}
+.box.bad{border-left-color:var(--bad)}
+.box.good{border-left-color:var(--good)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:2px}
+.data{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.hyp{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.unk{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+ol li,ul li{margin:4px 0}
+.small{font-size:.88rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>R-056 / R-058 post-mortem: why the start-pose LoRA pilot did not help</h1>
+<p class="sub">2026-09-30 · Scope: the fixed R-056 run (r = 16) and R-058 r = 4, with emphasis on the training recipe · CPU-only analysis of existing artifacts · Scripts: <code>experiments/analysis_r056_postmortem/</code></p>
+
+<p>Each claim carries a tag: <span class="tag data">data</span> means measured from the artifacts; <span class="tag hyp">hypothesis</span> is consistent with the data but not isolated; <span class="tag unk">unknown</span> cannot be decided from what exists.</p>
+
+<h2>1. Bottom line</h2>
+<div class="box bad">
+<ol>
+<li><span class="tag data">data</span> <b>The held-out "regression" is one scene.</b> On scene 1327 (bowl on the wooden cabinet), base scores 12/12, r = 16 scores 4/12 and r = 4 scores 2/12. The paired exact McNemar p-values are 0.008 and 0.002. On the other 96 starts, r = 16 ties base (55 vs 55, 14 lost and 14 gained) and r = 4 is ahead, 63 vs 55 (p = 0.12). Pooled over all 108 starts, neither arm differs from base: p = 0.24 for r = 16 and p = 0.86 for r = 4.</li>
+<li><span class="tag data">data</span> <b>The targeted mechanism moved the right way, but only about a tenth of the distance.</b> In 30 of 36 seed-0 starts, both adapters' first chunk moved toward the nominal chunk. The median distance fell from 4.51 to 3.98 for r = 16 and to 4.12 for r = 4. W transfer went from 0.88 to 0.84 and 0.82. The effect was diluted, not absent.</li>
+<li><span class="tag data">data</span>/<span class="tag hyp">hypothesis</span> <b>The recipe made the correction a tiny fraction of the gradient.</b> Frame-0 labels were about 1% of samples. At the selected checkpoints each minted frame 0 had been seen an expected 0.42 times (r = 4, opt 500) and 0.83 times (r = 16, opt 1000). The effective batch was 8, where the checkpoint was trained at 320 with the same LR. The block-median loss was within 10% of its final value by about opt 600–1200, and the rest of the run added little.</li>
+<li><span class="tag data">data</span>/<span class="tag hyp">hypothesis</span> <b>Scene 1327 fails at the grasp, not in the first chunk.</b> The adapters close the gripper too high: 5.5–5.8 cm above the bowl, against 4.2 cm for base. They then cycle through 5–7 regrasps and time out. The minted data carries this exact signature: 16 of 100 "successful" demos contain a failed first grasp that closes at 5.7 cm (clean demos close at 3.4 cm). The 48-step truncation keeps 7 of those premature closes and cuts every recovery.</li>
+<li><span class="tag data">data</span> <b>The training data barely reached the region the held-out set tests.</b> The success filter's yield falls from about 0.9 below 8 cm to 0.2 beyond 16 cm. So 42% of held-out starts (beyond 12 cm) had 9 demos between them, and 33 starts beyond 16 cm had 2. The minted windows are also 91% approach, so they teach nothing about the grasp (§5).</li>
+</ol>
+</div>
+<p>R-056 does not show that "retraining hurts start pose". It shows two things:</p>
+<ul>
+<li>a correction signal too weak to move outcomes;</li>
+<li>one task-specific grasp regression, of uncertain cause, that the design had no control to attribute.</li>
+</ul>
+
+<h2>2. What the paired data shows</h2>
+<p>The same 108 starts and noise seeds were run on base and on both adapters. Per scene:</p>
+<div class="tbl"><table>
+<tr><th>scene</th><th class="n">n</th><th class="n">base</th><th class="n">r = 16</th><th class="n">r = 4</th><th class="n">minted demos</th></tr>
+<tr><td>984</td><td class="n">12</td><td class="n">6</td><td class="n">5</td><td class="n">6</td><td class="n">13</td></tr>
+<tr><td>1030</td><td class="n">12</td><td class="n">0</td><td class="n">0</td><td class="n">1</td><td class="n">12</td></tr>
+<tr><td>1062</td><td class="n">12</td><td class="n">6</td><td class="n">3</td><td class="n">5</td><td class="n">10</td></tr>
+<tr><td>1090</td><td class="n">12</td><td class="n">7</td><td class="n">5</td><td class="n">9</td><td class="n">12</td></tr>
+<tr><td>1132</td><td class="n">12</td><td class="n">7</td><td class="n">8</td><td class="n">10</td><td class="n">12</td></tr>
+<tr><td>1201</td><td class="n">12</td><td class="n">12</td><td class="n">11</td><td class="n">11</td><td class="n">9</td></tr>
+<tr><td>1247</td><td class="n">12</td><td class="n">8</td><td class="n">11</td><td class="n">9</td><td class="n">9</td></tr>
+<tr><td>1282</td><td class="n">12</td><td class="n">9</td><td class="n">12</td><td class="n">12</td><td class="n">15</td></tr>
+<tr class="hl"><td><b>1327</b></td><td class="n">12</td><td class="n"><b>12</b></td><td class="n"><b>4</b></td><td class="n"><b>2</b></td><td class="n">8</td></tr>
+<tr><td>all</td><td class="n">108</td><td class="n">67</td><td class="n">59</td><td class="n">65</td><td class="n">100</td></tr>
+</table></div>
+<ul>
+<li><span class="tag data">data</span> <b>Nominal control.</b> Of the 81 nominal rollouts (27 per arm), only three fail: 1327 seed 0 under both adapters and 1030 seed 0 under r = 4. Base went 27/27. The 1327 regression is therefore not start-pose specific; it is a regression on that task.</li>
+<li><span class="tag data">data</span> <b>The "≤ 8 cm offset" drop is really the 1327 drop.</b> SFT's exploratory split showed 27/27 → 21/27 and 20/27 at ≤ 8 cm. Every ≤ 8 cm start is joint direction 100, and the losses sit in scene 1327 (r = 4 loses all 6; r = 16 loses 3) and scene 1062 (r = 16 loses 3, r = 4 loses 1). Offset is confounded with scene and direction. There is no monotone offset effect to explain.</li>
+<li><span class="tag data">data</span> <b>Where lost starts fail.</b>
+  <ul>
+  <li>r = 16: 22 lost starts, 14 of which never lift the bowl.</li>
+  <li>r = 4: 16 lost starts, 10 of which lift it and then fail.</li>
+  </ul>
+  In 1327, the eef trajectory diverges from base by a median of 1.2–1.6 cm at t = 16 and 2–3 cm at t = 48. Grasps happen at t ≈ 45–65, so the damage lands at the grasp.</li>
+</ul>
+
+<h2>3. Why the intended fix barely moved: the recipe</h2>
+<h3>3.1 The correction was a tiny fraction of the training signal <span class="tag data">data</span></h3>
+<p>The sampler draws minted and IPEC 50:50. Each minted episode is 48 frames, and only frames 0–15 carry nominal-chunk labels. Frame 0 is the only frame whose whole 16-step label is the correction, and the policy is queried at forward 0.</p>
+<div class="tbl"><table>
+<tr><th>sample source</th><th class="n">share of draws</th><th class="n">views per frame by opt 500</th><th class="n">by opt 1000</th><th class="n">by opt 2000</th></tr>
+<tr><td>minted frame 0 (the correction)</td><td class="n">1.0%</td><td class="n">0.42</td><td class="n">0.83</td><td class="n">1.7</td></tr>
+<tr><td>minted frames 1–15 (partly nominal)</td><td class="n">15.6%</td><td class="n">0.42</td><td class="n">0.83</td><td class="n">1.7</td></tr>
+<tr><td>minted frames 16–47 (the base's own actions)</td><td class="n">33.3%</td><td class="n">0.42</td><td class="n">0.83</td><td class="n">1.7</td></tr>
+<tr><td>IPEC replay (the base's own training data)</td><td class="n">50.0%</td><td class="n">0.04</td><td class="n">0.08</td><td class="n">0.15</td></tr>
+</table></div>
+<p class="small">Expected values from the nominal 50:50 shares (<code>sample_accounting.py</code>). An earlier version of this page used a reconstructed sampler stream (0.47 / 0.94). That reconstruction is unverified (§8), so the expected values stand.</p>
+<p>At the checkpoints that were actually evaluated, each start-pose correction had been seen <b>less than once</b>. About 83% of every gradient went to frames whose labels the base already produces: its own rollouts and its own training set. Those frames carry no correction, but they still move the weights. The small, correct first-chunk shift in §1.2 is what this dose predicts.</p>
+
+<h3>3.2 The batch is 40× smaller than the checkpoint's at the same LR <span class="tag data">data</span>/<span class="tag hyp">hypothesis</span></h3>
+<ul>
+<li><b>Original recipe</b> (the checkpoint's <code>train_config.json</code>): batch 320, 20,000 steps, AdamW at LR 1e-4, 1,000 warmup steps then cosine, ColorJitter on; it trains the DiT, the projector and the VLLN.</li>
+<li><b>Pilot:</b> effective batch 8 (micro-batch 1 × 8), LR 1e-4 on the LoRA, 2,000 steps, no augmentation.</li>
+<li>Flow-matching loss is dominated by per-sample noise (random τ and ε). The logged 10-sample means range roughly 3× within any window.</li>
+<li>The block-median loss (r = 16) went 0.044 (opt 0–400) → 0.033 → 0.027 → 0.028 → 0.027 (opt 1600–2000). It was within 10% of its final value by opt 600–1200, while the LR was still 4–7e-5. r = 4 is the same.</li>
+<li>The median gradient norm was 0.08, so the clip at 1.0 almost never fired.</li>
+</ul>
+<p><span class="tag hyp">hypothesis</span> After the plateau, updates are noise-dominated. The adapter random-walks, and small-effect task-level changes like scene 1327 can appear without any data signal causing them. The early selected checkpoints (opt 1000 for r = 16, opt 500 for r = 4) fit this, but see §3.4: selection is too noisy to be evidence.</p>
+
+<h3>3.3 Train-time inputs differ from the checkpoint's training distribution <span class="tag hyp">hypothesis</span></h3>
+<p>Augmentation is off (R-056 amendment of 09-28 19:11). There is no random crop, no ColorJitter, and no state dropout (the checkpoint used p = 0.2). This matches eval inputs better. But it also lets the adapter learn to lean on proprio state that the base was trained to do without 20% of the time, and start pose is precisely a state perturbation.</p>
+<p>LoRA also covers <code>vl_self_attention</code>, which re-encodes the VLM tokens for every task, not just the DiT's action mapping. Both choices widen what the adapter can change beyond the intended first-chunk remap. Neither has been isolated.</p>
+
+<h3>3.4 Checkpoint selection could not discriminate <span class="tag data">data</span></h3>
+<ul>
+<li>Validation success was 5/6/3/3 for r = 16 and 5/5/4/5 for r = 4, at 10 rollouts and one seed each.</li>
+<li>The measured render-jitter flip rate is 30–40%. The base-vs-adapter discordance here is 33% (36/108) and 28% (30/108).</li>
+<li>Base was never run on the validation set, so even the level (above or below base?) is unknown.</li>
+<li>The rule "max success, then min closest approach" is therefore close to a random pick. Only the picked checkpoint was run on held-out, so no checkpoint comparison is possible.</li>
+</ul>
+
+<h2>4. What broke scene 1327</h2>
+<div class="tbl"><table>
+<tr><th>scene 1327, held-out + nominal</th><th class="n">n</th><th class="n">first close t (median)</th><th class="n">eef − bowl dz at close</th><th class="n">close events (median)</th></tr>
+<tr><td>base, success</td><td class="n">15</td><td class="n">45</td><td class="n">4.2 cm</td><td class="n">1</td></tr>
+<tr><td>r = 16, success</td><td class="n">6</td><td class="n">42.5</td><td class="n">2.6 cm</td><td class="n">1</td></tr>
+<tr><td>r = 16, failure</td><td class="n">9</td><td class="n">46</td><td class="n">5.5 cm</td><td class="n">7</td></tr>
+<tr><td>r = 4, success</td><td class="n">4</td><td class="n">51</td><td class="n">2.8 cm</td><td class="n">2</td></tr>
+<tr><td>r = 4, failure</td><td class="n">11</td><td class="n">46</td><td class="n">5.8 cm</td><td class="n">5</td></tr>
+</table></div>
+<p><span class="tag data">data</span> The failures are premature closes, too high, followed by repeated regrasps. The close happens at t ≈ 46, inside the 48-step window the minted demos cover.</p>
+<p><span class="tag data">data</span> <b>The minted set contains this behaviour.</b> Success filtering keeps episodes that eventually succeed, including ones whose first grasp failed:</p>
+<ul>
+<li>16 of 100 minted demos have a failed first grasp. The median height at first close is 5.7 cm, against 3.4 cm for demos whose first grasp worked.</li>
+<li>In 7 of those 16, the premature close lies inside frames 0–47.</li>
+<li>In all 16, the reopen and regrasp come after frame 47, so truncation removed every recovery.</li>
+<li>Across all minted demos, 48 of 100 close the gripper inside the window, but only 4 of 100 lift the bowl inside it.</li>
+<li>Scene 1327 has 3 failed-first-grasp demos out of 8, the highest share of any scene. Its closes are at t = 47–48 (the one at t = 47 is inside the window) and at heights of 5.6, 0.6 and 1.7 cm.</li>
+</ul>
+<p><span class="tag hyp">hypothesis</span> Rank this cause below the recipe drift in §3.2–3.3 for three reasons:</p>
+<ul>
+<li>only a few frames per episode carry the bad close label;</li>
+<li>1327's own bad demos mostly sit at the window's edge;</li>
+<li>other scenes with such demos (1282 has 4) did not regress.</li>
+</ul>
+<p>The design has no replay-only arm, so "any fine-tune with this recipe" and "this minted data" cannot be told apart. That missing control is the single biggest gap in R-056.</p>
+
+<h2>5. Data distribution and coverage gaps</h2>
+<p class="small">Added 2026-09-30 (second pass), using <code>.claude/skills/finetune-postmortem/scripts/data_coverage.py</code>. Output: <code>runs/r056_r16/postmortem_coverage.json</code>.</p>
+<h3>5.1 The success filter removed the hard region, and the held-out set lives there <span class="tag data">data</span></h3>
+<div class="tbl"><table>
+<tr><th>gripper offset at t = 0</th><th class="n">minting attempts</th><th class="n">kept demos</th><th class="n">yield</th><th class="n">held-out starts</th><th class="n">base</th><th class="n">r = 16</th><th class="n">r = 4</th></tr>
+<tr><td>0–3 cm</td><td class="n">15</td><td class="n">14</td><td class="n">0.93</td><td class="n">0</td><td class="n">–</td><td class="n">–</td><td class="n">–</td></tr>
+<tr><td>3–5 cm</td><td class="n">27</td><td class="n">23</td><td class="n">0.85</td><td class="n">3</td><td class="n">3</td><td class="n">3</td><td class="n">3</td></tr>
+<tr><td>5–8 cm</td><td class="n">39</td><td class="n">36</td><td class="n">0.92</td><td class="n">24</td><td class="n">24</td><td class="n">18</td><td class="n">17</td></tr>
+<tr><td>8–12 cm</td><td class="n">34</td><td class="n">18</td><td class="n">0.53</td><td class="n">36</td><td class="n">20</td><td class="n">20</td><td class="n">23</td></tr>
+<tr class="hl"><td>12–16 cm</td><td class="n">21</td><td class="n">7</td><td class="n">0.33</td><td class="n">12</td><td class="n">4</td><td class="n">2</td><td class="n">3</td></tr>
+<tr class="hl"><td>&gt; 16 cm</td><td class="n">10</td><td class="n">2</td><td class="n">0.20</td><td class="n">33</td><td class="n">16</td><td class="n">16</td><td class="n">19</td></tr>
+</table></div>
+<ul>
+<li>The kept demos sit at a median offset of 6.1 cm (p90 11.3 cm). The held-out starts sit at 9.3 cm (p90 19.2 cm).</li>
+<li><b>45 of the 108 held-out starts (42%) are beyond 12 cm, where there are only 9 demos.</b> That includes 33 starts beyond 16 cm against 2 demos.</li>
+<li>The base's failures concentrate there, and so does the room for gain. The pilot had essentially no labels in that region, so "no gain beyond 8 cm" is what coverage predicts, whatever the recipe.</li>
+<li>Held-out success by distance to the nearest kept demo of the same scene (terciles at 5.4 and 8.2 cm):
+  <ul>
+  <li>near: base 28/36, r = 16 23/36, r = 4 29/36;</li>
+  <li>mid: 23, 20 and 19 of 36;</li>
+  <li>far: 16, 16 and 17 of 36.</li>
+  </ul>
+  No arm improves on the far starts.</li>
+</ul>
+<h3>5.2 What the minted data could teach at all <span class="tag data">data</span></h3>
+<ul>
+<li><b>Phase composition.</b> The kept demos' 48-frame windows are 91.4% approach, 8.5% gripper closed and 0.1% lifted. Their full episodes are 40% approach, 26% closed, 28% lifted and 5% reopened. Grasp and transport come only from the replay half.</li>
+<li><b>Gripper prior.</b> In the replay set 54% of frames have the gripper closed; in the export, 8.6%. The 50:50 mix therefore trains on about 31% closed frames, against the base's original 54%.<br><span class="tag hyp">hypothesis</span> This shifts the gripper prior during the approach-to-grasp transition. It is compatible with the open/close cycling in the 1327 failures (5–7 close events), but not isolated.</li>
+<li><b>Start-state spread in the base's own training data.</b> The per-task |std| of the frame-0 eef position is a median of 1.2 cm (max 1.3 cm). The base never saw start variation. Minted demos start at 6.1 cm and held-out starts at 9.3 cm, so this is the gap the pilot targets, and the pilot filled it only up to about 8 cm.</li>
+<li><b>Scene and seed coverage.</b> Every scene has 8–15 demos, each with its own random direction; none shares a direction with the held-out set (by design). Every demo and every held-out start uses env seed 0, so there is no layout variation in training or test. That is a generalisation gap the eval cannot see.</li>
+</ul>
+<h3>5.3 No convention or scale mismatch between minted and replay data <span class="tag data">data</span></h3>
+<p>Against all replay frames, 11 of the 15 state/action dimensions of the export shift by more than 0.5 replay std; examples are the gripper qpos (z ≈ ±1.1) and x/z position. Against replay frames from the same first-48-frame window, every one falls to |z| ≤ 0.42. The shifts are phase and start-pose composition, not an export bug in the state, action or gripper conventions.</p>
+
+<h2>6. Evaluation design limits (context for the recipe reading)</h2>
+<ul>
+<li><span class="tag data">data</span> <b>The held-out set is easier than designed</b>: base scored 0.62 where the R-047 curve predicted 0.46, so the pre-registered uninterpretability check fired.
+  <ul>
+  <li>The achieved joint radius is a uniform 0.74 (direction 100) and 0.78 (direction 101) of the requested radius. That applies to R-047 too, so it does not explain the gap on its own.</li>
+  <li>The two held-out directions give very different gripper offsets at the same radius: a median of 8.1 cm for direction 100 and 16.7 cm for direction 101.</li>
+  <li><span class="tag hyp">hypothesis</span> With only 2 directions per scene, held-out success is set mostly by which directions were drawn, not by radius. That is enough to put the base outside R-047's interval.</li>
+  </ul></li>
+<li><span class="tag data">data</span> <b>Power.</b> With about 30% discordant pairs, the paired test at n = 108 resolves roughly ±15 pp (the registered E1). It cannot resolve the ±2–7 pp pooled differences observed.</li>
+<li><span class="tag data">data</span> <b>Ceiling.</b> 27 of the 108 starts (direction 100, ≤ 8 cm) are at 27/27 for base, so on those starts the adapters can only lose.</li>
+</ul>
+
+<h2>7. Ruled out</h2>
+<div class="box good">
+<ul>
+<li><b>Action padding at the 48-step truncation.</b> <code>action_is_pad</code> reaches GR00T's <code>action_mask</code>: frame 32 has 16 valid steps, frame 40 has 8 and frame 47 has 1 (<code>padcheck.py</code>, CPU, the real training preprocessor). Chunks running past frame 47 are masked, not filled with repeated last actions.</li>
+<li><b>LR schedule.</b> Verified live, with max error 1.4e-20 and the cosine annealed to 6.8e-11 at opt 2000.</li>
+<li><b>Task strings.</b> The minted and IPEC <code>task_index</code> tables differ in order, but each part resolves its own. Export <code>unknown_tasks = []</code>, and the minted frames carry the right instruction.</li>
+<li><b>Scorer joins.</b> Manifest and rollouts line up row for row, and success and steps agree on 316 of 316. Side note: <code>rollout_id</code> ignores the noise seed (316 rows, 172 unique IDs), so anything joining by <code>rollout_id</code> silently merges seeds. The scorer does not do this; future analysis must not either.</li>
+</ul>
+</div>
+
+<h2>8. Not decidable from existing artifacts</h2>
+<ul>
+<li><span class="tag unk">unknown</span> <b>Whether the driven labels were fitted.</b> The training log keeps only 10-sample loss means, with no source tag. I rebuilt the seeded sampler stream to split the loss by source, but the fit explains nothing (R² ≈ 0, the same as a shuffled control). Either the stream does not reproduce under Accelerate, or per-sample noise swamps the source difference. Answering this needs a fixed-seed, per-subset loss eval (§9, A).</li>
+<li><span class="tag unk">unknown</span> <b>Whether other checkpoints behave differently on held-out</b>: only the selected one was run.</li>
+<li><span class="tag unk">unknown</span> <b>Rank scaling</b>: r = 64 has no result (the resident run OOM'd; the cached run was OOM-killed at opt 1900). WiSE-FT never ran.</li>
+</ul>
+
+<h2>9. What to change, in order</h2>
+<p class="small">Any GPU work needs pre-registration and the user's go, through SFT. Items A and B are cheap diagnostics; C–F are recipe changes for the next arm.</p>
+<ol type="A">
+<li><b>Fixed-seed loss per subset</b> (GPU minutes, no rollouts). Run base, opt 500, opt 1000 and opt 2000 on four subsets: minted frame 0, minted frames 1–15, minted frames 16–47 and an IPEC sample. This shows whether frame-0 labels were fitted, and whether IPEC loss rose (drift) or fell (distribution adaptation).</li>
+<li><b>A replay-only control arm.</b> Same recipe, 0% minted. Evaluate it on 1327 nominal plus the ≤ 8 cm starts at 5 or more seeds, with base re-run on the same starts. This attributes the 1327 regression to the recipe or to the data.</li>
+<li><b>Data.</b>
+  <ul>
+  <li>Drop demos with a failed first grasp, or cut each one before its first premature close.</li>
+  <li><b>Fill the coverage gap</b> beyond about 10 cm offset. The nominal-chunk source cannot do it (yield 0.2–0.5 there), so it needs a state-conditional source such as the scripted expert (spec S3), or minting with <code>drive_until</code> &gt; 1. Stratify minting by offset in cm so the kept set matches the held-out distribution.</li>
+  <li>Add env-seed (layout) variation to both minting and held-out.</li>
+  <li>Either keep full episodes, or truncate so that no grasp is cut in half.</li>
+  <li>Upweight the correction: sample frames 0–15 at 25–50% of draws instead of 16%, with frame 0 explicitly oversampled.</li>
+  </ul></li>
+<li><b>Optimisation.</b>
+  <ul>
+  <li>Raise the effective batch to 32–64 (accumulation costs only time), or halve the LR.</li>
+  <li>Stop near the plateau: about opt 600–1200 at batch 8, or better, raise the batch and re-measure where the plateau falls.</li>
+  <li>Keep the checkpoint's own augmentation (ColorJitter, state dropout 0.2), or justify dropping it with an ablation.</li>
+  <li>Consider LoRA on the DiT only, leaving <code>vl_self_attention</code> frozen, to keep the change in the action mapping.</li>
+  </ul></li>
+<li><b>Selection.</b>
+  <ul>
+  <li>Run base on the validation set.</li>
+  <li>Use 30 or more validation rollouts, or pre-register the final checkpoint and use WiSE-FT α as the only knob.</li>
+  <li>Add a per-scene guard: flag any scene that loses 3 or more of its 12 starts.</li>
+  </ul></li>
+<li><b>Held-out design.</b>
+  <ul>
+  <li>Use 4 or more directions per scene.</li>
+  <li>Stratify by gripper offset (cm), not requested radius.</li>
+  <li>Report a per-scene paired table as the primary readout.</li>
+  </ul></li>
+</ol>
+
+<h2>10. What was wrong with the data, in one place</h2>
+<p class="small">Added 2026-09-30 by SFT. This is a synthesis of §2–§5 by failure type, ordered by how much each likely mattered. The short answer to "was it too few samples?": no, not primarily. It was the wrong samples, too little of the signal in them, and some bad ones. Quantity becomes the bottleneck only once the right samples exist.</p>
+<div class="box bad">
+<ol>
+<li><span class="tag data">data</span> <b>Coverage: the demos sit where the base already succeeds.</b>
+  <ul>
+  <li>Kept demos have a median gripper offset of 6.1 cm, where base is 27/27 on held-out (≤ 8 cm).</li>
+  <li>Base fails far out, and there are almost no demos there: 45 held-out starts beyond 12 cm against 9 demos, and 33 beyond 16 cm against 2.</li>
+  <li>The cause is the source itself. Borrowing the nominal chunk works to about 8 cm (yield 0.85–0.93) and fails beyond 16 cm (0.20). More minting of the same kind adds small-offset demos, not coverage.</li>
+  </ul></li>
+<li><span class="tag data">data</span> <b>Dilution: too little of the correction signal.</b> Only frames 0–15 of each demo carry the correction; the rest are the policy's own actions. 83% of draws were labels the base already produces, and each minted frame 0 was seen fewer than once by the selected checkpoint (expected 0.42 at r = 4, 0.83 at r = 16).</li>
+<li><span class="tag data">data</span>/<span class="tag hyp">hypothesis</span> <b>Pollution: "successes" that teach the mistake.</b>
+  <ul>
+  <li>16 of 100 kept demos contain a failed first grasp: the gripper closes too high (5.7 cm, against 3.4 cm in clean demos), then reopens, retries and eventually succeeds.</li>
+  <li>The 48-step truncation made this worse. In 7 of the 16 the premature close falls inside the kept window and every recovery falls after it, so the model saw the mistake without the fix.</li>
+  <li>This matches the scene-1327 failure (the adapters close 5.5–5.8 cm high), and 3 of that scene's 8 demos have the pattern.</li>
+  <li>The causal link is not isolated: there is no replay-only control (§9 B).</li>
+  </ul></li>
+<li><span class="tag data">data</span>/<span class="tag hyp">hypothesis</span> <b>Phase skew from truncation.</b> The 48-step windows are 91.4% approach, 8.5% gripper-closed and 0.1% lifting, against 54% gripper-closed in replay. The mix under-represents the grasp transition, which plausibly shifts the gripper prior there. It is consistent with the 1327 open/close cycling.</li>
+<li><span class="tag hyp">hypothesis</span> <b>Label quality, inherent to the source.</b> Even clean minted demos teach "move as if you started at the canonical pose" for the first chunk, not "go to the object from where you are". That label is adequate for small offsets and wrong for large ones, which is part of why yield collapses with offset.</li>
+</ol>
+</div>
+<p><b>What this implies for sourcing.</b> The next data needs:</p>
+<ul>
+<li>a state-conditional source that works at any offset, such as the scripted expert (spec S3) or MimicGen-style adaptation (S4);</li>
+<li>minting stratified by offset in cm, to match the eval;</li>
+<li>a "clean demo" filter: one gripper close before the lift;</li>
+<li>no truncation mid-grasp;</li>
+<li>oversampling of the correction frames;</li>
+<li>layout (env-seed) variation.</li>
+</ul>
+<p>A research survey of sourcing methods is in progress (<code>docs/DATA_SOURCING_RESEARCH.html</code>, by res).</p>
+
+<h2>Sources</h2>
+<p class="small">
+<code>runs/r056_r16/{manifest,rollouts}.jsonl</code>, <code>score.json</code>, <code>selection.json</code> ·
+<code>runs/r058_r4/…</code> ·
+<code>runs/overnight/R056fix_train.log</code>, <code>R058_r4_train.log</code>, <code>SUMMARY_r056fix.txt</code> ·
+<code>runs/r054/rollouts.jsonl</code> (the minted episodes with privileged object positions) · <code>data/r054_train48/meta/{provenance.jsonl,export.json,tasks.parquet}</code> ·
+<code>runs/r047/nominal_starts.json</code> · the checkpoint's <code>train_config.json</code> (HF cache) ·
+<code>third_party/lerobot/…/groot/processor_groot.py</code> (action_mask) · RESULTS.md R-053 → R-058.
+</p>
+</main>
+</body>
+</html>

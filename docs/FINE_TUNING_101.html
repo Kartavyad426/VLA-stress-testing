@@ -1,0 +1,795 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Fine-Tuning 101</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--accent-soft:#DCE3F7;--ok:#1B6B4F;--ok-soft:#D5EEE3;--warn:#A8481B;--warn-soft:#F7E0D3;--amber:#8a6200;--amber-soft:#F5E9C8;
+ --frozen:#B9C1CC;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#2E3642;--rule-soft:#1F2630;--accent:#93A9F0;--accent-soft:#233154;--ok:#5fcf9f;--ok-soft:#173a2d;--warn:#f08a5d;--warn-soft:#44261a;--amber:#e0b54a;--amber-soft:#3d3217;
+ --frozen:#3a4350;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#2E3642;--rule-soft:#1F2630;
+ --accent:#93A9F0;--accent-soft:#233154;--ok:#5fcf9f;--ok-soft:#173a2d;--warn:#f08a5d;--warn-soft:#44261a;--amber:#e0b54a;--amber-soft:#3d3217;--frozen:#3a4350;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62}
+.wrap{max-width:1000px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.35rem;margin:2.6em 0 .6em;padding-top:.7em;border-top:1px solid var(--rule)}
+h2 .n{font-family:var(--mono);color:var(--muted);font-weight:500;margin-right:.4em}
+h3{font-size:1.04rem;margin:1.6em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto;margin:10px 0}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:.82rem}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.flag{border-left:4px solid var(--warn)}
+.okc{border-left:4px solid var(--ok)}
+.q{font-weight:600;color:var(--accent);font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.flag .q{color:var(--warn)}.okc .q{color:var(--ok)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.25em}li{margin:.28em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:5px;padding:12px 16px;margin:12px 0;overflow-x:auto;white-space:nowrap}
+.eq .lab{float:right;font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-left:16px}
+.eq i{font-style:italic}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.stat{font-size:1.8rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.fig{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:14px 14px 8px;margin:16px 0}
+.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.8rem;color:var(--muted);margin:6px 2px 4px}
+.cap b{color:var(--ink)}
+.toc{columns:2;column-gap:28px;font-size:.9rem;padding-left:1.1em}
+.toc li{break-inside:avoid}
+.part{margin-top:4em;padding:26px 20px 10px;border:2px solid var(--accent);border-radius:8px;background:var(--surface)}
+.part h2{border-top-color:var(--rule-soft)}
+.part .card,.part .fig,.part .eq{background:var(--surface-2)}
+.partlab{display:inline-block;font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:3px 10px;border-radius:3px;margin-bottom:10px}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface-2);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.pill{display:inline-block;font-size:.7rem;font-family:var(--mono);padding:0 6px;border-radius:3px;background:var(--surface-2);color:var(--muted);margin-left:4px;vertical-align:1px}
+.refs{font-size:.82rem;color:var(--muted)}.refs li{margin:.2em 0}
+/* svg classes */
+.sv text{font-family:var(--sans);fill:var(--ink);font-size:12px}
+.sv .mono{font-family:var(--mono);font-size:10.5px}
+.sv .mut{fill:var(--muted)}
+.sv .t-acc{fill:var(--accent)}.sv .t-warn{fill:var(--warn)}.sv .t-ok{fill:var(--ok)}
+.sv .bx{fill:var(--surface);stroke:var(--rule);stroke-width:1.2}
+.sv .bx2{fill:var(--surface-2);stroke:var(--rule);stroke-width:1}
+.sv .frz{fill:var(--frozen);stroke:var(--rule);stroke-width:1}
+.sv .trn{fill:var(--accent);stroke:var(--accent);stroke-width:1}
+.sv .trs{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+.sv .oks{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.2}
+.sv .wrs{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.2}
+.sv .ams{fill:var(--amber-soft);stroke:var(--amber);stroke-width:1.2}
+.sv .ln{stroke:var(--muted);stroke-width:1.3;fill:none}
+.sv .lna{stroke:var(--accent);stroke-width:1.6;fill:none}
+.sv .lnw{stroke:var(--warn);stroke-width:1.6;fill:none}
+.sv .lno{stroke:var(--ok);stroke-width:1.6;fill:none}
+.sv .dash{stroke-dasharray:4 3}
+.sv .grid{stroke:var(--rule-soft);stroke-width:1}
+.sv .hatch{fill:url(#hatch)}
+.sv .ar{fill:var(--muted)}
+@media (max-width:600px){.part{padding:18px 12px 6px}.toc{columns:1}}
+</style></head><body><div class=wrap>
+
+<h1>Fine-Tuning 101</h1>
+<div class=meta>2026-09-28 · A general primer on fine-tuning large pretrained models: what to update, how to decide, what it costs in memory, and how to keep what the model already knew. Part II applies it to the GR00T N1.7 start-pose retraining plan (<a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>). Section 9 covers <a href="https://github.com/MakazhanAlpamys/Soup">Soup</a> and its layer-streaming trainer. Parameter counts for GR00T are read from the checkpoint's safetensors header; everything marked <span class=amb>estimate</span> is arithmetic, not a measurement.</div>
+
+<div class="card tldr">
+<div class=q>Summary</div>
+<ul>
+<li><b>Fine-tuning is choosing Δθ.</b> You keep the pretrained weights θ₀ and learn a small change Δθ from new data. Every method differs in <i>which coordinates</i> of Δθ are allowed to be non-zero (a subset of layers, a low-rank matrix, a bias vector) and in how that change is regularised towards θ₀.</li>
+<li><b>Decide by locating the gap, not by size alone.</b> Ask three questions in order. Is the needed information already present in the frozen features? (Probe for it.) Where does the distribution shift enter: the input side or the output side? (Tune the block nearest to it.) What does the compute budget allow? Tune the fewest parameters that can express the fix.</li>
+<li><b>The main risk is regression, not failure to learn.</b> Small targeted datasets overwrite general behaviour. The standard defences are mixing in the original data (replay), low-rank or partial updates, a lower learning rate, and interpolating weights back towards θ₀ after training (WiSE-FT).</li>
+<li><b>Memory is dominated by optimiser state, not weights.</b> Adam with fp32 master weights costs about 16 bytes per <i>trainable</i> parameter; frozen parameters cost only their storage. That arithmetic is why LoRA, frozen backbones and 8-bit optimisers exist.</li>
+<li><b>Soup</b> is a fine-tuning CLI. Its headline feature, <i>layer streaming</i>, keeps a frozen base in CPU RAM and moves one decoder layer at a time onto the GPU, overlapping the copy with compute. It trained an 8B LLM with LoRA in 3.3 GB of VRAM. Each streamed layer is read twice per step, once forward and once backward, because gradients for lower layers must pass back through it.</li>
+<li><b>For us:</b> the map says the start-pose information survives the frozen VLM (R-045), so the plan freezes the VLM and trains only the action head. Three findings from reading the code: the head the port trains by default is <b>1.62 B</b> parameters, not ~1.1 B (the plan's figure matches the diffusion transformer alone). GR00T's own LoRA fields are <b>not wired</b>. And arm (b)'s <code>tune_top_llm_layers=4</code> <b>fully unfreezes</b> 201 M parameters rather than applying LoRA. Because the VLM is frozen in arm (a), its outputs can be <b>cached once</b>, which takes about 3 GB off the GPU and makes a local LoRA run comfortable (<span class=amb>estimate</span>).</li>
+</ul>
+</div>
+
+<ol class=toc>
+<li><a href="#s1">What fine-tuning is</a></li>
+<li><a href="#s2">The menu: what you can update</a></li>
+<li><a href="#s3">LoRA and its relatives, in depth</a></li>
+<li><a href="#s4">How to decide what to fine-tune</a></li>
+<li><a href="#s5">Forgetting, and how to keep what the model knew</a></li>
+<li><a href="#s6">Memory arithmetic</a></li>
+<li><a href="#s7">Recipe: data, hyperparameters, schedule</a></li>
+<li><a href="#s8">Evaluating a fine-tune</a></li>
+<li><a href="#s9">Soup and layer streaming</a></li>
+<li><a href="#s10">Part II · GR00T N1.7, anatomy</a></li>
+<li><a href="#s11">Part II · The start-pose plan through this lens</a></li>
+<li><a href="#s12">Part II · Fitting it on 8 GB</a></li>
+<li><a href="#s13">Part II · Open decisions</a></li>
+<li><a href="#refs">References</a></li>
+</ol>
+
+<!-- shared svg defs -->
+<svg width=0 height=0 style="position:absolute" aria-hidden=true><defs>
+<pattern id=hatch width=6 height=6 patternUnits=userSpaceOnUse patternTransform="rotate(45)"><rect width=6 height=6 style="fill:var(--amber-soft)"/><line x1=0 y1=0 x2=0 y2=6 style="stroke:var(--amber);stroke-width:2"/></pattern>
+<marker id=arr viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+<marker id=arra viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker>
+<marker id=arrw viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--warn)"/></marker>
+</defs></svg>
+
+<!-- ============================================================ -->
+<h2 id=s1><span class=n>1</span>What fine-tuning is</h2>
+
+<p>A pretrained model is a point θ₀ in parameter space that already solves a broad task well: next-token prediction over the web, image-text alignment, or, for a VLA, action prediction over many robots. Fine-tuning continues gradient descent from θ₀ on a narrower dataset 𝒟<sub>ft</sub>, and stops long before the parameters travel far. The result is θ = θ₀ + Δθ.</p>
+
+<div class=eq>θ* = θ₀ + argmin<sub>Δθ ∈ 𝒮</sub> &nbsp; 𝔼<sub>(x,y)∼𝒟<sub>ft</sub></sub> [ ℓ( f<sub>θ₀+Δθ</sub>(x), y ) ] &nbsp;+&nbsp; λ · R(Δθ)<span class=lab>(1)</span></div>
+
+<p>Every fine-tuning method is a choice of two things in (1):</p>
+<ul>
+<li><b>The feasible set 𝒮.</b> This is which changes are allowed. Full fine-tuning allows any Δθ. Freezing a layer forces its block of Δθ to zero. LoRA forces each weight update to have rank ≤ r. BitFit allows only bias entries to change.</li>
+<li><b>The regulariser R.</b> Often it is implicit: a small learning rate, few steps and early stopping all keep ‖Δθ‖ small. Sometimes it is explicit: weight decay towards θ₀ (L2-SP), a Fisher-weighted penalty (EWC), or a KL term to the original model's outputs.</li>
+</ul>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 240" role=img aria-label="Pretraining then fine-tuning pipeline">
+<rect class=bx2 x=10 y=30 width=190 height=150 rx=6 />
+<text x=105 y=52 text-anchor=middle style="font-weight:600">Pretraining</text>
+<text x=105 y=74 text-anchor=middle class=mut>huge, broad data</text>
+<text x=105 y=92 text-anchor=middle class=mut>weeks of many GPUs</text>
+<text x=105 y=110 text-anchor=middle class=mut>general features</text>
+<text x=105 y=160 text-anchor=middle class=mono>θ₀</text>
+<line class=ln x1=200 y1=105 x2=250 y2=105 marker-end=url(#arr) />
+<rect class=trs x=250 y=30 width=210 height=150 rx=6 />
+<text x=355 y=52 text-anchor=middle style="font-weight:600">Fine-tuning</text>
+<text x=355 y=74 text-anchor=middle class=mut>small, targeted data</text>
+<text x=355 y=92 text-anchor=middle class=mut>hours on one GPU</text>
+<text x=355 y=110 text-anchor=middle class=mut>restricted Δθ, low LR</text>
+<text x=355 y=160 text-anchor=middle class=mono>θ₀ + Δθ</text>
+<line class=ln x1=460 y1=105 x2=510 y2=105 marker-end=url(#arr) />
+<!-- loss landscape sketch -->
+<rect class=bx x=510 y=10 width=380 height=220 rx=6 />
+<text x=700 y=30 text-anchor=middle class=mut style="font-size:11px">parameter space (schematic)</text>
+<ellipse cx=620 cy=130 rx=90 ry=62 style="fill:none;stroke:var(--frozen);stroke-width:1.4"/>
+<ellipse cx=620 cy=130 rx=58 ry=38 style="fill:none;stroke:var(--frozen);stroke-width:1.4"/>
+<ellipse cx=620 cy=130 rx=26 ry=16 style="fill:none;stroke:var(--frozen);stroke-width:1.4"/>
+<text x=620 y=215 text-anchor=middle class=mut style="font-size:11px">pretraining basin</text>
+<ellipse cx=790 cy=110 rx=70 ry=45 style="fill:none;stroke:var(--accent);stroke-width:1.4" class=dash />
+<ellipse cx=790 cy=110 rx=36 ry=22 style="fill:none;stroke:var(--accent);stroke-width:1.4" class=dash />
+<text x=790 y=58 text-anchor=middle class=t-acc style="font-size:11px">fine-tune task basin</text>
+<circle cx=620 cy=130 r=5 style="fill:var(--ink)"/><text x=606 y=126 text-anchor=end class=mono>θ₀</text>
+<path class=lna d="M625,128 C 670,118 720,112 772,110" marker-end=url(#arra) />
+<circle cx=776 cy=110 r=5 style="fill:var(--accent)"/><text x=782 y=100 class="mono t-acc">θ₀+Δθ</text>
+<path class=lnw d="M625,134 C 700,150 780,160 850,140" marker-end=url(#arrw) />
+<text x=850 y=176 class="t-warn" style="font-size:11px" text-anchor=end>too far: forgets</text>
+</svg>
+<div class=cap><b>Figure 1.</b> Fine-tuning moves θ₀ a short distance into a region that also solves the new task. The good solutions (blue) stay close enough to θ₀ that the pretraining basin still holds. Travelling too far (orange) fits the new task but leaves the region where the old abilities lived. Schematic only.</div>
+</div>
+
+<h3>Why it works at all: intrinsic dimension</h3>
+<p>Aghajanyan et al. (2020) measured how many parameters a fine-tune really needs. They restricted Δθ to a random d-dimensional subspace, Δθ = P·z with P fixed and random, and found the smallest d reaching 90% of full fine-tuning quality. For RoBERTa on GLUE tasks, d is in the hundreds to low thousands, against more than 10⁸ parameters. The better the pretraining, the <i>smaller</i> d gets. This is the empirical basis for every parameter-efficient method. A good pretrained model already contains the features, so the fine-tune only has to re-weight them.</p>
+
+<h3>For a VLA specifically</h3>
+<p>For a VLA the loss ℓ is behaviour cloning: predict the demonstrator's action chunk from observations. GR00T's action head is a flow-matching model. It learns a velocity field that carries Gaussian noise ε to the action chunk A, conditioned on the VLM features φ(o) and the robot state s:</p>
+<div class=eq>A<sub>τ</sub> = τ·A + (1−τ)·ε, &nbsp;&nbsp; ℓ<sub>FM</sub> = ‖ v<sub>θ</sub>(A<sub>τ</sub>, τ, φ(o), s) − (A − ε) ‖², &nbsp;&nbsp; τ ∼ Beta-shaped schedule<span class=lab>(2)</span></div>
+<p>Two consequences matter later. First, the loss is a regression on continuous actions, so "correct" demonstrations must be <i>consistent</i>. Two demos that do different things from the same observation are averaged into a blur (or, with a flow model, into a bimodal distribution the policy samples from). Second, τ and ε are drawn fresh every step, but φ(o) does not depend on them. If the VLM that computes φ is frozen, φ(o) can be computed once and reused (§12).</p>
+
+<!-- ============================================================ -->
+<h2 id=s2><span class=n>2</span>The menu: what you can update</h2>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 300" role=img aria-label="Which parameters each method trains">
+<g font-size=12>
+<!-- 6 columns -->
+<g transform="translate(10,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">Full FT</text>
+ <rect class=trn x=15 y=30 width=100 height=26 rx=3 /><rect class=trn x=15 y=62 width=100 height=26 rx=3 /><rect class=trn x=15 y=94 width=100 height=26 rx=3 /><rect class=trn x=15 y=126 width=100 height=26 rx=3 /><rect class=trn x=15 y=158 width=100 height=26 rx=3 /><rect class=trn x=15 y=190 width=100 height=26 rx=3 />
+ <text x=65 y=240 text-anchor=middle class=mono>100%</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">all weights</text>
+</g>
+<g transform="translate(155,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">Head only</text>
+ <rect class=trn x=15 y=30 width=100 height=26 rx=3 /><rect class=frz x=15 y=62 width=100 height=26 rx=3 /><rect class=frz x=15 y=94 width=100 height=26 rx=3 /><rect class=frz x=15 y=126 width=100 height=26 rx=3 /><rect class=frz x=15 y=158 width=100 height=26 rx=3 /><rect class=frz x=15 y=190 width=100 height=26 rx=3 />
+ <text x=65 y=240 text-anchor=middle class=mono>0.1–30%</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">linear probe ⊂ this</text>
+</g>
+<g transform="translate(300,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">Top-k / surgical</text>
+ <rect class=trn x=15 y=30 width=100 height=26 rx=3 /><rect class=trn x=15 y=62 width=100 height=26 rx=3 /><rect class=trn x=15 y=94 width=100 height=26 rx=3 /><rect class=frz x=15 y=126 width=100 height=26 rx=3 /><rect class=frz x=15 y=158 width=100 height=26 rx=3 /><rect class=frz x=15 y=190 width=100 height=26 rx=3 />
+ <text x=65 y=240 text-anchor=middle class=mono>any block</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">chosen by the shift</text>
+</g>
+<g transform="translate(445,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">LoRA</text>
+ <g><rect class=frz x=15 y=30 width=100 height=26 rx=3 /><rect class=trn x=95 y=34 width=16 height=18 rx=2 /></g>
+ <g><rect class=frz x=15 y=62 width=100 height=26 rx=3 /><rect class=trn x=95 y=66 width=16 height=18 rx=2 /></g>
+ <g><rect class=frz x=15 y=94 width=100 height=26 rx=3 /><rect class=trn x=95 y=98 width=16 height=18 rx=2 /></g>
+ <g><rect class=frz x=15 y=126 width=100 height=26 rx=3 /><rect class=trn x=95 y=130 width=16 height=18 rx=2 /></g>
+ <g><rect class=frz x=15 y=158 width=100 height=26 rx=3 /><rect class=trn x=95 y=162 width=16 height=18 rx=2 /></g>
+ <g><rect class=frz x=15 y=190 width=100 height=26 rx=3 /><rect class=trn x=95 y=194 width=16 height=18 rx=2 /></g>
+ <text x=65 y=240 text-anchor=middle class=mono>0.1–2%</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">low-rank ΔW beside W</text>
+</g>
+<g transform="translate(590,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">Adapters</text>
+ <rect class=frz x=15 y=30 width=100 height=20 rx=3 /><rect class=trn x=35 y=51 width=60 height=6 rx=2 />
+ <rect class=frz x=15 y=62 width=100 height=20 rx=3 /><rect class=trn x=35 y=83 width=60 height=6 rx=2 />
+ <rect class=frz x=15 y=94 width=100 height=20 rx=3 /><rect class=trn x=35 y=115 width=60 height=6 rx=2 />
+ <rect class=frz x=15 y=126 width=100 height=20 rx=3 /><rect class=trn x=35 y=147 width=60 height=6 rx=2 />
+ <rect class=frz x=15 y=158 width=100 height=20 rx=3 /><rect class=trn x=35 y=179 width=60 height=6 rx=2 />
+ <rect class=frz x=15 y=190 width=100 height=20 rx=3 /><rect class=trn x=35 y=211 width=60 height=6 rx=2 />
+ <text x=65 y=240 text-anchor=middle class=mono>0.5–5%</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">new layers in series</text>
+</g>
+<g transform="translate(735,0)">
+ <text x=65 y=18 text-anchor=middle style="font-weight:600">BitFit / IA³ / prompt</text>
+ <rect class=frz x=15 y=30 width=100 height=26 rx=3 /><rect class=trn x=15 y=30 width=4 height=26 />
+ <rect class=frz x=15 y=62 width=100 height=26 rx=3 /><rect class=trn x=15 y=62 width=4 height=26 />
+ <rect class=frz x=15 y=94 width=100 height=26 rx=3 /><rect class=trn x=15 y=94 width=4 height=26 />
+ <rect class=frz x=15 y=126 width=100 height=26 rx=3 /><rect class=trn x=15 y=126 width=4 height=26 />
+ <rect class=frz x=15 y=158 width=100 height=26 rx=3 /><rect class=trn x=15 y=158 width=4 height=26 />
+ <rect class=frz x=15 y=190 width=100 height=26 rx=3 /><rect class=trn x=15 y=190 width=4 height=26 />
+ <text x=65 y=240 text-anchor=middle class=mono>&lt;0.1%</text><text x=65 y=258 text-anchor=middle class=mut style="font-size:11px">biases, scales, tokens</text>
+</g>
+</g>
+<rect class=trn x=300 y=278 width=14 height=12 rx=2 /><text x=320 y=288 style="font-size:11px">trainable</text>
+<rect class=frz x=400 y=278 width=14 height=12 rx=2 /><text x=420 y=288 style="font-size:11px">frozen</text>
+<text x=500 y=288 class=mut style="font-size:11px">stack drawn output (top) to input (bottom)</text>
+</svg>
+<div class=cap><b>Figure 2.</b> The main families, drawn on a six-block network with the output head at the top. Percentages are the typical fraction of parameters trained. They are ranges from the literature, not fixed properties.</div>
+</div>
+
+<div class=tw><table>
+<tr><th>method</th><th>what trains</th><th>expressivity</th><th>forgetting risk</th><th>memory</th><th>use when</th></tr>
+<tr><td><b>Full fine-tune</b></td><td>everything</td><td>maximal</td><td>highest</td><td>~16 B/param with Adam</td><td>lots of data, large shift, compute to spare</td></tr>
+<tr><td><b>Linear probe</b></td><td>a new last layer on frozen features</td><td>lowest: linear in the features</td><td>none</td><td>trivial</td><td>testing whether features already contain the answer</td></tr>
+<tr><td><b>Head / partial</b></td><td>top block(s), or the task head</td><td>re-maps features, cannot create new ones</td><td>low for the frozen part</td><td>proportional to the unfrozen part</td><td>information present upstream; output mapping wrong</td></tr>
+<tr><td><b>Surgical</b> (Lee et al. 2022)</td><td>one chosen block, early or late</td><td>as partial</td><td>low</td><td>as partial</td><td>you know where the shift enters</td></tr>
+<tr><td><b>LoRA</b> and variants</td><td>low-rank ΔW = BA on chosen matrices</td><td>rank-limited per matrix; often close to full at r≥16</td><td>lower than full ("learns less, forgets less")</td><td>tiny optimiser state; frozen weights can be 4-bit (QLoRA)</td><td>the default for large models on small GPUs</td></tr>
+<tr><td><b>Adapters</b> (Houlsby 2019)</td><td>small bottleneck MLPs inserted after sublayers</td><td>similar to LoRA</td><td>low</td><td>small</td><td>multi-task, swap adapters per task; adds inference latency</td></tr>
+<tr><td><b>BitFit, IA³</b></td><td>biases only; or learned per-channel scales</td><td>small</td><td>very low</td><td>tiny</td><td>very little data, few-shot</td></tr>
+<tr><td><b>Prompt / prefix tuning</b></td><td>learned input tokens or per-layer K/V prefixes</td><td>limited, stronger at scale</td><td>none to the weights</td><td>tiny</td><td>LLMs; rarely used for control</td></tr>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id=s3><span class=n>3</span>LoRA and its relatives, in depth</h2>
+
+<p>LoRA (Hu et al. 2021) parameterises the update to a weight matrix W₀ ∈ ℝ<sup>d×k</sup> as a product of two thin matrices, and leaves W₀ frozen:</p>
+<div class=eq>h = W₀x + (α/r)·B A x, &nbsp;&nbsp; B ∈ ℝ<sup>d×r</sup>, A ∈ ℝ<sup>r×k</sup>, r ≪ min(d,k), &nbsp;&nbsp; A ∼ 𝒩(0,σ²), B = 0 at init<span class=lab>(3)</span></div>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 250" role=img aria-label="LoRA structure">
+<text x=60 y=130 text-anchor=middle class=mono style="font-size:13px">x ∈ ℝᵏ</text>
+<line class=ln x1=95 y1=125 x2=140 y2=125 />
+<line class=ln x1=140 y1=125 x2=140 y2=70 /><line class=ln x1=140 y1=70 x2=200 y2=70 marker-end=url(#arr) />
+<line class=ln x1=140 y1=125 x2=140 y2=180 /><line class=ln x1=140 y1=180 x2=200 y2=180 marker-end=url(#arr) />
+<rect class=frz x=200 y=30 width=260 height=80 rx=4 />
+<text x=330 y=66 text-anchor=middle style="font-weight:600">W₀ &nbsp;(d × k), frozen</text>
+<text x=330 y=86 text-anchor=middle class=mut style="font-size:11px">no gradient state, can be stored in 4-bit</text>
+<polygon class=trs points="200,150 290,168 290,192 200,210"/>
+<text x=240 y=184 text-anchor=middle class=mono>A</text><text x=245 y=226 text-anchor=middle class=mut style="font-size:11px">r × k, random init</text>
+<rect class=trs x=290 y=168 width=12 height=24 />
+<text x=296 y=160 text-anchor=middle class="mono t-acc">r</text>
+<polygon class=trs points="302,168 392,150 392,210 302,192"/>
+<text x=350 y=184 text-anchor=middle class=mono>B</text><text x=350 y=226 text-anchor=middle class=mut style="font-size:11px">d × r, zero init</text>
+<text x=425 y=184 text-anchor=middle class=mono>× α/r</text>
+<line class=ln x1=460 y1=70 x2=540 y2=70 /><line class=ln x1=540 y1=70 x2=540 y2=112 marker-end=url(#arr) />
+<line class=ln x1=455 y1=180 x2=540 y2=180 /><line class=ln x1=540 y1=180 x2=540 y2=138 marker-end=url(#arr) />
+<circle cx=540 cy=125 r=12 class=bx /><text x=540 y=130 text-anchor=middle style="font-size:15px">+</text>
+<line class=ln x1=552 y1=125 x2=600 y2=125 marker-end=url(#arr) />
+<text x=630 y=130 class=mono style="font-size:13px">h ∈ ℝᵈ</text>
+<rect class=bx2 x=690 y=35 width=200 height=180 rx=6 />
+<text x=790 y=56 text-anchor=middle style="font-weight:600">Parameter count</text>
+<text x=705 y=82 class=mono>full ΔW: d·k</text>
+<text x=705 y=102 class=mono>LoRA: r·(d+k)</text>
+<text x=705 y=130 class=mut style="font-size:11px">e.g. d=k=1536, r=16:</text>
+<text x=705 y=150 class=mono>2.36 M → 49 k</text>
+<text x=705 y=170 class="mono t-acc">(48× fewer)</text>
+<text x=705 y=198 class=mut style="font-size:11px">merge after training:</text>
+<text x=705 y=212 class=mono style="font-size:10px">W = W₀ + (α/r)BA, no latency</text>
+</svg>
+<div class=cap><b>Figure 3.</b> LoRA adds a trainable low-rank bypass beside a frozen matrix. Because B starts at zero, the model at step 0 is exactly the pretrained model. The example dimensions are those of GR00T's action-head DiT (hidden size 1536).</div>
+</div>
+
+<h3>Design choices that matter</h3>
+<ul>
+<li><b>Which matrices.</b> The original paper adapted only the attention W<sub>q</sub> and W<sub>v</sub>. Later practice (QLoRA and most VLA fine-tunes) adapts <i>all</i> linear layers, attention and MLP. That is usually worth the small extra cost: at a fixed parameter budget, more matrices at lower rank beat fewer matrices at higher rank.</li>
+<li><b>Rank r and scale α.</b> The update is scaled by α/r, so changing r at fixed α changes the effective learning rate. rsLoRA (Kalajdzievski 2023) shows that α/√r keeps the update magnitude stable as r grows, which makes high ranks actually useful. Common settings: r ∈ {8, 16, 32, 64}, α = r or 2r.</li>
+<li><b>Learning rate.</b> LoRA wants roughly 5–10× the learning rate of full fine-tuning (e.g. 1e-4 to 3e-4 against 1e-5 to 3e-5), because only a small, zero-initialised subspace moves. LoRA+ (Hayou et al. 2024) sets B's learning rate about 16× higher than A's, since the two matrices play asymmetric roles.</li>
+<li><b>Dropout on the LoRA path</b> (0.05–0.1) helps in the low-data regime.</li>
+<li><b>Modules to train fully alongside LoRA</b> (<code>modules_to_save</code> in PEFT). Small, task-specific modules such as a new output head, normalisation layers, or input and output projections for a new embodiment are often trained fully while the large matrices get LoRA. This is where memory budgets are quietly blown: a "small" projector with 300 M parameters trained fully with Adam costs about 5 GB.</li>
+</ul>
+
+<h3>Variants worth knowing</h3>
+<div class=tw><table>
+<tr><th>variant</th><th>change</th><th>why</th></tr>
+<tr><td><b>QLoRA</b> (Dettmers 2023)</td><td>stores W₀ in 4-bit NormalFloat (NF4), computes in bf16, plus paged optimisers</td><td>about 4× less memory for frozen weights; quality ≈ 16-bit LoRA</td></tr>
+<tr><td><b>DoRA</b> (Liu 2024)</td><td>splits W into magnitude m and direction V/‖V‖; LoRA on the direction, m trained</td><td>closer to full fine-tuning's update pattern; small cost</td></tr>
+<tr><td><b>rsLoRA</b></td><td>scale α/√r instead of α/r</td><td>stable at high rank</td></tr>
+<tr><td><b>LoRA+</b></td><td>η<sub>B</sub> = λ·η<sub>A</sub>, λ≈16</td><td>faster, better convergence</td></tr>
+<tr><td><b>PiSSA</b> (Meng 2024)</td><td>initialise A, B from the top singular vectors of W₀; the residual is frozen</td><td>starts in the principal subspace; converges faster</td></tr>
+<tr><td><b>VeRA</b> (Kopiczko 2023)</td><td>shared frozen random A, B; train only per-layer scaling vectors</td><td>about 10× fewer parameters than LoRA</td></tr>
+<tr><td><b>GaLore</b> (Zhao 2024)</td><td>full-rank weights, but gradients projected to low rank for the optimiser state</td><td>full-parameter learning at LoRA-like optimiser memory</td></tr>
+<tr><td><b>LISA</b> (Pan 2024)</td><td>full-parameter training, but only a few randomly sampled layers unfrozen per interval</td><td>memory of a few layers, expressivity of all over time</td></tr>
+</table></div>
+
+<div class="card flag"><div class=q>What LoRA cannot do</div>
+A rank-r update to a frozen matrix can re-weight and recombine what the layer already computes. It cannot create features the frozen layers upstream never compute. If the information is lost before the adapted layers, no rank recovers it. Biderman et al. (2024), "LoRA Learns Less and Forgets Less", found that full fine-tuning learns weight perturbations of rank 10–100× higher than typical LoRA settings on hard targets (code, maths), and that LoRA underperforms there while better preserving the source domain. The question to ask is always whether the information is already present upstream (§4).
+</div>
+
+<!-- ============================================================ -->
+<h2 id=s4><span class=n>4</span>How to decide what to fine-tune</h2>
+
+<p>The central decision is <b>where</b> the model is wrong, not how big it is. A fine-tune is a hypothesis about which part of the computation is missing. Train the smallest part that can express the fix, and use cheap diagnostics to find that part before training anything.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 470" role=img aria-label="Decision flowchart for what to fine-tune">
+<rect class=bx x=300 y=10 width=300 height=46 rx=6 /><text x=450 y=31 text-anchor=middle style="font-weight:600">Model fails on a slice of inputs</text><text x=450 y=48 text-anchor=middle class=mut style="font-size:11px">measured, held out, several seeds</text>
+<line class=ln x1=450 y1=56 x2=450 y2=82 marker-end=url(#arr) />
+<rect class=trs x=250 y=82 width=400 height=54 rx=6 /><text x=450 y=103 text-anchor=middle style="font-weight:600">Q1 · Is the needed information in the frozen features?</text><text x=450 y=122 text-anchor=middle class=mut style="font-size:11px">train a probe on block outputs to decode the missing variable</text>
+<line class=ln x1=350 y1=136 x2=190 y2=180 marker-end=url(#arr) /><text x=285 y=152 class=t-ok style="font-size:11px" text-anchor=end>yes, decodable</text>
+<line class=ln x1=550 y1=136 x2=710 y2=180 marker-end=url(#arr) /><text x=622 y=152 class=t-warn style="font-size:11px">no, or only early</text>
+<rect class=oks x=40 y=180 width=300 height=66 rx=6 /><text x=190 y=202 text-anchor=middle style="font-weight:600">Mapping problem</text><text x=190 y=220 text-anchor=middle style="font-size:11.5px">train the head, or the layers after the</text><text x=190 y=236 text-anchor=middle style="font-size:11.5px">last block where the information is present</text>
+<rect class=wrs x=560 y=180 width=300 height=66 rx=6 /><text x=710 y=202 text-anchor=middle style="font-weight:600">Representation problem</text><text x=710 y=220 text-anchor=middle style="font-size:11.5px">the information is lost upstream; unfreeze</text><text x=710 y=236 text-anchor=middle style="font-size:11.5px">at or below the block where the probe fails</text>
+<line class=ln x1=190 y1=246 x2=190 y2=280 marker-end=url(#arr) />
+<line class=ln x1=710 y1=246 x2=710 y2=280 marker-end=url(#arr) />
+<rect class=trs x=40 y=280 width=820 height=54 rx=6 /><text x=450 y=301 text-anchor=middle style="font-weight:600">Q2 · Where does the shift enter? (surgical fine-tuning)</text><text x=450 y=320 text-anchor=middle class=mut style="font-size:11px">input-level (corruptions, sensors, pixels) → earlier blocks · feature-level (sub-populations) → middle · output-level (label or action map) → last blocks</text>
+<line class=ln x1=450 y1=334 x2=450 y2=362 marker-end=url(#arr) />
+<rect class=trs x=200 y=362 width=500 height=54 rx=6 /><text x=450 y=383 text-anchor=middle style="font-weight:600">Q3 · Budget: data N, GPU memory, regression tolerance</text><text x=450 y=402 text-anchor=middle class=mut style="font-size:11px">small N or tight memory → LoRA or partial; strict regression bar → LoRA + replay + WiSE-FT</text>
+<line class=ln x1=450 y1=416 x2=450 y2=438 marker-end=url(#arr) />
+<text x=450 y=455 text-anchor=middle style="font-weight:600">Train the smallest set that passes Q1–Q3 · compare to one step larger as an ablation</text>
+</svg>
+<div class=cap><b>Figure 4.</b> A decision procedure. Q1 is the cheapest and most informative step: a probe on frozen activations costs minutes and tells you whether a head-only fine-tune can work in principle.</div>
+</div>
+
+<h3>Q1. Probing: is the information there?</h3>
+<p>Fit a small regressor or classifier from a block's activations to the variable the model is failing on. A good fit means the information exists at that depth, and the failure is in what comes after it. Kumar et al. (2022, <i>LP-FT</i>) add a caution: when features are good, <i>full</i> fine-tuning with a randomly initialised head can distort them, because the large early gradients from the bad head flow back into the backbone. Their fix is to train the head first with the backbone frozen (a linear probe), then unfreeze. That beats both methods alone out of distribution. This is a strong argument for "head first" whenever Q1 says yes.</p>
+<p>A probe establishes that the information is <i>decodable</i>, not that the model <i>uses</i> it. The converse can also mislead: a linear probe can miss information that is present in non-linear form. Probe with a small MLP too, and compare against a control task (Hewitt &amp; Liang 2019) to make sure the probe isn't doing the work itself.</p>
+
+<h3>Q2. Surgical fine-tuning: match the block to the shift</h3>
+<p>Lee et al. (2022) fine-tuned one contiguous block at a time under different distribution shifts. Tuning <i>only</i> the right block matched or beat full fine-tuning:</p>
+<div class=tw><table>
+<tr><th>shift type</th><th>example</th><th>best block to tune</th></tr>
+<tr><td>input-level</td><td>image corruptions (CIFAR-C), new camera, sensor noise</td><td>first block</td></tr>
+<tr><td>feature-level</td><td>new sub-populations of known classes (Entity-30)</td><td>middle blocks</td></tr>
+<tr><td>output-level</td><td>relabelled or permuted outputs (CelebA spurious labels, CIFAR-Flip)</td><td>last block / head</td></tr>
+</table></div>
+<p>The intuition: a low-level shift is best absorbed by the layer that first sees it, before the error propagates. A change in the input-output rule is best absorbed at the end, where the rule is computed. Their heuristic for choosing automatically ranks layers by the relative gradient norm ‖∇<sub>θ<sub>l</sub></sub>ℓ‖/‖θ<sub>l</sub>‖ on the target data.</p>
+
+<h3>Q3. Budget</h3>
+<ul>
+<li><b>Data size.</b> With 10²–10³ examples, prefer LoRA or partial fine-tuning; full fine-tuning overfits and forgets. With 10⁴–10⁵ and a large shift, full fine-tuning becomes worth it.</li>
+<li><b>Memory</b> (§6). The optimiser state for trainable parameters dominates.</li>
+<li><b>Regression tolerance</b> (§5). If the original behaviour must hold within a few points, restrict Δθ and mix in the original data.</li>
+</ul>
+
+<h3>Other orderings you'll meet</h3>
+<ul>
+<li><b>Gradual unfreezing</b> (ULMFiT, Howard &amp; Ruder 2018). Start with only the top layer trainable and unfreeze one more layer per epoch, top down. Combine with <b>discriminative learning rates</b>: lower layers get η·ξ<sup>−depth</sup> with ξ≈2.6. Both follow the same principle: lower layers are more general and should move less.</li>
+<li><b>Layer-wise learning-rate decay (LLRD).</b> The continuous version: η<sub>l</sub> = η·γ<sup>L−l</sup>, γ ∈ [0.65, 0.95]. It is standard for ViT and BEiT fine-tunes.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id=s5><span class=n>5</span>Forgetting, and how to keep what the model knew</h2>
+
+<p>A fine-tune on a narrow slice pushes θ towards what that slice needs. Any direction the slice does not constrain is free to drift, and the general behaviour lives in those directions. This is <b>catastrophic forgetting</b>. In robotics it shows up as a nominal success rate that drops after you fix a perturbation.</p>
+
+<div class=grid2>
+<div class=card><div class=q>Data-side defences</div><ul>
+<li><b>Replay / co-training.</b> Mix a fraction of the original training data into every batch (10–50%). This is the strongest single defence, and the standard one for VLAs (OpenVLA, π₀ and GR00T all co-train).</li>
+<li><b>Balanced sampling.</b> Balance by task and by trajectory so a few long episodes don't dominate.</li>
+<li><b>Hold out the nominal set</b> and track it during training, not just at the end.</li>
+</ul></div>
+<div class=card><div class=q>Parameter-side defences</div><ul>
+<li><b>Restrict Δθ:</b> LoRA, partial unfreezing, low learning rate, few epochs.</li>
+<li><b>Anchor to θ₀:</b> L2-SP, i.e. λ‖θ−θ₀‖², or EWC's Fisher-weighted version λΣ F<sub>i</sub>(θ<sub>i</sub>−θ₀,<sub>i</sub>)².</li>
+<li><b>Interpolate after training:</b> WiSE-FT (below).</li>
+<li><b>Average several fine-tunes:</b> model soups (below).</li>
+</ul></div>
+</div>
+
+<h3>WiSE-FT: weight-space interpolation</h3>
+<p>Wortsman et al. (2021) observed that the straight line between the pretrained and fine-tuned weights often has <i>no loss barrier</i>: every point on it is a working model. Evaluating along the line trades target gains against source retention, and the middle often beats both ends out of distribution:</p>
+<div class=eq>θ(α) = (1−α)·θ₀ + α·θ<sub>ft</sub>, &nbsp;&nbsp; α ∈ [0,1], chosen on held-out data<span class=lab>(4)</span></div>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 250" role=img aria-label="WiSE-FT interpolation curve, schematic">
+<line class=grid x1=80 y1=30 x2=80 y2=200 /><line class=grid x1=80 y1=200 x2=560 y2=200 />
+<text x=320 y=232 text-anchor=middle class=mut style="font-size:11px">α (0 = θ₀ pretrained, 1 = θ_ft fine-tuned)</text>
+<text x=30 y=115 class=mut style="font-size:11px" transform="rotate(-90 30 115)" text-anchor=middle>success</text>
+<text x=80 y=216 text-anchor=middle class=mono>0</text><text x=320 y=216 text-anchor=middle class=mono>0.5</text><text x=560 y=216 text-anchor=middle class=mono>1</text>
+<path class=lna d="M80,180 C 200,150 300,70 560,52"/>
+<text x=555 y=74 class="t-acc" style="font-size:11px" text-anchor=end>target slice</text>
+<path class=lno d="M80,48 C 250,50 380,70 560,120"/>
+<text x=555 y=140 class="t-ok" style="font-size:11px" text-anchor=end>original / nominal</text>
+<line class="ln dash" x1=390 y1=30 x2=390 y2=200 />
+<text x=394 y=42 class=mut style="font-size:11px">a good α</text>
+<rect class=bx2 x=620 y=40 width=270 height=150 rx=6 />
+<text x=635 y=62 style="font-weight:600">Why the line works</text>
+<text x=635 y=84 style="font-size:11.5px">A short fine-tune from a shared θ₀</text>
+<text x=635 y=101 style="font-size:11.5px">stays in one linearly connected basin,</text>
+<text x=635 y=118 style="font-size:11.5px">so blends of weights are also models.</text>
+<text x=635 y=142 style="font-size:11.5px">Cost: zero training, one eval per α.</text>
+<text x=635 y=166 class=mut style="font-size:11px">Fails if the fine-tune went far (large LR,</text>
+<text x=635 y=181 class=mut style="font-size:11px">long training, random-init head).</text>
+</svg>
+<div class=cap><b>Figure 5.</b> Schematic of the WiSE-FT trade-off, not measured data. Moving from θ₀ to θ<sub>ft</sub> raises target success and lowers nominal success. An intermediate α often keeps most of the gain for a fraction of the regression.</div>
+</div>
+
+<div class="card"><div class=q>Name clash: "model soups" are not "Soup"</div>
+<b>Model soups</b> (Wortsman et al. 2022) average the <i>weights</i> of several models fine-tuned from the same θ₀ with different hyperparameters. The "greedy soup" adds each model to the average only if held-out accuracy improves. The average is often better and more robust than the best single model, at no inference cost. A "learned soup" optimises one mixing coefficient per model <i>per layer</i>. That is the only "layer-by-layer soup" in the literature, and it is unrelated to the Soup CLI in §9, whose layer-by-layer feature is a memory technique, not a weight-averaging one.
+</div>
+
+<!-- ============================================================ -->
+<h2 id=s6><span class=n>6</span>Memory arithmetic</h2>
+
+<p>Training memory has four terms. Only the first depends on frozen parameters:</p>
+<div class=eq>M ≈ P<sub>all</sub>·b<sub>w</sub> &nbsp;+&nbsp; P<sub>train</sub>·(b<sub>master</sub> + b<sub>grad</sub> + b<sub>opt</sub>) &nbsp;+&nbsp; activations(batch, seq, depth) &nbsp;+&nbsp; overhead<span class=lab>(5)</span></div>
+
+<div class=tw><table>
+<tr><th>regime</th><th class=num>weights</th><th class=num>fp32 master</th><th class=num>grad</th><th class=num>Adam m, v</th><th class=num>per trainable param</th></tr>
+<tr><td>fp32 everything</td><td class=num>4</td><td class=num>—</td><td class=num>4</td><td class=num>8</td><td class=num>16 B</td></tr>
+<tr><td>mixed precision (bf16 compute, fp32 master)</td><td class=num>2</td><td class=num>4</td><td class=num>2</td><td class=num>8</td><td class=num>16 B</td></tr>
+<tr><td>pure bf16 weights + fp32 Adam</td><td class=num>2</td><td class=num>—</td><td class=num>2</td><td class=num>8</td><td class=num>12 B</td></tr>
+<tr><td>bf16 + 8-bit Adam (bitsandbytes)</td><td class=num>2</td><td class=num>—</td><td class=num>2</td><td class=num>2</td><td class=num>6 B</td></tr>
+<tr><td>frozen, bf16</td><td class=num>2</td><td class=num>—</td><td class=num>—</td><td class=num>—</td><td class=num>2 B</td></tr>
+<tr><td>frozen, NF4 (QLoRA)</td><td class=num>~0.55</td><td class=num>—</td><td class=num>—</td><td class=num>—</td><td class=num>~0.55 B</td></tr>
+</table></div>
+
+<p>Rule of thumb: <b>a trainable parameter costs 6–8× a frozen one.</b> The levers, roughly in order of how much they save:</p>
+<ol>
+<li><b>Train fewer parameters</b> (LoRA, freezing). This removes the 12–16 B/param term for everything frozen.</li>
+<li><b>Don't keep frozen parts on the GPU at all.</b> If a frozen prefix of the network receives no gradient, precompute its outputs once and store them (<b>feature caching</b>). Or stream it in layer by layer (<b>layer streaming</b>, §9). Or keep it on the CPU (<b>offloading</b>, ZeRO-Offload).</li>
+<li><b>Quantise frozen weights</b> (NF4, int8): about 4× on the frozen term.</li>
+<li><b>Gradient checkpointing.</b> Store only block boundaries and recompute inside each block in the backward pass. Activation memory drops from O(L) to about O(√L) or O(1) per block, for about 30% more compute.</li>
+<li><b>8-bit or paged optimisers</b>: 8 B → 2 B for Adam state.</li>
+<li><b>Smaller micro-batch plus gradient accumulation</b>: the same effective batch at constant activation memory.</li>
+<li><b>Shard across GPUs</b> (ZeRO 1/2/3, FSDP). This doesn't apply to a single laptop GPU.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id=s7><span class=n>7</span>Recipe: data, hyperparameters, schedule</h2>
+
+<div class=grid2>
+<div class=card><div class=q>Data</div><ul>
+<li><b>Consistency beats volume.</b> Behaviour cloning averages contradictory demos. 100 consistent demos beat 500 noisy ones.</li>
+<li><b>Match the observation pipeline exactly</b>: resolution, crop, normalisation statistics, action convention (absolute or delta, frame), chunk length. A silent convention mismatch looks like "the fine-tune didn't work".</li>
+<li><b>Cover the axis you want to fix, and a bit beyond</b>, so held-out points are interpolation, not extrapolation.</li>
+<li><b>Replay original data</b> (§5).</li>
+</ul></div>
+<div class=card><div class=q>Optimisation</div><ul>
+<li><b>Learning rate:</b> full or partial 1e-5–1e-4; LoRA 1e-4–3e-4. Start from the pretraining recipe's value when known.</li>
+<li><b>Warmup</b> 3–10% of steps, then cosine or linear decay.</li>
+<li><b>Weight decay</b> small (1e-5–1e-2). Decay towards 0, not θ₀, unless using L2-SP.</li>
+<li><b>Steps:</b> measure in epochs over the new data. Overfitting starts within a handful of epochs at N≈500.</li>
+<li><b>Gradient clipping</b> at 1.0.</li>
+<li><b>EMA of weights</b> is often used for diffusion and flow heads; evaluate the EMA copy.</li>
+</ul></div>
+</div>
+
+<div class="card flag"><div class=q>Training loss is not the metric</div>
+For policies, validation behaviour-cloning loss correlates weakly with closed-loop success. Small errors compound over a rollout, and flow and diffusion losses are noisy per sample. Save checkpoints at regular intervals and pick one by <b>rollout success</b> on a small held-out set, not by loss. Budget evaluation time accordingly: it usually exceeds training time for small fine-tunes.
+</div>
+
+<!-- ============================================================ -->
+<h2 id=s8><span class=n>8</span>Evaluating a fine-tune</h2>
+<ol>
+<li><b>Held-out by the axis that matters.</b> Hold out whole instances (scene, start pose, object), not random frames of training episodes. Frame-level splits leak.</li>
+<li><b>Three measurements, always together:</b> target slice (did it learn?), nominal control (did it forget?), and a neighbouring slice it was not trained on (did it generalise, or memorise?).</li>
+<li><b>Seeds and intervals.</b> Report successes over n trials with a Wilson interval. At n=10, a 95% interval on 7/10 is 0.40–0.89, so differences under about 30 points need more trials or paired comparisons on the same instances and seeds.</li>
+<li><b>Continuous readouts</b> alongside binary success (closest approach, time to grasp, action displacement at step 0). They carry information binary success throws away.</li>
+<li><b>Mechanism check.</b> Test that the fine-tune fixed things <i>the way you intended</i>. Re-run the diagnostic that motivated it; the measure that located the gap should now look nominal.</li>
+<li><b>Ablate one step larger and one step smaller</b> in trainable set and data size. A result that holds at only one configuration is fragile.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id=s9><span class=n>9</span>Soup and layer streaming</h2>
+
+<p><a href="https://github.com/MakazhanAlpamys/Soup">Soup</a> (<code>soup-cli</code>, Apache-2.0, v0.75 at the time of writing) is a command-line wrapper around Hugging Face <code>transformers</code>, <code>peft</code> and <code>trl</code>. One YAML file and <code>soup train</code> run SFT, DPO, GRPO, KTO and similar tasks with LoRA and quantisation. Most of it is packaging. The technically interesting part is <b>layer streaming</b> (<code>training.stream_layers: true</code>), a beta feature described in a preprint (Makazhan 2026, "Exact Layer Streaming: LoRA Fine-Tuning of an 8B Model on a 4 GB Laptop GPU", Zenodo). This is the "fine-tuning layer by layer": the model is still trained with ordinary LoRA, but the <b>frozen base is moved to the GPU one decoder layer at a time</b>.</p>
+
+<h3>The idea</h3>
+<p>Under LoRA, the base weights never change and never need optimiser state. They only need to be on the GPU <i>while their layer is computing</i>. A transformer computes one layer at a time. So peak VRAM for the base can be bounded by roughly two layers (the one computing and the one arriving) instead of all L.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 290" role=img aria-label="Layer streaming memory layout">
+<rect class=bx2 x=10 y=20 width=330 height=250 rx=8 />
+<text x=175 y=42 text-anchor=middle style="font-weight:600">CPU RAM · pinned (page-locked)</text>
+<g>
+<rect class=frz x=30 y=56 width=290 height=18 rx=2 /><text x=175 y=69 text-anchor=middle class=mono>embed_tokens / lm_head slot</text>
+<rect class=frz x=30 y=80 width=290 height=18 rx=2 /><text x=175 y=93 text-anchor=middle class=mono>layer 0 (bf16 or NF4)</text>
+<rect class=frz x=30 y=102 width=290 height=18 rx=2 /><text x=175 y=115 text-anchor=middle class=mono>layer 1</text>
+<rect class=ams x=30 y=124 width=290 height=18 rx=2 /><text x=175 y=137 text-anchor=middle class=mono>layer i  ← being copied</text>
+<rect class=frz x=30 y=146 width=290 height=18 rx=2 /><text x=175 y=159 text-anchor=middle class=mono>…</text>
+<rect class=frz x=30 y=168 width=290 height=18 rx=2 /><text x=175 y=181 text-anchor=middle class=mono>layer L−1</text>
+</g>
+<text x=175 y=210 text-anchor=middle class=mut style="font-size:11px">the whole frozen base lives here</text>
+<text x=175 y=226 text-anchor=middle class=mut style="font-size:11px">8B NF4 ≈ 3.6 GB · or overflow to NVMe</text>
+<text x=175 y=246 text-anchor=middle class=mut style="font-size:11px">sharded + quantised once, offline, cached</text>
+<path class=lna d="M320,133 C 400,133 420,105 500,105" marker-end=url(#arra) />
+<text x=410 y=96 class="t-acc" style="font-size:11px" text-anchor=middle>H2D copy</text>
+<text x=410 y=150 class="mut" style="font-size:11px" text-anchor=middle>own CUDA stream,</text>
+<text x=410 y=164 class="mut" style="font-size:11px" text-anchor=middle>non_blocking</text>
+<rect class=bx x=500 y=20 width=390 height=250 rx=8 />
+<text x=695 y=42 text-anchor=middle style="font-weight:600">GPU VRAM</text>
+<rect class=ams x=520 y=56 width=170 height=44 rx=3 /><text x=605 y=76 text-anchor=middle class=mono>buffer A</text><text x=605 y=92 text-anchor=middle class=mut style="font-size:10.5px">layer i+1 arriving</text>
+<rect class=frz x=700 y=56 width=170 height=44 rx=3 /><text x=785 y=76 text-anchor=middle class=mono>buffer B</text><text x=785 y=92 text-anchor=middle class=mut style="font-size:10.5px">layer i computing</text>
+<rect class=trs x=520 y=110 width=350 height=40 rx=3 /><text x=695 y=128 text-anchor=middle class=mono>LoRA A,B for all layers + grads + Adam</text><text x=695 y=143 text-anchor=middle class=mut style="font-size:10.5px">small, always resident</text>
+<rect class=bx2 x=520 y=160 width=350 height=40 rx=3 /><text x=695 y=178 text-anchor=middle class=mono>checkpointed activations (layer inputs)</text><text x=695 y=193 text-anchor=middle class=mut style="font-size:10.5px">scale with batch × seq</text>
+<rect class=bx2 x=520 y=210 width=350 height=40 rx=3 /><text x=695 y=228 text-anchor=middle class=mono>logits (batch × seq × vocab)</text><text x=695 y=243 text-anchor=middle class=mut style="font-size:10.5px">often the largest term</text>
+</svg>
+<div class=cap><b>Figure 6.</b> Where things live under layer streaming. The frozen base sits in pinned host RAM. Two pre-allocated VRAM buffers double-buffer the layers. The trainable LoRA state, activations and logits stay resident as usual.</div>
+</div>
+
+<h3>One training step</h3>
+<p>Soup's runtime describes a step as:</p>
+<pre class=code>FORWARD   layer i: wait(i) -> prefetch(i+1) -> checkpoint(body_i)
+BACKWARD  layer i: wait(i) -> prefetch(i-1) -> recompute + backward</pre>
+<p>While layer i computes on the compute stream, layer i+1 is copied host-to-device on a separate CUDA stream into the other buffer. Each layer body runs under gradient checkpointing, so only its input is saved. The backward pass walks the layers in reverse, re-streaming each one, <b>recomputing</b> its forward from the saved input, and back-propagating.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 200" role=img aria-label="Layer streaming timeline">
+<text x=10 y=58 style="font-size:11.5px;font-weight:600">copy stream</text>
+<text x=10 y=108 style="font-size:11.5px;font-weight:600">compute stream</text>
+<g class=mono>
+<rect class=ams x=110 y=42 width=50 height=24 rx=2 /><text x=135 y=58 text-anchor=middle>L0</text>
+<rect class=ams x=165 y=42 width=50 height=24 rx=2 /><text x=190 y=58 text-anchor=middle>L1</text>
+<rect class=ams x=235 y=42 width=50 height=24 rx=2 /><text x=260 y=58 text-anchor=middle>L2</text>
+<rect class=ams x=305 y=42 width=50 height=24 rx=2 /><text x=330 y=58 text-anchor=middle>L3</text>
+<rect class=frz x=165 y=92 width=65 height=24 rx=2 /><text x=197 y=108 text-anchor=middle>fwd 0</text>
+<rect class=frz x=235 y=92 width=65 height=24 rx=2 /><text x=267 y=108 text-anchor=middle>fwd 1</text>
+<rect class=frz x=305 y=92 width=65 height=24 rx=2 /><text x=337 y=108 text-anchor=middle>fwd 2</text>
+<rect class=frz x=375 y=92 width=65 height=24 rx=2 /><text x=407 y=108 text-anchor=middle>fwd 3</text>
+<rect class=bx2 x=445 y=92 width=50 height=24 rx=2 /><text x=470 y=108 text-anchor=middle>loss</text>
+<rect class=ams x=440 y=42 width=50 height=24 rx=2 /><text x=465 y=58 text-anchor=middle>L3</text>
+<rect class=ams x=530 y=42 width=50 height=24 rx=2 /><text x=555 y=58 text-anchor=middle>L2</text>
+<rect class=ams x=640 y=42 width=50 height=24 rx=2 /><text x=665 y=58 text-anchor=middle>L1</text>
+<rect class=ams x=750 y=42 width=50 height=24 rx=2 /><text x=775 y=58 text-anchor=middle>L0</text>
+<rect class=trs x=500 y=92 width=105 height=24 rx=2 /><text x=552 y=108 text-anchor=middle>re+bwd 3</text>
+<rect class=trs x=610 y=92 width=105 height=24 rx=2 /><text x=662 y=108 text-anchor=middle>re+bwd 2</text>
+<rect class=trs x=720 y=92 width=105 height=24 rx=2 /><text x=772 y=108 text-anchor=middle>re+bwd 1</text>
+<rect class=trs x=830 y=92 width=60 height=24 rx=2 /><text x=860 y=108 text-anchor=middle>…0</text>
+</g>
+<line class=ln x1=110 y1=140 x2=890 y2=140 marker-end=url(#arr) /><text x=880 y=156 text-anchor=end class=mut style="font-size:11px">time</text>
+<text x=300 y=180 text-anchor=middle class=mut style="font-size:11px">forward: copy of L(i+1) hides behind compute of L(i)</text>
+<text x=690 y=180 text-anchor=middle class=mut style="font-size:11px">backward: every layer copied again, recomputed, differentiated</text>
+</svg>
+<div class=cap><b>Figure 7.</b> Double-buffered streaming for a four-layer toy. With pinned host memory, the copies overlap compute and the GPU stays busy (measured 97–100% utilisation). With pageable memory, the copies serialise (79%).</div>
+</div>
+
+<h3>Why each layer is read twice</h3>
+<p>For a linear layer y = Wx, the gradient that must reach the layer below is ∂ℓ/∂x = Wᵀ·∂ℓ/∂y. So the backward pass needs W again for every layer that has any trainable parameter <i>below</i> it. Soup's source calls this "physics, not an implementation detail". Recomputing the forward also needs W. So a streamed step moves the whole base across PCIe twice. The corollary, which matters for us: <b>layers below the lowest trainable parameter need no backward at all</b>. They are read once, and if the input data is fixed, their output can be computed once for the whole dataset.</p>
+
+<h3>What it measured</h3>
+<div class=tw><table>
+<tr><th>model</th><th>quant</th><th class=num>seq</th><th class=num>tok/s</th><th class=num>GPU util</th><th class=num>peak VRAM</th><th class=num>RAM store</th></tr>
+<tr><td>Llama-3.1-8B-Instruct</td><td>NF4</td><td class=num>512</td><td class=num>119.6</td><td class=num>100%</td><td class=num>3.32 GB</td><td class=num>3.60 GB pinned</td></tr>
+<tr><td>Qwen2.5-3B</td><td>NF4</td><td class=num>512</td><td class=num>264.2</td><td class=num>100%</td><td class=num>1.76 GB</td><td class=num>1.43 GB pinned</td></tr>
+<tr><td>Qwen2.5-3B</td><td>bf16</td><td class=num>512</td><td class=num>143.1</td><td class=num>79.3%</td><td class=num>2.15 GB</td><td class=num>5.55 GB pageable</td></tr>
+<tr><td>Qwen2.5-0.5B</td><td>bf16</td><td class=num>512</td><td class=num>978.6</td><td class=num>91.4%</td><td class=num>1.47 GB</td><td class=num>pinned</td></tr>
+</table></div>
+<p class=small>RTX 3050 Laptop 4 GB, Windows, LoRA, batch 1. As reported by the project; not reproduced here. The 8B figure predates a correctness repair (v0.73) and its re-measurement is pending (their issue #361).</p>
+<ul>
+<li><b>Speed cost:</b> 1.43× slower than resident training at 0.5B, the only size where a resident baseline fits on their card. They report that an H100 replication at 8B ran at a similar 113 tok/s. Their v3 preprint <i>retracted</i> an earlier claim that streaming is bound by host-to-device transfer: removing every copy bought only 1.4%. The largest streaming-specific cost was NF4 dequantisation (9.8%).</li>
+<li><b>Correctness:</b> streamed forward passes are bit-exact against resident ones, and a 100-step loss curve matched. It is still worth noting what they found and fixed along the way: a silent wrong-gradient bug on large NF4 layers, and two releases whose saved adapters were empty or unloadable. It is a beta.</li>
+<li><b>Pinned memory is the real bottleneck.</b> Asynchronous copies need page-locked host memory. When the store did not fit under the pinnable limit, throughput fell by up to 6.6×. NF4 matters mostly because it makes the store small enough to pin.</li>
+<li><b>Batch before accumulation.</b> Every micro-batch re-reads the whole base, so raising the batch size amortises the reads. At the same effective batch of 4, batch=4 was 2.5× faster than batch=1 × accumulation 4.</li>
+<li><b>Not for RL rollouts.</b> GRPO and PPO are refused permanently, because generation re-reads every layer once per generated token.</li>
+</ul>
+
+<div class="card flag"><div class=q>Can we use Soup for GR00T?</div>
+<b>Not directly.</b> Soup streams text-only <code>AutoModelForCausalLM</code> decoders from a fixed list of architectures (Llama, Qwen2/3/3.5, Mistral, Gemma, Phi). GR00T N1.7 is a Qwen3-VL-style vision-language backbone plus a separate DiT action head with a flow-matching loss, trained through lerobot. Neither the model class nor the loss is supported. What transfers is the <b>idea</b>, and in our case a simpler relative of it applies: in arm (a) the entire VLM sits below the lowest trainable parameter, so it needs no backward pass and no streaming. It can be run once and cached (§12).
+</div>
+
+<!-- ============================================================ -->
+<div class=part>
+<span class=partlab>Part II · our work</span>
+
+<h2 id=s10><span class=n>10</span>GR00T N1.7, anatomy</h2>
+<p>Checkpoint <code>nvidia/gr00t17-lerobot-libero_spatial-640</code>. Parameter counts are read from its safetensors header (stored fp32: 3.144 B parameters, 12.6 GB on disk, about 6.3 GB when loaded in bf16). The backbone is Cosmos-Reason2-2B (Qwen3-VL architecture), truncated to 16 language layers.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 430" role=img aria-label="GR00T N1.7 architecture with parameter counts">
+<!-- inputs -->
+<rect class=bx x=10 y=40 width=120 height=40 rx=4 /><text x=70 y=58 text-anchor=middle>agent view</text><text x=70 y=73 text-anchor=middle class=mono>256×256</text>
+<rect class=bx x=10 y=90 width=120 height=40 rx=4 /><text x=70 y=108 text-anchor=middle>wrist view</text><text x=70 y=123 text-anchor=middle class=mono>256×256</text>
+<rect class=bx x=10 y=140 width=120 height=40 rx=4 /><text x=70 y=158 text-anchor=middle>instruction</text><text x=70 y=173 text-anchor=middle class=mono>text</text>
+<rect class=bx x=10 y=290 width=120 height=40 rx=4 /><text x=70 y=308 text-anchor=middle>state s</text><text x=70 y=323 text-anchor=middle class=mono>8-d</text>
+<rect class=bx x=10 y=350 width=120 height=40 rx=4 /><text x=70 y=368 text-anchor=middle>noisy chunk A_τ</text><text x=70 y=383 text-anchor=middle class=mono>16×7, τ</text>
+<!-- backbone -->
+<rect class=bx2 x=160 y=20 width=330 height=200 rx=8 />
+<text x=325 y=38 text-anchor=middle style="font-weight:600">VLM backbone (Cosmos-Reason2-2B)</text>
+<rect class=frz x=175 y=50 width=140 height=110 rx=4 /><text x=245 y=76 text-anchor=middle style="font-weight:600">ViT</text><text x=245 y=94 text-anchor=middle class=mono>24 blocks, d=1024</text><text x=245 y=112 text-anchor=middle class=mono>0.302 B</text><text x=245 y=130 text-anchor=middle class=mut style="font-size:10.5px">+ mergers 0.10 B</text><text x=245 y=148 text-anchor=middle class=mut style="font-size:10.5px">tune_visual: off</text>
+<rect class=frz x=330 y=50 width=145 height=110 rx=4 /><text x=402 y=90 text-anchor=middle style="font-weight:600">LLM</text><text x=402 y=106 text-anchor=middle class=mono>16 layers, d=2048</text><text x=402 y=121 text-anchor=middle class=mono>0.805 B</text><text x=402 y=136 text-anchor=middle class=mut style="font-size:10.5px">50.3 M per layer</text><text x=402 y=152 text-anchor=middle class=mut style="font-size:10.5px">tune_llm: off</text>
+<rect class=trs x=330 y=50 width=145 height=22 rx=4 style="opacity:.55"/><text x=402 y=65 text-anchor=middle class=mono style="font-size:9.5px">top 4 = arm (b)</text>
+<rect class="frz dash" x=175 y=170 width=300 height=38 rx=4 /><text x=325 y=186 text-anchor=middle class=mono>lm_head 0.311 B</text><text x=325 y=201 text-anchor=middle class=mut style="font-size:10.5px">in the checkpoint; the head reads hidden states</text>
+<line class=ln x1=130 y1=60 x2=175 y2=90 marker-end=url(#arr) /><line class=ln x1=130 y1=110 x2=175 y2=110 marker-end=url(#arr) /><line class=ln x1=130 y1=160 x2=330 y2=150 marker-end=url(#arr) />
+<line class=ln x1=315 y1=105 x2=330 y2=105 marker-end=url(#arr) />
+<!-- phi -->
+<line class=lna x1=475 y1=105 x2=535 y2=105 marker-end=url(#arra) />
+<text x=505 y=96 text-anchor=middle class="mono t-acc">φ(o)</text>
+<!-- action head -->
+<rect class=bx2 x=535 y=20 width=355 height=400 rx=8 />
+<text x=712 y=38 text-anchor=middle style="font-weight:600">Action head (trainable by default: 1.62 B)</text>
+<rect class=trs x=550 y=50 width=325 height=44 rx=4 /><text x=712 y=68 text-anchor=middle>vlln + vl_self_attention</text><text x=712 y=85 text-anchor=middle class=mono>4 blocks, d=2048 · 0.201 B</text>
+<line class=ln x1=712 y1=94 x2=712 y2=110 marker-end=url(#arr) />
+<rect class=trs x=550 y=110 width=325 height=120 rx=4 /><text x=712 y=132 text-anchor=middle style="font-weight:600">DiT (flow-matching velocity net)</text><text x=712 y=152 text-anchor=middle class=mono>32 blocks, d=1536 · 1.083 B</text>
+<text x=712 y=172 text-anchor=middle class=mut style="font-size:10.5px">alternating cross-attn to φ(o) / self-attn</text>
+<text x=712 y=190 text-anchor=middle class=mut style="font-size:10.5px">34.6 M per block · adaLN on τ</text>
+<text x=712 y=214 text-anchor=middle class=mono style="font-size:10px">tune_diffusion_model: on</text>
+<rect class=trs x=550 y=290 width=155 height=44 rx=4 /><text x=627 y=308 text-anchor=middle>state encoder</text><text x=627 y=324 text-anchor=middle class=mono>0.055 B</text>
+<rect class=trs x=720 y=290 width=155 height=44 rx=4 /><text x=797 y=308 text-anchor=middle>action encoder</text><text x=797 y=324 text-anchor=middle class=mono>0.233 B</text>
+<rect class=trs x=550 y=240 width=325 height=40 rx=4 /><text x=712 y=256 text-anchor=middle>action decoder + proj_out</text><text x=712 y=272 text-anchor=middle class=mono>0.044 B · tune_projector: on</text>
+<line class=ln x1=560 y1=290 x2=560 y2=230 marker-end=url(#arr) /><line class=ln x1=865 y1=290 x2=865 y2=230 marker-end=url(#arr) />
+<line class=ln x1=130 y1=310 x2=550 y2=312 marker-end=url(#arr) /><line class=ln x1=130 y1=370 x2=797 y2=370 /><line class=ln x1=797 y1=370 x2=797 y2=334 marker-end=url(#arr) />
+<text x=712 y=402 text-anchor=middle class=mut style="font-size:11px">output: velocity v → 4 Euler steps at inference → 16-step chunk</text>
+</svg>
+<div class=cap><b>Figure 8.</b> GR00T N1.7 as loaded by the port, with parameter counts from the checkpoint. Grey is frozen under the port defaults (<code>tune_llm=false</code>, <code>tune_visual=false</code>). Blue is trainable (<code>tune_projector</code>, <code>tune_diffusion_model</code>, <code>tune_vlln</code> all true). The shaded strip marks the four LLM layers arm (b) would add.</div>
+</div>
+
+<div class=tw><table>
+<tr><th>module</th><th class=num>params</th><th>default</th><th>notes</th></tr>
+<tr><td>ViT + mergers</td><td class=num>0.407 B</td><td>frozen</td><td>24 blocks, d=1024, deepstack mergers</td></tr>
+<tr><td>LLM, 16 layers</td><td class=num>0.805 B</td><td>frozen</td><td>d=2048, MLP 6144, GQA (K/V 1024)</td></tr>
+<tr><td>lm_head</td><td class=num>0.311 B</td><td>frozen</td><td>in the checkpoint; not needed for φ(o) (verify before dropping)</td></tr>
+<tr><td>vlln + vl_self_attention</td><td class=num>0.201 B</td><td>trainable</td><td>4 transformer blocks over the VL tokens</td></tr>
+<tr><td>DiT</td><td class=num>1.083 B</td><td>trainable</td><td>32 blocks; ≈ the plan's "~1.1 B"</td></tr>
+<tr><td>state / action encoders, decoder, pos-emb, proj_out</td><td class=num>0.340 B</td><td>trainable</td><td>sized for <code>max_action_dim=132</code> multi-embodiment padding</td></tr>
+<tr><td><b>total trainable by default</b></td><td class=num><b>1.624 B</b></td><td></td><td><b>not ~1.1 B</b></td></tr>
+<tr><td><b>total</b></td><td class=num><b>3.144 B</b></td><td></td><td>stored fp32</td></tr>
+</table></div>
+
+<h2 id=s11><span class=n>11</span>The start-pose plan through this lens</h2>
+
+<p>Run the plan through the §4 procedure and every step already has an answer from the perturbation map:</p>
+
+<div class=tw><table>
+<tr><th>question</th><th>our evidence</th><th>implication</th></tr>
+<tr><td><b>Q1 · is the information in the frozen features?</b></td><td>R-045: start pose decodable from the VLM output with ~1.5 cm probe error at every radius. R-044: the correct first chunk exists, and executing it rescues 7/7. R-050: one corrected chunk halves the downstream gap.</td><td class=ok>Yes. A mapping problem, so train the head.</td></tr>
+<tr><td><b>Q2 · where does the shift enter?</b></td><td>R-042: the wrist pixels carry it (0.88); the state token ≤0.2.</td><td>Input-level on the wrist camera. Surgical fine-tuning would say "early blocks", but Q1 says the information survives to φ(o), so the fix is on the output side. Arm (b) tests whether that reading is wrong.</td></tr>
+<tr><td><b>Q3 · budget</b></td><td>N=500 minted demos (100/250 ablations); 8 GB laptop GPU; nominal must regress &lt;5 pp.</td><td>LoRA or partial, plus replay of the original libero_spatial demos. The measure of success is small Δθ.</td></tr>
+</table></div>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 220" role=img aria-label="The two arms">
+<g transform="translate(20,10)">
+<text x=190 y=16 text-anchor=middle style="font-weight:600">Arm (a) · frozen VLM</text>
+<rect class=frz x=10 y=30 width=110 height=150 rx=4 /><text x=65 y=100 text-anchor=middle>ViT</text><text x=65 y=118 text-anchor=middle class=mono>frozen</text>
+<rect class=frz x=130 y=30 width=110 height=150 rx=4 /><text x=185 y=100 text-anchor=middle>LLM ×16</text><text x=185 y=118 text-anchor=middle class=mono>frozen</text>
+<rect class=trs x=250 y=30 width=120 height=150 rx=4 /><text x=310 y=100 text-anchor=middle>action head</text><text x=310 y=118 text-anchor=middle class=mono>train</text>
+<text x=190 y=202 text-anchor=middle class=mut style="font-size:11px">no gradient enters the VLM → φ(o) cacheable</text>
+</g>
+<g transform="translate(470,10)">
+<text x=190 y=16 text-anchor=middle style="font-weight:600">Arm (b) · + top 4 LLM layers</text>
+<rect class=frz x=10 y=30 width=110 height=150 rx=4 /><text x=65 y=100 text-anchor=middle>ViT</text><text x=65 y=118 text-anchor=middle class=mono>frozen</text>
+<rect class=frz x=130 y=30 width=110 height=110 rx=4 /><text x=185 y=82 text-anchor=middle>LLM 0–11</text><text x=185 y=100 text-anchor=middle class=mono>frozen</text>
+<rect class=trs x=130 y=142 width=110 height=38 rx=4 /><text x=185 y=160 text-anchor=middle>LLM 12–15</text><text x=185 y=174 text-anchor=middle class=mono style="font-size:9.5px">train</text>
+<rect class=trs x=250 y=30 width=120 height=150 rx=4 /><text x=310 y=100 text-anchor=middle>action head</text><text x=310 y=118 text-anchor=middle class=mono>train</text>
+<text x=190 y=202 text-anchor=middle class=mut style="font-size:11px">cache at the layer-11 → 12 boundary instead</text>
+</g>
+</svg>
+<div class=cap><b>Figure 9.</b> The two arms from R-046. Their comparison is the representation question in Q1 asked experimentally. If (b) beats (a) by 15 pp or more, the VLM was part of the gap, and R-045's reading was too optimistic.</div>
+</div>
+
+<div class="card flag"><div class=q>Three findings from the code that the plan should absorb</div>
+<ol>
+<li><b>The trainable head is 1.62 B, not ~1.1 B.</b> With the port defaults, <code>set_trainable_parameters</code> leaves the <i>whole</i> action head trainable: DiT 1.08 B, plus vl_self_attention 0.20 B, plus projectors 0.34 B (<code>third_party/MINERVA/src/lerobot/policies/groot/groot_n1_7.py:520</code>). The plan's full-head memory estimate (~18 GB) rises to about 26 GB with fp32 master weights (<code>model_params_fp32: true</code> in the checkpoint's config).</li>
+<li><b>GR00T's own LoRA fields are dead.</b> <code>lora_rank</code>, <code>lora_alpha</code>, <code>lora_dropout</code> and <code>lora_full_model</code> are declared in <code>configuration_groot.py:358</code> but read nowhere in the port. LoRA would go through lerobot's generic PEFT path (<code>--policy.use_peft</code> + <code>--peft.target_modules</code>, <code>policies/pretrained.py:381</code>). GR00T defines no default targets, so they must be listed explicitly, and any modules meant to train fully (projectors?) must be named in <code>modules_to_save</code>.</li>
+<li><b>Arm (b) as written is not LoRA.</b> <code>tune_top_llm_layers=4</code> sets <code>requires_grad=True</code> on every parameter of the last four LLM layers (<code>groot_n1_7.py:326</code>), which is 201 M fully trainable parameters. The LoRA version of arm (b) is a PEFT target list that includes <code>language_model.layers.1[2-5].*_proj</code> (2.5 M parameters at r=16). The two are different experiments; the plan should say which one it means.</li>
+</ol>
+</div>
+
+<h3>Suggested additions to the recipe (proposals, not decided)</h3>
+<ul>
+<li><b>Replay.</b> Mix the original 500 <code>libero_spatial_no_noops</code> demos into training (e.g. 1:1 by sampling weight). This is the cheapest guard on the "&lt;5 pp nominal regression" prediction. It changes the data budget, so R-040's matched-N comparison must count it identically in every arm.</li>
+<li><b>LoRA placement for arm (a).</b> All linear layers of the DiT and vl_self_attention at r=16 (≈19 M params). Keep the projectors frozen at first: the embodiment and action convention do not change, and a 0.34 B projector trained fully costs about 5 GB of optimiser state. A second run with projectors trainable is the "one step larger" ablation.</li>
+<li><b>WiSE-FT sweep</b> after training: evaluate α ∈ {0.5, 0.75, 1.0} on the nominal control and on held-out starts. This costs no training, and it answers directly whether regression can be traded away.</li>
+<li><b>Checkpoint selection by rollout</b> on a small held-out validation set of starts, disjoint from the final held-out set, not by flow-matching loss.</li>
+<li><b>Keep the mechanism check</b> the plan already names: the wrist-arm transfer should fall on the retrained checkpoint.</li>
+</ul>
+
+<h2 id=s12><span class=n>12</span>Fitting it on 8 GB</h2>
+
+<p>Using equation (5) with the measured parameter counts. Activations plus CUDA context are <span class=amb>assumed ~1.4 GB</span> (hatched) at batch 1–2 with checkpointing. That figure is not measured, and it is exactly what the plan's memory smoke would measure.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 330" role=img aria-label="Memory estimates per configuration against an 8 GB line">
+<!-- scale: x0=250, 20px per GB, 0..32 -->
+<g>
+<line class=grid x1=250 y1=20 x2=250 y2=280 />
+<line class=grid x1=350 y1=20 x2=350 y2=280 /><line class=grid x1=450 y1=20 x2=450 y2=280 /><line class=grid x1=550 y1=20 x2=550 y2=280 /><line class=grid x1=650 y1=20 x2=650 y2=280 /><line class=grid x1=750 y1=20 x2=750 y2=280 /><line class=grid x1=850 y1=20 x2=850 y2=280 />
+<text x=250 y=296 text-anchor=middle class=mono>0</text><text x=350 y=296 text-anchor=middle class=mono>5</text><text x=450 y=296 text-anchor=middle class=mono>10</text><text x=550 y=296 text-anchor=middle class=mono>15</text><text x=650 y=296 text-anchor=middle class=mono>20</text><text x=750 y=296 text-anchor=middle class=mono>25</text><text x=850 y=296 text-anchor=middle class=mono>30 GB</text>
+<line x1=410 y1=14 x2=410 y2=284 style="stroke:var(--warn);stroke-width:2"/><text x=414 y=14 class=t-warn style="font-size:11px">8 GB laptop</text>
+</g>
+<!-- rows: y, frozen, trainable-state, overhead -->
+<text x=240 y=42 text-anchor=end style="font-size:11.5px">full head, fp32 master</text>
+<rect class=frz x=250 y=30 width=61 height=20 /><rect class=trn x=311 y=30 width=520 height=20 /><rect class=hatch x=831 y=30 width=28 height=20 /><text x=866 y=45 class=mono>30</text>
+<text x=240 y=78 text-anchor=end style="font-size:11.5px">full head, bf16 + fp32 Adam</text>
+<rect class=frz x=250 y=66 width=61 height=20 /><rect class=trn x=311 y=66 width=390 height=20 /><rect class=hatch x=701 y=66 width=28 height=20 /><text x=736 y=81 class=mono>23.9</text>
+<text x=240 y=114 text-anchor=end style="font-size:11.5px">full head, bf16 + 8-bit Adam</text>
+<rect class=frz x=250 y=102 width=61 height=20 /><rect class=trn x=311 y=102 width=195 height=20 /><rect class=hatch x=506 y=102 width=28 height=20 /><text x=541 y=117 class=mono>14.2</text>
+<text x=240 y=150 text-anchor=end style="font-size:11.5px">LoRA r16, VLM resident</text>
+<rect class=frz x=250 y=138 width=126 height=20 /><rect class=trn x=376 y=138 width=6 height=20 /><rect class=hatch x=382 y=138 width=28 height=20 /><text x=416 y=153 class=mono>8.0 · marginal</text>
+<text x=240 y=186 text-anchor=end style="font-size:11.5px">… same, lm_head dropped</text>
+<rect class=frz x=250 y=174 width=113 height=20 /><rect class=trn x=363 y=174 width=6 height=20 /><rect class=hatch x=369 y=174 width=28 height=20 /><text x=418 y=189 class=mono>7.4</text>
+<text x=240 y=222 text-anchor=end style="font-size:11.5px;font-weight:600">LoRA r16, φ(o) cached</text>
+<rect class=frz x=250 y=210 width=65 height=20 /><rect class=trn x=315 y=210 width=6 height=20 /><rect class=hatch x=321 y=210 width=28 height=20 /><text x=356 y=225 class="mono t-ok">4.9</text>
+<text x=240 y=258 text-anchor=end style="font-size:11.5px">arm (b) LoRA, cache at L11</text>
+<rect class=frz x=250 y=246 width=73 height=20 /><rect class=trn x=323 y=246 width=6 height=20 /><rect class=hatch x=329 y=246 width=28 height=20 /><text x=364 y=261 class="mono t-ok">5.4</text>
+<rect class=frz x=250 y=308 width=14 height=12 /><text x=270 y=318 style="font-size:11px">frozen weights (bf16)</text>
+<rect class=trn x=420 y=308 width=14 height=12 /><text x=440 y=318 style="font-size:11px">trainable: weights + grads + optimiser</text>
+<rect class=hatch x=680 y=308 width=14 height=12 /><text x=700 y=318 style="font-size:11px">activations + context (assumed)</text>
+</svg>
+<div class=cap><b>Figure 10.</b> Estimated peak GPU memory per configuration. Frozen weights at 2 B/param. Full-head rows use the 1.624 B trainable head at 16, 12 and 6 B/param. LoRA rows use ≈19 M adapter parameters at 16 B/param (0.3 GB). Arithmetic from the checkpoint's parameter counts; <span class=amb>none of these is measured</span>.</div>
+</div>
+
+<h3>Feature caching: the simplest win</h3>
+<p>In arm (a), nothing below the action head is trainable, so by §9's corollary the VLM needs a forward pass only, never a backward. The training loss (2) resamples τ and ε every step, but φ(o) depends only on the observation. So φ(o) for every training frame can be computed once, written to disk, and the VLM never loaded during training. That removes the 1.52 B-parameter backbone (about 3 GB in bf16) from the GPU and removes its forward from every step, so each step also runs faster.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 170" role=img aria-label="Feature caching pipeline">
+<rect class=bx x=10 y=50 width=150 height=60 rx=5 /><text x=85 y=76 text-anchor=middle>minted demos</text><text x=85 y=94 text-anchor=middle class=mono>frames + text</text>
+<line class=ln x1=160 y1=80 x2=200 y2=80 marker-end=url(#arr) />
+<rect class=frz x=200 y=50 width=170 height=60 rx=5 /><text x=285 y=76 text-anchor=middle>frozen VLM</text><text x=285 y=94 text-anchor=middle class=mono>once, inference only</text>
+<line class=ln x1=370 y1=80 x2=410 y2=80 marker-end=url(#arr) />
+<rect class=ams x=410 y=50 width=160 height=60 rx=5 /><text x=490 y=76 text-anchor=middle>φ(o) on disk</text><text x=490 y=94 text-anchor=middle class=mono>bf16 tensors</text>
+<line class=ln x1=570 y1=80 x2=610 y2=80 marker-end=url(#arr) />
+<rect class=trs x=610 y=50 width=180 height=60 rx=5 /><text x=700 y=76 text-anchor=middle>train head (LoRA)</text><text x=700 y=94 text-anchor=middle class=mono>τ, ε fresh each step</text>
+<line class=ln x1=790 y1=80 x2=830 y2=80 marker-end=url(#arr) />
+<text x=860 y=85 text-anchor=middle class=mono>Δθ</text>
+<text x=285 y=140 text-anchor=middle class=mut style="font-size:11px">cost: one pass over the data (~the minting cost)</text>
+<text x=610 y=140 text-anchor=middle class=mut style="font-size:11px">GPU holds only the 1.62 B head (3.2 GB bf16) + LoRA state</text>
+</svg>
+<div class=cap><b>Figure 11.</b> Caching the frozen VLM's output. It is exact, not an approximation, provided the pipeline applies no random image augmentation (see caveats).</div>
+</div>
+
+<ul>
+<li><b>Size.</b> <span class=amb>Estimate:</span> two 256×256 images at Qwen3-VL's 16-px patches with 2×2 merging give about 64 tokens each. Add about 20–40 text tokens, for ~170 tokens × 2048 × 2 bytes ≈ 0.7 MB per frame. At 500 episodes × ~150 frames that is about 50 GB of disk. Storing only the approach segment the plan targets cuts it several-fold. Verify the token count on one real forward before sizing anything.</li>
+<li><b>Augmentation caveat.</b> If GR00T's training transforms apply random crops or colour jitter to the images, a single cached φ(o) removes that augmentation. The options are to cache K augmented copies per frame, or to accept no augmentation for a 500-demo fine-tune. In the port's defaults, colour jitter and random rotation are off (<code>groot_n1_7.py:94–98</code>). <code>image_crop_size</code> is set, and whether that crop is random at train time is not yet verified.</li>
+<li><b>Arm (b)</b> caches at the input of layer 12 (the output of the frozen ViT plus LLM layers 0–11) and keeps layers 12–15 on the GPU with LoRA. The same logic applies, one boundary higher.</li>
+<li><b>Relation to Soup.</b> Streaming pays off when there are trainable parameters <i>inside or below</i> a large frozen stack, which forces a backward pass through it. Neither of our arms has that. So caching gives the whole benefit of streaming, and more, with no new dependency.</li>
+</ul>
+
+<div class="card okc"><div class=q>Consequence for the GPU-rental decision (PENDING #25)</div>
+The LoRA arms look local-feasible even without caching (≈7.4–8.0 GB, marginal), and comfortable with it (≈5–5.4 GB). Only a <i>full</i> head fine-tune needs a rented 24–40 GB card. That supports the coordinating session's suggestion: run the local memory smoke first, preferably of the cached-feature variant, and rent only if it fails or if the full-head arm is wanted as an ablation.
+</div>
+
+<h2 id=s13><span class=n>13</span>Open decisions, mapped to the concepts above</h2>
+<div class=tw><table>
+<tr><th>open item</th><th>concept</th><th>what this primer suggests (not decided)</th></tr>
+<tr><td>R-046 out of scope since 2026-09-24</td><td>—</td><td>unchanged; this document is background only</td></tr>
+<tr><td>Rent a GPU (#25)</td><td>§6, §12</td><td>smoke the cached-feature LoRA locally first; rent only for a full-head ablation</td></tr>
+<tr><td>R-040 demo budget N</td><td>§4 Q3, §5</td><td>fix N <i>including</i> any replay data, identically across D/M/O/R arms; 500 matches the original per-suite scale</td></tr>
+<tr><td>Minted only vs + teleop</td><td>§7 data consistency</td><td>minted first-chunks are the policy's own actions for a different state; a 20–50 teleop set checks whether training on them teaches a smoother but narrower mapping</td></tr>
+<tr><td>Held-out set from R-047's 50% points</td><td>§8</td><td>hold out whole start poses, beyond each scene's 50% point; ≥3 seeds; Wilson intervals</td></tr>
+<tr><td>Second checkpoint before architecture claims</td><td>§8 ablation</td><td>yes for any claim about GR00T in general; a single fine-tune supports claims about this checkpoint only</td></tr>
+<tr><td>Few-step adaptation curve (GEN15 §E)</td><td>§1 intrinsic dimension</td><td>with cached φ(o), a k × s sweep is cheap: each step is a head-only forward and backward; worth pre-registering alongside R-046 if it comes back</td></tr>
+<tr><td><b>New:</b> arm (b) full vs LoRA</td><td>§3, §11</td><td>state which one; the plan text says LoRA, the flag it names does full unfreezing</td></tr>
+<tr><td><b>New:</b> projectors trainable or frozen</td><td>§3 modules_to_save</td><td>frozen first (embodiment unchanged), trainable as the ablation</td></tr>
+</table></div>
+
+</div><!-- /part -->
+
+<h2 id=refs>References</h2>
+<ol class=refs>
+<li>Hu et al. 2021, <i>LoRA: Low-Rank Adaptation of Large Language Models</i>, arXiv:2106.09685.</li>
+<li>Dettmers et al. 2023, <i>QLoRA: Efficient Finetuning of Quantized LLMs</i>, arXiv:2305.14314.</li>
+<li>Liu et al. 2024, <i>DoRA: Weight-Decomposed Low-Rank Adaptation</i>, arXiv:2402.09353.</li>
+<li>Kalajdzievski 2023, <i>A Rank Stabilization Scaling Factor for Fine-Tuning with LoRA</i> (rsLoRA), arXiv:2312.03732.</li>
+<li>Hayou et al. 2024, <i>LoRA+: Efficient Low Rank Adaptation of Large Models</i>, arXiv:2402.12354.</li>
+<li>Meng et al. 2024, <i>PiSSA: Principal Singular Values and Singular Vectors Adaptation</i>, arXiv:2404.02948.</li>
+<li>Kopiczko et al. 2023, <i>VeRA: Vector-based Random Matrix Adaptation</i>, arXiv:2310.11454.</li>
+<li>Zhao et al. 2024, <i>GaLore: Memory-Efficient LLM Training by Gradient Low-Rank Projection</i>, arXiv:2403.03507.</li>
+<li>Pan et al. 2024, <i>LISA: Layerwise Importance Sampling for Memory-Efficient LLM Fine-Tuning</i>, arXiv:2403.17919.</li>
+<li>Biderman et al. 2024, <i>LoRA Learns Less and Forgets Less</i>, arXiv:2405.09673.</li>
+<li>Aghajanyan et al. 2020, <i>Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning</i>, arXiv:2012.13255.</li>
+<li>Houlsby et al. 2019, <i>Parameter-Efficient Transfer Learning for NLP</i> (adapters), arXiv:1902.00751.</li>
+<li>Ben Zaken et al. 2021, <i>BitFit</i>, arXiv:2106.10199 · Liu et al. 2022, <i>(IA)³</i>, arXiv:2205.05638 · Li &amp; Liang 2021, <i>Prefix-Tuning</i>, arXiv:2101.00190.</li>
+<li>Lee et al. 2022, <i>Surgical Fine-Tuning Improves Adaptation to Distribution Shifts</i>, arXiv:2210.11466.</li>
+<li>Kumar et al. 2022, <i>Fine-Tuning can Distort Pretrained Features and Underperform Out-of-Distribution</i> (LP-FT), arXiv:2202.10054.</li>
+<li>Howard &amp; Ruder 2018, <i>Universal Language Model Fine-tuning</i> (ULMFiT), arXiv:1801.06146.</li>
+<li>Hewitt &amp; Liang 2019, <i>Designing and Interpreting Probes with Control Tasks</i>, arXiv:1909.03368.</li>
+<li>Wortsman et al. 2021, <i>Robust Fine-Tuning of Zero-Shot Models</i> (WiSE-FT), arXiv:2109.01903.</li>
+<li>Wortsman et al. 2022, <i>Model Soups</i>, arXiv:2203.05482.</li>
+<li>Kirkpatrick et al. 2017, <i>Overcoming Catastrophic Forgetting in Neural Networks</i> (EWC), arXiv:1612.00796.</li>
+<li>Micikevicius et al. 2017, <i>Mixed Precision Training</i>, arXiv:1710.03740 · Chen et al. 2016, <i>Training Deep Nets with Sublinear Memory Cost</i>, arXiv:1604.06174 · Dettmers et al. 2021, <i>8-bit Optimizers via Block-wise Quantization</i>, arXiv:2110.02861 · Rajbhandari et al. 2019, <i>ZeRO</i>, arXiv:1910.02054.</li>
+<li>Lipman et al. 2022, <i>Flow Matching for Generative Modeling</i>, arXiv:2210.02747 · NVIDIA 2025, <i>GR00T N1</i>, arXiv:2503.14734.</li>
+<li>Makazhan 2026, <i>Exact Layer Streaming: LoRA Fine-Tuning of an 8B Model on a 4 GB Laptop GPU</i> (v3), Zenodo, doi:10.5281/zenodo.21918325 · <a href="https://github.com/MakazhanAlpamys/Soup">github.com/MakazhanAlpamys/Soup</a>, <code>docs/performance-and-quantization.md</code>, <code>src/soup_cli/utils/layer_stream_runtime.py</code>.</li>
+<li>This repo: <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>, RESULTS.md R-040 to R-051, <a href="GEN15_ONE_SHOT.html">GEN15_ONE_SHOT.html</a>, <a href="Decision_28Sep.html">Decision_28Sep.html</a>.</li>
+</ol>
+
+</div></body></html>

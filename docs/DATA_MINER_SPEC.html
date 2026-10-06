@@ -1,0 +1,388 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Data Miner Spec</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--accent-soft:#DCE3F7;--ok:#1B6B4F;--ok-soft:#D5EEE3;--warn:#A8481B;--warn-soft:#F7E0D3;--amber:#8a6200;--amber-soft:#F5E9C8;
+ --frozen:#B9C1CC;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#2E3642;--rule-soft:#1F2630;--accent:#93A9F0;--accent-soft:#233154;--ok:#5fcf9f;--ok-soft:#173a2d;--warn:#f08a5d;--warn-soft:#44261a;--amber:#e0b54a;--amber-soft:#3d3217;
+ --frozen:#3a4350;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#2E3642;--rule-soft:#1F2630;
+ --accent:#93A9F0;--accent-soft:#233154;--ok:#5fcf9f;--ok-soft:#173a2d;--warn:#f08a5d;--warn-soft:#44261a;--amber:#e0b54a;--amber-soft:#3d3217;--frozen:#3a4350;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62}
+.wrap{max-width:1000px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.35rem;margin:2.6em 0 .6em;padding-top:.7em;border-top:1px solid var(--rule)}
+h2 .n{font-family:var(--mono);color:var(--muted);font-weight:500;margin-right:.4em}
+h3{font-size:1.04rem;margin:1.6em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto;margin:10px 0}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:.82rem}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.flag{border-left:4px solid var(--warn)}
+.okc{border-left:4px solid var(--ok)}
+.q{font-weight:600;color:var(--accent);font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.flag .q{color:var(--warn)}.okc .q{color:var(--ok)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.25em}li{margin:.28em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:5px;padding:12px 16px;margin:12px 0;overflow-x:auto;white-space:nowrap}
+.eq .lab{float:right;font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-left:16px}
+.eq i{font-style:italic}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.stat{font-size:1.8rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.fig{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:14px 14px 8px;margin:16px 0}
+.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.8rem;color:var(--muted);margin:6px 2px 4px}
+.cap b{color:var(--ink)}
+.toc{columns:2;column-gap:28px;font-size:.9rem;padding-left:1.1em}
+.toc li{break-inside:avoid}
+.part{margin-top:4em;padding:26px 20px 10px;border:2px solid var(--accent);border-radius:8px;background:var(--surface)}
+.part h2{border-top-color:var(--rule-soft)}
+.part .card,.part .fig,.part .eq{background:var(--surface-2)}
+.partlab{display:inline-block;font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:var(--bg);padding:3px 10px;border-radius:3px;margin-bottom:10px}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface-2);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.pill{display:inline-block;font-size:.7rem;font-family:var(--mono);padding:0 6px;border-radius:3px;background:var(--surface-2);color:var(--muted);margin-left:4px;vertical-align:1px}
+.refs{font-size:.82rem;color:var(--muted)}.refs li{margin:.2em 0}
+/* svg classes */
+.sv text{font-family:var(--sans);fill:var(--ink);font-size:12px}
+.sv .mono{font-family:var(--mono);font-size:10.5px}
+.sv .mut{fill:var(--muted)}
+.sv .t-acc{fill:var(--accent)}.sv .t-warn{fill:var(--warn)}.sv .t-ok{fill:var(--ok)}
+.sv .bx{fill:var(--surface);stroke:var(--rule);stroke-width:1.2}
+.sv .bx2{fill:var(--surface-2);stroke:var(--rule);stroke-width:1}
+.sv .frz{fill:var(--frozen);stroke:var(--rule);stroke-width:1}
+.sv .trn{fill:var(--accent);stroke:var(--accent);stroke-width:1}
+.sv .trs{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+.sv .oks{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.2}
+.sv .wrs{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.2}
+.sv .ams{fill:var(--amber-soft);stroke:var(--amber);stroke-width:1.2}
+.sv .ln{stroke:var(--muted);stroke-width:1.3;fill:none}
+.sv .lna{stroke:var(--accent);stroke-width:1.6;fill:none}
+.sv .lnw{stroke:var(--warn);stroke-width:1.6;fill:none}
+.sv .lno{stroke:var(--ok);stroke-width:1.6;fill:none}
+.sv .dash{stroke-dasharray:4 3}
+.sv .grid{stroke:var(--rule-soft);stroke-width:1}
+.sv .hatch{fill:url(#hatch)}
+.sv .ar{fill:var(--muted)}
+@media (max-width:600px){.part{padding:18px 12px 6px}.toc{columns:1}}
+</style></head><body><div class=wrap>
+</head><body><div class=wrap>
+<!-- shared svg defs -->
+<svg width=0 height=0 style="position:absolute" aria-hidden=true><defs>
+<pattern id=hatch width=6 height=6 patternUnits=userSpaceOnUse patternTransform="rotate(45)"><rect width=6 height=6 style="fill:var(--amber-soft)"/><line x1=0 y1=0 x2=0 y2=6 style="stroke:var(--amber);stroke-width:2"/></pattern>
+<marker id=arr viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+<marker id=arra viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker>
+<marker id=arrw viewBox="0 0 10 10" refX=9 refY=5 markerWidth=7 markerHeight=7 orient=auto-start-reverse><path d="M0,0 L10,5 L0,10 z" style="fill:var(--warn)"/></marker>
+</defs></svg>
+<h1>Data Miner Spec</h1>
+<div class=meta>2026-09-28 · Draft for review · Part of the retraining framework (option C: R-040's research question first, a reusable repair tool second). This document specifies the <b>demonstration sources</b>: how training demos are produced for a given policy, perturbation and failure, with the pros, cons, costs and validation gates of each. Companion to <a href="FINE_TUNING_101.html">FINE_TUNING_101.html</a> and <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>. Rescue numbers are from RESULTS.md R-044, R-047, R-048, R-050 and R-051. Nothing here is decided until reviewed.</div>
+
+<div class="card tldr">
+<div class=q>Summary</div>
+<ul>
+<li><b>A source is a plug-in with one output contract</b> (§1): per-frame observations as the policy will see them at deployment, the executed action, and provenance. Every source writes the same record, so the converter, trainer and R-040's matched-budget comparison never care where a demo came from.</li>
+<li><b>Choose by what the perturbation changes</b> (§2). Pixel-only perturbations (camera, lighting, texture, noise) can re-use the human demos by <b>re-rendering</b> them. Physical perturbations (start pose, layout) need new trajectories. Instruction perturbations need only <b>relabelling</b>.</li>
+<li><b>Seven sources</b> (§3): re-render, rescue minting, scripted privileged expert, MimicGen-style adaptation, relabel, expert relabelling of policy rollouts (DAgger), teleop. Only re-render, rescue minting and relabel reuse code that already exists.</li>
+<li><b>Rescue minting in numbers</b> (§4). The nominal chunk at forward 0 turned 7/7 start-pose failures into successes in R-044 (9/10 episodes succeeded), and 7/10 succeeded in the R-050 rerun. The same move does little on camera (5/7 flipped against 3/7 for a plain re-run) and nothing on layout (0/8 against 0/8). <b>The start-pose no-op baseline was never measured</b>, so how much of the 7/7 is the correction and how much is render jitter is unknown.</li>
+<li><b>What rescue minting actually teaches</b> (§4.3). The training input is the perturbed observation: images and the <i>actual</i> robot state. The label for the first 16 steps is the chunk the head produced from the <i>nominal</i> episode's features. So yes: for the first chunk it maps perturbed vision to nominal behaviour, which trains <b>invariance to start pose</b> at forward 0. Everything after is the policy's own output, filtered by success. Three consequences: about 5–13% of frames carry new signal, the data is biased towards poses where the nominal move happens to work, and nominal <i>state</i> must never be used as an input.</li>
+</ul>
+</div>
+
+<h2 id=s1><span class=n>1</span>The source contract</h2>
+<p>Every source produces <b>episodes</b> of <b>frames</b>. The contract is what makes sources interchangeable, and what lets R-040 compare arms at a matched budget.</p>
+<div class=tw><table>
+<tr><th>field</th><th>content</th><th>rule</th></tr>
+<tr><td><code>obs.images.*</code></td><td>every camera the policy reads, at its native resolution</td><td>exactly what the policy would see at deployment in that scene; never the nominal render</td></tr>
+<tr><td><code>obs.state</code></td><td>proprioception in the policy's convention</td><td>the <b>actual</b> simulator state of this episode; never borrowed from another episode</td></tr>
+<tr><td><code>instruction</code></td><td>task text</td><td>the text the policy would receive (paraphrased only under the relabel source)</td></tr>
+<tr><td><code>action</code></td><td>the action <b>executed</b> at this frame</td><td>in the policy's action convention (LIBERO: 6-D end-effector delta + gripper, [−1, 1]); the chunk targets are windows over executed actions</td></tr>
+<tr><td><code>provenance</code></td><td>source, policy id, perturbation axis and magnitude, scene, env and noise seeds, instance id, <code>privileged</code> flag</td><td>stamped per episode; used for the held-out exclusion and the R-040 budget accounting</td></tr>
+<tr><td><code>frame_tags</code></td><td>per frame: <code>driven</code> (action came from outside the policy), <code>segment</code> (approach / grasp / transport / place)</td><td>lets the trainer weight or select the informative frames</td></tr>
+<tr><td><code>outcome</code></td><td>success, closest approach, steps, failure family (from <code>classify()</code>)</td><td>only successes enter a training set; failures are kept for analysis</td></tr>
+<tr><td><code>baseline</code> (optional)</td><td>the outcome of the same instance and seeds with no intervention</td><td>distinguishes a rescue from a success that would have happened anyway (§4)</td></tr>
+</table></div>
+<p class=small>The harness already records most of this per step: images as PNG through <code>_write_images</code> (<code>vla_harness/envs/libero_env.py:892</code>), state, and actions in the rollout trace. The missing pieces are the <code>driven</code> tag, the baseline field, and the converter to a LeRobot dataset.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 200" role=img aria-label="Framework data flow">
+<rect class="bx" x="10" y="70" width="130" height="56" rx="6" /><text x="75" y="93" text-anchor="middle" style="font-weight:600">failure map</text><text x="75" y="111" text-anchor="middle" class="mut" style="font-size:11px">axis, instances, input</text>
+<line class="ln" x1="140" y1="98" x2="175" y2="98" marker-end="url(#arr)" />
+<rect class="trs" x="175" y="70" width="130" height="56" rx="6" /><text x="240" y="93" text-anchor="middle" style="font-weight:600">selector</text><text x="240" y="111" text-anchor="middle" class="mut" style="font-size:11px">D / M / O / R arm</text>
+<line class="ln" x1="305" y1="98" x2="340" y2="98" marker-end="url(#arr)" />
+<rect class="ams" x="340" y="20" width="170" height="156" rx="6" /><text x="425" y="42" text-anchor="middle" style="font-weight:600">sources (this doc)</text>
+<text x="425" y="64" text-anchor="middle" class="mono">re-render</text><text x="425" y="82" text-anchor="middle" class="mono">rescue minting</text><text x="425" y="100" text-anchor="middle" class="mono">scripted expert</text><text x="425" y="118" text-anchor="middle" class="mono">MimicGen-style</text><text x="425" y="136" text-anchor="middle" class="mono">relabel · DAgger</text><text x="425" y="154" text-anchor="middle" class="mono">teleop</text>
+<line class="ln" x1="510" y1="98" x2="545" y2="98" marker-end="url(#arr)" />
+<rect class="bx" x="545" y="70" width="110" height="56" rx="6" /><text x="600" y="93" text-anchor="middle" style="font-weight:600">gates</text><text x="600" y="111" text-anchor="middle" class="mut" style="font-size:11px">§5</text>
+<line class="ln" x1="655" y1="98" x2="690" y2="98" marker-end="url(#arr)" />
+<rect class="bx" x="690" y="70" width="95" height="56" rx="6" /><text x="737" y="93" text-anchor="middle" style="font-weight:600">converter</text><text x="737" y="111" text-anchor="middle" class="mut" style="font-size:11px">LeRobot ds</text>
+<line class="ln" x1="785" y1="98" x2="815" y2="98" marker-end="url(#arr)" />
+<text x="855" y="102" text-anchor="middle" style="font-weight:600">trainer</text>
+</svg>
+<div class=cap><b>Figure 1.</b> Where the sources sit. The selector decides <i>which instances</i> get demos (the R-040 arms). The source decides <i>how</i> a demo is produced. The two are independent, so each R-040 arm can be run with any source.</div>
+</div>
+
+<h2 id=s2><span class=n>2</span>Choosing a source</h2>
+<p>Two properties of a perturbation decide the source. What does it change: pixels, physics or text? And when is the episode decided: at the first chunk, or throughout? The perturbation map answers both for every row.</p>
+<div class=tw><table>
+<tr><th>row</th><th>changes</th><th>decided</th><th>evidence</th><th>primary source</th><th>alternative</th></tr>
+<tr><td>camera viewpoint</td><td>pixels</td><td>throughout (gap re-opens every forward)</td><td>R-048, R-050</td><td><b>re-render</b></td><td>scripted expert</td></tr>
+<tr><td>sensor noise</td><td>pixels</td><td>unmeasured (1/10 fail)</td><td>R-051</td><td><b>re-render</b> (or on-the-fly augmentation)</td><td>—</td></tr>
+<tr><td>lighting</td><td>pixels</td><td>unmeasured (1/10 fail at seed 0)</td><td>R-051</td><td><b>re-render</b></td><td>—</td></tr>
+<tr><td>background texture</td><td>pixels</td><td>unmeasured (0/10 fail)</td><td>R-051</td><td><b>re-render</b></td><td>—</td></tr>
+<tr><td>start pose</td><td>physics (robot)</td><td><b>first chunk</b></td><td>R-044, R-050</td><td><b>rescue minting</b></td><td>scripted expert, MimicGen</td></tr>
+<tr><td>object layout</td><td>physics (objects)</td><td>not the first chunk (rescue null)</td><td>R-051</td><td><b>scripted expert</b></td><td>MimicGen</td></tr>
+<tr><td>language</td><td>text</td><td>—</td><td>R-038, R-049</td><td><b>relabel</b></td><td>—</td></tr>
+</table></div>
+<div class=card><div class=q>How "decided" is measured</div>
+<p style="margin:.2em 0 .5em">The "decided" column comes from two <b>intervention</b> experiments, not from the probe. R-045's probe asks whether the information is present in the VLM output. That decides <i>what to train</i>, not <i>when the episode is decided</i>.</p>
+<ul>
+<li><b>Forward-0 rescue</b> (outcome level; R-044, R-048, R-051). Correct only the first chunk, hand back, and count flips against a <b>no-op re-run</b>. The no-op is essential, because outcomes flip 30–40% on render jitter alone.</li>
+<li><b>Downstream gap</b> (action level; R-050). After the corrected chunk, measure whether the policy's own next chunks stay near nominal (the cause is gone) or drift back (the cause persists). This is an order of magnitude less noisy than outcomes, so it is the primary readout. The rescue confirms it.</li>
+</ul>
+<p style="margin:.5em 0 .2em"><b>Start pose</b> is labelled "first chunk" because both agree: 7/7 rescued, and the gap halves on 10/10. The no-op is still missing and is R-053. <b>Camera</b> is "throughout" because both agree the other way: the rescue is barely above the no-op, and the gap re-opens on 8/10. <b>Layout</b>'s "not the first chunk" rests on the rescue alone (0/8, the same as the no-op); its downstream gap was never measured. Pixel rows other than camera fail too rarely to test. Strictly, "decided at forward k" means the earliest k at which correcting forwards 0…k−1 and handing back matches a fully corrected episode. Only k = 1 has been tested. <b>R-057</b> sweeps k ∈ {1, 2, 4, all} on start pose and camera. Its answer sets how many frames per episode need corrected labels.</p>
+</div>
+
+<div class="card flag"><div class=q>Pixel-only means pixel-only</div>
+Re-rendering is valid only if the perturbation leaves the physics untouched. Camera pose, lighting, texture and sensor noise do. But LIBERO-Plus camera perturbations must not move any collision geometry, and texture changes must not change friction. Both need checking per axis before re-render is trusted (gate G2, §5).
+</div>
+
+<h2 id=s3><span class=n>3</span>The sources</h2>
+
+<h3>S1 · Re-render the original demos</h3>
+<p><b>How.</b> For each of the original human demos (500 for LIBERO-Spatial), reset the simulator to the demo's recorded initial state, set the perturbation, and replay the recorded actions open-loop, rendering both cameras at every step. The robot and objects follow the human trajectory exactly; only the pixels differ.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul>
+<li>Human-quality, in-distribution trajectories: the same style as the fine-tuning data, so no conflicting modes.</li>
+<li>Exact labels by construction; no policy or planner in the loop.</li>
+<li>Cheap: no inference, render only. Any magnitude, any number of variants per demo.</li>
+<li>The only practical source for failures decided <i>throughout</i> the episode (camera), where the whole trajectory needs correct labels under the new view.</li>
+</ul></div>
+<div class="card flag"><div class=q>Cons</div><ul>
+<li>Pixel-only perturbations only.</li>
+<li>Needs deterministic replay. MuJoCo replay of recorded actions can drift from the recorded states; LIBERO's own replay resets per-step states in some tools. Must be measured (gate G2).</li>
+<li>Covers the original demos' states only: it adds views, not new situations.</li>
+<li>Selector D ("demos on the failed instances") maps only loosely: the failed instance's layout seed must match a demo's initial state.</li>
+</ul></div>
+</div>
+<p class=small><b>Needs:</b> the original dataset's initial states (LIBERO HDF5 carries them; the LeRobot conversion may not, so check), a replay runner, and the LIBERO-Plus perturbation knobs applied to a replayed episode. <b>Status:</b> not built; the knobs exist in the harness env. <b>Cost:</b> ~½–1 day to build, minutes per 100 episodes.</p>
+
+<h3>S2 · Rescue minting (the current plan for start pose)</h3>
+<p><b>How.</b> Record the nominal episode's features at forward 0. Start the perturbed episode, execute the head's output on the nominal features for the first forward (16 steps), then let the policy run unmodified. Keep the successes. §4 covers it in depth.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul>
+<li>Machinery exists: <code>attach_recorder</code> plus <code>attach_splice(..., drive="N", drive_until=1)</code> (<code>vla_harness/capture/splice.py</code>), used by R-044, R-048, R-050 and R-051.</li>
+<li>No new expert, no human time; runs unattended on the local GPU.</li>
+<li>Generalises to any policy the splice can wrap: a policy-agnostic source for first-chunk failures.</li>
+<li>Demos stay close to the policy's own manifold, so training on them is a small Δθ.</li>
+</ul></div>
+<div class="card flag"><div class=q>Cons</div><ul>
+<li>Works only where a corrected first chunk decides the episode: start pose yes, camera and layout no (R-048, R-051).</li>
+<li>Most frames are self-distillation: labels after forward 0 are the policy's own actions.</li>
+<li>Selection bias: only poses where the nominal move happens to work produce demos, so the hardest part of the range is missing from training.</li>
+<li>The first-chunk label is "what the policy does from the canonical pose", not an optimal action from the new pose (§4.3).</li>
+<li>Attribution unknown without a no-op baseline (§4.2).</li>
+</ul></div>
+</div>
+<p class=small><b>Needs:</b> the per-frame recorder on (image_dir), the driven-frame tag, the success filter, and the converter. <b>Status:</b> the generator exists; the recording path and the converter do not. <b>Cost:</b> ~45 s per rollout (R-047's rate), so ~8 h for 500 successes at 80% yield. The nominal forward-0 recording is shared across all radii of a scene and noise seed.</p>
+
+<h3>S3 · Scripted privileged expert</h3>
+<p><b>How.</b> A hand-written controller reads true object poses from the simulator (the <code>_gt_</code> keys) and executes the skill as waypoints through LIBERO's delta end-effector controller. For LIBERO-Spatial that is one skill for all ten tasks: approach above the bowl, descend, close, lift, move above the plate, descend, open. The camera images are rendered and recorded but never read by the expert.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul>
+<li>Covers every physical perturbation (start pose, layout) and every pixel perturbation, because it never looks at pixels.</li>
+<li>Labels are purposeful from the first step (go to the bowl from where the arm is), not borrowed from another state.</li>
+<li>No policy in the loop, so no self-distillation and no selection bias towards what the policy already does.</li>
+<li>A second start-pose source to compare against S2: does the source matter?</li>
+</ul></div>
+<div class="card flag"><div class=q>Cons</div><ul>
+<li>New code: 1–2 days, per suite. LIBERO-Goal, Object and Long need more skills (open drawer, turn on stove).</li>
+<li>Style mismatch: straight-line scripted motion against human demos. Mixed with replay data, it can create two action modes for similar observations.</li>
+<li>Privileged by construction: must go through the audited <code>PrivilegedProbePolicy</code> path, with demos stamped <code>privileged: True</code>. The demo content is clean (the images and state are what the policy sees), but provenance must say how it was made.</li>
+<li>Grasp reliability on LIBERO-Plus is unknown until tried (a spike).</li>
+</ul></div>
+</div>
+<p class=small><b>Needs:</b> a waypoint controller, per-object grasp offsets, and a success rate of at least ~80% on nominal scenes before it is trusted (gate G3). <b>Status:</b> not built; <code>vla_harness/policies/scripted.py</code> is a 2-D test fixture, not a LIBERO expert. <b>Cost:</b> 1–2 days, then ~20–30 s per episode (no policy inference).</p>
+
+<h3>S4 · MimicGen-style adaptation</h3>
+<p><b>How</b> (Mandlekar et al. 2023). Segment each human demo into object-centric subtasks: grasp the bowl, then place on the plate. For a new scene, express each segment in its object's frame, transform it to the new object pose, and connect segments with interpolated motion. Start from a perturbed pose, interpolate into the first segment. Execute and keep successes.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul>
+<li>Human-style motion at new start poses and new layouts, from the existing demos.</li>
+<li>Scales: 10 source demos have produced thousands in the MimicGen paper.</li>
+<li>Covers the gap between S1 (pixels only) and S3 (scripted style).</li>
+</ul></div>
+<div class="card flag"><div class=q>Cons</div><ul>
+<li>The most engineering: segmentation, frame transforms, interpolation, and a port to LIBERO-Plus.</li>
+<li>Interpolated connecting segments are scripted-looking anyway, and the start-pose fix lives exactly there.</li>
+<li>Needs object poses (privileged at generation time, like S3).</li>
+</ul></div>
+</div>
+<p class=small><b>Status:</b> not built; MimicGen's public code targets robosuite, which LIBERO is built on, so a port is plausible. <b>Cost:</b> 3–5 days. Deferred until S3's style mismatch is shown to matter.</p>
+
+<h3>S5 · Instruction relabel</h3>
+<p><b>How.</b> Copy the original demos with paraphrased or LIBERO-Plus-style rewritten instructions. There is no simulator involvement.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul><li>Free and exact: the trajectory is correct for the task whatever the wording.</li><li>Directly targets the language row.</li></ul></div>
+<div class="card flag"><div class=q>Cons</div><ul><li>Only valid for meaning-preserving rewrites. A goal-replacement rewrite (a different target object) is a new task, and needs S3.</li><li>Risk of teaching the policy to ignore language if rewrites are too varied (the "visual pattern matcher" failure noted in FAILURE_MINING_METHODS).</li></ul></div>
+</div>
+
+<h3>S6 · Expert relabelling of policy rollouts (DAgger)</h3>
+<p><b>How</b> (Ross et al. 2011). Run the <i>policy</i> under the perturbation. At every visited state, record the action an <b>expert</b> (S3, or a human) would take instead, and train on (visited state, expert action). Iterate.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul><li>Covers the states the policy actually reaches, including its own mistakes: this is where recovery data comes from.</li><li>Addresses compounding error, the textbook weakness of behaviour cloning.</li></ul></div>
+<div class="card flag"><div class=q>Cons</div><ul><li>Needs an expert that can act from <i>any</i> state (S3 can; S2 cannot).</li><li>Iterative: several rounds of train and roll out, so the most compute per demo.</li><li>Teaches recovery, which the plan's mechanism check treats as the <i>wrong</i> fix for start pose ("learned to recover rather than start correctly").</li></ul></div>
+</div>
+<p class=small><b>Status:</b> depends on S3. Listed so the framework's interface allows it: a source may take a policy as input.</p>
+
+<h3>S7 · Teleoperation</h3>
+<p><b>How.</b> A human drives the simulator with a 3D mouse or keyboard (LIBERO's collection method), starting from sampled perturbed scenes.</p>
+<div class=grid2>
+<div class="card okc"><div class=q>Pros</div><ul><li>The gold standard: matches how the original corpus was made.</li><li>The validation set for every other source (the plan's 20–50 episodes).</li></ul></div>
+<div class="card flag"><div class=q>Cons</div><ul><li>~1–2 min of operator time per episode.</li><li>No teleop setup in the repo, and no 3D mouse confirmed.</li><li>Operator style drift across sessions.</li></ul></div>
+</div>
+
+<h3>Side by side</h3>
+<div class=tw><table>
+<tr><th>source</th><th>covers</th><th>label quality</th><th>style match</th><th>new code</th><th>per-episode cost</th><th>R-040 use</th></tr>
+<tr><td>S1 re-render</td><td>pixel rows</td><td>exact (human)</td><td>perfect</td><td>½–1 day</td><td>seconds</td><td>M and D for pixel rows</td></tr>
+<tr><td>S2 rescue minting</td><td>start pose</td><td>borrowed first chunk, then self</td><td>policy's own</td><td>recorder + converter</td><td>~45 s</td><td>M for start pose</td></tr>
+<tr><td>S3 scripted expert</td><td>all physical, all pixel</td><td>purposeful, scripted</td><td>poor</td><td>1–2 days</td><td>~20–30 s</td><td>D for any row; M for layout</td></tr>
+<tr><td>S4 MimicGen</td><td>start pose, layout</td><td>human segments + interpolation</td><td>good</td><td>3–5 days</td><td>~30 s</td><td>later</td></tr>
+<tr><td>S5 relabel</td><td>language</td><td>exact</td><td>perfect</td><td>hours</td><td>free</td><td>M for language</td></tr>
+<tr><td>S6 DAgger</td><td>recovery states</td><td>expert at visited states</td><td>expert's</td><td>after S3</td><td>high (iterative)</td><td>out of v1</td></tr>
+<tr><td>S7 teleop</td><td>anything</td><td>human</td><td>perfect</td><td>setup unknown</td><td>1–2 min human</td><td>validation</td></tr>
+</table></div>
+
+<h2 id=s4><span class=n>4</span>Rescue minting in depth</h2>
+
+<h3>4.1 What the experiments measured</h3>
+<p>Every forward-0 rescue we have run. "Driven" means the chunk executed for the first forward only, after which the unmodified policy continues. All runs are at one noise seed, ten instances per row.</p>
+<div class=tw><table>
+<tr><th>row · run</th><th>driven at f0</th><th class=num>episodes failed</th><th class=num>P-failures flipped</th><th class=num>successes broken</th><th>median closest approach</th></tr>
+<tr><td rowspan=4><b>start pose</b> · R-044</td><td>P (no correction, from R-042)</td><td class=num>7/10</td><td class=num>—</td><td class=num>—</td><td>0.071 m</td></tr>
+<tr><td>W · wrist pixels restored</td><td class=num>3/10</td><td class=num>4 of 7</td><td class=num>0</td><td>0.057 m</td></tr>
+<tr><td>A · agent view restored</td><td class=num>6/10</td><td class=num>3 of 7</td><td class=num>1</td><td>0.056 m</td></tr>
+<tr><td><b>N · nominal chunk</b></td><td class=num><b>1/10</b></td><td class=num><b>7 of 7</b></td><td class=num>1</td><td>0.049 m</td></tr>
+<tr><td><b>start pose</b> · R-050 rerun</td><td>N · nominal chunk (same seeds)</td><td class=num>3/10</td><td class=num>—</td><td class=num>—</td><td>‖P−N‖ f1–3 median 6.06 → 3.44, falls on 10/10</td></tr>
+<tr><td rowspan=4><b>camera</b> · R-048</td><td>P</td><td class=num>7/10</td><td class=num>—</td><td class=num>—</td><td>0.046 m</td></tr>
+<tr><td><b>no-op re-run</b> (W, identical to P here)</td><td class=num>6/10</td><td class=num><b>3 of 7</b></td><td class=num>1</td><td>0.047 m</td></tr>
+<tr><td>A</td><td class=num>4/10</td><td class=num>4 of 7</td><td class=num>1</td><td>0.037 m</td></tr>
+<tr><td>N</td><td class=num>2/10</td><td class=num>5 of 7</td><td class=num>0</td><td>0.040 m</td></tr>
+<tr><td rowspan=3><b>layout</b> · R-051</td><td><b>no-op re-run</b> (P)</td><td class=num>8/10</td><td class=num>0 of 8</td><td class=num>0</td><td>improved on 1/10</td></tr>
+<tr><td>A</td><td class=num>8/10</td><td class=num>1 of 8</td><td class=num>1</td><td>improved on 7/10</td></tr>
+<tr><td>N</td><td class=num>9/10</td><td class=num>0 of 8</td><td class=num>1</td><td>improved on 4/10</td></tr>
+<tr><td>noise, lighting, texture · R-051</td><td colspan=5>not run: 1, 1 and 0 of 10 failures at seed 0, so a rescue cannot be read</td></tr>
+</table></div>
+
+<p>For context, the natural success rate without any intervention, R-047 (pooled over ten scenes, 60 rollouts per radius):</p>
+<div class=tw><table>
+<tr><th>start-pose radius (rad)</th><th class=num>0</th><th class=num>0.1</th><th class=num>0.2</th><th class=num>0.3</th><th class=num>0.4</th><th class=num>0.5</th></tr>
+<tr><td>success</td><td class=num>57/60</td><td class=num>57/60</td><td class=num>44/60</td><td class=num>34/60</td><td class=num>33/60</td><td class=num>23/60</td></tr>
+<tr><td>implied failures to rescue per 100 rollouts</td><td class=num>5</td><td class=num>5</td><td class=num>27</td><td class=num>43</td><td class=num>45</td><td class=num>62</td></tr>
+</table></div>
+
+<h3>4.2 What these numbers do and don't say</h3>
+<ul>
+<li><b>Yield:</b> with the nominal chunk driven at forward 0, 70–90% of start-pose episodes succeed (R-044 9/10, R-050 7/10). The plan's "9/10" is the optimistic end. Budget for ~75%.</li>
+<li><b>Attribution is unknown for start pose.</b> R-044 had no no-op arm (R-048 made it mandatory afterwards). On camera a plain re-run flipped 3 of 7; on layout 0 of 8. If start pose sits near camera's rate, roughly half of the "rescued" successes would have succeeded anyway. Those episodes carry no correction at all: their first chunk is the nominal one, but the policy's own chunk would have worked too.</li>
+<li><b>The action-level evidence is stronger than the outcome evidence.</b> R-050's gap halving (10/10 instances) is consistent across reruns; the outcome counts are not (R-044's 1/10 failures against R-050's 3/10 under identical seeds). The claim that a corrected first chunk keeps the episode near nominal is solid. The exact rescue rate is not.</li>
+<li><b>Before minting 500:</b> run a no-op arm on the start-pose instances at 3 noise seeds (about 30 rollouts, ~25 min). This is cheap, fills the one hole in the table, and tells us what fraction of minted demos are real rescues.</li>
+</ul>
+
+<h3>4.3 What a minted demo teaches: the labelling question</h3>
+<p>The splice's N chunk is computed by the action head from features <b>recorded in the nominal episode</b> (<code>attach_recorder</code> captures the nominal run's backbone and state features; <code>SpliceHandle</code> feeds them to the head at forward 0 in the perturbed run, with the same flow noise). So the first chunk is exactly "what the policy would have done had it started at the canonical pose". That chunk is then executed from the perturbed pose. Because LIBERO actions are end-effector <i>deltas</i>, the arm makes the canonical approach motion, displaced by the start offset.</p>
+
+<div class=fig>
+<svg class=sv viewBox="0 0 900 330" role=img aria-label="What is recorded in a minted demo">
+<text x="10" y="24" style="font-weight:600">minting time</text>
+<rect class="bx2" x="10" y="36" width="190" height="64" rx="5" /><text x="105" y="58" text-anchor="middle">nominal episode, f0</text><text x="105" y="76" text-anchor="middle" class="mono">canonical pose</text><text x="105" y="92" text-anchor="middle" class="mut" style="font-size:10.5px">images + state → VLM features</text>
+<line class="ln" x1="200" y1="68" x2="240" y2="68" marker-end="url(#arr)" />
+<rect class="frz" x="240" y="36" width="130" height="64" rx="5" /><text x="305" y="62" text-anchor="middle">action head</text><text x="305" y="80" text-anchor="middle" class="mono">same noise</text>
+<line class="ln" x1="370" y1="68" x2="410" y2="68" marker-end="url(#arr)" />
+<rect class="ams" x="410" y="36" width="150" height="64" rx="5" /><text x="485" y="62" text-anchor="middle" style="font-weight:600">N chunk</text><text x="485" y="80" text-anchor="middle" class="mono">16 deltas</text>
+<line class="lna" x1="485" y1="100" x2="485" y2="136" marker-end="url(#arra)" />
+<text x="492" y="124" class="t-acc" style="font-size:11px">executed from the perturbed pose</text>
+<rect class="bx" x="10" y="136" width="880" height="44" rx="5" />
+<text x="20" y="163" style="font-weight:600">perturbed episode</text>
+<rect class="ams" x="160" y="144" width="180" height="28" rx="3" /><text x="250" y="163" text-anchor="middle" class="mono">steps 0–15: N chunk (driven)</text>
+<rect class="trs" x="345" y="144" width="535" height="28" rx="3" /><text x="612" y="163" text-anchor="middle" class="mono">steps 16–end: the policy's own chunks on perturbed input</text>
+<text x="10" y="214" style="font-weight:600">training sample at frame t</text>
+<rect class="trs" x="10" y="226" width="420" height="92" rx="5" /><text x="220" y="248" text-anchor="middle" style="font-weight:600">input: all from the perturbed episode</text>
+<text x="24" y="270" class="mono">agent image_t   (perturbed scene, as rendered)</text>
+<text x="24" y="288" class="mono">wrist image_t   (arm at the perturbed pose)</text>
+<text x="24" y="306" class="mono">state_t         (ACTUAL proprio, never nominal)</text>
+<line class="ln" x1="430" y1="272" x2="470" y2="272" marker-end="url(#arr)" />
+<rect class="ams" x="470" y="226" width="420" height="92" rx="5" /><text x="680" y="248" text-anchor="middle" style="font-weight:600">target: executed actions a_t … a_t+15</text>
+<text x="484" y="270" class="mono">t = 0     : the N chunk, all nominal</text>
+<text x="484" y="288" class="mono">t = 1..15 : N tail + start of policy's own</text>
+<text x="484" y="306" class="mono">t ≥ 16    : policy's own (self-distillation)</text>
+</svg>
+<div class=cap><b>Figure 2.</b> What a minted demo contains. Nominal information enters only through the <b>action labels of the first chunk</b>. The inputs are always the perturbed episode's own images and state.</div>
+</div>
+
+<p><b>So, is it "a mapping from perturbed vision to nominal telemetry"?</b> For the first chunk, yes, and that is the point. It teaches the head that from a perturbed start it should emit the approach it would emit from home. In the language of the map, it trains <b>invariance to start pose at forward 0</b>: the wrist camera says "the arm is elsewhere", and the label says "act as if it weren't". The plan's mechanism check predicts exactly this: after retraining, restoring the wrist pixels should move the first action much less, because the head no longer reacts to them.</p>
+
+<p>Four consequences follow:</p>
+<ol>
+<li><b>Never feed nominal state or nominal images as inputs.</b> The inputs must be what the policy sees at deployment in the perturbed scene. Using nominal telemetry as input would teach a mapping from an observation the policy will never receive, and would do nothing at test time. Nominal information belongs <i>only</i> in the labels, and only for driven frames.</li>
+<li><b>Invariance is right only while the nominal move is safe.</b> A canonical approach executed 0.5 rad away can end somewhere the later chunks cannot recover from. The success filter drops those episodes, which creates the <b>selection bias</b>: the training set covers the radii and directions where invariance works and is silent where it doesn't. Report the per-radius yield, and expect the retrained policy to improve most at the radii minting succeeded on. R-047's per-scene 50% points bound where this should work: stove fails by 0.3 rad, others hold to 0.6.</li>
+<li><b>Only ~16 frames per episode carry new signal.</b> Frames 0–15 have nominal-derived labels; the rest are the policy's own actions, where the success filter adds a little (it is rejection-sampled behaviour cloning) but nothing the policy doesn't already do. Of a 120–300-frame episode that is 5–13%. Options: store and train only the approach segment (the plan's choice); or store whole episodes and up-weight <code>driven</code> frames. The first is cheaper and sharper. The second keeps the model consistent over the whole episode. Recommendation: store whole episodes (disk is cheap), <b>train on the approach segment</b>, with replay data covering the rest.</li>
+<li><b>It is the policy's own action at another state, not an expert's.</b> If the nominal first chunk is itself imperfect, minting copies the imperfection. S3's purposeful labels ("go to the bowl from where you are") are the natural control: if S2 and S3 retrain to the same result, the source doesn't matter. If S3 wins, borrowed labels were the limit.</li>
+</ol>
+
+<h3>4.4 What rescue minting necessarily needs</h3>
+<div class=tw><table>
+<tr><th>#</th><th>requirement</th><th>status</th></tr>
+<tr><td>1</td><td>Nominal forward-0 feature recording per (scene, noise seed), shared across radii</td><td class=ok>exists (<code>attach_recorder</code>)</td></tr>
+<tr><td>2</td><td>Splice driving N for the first forward only</td><td class=ok>exists (<code>drive_until=1</code>)</td></tr>
+<tr><td>3</td><td>Per-step recording of both cameras, state and executed action</td><td class=ok>exists (PNG via <code>image_dir</code>; executed action per step in the rollout trace, <code>schema.py</code>)</td></tr>
+<tr><td>4</td><td><code>driven</code> frame tag and provenance stamp</td><td class=warn>new, small</td></tr>
+<tr><td>5</td><td>Start-pose sampler over scenes × radius bands × directions, excluding the held-out set</td><td class=amb>R-047's grid exists; the exclusion list is new</td></tr>
+<tr><td>6</td><td>Success filter, plus closest approach and failure family kept for analysis</td><td class=ok>exists (<code>classify()</code>)</td></tr>
+<tr><td>7</td><td>No-op baseline: a sampled subset, or per instance for attribution</td><td class=warn>new run, ~25 min for the 10 instances × 3 seeds</td></tr>
+<tr><td>8</td><td>Converter to a LeRobot dataset matching <code>libero_spatial_no_noops</code>'s schema, with the checkpoint's own normalisation statistics</td><td class=warn>new, ~½ day</td></tr>
+<tr><td>9</td><td>Disk: ~150 KB per PNG × 2 cameras × 120–300 steps ≈ 36–90 MB per episode raw; 18–45 GB for 500 before conversion</td><td class=ok>340 GB free</td></tr>
+</table></div>
+
+<h2 id=s5><span class=n>5</span>Gates every source must pass</h2>
+<div class=tw><table>
+<tr><th>gate</th><th>check</th><th>applies to</th></tr>
+<tr><td><b>G1 · contract</b></td><td>schema, dtypes, action range [−1, 1], image size, state dimension, instruction present, provenance complete</td><td>all</td></tr>
+<tr><td><b>G2 · replay determinism</b></td><td>unperturbed re-render of 20 demos reaches the recorded final states within tolerance and succeeds; perturbation changes no physics (object and robot trajectories identical with and without it)</td><td>S1</td></tr>
+<tr><td><b>G3 · expert competence</b></td><td>≥80% success on nominal scenes over ≥30 episodes before any perturbed generation</td><td>S3, S4, S6</td></tr>
+<tr><td><b>G4 · held-out exclusion</b></td><td>no (scene, magnitude band, seed) in the evaluation set appears in training; checked by provenance</td><td>all</td></tr>
+<tr><td><b>G5 · attribution</b></td><td>no-op baseline recorded for the source's instances (or a sampled subset)</td><td>S2</td></tr>
+<tr><td><b>G6 · round trip</b></td><td>converter output replays in the simulator to the same outcome as the source episode</td><td>all, on a sample</td></tr>
+<tr><td><b>G7 · eyes on</b></td><td>a human watches 10 random episodes per source per run (videos via <code>vla_harness/video.py</code>)</td><td>all</td></tr>
+<tr><td><b>G8 · budget accounting</b></td><td>frames and episodes counted per R-040 arm, including replay data, identically across arms</td><td>R-040 runs</td></tr>
+</table></div>
+
+<h2 id=s6><span class=n>6</span>Open decisions</h2>
+<ol>
+<li><b>Scripted expert (S3) in v1?</b> A: yes. B: later. C: spike first. My recommendation: C, then A. It is the only source that covers layout and the only non-self-distilled comparison for start pose.</li>
+<li><b>Start-pose no-op baseline</b> before minting (§4.2). Recommendation: yes; ~25 min.</li>
+<li><b>Approach-only training</b> or whole episodes with up-weighting (§4.3). Recommendation: store whole, train approach, replay the rest.</li>
+<li><b>Re-render (S1) in v1?</b> Recommendation: yes. It is cheap, and the only source for camera. It depends on G2 passing.</li>
+<li><b>Teleop</b>: whether a 3D mouse or keyboard teleop setup is worth building for the 20–50-episode validation set.</li>
+</ol>
+
+<h2 id=refs>References</h2>
+<ol class=refs>
+<li>This repo: RESULTS.md R-042, R-044, R-047, R-048, R-050, R-051; <code>vla_harness/capture/splice.py</code>; <code>vla_harness/envs/libero_env.py</code>; <code>vla_harness/policies/privileged.py</code>; <a href="RETRAINING_PLAN.html">RETRAINING_PLAN.html</a>; <a href="FINE_TUNING_101.html">FINE_TUNING_101.html</a>.</li>
+<li>Mandlekar et al. 2023, <i>MimicGen: A Data Generation System for Scalable Robot Learning using Human Demonstrations</i>, arXiv:2310.17596.</li>
+<li>Ross, Gordon &amp; Bagnell 2011, <i>A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning</i> (DAgger), arXiv:1011.0686.</li>
+<li>Liu et al. 2023, <i>LIBERO: Benchmarking Knowledge Transfer for Lifelong Robot Learning</i>, arXiv:2306.03310 · LIBERO-Plus, arXiv:2510.13626.</li>
+</ol>
+
+</div></body></html>
