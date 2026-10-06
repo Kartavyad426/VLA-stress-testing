@@ -1,0 +1,33 @@
+{
+ "repo_id": "local/r054_smoke48",
+ "episodes": 2,
+ "frames": 96,
+ "truncate_steps": 48,
+ "adapter": {
+  "name": "libero->ipec_no_noops/v1",
+  "camera_map": {
+   "image": "observation.images.image",
+   "image2": "observation.images.wrist_image"
+  },
+  "image": "flip180 then cv2.INTER_AREA to 256",
+  "state": "eef_pos + quat2axisangle(eef_quat) [LiberoProcessorStep] + gripper_qpos",
+  "action": "dims0-5 unchanged; gripper (1-g)/2 (env -1 open -> 1)"
+ },
+ "reference": {
+  "dataset": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+  "root": "/home/imerit/.cache/huggingface/lerobot/IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+  "codebase_version": "v3.0"
+ },
+ "stats_from": {
+  "checkpoint": "nvidia/gr00t17-lerobot-libero_spatial-640",
+  "file": "/home/imerit/.cache/huggingface/hub/models--nvidia--gr00t17-lerobot-libero_spatial-640/snapshots/32a6ec786d6509df31b40392b4e4dcdda78c0f11/policy_preprocessor_step_2_groot_n1_7_pack_inputs_v1.safetensors"
+ },
+ "records_roots": [
+  "runs/r054_smoke"
+ ],
+ "unknown_tasks": [],
+ "heldout_lists": [
+  "experiments/repro/r056_heldout.json",
+  "experiments/repro/r056_val.json"
+ ]
+}
