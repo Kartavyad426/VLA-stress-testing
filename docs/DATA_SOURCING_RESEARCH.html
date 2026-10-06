@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Sourcing Research</title>
+<style>
+:root{
+  --bg:#fbfaf7;--fg:#1d1d1b;--muted:#5d5b55;--line:#dedad2;--card:#ffffff;
+  --accent:#2f5d8a;--bad:#a2352b;--good:#2d6a3e;--warn:#8a5a12;--code:#f1eee7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161614;--fg:#e9e6df;--muted:#a19d94;--line:#34322e;--card:#1e1d1a;
+    --accent:#86b1dc;--bad:#e2837a;--good:#7fc493;--warn:#d9a95a;--code:#26241f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161614;--fg:#e9e6df;--muted:#a19d94;--line:#34322e;--card:#1e1d1a;
+  --accent:#86b1dc;--bad:#e2837a;--good:#7fc493;--warn:#d9a95a;--code:#26241f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:1.75rem;line-height:1.25;margin:0 0 6px}
+h2{font-size:1.25rem;margin:44px 0 10px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:24px 0 6px}
+p,li{max-width:78ch}
+.sub{color:var(--muted);margin:0 0 24px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em;word-break:break-word}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;font-size:.9rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;margin:16px 0}
+.box.bad{border-left-color:var(--bad)}
+.box.good{border-left-color:var(--good)}
+.box.warn{border-left-color:var(--warn)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:2px}
+.est{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.rec{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.hyp{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.unk{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+ol li,ul li{margin:4px 0}
+.small{font-size:.88rem;color:var(--muted)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Sourcing demonstrations for targeted VLA fine-tuning: the start-pose case</h1>
+<p class="sub">2026-09-30 · Research note for SFT · Policy: GR00T N1.7 (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>) on LIBERO-Plus, 8 GB GPU · Target: the robot-initial-state perturbation · Inputs: <code>docs/DATA_MINER_SPEC.html</code>, <code>docs/R056_POSTMORTEM.html</code>, RESULTS.md R-053 → R-058 · No GPU jobs were run and nothing was committed.</p>
+
+<p>Every claim carries a tag:</p>
+<ul>
+<li><span class="tag est">established</span> is from a cited paper or from our own measured artifacts.</li>
+<li><span class="tag rec">recommendation</span> is my judgement.</li>
+<li><span class="tag hyp">hypothesis</span> fits the evidence but has not been tested.</li>
+<li><span class="tag unk">unverified</span> means I could not check it, for example code availability or details of 2026 papers that I read only at abstract level.</li>
+</ul>
+
+<h2>0. Bottom line</h2>
+<div class="box">
+<ol>
+<li><span class="tag est">established</span> <b>Automated demo generation is a mature field. Failure-targeted data for VLAs is an active 2025–26 field.</b>
+  <ul>
+  <li>MimicGen and its successors, DART, the DAgger family, CCIL and TAMP/LLM-planner data engines all generate demos automatically.</li>
+  <li>Several 2026 papers already follow "find failures, then synthesise data for them": VLAMotor, RECALL, FLARE, and Jung &amp; Park on initial-pose dependence.</li>
+  <li>The sources we listed in the spec are not new ideas.</li>
+  </ul></li>
+<li><span class="tag est">established</span> <b>The closest published baseline to our S2 has already been tried on this exact perturbation, and it helped little.</b> LIBERO-Plus built its robustness training set by executing the original LIBERO demo actions in perturbed environments and keeping the successes (&gt;20k trajectories). On robot initial state, OpenVLA-OFT rose only from 21.7% to 30.3% (+8.6 pp), the smallest gain of any row except language and light. Replaying borrowed actions from a moved start is the same idea as S2, and it hits the same wall.</li>
+<li><span class="tag rec">recommendation</span> <b>Stop using S2 as the main source. Build a state-conditional source instead.</b>
+  <ul>
+  <li><b>Option A, "bridge-and-join"</b> (a one-skill MimicGen-lite). A privileged controller drives from the perturbed pose to a join point on a human demo's own path, then tracks the rest of that demo. The layouts come from the demos' own recorded initial states.</li>
+  <li><b>Option B</b> is the full scripted privileged expert (S3) with DART-style noise injection.</li>
+  <li>Either one needs a style-alignment step (DATAFARM shows raw planner data can fail entirely), a clean-grasp gate, full episodes, and offset-stratified sampling.</li>
+  </ul></li>
+<li><span class="tag rec">recommendation</span> <b>Cheapest discriminating experiment: a bridge-then-handback rescue.</b> Drive only the new bridge controller for the first forward or forwards at far offsets (&gt;12 cm), then hand back to the unmodified base, with a no-op arm at 3 seeds. It costs about 1 GPU-hour and needs no training. If the base then succeeds, the bridge labels are the right fine-tuning target. If it doesn't, even far-offset failures are not first-chunk failures, and we need whole-episode expert data (Option B).</li>
+<li><span class="tag rec">recommendation</span> <b>Gate data quality before any training.</b> The gates in §4 check coverage against the eval distribution in cm, a clean-grasp definition, phase mix, dose accounting, and label consistency against the base's own predictions. Also run the post-mortem's replay-only control arm first. Without it, no data change can be attributed.</li>
+</ol>
+</div>
+
+<h2>1. Q1: Is this an established area? (survey)</h2>
+<p>Grouped by what the method generates. "Code" means public code that I found. "robosuite/LIBERO fit" is my assessment of how much porting it would need.</p>
+
+<h3>1.1 Demo adaptation and generation from a few human demos</h3>
+<div class="tbl"><table>
+<tr><th>Method</th><th>arXiv</th><th>What it generates</th><th>Relevance to start pose</th><th>Code · robosuite/LIBERO fit</th></tr>
+<tr><td>MimicGen (Mandlekar et al. 2023)</td><td>2310.17596</td><td>Splits demos into object-centric segments, transforms them to new object poses, links them with interpolated transit, then executes and success-filters.</td><td>High. The interpolated transit from an arbitrary start into the first segment is exactly a start-pose correction.</td><td><span class="tag est">established</span> <a href="https://github.com/NVlabs/mimicgen">NVlabs/mimicgen</a>, built on robosuite. LIBERO is built on robosuite, so a port is plausible.</td></tr>
+<tr><td>SkillMimicGen / SkillGen</td><td>2410.18907</td><td>Adapts skill segments and stitches them with motion-planned transit. About 24% more successful than MimicGen.</td><td>High, and it uses planner transit instead of linear interpolation.</td><td><span class="tag unk">unverified</span> release status. Its tasks are robosuite-based.</td></tr>
+<tr><td>DexMimicGen</td><td>2410.24185</td><td>MimicGen for bimanual dexterous humanoids: 21k demos from 60.</td><td>Low (single-arm here). Relevant only because GR00T's pipeline used this family.</td><td><span class="tag est">established</span> <a href="https://github.com/NVlabs/dexmimicgen/">NVlabs/dexmimicgen</a></td></tr>
+<tr><td>MimicLabs (Saxena et al.)</td><td>2506.13536</td><td>A procedural data framework on robosuite + LIBERO + MimicGen. Finds that camera pose and spatial arrangement are the diversity axes that matter, and that aligned data beats more data.</td><td>High as infrastructure: it is the nearest existing LIBERO + MimicGen integration.</td><td><span class="tag est">established</span> <a href="https://github.com/Gatech-RL2/mimiclabs">GaTech-RL2/mimiclabs</a>. The closest ready fit.</td></tr>
+<tr><td>DemoGen (Xue et al., RSS'25)</td><td>2502.16932</td><td>Adapts the action trajectory to new object configurations from one demo, and synthesises observations by 3D point-cloud editing.</td><td>Medium. The action-side adaptation applies. The observation side (point clouds) does not fit our RGB policy, and we can render in sim anyway.</td><td><span class="tag est">established</span> <a href="https://github.com/TEA-Lab/DemoGen">TEA-Lab/DemoGen</a>. Not robosuite.</td></tr>
+<tr><td>CP-Gen (Lin et al., CoRL'25)</td><td>2508.03944</td><td>One demo becomes keypoint-trajectory constraints, and joints are optimised to track them under new poses and geometries. 77% vs 50% for the best baseline.</td><td>Medium. More machinery than one pick-and-place needs.</td><td><span class="tag unk">unverified</span></td></tr>
+</table></div>
+
+<h3>1.2 Corrective and recovery data (the covariate-shift line)</h3>
+<div class="tbl"><table>
+<tr><th>Method</th><th>arXiv</th><th>What it generates</th><th>Relevance</th><th>Code · fit</th></tr>
+<tr><td>DAgger (Ross et al. 2011)</td><td>1011.0686</td><td>Expert labels at the states the learner visits, iterated.</td><td>The textbook answer to covariate shift. It needs an expert that can act from any state, so S2 cannot serve as its expert.</td><td>An algorithm, simple to implement once an expert exists.</td></tr>
+<tr><td>HG-DAgger (Kelly et al. 2019)</td><td>1810.02890</td><td>The human takes over when needed, and only the takeover segments are labelled.</td><td>Low (human-in-the-loop).</td><td>An algorithm.</td></tr>
+<tr><td>DART (Laskey et al. 2017)</td><td>1703.09327</td><td>Injects noise into the <i>expert's</i> executed actions while keeping the clean intended action as the label, so the demos cover recovery states. Off-policy, with no learner rollouts.</td><td>High and cheap. A privileged controller can do this for free. It targets the "close too high, then flail" states.</td><td>Old MuJoCo locomotion code. Easy to re-implement.</td></tr>
+<tr><td>CCIL (Ke et al., ICLR'24)</td><td>2310.12972</td><td>Corrective labels synthesised near the demos, using a learned, locally Lipschitz dynamics model.</td><td>Medium. With simulator access we don't need a learned dynamics model.</td><td><span class="tag unk">unverified</span></td></tr>
+<tr><td>IntervenGen (Hoque et al., IROS'24)</td><td>2405.01472</td><td>Expands about 10 human corrective interventions into many, MimicGen-style, covering the policy's mistake distribution. Up to 39× robustness under pose-estimation error.</td><td>High conceptually: generated corrections placed where the policy fails.</td><td><span class="tag unk">unverified</span> release. Same group and stack as MimicGen, so robosuite.</td></tr>
+<tr><td>RaC (Hu et al. 2025)</td><td>2509.07953</td><td>Scales human recovery-and-correction interventions for long-horizon tasks.</td><td>Low (human data, long horizon). It supports keeping recoveries whole instead of truncating them.</td><td>–</td></tr>
+<tr><td>MAGMA-GEN (Bernat et al. 2026)</td><td>2609.20056</td><td>A privileged "coach" proposes a local correction at a hypothesised decision error. The correction is kept only if re-execution from the same state improves progress.</td><td>High. This is our "no-op baseline plus rescue" logic turned into a data filter.</td><td><span class="tag unk">unverified</span></td></tr>
+</table></div>
+
+<h3>1.3 Self-generated data, planners and experts</h3>
+<div class="tbl"><table>
+<tr><th>Method</th><th>arXiv</th><th>What it generates</th><th>Relevance</th><th>Code · fit</th></tr>
+<tr><td>RoboCat (Bousmalis et al. 2023)</td><td>2306.11706</td><td>A fine-tuned agent generates more data, and the successes go into the next training round (a self-improvement loop).</td><td>Establishes success-filtered self-generation (like S2 without the borrowed chunk). It sharpens behaviour the policy can already produce and cannot reach states it never succeeds from.</td><td>No code.</td></tr>
+<tr><td>Scaling Up and Distilling Down (Ha, Florence, Song 2023)</td><td>2307.14535</td><td>An LLM plans, sampling-based motion and grasp planners execute, and LLM-written success checks enable <i>retry and labelled failures</i>.</td><td>Medium. The template for a privileged planner expert with automatic success checks.</td><td><span class="tag unk">unverified</span></td></tr>
+<tr><td>DATAFARM (Sahoo, Huang, Silver 2026)</td><td>2609.12316</td><td>TAMP trajectories <i>aligned to the pretraining data</i> in joint configuration, motion style and timing.</td><td><b>Critical for S3.</b> Raw TAMP data fine-tuned a pretrained VLA to 8.3% success, aligned data to 56.7%, and human teleop to 61.7%. Style mismatch is not a small effect.</td><td>Says code is at prpl-group.com/datafarm. <span class="tag unk">unverified</span></td></tr>
+<tr><td>Blindfolded experts (Zisselman et al., NeurIPS'25)</td><td>2510.24194</td><td>Hiding task information from the demonstrator makes demos more exploratory, and the cloned policy generalises better.</td><td>A caution for privileged experts: perfectly informed straight-line demos may clone into brittle policies.</td><td>–</td></tr>
+<tr><td>RIPT-VLA (2025)</td><td>2505.17016</td><td>RL post-training with sparse success reward (not data generation).</td><td>An alternative to data sourcing that learns directly from start-pose rollouts. <span class="tag rec">recommendation</span> Not feasible for GR00T N1.7 on 8 GB in my view; worth revisiting with larger compute.</td><td><span class="tag est">established</span> <a href="https://github.com/Ariostgx/ript-vla">Ariostgx/ript-vla</a>, with LIBERO support.</td></tr>
+<tr><td>SimpleVLA-RL (2025)</td><td>2509.09674</td><td>Scalable RL for VLAs on veRL (91% → 99% on LIBERO).</td><td>Same as RIPT-VLA; it needs multi-GPU.</td><td><a href="https://github.com/PRIME-RL/SimpleVLA-RL">PRIME-RL/SimpleVLA-RL</a></td></tr>
+</table></div>
+
+<h3>1.4 Robustness to initial state and perturbations in VLAs specifically</h3>
+<div class="tbl"><table>
+<tr><th>Work</th><th>arXiv</th><th>What it shows</th><th>Relevance</th></tr>
+<tr><td>LIBERO-Plus (2025)</td><td>2510.13626</td><td>Camera and robot initial state are the worst axes. Their robustness fine-tune executed the original demo actions in perturbed environments and kept the successes: &gt;20k trajectories, 4,000 per perturbation type. Robot initial state improved least, 21.7 → 30.3%.</td><td><span class="tag est">established</span> <b>The strongest external evidence that borrowed-action sources underperform on start pose.</b> It matches our coverage finding: borrowed actions succeed only where the displacement is small.</td></tr>
+<tr><td>Jung &amp; Park 2026, "Policy-Induced Hand Priors… Initial-Pose Dependence"</td><td>2608.11769</td><td>Diagnoses initial-pose dependence in dual-arm VLA policies, including the influence of wrist-camera observations, over 17 start poses. Mitigates it by widening pose coverage and adding targeted augmentation around poor configurations.</td><td><b>The closest prior work to ours</b> (diagnosis, then targeted pose data). <span class="tag unk">unverified</span> beyond the abstract.</td></tr>
+<tr><td>FLARE (Zhao et al., CVPR'26)</td><td>2608.26645</td><td>A "perturbation &amp; bridging" augmentation injects pose perturbations plus bridging segments between demo segments, decoupling robot pose from task progress. An MLLM-driven reset pipeline collects targeted recovery skills.</td><td>High. Its "bridging" is essentially Option A's bridge. How the bridges are generated is <span class="tag unk">unverified</span>.</td></tr>
+<tr><td>VLAMotor (Liao et al. 2026)</td><td>2606.00053</td><td>Distance-to-training-data testing exposes failures. A VLM planner plus a 16-skill library and IK/motion planning repairs them. Fine-tuning on the repaired successes gives +49% (sim).</td><td>"Failure, then targeted synthetic data" end to end. No internal mechanism analysis.</td></tr>
+<tr><td>RECALL (Karli &amp; Fitzgerald 2026)</td><td>2606.23617</td><td>Collects demos from high-uncertainty states instead of passively. Warns that recovery-only fine-tuning causes catastrophic forgetting.</td><td>Supports mixing with replay and targeting the states that matter.</td></tr>
+<tr><td>Unsupervised failure taxonomies</td><td>2506.06570</td><td>Clusters deployment failures into a taxonomy and uses it to target collection. In one reported case, 40k targeted samples cut failures from 46% to 18%.</td><td>The failure-mining side of the loop.</td></tr>
+<tr><td>STRONG-VLA (2026)</td><td>2604.10055</td><td>Two-stage fine-tuning: a perturbation curriculum, then realignment on clean data.</td><td>Recipe rather than data. Relevant to our replay-mix drift.</td></tr>
+</table></div>
+
+<h3>1.5 Data quality and curation (relevant to Q3)</h3>
+<ul>
+<li><span class="tag est">established</span> <b>Belkhale et al., Data Quality in Imitation Learning</b>, arXiv:2306.02437. Quality is framed as <i>action divergence</i> (expert vs learner at the same state) and <i>transition diversity</i>, and more state diversity is not always better.</li>
+<li><span class="tag est">established</span> <b>Demo-SCORE</b>, arXiv:2503.03707 (<a href="https://github.com/alessing/demo-score">code</a>). A classifier trained on policy rollouts filters unreliable demo strategies (+15–35 pp).</li>
+<li><span class="tag est">established</span> <b>CUPID</b>, arXiv:2506.19121: influence functions rank demos by their effect on closed-loop return. <b>DataMIL</b>, arXiv:2505.09603 (<a href="https://github.com/UT-Austin-RobIn/datamil">code</a>): datamodels with a surrogate loss instead of rollouts. Both are principled, and both are costly for a 3B model on 8 GB.</li>
+</ul>
+
+<div class="box good"><b>Answer to Q1.</b> <span class="tag est">established</span> Yes, it is established. Every source in our spec has a named precedent. The one piece of prior work run on our exact perturbation, the LIBERO-Plus fine-tune, already shows that borrowed-action data barely moves the robot-initial-state row. For LIBERO the most reusable code is MimicGen plus MimicLabs, which already integrates LIBERO.</div>
+
+<h2>2. Q4: Is "localise the mechanism, then target the data" novel?</h2>
+<p><span class="tag est">established</span> The parts are all covered:</p>
+<ul>
+<li><b>Finding failures and targeting data at them</b> is covered by VLAMotor, RECALL, failure taxonomies, FLARE, and Jung &amp; Park.</li>
+<li><b>Interventional attribution inside VLAs</b> is covered by:
+  <ul>
+  <li>Häon et al., <i>Mechanistic interpretability for steering VLAs</i>, arXiv:2509.00328;</li>
+  <li><i>Embodied Interpretability</i> (ISS/NMR, interventional masking of visual regions), arXiv:2605.00321;</li>
+  <li>FACT (Stanford), arXiv:2608.01402. It localises contact-rich failures to the flow-matching noise schedule and fixes them in the <i>architecture and schedule, not with data</i>.</li>
+  </ul></li>
+<li><b>Initial-pose diagnosis that includes wrist-camera influence, followed by targeted pose augmentation</b>, is covered by Jung &amp; Park, arXiv:2608.11769. It is the closest single paper, and I read only its abstract.</li>
+</ul>
+<p><span class="tag rec">recommendation</span> What I did <i>not</i> find is this combination:</p>
+<ol>
+<li>a causal intervention on the policy's own inputs and time (splice-restoring the wrist camera versus the agent view, and "decided at forward k");</li>
+<li>used to set the <i>data specification</i>: which frames need new labels, how many forwards, and which source can produce correct labels;</li>
+<li>then checked by predicting and measuring the mechanism shift after training (W transfer 0.88 → 0.84).</li>
+</ol>
+<p>That is a defensible contribution, but a narrow one. Claim it as "mechanism-specified data targeting with a pre-registered mechanism readout", not as targeted data generation in general. This rests on a search done on 2026-09-30. Before claiming novelty in writing, read Jung &amp; Park and FLARE in full.</p>
+
+<h2>3. Q2: What we should source, and how each option handles failure modes 1–6</h2>
+
+<h3>3.1 One observation from our own data</h3>
+<p><span class="tag est">established</span> (R-056 post-mortem §5.1) Beyond 16 cm:</p>
+<ul>
+<li>the <i>base policy on its own</i> succeeds on 16 of 33 held-out starts (≈ 48%);</li>
+<li>S2 minting, which drives the nominal chunk, keeps only 2 of 10 (20%).</li>
+</ul>
+<p>From 12 to 16 cm they are level: base 4/12, S2 yield 0.33.</p>
+<p><span class="tag hyp">hypothesis</span> At far offsets, the borrowed nominal chunk is <i>worse</i> than the policy's own first chunk. The reason: LIBERO actions are end-effector deltas, so a canonical approach executed from 16 cm away lands 16 cm off. The directions and n differ, so treat this as a hint. It matches LIBERO-Plus's small gain, and it is why I would stop investing in S2 as the main source.</p>
+
+<h3>3.2 Option A (recommended first): "bridge-and-join", a one-skill MimicGen-lite</h3>
+<p><span class="tag rec">recommendation</span> For each generated demo:</p>
+<ol>
+<li><b>Layout.</b> Reset to one of the <i>recorded initial states of the original LIBERO-Spatial human demos</i>, about 50 per task in the source HDF5. This gives real layout variation for free, and each layout has a matching human trajectory.</li>
+<li><b>Start.</b> Apply a joint-space start perturbation. Sample it <i>stratified by gripper offset in cm</i> so that the kept set matches or over-covers the eval distribution: oversample 12–20 cm and use at least 4 directions per scene. Exclude the held-out set (G4).</li>
+<li><b>Bridge (privileged, purposeful).</b> A controller that reads the true EEF pose issues OSC delta actions from the perturbed pose to a <i>join point</i> on the human demo's EEF path. The join point is the earliest approach-segment waypoint that is reachable without passing near the object. The gripper stays open. Speed and acceleration are scaled to the human demos' per-step action statistics, as DATAFARM-style alignment. Every bridge frame is a state-conditional "go to the object's path from where you are" label.</li>
+<li><b>Join.</b> From the join index on, <i>track the human demo's recorded EEF target poses</i> (MimicGen's execution mode) rather than replaying its deltas open-loop. Residual bridge error is then corrected instead of carried along.</li>
+<li><b>DART option.</b> On the bridge and approach, execute the clean action plus small noise, and <i>record the clean action as the label</i>. This covers near-miss states with correct labels.</li>
+<li><b>Record the full episode.</b> Tag frames as <code>bridge</code>, <code>join</code> or <code>replay</code>. Keep an episode only if it passes the clean-demo gate in §4.2.</li>
+</ol>
+<p>How it relates to the literature: this is MimicGen's "transit into the first object-centric segment" and FLARE's "bridging" for a task with a single grasp-and-place skill. On LIBERO-Spatial, one skill template covers all ten tasks.</p>
+
+<h3>3.3 Option B: full scripted privileged expert (S3) with DART and style alignment</h3>
+<p><span class="tag rec">recommendation</span> A waypoint expert for the whole skill: approach, descend, close, lift, transit, descend, open. DART noise is injected on execution, and the expert's timing and speed are aligned to the human demo statistics. Use B if the cheap experiment (§5.2) shows that far-offset failures are not decided in the first forwards, so that whole-episode purposeful labels are needed. B is also the prerequisite for DAgger-style relabelling (S6) later.</p>
+<p>Main risk: the style gap. DATAFARM measured raw planner data at 8.3% against 56.7% after alignment. The blindfolded-experts result warns that over-informed straight-line demos can clone into brittle policies. A inherits most of its motion from human demos, so it carries less of this risk.</p>
+
+<h3>3.4 What to keep and what to defer</h3>
+<ul>
+<li><b>S2 (rescue minting):</b> keep it only as a comparison arm, and fix it first (clean filter, full episodes). The question it answers: does the source matter at a matched budget?</li>
+<li><b>S1 (re-render):</b> not applicable to start pose, because the start pose is physical.</li>
+<li><b>S4 (full MimicGen port):</b> defer. Option A is its minimal version. Port MimicGen or MimicLabs only when layout is the target.</li>
+<li><b>S6 (DAgger):</b> after B exists. It is iterative and GPU-hungry on 8 GB.</li>
+<li><b>S7 (teleop):</b> use it only for a 20–50-episode validation set.</li>
+<li><b>RL post-training:</b> out of reach on 8 GB for this model.</li>
+</ul>
+
+<h3>3.5 Failure modes 1–6, per option</h3>
+<div class="tbl"><table>
+<tr><th>Failure (post-mortem)</th><th>Option A: bridge-and-join</th><th>Option B: scripted expert + DART</th><th>S2, fixed (for contrast)</th></tr>
+<tr><td><b>1 · Coverage</b> (yield 0.2 beyond 16 cm)</td><td>Yield depends on the controller and the tracking, not on the policy, so it should be roughly flat across bands. It still has to be measured: gate §4.1. Stratified sampling sets the kept distribution directly.</td><td>Same, but grasp reliability on LIBERO-Plus objects is unknown. Gate G3 requires ≥80% on nominal.</td><td>Cannot be fixed. Yield falls with offset by construction, and <code>drive_until&gt;1</code> only lengthens the borrowed segment.</td></tr>
+<tr><td><b>2 · Dilution</b> (1% frame-0 labels, &lt;1 view each)</td><td>New signal = all bridge frames. The bridge gets longer with offset, which is where the signal is needed. Set the dose explicitly: draw bridge and approach frames at 25–50%, with frame 0 oversampled, and report expected views per frame (§4.4). Replay-type frames are human labels and don't compete.</td><td>Every frame is new-policy labelled, but most repeat what the base already does after the approach. Use the same explicit dose on the first 2–4 forwards.</td><td>Only 16 frames per episode carry signal. Up-weighting helps the dose but not the labels.</td></tr>
+<tr><td><b>3 · Pollution</b> (16 of 100 with a failed first grasp)</td><td>The grasp comes from human demo tracking. The clean-demo gate (exactly one close, at the human height band, before the lift) rejects the rest. Full episodes mean nothing is cut mid-recovery.</td><td>The expert's grasp height is a parameter, set from the human close-height distribution. DART noise may cause regrasps, so keep them only as <i>complete</i> recoveries.</td><td>The same gate helps, but it lowers yield further in the far bands.</td></tr>
+<tr><td><b>4 · Phase skew</b> (91% approach, 0.1% lift)</td><td>Full episodes, whose phase mix tracks the human demos. Weight phases explicitly in the sampler, not by truncation.</td><td>Same.</td><td>Fixed by keeping full episodes.</td></tr>
+<tr><td><b>5 · Label semantics</b> ("act as if at canonical")</td><td>Bridge labels are state-conditional ("go from here to the path"). After the join, labels are the human's own for that layout.</td><td>Purposeful everywhere, but in scripted style, hence the alignment step.</td><td>Unchanged. This is S2's defining property.</td></tr>
+<tr><td><b>6 · No layout variation</b> (env seed 0; start spread about 1.2 cm)</td><td>Uses the human demos' recorded initial states (about 50 layouts per task). The eval must also add layout and env-seed variation, or the gain is invisible.</td><td>Any layout and env seed.</td><td>It could vary env seeds, but the nominal recording is per seed and yield is unknown.</td></tr>
+</table></div>
+
+<div class="box warn"><b>Caveats for Option A.</b>
+<ol>
+<li><span class="tag unk">unverified</span> The raw LIBERO-Spatial HDF5, with its per-demo initial MuJoCo states, is not on this machine. Only the LeRobot conversion is, and it may not carry the simulator states. This must be downloaded and checked first.</li>
+<li><span class="tag hyp">hypothesis</span> The LIBERO-Plus scenes used in our eval (984…1327) may not share layouts with the original demo initial states. If they don't, the join needs an object-frame transform: the MimicGen step A skips on matching layouts.</li>
+<li>Tracking the demo's EEF targets from a different arm null-space configuration (a 7-DoF Panda with a joint-space perturbation) should work under OSC, but G2/G6 must confirm it.</li>
+</ol></div>
+
+<h3>3.6 Separate the data question from the recipe question</h3>
+<p><span class="tag rec">recommendation</span> The post-mortem found recipe drift as a live cause: an effective batch of 8 against the checkpoint's 320 at the same LR, augmentation off, and LoRA on <code>vl_self_attention</code>. A better data source trained with the R-056 recipe can fail again for recipe reasons. So:</p>
+<ol>
+<li>First run the replay-only control (post-mortem §9 B) with the corrected recipe.</li>
+<li>Then compare, at the same recipe and a matched budget: {replay only, S2 fixed, Option A}.</li>
+</ol>
+<p>That three-arm comparison is also what makes the "does the source matter?" question publishable.</p>
+
+<h2>4. Q3: Measuring data quality before training</h2>
+<p><span class="tag rec">recommendation</span> Every item below is CPU-only except §4.5, and each has a pass or fail threshold, so a dataset can be rejected before any GPU training. The thresholds are proposals to pre-register, not measured values.</p>
+
+<h3>4.1 Coverage against the eval distribution</h3>
+<ul>
+<li><b>Per-band counts in cm</b>, not requested radius, since the achieved radius is 0.74–0.78 of the request and direction changes cm offset 2×. Use the bands 0–5, 5–8, 8–12, 12–16 and &gt;16 cm, per scene. Pass: at least 10 kept demos in every band where the eval has starts, and the kept share per band ≥ the eval share for bands beyond 8 cm.</li>
+<li><b>Distribution distance.</b> Report the Wasserstein-1 distance between the kept and eval gripper-offset distributions, and the same for direction (the angle between unit displacement vectors). Pass: W1 ≤ 2 cm.</li>
+<li><b>Nearest-demo distance.</b> For each eval start, compute the distance to the nearest kept demo start in the same scene, in EEF position (cm) plus the joint-config L2. Report the median and p90, and the fraction of eval starts with a demo within 3 cm. The post-mortem already showed success tracks this (near 28/36 against far 16/36), so it is the most predictive single number. Pass: p90 ≤ 5 cm.</li>
+<li><b>Yield by band</b> is recorded as a selection-bias warning. Flag any band with yield &lt; 0.5, because there the kept set is a biased sample of the easier directions.</li>
+<li><b>Layout coverage.</b> Count distinct (task, initial-state or env seed) pairs. Pass: at least 10 per task, with eval layouts held out.</li>
+</ul>
+
+<h3>4.2 A "clean demo" definition (automated, from privileged state)</h3>
+<ol>
+<li>Success, reached within the eval horizon.</li>
+<li><b>Exactly one gripper close before the first lift.</b> The first lift means the object's z rises by more than 2 cm while it is in contact with the gripper.</li>
+<li><b>The close height is inside the human band:</b> the EEF-minus-object dz at the close lies within the human demos' p5–p95. Compute that band from the HDF5. Minted clean demos closed at 3.4 cm and bad ones at 5.7 cm, so the band will separate them.</li>
+<li>No reopen before the place, and no more than 2 gripper-command transitions in total.</li>
+<li>No non-target contact over a force threshold, and no joint-limit hits.</li>
+<li>No stall: EEF speed stays above ε for at most k consecutive steps, for example 20.</li>
+<li>Length ≤ the human p95 for the task. Never truncate inside a phase.</li>
+</ol>
+<p>Report the reject rate per rule. The rules are privileged-state checks on generated data only, so they don't leak into policy inputs.</p>
+
+<h3>4.3 Phase mix and gripper prior</h3>
+<p>Segment by gripper state and object height into approach, grasp, lift/transport, place and release. Pass: the phase shares of the <i>training mix</i> (after the replay blend and sampling weights) are within ±10 pp of the base's original training data, except for the phases deliberately up-weighted, which are declared. In particular, compare the closed-gripper frame share with the replay set's 54%. The pilot's 31% was flagged as a possible cause of gripper cycling.</p>
+
+<h3>4.4 Dose accounting (from the sampler, before training)</h3>
+<p>For each frame class (bridge/driven frame 0, other bridge frames, post-join, replay), report the share of draws and the expected views per frame at the planned number of optimiser steps and effective batch. Pass: every "new-signal" frame is seen at least 5 times in expectation, and new-signal frames are 25–50% of draws. R-056 reached 0.42–0.83 views.</p>
+
+<h3>4.5 Label consistency (one cheap GPU inference pass, no training)</h3>
+<ul>
+<li><b>Action divergence against the base</b>, after Belkhale et al. Run the base policy on a subsample of generated frames and measure ‖base chunk − label chunk‖. Expect it to be <i>high on bridge frames</i>, where the new signal is, and <i>at the noise floor on post-join and replay frames</i>. Measure the noise floor as the base's own chunk-to-chunk variability across flow seeds. A post-join frame far above the floor means that source disagrees with the base, which risks two modes. The fraction of frames above the floor is the true "effective dose".</li>
+<li><b>Cross-source contradiction.</b> For near-duplicate observations (kNN in proprio plus frozen VLM embedding) from different sources, compare the labels. Flag clusters whose label spread is more than 2× the within-source spread.</li>
+<li><b>Style statistics against human demos</b>, as DATAFARM alignment. Compare per-dimension action mean and std, speed profile, jerk, and time-to-grasp. Pass: each is within the human p5–p95 envelope.</li>
+<li><b>Round trip (G6).</b> The converted dataset replays in sim to the same outcome, and the action range and normalisation stats are unchanged (G1).</li>
+</ul>
+<p class="small">Optional later: a CUPID or DataMIL influence ranking. It is the principled answer to "which demos help", but costly for a 3B model on 8 GB. A Demo-SCORE classifier on rollouts is a cheaper proxy.</p>
+
+<h2>5. Q5: Cost, effort, and the first experiment</h2>
+<p><span class="tag rec">recommendation</span> The estimates below are anchored on measured numbers:</p>
+<ul>
+<li>R-056/R-058 training: 113 min for 2,000 optimiser steps at effective batch 8, peak 6.3–6.7 GB.</li>
+<li>Evaluation: about 70 min for 108 + 27 starts.</li>
+<li>Rollouts: about 45 s each with policy inference (R-047).</li>
+</ul>
+<p>Sim-only generation speed is my estimate.</p>
+
+<h3>5.1 Top two options</h3>
+<div class="tbl"><table>
+<tr><th></th><th>Option A: bridge-and-join</th><th>Option B: scripted expert + DART + alignment</th></tr>
+<tr><td>Engineering</td><td><b>3–4 days</b>:
+  <ul>
+  <li>HDF5 download and initial-state loader: ½</li>
+  <li>bridge controller and join selection: 1</li>
+  <li>EEF-target tracking of the demo: ½–1</li>
+  <li>frame tags, clean gate and coverage report: ½</li>
+  <li>G2/G6 checks and converter reuse: ½–1</li>
+  </ul></td><td><b>4–5 days</b>:
+  <ul>
+  <li>waypoint expert: 1–2</li>
+  <li>per-object grasp offsets on LIBERO-Plus: ½–1</li>
+  <li>style alignment: 1</li>
+  <li>DART and gates: 1</li>
+  </ul></td></tr>
+<tr><td>Generation</td><td>Sim only, with no policy inference. About 10–30 s per episode on CPU, so 500 kept demos take about 2–4 CPU-hours. It runs in parallel and needs no GPU.</td><td>About 20–30 s per episode, so 500 take about 3–5 CPU-hours.</td></tr>
+<tr><td>Pre-training checks (§4)</td><td>Label-consistency inference on about 20k subsampled frames: ~1 GPU-hour.</td><td>Same.</td></tr>
+<tr><td>Training + eval per arm</td><td>At the post-mortem's corrected recipe (effective batch 32–64 through accumulation), about 4× the R-056 time per optimiser step. Budget <b>~6–8 GPU-hours per arm</b> for 2,000 steps, or less if the plateau is earlier. Eval takes about 2–3 GPU-hours on a redesigned held-out set with 4 or more directions per scene and layout variation.</td><td>Same.</td></tr>
+<tr><td>Three-arm comparison (replay only / S2 fixed / new source)</td><td colspan="2">About 25–35 GPU-hours in total, which is roughly 2 overnight queues on the 8 GB card.</td></tr>
+<tr><td>Main risk</td><td>Layout mismatch between the demo initial states and the LIBERO-Plus eval scenes. Tracking under a different null-space.</td><td>Style gap: DATAFARM measured 8.3% raw. Grasp reliability.</td></tr>
+</table></div>
+
+<h3>5.2 The cheapest discriminating experiment: a bridge-then-handback rescue (no training)</h3>
+<div class="box good">
+<p><b>Build only the bridge controller</b> (about 1 day, CPU-testable). Then run two checks.</p>
+<ol>
+<li><b>CPU: generator yield.</b> Run bridge-and-join with no policy on about 60 non-held-out starts across the offset bands. Pass if clean yield is ≥ 0.7 in every band, including &gt;16 cm. This tells us whether Option A fixes coverage at all.</li>
+<li><b>GPU, about 1 hour: rescue with a state-conditional correction.</b> Use about 30 non-held-out starts beyond 12 cm at 3 noise seeds. Arms:
+  <ul>
+  <li>P: a no-op re-run;</li>
+  <li>B1: bridge drives forward 0 only, then hand back to the unmodified base;</li>
+  <li>B*: bridge drives until the join, then hand back.</li>
+  </ul>
+  This is the R-044 design with a state-conditional correction replacing the nominal chunk, and it reuses the splice's drive-then-handback machinery. Report flips against P and the post-hand-back gap.</li>
+</ol>
+<p><b>How to read it.</b></p>
+<ul>
+<li>If B1 or B* rescues far starts well above P, far failures are still "decided early". The bridge labels are then a correct target, and the policy only has to learn to emit them, so go with Option A.</li>
+<li>If even B* fails, the base cannot finish from a good pose at far offsets. Whole-episode labels are needed, so go with Option B, and S2-style sources are ruled out for this band.</li>
+<li>If P already succeeds at the rate B* does, far-offset failures are render jitter, and no data source will show a gain at this eval size.</li>
+</ul>
+<p>Either way, it costs about a day plus one GPU-hour, and it decides between A, B and "stop".</p>
+</div>
+
+<h2>6. Limits of this note</h2>
+<ul>
+<li>I read the 2026 papers (FLARE, Jung &amp; Park, VLAMotor, RECALL, DATAFARM, MAGMA-GEN, STRONG-VLA, Embodied Interpretability) at abstract or summary level. Their exact methods, numbers and code status need a full read before we cite them in anything external.</li>
+<li>I confirmed code availability only where a repository link is given above. Where it says <span class="tag unk">unverified</span>, I found no repository in this search.</li>
+<li>The LIBERO-Plus numbers (21.7 → 30.3%) are for OpenVLA-OFT, not GR00T.</li>
+<li>All thresholds in §4 are proposals. Set them in a pre-registration, not after seeing the data.</li>
+</ul>
+
+<h2>References</h2>
+<p class="small">
+Mandlekar et al., MimicGen, arXiv:2310.17596 · Garrett et al., SkillMimicGen, arXiv:2410.18907 · Jiang et al., DexMimicGen, arXiv:2410.24185 · Saxena et al., What Matters in Learning from Large-Scale Datasets (MimicLabs), arXiv:2506.13536 · Xue et al., DemoGen, arXiv:2502.16932 · Lin et al., CP-Gen, arXiv:2508.03944 · Ross et al., DAgger, arXiv:1011.0686 · Kelly et al., HG-DAgger, arXiv:1810.02890 · Laskey et al., DART, arXiv:1703.09327 · Ke et al., CCIL, arXiv:2310.12972 · Hoque et al., IntervenGen, arXiv:2405.01472 · Hu et al., RaC, arXiv:2509.07953 · Bernat et al., MAGMA-GEN, arXiv:2609.20056 · Bousmalis et al., RoboCat, arXiv:2306.11706 · Ha, Florence, Song, Scaling Up and Distilling Down, arXiv:2307.14535 · Sahoo, Huang, Silver, DATAFARM, arXiv:2609.12316 · Zisselman et al., Blindfolded Experts Generalize Better, arXiv:2510.24194 · RIPT-VLA, arXiv:2505.17016 · SimpleVLA-RL, arXiv:2509.09674 · LIBERO-Plus, arXiv:2510.13626 · Jung &amp; Park, Policy-Induced Hand Priors, arXiv:2608.11769 · Zhao et al., FLARE, arXiv:2608.26645 · Liao et al., VLAMotor, arXiv:2606.00053 · Karli &amp; Fitzgerald, RECALL, arXiv:2606.23617 · Unsupervised Discovery of Failure Taxonomies, arXiv:2506.06570 · STRONG-VLA, arXiv:2604.10055 · Belkhale et al., Data Quality in Imitation Learning, arXiv:2306.02437 · Chen et al., Demo-SCORE, arXiv:2503.03707 · Agia et al., CUPID, arXiv:2506.19121 · DataMIL, arXiv:2505.09603 · Häon et al., Mechanistic interpretability for steering VLAs, arXiv:2509.00328 · Zhang et al., Embodied Interpretability, arXiv:2605.00321 · Parés-Morlans et al., FACT, arXiv:2608.01402 · Liu et al., LIBERO, arXiv:2306.03310.<br>
+This repo: <code>docs/DATA_MINER_SPEC.html</code>, <code>docs/R056_POSTMORTEM.html</code>, <code>runs/overnight/SUMMARY_r056fix.txt</code>, RESULTS.md R-044, R-047, R-053 → R-058.
+</p>
+</main>
+</body>
+</html>
