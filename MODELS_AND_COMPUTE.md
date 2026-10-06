@@ -60,7 +60,8 @@ Architecture notes that matter for us:
 
 - **SmolVLA** = SigLIP 400M vision + SmolLM2 135M backbone.
 - **OpenVLA** = SigLIP 400M + Llama-2 7B; ~5–8 Hz on an A100 (why OFT exists).
-- **GR00T N1.7** = NVIDIA Eagle encoder + flow-matching action transformer.
+- **GR00T N1.7** = `nvidia/Cosmos-Reason2-2B` (Qwen3-VL) vision-language backbone, truncated at LLM layer 16,
+  + flow-matching DiT action head. (Earlier GR00T versions used Eagle; corrected 2026-10-06.)
 - **π0** = flow matching. **GR00T and π0 both sample**, so `I1`/§5.1 in
   `ARCHITECTURE.md` applies hard: seed the noise draw or probes are noise.
 
