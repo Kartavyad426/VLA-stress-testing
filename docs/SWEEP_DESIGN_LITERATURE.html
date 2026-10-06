@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perturbation Sweep Design</title>
+<style>
+:root{
+  --bg:#fbfaf7; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a65; --rule:#e4e1d9;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8;
+  --unk:#4a4f8c; --unk-bg:#ebecf8; --ok:#2e6b3a; --ok-bg:#e5f2e7;
+  --accent:#1f5f8b; --code-bg:#f2f0ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+    --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+    --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+    --accent:#7cb8e4; --code-bg:#2a2c31;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171a; --panel:#1e2024; --ink:#e8e6e1; --muted:#9a988f; --rule:#33353b;
+  --bad:#ff8a80; --bad-bg:#3a1f1d; --warn:#f0c26b; --warn-bg:#352a14;
+  --unk:#aab0f5; --unk-bg:#23264a; --ok:#8fd19e; --ok-bg:#1b3222;
+  --accent:#7cb8e4; --code-bg:#2a2c31;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+h2{font-size:21px;margin:44px 0 10px;padding-top:12px;border-top:1px solid var(--rule)}
+h3{font-size:17px;margin:26px 0 8px}
+p{margin:8px 0}
+ul{margin:6px 0;padding-left:22px}
+li{margin:3px 0}
+.sub{color:var(--muted);font-size:14px}
+code{font:13px/1.4 ui-monospace,"JetBrains Mono",Menlo,monospace;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+a{color:var(--accent)}
+.tablewrap{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+th,td{border-bottom:1px solid var(--rule);padding:7px 9px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.bad{color:var(--bad);background:var(--bad-bg)} .warn{color:var(--warn);background:var(--warn-bg)}
+.unk{color:var(--unk);background:var(--unk-bg)} .ok{color:var(--ok);background:var(--ok-bg)}
+.box{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;margin:14px 0}
+.box.verdict{border-left-color:var(--ok)}
+.box.caveat{border-left-color:var(--warn)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px}
+.card h4{margin:6px 0 4px;font-size:15px}
+.card p{font-size:14px;margin:0}
+.ref{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Perturbation Sweep Design</h1>
+<p class="sub">How to find where a VLA policy fails, according to the literature on boundary search, robustness curves, experimental design and coverage. Written 2026-09-28 (session <code>sweep</code>) for my prim. Reading only: RESULTS.md was not edited and the GPU was not used. Links checked on 2026-09-28.</p>
+
+<div class="box verdict">
+<p><b>Short answer.</b> Keep one-axis sweeps with replicated grids. Drop bisection. Change three things:</p>
+<ul>
+<li><b>Fit a model.</b> Model each axis as a success-probability curve with a lapse term and scene random effects, not as a threshold.</li>
+<li><b>Spend replicates adaptively.</b> Use a second stage that puts rollouts where the fitted 50% crossing is least certain.</li>
+<li><b>Add a small interaction layer.</b> Test the pairs of axes at 2–3 levels each.</li>
+</ul>
+<p>Covering arrays are the right tool later, for the benchmark's <i>discrete</i> factors (texture, layout, language, light variants, noise family). They are not the right tool for continuous camera and pose axes, and not for a stochastic outcome sampled once per cell. For R-052 this is about 940 rollouts (about 11.8 h at 45 s each), against the 760 pre-registered. A lean version is about 800.</p>
+</div>
+
+<h2>1. Is the failure boundary a line, a probability or a fractal?</h2>
+
+<p>The literature treats it as a probability. The outcome at a perturbation <i>x</i> is a Bernoulli draw with success probability <i>p</i>(<i>x</i>, scene). "The boundary" is a <b>level set</b> of <i>p</i>, such as <i>p</i> = 0.5, and has a confidence band around it. Three separate lines of work reach this conclusion.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Paper</th><th>Takeaway</th><th>Bearing on our design</th></tr></thead>
+<tbody>
+<tr><td>Wichmann &amp; Hill, <i>The psychometric function I: fitting, sampling and goodness of fit</i>, Perception &amp; Psychophysics 2001. <a href="https://link.springer.com/article/10.3758/BF03194544">link</a></td>
+<td>The standard way to fit P(correct) against stimulus magnitude. The fit is a sigmoid with a <b>lapse</b> parameter, meaning failures that happen whatever the magnitude. It gives bootstrap CIs on the threshold and slope, and advice on where to put samples (spread them across the slope, not only at its middle).</td>
+<td>This is exactly R-047's readout (ii). Add a lapse term, because on-ramekin fails unperturbed under noise seed 1, so <i>p</i>(0) &lt; 1. Without one, a nominal failure pulls the fitted threshold towards 0.</td></tr>
+<tr><td>Geirhos et al., <i>Generalisation in humans and deep neural networks</i>, NeurIPS 2018. <a href="https://arxiv.org/abs/1808.08750">arXiv:1808.08750</a></td>
+<td>Compares DNNs with humans on 12 image distortions, using accuracy-against-signal-strength curves, the psychophysics method applied to networks. Robustness gained on one distortion does not carry over to others.</td>
+<td>A precedent for reporting each axis as a curve. It also says axes should not be assumed to share a boundary, which is why we sweep each one.</td></tr>
+<tr><td>Hendrycks &amp; Dietterich, <i>ImageNet-C</i>, ICLR 2019. <a href="https://arxiv.org/abs/1903.12261">arXiv:1903.12261</a></td>
+<td>Corruption families × 5 severities. The headline is error averaged over severities (mCE), not a threshold. Severity is an ordinal knob, not a physical unit.</td>
+<td>LIBERO-Plus noise (5 families × severity 1–10) is built this way. Treat severity as an ordinal axis and fit the same curve. Do not read a "boundary in severity units" as physical.</td></tr>
+<tr><td>Bryan et al., <i>Active learning for identifying function threshold boundaries</i>, NIPS 2005. <a href="https://proceedings.neurips.cc/paper/2005/hash/8e930496927757aac0dbd2438cb3f4f6-Abstract.html">link</a>. Gotovos et al., <i>Active learning for level set estimation</i> (LSE), IJCAI 2013. <a href="https://www.ijcai.org/Proceedings/13/Papers/202.pdf">pdf</a></td>
+<td>They formalise "find where a noisy function crosses a level". A GP models the function. Each next sample goes where the confidence band still straddles the level (the "straddle" rule). They prove sample-complexity bounds.</td>
+<td>This is what a bisection bracket should have been: a sample of <i>p</i>(<i>x</i>), not a threshold. Their straddle rule is our stage-2 allocation rule (§5).</td></tr>
+<tr><td>Moss et al., <i>Bayesian safety validation for failure probability estimation of black-box systems</i>, JAIS 2024. <a href="https://arxiv.org/abs/2305.02449">arXiv:2305.02449</a></td>
+<td>A GP-classifier surrogate over the operating domain. Its acquisition functions mix cover-the-space, refine-the-boundary and sample-the-failure-region. Failure probability comes from importance sampling on the surrogate. Needs orders of magnitude fewer samples than Monte Carlo.</td>
+<td>The most complete template for a later multi-axis programme. The large gains come from <i>rare</i> failures. Ours are not rare (pooled success is 0.37–0.70 from 0.2 rad), so expect much smaller gains.</td></tr>
+<tr><td>Sohl-Dickstein, <i>The boundary of neural network trainability is fractal</i>, 2024. <a href="https://arxiv.org/abs/2402.06184">arXiv:2402.06184</a></td>
+<td>For iterated dynamics (gradient descent), the converge/diverge boundary in hyperparameter space is fractal over more than 10 decades of scale.</td>
+<td>A cautionary analogy, not direct evidence: a closed-loop rollout is also an iterated map, with contact. For a <i>fixed</i> noise seed, the outcome as a function of <i>x</i> may be very rough. Averaging over seeds smooths it into <i>p</i>(<i>x</i>). That is another reason to model <i>p</i> and not a per-seed threshold. It also means a 30–40% flip rate under render jitter is expected, not a harness defect.</td></tr>
+<tr><td>Xie et al., <i>Decomposing the generalization gap in imitation learning for visual robotic manipulation</i>, ICRA 2024. <a href="https://arxiv.org/abs/2307.03659">arXiv:2307.03659</a></td>
+<td>Perturbs 11 factors one at a time (Factor-World) and in pairs. Finds a difficulty ordering of the factors that holds in sim and on the real robot. Camera pose and table texture are among the hardest.</td>
+<td>The closest methodological precedent to our programme. It supports ranking factors from single-axis sweeps, with a small pairwise layer on top.</td></tr>
+</tbody></table></div>
+
+<div class="box">
+<p><b>Verdict on Q1.</b> A continuous knob with a definite outcome boundary is the wrong model for the outcome. It is the right model for <i>p</i>(<i>x</i>, scene). Our data already say so: brackets move with render jitter, scene 50% points range from 0.21 to about 0.6 rad, and stove is a cliff while the others are slopes.</p>
+<p>The action-departure readout (‖P−N‖ at forward 0) is a different quantity. It is the local sensitivity of a smooth network, and it is non-zero at any resolvable magnitude by construction. Report it as a covariate (R-047's r = −0.36 on start pose), never as a boundary.</p>
+</div>
+
+<h2>2. Starting point and choice of axes</h2>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Paper</th><th>Takeaway</th><th>Bearing</th></tr></thead>
+<tbody>
+<tr><td>Frey, Engelhardt &amp; Greitzer, <i>A role for one-factor-at-a-time experimentation in parameter design</i>, Research in Engineering Design 2003. <a href="https://en.wikipedia.org/wiki/One-factor-at-a-time_method">overview</a></td>
+<td>The classical DOE view (Czitrom 1999 and others) is that OFAT misses interactions and wastes runs. Frey et al. show that <b>adaptive</b> OFAT does well when experimental error is small <i>relative to main effects</i>. It exploits large two-factor interactions and still captures main effects.</td>
+<td>Our experimental error is large (Bernoulli outcomes, 30–40% jitter flips), so OFAT only works if each point is replicated. It still gives main effects cheaply. Interactions need their own layer.</td></tr>
+<tr><td>Yu &amp; Joseph, <i>Space-filling one-factor-at-a-time designs</i>, 2026. <a href="https://arxiv.org/abs/2606.02533">arXiv:2606.02533</a></td>
+<td>Builds on Morris-style OFAT screening (MOFAT). The design screens factors and also fills the space, so one design serves both factor screening and a surrogate model.</td>
+<td>Relevant when there are more than about 4 continuous axes at once. Not needed for R-052's 3 camera axes.</td></tr>
+<tr><td>Pumacay et al., <i>THE COLOSSEUM</i>, RSS 2024. <a href="https://arxiv.org/abs/2402.08191">arXiv:2402.08191</a></td>
+<td>20 tasks × 14 perturbation axes, each applied alone to the <i>training</i> configuration, then all applied together. Single factors cost 30–50%. Combined, success falls by ≥75%.</td>
+<td>The standard VLA practice: start from nominal, one axis at a time, then one composition check. It gives a pooled number, not a curve. Composition clearly matters.</td></tr>
+<tr><td>Fei et al., <i>LIBERO-Plus</i>, 2025. <a href="https://arxiv.org/abs/2510.13626">arXiv:2510.13626</a></td>
+<td>7 factors, 21 components, about 10k task variants. Levels are sampled from ranges, and performance is reported per factor and per level. Reports that combining factors hurts more than the single factors predict.</td>
+<td>This defines the <i>evaluation distribution</i> we want to explain. Its factor analysis is descriptive. It does not give a sweep methodology or CIs.</td></tr>
+<tr><td>Gao et al., <i>A taxonomy for evaluating generalist robot policies</i> (STAR-Gen), 2025. <a href="https://arxiv.org/abs/2503.01238">arXiv:2503.01238</a></td>
+<td>Organises axes by modality: visual, semantic and behavioural perturbations of the policy's inputs and outputs. Argues each axis should be varied relative to a <i>base</i> task the policy is known to handle.</td>
+<td>Supports our choice of axes and our "start from a verified success" rule.</td></tr>
+<tr><td>Kress-Gazit et al., <i>Robot learning as an empirical science: best practices for policy evaluation</i>, 2024. <a href="https://arxiv.org/abs/2409.09491">arXiv:2409.09491</a></td>
+<td>Report the number of runs, the initial conditions and the success criteria. Run statistical tests. Describe failure modes. Control what is held fixed between conditions.</td>
+<td>A checklist our R-entries already mostly meet. The gap: CIs on per-scene thresholds.</td></tr>
+</tbody></table></div>
+
+<div class="box">
+<p><b>Principles for the starting point.</b></p>
+<ul>
+<li><b>Start from a verified success, and verify it under the same seeds.</b> This is universal practice (Colosseum, Factor-World, LIBERO-Plus).</li>
+<li><b>Measure the nominal point with more replicates than the others.</b> The nominal point is <i>p</i>(0), the curve's anchor, and it sets the lapse term. R-029's 100/100 used a different seed set from R-047, whose seed 1 fails on-ramekin.</li>
+<li><b>Use common random numbers.</b> Run every magnitude with the same noise seeds. Differences between magnitudes are then paired, and the variance of the curve shape drops. This is standard simulation practice. R-047 and R-052 already do it, so exploit it in the analysis: use per-seed monotonicity and paired tests.</li>
+<li><b>Axis choice.</b> Sweep the benchmark's own parameterisation (R-052's point), over its <i>full</i> range including sign. The benchmark spans yaw ±75°. R-052 as registered runs only positive yaw.</li>
+</ul>
+</div>
+
+<h2>3. Coverage theory: is there a minimal test set?</h2>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Paper</th><th>Takeaway</th><th>Bearing</th></tr></thead>
+<tbody>
+<tr><td>Kuhn, Wallace &amp; Gallo, <i>Software fault interactions and implications for software testing</i>, IEEE TSE 2004. <a href="https://csrc.nist.gov/pubs/journal/2004/06/software-fault-interactions-and-implications-for-s/final">link</a></td>
+<td>Across several domains, all known faults were triggered by ≤6 interacting parameters, and most by 1–2. A strength-<i>t</i> covering array (every <i>t</i>-tuple of levels appears in at least one test) is then "effectively exhaustive". For 5 factors at 3 levels, 2-way coverage needs 11 tests, against 243 for the full factorial.</td>
+<td>The premise is a <b>deterministic</b> fault that fires whenever its tuple appears. Our cells are Bernoulli with <i>p</i> often between 0.3 and 0.7. One rollout per row does not tell you whether a tuple is bad. Usable only with replicates per row, and only on discrete factors.</td></tr>
+<tr><td>Tuncali et al., <i>Sim-ATAV</i>, 2018. <a href="https://arxiv.org/abs/1804.06760">arXiv:1804.06760</a></td>
+<td>AV testing with learned perception. Covering arrays over discrete and discretised scenario parameters seed an optimisation-guided falsifier that searches continuous parameters.</td>
+<td>A good split for a later programme: covering array for the discrete LIBERO-Plus factors, then local continuous search around the rows that fail.</td></tr>
+<tr><td>Corso et al., <i>A survey of algorithms for black-box safety validation of cyber-physical systems</i>, JAIR 2021. <a href="https://arxiv.org/abs/2005.02979">arXiv:2005.02979</a></td>
+<td>Separates three tasks: <b>falsification</b> (find any failure), <b>most-likely failure</b>, and <b>failure-probability estimation</b>. Each has its own algorithms: optimisation, path planning, RL and importance sampling.</td>
+<td>We are doing a fourth task, <b>boundary characterisation</b>, and should name it. Falsification is trivial here, since failures are common. Methods built for rare failures (AST, importance sampling) are overkill.</td></tr>
+<tr><td>Lee et al., <i>Adaptive stress testing</i>, JAIR 2020. <a href="https://arxiv.org/abs/1811.02188">arXiv:1811.02188</a>. O'Kelly et al., <i>Scalable end-to-end AV testing via rare-event simulation</i>, NeurIPS 2018. <a href="https://arxiv.org/abs/1811.00145">arXiv:1811.00145</a></td>
+<td>AST uses RL/MCTS over disturbance sequences to find the most likely failure path. O'Kelly et al. use adaptive importance sampling for 2–20× speed-ups on rare crash probabilities.</td>
+<td>Both apply to <i>temporal</i> disturbance sequences and to rare events. Our perturbations are static per episode and failures are common, so they do not apply now. AST becomes relevant if we move to in-episode perturbations such as a pushed object.</td></tr>
+<tr><td>Mullins et al., <i>Adaptive generation of challenging scenarios for testing and evaluation of autonomous vehicles</i>, J. Systems &amp; Software 2018. <a href="https://www.sciencedirect.com/science/article/abs/pii/S0164121217302546">link</a></td>
+<td>"Performance boundary identification." Adaptive search concentrates samples where performance modes change, then clustering extracts the boundaries between modes.</td>
+<td>The AV counterpart of what we want. It shows adaptive sampling at the boundary is established practice, but it assumes near-deterministic mode labels.</td></tr>
+<tr><td>Riedmaier et al., <i>Survey on scenario-based safety assessment of automated vehicles</i>, IEEE Access 2020. <a href="https://dblp.uni-trier.de/rec/journals/access/RiedmaierPLSD20.html">dblp</a></td>
+<td>Surveys ODD / parameter-space coverage for AVs: grids, Monte Carlo, importance sampling, falsification, and combinations of them.</td>
+<td>The "logical scenario → concrete parameters" framing matches LIBERO-Plus factor → level. Coverage there is always relative to a stated parameter distribution.</td></tr>
+<tr><td>Vincent et al., <i>How generalizable is my behavior cloning policy? A statistical approach to trustworthy performance evaluation</i>, RA-L 2024. <a href="https://arxiv.org/abs/2405.05439">arXiv:2405.05439</a></td>
+<td>Distribution-free lower bounds on a manipulation policy's whole performance CDF, holding at a chosen confidence with as few rollouts as possible.</td>
+<td>Use this or Clopper–Pearson for any "the policy succeeds ≥ X under condition C" claim. Rule of three: 0 failures in <i>n</i> rollouts bounds the failure rate below 3/<i>n</i> at 95%, so a clean 20-rollout cell only shows failure &lt; 15%.</td></tr>
+<tr><td>Snyder et al., <i>STEP: policy comparison with near-optimal stopping</i>, 2025. <a href="https://arxiv.org/abs/2503.10966">arXiv:2503.10966</a></td>
+<td>A sequential test that stops early when one policy clearly beats another, and keeps going when they are close.</td>
+<td>Use it for the bench-vs-harness comparison per yaw level (R-052 readout iv) and for any policy-vs-policy check. It saves rollouts on the easy cells.</td></tr>
+<tr><td>Luo et al., <i>Sample-efficient safety assurances using conformal prediction</i>, IJRR 2024. <a href="https://arxiv.org/abs/2109.14082">arXiv:2109.14082</a></td>
+<td>Conformal calibration of a failure <i>warning</i> signal to a guaranteed false-negative rate ε, using about 1/ε samples.</td>
+<td>Relevant to the sentinel / fail-detect line, where ‖P−N‖ could serve as a warning score. Not relevant to sweep design itself.</td></tr>
+<tr><td>Badithela et al., <i>SureSim: reliable and scalable robot policy evaluation with imperfect simulators</i>, ICRA 2026. <a href="https://arxiv.org/abs/2510.04354">arXiv:2510.04354</a></td>
+<td>Prediction-powered inference: a few paired real/sim rollouts correct the bias in a large sim evaluation and give valid CIs.</td>
+<td>The same structure fits "many cheap harness-knob rollouts + a few benchmark-geometry rollouts". It is the formal version of R-052's readout (iv).</td></tr>
+</tbody></table></div>
+
+<div class="box">
+<p><b>Verdict on Q3.</b> No theory gives a minimal set for a <i>stochastic</i> outcome over <i>continuous</i> axes. Covering arrays give minimal coverage of tuples of <b>discrete levels</b> when faults are deterministic. For a stochastic policy, the minimal set comes from a statistical target:</p>
+<ul>
+<li>a CI width on each scene's 50% crossing (the psychometric/GP route), or</li>
+<li>a confidence bound on the failure rate per cell (the Clopper–Pearson / Vincent route).</li>
+</ul>
+<p>Adaptive allocation then reduces the count.</p>
+</div>
+
+<h2>4. VLA and manipulation work that states a method</h2>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Paper</th><th>Method it states</th><th>Bearing</th></tr></thead>
+<tbody>
+<tr><td>Anwar et al., <i>Efficient evaluation of multi-task robot policies with active experiment selection</i>, CoRL 2025. <a href="https://arxiv.org/abs/2502.09829">arXiv:2502.09829</a></td>
+<td>A surrogate over (policy, task) performance that shares strength across tasks through language embeddings. It picks the next trial by cost-aware information gain. About 50% cheaper for a given accuracy of mean-performance estimates.</td>
+<td>The robotics case for adaptive allocation. Our analogue of task similarity is scene similarity, so share strength across scenes (the hierarchical model in §5).</td></tr>
+<tr><td>Liao et al., <i>Active real-world factor-based evaluation for generalist robot policies</i>, 2026. <a href="https://arxiv.org/abs/2607.14439">arXiv:2607.14439</a></td>
+<td>Evaluation as sequential experimental design over a structured factor space (object pose × camera viewpoint), with a probabilistic surrogate. Across 2,331 real trials, it usually saves 20–40% of trials against random testing.</td>
+<td>The closest match to our question. Note the size of the gain: 20–40%, not orders of magnitude. Adaptive sampling is a refinement on top of a grid, not a replacement for it.</td></tr>
+<tr><td>Xie et al. 2024 (above). Pumacay et al. 2024 (above)</td>
+<td>Factor-at-a-time from the training configuration, plus pairs or all-together.</td>
+<td>The accepted design. Ours adds replicates and curves, which neither has.</td></tr>
+<tr><td>Zhou et al., <i>LIBERO-PRO</i>, 2025. <a href="https://arxiv.org/abs/2510.03827">arXiv:2510.03827</a></td>
+<td>Perturbs objects, initial states, instructions and environments. Shows models above 90% on standard LIBERO collapse to about 0%, and argues they memorise trajectories.</td>
+<td>A warning about the <i>starting point</i>. A nominal success on a memorised layout is a narrow basin, and start-pose cliffs (stove) are what memorisation predicts. It gives no sweep method.</td></tr>
+<tr><td>Garcia et al., <i>GemBench</i>, ICRA 2025. <a href="https://arxiv.org/abs/2410.01345">arXiv:2410.01345</a></td>
+<td>Four graded generalisation levels (placements, rigid objects, articulated objects, long-horizon).</td>
+<td>A categorical ladder, not a sweep. Not relevant to boundary design.</td></tr>
+<tr><td>Atreya et al., <i>RoboArena</i>, CoRL 2025. <a href="https://arxiv.org/abs/2506.18123">arXiv:2506.18123</a></td>
+<td>Distributed, double-blind, pairwise preference evaluation aggregated into a ranking.</td>
+<td>Ranks policies. It does not map a failure boundary. Not relevant here.</td></tr>
+<tr><td>Karnik et al., <i>Embodied red teaming</i>, 2024. <a href="https://arxiv.org/abs/2411.18676">arXiv:2411.18676</a></td>
+<td>A VLM generates hard instructions. This is falsification over the language axis.</td>
+<td>For the language factor later. It finds failures but does not characterise a boundary.</td></tr>
+<tr><td>Dreossi et al., <i>VerifAI</i> (with the Scenic language), CAV 2019. <a href="https://arxiv.org/abs/1902.04245">arXiv:1902.04245</a></td>
+<td>Scenario distributions written as probabilistic programs, with falsification, fuzzing and parameter synthesis on top.</td>
+<td>Tooling precedent. Writing our perturbation space down as an explicit distribution, as Scenic does, would make "coverage" well defined.</td></tr>
+</tbody></table></div>
+
+<h2>5. Recommendation</h2>
+
+<div class="cards">
+<div class="card"><span class="chip ok">keep</span><h4>One-axis replicated grids</h4><p>Main effects, per-scene curves, and comparability with R-041 and R-047. This is how the field works (Colosseum, Factor-World), with replicates added.</p></div>
+<div class="card"><span class="chip bad">drop</span><h4>Bisection with 1 rollout</h4><p>It assumes a deterministic threshold. Under a 30–40% jitter flip rate its bracket is noise.</p></div>
+<div class="card"><span class="chip warn">add</span><h4>Adaptive second stage</h4><p>LSE straddle or information gain on a fitted curve. Expect 20–40% savings, not 10×.</p></div>
+<div class="card"><span class="chip warn">add</span><h4>Pairwise interaction layer</h4><p>A few joint cells per axis pair, at levels chosen from the marginal curves. Composition is known to matter.</p></div>
+<div class="card"><span class="chip unk">later</span><h4>Covering arrays</h4><p>Only for the discrete LIBERO-Plus factors, with 4 or more replicates per row. Never for continuous axes with 1 rollout each.</p></div>
+</div>
+
+<h3>Analysis model (applies to R-047 retroactively)</h3>
+<p>For a rollout at magnitude <i>x</i> on scene <i>s</i>:</p>
+<p style="text-align:center"><code>P(success | x, s) = (1 − λ<sub>s</sub>) · σ(β<sub>s</sub> · (x<sub>50,s</sub> − x))</code></p>
+<ul>
+<li><b>λ is the lapse rate.</b> It is estimated from the replicated nominal point, and it covers on-ramekin failing at zero perturbation.</li>
+<li><b>Scene effects are partially pooled.</b> (x<sub>50,s</sub>, log β<sub>s</sub>) are drawn from a population distribution, as in a hierarchical GLMM or a Bayesian logistic model. With 4 replicates per point, a separate fit per scene is unstable. Pooling across scenes fixes this and also gives the "typical scene" curve.</li>
+<li><b>Report</b> per scene: x<sub>50</sub> with a 90% CI, the transition width 4.39/β (the 10%→90% span), and λ.</li>
+<li><b>Flag cliffs vs slopes</b> by the posterior on β. Stove is a cliff.</li>
+<li><b>Flag non-monotone axes</b>, such as yaw after 40°, by comparing the model with a monotone-spline alternative.</li>
+</ul>
+<p class="ref">A rough calculation shows what the grid buys. Take β ≈ 13 rad⁻¹, R-047's median start-pose width of 0.34 rad. Take 36 rollouts per scene-axis spread across the slope, with a mean <i>p</i>(1−<i>p</i>) of about 0.15. Then SE(x<sub>50</sub>) ≈ 1/(β·√Σ<i>n p</i>(1−<i>p</i>)) ≈ 0.033 rad. Concentrating the same 36 near the crossing, with <i>p</i>(1−<i>p</i>) ≈ 0.22, gives about 0.028 rad: roughly 30% fewer rollouts for the same precision, in line with Liao et al. and Anwar et al.</p>
+
+<h3>R-052 as proposed (a modification of the pre-registered ~760)</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Stage</th><th>What</th><th>Grid</th><th class="num">Rollouts</th></tr></thead>
+<tbody>
+<tr><td>0. Anchor</td><td>Nominal, shared by all axes</td><td>10 scenes × 8 seeds</td><td class="num">80</td></tr>
+<tr><td>1a. Yaw, both signs</td><td><code>camera_bench_yaw_deg</code></td><td>±20, ±40, ±60, ±75 (8 levels) × 10 × 4 seeds</td><td class="num">320</td></tr>
+<tr><td>1b. Distance</td><td><code>camera_bench_scale</code></td><td>1.15 (the benchmark's minimum), 1.5, 1.75, 2.0 × 10 × 4 (minus scenes that ignore scale)</td><td class="num">≤160</td></tr>
+<tr><td>1c. Pitch</td><td><code>camera_bench_pitch_deg</code></td><td>15 alone × 10 × 4 seeds. This is a diagnostic only: in LIBERO-Plus, pitch 15 never appears without yaw. The benchmark-relevant pitch cells are the yaw × pitch joints in stage 3.</td><td class="num">40</td></tr>
+<tr><td>2. Adaptive</td><td>Straddle rule on the stage-1 fit: the next rollouts go to the scene × axis × level where the CI on <i>p</i> most straddles 0.5. Batches of 20.</td><td>Only scene-axes with a transition inside the range</td><td class="num">≈100</td></tr>
+<tr><td>3. Interactions</td><td>yaw × pitch 15 comes first: 130 of LIBERO-Plus's 238 yaw variants carry it, as do 37 of its 50 hardest (L4/L5). Then yaw × scale. Yaw at each scene's fitted x<sub>50</sub> (or −60 if none), with <b>negative yaw prioritised</b> because 33 of the 50 L4/L5 yaw variants are negative. Scale at 1.5 and 2.0.</td><td>yaw×pitch at both yaw signs (2 cells) + yaw×scale at negative yaw (2 cells) × 10 scenes × 4 seeds</td><td class="num">≈160</td></tr>
+<tr><td>4. Calibration check</td><td>Actual LIBERO-Plus camera variants for these scenes (sampled, not gridded). Compare the model's predicted success with observed success.</td><td>about 6 per scene</td><td class="num">≈60</td></tr>
+<tr><td colspan="3"><b>Total</b> (about 11.8 h at 45 s)</td><td class="num"><b>≈920–940</b></td></tr>
+</tbody></table></div>
+
+<ul>
+<li><b>What was cut and why.</b>
+  <ul>
+  <li>Yaw 5°, 10° and 30°: R-047 showed the policy flat to 20° on the harness knob. If the bench geometry is harsher, stage 2 refills below 20°.</li>
+  <li>Pitch 5° and 10°: the benchmark uses only 0 and 15, so they were interpolation.</li>
+  <li>Pitch 15 alone is kept at 4 seeds only. The benchmark never applies pitch without yaw, so the yaw × pitch joint cells are the pitch measurement that matters. (Benchmark facts from LIBERO-Plus's <code>task_classification.json</code> and variant names, as reported by my prim, 2026-09-28.)</li>
+  <li>Point-for-point comparison with R-047 is kept at 20, 40, 60 and 75°. For readout (iv), use STEP-style paired comparisons at those levels.</li>
+  </ul></li>
+<li><b>What was added and why.</b>
+  <ul>
+  <li>Negative yaw: the benchmark spans ±75, and the asymmetry was untested.</li>
+  <li>A heavier nominal anchor, for the lapse term.</li>
+  <li>Interaction cells: the Colosseum and LIBERO-Plus composition results.</li>
+  <li>A calibration check: it shows whether the grid model predicts the benchmark's own draws, which is the external validity of the whole programme.</li>
+  </ul></li>
+<li><b>Interaction power (honest).</b> 40 rollouts per joint cell, pooled over scenes, detects a departure from the additive-logit prediction of about 0.25–0.3 in success rate. That is enough to catch Colosseum-sized compounding. It is not enough to resolve per-scene interactions.</li>
+<li><b>Lean version (≈800).</b> Drop stage 4 and cut stage 3 to the two yaw × pitch cells (80 rollouts), since that is the benchmark's dominant combination.</li>
+</ul>
+
+<h3>After R-052</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Factor type</th><th>Design</th><th>Budget guide</th></tr></thead>
+<tbody>
+<tr><td>Start pose (continuous radius, random direction)</td><td>Already mapped by R-047. Add stage 2 on the fragile scenes (stove, wooden-cabinet, top-drawer, table-center) at 0.15–0.35 rad. Fix <i>direction</i> seeds across radii (common random numbers), so each direction gives a per-direction curve.</td><td>≈150</td></tr>
+<tr><td>Noise (5 families × severity 1–10)</td><td>Ordinal axis per family at severities 1, 3, 5, 7, 10 × 4 seeds, with the same psychometric fit on severity rank (ImageNet-C style). Add stage 2 only on families that cross 0.5.</td><td>5 × 5 × 10 × 4 = 1000; ~500 if 5 scenes chosen by stage-1 variance</td></tr>
+<tr><td>Discrete (texture, layout, language, light variants)</td><td>Per-variant success with Clopper–Pearson CIs. For composition, use a <b>strength-2 covering array</b> over the discrete factors, with ≥4 seeds per row. For 5 factors at 3 levels, that is 11 rows.</td><td>11 rows × 10 scenes × 4 = 440</td></tr>
+<tr><td>Cross-type composition</td><td>Sim-ATAV pattern: take the covering-array rows that fail, and run a short continuous sweep (camera or pose) around each one.</td><td>set after the above</td></tr>
+</tbody></table></div>
+
+<div class="box caveat">
+<p><b>Caveats.</b></p>
+<ul>
+<li>The LIBERO-Plus claim about compositional effects is as relayed by my prim. I did not re-read that section of the paper.</li>
+<li>The Liao et al. (2026) and Yu &amp; Joseph (2026) summaries come from their arXiv abstracts only.</li>
+<li>The SE figures are back-of-envelope. They assume a logistic curve and should be checked against R-047's data before the budget is fixed.</li>
+<li>Rollout time assumes R-052's registered 45 s each.</li>
+</ul>
+</div>
+
+</main>
+</body>
+</html>
