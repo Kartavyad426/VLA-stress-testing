@@ -1,0 +1,265 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Directions Review</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Review of AMBITIOUS_DIRECTIONS.html: proposed changes</h1>
+<div class=meta>2026-10-06 · res21, for prim and the user · <b>The doc itself was not edited.</b> Each item below is a proposal: section → change → reason → source, numbered so the user can approve item by item. Scope as asked:
+<ol>
+<li>consistency with today's state;</li>
+<li>missed literature;</li>
+<li>citation verification;</li>
+<li>reasoning gaps.</li>
+</ol>
+Tags: <span class="tag v">verified</span> checked by me today against RESULTS.md, run files, or the arXiv record (API metadata + abstract, or full text where stated) · <span class="tag i">inferred</span> my judgement · <span class="tag p">unverified</span> could not be confirmed.</div>
+
+<div class="card tldr">
+<div class=q>The ten changes that matter most</div>
+<ol>
+<li><b>C4.</b> Direction #2's "rescues 24/30" conflates two numbers. R-053: N succeeds 24/30 vs P 6/30; it <b>flips 20/24</b> P-failures; a plain re-run flips <b>0/22</b>.</li>
+<li><b>C5.</b> The run-time arm uses the <i>nominal</i> chunk, which is an oracle: it needs the unperturbed episode. The deployable cost-zero baseline is <b>re-homing</b> the arm before running. It must be in the comparison or the business pitch is exposed.</li>
+<li><b>C16.</b> Direction and offset are confounded. Direction 0 never gets past 12 cm (it reaches 0.72 of the requested radius), so every >12 cm failure comes from directions 1 and 2. Stratify, and say so.</li>
+<li><b>C17.</b> For start pose, "mechanism-targeted" and "failure-targeted" now point at the same starts: far offsets, directions 1–2, decided at forward 0. Redefine the arms by <i>which frames are labelled</i> (first forward vs whole episode), or they can't be told apart.</li>
+<li><b>C18.</b> A global visual-token affine (2512.02902) is a camera-row fix, not a start-pose fix. For start pose, the parameter-only arm should be wrist-token steering at forward 0, i.e. #3.</li>
+<li><b>C9.</b> Add <b>Mulligan</b> (arXiv:2610.05882, 5 Oct 2026). Failure-targeted initial-state selection beats uniform at a <i>matched budget</i>, with +10–34 pt. "Failure-targeted vs uniform at matched budget" is now published, so our distinct claim is mechanism-targeted vs failure-targeted.</li>
+<li><b>C10.</b> Update the Jung &amp; Park and FLARE rows from the full reads (<code>JUNG_PARK_INITPOSE.html</code>, <code>FLARE_RECOVERY.html</code>).</li>
+<li><b>C8.</b> Update the 2512.02902 row.
+ <ul>
+ <li>Its "LoRA" baseline full-fine-tunes SigLIP (414.8M of 467M parameters), verified against openpi.</li>
+ <li>The FTM average is misprinted.</li>
+ <li>The Spatial-vs-Physical control is missing (<code>SPATIAL_ADAPT_MATHS.html</code>).</li>
+ </ul></li>
+<li><b>C20.</b> Citation fixes:
+ <ul>
+ <li>2507.09061 is Zhang, Pfrommer, Pan, Matni, Simchowitz, not "Simchowitz et al.";</li>
+ <li>three numbers are not in their abstracts (IntervenGen 34–62%, DemoGen ~20×, REALM ~800 pairs);</li>
+ <li>all 41 IDs resolve.</li>
+ </ul></li>
+<li><b>C21.</b> The recommendation's arm list needs rewriting. Minting is dropped, so "the R-054 rescues" arm no longer exists. A proposed six-arm version is in §4.</li>
+</ol>
+</div>
+
+<h2>1. Consistency with today's project state</h2>
+<div class=tw><table>
+<tr><th>#</th><th>Section</th><th>Current text</th><th>Proposed change</th><th>Reason and source</th></tr>
+<tr><td>C1</td><td>Where things stand · "Why, so far"</td><td>"first-frame loss fell from 0.159 to 0.055–0.078"</td><td>"…to 0.055–0.081 (r 16 at opt 500–2000: 0.078/0.059/0.055; r 4 at opt 500: 0.081), i.e. 0.34–0.51× base"</td><td>The r 4 adapter is omitted from the range. <code>runs/r056_diag/loss_summary.json</code>, subset <code>minted_f0</code> <span class="tag v">verified</span></td></tr>
+<tr><td>C2</td><td>Where things stand · first paragraph</td><td>"R-058 at rank 64 is being evaluated now (D18a)"</td><td>"R-058 r 64: held-out and nominal evals ran 10-06 15:21–16:24 (opt 1500 selected by validation, 6/10); transfer was running at 16:27; scoring pending"</td><td>Still true at the time of writing, but will go stale today. <code>runs/overnight/queue.log</code>, <code>runs/r058_r64/selection.json</code> <span class="tag v">verified</span>. I did not score it; that's SFT's job.</td></tr>
+<tr><td>C3</td><td>Where things stand · "data was in the wrong place"</td><td>"Rescue-minted demos sit at ≤ 8 cm"</td><td>"Rescue-minted demos sit mostly below 12 cm: yield ≈0.9 below 8 cm and ≈0.2 beyond 16 cm. The 42% of held-out starts beyond 12 cm had 9 demos between them, and the 33 starts beyond 16 cm had 2."</td><td>"≤ 8 cm" overstates it. <code>R056_POSTMORTEM.html</code> §1 <span class="tag v">verified</span></td></tr>
+<tr><td>C4</td><td>#2 opening</td><td>"Correcting that chunk rescues 24/30"</td><td>"Executing the nominal first chunk gives 24/30 successes against 6/30 for a no-op; it flips 20 of 24 no-op failures, while a plain re-run flips 0 of 22 (R-053)"</td><td>24/30 is N's success count, not a rescue count. RESULTS.md R-053 header <span class="tag v">verified</span></td></tr>
+<tr><td>C5</td><td>#2 and Recommendation item 5</td><td>"A run-time fix at the first chunk … with no training at all"</td><td>Add: "R-053's correction is the <i>nominal</i> episode's chunk, so it is an oracle upper bound, not a deployable fix. Deployable candidates: (a) re-home to the canonical start before running; (b) the Option A bridge controller, driven then handed back; (c) steering the wrist tokens toward nominal (#3)."</td><td>R-057 defines N for start pose as "the recorded per-forward features of the R-029 control episode". <span class="tag v">verified</span> Re-homing is the obvious zero-cost competitor <span class="tag i">inferred</span></td></tr>
+<tr><td>C6</td><td>#2 opening</td><td>"the first action's size predicts failure (r = −0.36, R-047)"</td><td>"…weakly (r = −0.36 over 31 cells; R-047's pre-registered expectation |r| &lt; 0.3 was missed in that direction)"</td><td>The size of the effect matters for a monitor. RESULTS.md R-047 item 5 <span class="tag v">verified</span></td></tr>
+<tr><td>C7</td><td>What we have that others don't, item 2</td><td>"A way to generate corrected demos in simulation (R-054)"</td><td>"Rescue minting (R-054) works below ~8 cm and is dropped (user, 10-06). The next source is open (D21: Option A bridge-and-join or Option B scripted expert)."</td><td>Stale since the user dropped minting. "Where things stand" ¶4 already says so; this line contradicts it.</td></tr>
+<tr><td>C8</td><td>#1 literature · Li et al. row</td><td>"…visual LoRA reaches 90.8%. The most relevant paper on this page…"</td><td>Append: "Full read 10-06 (<code>SPATIAL_ADAPT_MATHS.html</code>):
+ <ul>
+ <li>the "LoRA" baseline it beats full-fine-tunes SigLIP (414.8M of 467M trainable; verified against openpi's freeze filter);</li>
+ <li>FLA is r 16 LoRA on SigLIP's MLP matrices only;</li>
+ <li>the Libero-V FTM average is misprinted (90.5 printed vs 93.2 recomputed);</li>
+ <li>there is no vision-frozen control, so 'the fault is in vision' is not isolated;</li>
+ <li>FLA vs LoRA (+0.5 pt) is inside noise.</li>
+ </ul>
+ Drop "the most relevant paper on this page": for start pose, Jung &amp; Park, FLARE and Mulligan are closer."</td><td>Full-text read with code checks <span class="tag v">verified</span></td></tr>
+<tr><td>C9</td><td>Where things stand · novelty check</td><td>"Full reads are with res21."</td><td>Replace with the verdicts:
+ <ul>
+ <li>Jung &amp; Park: <b>overlapping</b>. Same question; their tools are OOD masking and physical joint swaps; their targeting is pose-space coverage chosen by low success; their mechanism analysis never feeds the data choice.</li>
+ <li>FLARE: <b>separate on diagnosis</b> (MLLM triage; the pose↔progress hypothesis is never tested; start pose never evaluated), <b>overlapping on data</b> (bridging is Option A's primitive).</li>
+ <li>Add Mulligan (C11).</li>
+ </ul>
+ Our remaining claim stands: in-distribution splices + time localisation + a mechanism-specified frame spec + a before/after readout.</td><td><code>JUNG_PARK_INITPOSE.html</code>, <code>FLARE_RECOVERY.html</code> <span class="tag v">verified</span> (full text)</td></tr>
+<tr><td>C10</td><td>Where things stand · novelty check</td><td>"Jung &amp; Park … reached 'start pose matters, the wrist camera is involved, add data around bad poses' from behaviour alone"</td><td>"…from behaviour, out-of-distribution wrist masking and physical joint swaps (not behaviour alone). Their targeted step (+2 poses: 30 → 75% at one pose, 6/20 → 15/20) has no matched-budget or other-pose control; their 2 → 8 pose diversification is budget-matched (306 vs 304 episodes)."</td><td>"Behaviour alone" undersells them; they did run interventions, just at the world level, not the input level <span class="tag v">verified</span></td></tr>
+<tr><td>C11</td><td>Where things stand · implication for #1</td><td>"…needs a broad-coverage arm (wide start-pose coverage, as Jung &amp; Park found effective)"</td><td>Add: "Mulligan (2610.05882) is the published version of this comparison for failure-targeted vs uniform initial states, at a matched budget, on real tasks. Our arms must therefore separate <i>mechanism</i>-targeted from <i>failure</i>-targeted, not only targeted from broad."</td><td>arXiv 2610.05882 abstract <span class="tag v">verified</span></td></tr>
+<tr><td>C12</td><td>Recommendation · "Two checks…" (ii)</td><td>"whether the camera token-rescaling result reproduces on GR00T"</td><td>"…specified as <code>SPATIAL_ADAPT_MATHS.html</code> §10: E1 closed-form moment matching on cached tokens (inference only), E2 FTM with cached features, E3 the 2×2 vision-side vs action-head-side control. Our R-056 adapter is already the action-head-side arm (<code>tune_visual: False</code>)."</td><td>Turns a vague check into runnable experiments <span class="tag v">verified</span> (adapter config read)</td></tr>
+<tr><td>C13</td><td>#2 literature, closing note</td><td>"Detection is crowded: at least eight papers in 2026"</td><td>"…at least twelve" (add SAFECAST, FailureSpot, Tri-Info, Gupta's black-box action monitoring; §2)</td><td>arXiv records <span class="tag v">verified</span></td></tr>
+<tr><td>C14</td><td>Cross-policy · detectors</td><td>"all run to the 281-step timeout, against about 113 for successes"</td><td>Check the 281 figure. HANDOFF records failures timing out at 18 forwards (18 × 16 = 288 steps) and a success median of 7 forwards (≈112 steps).</td><td>The 113 is consistent; 281 vs 288 is unreconciled <span class="tag p">unverified</span></td></tr>
+<tr><td>C15</td><td>Header</td><td>"Most were checked against their arXiv abstract page only"</td><td>Add: "All 41 arXiv IDs re-resolved against the arXiv API on 10-06 (res21); per-row status in <code>AMBITIOUS_DIRECTIONS_REVIEW.html</code> §3."</td><td>Provenance</td></tr>
+</table></div>
+
+<h2>2. Missed literature</h2>
+<p>All IDs and claims below were checked against the arXiv record (title, authors, abstract) on 10-06 <span class="tag v">verified</span>, unless marked otherwise. None was read in full except where stated.</p>
+<div class=tw><table>
+<tr><th>Direction</th><th>Paper</th><th>What it shows</th><th>Why add it</th></tr>
+<tr><td>#1</td><td><b>Mulligan</b>, Ankile, Dong, Bhowmik, Muppidi et al., <a href="https://arxiv.org/abs/2610.05882">2610.05882</a> (5 Oct 2026)</td><td>Failures concentrate in a few initial states. Starting each collection round at observed failures and untried states beats uniform initial-state sampling at matched budget; with value-based action selection, +10–34 pt on real tasks (2,550 blinded episodes).</td><td>The closest prior work to #1's matched-budget design: failure-targeted initial states vs uniform. It narrows our open niche to <i>mechanism</i>-targeted vs failure-targeted.</td></tr>
+<tr><td>#1</td><td>Jung &amp; Park <a href="https://arxiv.org/abs/2608.11769">2608.11769</a>; FLARE <a href="https://arxiv.org/abs/2608.26645">2608.26645</a></td><td>See C9/C10 and the two full-read docs.</td><td>They should become rows in #1's literature table, not only the novelty paragraph.</td></tr>
+<tr><td>#1</td><td>RECALL, Karli &amp; Fitzgerald, <a href="https://arxiv.org/abs/2606.23617">2606.23617</a></td><td>Uncertainty-guided recovery data fine-tunes more efficiently than passive demos, but recovery-only fine-tuning causes catastrophic forgetting. Replay mixing and EWC trade plasticity against retention.</td><td>Directly relevant to R-056's nominal regression on scene 1327. Cited in DATA_SOURCING but missing here.</td></tr>
+<tr><td>#1</td><td>SkillMimicGen, Garrett, Mandlekar, Wen, Fox, <a href="https://arxiv.org/abs/2410.18907">2410.18907</a></td><td>Stitches adapted skills with free-space transit motions.</td><td>The transit motion is the canonical "bridge". It belongs next to MimicGen (<a href="https://arxiv.org/abs/2310.17596">2310.17596</a>, which has no link in the doc).</td></tr>
+<tr><td>#1</td><td>RePO-VLA, <a href="https://arxiv.org/abs/2605.09410">2605.09410</a></td><td>Slices recovery segments and resets history, so corrective actions depend on the current adverse state.</td><td>The same label principle as Option A's bridge frames.</td></tr>
+<tr><td>#1</td><td>Mirchandani et al., <a href="https://arxiv.org/abs/2411.01813">2411.01813</a></td><td>Autonomous data collection modestly helps; more <i>human</i> data helps more.</td><td>Relevant to #5. A web summary claims "targeted human data beats random"; that is <b>not</b> in the abstract <span class="tag p">unverified</span>.</td></tr>
+<tr><td>#2</td><td>Real-Time Chunking (RTC), Black, Galliker, Levine, <a href="https://arxiv.org/abs/2506.07339">2506.07339</a></td><td>Freezes executed actions and inpaints the rest of a flow-policy chunk, with no retraining.</td><td>The mechanism for "blend the first chunk": inpaint a correction into a flow-matching head.</td></tr>
+<tr><td>#2</td><td>Retrieve-then-Steer, <a href="https://arxiv.org/abs/2605.10094">2605.10094</a></td><td>Injects a retrieved "elite" action prior into an intermediate state of the flow sampler, weighted by confidence.</td><td>A non-oracle way to apply a first-chunk prior at run time. Fixes C5's oracle problem.</td></tr>
+<tr><td>#2</td><td>SDN, <a href="https://arxiv.org/abs/2606.14084">2606.14084</a></td><td>Test-time diffusion-noise selection; +8% sim, +10% real, <b>including GR00T N1.5/N1.6</b>.</td><td>A run-time arm on our model family. R-053's plain re-run (0/22 flips) suggests noise alone will not rescue start pose <span class="tag i">inferred</span>, so it is a cheap negative control.</td></tr>
+<tr><td>#2</td><td>RoboMonkey <a href="https://arxiv.org/abs/2506.17811">2506.17811</a>; VERITAS <a href="https://arxiv.org/abs/2606.18247">2606.18247</a></td><td>Sample-then-verify at test time, with VLM verifiers.</td><td>Standard test-time-compute baselines.</td></tr>
+<tr><td>#2</td><td>CARE, Yamabe &amp; Sakuma, <a href="https://arxiv.org/abs/2609.32550">2609.32550</a>; VLA Knows Its Limits <a href="https://arxiv.org/abs/2602.21445">2602.21445</a></td><td>One-step perturbations and an adaptive execution horizon; initial and terminal action tokens act as attention anchors.</td><td>The execution horizon is a knob our R-057 drive-until already varies.</td></tr>
+<tr><td>#2</td><td>SAFECAST, Rajaprakash, …, Anwar, Thomason, <a href="https://arxiv.org/abs/2608.04246">2608.04246</a></td><td>Hidden-state risk probes with contrast-set training and functional conformal calibration; shifts include <b>altered initial states</b>; LIBERO and DROID.</td><td>The only detector paper here that names initial-state shift.</td></tr>
+<tr><td>#2</td><td>FailureSpot, Ma, Liu, Zhu, <a href="https://arxiv.org/abs/2609.04277">2609.04277</a></td><td>Timestamp-level detection from action-derived weak labels (chunk inconsistency, frozen or idle, aggressive motion) plus active learning.</td><td>Its weak labels resemble our R-041 and ACC signals.</td></tr>
+<tr><td>#2</td><td>Tri-Info <a href="https://arxiv.org/abs/2606.19998">2606.19998</a>; Gupta, black-box action monitoring <a href="https://arxiv.org/abs/2605.28726">2605.28726</a></td><td>Information-theoretic and action-only failure signals; architecture-specific signatures.</td><td>Level-0 (black-box) detectors for the cross-policy section.</td></tr>
+<tr><td>#3</td><td>Häon, Stocking, Chuang, Tomlin, <a href="https://arxiv.org/abs/2509.00328">2509.00328</a></td><td>Projects FFN activations onto token embeddings to find causal directions (speed, direction); steers π0 and OpenVLA.</td><td>Cited in DATA_SOURCING Q4 but missing from #3.</td></tr>
+<tr><td>#3</td><td>Observing and Controlling Features, Buurmeijer, Amo Alonso, Swann, Pavone, <a href="https://arxiv.org/abs/2603.05487">2603.05487</a></td><td>Linear observers in four VLAs, including transformer + flow-matching; a minimal-intervention controller keeps observer predictions in target intervals; π0.5 on LIBERO and DROID, ~1% overhead.</td><td>The closest method to "mechanism-guided steering on a flow-matching VLA". A strong baseline for #3.</td></tr>
+<tr><td>#3</td><td>CofactVLA, <a href="https://arxiv.org/abs/2608.04396">2608.04396</a></td><td>Counterfactual language-masked branch in one forward pass, to deconfound visual shortcuts.</td><td>Counterfactual-input intervention as a <i>training</i> method; contrasts with our splices as a <i>diagnostic</i>.</td></tr>
+<tr><td>#4</td><td>"Is Success All You Need?", Higham et al., <a href="https://arxiv.org/abs/2610.01351">2610.01351</a></td><td>Behavioural (not just success) metrics under LIBERO and LIBERO-Plus perturbations across three VLAs.</td><td>The same benchmark; a behavioural comparator for cross-architecture work.</td></tr>
+<tr><td>#4 / camera</td><td>CamVLA, <a href="https://arxiv.org/abs/2607.05396">2607.05396</a></td><td>Camera-centric actions plus a predicted hand-eye matrix for view robustness.</td><td>An architectural alternative to token rescaling for the camera row.</td></tr>
+</table></div>
+<p class=small>Searched and not found: a 2026 paper doing in-distribution input splices to set a data spec, or comparing mechanism-targeted vs failure-targeted data at a matched budget. That remains our niche, as of searches on 10-06 <span class="tag i">inferred</span>, since a search can miss things.</p>
+
+<h2>3. Citation verification</h2>
+<p>All 41 arXiv IDs in the doc (plus SAFECAST, FailureSpot, VLAMotor and RECALL from the brief) were resolved via the arXiv API on 10-06. Every ID exists and matches its title <span class="tag v">verified</span>. The checks below compare the doc's claims with the abstract; a number not in the abstract is marked unverifiable, not wrong.</p>
+<div class=tw><table>
+<tr><th>Row (direction)</th><th>ID</th><th>Authors and title</th><th>Doc's claim vs abstract</th></tr>
+<tr><td>Factored Scaling Curves (#1)</td><td>2505.07728</td><td>Zha, …, Majumdar ✓</td><td>"up to +26%" ✓</td></tr>
+<tr><td>CUPID (#1)</td><td>2506.19121</td><td>Agia, …, Bohg ✓</td><td>"&lt;33% of the data" ✓. Venue (CoRL 2025) not in the record <span class="tag p">unverified</span></td></tr>
+<tr><td>Predictive Red Teaming (#1)</td><td>2502.06575</td><td>Majumdar et al. ✓</td><td>"2–7×" ✓</td></tr>
+<tr><td>IntervenGen (#1, #5)</td><td>2405.01472</td><td>Hoque, Mandlekar, Garrett, Goldberg, Fox ✓</td><td>"up to 39×" ✓ (with 10 human interventions). "Beats 100× more MimicGen demos by 34–62%" is <b>not in the abstract</b> <span class="tag p">unverified</span></td></tr>
+<tr><td>DemoGen (#1)</td><td>2502.16932</td><td>Xue, …, Huazhe Xu ✓</td><td>One demo per task, point clouds ✓. "About 20× less human data" is not in the abstract <span class="tag p">unverified</span></td></tr>
+<tr><td>DATAFARM (#1)</td><td>2609.12316</td><td>Sahoo, Huang, Silver ✓</td><td>8.3 / 56.7 / 61.7 ✓</td></tr>
+<tr><td>Li et al. (#1, #3)</td><td>2512.02902</td><td>Li, Zhang, Zhai, Lin, Wang ✓</td><td>48.5 → 87.1, 90.8 ✓; full read, see C8</td></tr>
+<tr><td>Data Scaling Laws (#1)</td><td>2410.18647</td><td>Lin, Hu, Sheng, Wen, You, Gao ✓</td><td>power law; diversity over count ✓</td></tr>
+<tr><td>SAFE (#2)</td><td>2506.09937</td><td>Gu, …, Shkurti ✓</td><td>internal features, unseen tasks, conformal ✓. Tested on OpenVLA, π0 and π0-FAST</td></tr>
+<tr><td>VLA-FAIL (#2)</td><td>2606.21386</td><td>Seligmann, Gospodinov, Dincer, Neumann ✓</td><td>LLMD + ACC, AUCPDT ✓. The doc says it was read in full (HTML) by another session; not re-read</td></tr>
+<tr><td>VLA-Scope (#2)</td><td>2609.21246</td><td>Zhu, Liu, Liu ✓</td><td>91% shift classification; AUROC 0.8497 after 60 actions; OpenVLA, LIBERO-Spatial ✓</td></tr>
+<tr><td>Early warning (#2)</td><td>2606.29699</td><td>Mahato, Ren ✓</td><td>AUROC 0.972; 3.32 warnings per clean episode ✓</td></tr>
+<tr><td>Hide-and-Seek (#2)</td><td>2605.30834</td><td>Park, …, Sharon Li ✓</td><td>episode labels only; OpenVLA, π0, π0.5; LIBERO, VLABench ✓. "NeurIPS 2026" not in the record <span class="tag p">unverified</span></td></tr>
+<tr><td>VLA-Corrector (#2)</td><td>2607.01804</td><td>Pan et al. ✓</td><td>latent vision monitor, truncate, gradient-guided replan, no retraining ✓</td></tr>
+<tr><td>CheckVLA (#2)</td><td>2607.26789</td><td>Liu, …, Wenbo Ding ✓ (the doc gives no authors; add "Liu et al.")</td><td>36.1% vs 27.6% on RoboCasa365, mobile manipulation ✓</td></tr>
+<tr><td>Rewind-IL (#2)</td><td>2604.16683</td><td>Zheng, Seenivasan, Johnson-Roberson, Zhi ✓</td><td>TIDE chunk discrepancy; VLM-picked checkpoints; respawn ✓</td></tr>
+<tr><td>Sentinel (#2)</td><td>2410.04640</td><td>Agia, …, Bohg ✓</td><td>✓</td></tr>
+<tr><td>"Simchowitz et al." (#2)</td><td>2507.09061</td><td><b>First author is Thomas T. Zhang</b>; Simchowitz is last of five</td><td>Content ✓. <b>Fix the attribution</b> here and in Open questions (C20)</td></tr>
+<tr><td>Not All Features (#3, #4)</td><td>2603.19233</td><td>Grant, Zhao, Wang ✓</td><td>six models, 80M–7B ✓; GR00T included ✓</td></tr>
+<tr><td>COAST (#3)</td><td>2605.17144</td><td>Miao, Kim, Yang, Ungar ✓</td><td>+20 sim / +40 real ✓; failure modes share structure ✓</td></tr>
+<tr><td>SAE features (#3)</td><td>2603.19183</td><td>Swann, …, Schwager ✓</td><td>LIBERO, DROID; amplify and ablate ✓</td></tr>
+<tr><td>Steering WAMs (#3)</td><td>2607.14943</td><td>Hong, …, Glen Chou ✓</td><td>camera, gripper, noise; contrastive directions + LQR ✓. Models: Cosmos-Policy, DiT4DiT, LingBot-VA</td></tr>
+<tr><td>StableVLA (#3, #4)</td><td>2605.18287</td><td>Fu, …, Daquan Zhou ✓</td><td>IB-Adapter, &lt;10M params, +30% avg ✓. "The projector is the main source of vulnerability" is not in the abstract; HANDOFF says it was checked from the HTML by another session <span class="tag p">not re-verified</span></td></tr>
+<tr><td>LIBERO-Plus (#4)</td><td>2510.13626</td><td>Fei et al. ✓</td><td>✓</td></tr>
+<tr><td>Reasoning double-edged sword (#4)</td><td>2607.17786</td><td>Trinh, Akhtar, Azam ✓</td><td>Marked "I haven't read it". Abstract: latent-iterative reasoning models are least robust; plan–action monitors fail under adaptive attack. Replace the placeholder with this</td></tr>
+<tr><td>Human-Robot Copilot / Easy-IIL (#5)</td><td>2604.03613 / 2603.12769</td><td>✓ / ✓</td><td>Summaries ✓; can drop "I haven't read them"</td></tr>
+<tr><td>RaC (#5)</td><td>2509.07953</td><td>Hu, …, Aviral Kumar ✓</td><td>recovery and correction; 10× less data ✓</td></tr>
+<tr><td>Anwar et al. (#6)</td><td>2502.09829</td><td>✓</td><td>active experiment selection ✓</td></tr>
+<tr><td>Liao et al. (#6)</td><td>2607.14439</td><td>Liao, Cui, Desingh, Deshwal ✓</td><td>active factor-based evaluation; 20–40% fewer trials. Note: a <i>different</i> Liao from VLAMotor (2606.00053)</td></tr>
+<tr><td>LIBERO-CTRL (#6)</td><td>2609.15940</td><td>Sawada, Kasahara ✓</td><td>34.5% ✓ (29.0% even when aggregates agree)</td></tr>
+<tr><td>AutoODD (#6)</td><td>2509.08638</td><td>Martin, Patrikar, Scherer ✓</td><td>LLM-agent Bayesian red teaming, demonstrated on MNIST and aerial intruder detection, <b>not robot policies</b>. Note the weaker fit</td></tr>
+<tr><td>Wang et al. sim-real (#7)</td><td>2606.10366</td><td>Wang, Xu, Hu, Lin, Gao ✓</td><td>✓</td></tr>
+<tr><td>REALM (#7)</td><td>2512.19562</td><td>Sedlacek, …, Petrik ✓</td><td>15 perturbation factors ✓; evaluates <b>GR00T N1.5</b>, π0, π0-FAST (worth noting). "About 800 paired rollouts" is not in the abstract <span class="tag p">unverified</span></td></tr>
+<tr><td>FACT (novelty check)</td><td>2608.01402</td><td>Parés-Morlans, Kuhn, Liu, Longhini, Bohg ✓</td><td>"Precision failures rooted in a flow-matching training mismatch", fixed by mechanism; 66% vs 41% ✓. Phrase it as "training mismatch", not "noise schedule", unless the full text says schedule <span class="tag p">unverified</span></td></tr>
+<tr><td>MimicGen, SimplerEnv</td><td>no links</td><td>—</td><td>MimicGen is 2310.17596: "50K from ~200" ✓; "200 generated from 10 ≈ 200 human" is not in the abstract <span class="tag p">unverified</span>. SimplerEnv is from memory; add its ID if kept</td></tr>
+</table></div>
+
+<h2>4. Reasoning gaps</h2>
+<h3>4.1 What the new results strengthen and weaken</h3>
+<div class=tw><table>
+<tr><th>Result</th><th>Strengthens</th><th>Weakens</th></tr>
+<tr><td><b>D20(i): adapters fit their training frames</b> (0.34–0.51× base loss on minted frame 0)</td><td>"The limit is reach and dose, not capacity": #1 with a new source (D21) and explicit dose.</td><td>More rank sweeps. R-058 r 4 ≈ r 16; propose no further capacity arms unless r 64 is clearly better.</td></tr>
+<tr><td><b>D20(ii): success by achieved cm</b> (≤8: 0.93, 8–12: 0.65, 12–16: 0.22, >16: 0.15)</td><td>A concrete coverage target: generate at 12–20 cm. Option A's stratified sampling.</td><td>Any source that can't reach >12 cm (rescue minting), so C7.</td></tr>
+<tr><td><b>Direction dependence</b> (per-direction bands verified: dir 0 8–12 cm 33/40, no starts beyond 12 cm; dir 1 8–12 cm 7/20, 12–16 4/20, 16–30 6/40; dir 2 8–12 25/40, 12–16 5/20)</td><td>Stratifying every arm by direction × cm, as the doc already says.</td><td>Any pooled "success vs radius" reading, R-047's included. The >12 cm failure region is <i>only</i> directions 1–2. <b>C16:</b> say this explicitly, or a broad arm that over-samples direction 0 will look good for the wrong reason.</td></tr>
+<tr><td><b>R-053 + R-057</b> (decided at forward 0; N-all only 19/30 vs k1 24/30)</td><td>Mechanism-targeted labels at forward 0 only. #3's case for steering the wrist tokens at forward 0.</td><td>Whole-episode corrections for start pose: driving the time-aligned nominal for every forward does <i>worse</i> than for one.</td></tr>
+<tr><td><b>Mulligan, Jung &amp; Park, FLARE</b></td><td>The broad-coverage arm and matched budgets as the correct design.</td><td>The novelty of "targeted beats uniform": now published. Our claim must be the <i>mechanism</i> vs <i>failure</i> contrast (C11).</td></tr>
+</table></div>
+
+<h3>4.2 C17: mechanism- vs failure-targeted have converged for start pose</h3>
+<p>Both now point at far offsets in directions 1–2. If both arms draw the same starts, they differ only by accident. Define them by what is labelled, at the same starts and the same frame budget <span class="tag i">inferred</span>:</p>
+<ul>
+<li><b>Mechanism-targeted:</b> first-forward-only labels (k* = 1), wrist-bearing frames, from Option A bridges. Most of the budget goes to bridge frames at forward 0–1.</li>
+<li><b>Failure-targeted:</b> whole-episode demos from the same failing starts (Option B scripted expert, or Mulligan-style), with labels spread over the episode.</li>
+</ul>
+<p>This tests the one thing our diagnosis adds: that the <i>frames</i> to label are known, not just the <i>starts</i>.</p>
+
+<h3>4.3 C18: the parameter-only arm needs the right parameterisation for start pose</h3>
+<p>FTM is one per-channel affine applied identically to every token. It fixes a global statistics shift: plausible for camera, lighting and texture. A start-pose perturbation is a <i>state-specific</i> change in what the wrist sees, so a global affine is unlikely to help <span class="tag i">inferred</span>. Two better-posed parameter-only arms:</p>
+<ol>
+<li><b>Camera row:</b> FTM / moment matching (SPATIAL_ADAPT_MATHS E1–E2).</li>
+<li><b>Start pose:</b> steer the wrist-derived tokens toward the nominal ones at forward 0 only. That is #3, and R-053 says reproducing the nominal first chunk is sufficient.</li>
+</ol>
+<p>Keep "parameter-only" in #1, but name which.</p>
+
+<h3>4.4 C5 expanded: re-homing is the baseline to beat</h3>
+<p>If start-pose failures are decided at forward 0 and nominal starts succeed at 0.93–0.95, the simplest deployable fix is to drive the arm to the canonical start pose and then run the policy. In simulation that is close to free. Any data or steering repair must beat it, or be justified for settings where re-homing is impossible: mid-task disturbances, cluttered workspaces, or tasks where the start pose is part of the task. Without that arm, a reviewer or customer will ask the question first <span class="tag i">inferred</span>.</p>
+
+<h3>4.5 Does "#1 as the spine, five arms" still hold?</h3>
+<p><b>Yes, with a rewritten arm list (C21)</b> <span class="tag i">inferred</span>. Proposed, all at a matched frame budget, the same recipe and dose reporting, and evaluated per direction × cm band plus nominal:</p>
+<ol>
+<li><b>Replay only</b>: the no-new-data control. This is D23.</li>
+<li><b>Broad coverage</b>: uniform start offsets, all directions.</li>
+<li><b>Failure-targeted</b>: whole-episode demos at far offsets, directions 1–2 (Mulligan-like).</li>
+<li><b>Mechanism-targeted</b>: forward-0/1 bridge labels at the same starts (Option A).</li>
+<li><b>Parameter-only</b>: forward-0 wrist-token steering (#3) for start pose; FTM / moment matching for the camera row.</li>
+<li><b>Run-time, no training</b>: re-home; bridge-then-handback; nominal-chunk oracle as the upper bound.</li>
+</ol>
+<p>The headline figure stays "gap closed vs cost". The new contrast that carries the novelty is 4 vs 3.</p>
+
+<h3>4.6 Smaller points</h3>
+<ul>
+<li><b>#2 risk line.</b> "R-037 found that nothing predicts failure well yet": R-037 is about the backbone vs adapter signal, and R-036 is the underpowered negative. Cite R-036/R-047 for "nothing predicts well", and R-059 (STAC, pre-registered) as the pending test <span class="tag v">verified</span> (RESULTS.md table rows).</li>
+<li><b>#3.</b> Add "Observing and Controlling Features" (2603.05487) as the baseline to beat. It is linear-observer steering on π0.5 with flow matching, closer than COAST to what #3 proposes.</li>
+<li><b>#5.</b> Jung &amp; Park's +2 teleop poses (30 → 75% at one pose) is a priced human-data result: one targeted human collection, about 76 episodes inferred. It is a natural data point for the "human demo value" comparison.</li>
+<li><b>At a glance.</b> #1's novelty is "High". Given Mulligan, "High only for the mechanism-vs-failure contrast" is more accurate.</li>
+</ul>
+
+<h3>4.7 Change list for §4 (numbered for approval)</h3>
+<div class=tw><table>
+<tr><th>#</th><th>Section</th><th>Proposed change</th></tr>
+<tr><td>C16</td><td>Where things stand, ¶3</td><td>Add: "Direction 0 reaches only 0.72 of the requested radius and has no starts beyond 12 cm, so every >12 cm failure is from directions 1–2 (per-direction bands in <code>r047_offset_curve.json</code>)."</td></tr>
+<tr><td>C17</td><td>Recommendation</td><td>Define the mechanism- and failure-targeted arms by which frames are labelled, at the same starts (§4.2).</td></tr>
+<tr><td>C18</td><td>Recommendation item 4; #1 open niche</td><td>Name the parameter-only fix per row: wrist-token steering at forward 0 for start pose; FTM / moment matching for camera (§4.3).</td></tr>
+<tr><td>C19</td><td>#2 risk line</td><td>Cite R-036/R-047 rather than R-037, and add R-059 as the pending test (§4.6).</td></tr>
+<tr><td>C20</td><td>#2 literature; Open questions</td><td>Change "Simchowitz et al." to "Zhang, Pfrommer, Pan, Matni &amp; Simchowitz". Mark the IntervenGen 34–62%, DemoGen ~20×, REALM ~800 and MimicGen "10 ≈ 200" numbers as not in the abstracts. Replace the "I haven't read it" placeholders with the abstract summaries in §3.</td></tr>
+<tr><td>C21</td><td>Recommendation arm list</td><td>Replace the five arms with the six in §4.5; add re-homing (§4.4); drop "the R-054 rescues" as an arm.</td></tr>
+<tr><td>C22</td><td>Literature tables</td><td>Add the papers in §2, each under its direction.</td></tr>
+</table></div>
+
+<h2>5. What this review did not do</h2>
+<ul>
+<li>It did not read the 2026 papers in §2–3 in full, apart from 2512.02902, Jung &amp; Park and FLARE. Claims were checked against abstracts only.</li>
+<li>It did not score R-058 r 64 (C2) or check the 281-step timeout (C14).</li>
+<li>It did not edit <code>AMBITIOUS_DIRECTIONS.html</code>. Nothing here is applied until the user approves items by number.</li>
+</ul>
+
+<p class=small style="margin-top:3em">Sources: arXiv API records for all cited IDs (fetched 10-06) · <code>RESULTS.md</code> R-036, R-037, R-047, R-053, R-056, R-057, R-058 · <code>runs/r056_diag/loss_summary.json</code>, <code>runs/r056_diag/r047_offset_curve.json</code> · <code>runs/r058_r64/selection.json</code>, <code>runs/overnight/queue.log</code> · <code>runs/impl_smoke/r056fix_v1/…/adapter_config.json</code>, <code>config.json</code> · <code>docs/R056_POSTMORTEM.html</code>, <code>docs/DATA_SOURCING_RESEARCH.html</code>, <code>docs/HANDOFF_6Oct.html</code> · full reads: <code>docs/SPATIAL_ADAPT_MATHS.html</code>, <code>docs/JUNG_PARK_INITPOSE.html</code>, <code>docs/FLARE_RECOVERY.html</code>.</p>
+</div></body></html>
