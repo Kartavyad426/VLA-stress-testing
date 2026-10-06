@@ -230,6 +230,13 @@ Every entry records its expectation and **says when it was written**:
 | R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
 | R-051 | 09-25 | EVAL | Reverse direction, noise seeds and layout rescue for the remaining rows | DONE (scored 09-28) | 4 of 6 held: noise single-camera; lighting and texture joint; layout agent view; a corrected first chunk does not rescue layout |
 | R-052 | 09-28 | EVAL | Benchmark camera cone: yaw, pitch and distance about LIBERO-Plus's own pivots | PRE-REGISTERED, NOT RUN | ~760 rollouts, ~9.5 h; runs after R-047; knobs camera_bench_* |
+| R-053 | 09-28 | EVAL | Start-pose no-op baseline: how many R-044 rescues are render jitter | PRE-REGISTERED, NOT RUN | 60 rollouts, ~50 min |
+| R-054 | 09-28 | DATA | Rescue-minting pilot: 100 start-pose demos, LeRobot converter, dataset gates | PRE-REGISTERED, NOT RUN | ~1.7 h GPU; converter and runner by impl |
+| R-055 | 09-28 | GATE | GR00T LoRA fine-tune gates: zero-step conformance, overfit, memory on 8 GB | PRE-REGISTERED, NOT RUN | bf16 load, LoRA r16 on head, projectors and VLM frozen |
+| R-056 | 09-28 | EVAL | Start-pose retraining pilot, arm (a): LoRA head, frozen VLM, 100 minted demos + 1:1 replay | PRE-REGISTERED, NOT RUN | reinstates R-046 (a) as a pilot; ~290 eval rollouts |
+| R-057 | 09-28 | EVAL | When is the episode decided: drive-until sweep k ∈ {1,2,4,all} on start pose and camera | PRE-REGISTERED, NOT RUN | 240–300 rollouts, ~3–3.8 h; layout excluded (needs a state-conditional source) |
+| R-058 | 09-28 | EVAL | LoRA rank sweep on the start-pose pilot: r ∈ {4, 64} vs R-056's r = 16 | PRE-REGISTERED, NOT RUN | ~350 rollouts + 2 trainings; decides rank for the 500-demo run and whether D7 (rent) is needed |
+| R-059 | 09-29 | ANALYSIS + EVAL | Sentinel STAC on GR00T at matched forward index, B seeded draws, against a clock baseline | PRE-REGISTERED, NOT RUN | part A CPU on R-047; B smoke; C1 240 start-pose rollouts (~4 h at B = 32); gate: STAC ≥ 3× the noise floor |
 
 ---
 
@@ -4387,3 +4394,789 @@ against R-047's yaw axis.
 Magnitude-neutral success below 100% pooled; `tests/test_bench_camera.py`
 failing on the code state recorded in `runs/r052/code_state`; or more than 3 of
 the 10 scenes dropped from the scale axis.
+
+---
+
+## R-053 — PRE-REGISTERED, NOT YET RUN: the start-pose no-op baseline (how many R-044 "rescues" are render jitter)
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Runner** `experiments/r039_run.py` (existing flags) · **Selection**
+`experiments/repro/r044_selection_ris.json` (the ten Robot Initial States
+instances of R-042/R-044) · **Queue** to be written (`experiments/queue_r053.sh`),
+pattern of `queue_r048.sh` · **Part of** the start-pose retraining pilot
+(R-053 → R-056), user decision 2026-09-28; design in `docs/DATA_MINER_SPEC.html` §4
+
+### Why
+
+R-044's forward-0 rescue (nominal chunk: 7 of 7 failures flipped) had no
+no-op arm. R-048 then measured a plain re-run flipping 3 of 7 camera failures,
+and made a no-op drive mandatory for every rescue design. Start pose is the
+only row without one. Rescue minting (R-054) keeps the successes of
+nominal-driven episodes. A success that a plain re-run would also have
+produced carries no correction, so the no-op rate sets what fraction of
+minted demos are real rescues.
+
+### Design
+
+The ten instances × noise seeds 0, 1, 2 × two drives at forward 0 only:
+- **P**, a re-run with no correction (the no-op);
+- **N**, the nominal chunk, which replicates R-044 at seed 0 and extends it to seeds 1 and 2.
+
+That is 60 rollouts, `--arms extended --drive {P,N} --drive-until 1 --no-video`,
+env seed 0. Run under `flock /tmp/vla_gpu.lock`, announced first. About 50 min.
+
+Readouts, per seed and pooled:
+- failures under P;
+- flips = P-failures that succeed under N;
+- flips under the re-run relative to R-042's original P outcome;
+- median closest approach;
+- ‖P−N‖ at forward 0 (must match R-044 within 0.05).
+
+### Pre-registered expectations
+
+1. **N succeeds on ≥ 21/30 episodes pooled (≥ 70%).** *Medium.* R-044 9/10,
+   R-050 rerun 7/10.
+2. **N flips more P-failures than the re-run does, by ≥ 30 pp of P-failures
+   pooled over seeds.** *Medium.* R-050's gap halving (10/10) says the
+   correction is real at the action level; the outcome rate is noisier.
+3. **The no-op re-run at seed 0 flips ≤ 3 of R-042's 7 failures.**
+   *Medium-low.* Camera flipped 3 of 7, layout 0 of 8.
+4. **Closest approach under N beats P on ≥ 20/30.** *Medium.*
+
+### What would make this uninterpretable
+
+‖P−N‖ at forward 0 not matching R-044 within 0.05 on ≥ 9/10 at seed 0, or any
+run rc ≠ 0.
+
+### What it decides
+
+- **If 2 holds:** proceed with R-054 unchanged.
+- **If 2 misses** (the nominal chunk is not better than a re-run on outcome):
+  R-054 still runs, since the action-level effect is established, but R-056's
+  success expectations are halved, and the scripted-expert source (spec S3)
+  becomes the priority comparison.
+
+### Note 2026-09-29 — post-hoc, exploratory: gripper offset vs outcome (10 instances × 3 seeds, a small slice)
+
+Not pre-registered, and on a small slice (10 instances, 3 seeds each), so read
+it as a pointer, not a result. For each instance, the gripper
+(end-effector) offset at t = 0 is measured from its control scene's start
+pose, using `steps[0].obs_state.eef_pos` in `runs/r053_{P,N}_s*`. Sorted by offset:
+
+| task | gripper offset | P (no correction) | N (nominal first chunk) |
+|---|---|---|---|
+| 430 | 2.9 cm | 1/3 | 3/3 |
+| 491 | 3.4 cm | 0/3 | 3/3 |
+| 416 | 4.7 cm | 0/3 | 3/3 |
+| 524 | 5.7 cm | 0/3 | 3/3 |
+| 548 | 6.0 cm | 2/3 | 1/3 |
+| 468 | 6.7 cm | 0/3 | 3/3 |
+| 485 | 8.0 cm | 2/3 | 3/3 |
+| 484 | 8.9 cm | 0/3 | 3/3 |
+| 313 | 9.7 cm | 0/3 | 2/3 |
+| 281 | 16.3 cm | 1/3 | 0/3 |
+
+- **Visually small starts are not easy for the policy.** The unmodified
+  policy fails every seed at 3.4–5.7 cm offsets, perturbations barely visible
+  in the video. The nominal first chunk rescues them. The failure is the
+  policy's reaction to the wrist view (R-042, 0.88), not reachability.
+- **The only >10 cm instance (281, 16.3 cm) is not rescued (0/3).** It is one
+  instance, consistent with R-054's offset curve below.
+
+---
+
+## R-054 — PRE-REGISTERED, NOT YET RUN: rescue minting pilot, 100 start-pose demos, and the dataset gates
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** DATA ·
+**Code** to be written by `impl`:
+- a minting runner (splice `drive="N"`, `drive_until=1`, per-step recording on);
+- a `driven` frame tag and provenance stamp;
+- a held-out exclusion list;
+- a harness-rollout → LeRobot dataset converter.
+
+**Spec** `docs/DATA_MINER_SPEC.html` §1, §4, §5 (source S2, gates G1, G4, G5, G6, G7).
+
+### Design
+
+**Sampling.**
+- **Scenes:** the ten R-047 start-pose scenes, excluding on-ramekin, which fails unperturbed (R-047).
+- **Radius bands:** 0.1–0.2, 0.2–0.3, 0.3–0.4, 0.4–0.5 rad.
+- **Directions:** random joint directions, excluding the two held-out directions per scene fixed for R-056.
+
+**Nominal features.** The nominal forward-0 features are recorded once per
+(scene, noise seed) and reused across radii.
+
+**Minting.**
+- **Generation:** run until 100 successes are kept; the yield is recorded per band.
+- **Recording:** failures are recorded but not exported.
+- **Tagging:** each episode carries provenance and per-frame `driven` tags (frames 0–15).
+
+**Export.** A LeRobot dataset matching `IPEC-COMMUNITY/libero_spatial_no_noops`'s
+schema:
+- both 256×256 cameras, the 8-d state, the 7-d action, the task string, the same fps;
+- normalisation statistics taken from the checkpoint's processor, not recomputed.
+
+**Gates.**
+- **G1 contract:** on all episodes.
+- **G4 held-out exclusion:** by provenance.
+- **G6 round trip:** replay the exported actions from the recorded initial state on 10 episodes.
+- **G7 eyes on:** 10 videos.
+
+**Cost.** About 100 / 0.75 × 45 s ≈ 1.7 h of GPU, plus gates, under the flock.
+
+### Pre-registered expectations
+
+1. **Pooled yield ≥ 70%.** *Medium.* R-044/R-050 (70–90%) at L4/L5 instances.
+2. **Yield falls with radius: the 0.4–0.5 band's yield is below the 0.1–0.2
+   band's by ≥ 15 pp.** *Medium.* R-047's success curve and R-044's reading
+   that the nominal move stops being safe far from home.
+3. **G6 round trip: ≥ 9/10 replayed episodes reach the same outcome.**
+   *Medium-low.* Open-loop replay determinism in LIBERO-Plus is unmeasured.
+   A miss does not block R-056 (training reads recorded frames, not
+   replays), but it blocks the re-render source (spec S1) until explained.
+4. **G1 passes on 100%.** *High.* A failure is a converter bug, fixed before R-056.
+
+### What would make this uninterpretable
+
+The recorded forward-0 N chunk not matching a fresh splice forward on 3
+spot-checked episodes, or the exported state/action not matching the rollout
+trace bit-for-bit on those episodes.
+
+### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
+
+- **Source dataset.** The checkpoint's `train_config.json` names
+  `IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot` (LeRobot v2.1, AV1
+  video). It is converted locally to v3.0 under
+  `~/.cache/huggingface/lerobot/`. That converted copy is the schema target
+  and the replay source.
+- **Gripper convention.** The spec's "[−1, 1]" was wrong for this dataset. The
+  dataset's gripper action is {0, 1} with 1 = open. The export writes (1−g)/2
+  from the harness's executed g ∈ [−1, 1]; the checkpoint's postprocessor
+  inverts it as −sign(2x−1). The G6 round trip validates this end to end.
+- **Images.** The export flips 180° and then resizes 360→256 with INTER_AREA:
+  the same order and operation as the checkpoint's own preprocessor, checked
+  against a real dataset frame.
+- **Held-out radii.** For the four scenes whose R-047 50% point is ≥ 0.475 rad
+  (984, 1030, 1090, 1282), the rule "x50 + 0.025 / x50 + 0.075, clipped to
+  0.5" collapses to one radius. They use (0.45, 0.5) instead: capped at 0.5,
+  because training never goes beyond it. The lists are
+  `experiments/repro/r056_heldout.json` (108 starts) and `r056_val.json` (10).
+- **G6 at smoke scale (n = 2)** reports pass = false by threshold only. The
+  ≥ 9/10 criterion applies to the registered 10-episode check.
+
+### Note 2026-09-29 — post-hoc, exploratory: achieved radius and gripper offset per band (146 minting attempts, a small slice)
+
+Not pre-registered; 146 nominal-first-chunk episodes over 9 scenes at one env
+seed, so this is a pointer, not a result. The offsets are measured from each
+scene's unperturbed start pose, taken from R-047's `{}`-perturbation traces.
+
+**The achieved radius is below the requested one:**
+
+| band (requested, rad) | n | mean achieved joint-space radius | gripper offset, median (range) | success |
+|---|---|---|---|---|
+| 0.1–0.2 | 38 | 0.122 | 4.4 cm (0.2–9.1) | 34/38 |
+| 0.2–0.3 | 36 | 0.210 | 7.4 cm (1.8–14.7) | 28/36 |
+| 0.3–0.4 | 36 | 0.303 | 11.2 cm (1.5–18.7) | 18/36 |
+| 0.4–0.5 | 36 | **0.383** | 11.1 cm (3.8–20.5) | 20/36 |
+
+The top band never reaches 0.5 rad, and the two smoke episodes (requested 0.128
+and 0.271) achieved 0.099 and 0.203. The likely cause is joint-limit clipping
+in the env knob (not yet checked). **Every start-pose radius label in R-041,
+R-047, R-054 and R-056 describes the requested radius, not the achieved one.**
+Gripper offset in cm is the more physical axis for start pose.
+
+**Success with the nominal first chunk falls with gripper offset:**
+
+| gripper offset | 0–3 cm | 3–5 cm | 5–8 cm | 8–12 cm | > 12 cm |
+|---|---|---|---|---|---|
+| success | 14/15 | 23/27 | 36/39 | 18/34 | 9/31 |
+
+- **Reading:** up to ~8 cm the borrowed nominal chunk almost always works; beyond
+  ~10 cm geometry starts to matter and it mostly doesn't. The minted training
+  set is therefore concentrated at ≤ 8 cm (the selection bias of
+  DATA_MINER_SPEC §4.3, now with a physical scale).
+- **For R-056:** its scorer adds an exploratory breakdown of held-out success by
+  gripper offset (≤ 8 cm vs > 8 cm), requested 2026-09-29. It changes none of
+  R-056's pre-registered expectations. Gains are expected, if at all, mainly at
+  ≤ 8 cm.
+
+---
+
+## R-055 — PRE-REGISTERED, NOT YET RUN: GR00T LoRA fine-tune gates — zero-step conformance, overfit, memory on 8 GB
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** GATE ·
+**Code** to be written by `impl`: a training config for
+`third_party/lerobot` `lerobot_train` with the GR00T policy loaded from
+`nvidia/gr00t17-lerobot-libero_spatial-640`. The config must set:
+- **LoRA** through the generic PEFT path (`--policy.use_peft`, explicit
+  `--peft.target_modules`). GR00T's own `lora_*` fields are declared but read
+  nowhere (`configuration_groot.py:358`).
+- **Targets:** every linear of the action-head DiT and `vl_self_attention`,
+  r = 16, α = 16, dropout 0.1, ≈ 19 M parameters.
+- **Frozen modules:** the projectors (state/action encoders, action decoder,
+  0.34 B) and the whole VLM.
+- **bf16 weights.** `model_params_fp32` must be false and the load bf16: the
+  port's default fp32 cast is 12.6 GB (`modeling_groot.py:116`). The harness
+  inference path avoids it the same way (R-021, 5.87 GiB).
+
+**Background** `docs/FINE_TUNING_101.html` §6, §12.
+
+### Design, three gates in order
+
+1. **Zero-step conformance.** Load through the training path, attach the
+   untrained adapter (B = 0), put it in eval mode, and compute the forward-0
+   action on the ten R-044 instances with the harness's fixed noise. Compare
+   with the harness policy's action.
+2. **Overfit.** 300 steps on one R-054 episode at LR 1e-4.
+3. **Memory.** 20 steps at batch 1 and batch 2, gradient checkpointing on,
+   recording `torch.cuda.max_memory_allocated` and `nvidia-smi` peak. The GPU
+   is under the flock and nothing else holds it.
+
+### Pre-registered expectations
+
+1. **Conformance: ‖a_train − a_harness‖ ≤ 1e-3 per dimension on 10/10.** *Medium.*
+   Same weights and noise; differences would come from preprocessing or dtype.
+   A miss is a pipeline bug and blocks R-056.
+2. **Overfit: flow-matching loss on the episode falls below 10% of its step-0
+   value.** *High.*
+3. **Memory: peak ≤ 7.4 GiB at batch 1 with the VLM resident.** *Medium.*
+   Arithmetic: 5.87 GiB of measured weights, plus ≈ 0.3 GiB of LoRA state,
+   plus head activations.
+4. **Batch 2 also fits (≤ 7.8 GiB).** *Medium-low.*
+
+### What it decides
+
+- **If 3 fails:** switch to cached VLM features (spec §12, estimated ≈ 5 GiB)
+  and re-run gate 3.
+- **If that fails too:** D7 (rent a GPU) becomes blocking.
+- **If gate 1 fails:** nothing trains until the difference is explained.
+
+### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
+
+- **Overfit gate measure.** The criterion is a *fixed-seed* flow-matching loss
+  on the episode (τ, ε and dropout seeded per frame, eval mode), measured
+  before and after the 300 steps. The noisy step-0 training loss is not used.
+  The threshold is unchanged (< 10% of the before value).
+- **Gradient checkpointing.** The port's DiT flag is never read, so impl added
+  non-reentrant block checkpointing to the DiT and `vl_self_attention` blocks.
+  It is added gate 2b: loss and gradients on one fixed batch must match with
+  and without checkpointing (bf16 tolerance).
+- **Micro-batch.** GR00T's tokenizer pads on the left, and `vl_self_attention`
+  takes no mask, so at micro-batch > 1 the features depend on batch
+  composition. Training therefore runs at **micro-batch 1** with gradient
+  accumulation 8 (effective batch 8, as registered). Gate 3's batch-2
+  measurement stays as a memory readout only; expectation 4 is kept but no
+  longer decides anything.
+- **Cached-feature equivalence** (only if the cache is used) is measured at
+  micro-batch 1, where it is exact. Measured size: 153 tokens per frame,
+  ≈ 0.63 MB bf16.
+- **Smoke readings (not the registered run; recorded for provenance).**
+  19,136,512 trainable parameters, all LoRA, over 248 Linears. Peak 6.30 GiB
+  (`max_memory_allocated`) / 6.40 GiB (`nvidia-smi`) at batch 1 with the VLM
+  resident. Conformance max |Δa| = 0.0 on 3 instances.
+
+
+### Amendment 2026-09-29 12:00 — overnight execution deviated from the registered overfit gate; rerun as registered
+
+- **What was registered:** gate 2, "300 steps on one R-054 episode at LR 1e-4"; pass if the fixed-seed loss falls below 10% of its before value (19:11 amendment).
+- **What ran overnight** (2026-09-29 04:50–04:53, `runs/r055/gates.json` key
+  `overfit_cosine_20260929`): the trainer's default schedule, 5% warmup then
+  cosine decay to 0 over the 300 steps, not a constant LR 1e-4. This was an
+  execution error, not a design choice (impl's report).
+- **Result of that run:** fixed-seed loss 0.0523 → 0.0063, ratio **12.1%**.
+  Recorded as a **miss** of the 10% bar. The other gates passed:
+  - conformance: 10/10 at max |Δa| = 0.0;
+  - 2b checkpointing equivalence: loss identical, worst gradient rel. 0.0083 < 0.01, 0 zero gradients;
+  - memory: batch 1 at 6.30 GiB allocated / 6.73 GiB `nvidia-smi` ≤ 7.4, so expectation 3 held; batch 2 at 6.93 GiB `nvidia-smi`, so expectation 4 held.
+  The miss blocked R-056, WiSE-FT and R-058 overnight.
+- **Rerun, as registered:** constant LR 1e-4 (`--lr-schedule constant`), same
+  episode, steps and threshold. It was launched 2026-09-29 ~11:50
+  (`queue_r055_rerun.sh`) by the user's decision, and the cosine result is
+  kept alongside it. **The gate's verdict is the rerun's.** The cosine run is
+  a deviation, not a registered attempt.
+- **Caveat:** this is a second execution of a gate after its first result was
+  seen. It is justified only because the first did not follow the registered
+  procedure. If the rerun also misses, R-056 stays blocked, and the threshold
+  is not relaxed.
+
+
+### Amendment 2026-09-29 15:15 — the overfit check is a plumbing sanity check, not a blocker; R-056 proceeds (user decision)
+
+- **Diagnostic** (`runs/r055/overfit_diag_1500.json`, constant LR 1e-4,
+  1500 steps, the same episode and seeding). The fixed-seed loss falls 85% in
+  the first 100 steps and reaches 8.6% of its start at step 500 and 5.3% at step
+  1500. Single-step probes are noisy (11–14% at steps 1000 and 1300). The model
+  fits the episode; there is no floor.
+- **Reading.** Overfitting one episode is the expected behaviour of a working
+  behaviour-cloning pipeline. The check exists to catch plumbing failures
+  (no gradient reaching the adapter, misaligned labels, the loss masked out),
+  and none is present. Its bar, "< 10% at 300 steps", was miscalibrated: it
+  was labelled High confidence and lands inside the probe noise. The two 300-step
+  results (12.1% under the schedule deviation, 13.9% as registered) stay on
+  record as **misses of that expectation**.
+- **Blocking.** R-055's registered "what it decides" made only gate 1
+  (conformance) blocking. The overfit block came from the overnight queue
+  logic and from this entry's 12:00 amendment. **Both are superseded by the
+  user's decision of 2026-09-29.** The overfit check is informational. R-056
+  trains, gated on conformance (passed, exact), 2b (passed) and memory
+  (passed, 6.73 GiB), as registered.
+
+---
+
+## R-056 — PRE-REGISTERED, NOT YET RUN: start-pose retraining pilot, arm (a) — LoRA on the action head, VLM frozen, 100 minted demos
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL (training) ·
+**Depends on** R-053 (no-op rate), R-054 (data), R-055 (gates pass) ·
+**Design basis** R-046 arm (a), which this reinstates in pilot form by user
+decision 2026-09-28. R-046 arm (b) and the 500-demo scale are follow-ups,
+registered separately after this reads out.
+
+### Design
+
+**Data.**
+- **Minted:** R-054's 100 minted episodes, truncated to the approach: the
+  first 48 steps, i.e. three chunks including the 16 driven.
+- **Replay:** mixed 1:1 by sampling weight with the original
+  `libero_spatial_no_noops` demos, as the regression guard.
+
+**Training.**
+- **Trainable parameters:** R-055's LoRA configuration. The VLM, the projectors and the base head weights stay frozen.
+- **Optimiser settings:** LR 1e-4, 5% warmup, cosine decay; effective batch 8
+  (micro-batch per R-055, accumulated); 2,000 steps; one seed.
+- **Checkpoints:** saved at 500, 1000, 1500 and 2000 steps.
+
+**Checkpoint selection.** Chosen by rollout success on a **validation** set
+of 10 perturbed starts at 1 seed, disjoint from both training and held-out.
+Not chosen by loss.
+
+**Held-out set.**
+- **Starts:** the nine scored scenes × 2 radii just beyond each scene's
+  R-047 50% point (clipped to 0.5 rad) × the 2 held-out directions × noise seeds 0–2.
+- **Size:** 108 rollouts per checkpoint.
+- **Comparison:** the base checkpoint is run on the identical set.
+
+**Controls.**
+- **Nominal:** R-029's unperturbed control on the same scenes × 3 seeds, for the retrained checkpoint.
+- **Mechanism check:** W and A transfer at forward 0 on the ten R-044
+  instances, on the retrained checkpoint (no rollouts).
+
+**Exploratory, not scored against expectations.** WiSE-FT at α = 0.5 on the
+held-out and nominal sets.
+
+**Readouts.**
+- success;
+- closest approach;
+- per-radius success;
+- gap closed = (retrained − base) / (nominal − base) on the held-out set.
+
+### Pre-registered expectations
+
+1. **Held-out success rises by ≥ 15 pp over the base checkpoint, pooled over
+   the 108.** *Medium.* 100 demos, first-chunk-decided failure, information
+   present at the VLM output (R-045, post-hoc).
+2. **Gap closed ≥ 40%.** *Medium-low.* The plan's ≥ 70% is for 500 demos. The
+   pilot is a fifth of that, and R-053's attribution may shrink it.
+3. **Nominal control regresses by < 5 pp.** *Medium.* LoRA plus 1:1 replay.
+4. **W transfer at forward 0 falls by ≥ 0.2 (median, from 0.88).** *Medium.*
+   The minted labels teach invariance to start pose at forward 0 (spec §4.3).
+   If success rises and W does not fall, the policy learned to recover rather
+   than to start correctly: a different fix than intended.
+5. **Gains concentrate where minting yield was high: the per-radius gain in
+   the lowest held-out band exceeds that in the highest.** *Medium-low.*
+   Selection bias of the success filter (spec §4.3).
+6. **Closest approach improves over base on ≥ 60% of held-out instances.** *Medium.*
+
+### What would count as failure
+
+Less than a third of the gap closed, with R-055's gates passed.
+- **Before concluding** that the data specification is wrong: scale to 500
+  demos (the plan's size).
+- **If 500 also fails:** it counts as a negative result for the
+  mechanism-targeted arm, and R-040's direct arm (D) is the comparison to run.
+
+### What would make this uninterpretable
+
+Any of the following:
+- the base checkpoint's held-out success differing from R-047's curve at the same
+  radii by more than its binomial 95% interval;
+- the nominal control on the base checkpoint below 29/30;
+- G4 held-out exclusion failing;
+- any R-055 gate unresolved.
+
+### Cost
+
+- **Training:** 1–3 h local.
+- **Evaluation:** 108 × 2 checkpoints plus 30 nominal plus 40 validation ≈ 290
+  rollouts ≈ 3.6 h.
+- **Exploratory WiSE-FT:** ≈ 1.8 h more.
+- **All GPU work** under the flock, announced.
+
+### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
+
+- **Augmentation off.** The port's processors run with `training=False` under
+  `lerobot_train` (dataset_meta is passed only for reward models,
+  `lerobot_train.py:513`): no random crop and no state dropout. The original
+  recipe's ColorJitter is also left off. This is a deliberate **deviation from
+  the checkpoint's original training recipe**, kept for the pilot so that
+  cached features stay exact and the comparison is clean.
+- **Micro-batch 1, accumulation 8** (see R-055's amendment). "2000 steps; save
+  at 500/1000/1500/2000" means *optimizer* steps. The trainer rescales its
+  micro-step counters, and checkpoint metadata must record the optimizer step.
+- **Mixing.** A custom weighted `MixedDataset` gives 1:1 by sampling weight
+  (0.496 minted, measured), because `lerobot_train` rejects
+  `MultiLeRobotDataset`.
+- **Nominal control: 9 scenes, not 10.** The R-029 scenes minus on-ramekin
+  (1169), × env seeds 0–2 with noise seed = env seed = 27 episodes per
+  checkpoint. On-ramekin fails unperturbed (R-047), is excluded from minting,
+  and is reported separately. The uninterpretability condition "nominal
+  control on the base checkpoint below 29/30" becomes **"below 26/27"** (the
+  same one-failure allowance). The cost figure drops by 3 rollouts.
+- **Held-out radii** per R-054's amendment (four scenes use 0.45 and 0.5).
+
+
+### Amendment 2026-09-29 17:31 — first training ran with a cycling LR schedule; its eval was killed; R-056 is retrained (user decision (b))
+
+- **Schedule deviation.** lerobot constructs its Accelerator with
+  `step_scheduler_with_optimizer=False` (`third_party/lerobot/.../configs/accelerator.py:239`),
+  so the scheduler stepped every micro-step, while it had been built over optimizer
+  steps. The LR cycled: warmup + cosine over 2000 *micro*-steps, repeating ~4.2
+  times over the run. Gradient accumulation itself was correct: AdamW step =
+  500/1000 at the opt-500/opt-1000 checkpoints, effective batch 8. The saved
+  checkpoints sit at LR 9.9e-5 / 9.4e-5 / 8.4e-5 / 7.0e-5 (opt 500/1000/1500/2000),
+  i.e. **none was annealed**.
+- **Eval killed.** Training finished at 17:16 (rc 0). The eval started and
+  finished 10 validation rollouts on the opt-500 checkpoint. At 17:23,
+  `systemd-oomd` killed the VS Code scope, including the queue, under memory
+  pressure. The probable trigger is the harness loading each checkpoint as a
+  12.6 GB fp32 CPU copy before casting to bf16.
+- **Decision (user, 2026-09-29):** retrain with the corrected schedule rather
+  than evaluate unannealed checkpoints. The cycling run is **kept, not
+  deleted**, as `runs/r056_r16_cyclic_train` and `runs/r056_r16_cyclic_eval`,
+  and is not an R-056 result.
+- **Before the retrain:**
+  - the scheduler is built over micro-steps (verified on CPU with lerobot's own
+    code: max |lr − registered| = 8.8e-7 over 2000 optimizer steps);
+  - a startup guard aborts on any schedule mismatch;
+  - checkpoints record their LR;
+  - the eval loads in bf16 and frees the previous checkpoint;
+  - the queue runs as its own systemd user unit.
+  The registered design is unchanged.
+
+---
+
+## R-057 — PRE-REGISTERED, NOT YET RUN: when is the episode decided — a drive-until sweep k ∈ {1, 2, 4, all} on start pose and camera
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Runner** `experiments/r039_run.py` (existing flags: `--arms extended --drive N
+--drive-until k`; omitting `--drive-until` drives every forward) · **Selections**
+`experiments/repro/r044_selection_ris.json` (start pose),
+`experiments/repro/r048_selection_cam.json` (camera) · **Queue** to be written
+(`experiments/queue_r057.sh`) · **Depends on** R-053 (reuses its P and k = 1 arms) ·
+**Spec** `docs/DATA_MINER_SPEC.html` §2, note "How 'decided' is measured"
+
+### Why
+
+The data miner spec labels each row by when its episode is decided: first
+chunk (start pose) or throughout (camera). Both labels rest on k = 1 only.
+Forward-0 rescue plus R-050's downstream gap show that one corrected chunk
+suffices for start pose and does not for camera. Neither says *how many*
+corrected forwards a camera episode needs, or whether start pose gains
+anything from more than one.
+
+"Decided at forward k" is defined here as the earliest k at which executing
+the corrected chunk for forwards 0…k−1 and then handing back matches a fully
+corrected episode. The answer sets how many frames per demo need corrected
+labels (R-056 truncates start-pose demos to 48 steps = 3 forwards) and which
+source a row needs (spec §3: rescue minting covers k = 1; camera needs
+whole-episode labels, i.e. re-render).
+
+### What N means per row (not the same thing)
+
+- **Camera** (vision category): the source at every forward is a *paired
+  render* of the current state under the nominal camera
+  (`LiberoEnv.nominal_observation`). N at forward k is a state-conditional
+  correction, and N-all is the policy acting on the nominal view throughout.
+- **Start pose** (`RECORDED_CATS`): the source is the *recorded* per-forward
+  features of the R-029 control episode, time-aligned by forward index, not
+  state-aligned. Past forward 0, N is increasingly "follow the control's
+  chunks" rather than a correction at the current state. So N-all on start
+  pose is an open-loop-ish upper reference, not a nominal episode.
+- **Layout is excluded.** Its recorded source is the control episode in a
+  different world: N past forward 0 replays chunks aimed at objects that
+  moved, so a k-sweep would measure nothing about correction. Layout's
+  decision time needs a state-conditional correction, i.e. the scripted
+  expert (spec S3) driving the first k forwards. That is a later entry, if S3
+  is built.
+
+### Design
+
+- **Drives:** P (the no-op re-run) and N with k ∈ {1, 2, 4, all}; noise seeds
+  0, 1, 2; env seed 0; ten instances per row. One forward = 16 env steps.
+- **Rollouts:**
+  - start pose: k ∈ {2, 4, all} × 30 = 90 new; P and k = 1 are reused from R-053
+    if `runs/r053_*/code_state` matches this run's, otherwise rerun (+60);
+  - camera: 5 drives × 30 = 150.
+  - Total 240 (≈ 3 h at ~45 s), or 300 (≈ 3.8 h) with the start-pose reruns.
+  - Run under `flock /tmp/vla_gpu.lock`, announced first.
+- **Readouts per (row, k):**
+  - pooled success over 30, with Wilson 95% intervals;
+  - flips relative to P;
+  - median closest approach;
+  - the **post-hand-back gap**: median ‖P−N‖ over forwards k … k+2 as a ratio to
+    P's own ‖P−N‖ at the same forwards (R-050's measure; primary). For start
+    pose, read it with the time-alignment caveat above.
+- **Decision point k\*:** the smallest tested k whose pooled success is within
+  10 pp of N-all's *and* at least 20 pp above P. If no finite k qualifies, the
+  row is "throughout (> 4 forwards)".
+
+### Pre-registered expectations
+
+1. **Start pose k\* = 1: k = 1's success is within 10 pp of k = 4's.** *Medium.*
+   R-044, R-050: the cause is behind the robot once it moves.
+2. **Start pose: the post-hand-back gap at k = 1 is ≤ 0.6 × P's.** *Medium-high.*
+   Replicates R-050 (6.06 → 3.44) over three seeds.
+3. **Camera N-all succeeds on ≥ 27/30.** *High.* It is the policy on the nominal
+   view throughout; R-029's control is 100/100.
+4. **Camera k\* is "throughout": k = 4's success is ≥ 15 pp below N-all's.**
+   *Medium.* R-050: the gap re-opens at the next forward because the view is
+   still wrong.
+5. **Camera: after hand-back at every finite k, the gap at forward k is ≥ 0.8 ×
+   P's.** *Medium.* The correction does not persist.
+6. **Camera: success rises monotonically in k (P ≤ 1 ≤ 2 ≤ 4 ≤ all, within
+   one-episode ties).** *Medium-low.* Outcome noise at n = 30.
+
+### What would make this uninterpretable
+
+- Forward-0 arms not matching R-048 (camera) or R-044/R-053 (start pose)
+  within 0.05 on ≥ 9/10 at seed 0.
+- Camera N-all below 24/30: the paired render would then not be a nominal
+  observation.
+- Any run with rc ≠ 0.
+
+### What it decides
+
+- **Start pose k\* = 1:** R-056's 48-step truncation stands, and the 16 driven
+  steps are the whole correction.
+- **Start pose k\* = 2 or 4:** minting drives N for k forwards and truncation
+  becomes 16·(k+2) steps; R-054/R-056 are amended before they run if possible.
+- **Camera "throughout":** confirms re-render (spec S1) as camera's only source.
+- **Camera k\* finite:** rescue minting with `drive_until = k` becomes a
+  camera source too, much cheaper than building re-render.
+
+---
+
+## R-058 — PRE-REGISTERED, NOT YET RUN: LoRA rank sweep on the start-pose pilot — r ∈ {4, 64} against R-056's r = 16
+
+**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL (training) ·
+**Depends on** R-056, which provides the r = 16 arm, the base-checkpoint
+held-out numbers and all data. It runs after R-056 whatever R-056's outcome.
+**Code** `experiments/r056_train.py` / `r056_eval.py` with the rank as a
+parameter (no new code expected). **Background** `docs/FINE_TUNING_101.html` §1,
+§3.
+
+### Why
+
+The fine-tuning primer's claim, and the map's, is that the start-pose fix is a
+small mapping in the action head: the information is present at the VLM
+output (R-045), and the episode is decided in the first chunk (R-044, R-050).
+If so, capacity is not the limit. A much smaller adapter should do as well as
+r = 16, and a much larger one should not do clearly better. If a larger rank
+does clearly better, the fix needs more capacity than the map suggests, and a
+full-head fine-tune (rented GPU, D7) becomes worth running.
+
+### Design
+
+Everything identical to R-056 as amended at 19:11: same minted data and 1:1
+replay, same 48-step truncation, same targets (every Linear in the DiT and
+`vl_self_attention`), same LR, schedule, optimizer steps, micro-batch 1 ×
+accumulation 8, seed, checkpoint cadence, and selection by validation
+rollouts. Only the rank changes.
+
+| arm | rank r | α | scale α/r | trainable params (approx.) |
+|---|---|---|---|---|
+| R-058 small | 4 | 4 | 1 | ≈ 4.8 M |
+| R-056 (reference) | 16 | 16 | 1 | 19.1 M (measured) |
+| R-058 large | 64 | 64 | 1 | ≈ 76.5 M |
+
+- **α = r keeps α/r = 1**, the same effective update scale as R-056, so rank
+  is the only change.
+- **Memory:** the r = 64 arm is estimated at ≈ 7.2 GiB with the VLM resident.
+  If R-055's memory procedure shows it does not fit, it trains from cached
+  VLM features, which is exact at micro-batch 1 per R-055's amendment. That
+  is recorded; it is not a deviation.
+- **Evaluation per arm:**
+  - the R-056 held-out set (108);
+  - the 9-scene nominal control (27);
+  - validation selection (4 checkpoints × 10);
+  - W/A transfer at forward 0 on the ten R-044 instances.
+
+  The base-checkpoint numbers are R-056's, on the identical set.
+- **Cost:** 2 × (1–3 h training) + 2 × 175 ≈ 350 rollouts ≈ 4.4 h, under the flock.
+
+### Pre-registered expectations
+
+1. **r = 4 is within 5 pp of r = 16 on held-out success.** *Medium.* A
+   first-chunk remapping needs little capacity (intrinsic-dimension argument).
+2. **r = 64 does not beat r = 16 by ≥ 10 pp on held-out success.** *Medium.*
+3. **Nominal regression does not shrink with rank: r = 64's drop is ≥ r = 4's.**
+   *Medium-low.* n = 27, so only a large difference is visible.
+4. **The W-transfer drop at forward 0 is within 0.1 across the three ranks.**
+   *Medium-low.* All three learn the same invariance, if they learn it at all.
+5. **Closest approach agrees with 1 and 2 in direction.** *Medium.* It is the
+   continuous readout and resolves smaller differences than success.
+
+### What it decides
+
+- **1 holds:** the 500-demo follow-up and arm (b) use r = 4. That is cheaper,
+  and leaves room for arm (b)'s top-4 LLM LoRA on 8 GB.
+- **2 misses (r = 64 better by ≥ 10 pp):** capacity was limiting. A full-head
+  fine-tune on a rented GPU (D7) is registered next.
+- **Every rank flat and R-056 flat:** the limit is the data (source S2's
+  borrowed labels, selection bias), not the adapter. The scripted-expert
+  source (S3) is the next comparison, not more parameters.
+
+### What would make this uninterpretable
+
+Any arm's training-path conformance at step 0 not exact (R-055 gate 1); the
+held-out or nominal sets differing from R-056's; or the r = 64 arm switching
+to cached features without the cache-equivalence gate passing.
+
+---
+
+## R-059 — PRE-REGISTERED, NOT YET RUN: Sentinel's consistency detector (STAC) on GR00T at matched forward index — does it beat the clock?
+
+**Date registered** 2026-09-29 16:40 · **Status** PRE-REGISTERED · **Type** ANALYSIS (part A) + EVAL (parts B, C) ·
+**Data** `runs/r047/` (part A, stored); new rollouts (parts B, C) · **Runner** to be written by impl (a B-draw capture on `r047_run.py`) ·
+**Queue** after the R-056 chain (`queue_r056.sh`), under `flock /tmp/vla_gpu.lock` · **Method doc** `docs/SENTINEL_METHODOLOGY.html` §13 (dated 2026-09-29)
+
+### Why
+
+Sentinel (Agia et al., arXiv:2410.04640) detects erratic failures with STAC, a
+distance between what consecutive action chunks predict for the same future
+steps, calibrated on successes. It is the leading candidate for a detector that
+needs only the policy's actions (the black-box access level in
+`docs/AMBITIOUS_DIRECTIONS.html`). Three things block adopting it here:
+
+1. **Length.** Sentinel sums a non-negative score over the episode and sets one
+   threshold from the successes' final sums. In R-047 every failure is a
+   timeout at 18 forwards (109/109 start pose, 67/67 camera in
+   `runs/r047/rollouts.jsonl`), while successes end at a median of 7 (range
+   5–17/18). A summed score separates the two on duration alone.
+2. **Sampler noise.** Single-draw STAC on R-041 had a noise floor of about 7
+   against ‖P−N‖ of about 1, and its AUROC was at chance (HANDOFF §11, option
+   4a). Every stored run has one draw per forward. STAC is defined on *B draws*
+   per forward.
+3. **Failure type.** STAC targets erratic failures. The R-038 traces show
+   failing arms hovering near the wrong object until the timeout: smooth and
+   wrong, the type Sentinel assigns to its slower VLM progress detector.
+
+### Design
+
+**Part A — CPU, stored R-047 data (no GPU).**
+- **A1, failure type.** For each rollout, on the window every episode has
+  (env steps 0–79 = forwards 0–4), compute:
+  - M1, reversal rate: the fraction of consecutive executed actions whose
+    translation parts (dx, dy, dz) have cosine < 0;
+  - M2, gripper toggles;
+  - M3, progress: the drop in `_gt_eef_to_object[target]` from step 0 to step
+    79, where the target is the non-plate object in `_gt_object_pos`.
+
+  Thresholds come from the *successes* on the same axis. **Erratic** = M1 or M2
+  above the successes' 95th percentile. **Stalled** = not erratic, and M3 below
+  the successes' 5th percentile. **Smooth-progressing** = the rest.
+  Classify every failure, per axis.
+- **A2, clock baseline.** The clock fires at forward *f* if the episode is still
+  running. Its false-positive rate at *f* is the fraction of successes still
+  running at *f*. f_c is the smallest *f* with FPR ≤ 0.05, per axis. Every
+  failure is detected at f_c.
+- **A3, single-draw control.** On the executed chunks `act_P` (shape F×40×7),
+  compute the overlap distance ‖chunk_f[16:40] − chunk_{f+1}[0:24]‖ over dims
+  0–5 (gripper dropped), at each overlap index f ∈ {0, …, 4}. Report AUROC for
+  failure vs success among episodes still running at f+1.
+
+**Part B — GPU smoke (~20 min).**
+- Seed the head noise per forward (`torch.Generator`, seed = hash(rollout seed,
+  forward)). Draw B samples in one batched call by repeating the backbone and
+  state features along the batch dimension. **Draw 0 is executed**; the others
+  are shadow draws used only for scoring.
+- B ∈ {8, 32}, one scene at radius 0 and at 0.4, full episodes. Record wall time
+  per forward, peak memory, and that draw 0 is bit-identical across two runs
+  with the same seed.
+- **Noise floor:** MMD² between two independent B-sets at the same observation
+  (a null), against the same statistic between chunk f and f+1 (STAC).
+
+**Part C — GPU run (~4 h at B = 32; set from B's measured cost).**
+- **C1, start pose:** R-047's grid restricted to radius {0, 0.2, 0.3, 0.4} × ten
+  scenes × three joint directions × two noise seeds = 240 rollouts, env seed 0.
+  Labels come from the new rollouts; R-047's outcomes are not reused (the
+  noise is now seeded).
+- **C2, camera (optional; runs only if C1 finishes and the GPU is free):**
+  harness yaw {0, 50, 60, 75} × ten scenes × four noise seeds = 160 rollouts.
+  Its conclusions don't block C1's.
+- **Scores per forward f:**
+  - **STAC_f:** MMD² with an RBF kernel between the B draws of chunk f,
+    steps 16:40, and the B draws of chunk f+1, steps 0:24; dims 0–5. The
+    bandwidth is set once by the median heuristic on radius-0 successes and
+    then frozen.
+  - **Spread_f:** mean pairwise distance within the B draws at forward f.
+    This is Sentinel's output-variance baseline and our S4.
+  - **Single_f:** the A3 statistic on draw 0.
+  - **Clock:** as in A2.
+- **Detectors:**
+  - **(i) Per-forward:** fire at the first f where score_f > γ_f. γ_f is the
+    conformal quantile ⌈(M+1)(1−δ)⌉/M of the successes *still running at f*,
+    with δ = 0.05, calibrated leave-one-scene-out.
+  - **(ii) Per-forward cumulative:** Sentinel's `ep_iid_cum_per_t`, a running sum
+    with its own γ_f per f.
+  - **(iii) As published:** a running sum with one γ from the successes' final
+    sums. This is the length-confound demonstration, not a candidate.
+- **Readouts:**
+  - AUROC per f ∈ {0, 1, 2, 3} among episodes still running at f+1, with 95%
+    bootstrap intervals clustered by scene;
+  - episode-level TPR at FPR ≤ 0.05;
+  - median detection forward;
+  - **the fraction of failures detected strictly before f_c.**
+
+### Pre-registered expectations
+
+1. **A1: at most 40% of start-pose failures are erratic.** *Medium.* R-038's
+   hovering traces.
+2. **A3: single-draw AUROC at f ≤ 2 lies in [0.40, 0.60].** *Medium-high.*
+   Replicates 4a on a second dataset.
+3. **A2: f_c ≥ 9 on both axes.** *Medium.* The median success ends at 7, but
+   R-047 has a tail of slow successes.
+4. **B: B = 32 adds ≤ 50% wall time per forward; peak memory ≤ 7.5 GB.**
+   *Medium.* Only the DiT head is re-run, batched.
+5. **B, gate for C: at radius 0.4, the median STAC_0 is ≥ 3× the null MMD².**
+   *Medium-low.* **If this fails, C is not run as registered.** B = 64 is tried
+   once; if that fails too, STAC is recorded as noise-limited on GR00T.
+6. **C1: STAC via detector (i) catches ≥ 30% of failures before f_c at
+   FPR ≤ 0.05.** *Low.* Conditional on expectation 1: if failures are mostly
+   stalled, STAC should miss them.
+7. **C1: STAC's AUROC exceeds Spread's at f = 0 and f = 1.** *Medium.*
+   Sentinel Table 1: output variance is its weakest baseline.
+8. **C1: detector (iii) scores ≥ 0.15 AUROC higher over whole episodes than
+   detector (i) at matched f, and a shuffled-length control reproduces most of
+   that gap.** *Medium-high.* This demonstrates the length confound.
+
+### What would make this uninterpretable
+
+- Radius-0 success below 50/60 in C1: seeding changed the policy's behaviour.
+- Draw 0 not bit-identical across two same-seed runs in B.
+- The B draws not distinct (Spread ≡ 0).
+- Any run with rc ≠ 0.
+- Fewer than 20 failures among episodes still running at f = 1 in C1: too few
+  to estimate an AUROC; report descriptively only.
+
+### What it decides
+
+- **Expectation 6 holds:** STAC with per-forward calibration enters the harness
+  as the black-box early detector, at B = 32.
+- **Expectation 6 fails, expectation 1 holds:** our failures are the smooth
+  type. The next step is a progress detector (simulator state for us, a VLM
+  for black-box clients), not more STAC.
+- **Expectation 5 fails:** STAC is noise-limited on GR00T at an affordable B.
+  Chunk agreement is recorded as unusable, and the black-box section of
+  `docs/AMBITIOUS_DIRECTIONS.html` is corrected.
+- **In every case:** any per-episode detector score reported in this project
+  must be compared at matched forward index and against the clock.
