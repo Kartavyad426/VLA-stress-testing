@@ -12,12 +12,19 @@ noise) for the state axis) so ‖P−N‖ at forward 0 is on record.
 
 Writes runs/<run-id>/<axis>/manifest.jsonl (one row per rollout) and the
 per-rollout npz; resumable at rollout granularity.
+
+SIGTERM (e.g. `timeout` at a queue deadline) finishes the rollout in flight,
+writes its row, and exits 0: the next run resumes from the manifest. A scene
+whose camera setup ignores a bench knob (the knob raises NotImplementedError,
+R-052's scale axis) is dropped from that axis and listed in
+<axis>/dropped_scenes.json.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import signal
 import sys
 import time
 
@@ -86,7 +93,16 @@ def closest_to_bowl(r, env):
     return np.array(out, dtype=np.float32)
 
 
+STOP = {"requested": False}
+
+
+def _on_term(signum, frame):
+    STOP["requested"] = True
+    print(f"signal {signum}: stopping after the rollout in flight", flush=True)
+
+
 def main():
+    signal.signal(signal.SIGTERM, _on_term)
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--axis", required=True, choices=list(GRIDS))
@@ -115,8 +131,14 @@ def main():
     log(f"axis {a.axis}: {len(scenes)} scenes x {len(mags)} magnitudes x {len(rep['dirs'])*len(rep['noise'])} replicates = {total}; done {len(done)}")
 
     recorded = {}      # (scene, dir, noise) -> magnitude-0 features, for the state axis
+    dropped_p = os.path.join(out_dir, "dropped_scenes.json")
+    dropped = json.load(open(dropped_p)) if os.path.exists(dropped_p) else {}
     for scene in scenes:
+        if str(scene) in dropped:
+            log(f"scene {scene}: dropped from {a.axis} ({dropped[str(scene)]})"); continue
         for d in rep["dirs"]:
+            if str(scene) in dropped:
+                break
             for ns in rep["noise"]:
                 noise_key = lambda i, s=ns: 1000 * s + i
                 for m in mags:                       # magnitude 0 first: it is the recorded source
@@ -145,6 +167,13 @@ def main():
                     h = attach_splice(pol._policy, source=source, drive="P", noise_key=noise_key)
                     try:
                         r = rollout(env, pol, ENV_SEED, spec_for(a.axis, m, d), video_dir=None)
+                    except NotImplementedError as e:
+                        if not a.axis.startswith("camera_bench_"):
+                            raise
+                        dropped[str(scene)] = f"{type(e).__name__}: {e}"[:300]
+                        json.dump(dropped, open(dropped_p, "w"), indent=1)
+                        log(f"scene {scene}: {a.axis} not supported, dropped: {e}")
+                        break
                     finally:
                         h.detach()
                         if rec is not None:
@@ -172,6 +201,10 @@ def main():
                         log("max-rollouts reached"); return
                     log(f"scene {scene} m={m:<6} dir {d} noise {ns}: success={r.success} F={F} d_pn0={row['d_pn_f0']:.3f} ca={row['closest_approach_m']}")
                     del env
+                    if STOP["requested"]:
+                        log("stopped on signal; resumable"); return
+                if str(scene) in dropped:
+                    break
                 # the magnitude-0 features are GPU clones used only by this magnitude loop; keeping them OOM'd the first run
                 recorded.pop((scene, d, ns), None); torch.cuda.empty_cache()
     log("done")

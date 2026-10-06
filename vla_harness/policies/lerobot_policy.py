@@ -39,8 +39,21 @@ class LeRobotPolicy:
                  env_cfg=None, policy_overrides: dict | None = None,
                  dtype: str | None = None, rename_map: dict | None = None,
                  preprocessor_overrides: dict | None = None,
-                 capture_dir: str | None = None, capture_k_resample: int = 1):
+                 capture_dir: str | None = None, capture_k_resample: int = 1,
+                 adapter: str | None = None, adapter_merge: bool = False,
+                 adapter_alpha: float = 1.0):
         self.checkpoint = checkpoint
+        # A PEFT (LoRA) adapter on top of `checkpoint` (R-056): a directory with
+        # adapter_config.json + adapter_model.safetensors, e.g. a lerobot_train
+        # checkpoint's pretrained_model/. `adapter_alpha` scales the LoRA delta
+        # (WiSE-FT between base, 0, and the fine-tune, 1); `adapter_merge` folds
+        # it into the bf16 base weights (faster, but rounds the delta to bf16).
+        # All three are behaviour, so all three are in identity(), with the
+        # adapter's CONTENT hash rather than its path.
+        self.adapter = adapter
+        self.adapter_merge = bool(adapter_merge)
+        self.adapter_alpha = float(adapter_alpha)
+        self._adapter_sha = _adapter_sha(adapter) if adapter else None
         self.device = device
         self.n_action_steps = n_action_steps
         # Documented eval settings that are not n_action_steps, e.g. MINERVA's
@@ -118,17 +131,24 @@ class LeRobotPolicy:
         policy evaluated at a different horizon is a different policy, and must
         miss the cache.
         """
-        return {"name": f"lerobot:{self.checkpoint}",
-                "checkpoint": self.checkpoint,
-                "checkpoint_revision": self._cfg.get("revision"),
-                "n_action_steps": self.n_action_steps,
-                "policy_overrides": dict(sorted(self.policy_overrides.items())),
-                "dtype": self.dtype,
-                "rename_map": dict(sorted(self.rename_map.items())),
-                "preprocessor_overrides": {k: dict(sorted(v.items()))
-                                           for k, v in sorted(self.preprocessor_overrides.items())},
-                "action_dims": list(self.action_dims),
-                "state_fn": getattr(self.state_fn, "__name__", "custom")}
+        ident = {"name": f"lerobot:{self.checkpoint}",
+                 "checkpoint": self.checkpoint,
+                 "checkpoint_revision": self._cfg.get("revision"),
+                 "n_action_steps": self.n_action_steps,
+                 "policy_overrides": dict(sorted(self.policy_overrides.items())),
+                 "dtype": self.dtype,
+                 "rename_map": dict(sorted(self.rename_map.items())),
+                 "preprocessor_overrides": {k: dict(sorted(v.items()))
+                                            for k, v in sorted(self.preprocessor_overrides.items())},
+                 "action_dims": list(self.action_dims),
+                 "state_fn": getattr(self.state_fn, "__name__", "custom")}
+        # Only present with an adapter, so every base-checkpoint policy_id (and
+        # every cached rollout keyed on it) is unchanged by this field existing.
+        if self.adapter:
+            ident["name"] = f"lerobot:{self.checkpoint}+lora"
+            ident["adapter"] = {"sha": self._adapter_sha, "alpha": self.adapter_alpha,
+                                "merged": self.adapter_merge}
+        return ident
 
     def _load(self):
         """Load the policy AND LeRobot's own processor pipelines.
@@ -167,15 +187,19 @@ class LeRobotPolicy:
         # config=cfg, as lerobot-eval's make_policy does. Some settings are read
         # at CONSTRUCTION (tinyflow builds its temporal ensembler in __init__),
         # so setting them on the loaded policy afterwards would do nothing.
-        self._policy = get_policy_class(cfg.type).from_pretrained(self.checkpoint,
-                                                                  config=cfg)
+        # With a dtype, the checkpoint is streamed in already cast (see
+        # _from_pretrained_cast): the stock load holds the whole fp32 state dict
+        # on the CPU (12.6 GB for GR00T) next to the model.
+        self._policy = _from_pretrained_cast(get_policy_class(cfg.type),
+                                             self.checkpoint, cfg, cast)
         if cast is not None:
-            self._policy = self._policy.to(cast)
             cfg.device = str(self.device)
             try:
                 self._policy.config.device = str(self.device)
             except Exception:
                 pass
+        if self.adapter:
+            self._policy = self._attach_adapter(self._policy)
         if self.n_action_steps is not None:
             try:
                 self._policy.config.n_action_steps = self.n_action_steps
@@ -212,6 +236,25 @@ class LeRobotPolicy:
         self.policy_id = derive_id(self.identity())
         if self.capture_dir is not None:
             self._attach_capture()
+
+    def _attach_adapter(self, policy):
+        """Inject the LoRA adapter into `policy` IN PLACE and return the policy itself (not
+        the PeftModel), so `_groot_model`, the splice and the taps see the usual structure.
+        The adapter keeps the dtype it was saved in (fp32); PEFT casts activations to it."""
+        from peft import PeftModel
+        peft = PeftModel.from_pretrained(policy, self.adapter, is_trainable=False)
+        n = 0
+        if self.adapter_alpha != 1.0:
+            from peft.tuners.lora import LoraLayer
+            for m in peft.modules():
+                if isinstance(m, LoraLayer):
+                    m.scale_layer(self.adapter_alpha); n += 1
+            if n == 0:
+                raise RuntimeError(f"adapter {self.adapter}: no LoRA layers to scale")
+        if self.adapter_merge:
+            return peft.merge_and_unload()
+        self._peft = peft                        # keeps the wrapper (and its config) alive
+        return peft.base_model.model
 
     def _attach_capture(self) -> None:
         """Attach taps to the loaded model. GR00T only, and it says so loudly.
@@ -387,6 +430,106 @@ class LeRobotPolicy:
             a = tr[ACTION]
         arr = a.squeeze(0).detach().cpu().numpy() if hasattr(a, "detach") else a
         return Action([float(x) for x in arr], self.action_dims)
+
+
+def _from_pretrained_cast(policy_cls, checkpoint: str, cfg, cast):
+    """`policy_cls.from_pretrained(checkpoint, config=cfg)`, then `.to(cast)`,
+    without the fp32 state dict. LeRobot's `_load_as_safetensor` reads the
+    whole file into CPU memory before copying it in: for GR00T N1.7 that is
+    12.6 GB of fp32 on top of the constructed model, which is what put the
+    R-056 eval over the machine's memory (oomd, 2026-09-29 17:23).
+
+    Here, for the duration of the call, the policy class's `_load_as_safetensor`
+    first casts the freshly constructed model to `cast`, then loads the file
+    tensor by tensor, each cast on read, in chunks of <= 512 MiB through
+    `load_state_dict` (so module load hooks still run). Casting fp32 to bf16 on
+    read and letting `load_state_dict` copy it rounds exactly as copying the
+    fp32 value and casting afterwards (round-to-nearest-even both ways); keys
+    the file lacks keep their constructed value, cast, as before. Missing,
+    unexpected and tied-weight keys follow safetensors' `load_model`, and
+    `strict` raises as it does. Same parameters and buffers, bit for bit
+    (V3, 2026-09-29; hashed over named_parameters + named_buffers).
+    """
+    if cast is None:
+        return policy_cls.from_pretrained(checkpoint, config=cfg)
+    import torch
+    from safetensors import safe_open
+    from safetensors.torch import _remove_duplicate_names
+
+    def load_cast(cls, model, model_file, map_location, strict):
+        model.to(cast)
+        msd = model.state_dict()
+        unexpected = []
+        with safe_open(model_file, framework="pt", device="cpu") as f:
+            keys = list(f.keys())
+            to_removes = _remove_duplicate_names(msd, preferred_names=set(keys))
+            chunk, nbytes = {}, 0
+
+            def flush():
+                nonlocal chunk, nbytes
+                if chunk:
+                    unexpected.extend(model.load_state_dict(chunk, strict=False).unexpected_keys)
+                chunk, nbytes = {}, 0
+            for k in keys:
+                t = f.get_tensor(k)
+                if t.is_floating_point():
+                    t = t.to(cast)
+                chunk[k] = t
+                nbytes += t.numel() * t.element_size()
+                if nbytes >= 512 << 20:
+                    flush()
+            flush()
+        missing = set(msd) - set(keys)
+        for group in to_removes.values():
+            for name in group:
+                if name in missing:
+                    missing.remove(name)
+                else:
+                    unexpected.append(name)
+        if strict and (missing or unexpected):
+            raise RuntimeError(f"Error(s) in loading state_dict for {model.__class__.__name__}: "
+                               f"missing {sorted(missing)}, unexpected {sorted(unexpected)}")
+        from lerobot.policies.pretrained import log_model_loading_keys
+        log_model_loading_keys(missing, unexpected)
+        return model
+
+    had = "_load_as_safetensor" in policy_cls.__dict__
+    prev = policy_cls.__dict__.get("_load_as_safetensor")
+    policy_cls._load_as_safetensor = classmethod(load_cast)
+    # GR00T ships model_params_fp32=True: construction casts every parameter
+    # (3.1 B) to fp32 (12.4 GB RSS) before the checkpoint overwrites them all.
+    # It is read only there (modeling_groot.py:116) and casts parameters, not
+    # buffers, so it is off for the construction and restored afterwards.
+    fp32_flag = getattr(cfg, "model_params_fp32", None)
+    if fp32_flag:
+        cfg.model_params_fp32 = False
+    try:
+        with torch.no_grad():
+            policy = policy_cls.from_pretrained(checkpoint, config=cfg)
+    finally:
+        if fp32_flag:
+            cfg.model_params_fp32 = fp32_flag
+        if had:
+            policy_cls._load_as_safetensor = prev
+        else:
+            del policy_cls._load_as_safetensor
+    return policy.to(cast)       # also covers a base model with no model.safetensors
+
+
+def _adapter_sha(path: str) -> str:
+    """Content hash of a PEFT adapter directory: its weights and its config."""
+    import hashlib
+    import os
+    h = hashlib.sha1()
+    for name in ("adapter_config.json", "adapter_model.safetensors", "adapter_model.bin"):
+        p = os.path.join(path, name)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                for chunk in iter(lambda: f.read(1 << 20), b""):
+                    h.update(chunk)
+    if h.hexdigest() == hashlib.sha1().hexdigest():
+        raise FileNotFoundError(f"no adapter_config.json / adapter_model.* in {path}")
+    return h.hexdigest()[:12]
 
 
 def libero_state(obs: Observation):

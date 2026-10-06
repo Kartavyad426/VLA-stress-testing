@@ -45,12 +45,13 @@ from vla_harness.schema import PerturbationSpec
 LIVE = 7
 
 
-def build_policy():
+def build_policy(adapter=None, adapter_alpha=1.0):
     from lerobot.envs.configs import LiberoPlusEnv
     return LeRobotPolicy("nvidia/gr00t17-lerobot-libero_spatial-640", n_action_steps=16,
                          env_cfg=LiberoPlusEnv(task="libero_spatial"),
                          policy_overrides={"base_model_path": "nvidia/GR00T-N1.7-3B", "embodiment_tag": "libero_sim"},
-                         dtype="bfloat16", rename_map={"observation.images.image2": "observation.images.wrist_image"})
+                         dtype="bfloat16", rename_map={"observation.images.image2": "observation.images.wrist_image"},
+                         adapter=adapter, adapter_alpha=adapter_alpha)
 
 
 def make_env(task_id):
@@ -72,10 +73,12 @@ def main():
     ap.add_argument("--selection", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--noise-seed", type=int, default=0)
+    ap.add_argument("--adapter", default=None, help="R-056: a LoRA adapter dir on top of the base checkpoint")
+    ap.add_argument("--adapter-alpha", type=float, default=1.0)
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     sel = json.load(open(a.selection))
-    pol = build_policy(); pol.reset()
+    pol = build_policy(a.adapter, a.adapter_alpha); pol.reset()
     head = pol._policy._groot_model.action_head
     model = pol._policy._groot_model
     t0 = time.time()
@@ -124,7 +127,8 @@ def main():
     summary = {"n": len(rows), "medians": med,
                "noise_W_gt_A": int(sum(r["noise_W"] > r["noise_A"] for r in rows)),
                "denoise_W_gt_A": int(sum(r["denoise_W"] > r["denoise_A"] for r in rows)),
-               "noise_seed": a.noise_seed}
+               "noise_seed": a.noise_seed, "policy_id": pol.policy_id, "adapter": a.adapter,
+               "adapter_alpha": a.adapter_alpha}
     json.dump(summary, open(os.path.join(a.out, "summary.json"), "w"), indent=1)
     log("summary", summary)
 

@@ -1,0 +1,80 @@
+{
+ "suite": "libero_spatial",
+ "axis": "joint_radius_rad",
+ "source": "runs/r047/score.json",
+ "rule": "radii = x50+0.025, x50+0.075 clipped to 0.5; (0.45, 0.5) when both clip",
+ "note": "R-056 validation: 10 starts, dir seeds 200-209, noise 0 (checkpoint selection)",
+ "n": 10,
+ "instances": [
+  {
+   "scene_task_id": 984,
+   "dir_seed": 200,
+   "radius": 0.45,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1030,
+   "dir_seed": 201,
+   "radius": 0.5,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1062,
+   "dir_seed": 202,
+   "radius": 0.3653,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1090,
+   "dir_seed": 203,
+   "radius": 0.5,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1132,
+   "dir_seed": 204,
+   "radius": 0.3653,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1201,
+   "dir_seed": 205,
+   "radius": 0.4669,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1247,
+   "dir_seed": 206,
+   "radius": 0.2394,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1282,
+   "dir_seed": 207,
+   "radius": 0.5,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 1327,
+   "dir_seed": 208,
+   "radius": 0.2749,
+   "noise_seed": 0,
+   "env_seed": 0
+  },
+  {
+   "scene_task_id": 984,
+   "dir_seed": 209,
+   "radius": 0.5,
+   "noise_seed": 0,
+   "env_seed": 0
+  }
+ ]
+}
