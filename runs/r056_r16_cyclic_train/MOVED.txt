@@ -1,0 +1,6 @@
+Moved aside 2026-09-29 (F5, via SFT): R-056's first training run, whose LR schedule cycled
+(lerobot_train steps the scheduler per micro-batch; the cosine was built over optimizer steps).
+Kept, not deleted. Old names: runs/r056_r16_train, runs/r056_r16, runs/r056_r16_train_report.json
+(now runs/r056_r16_cyclic_train_report.json). Paths inside (manifest "adapter", train_config
+output_dir) still say runs/r056_r16_train. Its checkpoints have no schedule_verified, so
+r056_eval refuses them; its "opt500" rows are validation rollouts of the cyclic 004000 checkpoint.

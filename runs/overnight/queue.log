@@ -1,0 +1,106 @@
+[2026-09-29 00:20:27] overnight queue start; deadline 2026-09-29 10:00:00; pid 2421971
+[2026-09-29 00:20:27] R053 start (est 0h50m)
+[2026-09-29 00:23:52] [cont] waiting for queue_overnight.sh (pid 2421971) to exit
+[2026-09-29 01:03:59] R053 end rc=0 (0h43m)
+[2026-09-29 01:03:59] R054_mint start (est 1h45m)
+[2026-09-29 04:31:18] R054_mint end rc=0 (3h27m)
+[2026-09-29 04:31:18] R054_export start (est 0h15m)
+[2026-09-29 04:41:30] R054_export end rc=0 (0h10m)
+[2026-09-29 04:41:30] R054_gates start (est 0h25m)
+[2026-09-29 04:48:30] R054_gates end rc=0 (0h07m)
+[2026-09-29 04:48:30] R-054 gates: G1+G4+spot PASS; G6 pass
+[2026-09-29 04:48:30] R055_conformance start (est 0h06m)
+[2026-09-29 04:50:12] R055_conformance end rc=0 (0h01m)
+[2026-09-29 04:50:12] R055_ckpt_equiv start (est 0h05m)
+[2026-09-29 04:50:47] R055_ckpt_equiv end rc=0 (0h00m)
+[2026-09-29 04:50:47] R055_overfit start (est 0h30m)
+[2026-09-29 04:53:53] R055_overfit end rc=0 (0h03m)
+[2026-09-29 04:53:53] R055_memory start (est 0h23m)
+[2026-09-29 04:55:22] R055_memory end rc=0 (0h01m)
+[2026-09-29 04:55:22] R-055: FAIL
+[2026-09-29 04:55:22] R056_train SKIPPED: R-055 gates did not pass
+[2026-09-29 04:55:22] R056_eval SKIPPED: no trained adapter
+[2026-09-29 04:55:22] R057 start (est 3h03m)
+[2026-09-29 07:21:12] R057 end rc=0 (2h25m)
+[2026-09-29 07:21:12] B_R056_wise SKIPPED: R-056 eval did not complete
+[2026-09-29 07:21:12] B_R058_r4_train SKIPPED: R-055 gates did not pass
+[2026-09-29 07:21:12] B_R052 start (est 2h38m)
+[2026-09-29 09:55:40] B_R052 end rc=0 (2h34m)
+[2026-09-29 09:55:40] queue end
+[2026-09-29 09:55:40] SUMMARY written: runs/overnight/SUMMARY.txt
+[2026-09-29 09:55:56] [cont] continuation start (no deadline)
+[2026-09-29 09:55:56] [cont] R053 SKIP (already complete: runs/r053/DONE)
+[2026-09-29 09:55:56] [cont] R054_mint SKIP (already complete: yield.json >= 100 successes)
+[2026-09-29 09:55:56] [cont] R054_export SKIP (already complete: both exports exist)
+[2026-09-29 09:55:56] [cont] R054_gates SKIP (already complete: gates.json complete)
+[2026-09-29 09:55:56] [cont] R-054 gates G1+G4+spot: PASS
+[2026-09-29 09:55:56] [cont] R055_conformance SKIP (already complete: gates.json has conformance)
+[2026-09-29 09:55:56] [cont] R055_ckpt_equiv_r16 SKIP (already complete: gates.json has ckpt_equiv_r16)
+[2026-09-29 09:55:56] [cont] R055_overfit SKIP (already complete: gates.json has overfit)
+[2026-09-29 09:55:56] [cont] R055_memory SKIP (already complete: gates.json has memory)
+[2026-09-29 09:55:56] [cont] R-055: FAIL
+[2026-09-29 09:55:56] [cont] R056_train SKIPPED: R-055 gates did not pass
+[2026-09-29 09:55:56] [cont] R056_eval SKIPPED: no fully trained adapter
+[2026-09-29 09:55:56] [cont] R057 SKIP (already complete: runs/r057/DONE)
+[2026-09-29 09:55:56] [cont] B_R056_wise SKIPPED: R-056 eval did not complete
+[2026-09-29 09:55:56] [cont] B_R058_r4_train SKIPPED: R-055 gates did not pass
+[2026-09-29 09:55:56] [cont] B_R052 start
+[2026-09-29 11:53:40] [r055b] R055_overfit_const start
+[2026-09-29 12:13:23] [r055b] R055_overfit_const end rc=0 (19 min)
+[2026-09-29 12:13:23] [r055b] R-055 still FAILS (overfit ratio 0.13872532185876932): nothing trains
+[2026-09-29 12:24:05] [impl] R-052 pitch paused (SIGTERM at rollout boundary) for the R-055 overfit diagnostic, per user via SFT
+[2026-09-29 12:24:05] [impl] R055_overfit_diag_1500 start
+[2026-09-29 12:24:29] [cont] B_R052 end rc=0 (2h28m)
+[2026-09-29 12:24:29] [cont] continuation end
+[2026-09-29 12:24:30] [cont] SUMMARY written: runs/overnight/SUMMARY.txt
+[2026-09-29 12:39:02] [impl] R055_overfit_diag_1500 end rc=0
+[2026-09-29 15:13:16] [r056] chain start (pid 3928805); R-055 overfit (informational): ratio 0.13872532185876932
+[2026-09-29 15:13:16] [r056] R-055 blocking gates PASS
+[2026-09-29 15:13:16] [r056] R056_train start
+[2026-09-29 17:16:38] [r056] R056_train end rc=0 (123 min)
+[2026-09-29 17:16:38] [r056] R056_eval start
+[2026-09-29 19:37:27] [r056fix] chain start (pid 529266, cgroup /user.slice/user-1000.slice/user@1000.service/app.slice/vla-r056.service)
+[2026-09-29 19:37:27] [r056fix] R-055 blocking gates PASS (overfit informational)
+[2026-09-29 19:37:27] [r056fix] R056fix_train start
+[2026-09-29 19:51:41] [r056cont] continuation start (pid 594839, cgroup /user.slice/user-1000.slice/user@1000.service/app.slice/vla-r056-cont.service)
+[2026-09-29 21:36:00] [r056fix] R056fix_train end rc=0 (118 min)
+[2026-09-29 21:36:00] [r056fix] R056fix_eval start
+[2026-09-29 23:32:18] [r056fix] R056fix_eval end rc=0 (116 min)
+[2026-09-29 23:32:18] [r056fix] R056fix_wise start
+[2026-09-29 23:32:22] [r056cont] cutting vla-r056 at 'R056fix_wise start' (blocked on the GPU lock held by the continuation); its processes:
+         CGroup: /user.slice/user-1000.slice/user@1000.service/app.slice/vla-r056.service
+                 ├─ 529261 /usr/bin/systemd-inhibit --what=sleep:idle:handle-lid-switch "--why=VLA vla-r056" --mode=block bash experiments/queue_r056_fixed.sh
+                 ├─ 529266 bash experiments/queue_r056_fixed.sh
+                 ├─1295090 bash -c "flock /tmp/vla_gpu.lock .venvs/libero-plus/bin/python experiments/r056_eval.py wise && .venvs/groot/bin/python experiments/r056_eval.py score"
+                 └─1295091 flock /tmp/vla_gpu.lock .venvs/libero-plus/bin/python experiments/r056_eval.py wise
+    Sep 29 19:37:27 IME-LTP-73867 systemd[6809]: Started vla-r056.service - /usr/bin/systemd-inhibit --what=sleep:idle:handle-lid-switch "--why=VLA vla-r056" --mode=block bash experiments/queue_r056_fixed.sh.
+[2026-09-29 23:32:22] [r056cont] vla-r056 stopped (inactive); the continuation runs the rest
+[2026-09-29 23:32:22] [r056cont] vla-r056 is inactive; continuing
+[2026-09-29 23:32:22] [r056cont] R056_train SKIP (trained, schedule verified: runs/r056_r16_train)
+[2026-09-29 23:32:22] [r056cont] R056_eval_select start
+[2026-09-29 23:32:26] [r056cont] R056_eval_select end rc=0 (0 min) peaks: RSS tree 0.446 GiB (anon 0.219), largest proc 0.444 GiB, GPU 0.104 GiB
+[2026-09-29 23:32:26] [r056cont] R056_eval_heldout start
+[2026-09-29 23:32:27] [r056cont] R056_eval_heldout end rc=0 (0 min) peaks: RSS tree 0.016 GiB (anon 0.007), largest proc 0.014 GiB, GPU 0.104 GiB
+[2026-09-29 23:32:27] [r056cont] R056_eval_nominal start
+[2026-09-29 23:32:29] [r056cont] R056_eval_nominal end rc=0 (0 min) peaks: RSS tree 0.016 GiB (anon 0.007), largest proc 0.014 GiB, GPU 0.104 GiB
+[2026-09-29 23:32:29] [r056cont] R056_eval_transfer SKIP (done)
+[2026-09-29 23:32:29] [r056cont] R056_eval_score start
+[2026-09-29 23:32:30] [r056cont] R056_eval_score end rc=0 (0 min) peaks: RSS tree 0.022 GiB (anon 0.01), largest proc 0.022 GiB, GPU 0.104 GiB
+[2026-09-29 23:32:30] [r056cont] R058_r4_train start
+[2026-09-30 01:25:35] [r056cont] R058_r4_train end rc=0 (113 min) peaks: RSS tree 16.544 GiB (anon 8.766), largest proc 16.542 GiB, GPU 6.465 GiB
+[2026-09-30 01:25:35] [r056cont] R058_r4_eval_select start
+[2026-09-30 01:43:19] [r056cont] R058_r4_eval_select end rc=0 (17 min) peaks: RSS tree 18.281 GiB (anon 10.368), largest proc 18.279 GiB, GPU 6.957 GiB
+[2026-09-30 01:43:19] [r056cont] R058_r4_eval_heldout start
+[2026-09-30 02:25:58] [r056cont] R058_r4_eval_heldout end rc=0 (42 min) peaks: RSS tree 17.076 GiB (anon 6.677), largest proc 17.074 GiB, GPU 7.384 GiB
+[2026-09-30 02:25:58] [r056cont] R058_r4_eval_nominal start
+[2026-09-30 02:33:10] [r056cont] R058_r4_eval_nominal end rc=0 (7 min) peaks: RSS tree 15.428 GiB (anon 6.872), largest proc 15.426 GiB, GPU 7.38 GiB
+[2026-09-30 02:33:10] [r056cont] R058_r4_eval_transfer start
+[2026-09-30 02:35:41] [r056cont] R058_r4_eval_transfer end rc=0 (2 min) peaks: RSS tree 16.416 GiB (anon 6.889), largest proc 16.386 GiB, GPU 7.447 GiB
+[2026-09-30 02:35:41] [r056cont] R058_r4_eval_score start
+[2026-09-30 02:35:43] [r056cont] R058_r4_eval_score end rc=0 (0 min) peaks: RSS tree 0.012 GiB (anon 0.006), largest proc 0.012 GiB, GPU 0.104 GiB
+[2026-09-30 02:35:43] [r056cont] R058_r64_train start
+[2026-09-30 02:36:42] [r056cont] R058_r64_train end rc=1 (0 min) peaks: RSS tree 17.893 GiB (anon 9.056), largest proc 17.891 GiB, GPU 7.521 GiB
+[2026-09-30 02:36:43] [r056cont] R058_r64_train: resident training OOMed; switching to cached features
+[2026-09-30 02:36:43] [r056cont] R058_r64_cache_equiv start
+[2026-09-30 02:37:18] [r056cont] R058_r64_cache_equiv end rc=0 (0 min) peaks: RSS tree 17.787 GiB (anon 8.087), largest proc 17.785 GiB, GPU 6.967 GiB
+[2026-09-30 02:37:18] [r056cont] R058_r64_cached_train start

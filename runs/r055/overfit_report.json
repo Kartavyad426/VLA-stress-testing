@@ -1,0 +1,111 @@
+{
+ "mode": "lerobot_train",
+ "batch_size": 1,
+ "accumulation": 1,
+ "effective_batch": 1,
+ "opt_steps": 300,
+ "lora": {
+  "r": 16,
+  "alpha": 16,
+  "dropout": 0.1
+ },
+ "argv": [
+  "--policy.path=nvidia/gr00t17-lerobot-libero_spatial-640",
+  "--policy.base_model_path=nvidia/GR00T-N1.7-3B",
+  "--policy.embodiment_tag=libero_sim",
+  "--policy.model_params_fp32=false",
+  "--policy.tune_projector=false",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--dataset.repo_id=local/r054_train48",
+  "--dataset.root=data/r054_train48",
+  "--dataset.video_backend=pyav",
+  "--peft.r=16",
+  "--peft.lora_alpha=16",
+  "--peft.full_training_modules=[]",
+  "--batch_size=1",
+  "--accelerator.gradient_accumulation.steps=1",
+  "--steps=300",
+  "--save_freq=500",
+  "--save_checkpoint=false",
+  "--log_freq=10",
+  "--use_policy_training_preset=false",
+  "--optimizer.type=adamw",
+  "--optimizer.lr=0.0001",
+  "--optimizer.weight_decay=1e-5",
+  "--optimizer.grad_clip_norm=1.0",
+  "--scheduler.type=diffuser",
+  "--scheduler.name=constant",
+  "--scheduler.num_warmup_steps=0",
+  "--output_dir=runs/r055/overfit",
+  "--job_name=overfit",
+  "--seed=1000",
+  "--num_workers=2",
+  "--wandb.enable=false"
+ ],
+ "parts": [
+  {
+   "name": "local/r054_train48",
+   "frames": 48,
+   "episodes": 1
+  }
+ ],
+ "shares": [
+  1.0
+ ],
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "checkpointed_blocks": 36,
+ "trainable": {
+  "trainable": 19136512,
+  "total": 3163152512,
+  "n_tensors": 496,
+  "non_lora_trainable": [],
+  "n_non_lora": 0
+ },
+ "scheduler_steps": 300,
+ "eval_loss_indices": 48,
+ "eval_loss_step0": 0.05226617420460874,
+ "torch_max_memory_allocated_gib": 6.300339698791504,
+ "torch_max_memory_reserved_gib": 6.44921875,
+ "nvidia_smi_peak_gib": 6.3984375,
+ "eval_loss_final": 0.0072506418388608536,
+ "args": {
+  "minted_root": "data/r054_train48",
+  "minted_repo": "local/r054_train48",
+  "replay": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+  "shares": "",
+  "episodes": "0",
+  "out": "runs/r055/overfit",
+  "run_prefix": "r056",
+  "lora_r": 16,
+  "lora_alpha": 16,
+  "opt_steps": 300,
+  "batch_size": 1,
+  "effective_batch": 1,
+  "lr": 0.0001,
+  "warmup_ratio": 0.05,
+  "lr_schedule": "constant",
+  "save_every_opt": 500,
+  "seed": 1000,
+  "num_workers": 2,
+  "no_grad_ckpt": false,
+  "no_save": true,
+  "resume": false,
+  "max_micro_steps": null,
+  "eval_loss_episode": 0,
+  "cached_features": null,
+  "recompute_cache": false,
+  "report": "runs/r055/overfit_report.json"
+ }
+}

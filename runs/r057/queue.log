@@ -1,0 +1,66 @@
+R-053 reusable
+[04:55:23] reusing R-053 for start-pose P and k1
+[04:55:23] ris_k2_s0 start
+[05:01:51] ris_k2_s0 rc=0
+[05:01:51] ris_k4_s0 start
+[05:08:03] ris_k4_s0 rc=0
+[05:08:03] ris_all_s0 start
+[05:14:42] ris_all_s0 rc=0
+[05:14:42] cam_P_s0 start
+[05:22:35] cam_P_s0 rc=0
+[05:22:35] cam_k1_s0 start
+[05:27:54] cam_k1_s0 rc=0
+[05:27:54] cam_k2_s0 start
+[05:33:34] cam_k2_s0 rc=0
+[05:33:34] cam_k4_s0 start
+[05:38:46] cam_k4_s0 rc=0
+[05:38:46] cam_all_s0 start
+[05:43:07] cam_all_s0 rc=0
+[05:43:07] ris_k2_s1 start
+[05:49:26] ris_k2_s1 rc=0
+[05:49:26] ris_k4_s1 start
+[05:55:38] ris_k4_s1 rc=0
+[05:55:38] ris_all_s1 start
+[06:02:23] ris_all_s1 rc=0
+[06:02:23] cam_P_s1 start
+[06:09:45] cam_P_s1 rc=0
+[06:09:45] cam_k1_s1 start
+[06:15:34] cam_k1_s1 rc=0
+[06:15:34] cam_k2_s1 start
+[06:21:15] cam_k2_s1 rc=0
+[06:21:15] cam_k4_s1 start
+[06:26:37] cam_k4_s1 rc=0
+[06:26:37] cam_all_s1 start
+[06:31:30] cam_all_s1 rc=0
+[06:31:30] ris_k2_s2 start
+[06:38:03] ris_k2_s2 rc=0
+[06:38:03] ris_k4_s2 start
+[06:44:51] ris_k4_s2 rc=0
+[06:44:51] ris_all_s2 start
+[06:51:51] ris_all_s2 rc=0
+[06:51:51] cam_P_s2 start
+[06:59:56] cam_P_s2 rc=0
+[06:59:56] cam_k1_s2 start
+[07:05:39] cam_k1_s2 rc=0
+[07:05:39] cam_k2_s2 start
+[07:11:38] cam_k2_s2 rc=0
+[07:11:38] cam_k4_s2 start
+[07:16:39] cam_k4_s2 rc=0
+[07:16:39] cam_all_s2 start
+[07:21:12] cam_all_s2 rc=0
+== ris: k* = 1; f0 vs r044_rescue_N: P:10/10 k1:10/10 k2:10/10 k4:10/10 all:10/10
+  P    6/30 [0.10,0.37] flips None breaks None CA 0.07290609180927277 gap None
+  k1   24/30 [0.63,0.90] flips 20 breaks 2 CA 0.05119248107075691 gap 0.5257672879131587
+  k2   22/30 [0.56,0.86] flips 17 breaks 1 CA 0.05170916020870209 gap 0.5906439776441794
+  k4   21/30 [0.52,0.83] flips 18 breaks 3 CA 0.056035030633211136 gap 0.37872173379700924
+  all  19/30 [0.46,0.78] flips 16 breaks 3 CA 0.05613348074257374 gap None
+== cam: k* = throughout (> 4 forwards); f0 vs r048_rescue_N: P:10/10 k1:10/10 k2:10/10 k4:10/10 all:10/10
+  P    7/30 [0.12,0.41] flips None breaks None CA 0.04653851315379143 gap None
+  k1   24/30 [0.63,0.90] flips 17 breaks 0 CA 0.039164597168564796 gap 1.3768592835098281
+  k2   23/30 [0.59,0.88] flips 16 breaks 0 CA 0.045064372941851616 gap 1.2427320089077378
+  k4   23/30 [0.59,0.88] flips 17 breaks 1 CA 0.04454541578888893 gap 0.9876647382434249
+  all  30/30 [0.89,1.00] flips 23 breaks 0 CA 0.04443984478712082 gap None
+expectations: {"E1_ris_k1_within_10pp_of_k4": false, "E2_ris_gap_k1_le_0.6": true, "E3_cam_all_ge_27_of_30": true, "E4_cam_k4_ge_15pp_below_all": true, "E5_cam_gap_ge_0.8_every_finite_k": true, "E6_cam_monotone_within_one": true}
+checks: {"f0_match_ge_9_of_10_every_run": true, "cam_all_ge_24_of_30": true, "nonzero_rc": []}
+wrote runs/r057/score.json
+[07:21:12] DONE

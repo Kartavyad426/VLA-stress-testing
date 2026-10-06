@@ -1,0 +1,20 @@
+[00:20:27] P_s0 start
+[00:29:08] P_s0 rc=0
+[00:29:08] N_s0 start
+[00:35:11] N_s0 rc=0
+[00:35:11] P_s1 start
+[00:43:21] P_s1 rc=0
+[00:43:21] N_s1 start
+[00:49:38] N_s1 rc=0
+[00:49:38] P_s2 start
+[00:57:48] P_s2 rc=0
+[00:57:48] N_s2 start
+[01:03:59] N_s2 rc=0
+seed 0: n=10 P-fail 8 | N success 8 flips 6/8 | rerun vs r042: flips 0/7 breaks 1 | median CA P 0.06881475448608398 N 0.050120072439312935 | ||P-N|| f0 match 10/10
+seed 1: n=10 P-fail 9 | N success 8 flips 8/9 | rerun vs r044_seed1: flips 0/9 breaks 0 | median CA P 0.0854303389787674 N 0.05080057680606842 | ||P-N|| f0 match 10/10
+seed 2: n=10 P-fail 7 | N success 8 flips 6/7 | rerun vs r044_seed2: flips 0/6 breaks 1 | median CA P 0.07031311839818954 N 0.05445154756307602 | ||P-N|| f0 match 10/10
+pooled: n=30 N success 24 N flip rate 0.8333333333333334 rerun flip rate 0.0 CA N<P 24/30
+expectations: {"E1_N_success_ge_21_of_30": true, "E2_N_flip_rate_minus_rerun_ge_30pp": true, "E3_rerun_seed0_flips_le_3_of_R042_failures": true, "E4_ca_N_beats_P_ge_20_of_30": true}
+interpretable: True
+wrote runs/r053/score.json
+[01:03:59] DONE

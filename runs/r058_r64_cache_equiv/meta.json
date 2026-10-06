@@ -1,0 +1,35 @@
+{
+ "fingerprint": {
+  "checkpoint": "nvidia/gr00t17-lerobot-libero_spatial-640",
+  "cut": "backbone_output",
+  "code": "e1668b5c6056",
+  "groot_n1_7": "b5644b7227f8",
+  "processor_groot": "152d85f842ee",
+  "parts": [
+   {
+    "repo_id": "local/r054_train48",
+    "root": "data/r054_train48",
+    "frames": 4800
+   }
+  ]
+ },
+ "names": [
+  "local/r054_train48"
+ ],
+ "shard": 2000,
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "bytes_per_frame_measured": 639288.0,
+ "padding_side": "left",
+ "dtype": "bfloat16"
+}

@@ -1,0 +1,45 @@
+Overnight queue summary
+
+step                       status                               rc  duration
+R053                       OK                                    0 0h43m
+R054_mint                  OK                                    0 3h27m
+R054_export                OK                                    0 0h10m
+R054_gates                 OK                                    0 0h07m
+R055_conformance           OK                                    0 0h01m
+R055_ckpt_equiv            OK                                    0 0h00m
+R055_overfit               OK                                    0 0h03m
+R055_memory                OK                                    0 0h01m
+R056_train                 SKIPPED(R-055 gates did not pass)     - 0h00m
+R056_eval                  SKIPPED(no trained adapter)           - 0h00m
+R057                       OK                                    0 2h25m
+B_R056_wise                SKIPPED(R-056 eval did not complete)    - 0h00m
+B_R058_r4_train            SKIPPED(R-055 gates did not pass)     - 0h00m
+B_R052                     OK                                    0 2h34m
+R053                       SKIP_DONE                             - 0h00m
+R054_mint                  SKIP_DONE                             - 0h00m
+R054_export                SKIP_DONE                             - 0h00m
+R054_gates                 SKIP_DONE                             - 0h00m
+R055_conformance           SKIP_DONE                             - 0h00m
+R055_ckpt_equiv_r16        SKIP_DONE                             - 0h00m
+R055_overfit               SKIP_DONE                             - 0h00m
+R055_memory                SKIP_DONE                             - 0h00m
+R056_train                 SKIPPED(R-055 gates did not pass)     - 0h00m
+R056_eval                  SKIPPED(no fully trained adapter)     - 0h00m
+R057                       SKIP_DONE                             - 0h00m
+B_R056_wise                SKIPPED(R-056 eval did not complete)    - 0h00m
+B_R058_r4_train            SKIPPED(R-055 gates did not pass)     - 0h00m
+B_R052                     OK                                    0 2h28m
+
+Headlines
+R-053  N success 24/30; N flip rate 0.8333333333333334, re-run flip rate 0.0; expectations {'E1_N_success_ge_21_of_30': True, 'E2_N_flip_rate_minus_rerun_ge_30pp': True, 'E3_rerun_seed0_flips_le_3_of_R042_failures': True, 'E4_ca_N_beats_P_ge_20_of_30': True}; interpretable True
+R-054  yield 0.1-0.2 34/38, 0.2-0.3 28/36, 0.3-0.4 18/36, 0.4-0.5 20/36, pooled 100/146
+R-054  gates G1_records=True, G1_dataset=True, spot=True, G1_dataset_train=True, spot_train=True, G4=True, G7=None, G6=True, f0_check=True
+R-055  gates conformance=True, ckpt_equiv_r16=True, overfit=False, memory=True, overfit_cosine_20260929=False
+R-055  memory b1 6.732421875 GiB, b2 6.927734375 GiB (nvidia-smi)
+R-057  ris: k* = 1; P 6/30, k1 24/30, k2 22/30, k4 21/30, all 19/30
+R-057  cam: k* = throughout (> 4 forwards); P 7/30, k1 24/30, k2 23/30, k4 23/30, all 30/30
+R-052  camera_bench_yaw_deg: 360 rollouts, success 317
+R-052  camera_bench_scale: 240 rollouts, success 166
+R-052  camera_bench_pitch_deg: 34 rollouts, success 34
+
+R-052 status: PARTIAL

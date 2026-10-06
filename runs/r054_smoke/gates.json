@@ -1,0 +1,130 @@
+{
+ "G1_records": {
+  "n": 2,
+  "failed": 0,
+  "examples": {},
+  "pass": true
+ },
+ "G1_dataset": {
+  "dataset": "data/r054_smoke_full",
+  "episodes": 2,
+  "frames": 226,
+  "truncate_steps": null,
+  "errors": [],
+  "pass": true
+ },
+ "spot": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00014",
+    "frames": 113,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00005",
+    "frames": 113,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   }
+  ],
+  "pass": true
+ },
+ "G1_dataset_train": {
+  "dataset": "data/r054_smoke48",
+  "episodes": 2,
+  "frames": 96,
+  "truncate_steps": 48,
+  "errors": [],
+  "pass": true
+ },
+ "spot_train": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00014",
+    "frames": 48,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00005",
+    "frames": 48,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   }
+  ],
+  "pass": true
+ },
+ "G4": {
+  "lists": [
+   "experiments/repro/r056_heldout.json",
+   "experiments/repro/r056_val.json"
+  ],
+  "keys": 28,
+  "record_violations": [],
+  "dataset_violations": [],
+  "pass": true
+ },
+ "G7": {
+  "videos": [
+   {
+    "episode_id": "r054_a00014",
+    "video": "runs/r054_smoke/g7_videos/r054_a00014.mp4",
+    "n_frames": 114,
+    "scene": 1201,
+    "radius": 0.270695
+   },
+   {
+    "episode_id": "r054_a00005",
+    "video": "runs/r054_smoke/g7_videos/r054_a00005.mp4",
+    "n_frames": 114,
+    "scene": 1201,
+    "radius": 0.127793
+   }
+  ],
+  "note": "a person watches these; the gate is signed off by hand",
+  "pass": null
+ },
+ "G6": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00014",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 113,
+    "source_steps": 113,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00005",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 113,
+    "source_steps": 113,
+    "same_outcome": true
+   }
+  ],
+  "same_outcome": 2,
+  "n": 2,
+  "pass": false,
+  "expectation": "R-054 E3: >= 9/10 reach the same outcome"
+ },
+ "f0_check": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00014",
+    "max_abs_diff": 0.0,
+    "pass": true
+   },
+   {
+    "episode_id": "r054_a00005",
+    "max_abs_diff": 0.0,
+    "pass": true
+   }
+  ],
+  "tol": 0.001,
+  "pass": true
+ }
+}

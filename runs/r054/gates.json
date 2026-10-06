@@ -1,0 +1,275 @@
+{
+ "G1_records": {
+  "n": 146,
+  "failed": 0,
+  "examples": {},
+  "pass": true
+ },
+ "G1_dataset": {
+  "dataset": "data/r054_full",
+  "episodes": 100,
+  "frames": 11567,
+  "truncate_steps": null,
+  "errors": [],
+  "pass": true
+ },
+ "spot": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00066",
+    "frames": 90,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00143",
+    "frames": 229,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00075",
+    "frames": 86,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   }
+  ],
+  "pass": true
+ },
+ "G1_dataset_train": {
+  "dataset": "data/r054_train48",
+  "episodes": 100,
+  "frames": 4800,
+  "truncate_steps": 48,
+  "errors": [],
+  "pass": true
+ },
+ "spot_train": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00066",
+    "frames": 48,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00143",
+    "frames": 48,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   },
+   {
+    "episode_id": "r054_a00075",
+    "frames": 48,
+    "state_bit_equal": true,
+    "action_bit_equal": true
+   }
+  ],
+  "pass": true
+ },
+ "G4": {
+  "lists": [
+   "experiments/repro/r056_heldout.json",
+   "experiments/repro/r056_val.json"
+  ],
+  "keys": 28,
+  "record_violations": [],
+  "dataset_violations": [],
+  "pass": true
+ },
+ "G7": {
+  "videos": [
+   {
+    "episode_id": "r054_a00066",
+    "video": "runs/r054/g7_videos/r054_a00066.mp4",
+    "n_frames": 91,
+    "scene": 1090,
+    "radius": 0.47993
+   },
+   {
+    "episode_id": "r054_a00143",
+    "video": "runs/r054/g7_videos/r054_a00143.mp4",
+    "n_frames": 230,
+    "scene": 1327,
+    "radius": 0.430849
+   },
+   {
+    "episode_id": "r054_a00075",
+    "video": "runs/r054/g7_videos/r054_a00075.mp4",
+    "n_frames": 87,
+    "scene": 1090,
+    "radius": 0.175575
+   },
+   {
+    "episode_id": "r054_a00005",
+    "video": "runs/r054/g7_videos/r054_a00005.mp4",
+    "n_frames": 114,
+    "scene": 1201,
+    "radius": 0.127793
+   },
+   {
+    "episode_id": "r054_a00042",
+    "video": "runs/r054/g7_videos/r054_a00042.mp4",
+    "n_frames": 122,
+    "scene": 1247,
+    "radius": 0.11885
+   },
+   {
+    "episode_id": "r054_a00092",
+    "video": "runs/r054/g7_videos/r054_a00092.mp4",
+    "n_frames": 89,
+    "scene": 1062,
+    "radius": 0.333954
+   },
+   {
+    "episode_id": "r054_a00086",
+    "video": "runs/r054/g7_videos/r054_a00086.mp4",
+    "n_frames": 112,
+    "scene": 1201,
+    "radius": 0.219129
+   },
+   {
+    "episode_id": "r054_a00072",
+    "video": "runs/r054/g7_videos/r054_a00072.mp4",
+    "n_frames": 75,
+    "scene": 984,
+    "radius": 0.179733
+   },
+   {
+    "episode_id": "r054_a00050",
+    "video": "runs/r054/g7_videos/r054_a00050.mp4",
+    "n_frames": 102,
+    "scene": 1201,
+    "radius": 0.200141
+   },
+   {
+    "episode_id": "r054_a00085",
+    "video": "runs/r054/g7_videos/r054_a00085.mp4",
+    "n_frames": 117,
+    "scene": 1132,
+    "radius": 0.297382
+   }
+  ],
+  "note": "a person watches these; the gate is signed off by hand",
+  "pass": null
+ },
+ "G6": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00066",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 90,
+    "source_steps": 90,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00143",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 229,
+    "source_steps": 229,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00075",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 86,
+    "source_steps": 86,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00005",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 113,
+    "source_steps": 113,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00042",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 121,
+    "source_steps": 121,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00092",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 88,
+    "source_steps": 88,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00086",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 111,
+    "source_steps": 111,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00072",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 74,
+    "source_steps": 74,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00050",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 101,
+    "source_steps": 101,
+    "same_outcome": true
+   },
+   {
+    "episode_id": "r054_a00085",
+    "init_state_equal": true,
+    "source_success": true,
+    "replay_success": true,
+    "replay_steps": 116,
+    "source_steps": 116,
+    "same_outcome": true
+   }
+  ],
+  "same_outcome": 10,
+  "n": 10,
+  "pass": true,
+  "expectation": "R-054 E3: >= 9/10 reach the same outcome"
+ },
+ "f0_check": {
+  "episodes": [
+   {
+    "episode_id": "r054_a00098",
+    "max_abs_diff": 0.0,
+    "pass": true
+   },
+   {
+    "episode_id": "r054_a00107",
+    "max_abs_diff": 0.0,
+    "pass": true
+   },
+   {
+    "episode_id": "r054_a00010",
+    "max_abs_diff": 0.0,
+    "pass": true
+   }
+  ],
+  "tol": 0.001,
+  "pass": true
+ }
+}

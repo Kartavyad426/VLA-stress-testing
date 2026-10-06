@@ -1,0 +1,224 @@
+{
+ "mode": "lerobot_train",
+ "batch_size": 1,
+ "accumulation": 8,
+ "effective_batch": 8,
+ "opt_steps": 40,
+ "lora": {
+  "r": 16,
+  "alpha": 16,
+  "dropout": 0.1
+ },
+ "curve": {
+  "eval": [],
+  "train": [],
+  "eval_every": 0,
+  "episode": null,
+  "lr_schedule": "cosine",
+  "lr": 0.0001,
+  "opt_steps": 40,
+  "lora_r": 16
+ },
+ "argv": [
+  "--policy.path=nvidia/gr00t17-lerobot-libero_spatial-640",
+  "--policy.base_model_path=nvidia/GR00T-N1.7-3B",
+  "--policy.embodiment_tag=libero_sim",
+  "--policy.model_params_fp32=false",
+  "--policy.tune_projector=false",
+  "--policy.push_to_hub=false",
+  "--policy.device=cuda",
+  "--dataset.repo_id=local/r054_train48",
+  "--dataset.root=data/r054_train48",
+  "--dataset.video_backend=pyav",
+  "--peft.r=16",
+  "--peft.lora_alpha=16",
+  "--peft.full_training_modules=[]",
+  "--batch_size=1",
+  "--accelerator.gradient_accumulation.steps=8",
+  "--steps=320",
+  "--save_freq=160",
+  "--save_checkpoint=true",
+  "--log_freq=10",
+  "--use_policy_training_preset=false",
+  "--optimizer.type=adamw",
+  "--optimizer.lr=0.0001",
+  "--optimizer.weight_decay=1e-5",
+  "--optimizer.grad_clip_norm=1.0",
+  "--scheduler.type=diffuser",
+  "--scheduler.name=cosine",
+  "--scheduler.num_warmup_steps=2",
+  "--output_dir=runs/impl_smoke/r056fix_v1",
+  "--job_name=r056fix_v1",
+  "--seed=1000",
+  "--num_workers=2",
+  "--wandb.enable=false"
+ ],
+ "parts": [
+  {
+   "name": "local/r054_train48",
+   "frames": 4800,
+   "episodes": 100
+  },
+  {
+   "name": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+   "frames": 52970,
+   "episodes": 432
+  }
+ ],
+ "shares": [
+  0.5,
+  0.5
+ ],
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "checkpointed_blocks": 36,
+ "trainable": {
+  "trainable": 19136512,
+  "total": 3163152512,
+  "n_tensors": 496,
+  "non_lora_trainable": [],
+  "n_non_lora": 0
+ },
+ "scheduler": {
+  "builder": "build_scheduler",
+  "opt_steps": 40,
+  "accumulation": 8,
+  "warmup_opt_steps": 2,
+  "stepped": "per micro-batch; LR constant within each accumulation window"
+ },
+ "torch_max_memory_allocated_gib": 6.3003387451171875,
+ "torch_max_memory_reserved_gib": 6.44921875,
+ "nvidia_smi_peak_gib": 6.732421875,
+ "lr_live": {
+  "schedule_verified": true,
+  "schedule": {
+   "type": "cosine",
+   "lr": 0.0001,
+   "warmup_ratio": 0.05,
+   "warmup_opt_steps": 2,
+   "builder": "build_scheduler"
+  },
+  "schedule_guard_max_abs_err": 0.0,
+  "lr_live_max_abs_err": 0.0,
+  "lr_live_updates": 40,
+  "lr_live_first_opt_step": 0,
+  "lr_applied_last_update": 1.7077534966650766e-07,
+  "lr_registered_last_update": 1.7077534966650766e-07,
+  "lr_next": 0.0
+ },
+ "lr_trace": {
+  "first_opt_step": 0,
+  "applied": [
+   0.0,
+   5e-05,
+   0.0001,
+   9.98292246503335e-05,
+   9.931806517013612e-05,
+   9.847001329696653e-05,
+   9.729086208503174e-05,
+   9.578866633275288e-05,
+   9.397368756032445e-05,
+   9.185832391312644e-05,
+   8.945702546981969e-05,
+   8.678619553365659e-05,
+   8.386407858128706e-05,
+   8.07106356344834e-05,
+   7.734740790612136e-05,
+   7.379736965185368e-05,
+   7.008477123264848e-05,
+   6.623497346023418e-05,
+   6.227427435703997e-05,
+   5.8229729514036705e-05,
+   5.4128967273616625e-05,
+   5e-05,
+   4.5871032726383386e-05,
+   4.17702704859633e-05,
+   3.772572564296005e-05,
+   3.3765026539765834e-05,
+   2.991522876735154e-05,
+   2.6202630348146324e-05,
+   2.2652592093878666e-05,
+   1.928936436551661e-05,
+   1.6135921418712956e-05,
+   1.3213804466343421e-05,
+   1.0542974530180327e-05,
+   8.141676086873572e-06,
+   6.026312439675552e-06,
+   4.2113336672471245e-06,
+   2.7091379149682685e-06,
+   1.5299867030334814e-06,
+   6.819348298638839e-07,
+   1.7077534966650766e-07
+  ]
+ },
+ "schedule_guard": {
+  "pass": true,
+  "tol": 1e-06,
+  "n_updates": 40,
+  "expected_updates": 40,
+  "start": 0,
+  "max_abs_err": 0.0,
+  "probes": {
+   "0": {
+    "applied": 0.0,
+    "registered": 0.0,
+    "abs_err": 0.0
+   },
+   "2": {
+    "applied": 0.0001,
+    "registered": 0.0001,
+    "abs_err": 0.0
+   },
+   "39": {
+    "applied": 1.7077534966650766e-07,
+    "registered": 1.7077534966650766e-07,
+    "abs_err": 0.0
+   }
+  },
+  "first_bad_step": null,
+  "mode": "lerobot_train",
+  "builder": "build_scheduler",
+  "accumulation": 8
+ },
+ "args": {
+  "minted_root": "data/r054_train48",
+  "minted_repo": "local/r054_train48",
+  "replay": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+  "shares": "0.5,0.5",
+  "episodes": null,
+  "out": "runs/impl_smoke/r056fix_v1",
+  "run_prefix": "r056",
+  "lora_r": 16,
+  "lora_alpha": 16,
+  "opt_steps": 40,
+  "batch_size": 1,
+  "effective_batch": 8,
+  "lr": 0.0001,
+  "warmup_ratio": 0.05,
+  "lr_schedule": "cosine",
+  "save_every_opt": 20,
+  "seed": 1000,
+  "num_workers": 2,
+  "no_grad_ckpt": false,
+  "no_save": false,
+  "resume": false,
+  "max_micro_steps": null,
+  "eval_loss_episode": null,
+  "eval_every": 0,
+  "curve": null,
+  "cached_features": null,
+  "recompute_cache": false,
+  "report": "runs/impl_smoke/r056fix_v1_report.json",
+  "scheduler_builder": "build_scheduler"
+ }
+}

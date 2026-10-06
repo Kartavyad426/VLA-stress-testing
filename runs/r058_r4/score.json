@@ -1,0 +1,354 @@
+{
+ "selected": {
+  "label": "opt500",
+  "adapter": "runs/r058_r4_train/checkpoints/004000/pretrained_model",
+  "success": 5,
+  "n": 10,
+  "median_ca": 0.05363412136659697,
+  "step": 500,
+  "all": [
+   {
+    "label": "opt500",
+    "adapter": "runs/r058_r4_train/checkpoints/004000/pretrained_model",
+    "success": 5,
+    "n": 10,
+    "median_ca": 0.05363412136659697,
+    "step": 500
+   },
+   {
+    "label": "opt1000",
+    "adapter": "runs/r058_r4_train/checkpoints/008000/pretrained_model",
+    "success": 5,
+    "n": 10,
+    "median_ca": 0.05811989284568898,
+    "step": 1000
+   },
+   {
+    "label": "opt1500",
+    "adapter": "runs/r058_r4_train/checkpoints/012000/pretrained_model",
+    "success": 4,
+    "n": 10,
+    "median_ca": 0.05686389276818411,
+    "step": 1500
+   },
+   {
+    "label": "opt2000",
+    "adapter": "runs/r058_r4_train/checkpoints/016000/pretrained_model",
+    "success": 5,
+    "n": 10,
+    "median_ca": 0.05863924511756253,
+    "step": 2000
+   }
+  ],
+  "rule": "max val success, then min median closest approach, then later step"
+ },
+ "heldout": {
+  "base": {
+   "success": 67,
+   "n": 108,
+   "rate": 0.6203703703703703,
+   "wilson95": [
+    0.5261993725148564,
+    0.7062722659452514
+   ],
+   "median_ca": 0.05645550712958276
+  },
+  "retrained": {
+   "success": 65,
+   "n": 108,
+   "rate": 0.6018518518518519,
+   "wilson95": [
+    0.5075620937035107,
+    0.6891446773011959
+   ],
+   "median_ca": 0.05295748108888611
+  }
+ },
+ "nominal": {
+  "base": {
+   "success": 27,
+   "n": 27,
+   "rate": 1.0,
+   "wilson95": [
+    0.8754409628553641,
+    1.0
+   ],
+   "median_ca": 0.04967810311003434
+  },
+  "retrained": {
+   "success": 25,
+   "n": 27,
+   "rate": 0.9259259259259259,
+   "wilson95": [
+    0.7663002270926937,
+    0.9794457783026165
+   ],
+   "median_ca": 0.04955033081265282
+  }
+ },
+ "per_band": {
+  "0.2-0.3": {
+   "base": {
+    "success": 14,
+    "n": 18,
+    "rate": 0.7777777777777778
+   },
+   "retrained": {
+    "success": 10,
+    "n": 18,
+    "rate": 0.5555555555555556
+   }
+  },
+  "0.3-0.4": {
+   "base": {
+    "success": 13,
+    "n": 18,
+    "rate": 0.7222222222222222
+   },
+   "retrained": {
+    "success": 8,
+    "n": 18,
+    "rate": 0.4444444444444444
+   }
+  },
+  "0.4-0.5": {
+   "base": {
+    "success": 40,
+    "n": 72,
+    "rate": 0.5555555555555556
+   },
+   "retrained": {
+    "success": 47,
+    "n": 72,
+    "rate": 0.6527777777777778
+   }
+  }
+ },
+ "paired": {
+  "n": 108,
+  "mcnemar": {
+   "b": 14,
+   "c": 16,
+   "discordant": 30,
+   "p_value": 0.85554
+  },
+  "ca_improved": 54,
+  "ca_pairs": 108
+ },
+ "gap_closed": -0.04878048780487797,
+ "transfer": {
+  "retrained_median_W": 0.824303047491141,
+  "base_median_W": 0.88,
+  "retrained": {
+   "n": 10,
+   "medians": {
+    "denoise_W": 0.824303047491141,
+    "denoise_A": 0.19125299852425276,
+    "noise_W": 0.37634768504925775,
+    "noise_A": 0.010463260945814012,
+    "noise_S": 0.035929940057617515
+   },
+   "noise_W_gt_A": 9,
+   "denoise_W_gt_A": 10,
+   "noise_seed": 0,
+   "policy_id": "lerobot:nvidia/gr00t17-lerobot-libero_spatial-640+lora@6fc166cf",
+   "adapter": "runs/r058_r4_train/checkpoints/004000/pretrained_model",
+   "adapter_alpha": 1.0
+  }
+ },
+ "expectations": {
+  "E1_heldout_gain_ge_15pp": false,
+  "E2_gap_closed_ge_40pct": false,
+  "E3_nominal_regress_lt_5pp": false,
+  "E4_W_transfer_falls_ge_0.2": false,
+  "E5_low_band_gain_gt_high_band": false,
+  "E6_ca_improves_ge_60pct": false
+ },
+ "failure_criterion_gap_lt_one_third": true,
+ "uninterpretable_checks": {
+  "base_heldout_vs_r047_curve": {
+   "r047_expected": 0.4597382107539078,
+   "base_wilson95": [
+    0.5261993725148564,
+    0.7062722659452514
+   ],
+   "consistent": false
+  },
+  "base_nominal_ge_26_of_27": true,
+  "g4_violations": [],
+  "r055_gates": {
+   "conformance": true,
+   "ckpt_equiv_r16": true,
+   "overfit": false,
+   "memory": null,
+   "overfit_cosine_20260929": false,
+   "overfit_diag_1500": null
+  }
+ },
+ "nominal_on_ramekin": {
+  "base": {
+   "success": 3,
+   "n": 3,
+   "rate": 1.0,
+   "wilson95": [
+    0.43849391955098227,
+    1.0
+   ],
+   "median_ca": 0.040517473067991305
+  },
+  "retrained": {
+   "success": 0,
+   "n": 0,
+   "rate": null,
+   "wilson95": [
+    0.0,
+    1.0
+   ],
+   "median_ca": null
+  },
+  "note": "reported apart; not in the nominal readout or its threshold"
+ },
+ "run": {
+  "out": "runs/r058_r4",
+  "base_manifest": "runs/r056_r16/manifest.jsonl"
+ },
+ "exploratory_gripper_offset": {
+  "label": "EXPLORATORY (post-hoc, not pre-registered); no registered expectation depends on it",
+  "offset_threshold_m": 0.08,
+  "nominal_start_source": "runs/r047/nominal_starts.json",
+  "n_with_start_state": {
+   "base": 108,
+   "retrained": 108
+  },
+  "offset_le_8cm": {
+   "base": {
+    "success": 27,
+    "n": 27,
+    "rate": 1.0,
+    "wilson95": [
+     0.8754409628553641,
+     1.0
+    ],
+    "median_ca": 0.04758805142371841
+   },
+   "retrained": {
+    "success": 20,
+    "n": 27,
+    "rate": 0.7407407407407407,
+    "wilson95": [
+     0.553210695973843,
+     0.8682979157713322
+    ],
+    "median_ca": 0.04915244495496358
+   }
+  },
+  "offset_gt_8cm": {
+   "base": {
+    "success": 40,
+    "n": 81,
+    "rate": 0.49382716049382713,
+    "wilson95": [
+     0.38771930018551176,
+     0.6004940291246379
+    ],
+    "median_ca": 0.0596840920757969
+   },
+   "retrained": {
+    "success": 45,
+    "n": 81,
+    "rate": 0.5555555555555556,
+    "wilson95": [
+     0.44727379297278025,
+     0.6588062432358722
+    ],
+    "median_ca": 0.0535274457540708
+   }
+  },
+  "achieved_radius_by_requested": {
+   "0.2394": {
+    "mean": 0.18398423362003366,
+    "min": 0.17894559854547165,
+    "max": 0.18902286869459567,
+    "n": 12
+   },
+   "0.2749": {
+    "mean": 0.20515282554830164,
+    "min": 0.19808349535641936,
+    "max": 0.2122221557401839,
+    "n": 12
+   },
+   "0.2894": {
+    "mean": 0.2216658734447362,
+    "min": 0.21654026774475396,
+    "max": 0.22679147914471848,
+    "n": 12
+   },
+   "0.3249": {
+    "mean": 0.24292313870101534,
+    "min": 0.2358044869636079,
+    "max": 0.25004179043842284,
+    "n": 12
+   },
+   "0.3653": {
+    "mean": 0.2768737852278891,
+    "min": 0.2695238594414795,
+    "max": 0.2839605052665709,
+    "n": 24
+   },
+   "0.4153": {
+    "mean": 0.31572308386613884,
+    "min": 0.3084123629941227,
+    "max": 0.3229752460945177,
+    "n": 24
+   },
+   "0.4169": {
+    "mean": 0.3154637545667958,
+    "min": 0.30813680281664013,
+    "max": 0.3227907063169516,
+    "n": 12
+   },
+   "0.45": {
+    "mean": 0.34398536830985443,
+    "min": 0.33600909742102697,
+    "max": 0.35098713949122856,
+    "n": 48
+   },
+   "0.4669": {
+    "mean": 0.35511078144673425,
+    "min": 0.34749776642787705,
+    "max": 0.36272379646559144,
+    "n": 12
+   },
+   "0.5": {
+    "mean": 0.3841687830433235,
+    "min": 0.37567625672797617,
+    "max": 0.39163141604186347,
+    "n": 48
+   }
+  }
+ },
+ "wise": {
+  "alpha": 0.5,
+  "heldout": {
+   "success": 0,
+   "n": 0,
+   "rate": null,
+   "wilson95": [
+    0.0,
+    1.0
+   ],
+   "median_ca": null
+  },
+  "nominal": {
+   "success": 0,
+   "n": 0,
+   "rate": null,
+   "wilson95": [
+    0.0,
+    1.0
+   ],
+   "median_ca": null
+  },
+  "exploratory": true
+ }
+}

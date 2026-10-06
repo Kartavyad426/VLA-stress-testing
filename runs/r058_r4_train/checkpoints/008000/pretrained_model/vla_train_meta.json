@@ -1,0 +1,27 @@
+{
+ "opt_step": 1000,
+ "micro_step": 8000,
+ "accumulation": 8,
+ "batch_size": 1,
+ "effective_batch": 8,
+ "lora_r": 4,
+ "lora_alpha": 4,
+ "run_prefix": "r058",
+ "opt_steps_total": 2000,
+ "mode": "lerobot_train",
+ "schedule_verified": true,
+ "schedule": {
+  "type": "cosine",
+  "lr": 0.0001,
+  "warmup_ratio": 0.05,
+  "warmup_opt_steps": 100,
+  "builder": "build_scheduler"
+ },
+ "schedule_guard_max_abs_err": 1.3552527156068805e-20,
+ "lr_live_max_abs_err": 1.3552527156068805e-20,
+ "lr_live_updates": 1000,
+ "lr_live_first_opt_step": 0,
+ "lr_applied_last_update": 5.4211352710852495e-05,
+ "lr_registered_last_update": 5.4211352710852495e-05,
+ "lr_next": 5.4128967273616625e-05
+}

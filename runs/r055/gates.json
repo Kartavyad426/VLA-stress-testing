@@ -1,0 +1,378 @@
+{
+ "conformance": {
+  "instances": [
+   {
+    "task_id": 468,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 484,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 548,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 485,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 491,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 524,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 313,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 416,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 281,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   },
+   {
+    "task_id": 430,
+    "max_abs": 0.0,
+    "per_dim_max": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "pass": true
+   }
+  ],
+  "pass_count": 10,
+  "n": 10,
+  "tol": 0.001,
+  "pass": true,
+  "note": "normalised action space, first 16 steps x 7 live dims; untrained adapter, eval mode"
+ },
+ "ckpt_equiv_r16": {
+  "loss_plain": 0.2359428107738495,
+  "loss_ckpt": 0.2359428107738495,
+  "loss_rel": 0.0,
+  "grad_worst_rel": 0.008337181992828846,
+  "grad_worst_tensor": "base_model.model._groot_model.action_head.model.transformer_blocks.8.attn1.to_out.0.lora_A.default.weight",
+  "n_tensors": 496,
+  "n_zero_grad": 0,
+  "checkpointed_blocks": 36,
+  "tol_rel": 0.01,
+  "lora_r": 16,
+  "pass": true
+ },
+ "overfit": {
+  "rc": 0,
+  "episode": 0,
+  "lr_schedule": "constant",
+  "loss_step0": 0.05226617420460874,
+  "loss_final": 0.0072506418388608536,
+  "ratio": 0.13872532185876932,
+  "pass": false,
+  "trainable": {
+   "trainable": 19136512,
+   "total": 3163152512,
+   "n_tensors": 496,
+   "non_lora_trainable": [],
+   "n_non_lora": 0
+  }
+ },
+ "memory": {
+  "batch1": {
+   "rc": 0,
+   "torch_max_memory_allocated_gib": 6.3003387451171875,
+   "torch_max_memory_reserved_gib": 6.44921875,
+   "nvidia_smi_peak_gib": 6.732421875,
+   "trainable": {
+    "trainable": 19136512,
+    "total": 3163152512,
+    "n_tensors": 496,
+    "non_lora_trainable": [],
+    "n_non_lora": 0
+   },
+   "mode": "lerobot_train"
+  },
+  "batch2": {
+   "rc": 0,
+   "torch_max_memory_allocated_gib": 6.311040878295898,
+   "torch_max_memory_reserved_gib": 6.64453125,
+   "nvidia_smi_peak_gib": 6.927734375,
+   "trainable": {
+    "trainable": 19136512,
+    "total": 3163152512,
+    "n_tensors": 496,
+    "non_lora_trainable": [],
+    "n_non_lora": 0
+   },
+   "mode": "lerobot_train"
+  },
+  "E3_batch1_le_7.4GiB": true,
+  "E4_batch2_le_7.8GiB": true,
+  "mode": "vlm_resident",
+  "lora_r": 16,
+  "note": "training runs at micro-batch 1 x accumulation 8; batch 2 is a memory readout only"
+ },
+ "overfit_cosine_20260929": {
+  "rc": 0,
+  "episode": 0,
+  "loss_step0": 0.05226617420460874,
+  "loss_final": 0.006302173084501798,
+  "ratio": 0.12057842726024671,
+  "pass": false,
+  "trainable": {
+   "trainable": 19136512,
+   "total": 3163152512,
+   "n_tensors": 496,
+   "non_lora_trainable": [],
+   "n_non_lora": 0
+  },
+  "lr_schedule": "cosine (5% warmup, decay to 0)",
+  "superseded_by": "overfit"
+ },
+ "overfit_diag_1500": {
+  "rc": 0,
+  "diagnostic": true,
+  "not_a_gate": true,
+  "episode": 0,
+  "steps": 1500,
+  "lr": 0.0001,
+  "lr_schedule": "constant",
+  "curve_file": "runs/r055/overfit_diag_1500.json",
+  "ratios": [
+   {
+    "opt_step": 0,
+    "ratio": 1.0
+   },
+   {
+    "opt_step": 100,
+    "ratio": 0.1485341770067825
+   },
+   {
+    "opt_step": 200,
+    "ratio": 0.184638532356726
+   },
+   {
+    "opt_step": 300,
+    "ratio": 0.11610162940065999
+   },
+   {
+    "opt_step": 400,
+    "ratio": 0.14855035066633182
+   },
+   {
+    "opt_step": 500,
+    "ratio": 0.08583621665351929
+   },
+   {
+    "opt_step": 600,
+    "ratio": 0.0750636926741739
+   },
+   {
+    "opt_step": 700,
+    "ratio": 0.08275911398061182
+   },
+   {
+    "opt_step": 800,
+    "ratio": 0.06065311428791832
+   },
+   {
+    "opt_step": 900,
+    "ratio": 0.06680312629001582
+   },
+   {
+    "opt_step": 1000,
+    "ratio": 0.1162209597100847
+   },
+   {
+    "opt_step": 1100,
+    "ratio": 0.060117401640917466
+   },
+   {
+    "opt_step": 1200,
+    "ratio": 0.0709105495814053
+   },
+   {
+    "opt_step": 1300,
+    "ratio": 0.13750994667463806
+   },
+   {
+    "opt_step": 1400,
+    "ratio": 0.05835728791788318
+   },
+   {
+    "opt_step": 1500,
+    "ratio": 0.05275599796300853
+   }
+  ],
+  "final_ratio": 0.05275599796300853
+ },
+ "cache_equiv_r64": {
+  "rows": [
+   {
+    "i": 0,
+    "uncached": 0.42549875378608704,
+    "cached": 0.42549875378608704,
+    "rel": 0.0
+   },
+   {
+    "i": 1,
+    "uncached": 0.059854645282030106,
+    "cached": 0.059854645282030106,
+    "rel": 0.0
+   },
+   {
+    "i": 2,
+    "uncached": 0.32628604769706726,
+    "cached": 0.32628604769706726,
+    "rel": 0.0
+   },
+   {
+    "i": 3,
+    "uncached": 0.04006357863545418,
+    "cached": 0.04006357863545418,
+    "rel": 0.0
+   },
+   {
+    "i": 4,
+    "uncached": 0.15903949737548828,
+    "cached": 0.15903949737548828,
+    "rel": 0.0
+   },
+   {
+    "i": 5,
+    "uncached": 0.023699691519141197,
+    "cached": 0.023699691519141197,
+    "rel": 0.0
+   },
+   {
+    "i": 6,
+    "uncached": 0.016173457726836205,
+    "cached": 0.016173457726836205,
+    "rel": 0.0
+   },
+   {
+    "i": 7,
+    "uncached": 0.057262081652879715,
+    "cached": 0.057262081652879715,
+    "rel": 0.0
+   }
+  ],
+  "worst_rel": 0.0,
+  "tol_rel": 0.01,
+  "pass": true,
+  "bytes_per_frame_measured": 639288.0,
+  "augmentation": {
+   "GrootN17PackInputsStep.training": false,
+   "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+   "GrootN17VLMEncodeStep.training": false,
+   "GrootN17VLMEncodeStep.image_crop_size": [
+    230,
+    230
+   ],
+   "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+   "GrootN17VLMEncodeStep.use_albumentations": true,
+   "random_crop_active": false
+  },
+  "lora_r": 64
+ }
+}
