@@ -1,0 +1,304 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Jung Park Initial Pose</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Jung &amp; Park: policy-induced hand priors and initial-pose dependence</h1>
+<div class=meta>2026-10-06 · Chaeyeon Jung, Juyoun Park (KIST Center for Humanoid Research), "Policy-Induced Hand Priors in Humanoid Dual-Arm Manipulation: Diagnosing and Mitigating Initial-Pose Dependence", <a href="https://arxiv.org/abs/2608.11769">arXiv:2608.11769v1</a> (12 Aug 2026). Read in full from the arXiv PDF (8 pages, no appendix, no code). Requested by prim for the user. Tags: <span class="tag v">verified</span> stated in the full text, or recomputed by me from its numbers · <span class="tag i">inferred</span> my reading where the paper is silent · <span class="tag p">ours</span> a fact about our own runs, with its source file.</div>
+
+<div class="card tldr">
+<div class=q>Verdict: overlapping, not the same path</div>
+<ul>
+<li><b>Same macro-question.</b> Both projects ask whether a VLA's start-pose failures can be traced to a specific input and then fixed by targeted data. Both are on GR00T, and both conclude the wrist camera matters. Theirs: Unitree G1 humanoid, GR00T N1.5, one task (PickApple), 17 start poses. Ours: GR00T N1.7, LIBERO-Spatial, LIBERO-Plus start-pose perturbations.</li>
+<li><b>Different instruments.</b> They diagnose with:
+ <ul>
+ <li>behavioural metrics: a per-pose success grid and an early-window left/right action-imbalance score;</li>
+ <li><i>out-of-distribution</i> wrist-camera masking, which they correctly read as sensitivity, not contribution;</li>
+ <li><i>physical</i> joint swaps at reset, which change proprioception and both camera images at once.</li>
+ </ul>
+ We diagnose with in-distribution counterfactual splices of single inputs (wrist vs agent view vs state token), a transfer fraction, a time localisation ("decided at forward k"), and a first-chunk rescue.</li>
+<li><b>Different data targeting.</b> Their fix is <i>pose-space coverage</i>: 2 coupled poses → 8 diversified poses at matched episode count, then +2 teleop poses next to one failing pose (30% → 75%, 6/20 → 15/20). Ours is a <i>mechanism-specified frame specification</i>: which frames need new labels, how many forwards, and from which source. Theirs worked at one pose, with no budget-matched or broad-coverage control for the targeted step. Ours (R-056) did not move held-out success, for reasons the post-mortem and D20 trace to coverage and dose, not capacity.</li>
+<li><b>Still novel for us:</b>
+ <ul>
+ <li>splice-based, in-distribution attribution to a single camera (W = 0.88 at forward 0);</li>
+ <li>time localisation (k* = 1) plus a rescue that proves the first chunk decides the episode (R-053: 20/24 flips vs 0/22 for a re-run);</li>
+ <li>a pre-registered mechanism readout before and after training (W 0.88 → 0.84);</li>
+ <li>an offset-resolved success curve that sets the coverage target in cm.</li>
+ </ul>
+ None of these is in the paper.</li>
+<li><b>Borrow:</b>
+ <ol>
+ <li>their equal-budget coverage control (304 vs 306 episodes);</li>
+ <li>a physical joint-subset swap with a control, to test whether "wrist" really means "where the wrist camera ends up";</li>
+ <li>reporting a per-pose grid, not an average;</li>
+ <li>their warning that diluting target-task data erases gains (sim ratio 45% vs 9%), which is our dose finding again.</li>
+ </ol></li>
+</ul>
+</div>
+
+<h2>1. The claim, and what it would take to prove it</h2>
+<p>The paper makes three claims <span class="tag v">verified</span>:</p>
+<ol>
+<li><b>Initial-pose × policy interaction.</b> The same start pose gives very different success across fine-tuned policies, and one policy varies widely across poses. Average success hides this.</li>
+<li><b>A "policy-induced hand prior".</b> At some poses the policy picks a hand from its own start configuration rather than from where the target is. Two specific right-arm joints, R<sub>arm,3</sub> and R<sub>arm,5</sub>, are "a causal handle" on that prior. Wrist observations "modulate its expression" but do not explain it.</li>
+<li><b>Coverage fixes it.</b> Diversifying training poses and adding poses around a weak one improves robustness. Auxiliary real data helps only if it does not dilute the target task.</li>
+</ol>
+<p>Proving (2) would need four things. First, show the joints matter beyond their magnitude (a magnitude-matched control). Second, separate the <i>proprioceptive</i> channel from the <i>visual</i> appearance of the arm, since a physical swap changes both. Third, have enough episodes per cell. Fourth, show the effect across policies. The paper does the first partially, the second not at all, and the third with 4–14 episodes per cell; the fourth gives mixed results (§5).</p>
+<p>Proving (3) as <i>targeting</i> rather than <i>more data</i> needs an equal-budget comparison: the same number of added episodes spread broadly vs placed near the failing pose. It also needs a check that the targeted pose's gain didn't cost other poses. The diversification step (2 → 8 poses at 306 vs 304 episodes) <i>is</i> budget-matched. The targeted step (8 → 10 poses) is not, and only the targeted pose is reported.</p>
+
+<h2>2. Setup <span class="tag v">verified</span></h2>
+<div class=tw><table>
+<tr><th></th><th>Jung &amp; Park</th><th>Us <span class="tag p">ours</span></th></tr>
+<tr><td>Robot</td><td>Unitree G1 humanoid, two arms, two Dex3-1 hands; 7 arm + 7 hand joints per side</td><td>Franka Panda in LIBERO (MuJoCo), 7-DoF + gripper</td></tr>
+<tr><td>Policy</td><td>GR00T N1.5-3B, fine-tuned per configuration (9 policies, A1–E)</td><td>GR00T N1.7 (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>), off-the-shelf checkpoint, then LoRA head pilots</td></tr>
+<tr><td>Cameras</td><td>head ("high") + left and right wrist</td><td>agent view + one wrist</td></tr>
+<tr><td>Action</td><td>absolute joint targets; they analyse Δ<var>a</var> = <var>a</var> − <var>q</var></td><td>OSC delta actions, 7 live dims, 40-step chunk per forward, 16 executed</td></tr>
+<tr><td>Task</td><td>PickApple: apple left, centre or right; either hand may succeed</td><td>LIBERO-Spatial, 10 pick-and-place tasks</td></tr>
+<tr><td>Perturbation</td><td>17 hand-built start poses: 8 training poses, 9 diagnostic poses including means, teleop starts and a PCA extrapolation</td><td>LIBERO-Plus robot initial state; joint-space radius × direction (R-047), read as achieved gripper offset in cm (D20)</td></tr>
+<tr><td>Evaluation</td><td>20 closed-loop rollouts per pose × policy, success <b>judged manually</b></td><td>simulator success predicate, paired noise seeds</td></tr>
+</table></div>
+
+<h2>3. How they localise the failure: the method from first principles</h2>
+<h3>3.1 The hand prior as a conditional distribution</h3>
+<p>Write the fine-tuned policy as π<sub>θ<sub>D</sub></sub>, trained on data <var>D</var>. The object of interest is the policy's preference over <i>early</i> hand-action modes:</p>
+<div class=eq><span><var>p</var><sub>π</sub>( <var>h</var> | <var>s</var><sub>0</sub>, <var>o</var><sub>0</sub>, <var>x</var><sub>apple</sub> ),&nbsp;&nbsp; <var>h</var> ∈ {left, right, bimanual, undecided},&nbsp;&nbsp; <var>x</var> ∈ {ℓ, c, r}</span><span class=n>(1)</span></div>
+<p>Here <var>s</var><sub>0</sub> is the start proprioception and <var>o</var><sub>0</sub> the first images from all three cameras. The policy never outputs (1) directly. It is operationalised over an initial window <var>W</var><sub>T</sub> = {<var>t</var><sub>0</sub>, …, <var>t</var><sub>0</sub>+<var>T</var>−1}, with <var>T</var> = 120. The paper does not say whether <var>T</var> is in control steps or frames <span class="tag i">inferred</span>.</p>
+
+<h3>3.2 HandPriorScore: an action-imbalance metric</h3>
+<p>For side <var>S</var> ∈ {L, R}, joint group <var>G</var> ∈ {arm, hand} and joint <var>j</var>:</p>
+<div class=eq><span>Δ<var>a</var><sup>G</sup><sub>S,t,j</sub> = <var>a</var><sup>G</sup><sub>S,t,j</sub> − <var>q</var><sup>G</sup><sub>S,t,j</sub>&nbsp;&nbsp;&nbsp; (commanded target minus current joint)</span><span class=n>(2)</span></div>
+<div class=eq><span>σ<sup>G</sup><sub>S,j</sub> = Std<sub>e∈R<sub>norm</sub>, t∈W<sub>T</sub></sub> Δ<var>a</var><sup>G</sup><sub>e,S,t,j</sub>,&nbsp;&nbsp;&nbsp; <var>M</var><sup>G</sup><sub>S,t</sub> = √( (1/<var>d</var>) Σ<sub>j</sub> ( Δ<var>a</var><sup>G</sup><sub>S,t,j</sub> / (σ<sup>G</sup><sub>S,j</sub> + ε) )² )</span><span class=n>(3)</span></div>
+<div class=eq><span><var>A</var><sub>S</sub> = (1/<var>T</var>) Σ<sub>t∈W<sub>T</sub></sub> ( <var>M</var><sup>arm</sup><sub>S,t</sub> + λ <var>M</var><sup>hand</sup><sub>S,t</sub> ),&nbsp;&nbsp;&nbsp; <var>H</var> = ( <var>A</var><sub>R</sub> − <var>A</var><sub>L</sub> ) / ( <var>A</var><sub>R</sub> + <var>A</var><sub>L</sub> + ε ) ∈ [−1, 1]</span><span class=n>(4)</span></div>
+<p>Positive <var>H</var> means right-hand activity dominates the early window. Two decompositions follow, with μ<sub>x</sub> the mean <var>H</var> over episodes with the apple at <var>x</var>:</p>
+<div class=eq><span><var>H</var><sub>prior</sub> = (μ<sub>ℓ</sub> + μ<sub>r</sub>) / 2&nbsp;&nbsp; (bias left over when the target flips sides),&nbsp;&nbsp;&nbsp; <var>H</var><sub>target</sub> = (μ<sub>r</sub> − μ<sub>ℓ</sub>) / 2&nbsp;&nbsp; (how much the target moves it)</span><span class=n>(5–6)</span></div>
+<p class=small>This is a two-factor main-effects decomposition: <var>H</var><sub>prior</sub> is the intercept, <var>H</var><sub>target</sub> the slope on target side. A healthy policy has <var>H</var><sub>prior</sub> ≈ 0 and a large positive <var>H</var><sub>target</sub>. A "shortcut" pose has large |<var>H</var><sub>prior</sub>| and small <var>H</var><sub>target</sub>. Notes:
+<ul class=small>
+<li>σ is an in-sample normaliser, pooled over all policies, so <var>H</var> is comparable across policies but not across papers.</li>
+<li>λ (the hand weight) is never given.</li>
+<li><var>H</var> measures <i>activity</i>, not direction toward the apple. A large right-arm motion <i>away</i> from a right apple still counts as "right preference".</li>
+</ul></p>
+
+<h3>3.3 Wrist-camera masking: how wrist influence was established</h3>
+<p>Four lines of evidence <span class="tag v">verified</span>:</p>
+<ol>
+<li><b>Training ablation.</b> A1 (head camera only) vs A2 (head + wrists), same data: overall success 61.5% → 76.8%; diversified poses 56.9% → 81.2%, better on 7 of 8. But at the diagnostic pose <code>teleop_default</code>, wrists made it <i>worse</i>: <var>H</var><sub>prior</sub> +0.12 → +0.25, wrong-hand crossing 6% → 33%, success 85% → 60% (17/20 → 12/20, Fisher p = 0.16, not significant).</li>
+<li><b>Mixed availability.</b> C1 (wrist images for sim, zero-filled for real) vs B1 (head-only), same mixture: 62.9% → 80.9% overall; <code>teleop_default</code> 30% → 70% (p = 0.03).</li>
+<li><b>Test-time masking</b> on A2 at <code>teleop_default</code>, paired with the full-observation run "from the same model, condition, object location, and episode":
+ <ul>
+ <li>both wrists masked: success drops to 20%;</li>
+ <li>one wrist masked: success about unchanged;</li>
+ <li>on left-target episodes, masking the <i>right</i> wrist cuts right-hand attempts 97.1% → 40.5%; masking the left gives 88.2%.</li>
+ </ul>
+ The masking value is not stated; C-group training uses zero-filled streams, so masking is probably zeros <span class="tag i">inferred</span>. The authors themselves say masking creates out-of-distribution inputs and "we interpret these ablations as measures of input-channel sensitivity rather than causal contribution percentages".</li>
+<li><b>Representation traces.</b> For masked vs full, the cosine distance over 0–20 s at several taps:
+ <ul>
+ <li>visual embedding, action-query embedding and tokens, DiT output, absolute action chunk, and the Δ<var>a</var> chunk;</li>
+ <li>the absolute chunk barely moves (0.002–0.008);</li>
+ <li>the Δ<var>a</var> chunk moves 0.04–0.16, both-wrist &gt; right &gt; left.</li>
+ </ul>
+ The reading: wrists steer <i>incremental</i> motion, while absolute targets stay anchored to the current state.</li>
+</ol>
+<p><b>Conclusion drawn:</b> the right-wrist stream <i>strengthens</i> the wrong-hand preference at that pose but does not by itself explain it, because masking reduces but does not remove it.</p>
+
+<h3>3.4 Joint-level counterfactual swaps: the "causal handle"</h3>
+<p>Two start poses, <code>teleop_default</code> (strong right bias) and <code>right_sim</code> (no right bias), look broadly similar. The right-arm joint differences are 1.269 at R<sub>3</sub> and 1.389 at R<sub>5</sub>, and under 0.39 everywhere else (radians presumably <span class="tag i">inferred</span>). They build new start poses by copying a subset of joint values from one pose into the other, keeping the rest. The robot is physically placed there and run closed-loop <span class="tag v">verified</span>.</p>
+<div class=tw><table>
+<tr><th>Policy · base pose</th><th>Swap</th><th class=num>Right-hand attempts on left targets</th><th class=num>Fisher p vs none</th></tr>
+<tr><td>A2 · teleop_default</td><td>none</td><td class=num>7/8</td><td></td></tr>
+<tr><td></td><td>R<sub>3</sub> only</td><td class=num>3/10</td><td class=num>0.025</td></tr>
+<tr><td></td><td>R<sub>3</sub>, R<sub>5</sub> from right_sim</td><td class=num>0/4</td><td class=num>0.010</td></tr>
+<tr><td></td><td>R<sub>0</sub>, R<sub>6</sub> (control)</td><td class=num>9/9</td><td class=num>—</td></tr>
+<tr><td>A2 · right_sim</td><td>none</td><td class=num>0/12</td><td></td></tr>
+<tr><td></td><td>R<sub>3</sub>, R<sub>5</sub> from teleop_default</td><td class=num>7/7</td><td class=num>&lt;10⁻⁴</td></tr>
+<tr><td></td><td>R<sub>0</sub>, R<sub>6</sub> (control)</td><td class=num>0/12</td><td class=num>—</td></tr>
+</table></div>
+<p>Cross-policy check: a four-joint swap (R<sub>3</sub>, R<sub>5</sub>, L<sub>0</sub>, L<sub>6</sub>) between <code>pose08</code> and <code>teleop_default</code>, scoring left-hand attempts on right targets. The two-joint swap was physically infeasible for this pair.</p>
+<div class=tw><table>
+<tr><th>Policy</th><th>Direction</th><th class=num>Before</th><th class=num>After</th><th class=num>Fisher p</th></tr>
+<tr><td>B1</td><td>teleop → pose08 (removal)</td><td class=num>4/14</td><td class=num>0/12</td><td class=num>0.10</td></tr>
+<tr><td>C2</td><td>teleop → pose08 (removal)</td><td class=num>11/13</td><td class=num>1/9</td><td class=num>0.002</td></tr>
+<tr><td>B1</td><td>pose08 → teleop (induction)</td><td class=num>0/11</td><td class=num>0/12</td><td class=num>1.0</td></tr>
+<tr><td>C2</td><td>pose08 → teleop (induction)</td><td class=num>2/7</td><td class=num>4/10</td><td class=num>1.0</td></tr>
+</table></div>
+<p class=small>p-values are mine (two-sided Fisher exact) <span class="tag v">verified</span>. The paper reports no tests.</p>
+
+<h3>3.5 What kind of evidence each instrument is</h3>
+<div class=tw><table>
+<tr><th>Instrument</th><th>Intervenes on</th><th>Inputs changed</th><th>In-distribution?</th><th>What it can say</th></tr>
+<tr><td>Per-pose success grid, <var>H</var> metrics</td><td>nothing (observational)</td><td>—</td><td>yes</td><td>where and how the policy fails</td></tr>
+<tr><td>Train-time camera ablation (A1/A2, B1/C1, D/E)</td><td>the training recipe</td><td>wrist available or not</td><td>yes</td><td>whether wrist data helps the trained policy; not how the trained policy uses it</td></tr>
+<tr><td>Test-time wrist masking</td><td>one input</td><td>wrist pixels → blank</td><td class=warn>no</td><td>sensitivity to removing the channel</td></tr>
+<tr><td>Joint swap</td><td>the world (start state)</td><td><b>proprio + head image + both wrist images</b>, together</td><td>yes, a real robot state</td><td>that the start configuration in these 2 joints causes the prior; <b>not</b> which input channel carries it</td></tr>
+</table></div>
+
+<h2>4. How they decide what to fix</h2>
+<h3>4.1 Which data</h3>
+<ul>
+<li><b>Coverage, budget-matched</b> <span class="tag v">verified</span>. The "limited" dataset used two poses, each <i>coupled to a target side</i>: <code>left_sim</code> for left/centre apples, <code>right_sim</code> for right/centre; 306 episodes. That coupling is what taught the shortcut. The diversified dataset P<sub>sim</sub> has 8 poses × 2 apple sides × 19 episodes = 304, "chosen to remain comparable". This is a clean, matched-budget test of <i>decoupled coverage</i> vs <i>coupled coverage</i>.</li>
+<li><b>Targeted augmentation</b> <span class="tag v">verified</span>. A1 failed at <code>right_real</code> (30%). They project start states onto PCA of the 14 arm joints (PC1 38.7%, PC2 19.3%) and add two teleop collection poses "on either side of <code>right_real</code> along PC1", going from 8 to 10 poses. The episode count added is not stated; at the P<sub>sim</sub> rate it would be 2 × 2 × 19 = 76 <span class="tag i">inferred</span>. <code>right_real</code> itself is not added.</li>
+<li><b>Auxiliary real data</b>: Unitree's G1-Dex3 teleop sets: 1 PickApple task, 7 pick tasks, or 13 tasks, mixed at the natural ratio or reweighted to 45.5% sim.</li>
+</ul>
+<h3>4.2 Which model parts, and how much training</h3>
+<p>"All policies were fine-tuned from GR00T-N1.5-3B" via Unitree's <code>unitree_lerobot</code> <span class="tag v">verified</span>. <b>Nothing else is stated:</b> no trainable modules, LoRA or full, learning rate, steps, batch or seeds. The GR00T N1.5 fine-tuning default freezes the VLM and visual encoder and trains the projector and the diffusion action head. If they used that default, their trainable set is close to ours (we train LoRA on the DiT and VL self-attention, with <code>tune_visual</code> and <code>tune_llm</code> False) <span class="tag i">inferred</span>.</p>
+<h3>4.3 How the targeting decision is made</h3>
+<p>Behaviourally: find the pose with low success in the grid, then sample new start poses near it in joint-PCA space. The joint-swap and masking diagnostics are run at <code>teleop_default</code>, but the targeted data goes to <code>right_real</code>. <b>The mechanism analysis does not feed the data decision.</b> The diagnosis explains one failure; the augmentation fixes another, chosen by low success alone.</p>
+
+<h2>5. Results ledger</h2>
+<h3>5.1 Training configurations and overall success <span class="tag v">verified</span></h3>
+<div class=tw><table>
+<tr><th>ID</th><th>Data</th><th>Cameras</th><th class=num>Sim %</th><th class=num>Overall (17 poses × 20)</th><th class=num>8 training poses</th></tr>
+<tr><td>A1</td><td>P<sub>sim</sub></td><td>head</td><td class=num>100</td><td class=num>61.5</td><td class=num>56.9</td></tr>
+<tr><td>A2</td><td>P<sub>sim</sub></td><td>head + wrists</td><td class=num>100</td><td class=num><b>76.8</b></td><td class=num><b>81.2</b></td></tr>
+<tr><td>B1</td><td>+ P<sub>real</sub> (PickApple)</td><td>head</td><td class=num>45</td><td class=num>62.9</td><td class=num>65.6</td></tr>
+<tr><td>B2</td><td>+ 7 pick tasks</td><td>head</td><td class=num>9.4</td><td class=num>40.3</td><td class=num>45.6</td></tr>
+<tr><td>B3</td><td>+ 13 tasks</td><td>head</td><td class=num>4.6</td><td class=num>32.6</td><td class=num>40.0</td></tr>
+<tr><td>C1</td><td>+ P<sub>real</sub></td><td>sim: wrists; real: zero-filled</td><td class=num>45</td><td class=num><b>80.9</b></td><td class=num>78.8</td></tr>
+<tr><td>C2</td><td>+ 13 tasks (all cams)</td><td>mixed</td><td class=num>4.6</td><td class=num>≈49 (grid mean)</td><td class=num>—</td></tr>
+<tr><td>D</td><td>+ 7 pick, reweighted</td><td>head</td><td class=num>45.5</td><td class=num>61.5</td><td class=num>74.4</td></tr>
+<tr><td>E</td><td>+ 7 pick, reweighted</td><td>sim: wrists; real: zero</td><td class=num>45.5</td><td class=num>72.4</td><td class=num>≈ D</td></tr>
+</table></div>
+<p class=small>"Overall" includes the 8 training poses, so it is not a held-out number. The 9 non-training poses are the held-out set; the paper does not report their mean separately. At n = 340 per policy, a 95% interval on a difference is about ±7 pt near 60%. A1 vs A2 (+15) and B2 vs D (+21) are real; A1 vs B1 (+1.4) is not.</p>
+
+<h3>5.2 The coverage results</h3>
+<div class=grid2>
+<div class=card><div class=stat>5.8% → 63.3%</div><div class=statl>A1 (head only), 2 coupled poses → 8 diversified poses, mean over 6 evaluation poses (7/120 → 76/120). Matched episode budget (306 vs 304). A2: 14.2% → 72.5%.</div></div>
+<div class=card><div class=stat>30% → 75%</div><div class=statl>A1 at <code>right_real</code>, 8 → 10 training poses with two added along PC1 beside it (6/20 → 15/20, Fisher p = 0.010). No other pose reported, no budget-matched control.</div></div>
+</div>
+<p>The 2-pose policies are near zero even on their own training poses (<code>left_sim</code>, <code>right_sim</code>). Evaluation puts the apple on <i>both</i> sides at every pose, and the coupled data taught "pose decides side". That is the cleanest result in the paper: <b>coupling, not coverage size, caused the collapse</b>.</p>
+
+<h3>5.3 Per-pose grid (Fig. 2a, success %)</h3>
+<div class=tw><table>
+<tr><th>Pose</th><th class=num>A1</th><th class=num>A2</th><th class=num>B1</th><th class=num>B2</th><th class=num>B3</th><th class=num>C1</th><th class=num>C2</th><th class=num>D</th><th class=num>E</th></tr>
+<tr><td>teleop_default</td><td class=num>85</td><td class=num>60</td><td class=num>30</td><td class=num>20</td><td class=num>10</td><td class=num>70</td><td class=num>20</td><td class=num>20</td><td class=num>65</td></tr>
+<tr><td>right_sim</td><td class=num>90</td><td class=num>80</td><td class=num>40</td><td class=num>20</td><td class=num>10</td><td class=num>65</td><td class=num>15</td><td class=num>35</td><td class=num>40</td></tr>
+<tr><td>right_real</td><td class=num>30</td><td class=num>75</td><td class=num>65</td><td class=num>40</td><td class=num>25</td><td class=num>90</td><td class=num>50</td><td class=num>60</td><td class=num>70</td></tr>
+<tr><td>pose_mean</td><td class=num>65</td><td class=num>75</td><td class=num>75</td><td class=num>40</td><td class=num>45</td><td class=num>95</td><td class=num>15</td><td class=num>75</td><td class=num>80</td></tr>
+<tr><td>synthetic_unseen (PCA extrapolation)</td><td class=num>60</td><td class=num>85</td><td class=num>90</td><td class=num>55</td><td class=num>15</td><td class=num>90</td><td class=num>70</td><td class=num>65</td><td class=num>60</td></tr>
+<tr><td><b>mean of 17</b></td><td class=num>61</td><td class=num>77</td><td class=num>63</td><td class=num>40</td><td class=num>33</td><td class=num>81</td><td class=num>49</td><td class=num>61</td><td class=num>72</td></tr>
+</table></div>
+<p class=small>Selected rows from the extracted grid <span class="tag v">verified</span>. At 20 rollouts per cell the 95% interval is about ±20 pt, so single-cell contrasts need large gaps.</p>
+
+<h2>6. Critique</h2>
+<ul>
+<li><b>The "causal handle" is a world intervention, so it can't name the channel.</b> Swapping R<sub>3</sub>, R<sub>5</sub> moves the forearm and wrist. That changes the proprio vector, the arm's appearance in the head camera, and the right wrist camera's pose and view. The paper concludes "the localized initial arm configuration" is causal, which is accurate, but the abstract's framing as distinct from wrist influence is not supported. Their own masking found the right wrist carries part of it. The two results are compatible with a single story: those joints matter <i>because</i> they move the right wrist camera <span class="tag i">inferred</span>. Neither experiment can tell.</li>
+<li><b>The control is not magnitude-matched.</b> The control joints differ by &lt;0.39; the treatment joints by ~1.3. A larger joint change could matter simply by moving further from the training distribution, whichever joints are moved.</li>
+<li><b>Tiny, unequal counts.</b> Cells of 4, 7, 8 or 9 episodes; the B1 cross-policy removal (4/14 → 0/12) is p = 0.10, and the reverse direction fails for both B1 and C2. The authors flag "small and unequal sample counts".</li>
+<li><b>Masking is out of distribution.</b> They say so. Blank images test whether the network needs the channel, not what the channel's content does. An in-distribution swap (the wrist frame from another real state) is the stronger test, and is what we did (R-042).</li>
+<li><b>Targeted augmentation has no control.</b> Adding ~76 episodes anywhere might raise <code>right_real</code>. Adding them there might lower other poses. Neither is reported.</li>
+<li><b>Manual success labels, one task, one embodiment, no training details, no seeds.</b> Reproduction from the paper alone is not possible.</li>
+<li><b>"Hand prior" is the right idea for a mode choice.</b> A discrete, early, pose-conditioned decision is a cleaner object than our continuous approach error. Their <var>H</var><sub>prior</sub>/<var>H</var><sub>target</sub> split is a useful template for any binary early decision.</li>
+</ul>
+
+<h2>7. Side by side with our method</h2>
+<div class=tw><table>
+<tr><th></th><th>Jung &amp; Park</th><th>Us <span class="tag p">ours</span></th></tr>
+<tr><td><b>Failure object</b></td><td>wrong-hand selection and success, per start pose</td><td>first-chunk deviation and success under LIBERO-Plus start-pose perturbations</td></tr>
+<tr><td><b>Which input carries it</b></td><td>test-time OOD masking of wrist streams (sensitivity); physical joint swap (state + all cameras together)</td><td>in-distribution <b>splices</b> at fixed denoising noise: restore one input from the paired nominal run (state token S, image tokens I, text T; pixel-level agent view A or wrist W) and measure transfer τ = 1 − ‖<var>a</var><sub>X</sub>−<var>a</var><sub>N</sub>‖/‖<var>a</var><sub>P</sub>−<var>a</var><sub>N</sub>‖. R-039: image tokens carry every category; state token near-inert. R-042/R-044: start pose is <b>wrist</b>, denoise_W 0.88, noising 0.46, stable 0.85 across seeds. <code>docs/PERTURBATION_MAP.html</code></td></tr>
+<tr><td><b>When it is decided</b></td><td>"initial decision window" T = 120, assumed early; not tested</td><td><b>R-057</b> drive-until sweep: start pose decided at k* = 1 (P 6, k1 24, all 19 of 30); camera throughout</td></tr>
+<tr><td><b>Sufficiency test</b></td><td>none at the input level</td><td><b>R-053/R-044</b> first-chunk rescue: executing the nominal forward-0 chunk flips 20/24 failures; a plain re-run flips 0/22</td></tr>
+<tr><td><b>Dose–response</b></td><td>per-pose grid; PCA coordinates</td><td>R-047: success 1.00 → 0.37 by 0.5 rad. D20(ii): by achieved gripper offset, ≤8 cm ≈ 0.93, 8–12 cm 0.65, 12–16 cm 0.22, &gt;16 cm 0.15 (<code>runs/r056_diag/r047_offset_curve.json</code>)</td></tr>
+<tr><td><b>What to fix</b></td><td>pose coverage: decouple pose from target side; add poses near a failing one</td><td>a frame specification from the mechanism: forward-0 labels, a wrist-bearing state, k = 1 forward; source = rescue-minted demos (R-054), then Option A bridge-and-join (<code>DATA_SOURCING_RESEARCH.html</code>)</td></tr>
+<tr><td><b>Trainable parts</b></td><td>not stated (GR00T N1.5 fine-tune)</td><td>LoRA r 16 (r 4, 64 in R-058) on the DiT and VL self-attention; VLM, vision and projector frozen</td></tr>
+<tr><td><b>Data amount</b></td><td>304 episodes (8 poses); +2 poses targeted</td><td>100 minted demos + 1:1 replay; frame-0 correction ≈1% of draws (post-mortem §3.1)</td></tr>
+<tr><td><b>Did training work?</b></td><td>yes at one pose: 30 → 75%</td><td>R-056: held-out 59/108 vs base 67/108 (p 0.24); the whole drop is scene 1327. D20(i): the adapter <b>fits its training frames</b> (minted frame-0 loss 0.37× base at opt 1000). The failure is reach and dose, not capacity: the minting yield is 0.2 beyond 16 cm, exactly where base success is 0.15</td></tr>
+<tr><td><b>Mechanism readout after training</b></td><td>none</td><td>W transfer 0.88 → 0.84 (r 16) / 0.82 (r 4): moved the right way, about a tenth of the distance</td></tr>
+<tr><td><b>Controls</b></td><td>budget-matched coverage (good); targeted step uncontrolled</td><td>paired seeds, no-op re-run (R-053), McNemar; the replay-only control is pre-registered (D23), not run</td></tr>
+</table></div>
+
+<h3>7.1 Where the two agree</h3>
+<ul>
+<li><b>Wrist camera.</b> Both find it carries start-pose information. Ours is stronger: in-distribution and quantified at 0.88. Theirs adds that wrist data can <i>amplify</i> a bad prior at a specific pose (A2 at <code>teleop_default</code>).</li>
+<li><b>Proprio is not the main channel.</b> Their Δ<var>a</var> analysis shows absolute targets anchored to the state while wrists move the increments. Our R-039 found the state token near-inert. Neither result says "the policy reads its joint state to decide".</li>
+<li><b>Coverage near the failure helps, and dilution hurts.</b> Their +2 poses (30 → 75%) and their sim-ratio result (B2 40.3% → D 61.5% just by reweighting) match our post-mortem: the correction was 1% of draws and never reached &gt;12 cm.</li>
+</ul>
+<h3>7.2 Where they differ</h3>
+<ul>
+<li>Their localisation does not drive their data choice (§4.3). Ours is designed to: forward 0, wrist-bearing frames, offset bands.</li>
+<li>They source data by <b>teleoperation</b> at chosen poses, which gives full coverage wherever a human can go. Our sources are generated (rescue minting, bridges), and our coverage problem is a yield problem.</li>
+<li>Their failure is a discrete mode choice; ours is a continuous approach error with a sharp offset threshold (8–12 cm).</li>
+</ul>
+
+<h2>8. What it means for our stack</h2>
+<h3>8.1 Verdict</h3>
+<p><b>Overlapping, not the same path.</b> They are the closest prior work on the <i>question</i>: GR00T, start-pose dependence, wrist influence, targeted pose data. They are not prior work on the <i>method</i>. None of these appear in the paper:</p>
+<ul>
+<li>in-distribution input splices with a transfer fraction;</li>
+<li>time localisation (decided at forward k);</li>
+<li>a sufficiency rescue;</li>
+<li>a mechanism-specified frame-level data specification;</li>
+<li>a before/after mechanism readout.</li>
+</ul>
+<p>Our claim as phrased in <code>DATA_SOURCING_RESEARCH.html</code> Q4 survives the full read: "mechanism-specified data targeting with a pre-registered mechanism readout". The Q4 row should be updated from "unverified beyond the abstract" to this doc. Our one weakness relative to them is that their targeted fix <i>worked</i> at its pose and ours has not yet.</p>
+
+<h3>8.2 What to borrow</h3>
+<div class=card><div class=q>B1 · An equal-budget coverage control</div>
+<p>Their 306 vs 304 episodes is the design our D23 replay-only control should copy. The arms would be:</p>
+<ul>
+<li>offset-stratified Option A demos;</li>
+<li>the same number of demos at uniformly sampled offsets;</li>
+<li>replay only.</li>
+</ul>
+<p>Use the same steps and sampler share, and report every offset band, not just the targeted one.</p></div>
+<div class=card><div class=q>B2 · A joint-subset swap, as a test of "wrist means wrist-camera pose"</div>
+<p>R-042 says the wrist camera carries start pose. Their R<sub>3</sub>/R<sub>5</sub> result suggests a specific test: perturb only the joints that move the wrist camera vs only the joints that don't, at matched gripper offset (cm), then run the W/A splice on each. If W collapses for the non-camera-moving set, the start-pose mechanism is "where the wrist camera looks", which sharpens the data spec to wrist-view coverage. Use a magnitude-matched control, which they lacked.</p></div>
+<div class=card><div class=q>B3 · Report the grid, not the mean</div>
+<p>Report success per scene × offset band for every arm. R-056's held-out average hid a one-scene regression in exactly the way their averages hide <code>teleop_default</code>.</p></div>
+<div class=card><div class=q>B4 · An early-window imbalance metric for start-pose runs</div>
+<p>Their <var>H</var><sub>prior</sub>/<var>H</var><sub>target</sub> split gives a template for a per-episode early-direction score on LIBERO. Take the forward-0 chunk's direction relative to the gripper→bowl vector, split into a pose-driven intercept and a target-driven slope across directions. It is cheap, needs no extra rollouts, and complements τ<sub>W</sub>.</p></div>
+<div class=card><div class=q>B5 · Watch the dilution ratio</div>
+<p>Their B2 → D result (+21 pt from reweighting alone) is the same lesson as our post-mortem §3.1. Our next pilot should fix the frame-0 and bridge share explicitly (Option A's 25–50% dose) and report it before training.</p></div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2608.11769">Jung &amp; Park, arXiv:2608.11769v1</a> §I–VI, Tables I–IV, Figs. 1–7, read from the PDF on 2026-10-06 · Our <code>RESULTS.md</code> R-039, R-042, R-044, R-047, R-053, R-056, R-057, R-058 · <code>docs/PERTURBATION_MAP.html</code> · <code>docs/R056_POSTMORTEM.html</code> · <code>docs/DATA_SOURCING_RESEARCH.html</code> §Q4, §3.2 · <code>runs/r056_diag/r047_offset_curve.json</code>, <code>runs/r056_diag/loss_summary.json</code> (D20) · <code>docs/HANDOFF_6Oct.html</code> (W transfer 0.88/0.84/0.82). Fisher exact p-values recomputed in this session.</p>
+</div></body></html>

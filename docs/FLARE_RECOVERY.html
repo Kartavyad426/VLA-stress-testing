@@ -1,0 +1,278 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>FLARE Recovery</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>FLARE: retry by perturbation-and-bridging, reset by MLLM-mined skills</h1>
+<div class=meta>2026-10-06 · Zhao, Tang, Chen, Kuang, Tian, Li (CUHK / Duke / SYSU / TengenX / Tencent Robotics X), "FLARE: A Failure-Aware Framework for Autonomous Correction and Recovery in Visual-Language Robotic Manipulation", CVPR 2026, <a href="https://arxiv.org/abs/2608.26645">arXiv:2608.26645v1</a> (27 Aug 2026). Read in full from the arXiv PDF, including the supplementary (prompts, implementation, tasks). No code released. Requested by prim for the user. Tags: <span class="tag v">verified</span> stated in the full text or recomputed by me · <span class="tag i">inferred</span> my reading where the paper is silent · <span class="tag p">ours</span> a fact about our runs, with its source.</div>
+
+<div class="card tldr">
+<div class=q>Verdict: separate on diagnosis, overlapping on the data primitive</div>
+<ul>
+<li><b>What FLARE is.</b> A data-and-orchestration recipe on π0.5 in RoboMimic, with two parts.
+ <ul>
+ <li><b>Retry</b> (in-distribution errors) injects random pose excursions plus interpolated "bridge" segments into every demo: at the start and between subtasks. The policy thereby learns the next correct action from many arm poses.</li>
+ <li><b>Reset</b> (out-of-distribution errors) has Gemini-2.5-Pro read failure videos and name the object to reset and the failure time. Humans then record 20 reset demos per object from the reconstructed failure state, and a separate LoRA adapter is trained per reset skill. At run time, Gemini watches and swaps adapters.</li>
+ </ul></li>
+<li><b>How it diagnoses.</b> <i>Semantically, not mechanistically.</i> The claim that VLAs "associate task progress with the joint configuration" is argued from the data regime and never tested: no input ablation, no probe, no intervention. Failure analysis is an MLLM classifying videos, at 66–96% accuracy on 50 hand-labelled videos.</li>
+<li><b>Numbers.</b> On 9 RoboMimic tasks, π0.5 72.2% → FLARE 84.0% (325/450 → 378/450, p ≈ 3×10⁻⁵) <span class="tag v">verified</span>. In the 4-task ablation, bridging alone moves 121 → 140 of 200 (p = 0.06). Adding resets moves 140 → 147 (p = 0.51, not distinguishable). Reset skills for the harder object succeed 20–24%. Real robot: 62.5 → 75% and 45 → 55% at 40 trials (both p &gt; 0.3).</li>
+<li><b>Not tested: start-pose perturbation.</b> The bridge at trajectory start (<var>d</var><sub>init</sub>) exists "to decouple the very first action from a fixed starting pose". But the evaluation uses standard RoboMimic initialisation and never perturbs the robot's start or measures recovery from an injected pose error.</li>
+<li><b>Bridging vs our Option A.</b> They are the same primitive: drive from an off-distribution arm pose to a valid point on a demo, label it, and continue. Option A is narrower but more specified on four points:
+ <ul>
+ <li>the start distribution (the real eval perturbation, stratified by cm);</li>
+ <li>a closed-loop privileged controller instead of open-loop linear/SLERP interpolation;</li>
+ <li>a join point at the earliest reachable approach waypoint;</li>
+ <li>explicit dose accounting and a no-training rescue check before any training.</li>
+ </ul>
+ FLARE adds mid-trajectory bridges and per-skill adapters, both worth borrowing (§8).</li>
+</ul>
+</div>
+
+<h2>1. The claim, and what it would take to prove it</h2>
+<p>FLARE's central argument <span class="tag v">verified</span>:</p>
+<ol>
+<li>Demonstrations are <i>trajectory-monotonic</i>: the arm follows a narrow manifold of poses correlated with task progress.</li>
+<li>So the policy learns to read progress from its own configuration <var>s</var><sup>r</sup> instead of from the environment <var>s</var><sup>e</sup>.</li>
+<li>So a valid-but-unusual pose (an "ID error") is misread, and the policy fails to retry.</li>
+<li>Injecting pose excursions and bridges breaks the coupling.</li>
+</ol>
+<p>A proof of step 2 would need an intervention that changes <var>s</var><sup>r</sup> at fixed <var>s</var><sup>e</sup>: put the arm at a "placing" pose with the cup ungrasped, and show the policy acts as if placing. Step 4 needs a test that injects pose errors at run time and measures recovery, with and without bridging. The paper does neither. Its evidence is end-task success on the standard benchmark, where ID errors arise only naturally and are never counted.</p>
+<p>The Reset claim is that MLLM-guided reset skills recover OOD failures. It needs the reset contribution separated from bridging; Table 3 does that, and the gap is inside noise (§5).</p>
+
+<h2>2. Formalism</h2>
+<h3>2.1 State split and error taxonomy <span class="tag v">verified</span></h3>
+<p>The world state is split into environment and robot: <var>s</var><sub>t</sub> = (<var>s</var><sup>e</sup><sub>t</sub>, <var>s</var><sup>r</sup><sub>t</sub>). The observation is a render of the whole state. The policy is Markovian over chunks: <var>a</var><sub>t</sub> ∈ 𝒜<sup>K</sup> ~ π<sub>θ</sub>(· | <var>o</var><sub>t</sub>, <var>I</var>). Let 𝒮<sup>e</sup><sub>task</sub> be the environment states on any successful path.</p>
+<div class=eq><span><b>ID error:</b>&nbsp; <var>s</var><sup>e</sup><sub>t</sub> ∈ 𝒮<sup>e</sup><sub>task</sub>&nbsp; and&nbsp; <var>P</var>(<var>s</var><sup>r</sup><sub>t</sub> | <var>s</var><sup>e</sup><sub>t</sub>, 𝒟<sub>demo</sub>) low&nbsp;&nbsp;→ Retry</span><span class=n>(1)</span></div>
+<div class=eq><span><b>OOD error:</b>&nbsp; <var>s</var><sup>e</sup><sub>t</sub> ∉ 𝒮<sup>e</sup><sub>task</sub>&nbsp; (e.g. toppled cup)&nbsp;&nbsp;→ Reset skill π<sub>reset,j</sub> moves <var>s</var><sup>e</sup> back into 𝒮<sup>e</sup><sub>task</sub></span><span class=n>(2)</span></div>
+<p><b>On our map:</b> a LIBERO-Plus robot-initial-state perturbation is a pure ID error at <var>t</var> = 0. The scene is valid; only <var>s</var><sup>r</sup><sub>0</sub> is off the demo distribution. Scene 1327's R-056 failure, grasping too high and then regrasping 5–7 times, is a chain of ID errors <span class="tag p">ours</span>.</p>
+
+<h3>2.2 Perturbation &amp; bridging <span class="tag v">verified</span></h3>
+<p>Start from a MimicGen-composed trajectory of subtask segments <var>T</var><sub>task</sub> = (<var>a</var><sub>0</sub>, …, <var>a</var><sub>N</sub>). Insert a two-phase segment before the first segment and at every subtask junction:</p>
+<div class=eq><span><var>T</var><sub>aug</sub> = (<var>d</var><sub>init</sub>, <var>a</var><sub>0</sub>, <var>d</var><sub>0</sub>, <var>a</var><sub>1</sub>, <var>d</var><sub>1</sub>, …, <var>a</var><sub>N</sub>),&nbsp;&nbsp;&nbsp; <var>d</var><sub>i</sub> = ( <var>d</var><sup>A</sup><sub>i</sub> perturbation, <var>d</var><sup>B</sup><sub>i</sub> bridge )</span><span class=n>(3)</span></div>
+<ul>
+<li><b>Perturbation <var>d</var><sup>A</sup></b>: random joint velocities or end-effector motion to an "arbitrary" pose. The bounds in the main experiments are rotation ≤ 45° and translation ≤ 0.5 m.</li>
+<li><b>Bridge <var>d</var><sup>B</sup></b>: planner-free kinematic interpolation from the perturbed pose (<var>p</var><sub>0</sub>, <var>q</var><sub>0</sub>) to the start pose of the next segment (<var>p</var><sub>1</sub>, <var>q</var><sub>1</sub>). Position is interpolated linearly and orientation by SLERP, over <var>u</var> ∈ [0, 1]:</li>
+</ul>
+<div class=eq><span><var>p</var>(<var>u</var>) = (1−<var>u</var>) <var>p</var><sub>0</sub> + <var>u</var> <var>p</var><sub>1</sub>,&nbsp;&nbsp;&nbsp; <var>q</var>(<var>u</var>) = [ sin((1−<var>u</var>)Ω) <var>q</var><sub>0</sub> + sin(<var>u</var>Ω) <var>q</var><sub>1</sub> ] / sin Ω,&nbsp;&nbsp; cos Ω = ⟨<var>q</var><sub>0</sub>, <var>q</var><sub>1</sub>⟩</span><span class=n>(4)</span></div>
+<p><b>Training set construction.</b> Perturbation actions are <i>never</i> used as targets. For each augmented trajectory, the training set gets:</p>
+<div class=eq><span>𝒟<sub>task aug</sub> ⊇ { (<var>a</var><sub>i</sub>, <var>a</var><sub>i+1</sub>, …) } ∪ { (<var>d</var><sup>B</sup><sub>i</sub>, <var>a</var><sub>i+1</sub>, <var>a</var><sub>i+2</sub>, …) }</span><span class=n>(5)</span></div>
+<p>The intended effect is to widen the support of <var>P</var>(<var>s</var><sup>r</sup> | <var>s</var><sup>e</sup>, 𝒟), so that every environment stage is seen from many arm poses. The bridge labels are what teach the state-conditional "go back to the work from here".</p>
+<p class=small>Unspecified details <span class="tag i">inferred</span>:</p>
+<ul class=small>
+<li>how many interpolation steps a bridge takes, and at what speed;</li>
+<li>whether bridges are executed in sim and filtered by task success (a "data generation success rate" is reported, so some filter exists), or kept open-loop ("the benefit … far outweighs the noise from rare, invalid trajectories");</li>
+<li>the sampling share of bridge subsequences vs original ones;</li>
+<li>whether π0.5 receives proprioceptive state. Their formulation conditions on <var>o</var><sub>t</sub> and <var>I</var> only.</li>
+</ul>
+
+<h3>2.3 Reset: MLLM failure mining <span class="tag v">verified</span></h3>
+<ol>
+<li>Run the retry-capable policy for "hundreds of episodes"; keep the videos and the simulator logs.</li>
+<li>Gemini-2.5-Pro (temperature 0.7) reads each failure video and returns JSON with:
+ <ul>
+ <li><code>failure_reason</code>;</li>
+ <li><code>recovery_strategy</code> (retry / reset);</li>
+ <li><code>reset_object</code>, chosen by an "operation-dependency" rule: reset the first object that must be manipulated, e.g. open the lid before the stuck pod;</li>
+ <li><code>error_group</code> (the objects jointly forming the error);</li>
+ <li><code>failure_timestep</code>.</li>
+ </ul>
+ The full prompt is in supplementary Table 6.</li>
+<li>Use the timestamp to pull the exact MuJoCo state. Treat the error group as a rigid "semantic failure asset" and re-place it in new scenes, preserving relative poses.</li>
+<li>Collect 20 human demos per reset skill from those states, then augment to 500 with the same perturbation &amp; bridging.</li>
+</ol>
+
+<h3>2.4 Training and orchestration <span class="tag v">verified</span></h3>
+<ul>
+<li><b>Base:</b> π0.5.</li>
+<li><b>Trainable:</b> LoRA on the language model and action expert; "all other model parameters remain frozen", "following the official training practices of π0.5". Adam, constant LR 2.5×10⁻⁴, no decay. Steps and batch are not given.</li>
+<li><b>Adapter library:</b> one task adapter trained on 𝒟<sub>task aug</sub>, plus one adapter per reset skill trained only on its own data (prompt "reset the cup").</li>
+<li><b>Run time:</b> the task adapter executes. An online Gemini monitor watches. ID errors need no action. On an OOD error it swaps to π<sub>reset,j</sub>, confirms the reset, then swaps back.</li>
+<li><b>Data:</b> 10 human demos per task → 500 via MimicGen, then P&amp;B. Reset: 20 → 500. Real robot (Piper arm, top and wrist RealSense): 10 → 50 per task or skill, with Any6D object poses in place of simulator state.</li>
+</ul>
+<div class="card fix"><div class=q>A cross-check from our π0.5 reading</div>
+<p>In openpi's <code>pi0_config.py</code>, the LoRA freeze filter freezes only parameters under <code>llm</code>. SigLIP and the action projections stay <i>fully trainable</i>. See <a href="SPATIAL_ADAPT_MATHS.html">SPATIAL_ADAPT_MATHS.html</a> §5.1, verified against the source. If FLARE used openpi's stock LoRA config, as "official training practices" suggests, its "LoRA" also full-fine-tunes the 400M vision tower, despite the text saying everything else is frozen <span class="tag i">inferred</span>. This matters only for comparing trainable sets: FLARE vs our LoRA head (vision frozen).</p></div>
+
+<h2>3. How FLARE localises failures</h2>
+<div class=tw><table>
+<tr><th>Instrument</th><th>Used?</th><th>Detail</th></tr>
+<tr><td>Behavioural metrics</td><td>yes, success only</td><td>50 trials per task; no per-failure-type rates, no retry count, no time-to-recovery</td></tr>
+<tr><td>Ablations</td><td>yes, of the <i>method</i></td><td>w/o Reset, Reset-only, oracle instructions; P&amp;B magnitude sweep on Coffee D1</td></tr>
+<tr><td>Input masking or interventions</td><td><b>no</b></td><td>the <var>s</var><sup>r</sup>-reads-progress hypothesis is never tested at the input level</td></tr>
+<tr><td>Probing</td><td><b>no</b></td><td>—</td></tr>
+<tr><td>Failure analysis</td><td>yes, semantic</td><td>Gemini on failure videos: retry/reset 88% (Coffee), 96% (ThreePiece); reset object 88% / 78%; timestamp 78% / 66%, on 50 manually labelled videos</td></tr>
+</table></div>
+<p>The MLLM decides <i>which objects need reset skills</i> and <i>which states to start reset demos from</i>. That is targeting at the level of failure <i>type</i>, not mechanism. For retry, nothing is targeted: P&amp;B is applied uniformly to all demos at every junction.</p>
+
+<h2>4. How FLARE decides what to fix</h2>
+<div class=tw><table>
+<tr><th>Decision</th><th>Retry</th><th>Reset</th></tr>
+<tr><td>Which states</td><td>all subtask junctions + the start; random excursion ≤ 45°, ≤ 0.5 m</td><td>MLLM-mined failure states, re-placed as rigid "failure assets"</td></tr>
+<tr><td>Which labels</td><td>bridge + subsequent task actions; never the excursion</td><td>human recovery demos, then P&amp;B</td></tr>
+<tr><td>How much</td><td>500 MimicGen demos per task, augmented (bridge-subsequence share unstated)</td><td>20 human → 500 per reset skill</td></tr>
+<tr><td>Model parts</td><td colspan=2>LoRA on LM + action expert of π0.5, one adapter per task and per reset skill; LR 2.5e-4 constant</td></tr>
+<tr><td>Validation before training</td><td colspan=2>none reported (no "would the bridge rescue the base?" check)</td></tr>
+</table></div>
+
+<h2>5. Results ledger</h2>
+<h3>5.1 Main table: RoboMimic, 50 trials per task <span class="tag v">verified</span></h3>
+<div class=tw><table>
+<tr><th>Task</th><th class=num>OpenVLA</th><th class=num>Phoenix</th><th class=num>Phoenix-Human</th><th class=num>π0.5</th><th class=num>FLARE</th><th class=num>Fisher p, π0.5 vs FLARE</th></tr>
+<tr><td>Coffee D0</td><td class=num>42</td><td class=num>94</td><td class=num>100</td><td class=num>82</td><td class=num>96</td><td class=num>0.05</td></tr>
+<tr><td>Coffee D1</td><td class=num>18</td><td class=num>48</td><td class=num>100</td><td class=num>56</td><td class=num>78</td><td class=num>0.03</td></tr>
+<tr><td>Stack D0</td><td class=num>84</td><td class=num>96</td><td class=num>100</td><td class=num>100</td><td class=num>100</td><td class=num>1</td></tr>
+<tr><td>Stack D1</td><td class=num>86</td><td class=num>86</td><td class=num>90</td><td class=num>92</td><td class=num>100</td><td class=num>0.12</td></tr>
+<tr><td>StackThree D0</td><td class=num>36</td><td class=num>50</td><td class=num>70</td><td class=num>90</td><td class=num>100</td><td class=num>0.06</td></tr>
+<tr><td>StackThree D1</td><td class=num>20</td><td class=num>20</td><td class=num>40</td><td class=num>84</td><td class=num>90</td><td class=num>0.55</td></tr>
+<tr><td>Threading D0</td><td class=num>20</td><td class=num>68</td><td class=num>100</td><td class=num>42</td><td class=num>72</td><td class=num>0.004</td></tr>
+<tr><td>ThreePiece D0</td><td class=num>28</td><td class=num>52</td><td class=num>70</td><td class=num>58</td><td class=num>62</td><td class=num>0.84</td></tr>
+<tr><td>ThreePiece D1</td><td class=num>8</td><td class=num>6</td><td class=num>40</td><td class=num>46</td><td class=num>58</td><td class=num>0.32</td></tr>
+<tr><td><b>Mean</b></td><td class=num>38.0</td><td class=num>57.8</td><td class=num>78.9</td><td class=num>72.2</td><td class=num><b>84.0</b></td><td class=num>3×10⁻⁵ (pooled 450)</td></tr>
+</table></div>
+<ul class=small>
+<li>Means recomputed; all match. "SOTA on 8 of 9" holds only with Phoenix-Human (human-corrected, greyed) excluded. Phoenix-Human beats FLARE on Coffee D1, Threading and ThreePiece D0. The subgoal-conditioned diffusion baseline (78%) beats FLARE on Threading.</li>
+<li>Four of nine per-task gains are significant at 0.05; the pooled gain clearly is. One seed, no error bars.</li>
+<li>The π0.5 baseline's training data is not described. Presumably it is the same 500 MimicGen demos without P&amp;B <span class="tag i">inferred</span>. FLARE trains on <i>more sequences</i> (originals + bridge subsequences + reset data), and there is no equal-sample control.</li>
+</ul>
+
+<h3>5.2 Ablation: which half does the work? (Table 3, 4 tasks × 50)</h3>
+<div class=tw><table>
+<tr><th>Arm</th><th class=num>Coffee D0</th><th class=num>Coffee D1</th><th class=num>3-Piece D0</th><th class=num>3-Piece D1</th><th class=num>Pooled /200</th></tr>
+<tr><td>π0.5 (from Table 1)</td><td class=num>82</td><td class=num>56</td><td class=num>58</td><td class=num>46</td><td class=num>121</td></tr>
+<tr><td>Reset only (no P&amp;B)</td><td class=num>88</td><td class=num>64</td><td class=num>60</td><td class=num>50</td><td class=num>131</td></tr>
+<tr><td>w/o Reset (P&amp;B only)</td><td class=num>92</td><td class=num>74</td><td class=num>60</td><td class=num>54</td><td class=num>140</td></tr>
+<tr><td>FLARE</td><td class=num>96</td><td class=num>78</td><td class=num>62</td><td class=num>58</td><td class=num>147</td></tr>
+<tr><td>FLARE, human instead of MLLM</td><td class=num>100</td><td class=num>90</td><td class=num>68</td><td class=num>64</td><td class=num>161</td></tr>
+</table></div>
+<p>The pooled Fisher tests are mine:</p>
+<ul>
+<li>π0.5 → P&amp;B only: p = 0.06;</li>
+<li>P&amp;B only → FLARE: p = 0.51;</li>
+<li>π0.5 → Reset only: p = 0.35.</li>
+</ul>
+<p><b>Bridging is the part that plausibly does something. The reset machinery's added value is not distinguishable from zero at this n.</b> Table 4 explains why: resets of the second object (coffee pod, U-block) succeed only 24% and 20%, with demo-generation efficiency of 11.6% and 5.9%.</p>
+
+<h3>5.3 Magnitude sweep (Fig. 4, Coffee D1)</h3>
+<p>Larger excursions give higher task success, up to a point, and lower demo-generation yield. Best performance is at <var>r</var> = 30° (translation fixed at 0.5) and <var>t</var> = 0.7 (rotation fixed at 45°). Beyond that, performance falls; the authors attribute this to variance outrunning a small demo set. <b>The main results use 45° / 0.5 m, not the best setting found.</b> Exact values are only in the plot.</p>
+
+<h3>5.4 MLLM failure analysis (Table 5, 50 labelled videos per task)</h3>
+<div class=tw><table>
+<tr><th>Task</th><th class=num>Retry/reset</th><th class=num>Reset object</th><th class=num>Timestamp</th></tr>
+<tr><td>Coffee</td><td class=num>88%</td><td class=num>88%</td><td class=num>78%</td></tr>
+<tr><td>ThreePiece Assembly</td><td class=num>96%</td><td class=num>78%</td><td class=num>66%</td></tr>
+</table></div>
+<p class=small>"Timestamp accuracy" means the identified frame shows the correct reset object, not a frame-error tolerance.</p>
+
+<h3>5.5 Real robot (Table 2, 40 trials)</h3>
+<p>Stack Three Blocks: 62.5% → 75.0% (p = 0.33). Insert U-shaped Block: 45.0% → 55.0% (p = 0.50). Directionally consistent, not significant.</p>
+
+<h2>6. Critique</h2>
+<ul>
+<li><b>The causal story is asserted, not shown.</b> "The robot's pose might be at a placing position, causing the policy to infer the task is at the placing stage" is a hypothesis. A fixed-<var>s</var><sup>e</sup>, varied-<var>s</var><sup>r</sup> intervention, which is exactly a splice, would test it cheaply in simulation. The paper never runs one.</li>
+<li><b>Recovery is never measured directly.</b> No injected-perturbation benchmark, no count of retries, no ID-vs-OOD failure rates before and after. The 12-point gain could come from bridging teaching recovery, or from bridging acting as pose-diversity augmentation for ordinary execution. Those are different mechanisms with different implications.</li>
+<li><b>No equal-data control.</b> FLARE sees more training sequences than π0.5. A "π0.5 + matched extra MimicGen demos" arm or a DART-noise arm at equal count is missing.</li>
+<li><b>The reset half is statistically invisible</b> (§5.2), and its weakest skills are near-useless (20–24%). The MLLM's timestamp accuracy (66–78%) bounds how precise the mined reset states can be.</li>
+<li><b>The open-loop bridge quality is unknown.</b> Linear plus SLERP interpolation ignores obstacles and joint limits. The admitted "rare, invalid trajectories" are kept as noise.</li>
+<li><b>Choice of start-pose perturbation is unexamined.</b> <var>d</var><sub>init</sub> exists for this purpose, but robustness to start pose is never evaluated. This is precisely our setting, so FLARE gives no evidence for or against bridging fixing start-pose failures.</li>
+</ul>
+
+<h2>7. Side by side with our method</h2>
+<div class=tw><table>
+<tr><th></th><th>FLARE</th><th>Us <span class="tag p">ours</span></th></tr>
+<tr><td><b>Failure localisation</b></td><td>MLLM classification of failure videos (type, object, time)</td><td>input splices at fixed noise: wrist vs agent view vs state token, transfer τ (R-039..R-051, <code>PERTURBATION_MAP.html</code>). Start pose: wrist, W = 0.88</td></tr>
+<tr><td><b>Mechanism hypothesis</b></td><td>"pose ↔ progress coupling", untested</td><td>tested: state token near-inert (R-039); the wrist view carries it (R-042/R-044)</td></tr>
+<tr><td><b>Time localisation</b></td><td>MLLM failure timestamp (66–78% "accurate")</td><td>"decided at forward k": start pose k* = 1 (R-057); first-chunk rescue flips 20/24 vs 0/22 (R-053)</td></tr>
+<tr><td><b>What to fix</b></td><td>all junctions get random excursions + bridges; MLLM-chosen reset skills</td><td>forward-0, wrist-bearing frames over the real start-pose distribution; dose and offset bands set from R-047/D20</td></tr>
+<tr><td><b>Source</b></td><td>MimicGen + open-loop interpolated bridges; human reset demos</td><td>R-054 rescue minting (dropped: yield 0.2 beyond 16 cm); next is Option A bridge-and-join (D21)</td></tr>
+<tr><td><b>Trainable parts</b></td><td>LoRA on π0.5 LM + action expert (and possibly the full SigLIP, §2.4); one adapter per skill</td><td>LoRA r 16 on the GR00T DiT and VL self-attention; VLM, vision and projector frozen</td></tr>
+<tr><td><b>Amount</b></td><td>10 → 500 demos per task; 20 → 500 per reset skill</td><td>100 minted demos + 1:1 replay; correction ≈1% of draws</td></tr>
+<tr><td><b>Outcome</b></td><td>+11.8 pt mean (robust pooled); bridging ≈ +9.5 pt on 4 tasks (p 0.06)</td><td>R-056: no held-out gain (59 vs 67/108, scene 1327); D20: training frames <b>are</b> fitted (frame-0 loss 0.37× base), so the limit is coverage and dose</td></tr>
+<tr><td><b>Mechanism readout after training</b></td><td>none</td><td>W 0.88 → 0.84 / 0.82</td></tr>
+</table></div>
+
+<h3>7.1 Bridging vs res's Option A "bridge-and-join"</h3>
+<div class=tw><table>
+<tr><th>Aspect</th><th>FLARE bridging</th><th>Option A (<code>DATA_SOURCING_RESEARCH.html</code> §3.2)</th><th>Assessment</th></tr>
+<tr><td>Where inserted</td><td>start + every subtask junction</td><td>start only</td><td>Ours matches k* = 1 for start pose; FLARE's junction bridges address mid-episode retry (§8, B1)</td></tr>
+<tr><td>Off-distribution pose</td><td>random excursion ≤ 45°, ≤ 0.5 m from the demo pose</td><td>the actual LIBERO-Plus start perturbation, stratified by gripper offset; oversample 12–20 cm; ≥ 4 directions per scene; held-out set excluded</td><td>Ours targets the eval distribution; theirs is generic. Their sweep shows too-wide excursions hurt, which supports stratifying</td></tr>
+<tr><td>Bridge generator</td><td>open-loop linear + SLERP interpolation to the <i>next segment's start pose</i></td><td>privileged closed-loop OSC controller to the <i>earliest reachable approach waypoint</i> on the human demo path; gripper open; speed aligned to human action statistics</td><td>Ours is more robust to joint limits and contact and less likely to produce invalid frames; theirs is simpler</td></tr>
+<tr><td>After the join</td><td>replay the MimicGen-transformed segment</td><td>track the human demo's recorded EEF targets closed-loop</td><td>Ours corrects residual bridge error; theirs carries it</td></tr>
+<tr><td>Labels</td><td>bridge + following task actions; excursion never a target</td><td>bridge frames labelled; DART option: execute clean + noise, record clean</td><td>Same principle. DART adds near-miss coverage that FLARE lacks</td></tr>
+<tr><td>Filtering</td><td>a generation success rate exists; invalid bridges partly tolerated</td><td>clean-demo gate (§4.2) and per-frame tags</td><td>Ours is explicit</td></tr>
+<tr><td>Dose</td><td>unstated</td><td>bridge + approach frames at 25–50% of draws, frame 0 oversampled, views-per-frame reported</td><td>The R-056 post-mortem says dose was our failure, so keep this</td></tr>
+<tr><td>Pre-training check</td><td>none</td><td>bridge-then-handback rescue (B1, B*) vs a no-op re-run, about 1 GPU-hour</td><td>Ours can kill the idea before training; FLARE has nothing equivalent</td></tr>
+<tr><td>Evidence it works</td><td>+9.5 pt pooled on 4 tasks (p 0.06) in RoboMimic, not on start pose</td><td>none yet</td><td>FLARE is the best external evidence that bridges help a π-family VLA at all</td></tr>
+</table></div>
+<p><b>Assessment.</b> Option A is FLARE's bridging specialised to one failure family, with the eval distribution, a closed-loop generator and dose control added. FLARE's result is mild external support for building it. It is not evidence that it will fix <i>start-pose</i> failures, which FLARE never measured. The bridge-then-handback rescue remains the right first check.</p>
+
+<h2>8. What it means for our stack</h2>
+<h3>8.1 Verdict</h3>
+<p><b>Separate on diagnosis, overlapping on data generation.</b> FLARE has nothing resembling our attribution: no splices, no transfer fraction, no time localisation, no rescue, no mechanism readout. Its "targeting" is a semantic failure taxonomy from an MLLM plus uniform augmentation. Our Q4 novelty statement survives. The data primitive, bridging to decouple arm pose from task progress, is shared and published, so Option A should be framed as "FLARE/MimicGen-style bridging, specified by the mechanism", not as new.</p>
+
+<h3>8.2 What to borrow</h3>
+<div class=card><div class=q>B1 · Junction bridges for the grasp, aimed at scene 1327</div>
+<p>R-056's regression is a grasp closing 5.5–5.8 cm high followed by 5–7 regrasps. That is an ID-error loop at the grasp junction, and 16 of 100 minted demos carried a failed first grasp. A FLARE-style excursion + bridge <i>at the pre-grasp junction</i> teaches "re-approach from here" with clean labels. Include it in Option A as an optional second insertion point, with its own dose line.</p></div>
+<div class=card><div class=q>B2 · Run the magnitude sweep as a pre-registered arm</div>
+<p>Their yield-vs-success trade-off has the same shape as ours: minting yield fell 0.9 → 0.2 with offset. Pre-register Option A's generator yield per offset band (already a CPU gate) and a training-side sweep: max offset 12 / 16 / 20 cm at matched episode count.</p></div>
+<div class=card><div class=q>B3 · Per-skill adapters to protect nominal behaviour</div>
+<p>FLARE keeps one LoRA per skill to avoid interference. Our 1327 regression was a nominal-task regression caused by start-pose training. Options: a separate "bridge" adapter used only for the first <var>k</var> forwards, then handed back to the base, or WiSE interpolation (already queued under D19). Either is the training-time version of our rescue's drive-then-handback.</p></div>
+<div class=card><div class=q>B4 · Failure assets for reset-like states</div>
+<p>Their "semantic failure asset" re-places a failure configuration rigidly in new scenes. That is a cheap way to multiply our rare failure states, such as the knocked-bowl or premature-close states, into training starts. In sim we have exact states, so we don't need the MLLM step.</p></div>
+<div class=card><div class=q>B5 · Don't rely on an MLLM for frame-level targeting</div>
+<p>66–78% timestamp accuracy is too coarse for a forward-level specification. Our privileged simulator signals and the splice already localise to a forward. MLLM triage (we have <code>vlm_label.py</code>) is useful for <i>type</i>, not time.</p></div>
+<div class=card><div class=q>B6 · A test FLARE should have run, and we can</div>
+<p>Run a fixed-<var>s</var><sup>e</sup>, varied-<var>s</var><sup>r</sup> splice on GR00T mid-episode: arm displaced, bowl ungrasped. Does the action follow the arm or the bowl? It answers FLARE's untested "pose reads as progress" hypothesis on our model with machinery we already have (the R-039 arms). That is a publishable addition: a mechanism test of the assumption behind bridging-style augmentation.</p></div>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2608.26645">Zhao et al., FLARE, arXiv:2608.26645v1</a> §1–6, Tables 1–5, Fig. 4, supplementary §1–3 and Tables 6–7, read from the PDF on 2026-10-06 · <a href="https://github.com/Physical-Intelligence/openpi">openpi</a> <code>pi0_config.py</code> freeze filter (see <code>SPATIAL_ADAPT_MATHS.html</code> §5.1) · Our <code>RESULTS.md</code> R-039, R-042, R-044, R-047, R-053, R-054, R-056, R-057 · <code>docs/PERTURBATION_MAP.html</code> · <code>docs/R056_POSTMORTEM.html</code> · <code>docs/DATA_SOURCING_RESEARCH.html</code> §Q4, §3.2, §5.2 · <code>runs/r056_diag/</code> (D20). Fisher exact p-values recomputed in this session.</p>
+</div></body></html>
