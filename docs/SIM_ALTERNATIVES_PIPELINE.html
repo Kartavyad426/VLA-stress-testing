@@ -1,0 +1,358 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Simulation Alternatives</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Simulation alternatives and NVIDIA's agentic stack, checked against our pipeline</h1>
+<div class=meta>2026-10-06 · res21, at the user's request via prim · Sources read:
+<ul>
+<li>Isaac Lab-Arena <code>main</code> at commit <code>413b0f4</code> (6 Oct 2026, v0.3.0 base), cloned and read, not run;</li>
+<li>Isaac Lab <code>main</code> (<code>recorders.py</code>, <code>manager_based_env.py</code>);</li>
+<li>Lightwheel LW-BenchHub (cloned);</li>
+<li>MuJoCo Warp <code>main</code> (cloned);</li>
+<li>RoboVerse's LIBERO integration doc;</li>
+<li>NVIDIA's Isaac Sim 6.0 and Cosmos Transfer 2.5 documentation;</li>
+<li>arXiv records;</li>
+<li>our <code>vla_harness/schema.py</code>, README, <code>robustness_of_exps.html</code> and <code>RL_GYM_LANDSCAPE.html</code>.</li>
+</ul>
+Nothing was installed or executed. Tags: <span class="tag v">verified</span> seen in code, official docs or arXiv records · <span class="tag i">inferred</span> my reading or estimate · <span class="tag p">unverified</span> claimed somewhere, not confirmed.</div>
+
+<div class="card tldr">
+<div class=q>Verdict</div>
+<ul>
+<li><b>Nothing here replaces LIBERO-Plus on MuJoCo as our primary substrate.</b>
+ <ul>
+ <li>Every alternative either can't run on the 8 GB laptop (Isaac Sim 6.0 minimum is 16 GB VRAM and 32 GB RAM; Cosmos Transfer 2.5 needs 65.4 GB) or changes the pixels or physics the GR00T LIBERO checkpoint was trained on.</li>
+ <li>That would break our conformance gate. MuJoCo Warp needs mujoco ≥ 3.12, and our README pins < 3.4 because 3.4.0 silently changes a LIBERO task.</li>
+ </ul></li>
+<li><b>Isaac Lab-Arena v0.3 is closer to us than the 24 Sep landscape assumed, but not on our seams.</b>
+ <ul>
+ <li>From the code: it records per-episode variation draws and seeds, per-step subtask-predicate events, and an sbi neural-posterior "sensitivity analysis" of factors vs success.</li>
+ <li>Isaac Lab underneath can record full per-step scene state and <code>reset_to</code> it.</li>
+ <li>It has <b>no robot start-pose variation</b>.</li>
+ <li>Its <b>camera variation is translation-only</b>, ±5 mm by default.</li>
+ <li>It has <b>no paired counterfactual or input-level attribution</b>.</li>
+ <li>GR00T support is the N1.6 path (DROID / G1 / GR1), with no LIBERO-Franka config.</li>
+ </ul></li>
+<li><b>No faithful LIBERO port to Isaac exists.</b> Lightwheel's 130 "LIBERO tasks" are re-authored in their own kitchens with different USD assets. ROBOGATE measured a GR00T N1.6 LIBERO-Spatial checkpoint at 97.65% in MuJoCo and 0% on Isaac Sim scenes. RoboVerse's LIBERO port is bitwise-faithful but <b>MuJoCo-only</b>: it is a cross-<i>implementation</i> check, not a cross-<i>simulator</i> one.</li>
+<li><b>Cosmos Transfer can't run closed-loop, and we don't need it for lighting.</b> It re-renders 93-frame clips in minutes on datacenter GPUs. LIBERO-Plus lighting is MuJoCo light parameters (diffuse, direction, specular, shadows), so the fix is our knob, not a generative re-render.</li>
+<li><b>World-model evaluators are not a perturbation pre-screen.</b> The best real-vs-imagined success gap reported is 12% (PiL-World), larger than the effects we measure. Action-following degrades off the expert distribution, which is exactly where start-pose failures live.</li>
+<li><b>The pipeline:</b> keep our Rollout contract as the seam and add backends behind adapters. MuJoCo LIBERO-Plus stays primary, RoboVerse-native is the cross-implementation check, and Arena is the cloud backend for new tasks and scale. Put the policy behind a server that can execute <i>splice arms</i>. Use agents for authoring only. First spend: one rented-GPU Arena day, about $6–25 of GPU, with seven pass/fail questions (§8).</li>
+</ul>
+</div>
+
+<h2>1. The question and the constraints</h2>
+<p>We need a simulation stack that keeps the four things that are ours, and adds scale or fidelity only where they don't cost those four:</p>
+<ol>
+<li>the <b>Rollout contract</b> (<code>vla_harness/schema.py</code>): per-step <code>obs_state</code>, actions, image refs, content-addressed ids, <code>identity()</code> and <code>scene_descriptor()</code> fingerprints, and a frozen <code>RegressionSet</code>;</li>
+<li><b>per-step privileged state</b> for phase detection and closest-approach;</li>
+<li><b>paired same-seed counterfactuals</b> (<code>nominal.py</code>, revert one knob);</li>
+<li><b>token and pixel splices</b> inside the policy (R-039..R-051).</li>
+</ol>
+<div class=tw><table>
+<tr><th>Constraint</th><th>Value</th><th>Source</th></tr>
+<tr><td>Local GPU</td><td>RTX PRO 1000 Blackwell laptop, 8 GB; GR00T N1.7 takes ~7.4 GB</td><td>prim brief; MODELS_AND_COMPUTE.md</td></tr>
+<tr><td>Isaac Sim 6.0 minimum</td><td>RTX 4080, <b>16 GB VRAM, 32 GB RAM</b>, driver 580.95.05. "GPUs without RT Cores (A100, H100) are not supported."</td><td><span class="tag v">verified</span> Isaac Sim 6.0 requirements page</td></tr>
+<tr><td>Our MuJoCo</td><td>README: "pinned to 3.3.7, because ≥ 3.4.0 silently changes a LIBERO task". The <code>.venvs/libero-plus</code> and <code>.venvs/groot</code> envs report <b>3.3.2</b>; <code>.venvs/lerobot</code> reports 3.3.7.</td><td><span class="tag v">verified</span> by importing in each venv. Both are below 3.4, so the gate holds, but the README's "3.3.7" is not what the run venv has: worth one line in README</td></tr>
+</table></div>
+
+<h2>2. Isaac Lab-Arena v0.3, read from the code</h2>
+<p>v0.3 was released 10 Sep 2026 <span class="tag v">verified</span> (discussion #1245): agentic environment generation (experimental), variations, OSMO multi-node, a policy client-server, subtask predicates, sensitivity analysis, 31 Kitchen Benchmark (DROID) and 38 RoboLab-inspired environments. It is alpha: "APIs are unstable … Do not use this in production" (README). It targets Isaac Sim 6.0.0 and Isaac Lab 3.0.0 on Python ≥ 3.12, Apache-2.0.</p>
+
+<h3>2a. Can it express start-pose and camera perturbations at LIBERO-Plus ranges?</h3>
+<div class=tw><table>
+<tr><th>Factor</th><th>Arena v0.3</th><th>LIBERO-Plus (from <code>LIBERO_PLUS_LEVELS.md</code>)</th><th>Gap</th></tr>
+<tr><td><b>Robot initial state</b></td><td><span class="tag v">verified</span> Not a variation. The 12 shipped variations (<code>isaaclab_arena/variations/</code>) cover camera extrinsics and intrinsics, HDR, light colour, temperature, direction and intensity, object mass, and object disappear. The Franka start pose is a fixed config, <code>set_initial_joint_pose()</code> → <code>robot.init_state.joint_pos</code> (<code>embodiments/franka/franka.py:114</code>). Isaac Lab's <code>reset_joints_by_offset</code> event exists and is used only by the Kuka-Allegro embodiment.</td><td>joint-space perturbation of the initial state</td><td class=warn>Needs a custom run-time variation wrapping <code>reset_joints_by_offset</code> (or a sampler over <code>joint_pos</code>). Feasible, roughly 100 lines in the variation framework <span class="tag i">inferred</span></td></tr>
+<tr><td><b>Camera pose</b></td><td><span class="tag v">verified</span> <code>CameraExtrinsicsVariation</code> adds a sampled <b>translation only</b> to the camera's local position, in the ROS optical frame, default uniform ±0.005 m. There is no rotation term. Wrist cameras keep tracking their parent. Intrinsics variations perturb focal length and principal point.</td><td>distance 1.01–2.00×; azimuth and elevation within 15–75° cones; yaw, pitch and roll 2–10°</td><td class=warn>Translation could be widened, but orbiting at constant look-at needs rotation. That means a new variation <span class="tag i">inferred</span></td></tr>
+<tr><td>Lighting</td><td>intensity, colour, temperature, direction, HDR dome (build-time)</td><td>dimming (median 0.62×), direction, specular, shadows</td><td class=ok>Mostly expressible. Build-time means one draw per env build, not per episode</td></tr>
+<tr><td>Texture, noise</td><td>HDR/background; no sensor-noise variation in <code>variations/</code></td><td>PBR textures; 5 noise families × 10</td><td>Noise would be a post-process term <span class="tag i">inferred</span></td></tr>
+</table></div>
+
+<h3>2b. Per-step state, seeding, replay with one factor reverted</h3>
+<ul>
+<li><span class="tag v">verified</span> <b>Per-episode records.</b> <code>EpisodeRecorderManager</code> writes one JSONL row per finished episode, with core fields (env id, indices, success, seed, timing), each variation's sampled value for that (env, episode), and progress-tracking state with predicate events. Variation draws are keyed by <code>EnvEpisodeKey(env_id, episode_idx)</code> (<code>variations/variation_recorder.py</code>).</li>
+<li><span class="tag v">verified</span> <b>Per-step predicate events.</b> <code>ProgressTrackingRecorder</code> publishes, every step, <code>PredicateEvent(env_idx, step, criteria_name, sequence_name, predicate_index, predicate_name, score_delta)</code> for grasp, lift, transport and place. This is a direct analogue of our phase segmentation, computed from privileged state.</li>
+<li><span class="tag v">verified</span> <b>Full per-step state is in Isaac Lab, not Arena's default.</b> <code>PostStepStatesRecorder</code> records <code>scene.get_state(is_relative=True)</code> each step (articulation joints, root poses, rigid objects). <code>InitialStateRecorder</code> and <code>PreStepActionsRecorder</code> exist. <code>ManagerBasedEnv.reset_to(state, env_ids, seed, is_relative)</code> restores a recorded state. Arena metrics already run through Isaac Lab's HDF5 recorder. Contacts need a <code>ContactSensor</code>; the EEF comes from the embodiment's <code>ee_frame</code> <span class="tag i">inferred</span>.</li>
+<li><span class="tag v">verified</span> <b>Seeding.</b> <code>--seed</code> (default 42) → <code>env_cfg.seed</code>; a separate <code>placement_seed</code> controls the layout solver; rebuilds offset the seed by the rebuild index.</li>
+<li><b>Paired counterfactual, not built in.</b> Nothing replays an episode with one variation reverted. Two ways to build it <span class="tag i">inferred</span>:
+ <ol>
+ <li>record the initial state, <code>reset_to</code> it, and force the sampler for one factor to its nominal value;</li>
+ <li>for camera and lighting factors, <b>render a second, nominal camera in the same env</b>. That gives a paired observation every step for free, the Isaac analogue of our <code>LiberoEnv.nominal_observation</code>.</li>
+ </ol>
+ Caveat: GPU PhysX determinism across different <code>num_envs</code> or hardware is not guaranteed. A zero-action replay-determinism check is the first thing to test (§8, Q6).</li>
+</ul>
+
+<h3>2c. What "sensitivity analysis" actually is</h3>
+<p><span class="tag v">verified</span> (<code>analysis/sensitivity/</code>). It reads <code>episode_results.jsonl</code>. Each episode's recorded variation draws become θ; vector draws are split per component and strings become categoricals. The chosen outcome fields (default <code>success</code>) become <i>x</i>. It then fits an <b>sbi neural posterior estimator</b> (NPE, or MNPE when any factor is categorical) under a uniform box prior, with continuous factors normalised to [0, 1]. Conditioning on success = 1, it samples the joint posterior and plots each factor's marginal (a density, or a bar per category). In words:</p>
+<div class=eq><span>report = marginals of&nbsp; <var>p</var>(θ | success = 1) ∝ <var>p</var>(success = 1 | θ) · Uniform(θ)</span><span class=n>(1)</span></div>
+<p>So it shows which factor values are compatible with success: a <b>behavioural factor → outcome</b> map, the Bayesian cousin of our R-047 per-factor success curves. It says nothing about which <i>input channel</i> or <i>time</i> the failure travels through. Two cautions <span class="tag i">inferred</span>:</p>
+<ul>
+<li>With a uniform prior and a few hundred episodes, the posterior marginal is close to a smoothed success-rate curve per factor. It adds joint modelling, not new information.</li>
+<li>It is sensitive to uneven sampling; the code warns when categoricals are unevenly drawn.</li>
+</ul>
+
+<h3>2d. Policy server: could GR00T N1.7 and our Rollout schema plug in?</h3>
+<ul>
+<li><span class="tag v">verified</span> <b>Two wire paths.</b>
+ <ul>
+ <li>π0/π0.5 via the <b>openpi websocket msgpack</b> protocol (<code>policy/remote_policy_base.py</code>, an <code>EmbodimentAdapter</code> packs observations into requests and receives action chunks; <code>RemoteChunkReplayPolicy</code> replays chunks closed-loop).</li>
+ <li>GR00T via <b>GR00T's native <code>PolicyClient</code></b> against <code>gr00t/eval/run_gr00t_server.py</code> (<code>isaaclab_arena_gr00t/policy/gr00t_remote_closedloop_policy.py</code>).</li>
+ </ul></li>
+<li><span class="tag v">verified</span> <b>The maintained GR00T is N1.6.</b> <code>Dockerfile.gr00t_1_6</code> downloads <code>nvidia/GR00T-N1.6-3B</code>; the <code>serve-gr00t-policy</code> skill says "maintained N1.6-DROID"; embodiment configs exist for <code>droid</code>, <code>g1</code> and <code>gr1</code>. <b>There is no LIBERO-Franka modality or embodiment config.</b></li>
+<li><span class="tag i">inferred</span> <b>N1.7 "unchanged".</b> The wire protocol may carry over, since both are GR00T's own server. Our checkpoint (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>, <code>embodiment_tag=libero_sim</code>) would still need:
+ <ol>
+ <li>an N1.7 server;</li>
+ <li>a Franka joint and modality YAML matching LIBERO's 8-number state and 7-D OSC delta action;</li>
+ <li>camera names and resolutions mapped to agent view and wrist.</li>
+ </ol>
+ Even then it would see Isaac-rendered scenes it was never trained on (§2f), so <b>its success in Arena would not be comparable to its LIBERO numbers</b>.</li>
+<li><span class="tag i">inferred</span> <b>Emitting our Rollout.</b> Feasible as a recorder term plus an offline converter:
+ <ul>
+ <li><code>Step.obs_state</code> ← <code>PostStepStatesRecorder</code> + <code>ee_frame</code>;</li>
+ <li><code>Step.action</code> ← <code>PreStepActionsRecorder</code>;</li>
+ <li><code>image_refs</code> ← camera frames written per step;</li>
+ <li><code>perturbation</code> ← the variation record;</li>
+ <li><code>success</code> / <code>termination</code> ← episode record;</li>
+ <li><code>scene_descriptor</code> ← env spec + layout;</li>
+ <li><code>identity()</code> ← Arena commit + env spec hash + embodiment + policy config.</li>
+ </ul>
+ The one field that does not map is <code>diagnosis</code> from splices: those need the policy in-process (§7).</li>
+</ul>
+
+<h3>2e. Can it run on 8 GB?</h3>
+<p><b>Not usefully</b> <span class="tag i">inferred</span>, from <span class="tag v">verified</span> facts:</p>
+<ul>
+<li>The laptop is half the 16 GB minimum before GR00T's 7.4 GB.</li>
+<li>Arena's own reference benchmark is camera-free with a zero-action policy on an RTX 5880 Ada (48 GB): 185 ms per vectorised step at 1 env (5.4 env-steps/s), up to 2,390 env-steps/s at 1,024 envs.</li>
+<li>With cameras and a real policy, memory and time per step only rise.</li>
+</ul>
+<p>Headless Isaac Sim without GR00T might start on 8 GB for a toy scene, but that tests nothing we need.</p>
+<p><b>The cheapest cloud GPU that qualifies</b> must have RT cores (no A100 or H100) and ≥ 16 GB:</p>
+<div class=tw><table>
+<tr><th>Option</th><th>GPU</th><th class=num>Price</th><th>Note</th></tr>
+<tr><td>RunPod community / secure</td><td>RTX 4090, 24 GB</td><td class=num>$0.34 / $0.74 per h</td><td>Cheapest. Pods are containers, so use Arena's native <code>uv</code> install route <span class="tag i">inferred</span></td></tr>
+<tr><td>AWS g6.xlarge</td><td>L4, 24 GB</td><td class=num>$0.805 per h (us-east-1)</td><td>Only 16 GiB system RAM, below the 32 GB minimum, so use g6.2xlarge or larger <span class="tag i">inferred</span> (price not checked)</td></tr>
+<tr><td>RunPod L40S</td><td>48 GB</td><td class=num>$1.09 per h</td><td>Headroom for GR00T + many camera envs</td></tr>
+</table></div>
+<p class=small>Prices are from third-party price trackers (search, 10-06) <span class="tag p">unverified</span> against the vendors' own pages. GR00T (~7.4 GB) plus Isaac Sim with a few camera envs should fit in 24 GB <span class="tag i">inferred</span>.</p>
+
+<h3>2f. Is there a LIBERO port to Isaac?</h3>
+<ul>
+<li><span class="tag v">verified</span> <b>Official Arena: no.</b> The only LIBERO mention is a README link to Lightwheel.</li>
+<li><span class="tag v">verified</span> <b>Lightwheel LW-BenchHub</b> (Apache-2.0, built on Arena; README badge Isaac Lab 5.0.0; last commit 18 May 2026) ships "130 Lightwheel-LIBERO-Tasks". They are <b>re-authored</b>: each task is an <code>LwTaskBase</code> in Lightwheel kitchen fixtures, with their own USD assets (e.g. <code>Bowl008.usd</code>, <code>Plate012.usd</code>), their own placement regions and robot-base references, and robots including Franka, PandaOmron, G1, Piper, ARX and SO-100/101. It is semantically LIBERO, not pixel- or physics-faithful.</li>
+<li><span class="tag v">verified</span> <b>Why it matters.</b> ROBOGATE (<a href="https://arxiv.org/abs/2603.22126">2603.22126</a>): "a fine-tuned NVIDIA GR00T N1.6 (3B) trained on LIBERO-Spatial … achieves 97.65% success rate on LIBERO (MuJoCo) but 0% on RoboGate's 68 industrial scenarios in NVIDIA Isaac Sim". Those were different scenes, so this is a scene gap plus a simulator gap. Either way, our LIBERO checkpoint and our measured boundaries do not carry across.</li>
+</ul>
+
+<h3>2g. Agent tooling around Arena and Isaac Sim 6.0</h3>
+<ul>
+<li><span class="tag v">verified</span> <b>Arena agentic environment generation.</b> Natural language → editable Env Spec (assets, task, relations) → relation solver validates placement. Examples cover composite pick-and-place; the feature is marked experimental.</li>
+<li><span class="tag v">verified</span> <b>Arena skills.</b> <code>run-experiment</code>, <code>serve-gr00t-policy</code>, <code>serve-openpi-policy</code>, <code>setup-arena</code>, plus developer skills.</li>
+<li><span class="tag v">verified</span> <b>Isaac Sim 6.0</b> (GA 8 Jun 2026) adds "Isaac Sim Skills" to launch and drive a live instance from Claude Code, and an "Isaac Sim MCP" server.</li>
+<li><span class="tag p">unverified</span> Blender MCP, "ovphysx", "ovrtx" and SimReady validation appear in prim's survey but not in the GA announcement I read.</li>
+</ul>
+
+<h2>3. Cosmos Transfer 2.5 for lighting and texture</h2>
+<div class=tw><table>
+<tr><th>Fact</th><th>Value</th><th>Source</th></tr>
+<tr><td>Model</td><td>Cosmos-Transfer2.5-2B, control-conditioned video-to-video (edge, depth, segmentation, blur)</td><td><span class="tag v">verified</span> NVIDIA model matrix</td></tr>
+<tr><td>VRAM</td><td><b>65.4 GB</b>, single GPU</td><td><span class="tag v">verified</span> model matrix and <code>docs/inference.md</code></td></tr>
+<tr><td>Unit of work</td><td>720p, 16 fps, <b>93-frame chunks</b>; a 121-frame input runs as two chunks</td><td><span class="tag v">verified</span></td></tr>
+<tr><td>Time per 93-frame chunk</td><td>NVIDIA's two pages disagree: <code>inference.md</code> gives 92 s (B200) to 684 s (H20); the model matrix gives 286 s (B200) to 2,327 s (H20). The 4-step distilled variant is 7.8× faster on H20 (176 s vs 1,375 s).</td><td><span class="tag v">verified</span> (both quoted)</td></tr>
+</table></div>
+<p><b>Closed-loop at policy-input time: no.</b> GR00T needs a new frame pair every 16 control steps. Transfer generates whole 93-frame clips conditioned on a control video, so it needs frames that don't exist yet. Even the distilled model takes minutes per clip on a datacenter GPU, and it cannot load on 8 GB <span class="tag i">inferred</span>.</p>
+<p><b>We don't need it for LIBERO-Plus lighting.</b> The benchmark's lighting variants are MuJoCo light parameters (diffuse, direction, specular, shadows; <code>robustness_of_exps.html</code> §1). Our gap is the knob: it sets diffuse × (1 + m), clipped, and covers ~4% of the benchmark's variants. Reproducing the benchmark's own light settings in our env is a CPU-side change with no generative model. <b>That is the fix.</b></p>
+<p>Where Cosmos could help, offline only:</p>
+<ol>
+<li>appearance augmentation of training demos for D21, with DATAFARM's style warning applying in reverse: visual style must match too;</li>
+<li>re-rendering recorded first frames to test the forward-0 action under appearance shifts, open-loop.</li>
+</ol>
+<p><b>Cosmos Policy</b> (<a href="https://arxiv.org/abs/2601.16163">2601.16163</a>, ICLR 2026; LIBERO 98.5%, RoboCasa 67.1% <span class="tag v">verified</span>) is a <i>policy</i>, not a renderer. It is a candidate fourth architecture for direction #4. Its VRAM on 8 GB is unknown.</p>
+
+<h2>4. MuJoCo Warp</h2>
+<ul>
+<li><span class="tag v">verified</span> <b>Version.</b> <code>pyproject.toml</code> requires <code>mujoco&gt;=3.12.0</code>. Our run venv is 3.3.2, and the README warns that ≥ 3.4.0 changes a LIBERO task. <b>Adopting MJWarp means crossing the version boundary our reproduction gate exists to guard.</b></li>
+<li><span class="tag v">verified</span> <b>Unsupported features</b> (<code>io.py</code>): body, actuator and sensor plugins; the noslip solver; some flex cases. Multi-CCD with margin is limited to one contact for some pairs.</li>
+<li><span class="tag v">verified</span> <b>Batch renderer.</b> A Warp BVH <b>ray tracer</b> with Phong shading, per-geom-type texture mapping, skybox, and heterogeneous multi-camera support. It is not MuJoCo's OpenGL renderer, whose frames GR00T's LIBERO data came from. Expect a pixel-distribution shift that the conformance gate would have to clear <span class="tag i">inferred</span>.</li>
+<li><span class="tag i">inferred</span> <b>Porting effort.</b>
+ <ul>
+ <li>LIBERO scenes are MJCF, so the physics model probably loads.</li>
+ <li>robosuite's OSC_POSE controller, observation assembly and LIBERO's BDDL success checks are per-env Python/NumPy and would need batched GPU rewrites.</li>
+ <li>The LIBERO-Plus perturbation pipeline (XML edits per variant) would need re-plumbing.</li>
+ <li>Weeks, plus a full re-validation.</li>
+ </ul>
+ The pay-off is throughput, and simulation is not our bottleneck: one GR00T forward on the shared 8 GB GPU is.</li>
+</ul>
+<p><b>Verdict: no, for now.</b> Revisit only if we move to a rented GPU and need thousands of MuJoCo envs for RL or data generation.</p>
+
+<h2>5. RoboVerse as a cross-simulator check</h2>
+<p>From RoboVerse's own LIBERO integration doc <span class="tag v">verified</span>:</p>
+<ul>
+<li><b>Passthrough:</b> 130/130 LIBERO tasks with observations and steps bitwise identical; <b>10,120/10,120 LIBERO-Plus tasks</b> with state, reward and done bitwise identical.</li>
+<li><b>Native</b> (no libero or robosuite import): all 130 base tasks on MetaSim's MuJoCo handler.
+ <ul>
+ <li>The BDDL checker has "0 mismatch vs <code>env._check_success</code>".</li>
+ <li>The OSC_POSE port's joint-torque difference is 5.55×10⁻¹⁵ N·m.</li>
+ <li>Render difference is mean MAE 1.85/255 from re-triangulated meshes.</li>
+ </ul></li>
+<li><b>MuJoCo only:</b> "porting its MJCF to SAPIEN/Newton needs asset re-authoring + a different contact model = an approximate cross-sim port, not 1:1". It pins <code>mujoco==3.2.3</code>. A process-global EGL context forces sequential rendering. LIBERO-Plus variants are passthrough-only.</li>
+</ul>
+<p><b>Answer.</b> RoboVerse cannot test whether our start-pose boundary survives a different <i>simulator</i>. It can cheaply test whether it survives a different <i>implementation</i>: an independent OSC, an independent success checker and MuJoCo 3.2.3 instead of 3.3.2. That rules out the boundary being an artefact of our env wrapper or initial-state knob <span class="tag i">inferred</span>. It runs on our laptop, since it is still MuJoCo. A true cross-simulator check of start pose would need an Isaac scene the policy was trained in, and no such checkpoint exists for LIBERO.</p>
+
+<h2>6. World-model evaluators</h2>
+<div class=tw><table>
+<tr><th>Model</th><th>Claim</th><th>Fit as a perturbation-robustness pre-screen</th></tr>
+<tr><td>Ctrl-World <a href="https://arxiv.org/abs/2510.10125">2510.10125</a></td><td>DROID-trained multi-view world model; ranks policies without real rollouts; +44.7% from imagination SFT <span class="tag v">verified</span></td><td>Trained on DROID; a new LIBERO-Plus camera would be off-distribution</td></tr>
+<tr><td>WorldEval <a href="https://arxiv.org/abs/2505.19017">2505.19017</a></td><td>Policy2Vec latent actions; strong correlation with real rankings <span class="tag v">verified</span></td><td>Ranking, not boundary-finding</td></tr>
+<tr><td>dWorldEval <a href="https://arxiv.org/abs/2604.22152">2604.22152</a></td><td>Discrete-diffusion world model with a progress token; beats WorldEval, Ctrl-World and WorldGym on LIBERO, RoboTwin and real tasks <span class="tag v">verified</span>. r ≈ 0.91 on LIBERO multi-view <span class="tag p">unverified</span> (search snippet)</td><td>Correlation of <i>success rates</i> across policies, not of per-perturbation outcomes</td></tr>
+<tr><td>PiL-World <a href="https://arxiv.org/abs/2606.05773">2606.05773</a></td><td>Chunk-wise closed-loop evaluation; real-vs-imagined success gap <b>63.2% → 12.0%</b> on three real dual-arm tasks <span class="tag v">verified</span></td><td>12 points of average error exceeds the effects we test (R-056: −8/108)</td></tr>
+<tr><td>WorldSimProbe <a href="https://arxiv.org/abs/2608.09298">2608.09298</a>; WorldEcho <a href="https://arxiv.org/abs/2608.24885">2608.24885</a></td><td>Six action-conditioned world models show "systematic action-realization degradation"; world models "struggle with diverse off-expert trajectories" <span class="tag v">verified</span></td><td>Start-pose failures <i>are</i> off-expert trajectories from off-distribution starts, the hardest regime</td></tr>
+</table></div>
+<p><b>Verdict: not good enough as a pre-screen for perturbation robustness</b> <span class="tag i">inferred</span>. The perturbations we care about change either the start state (off-expert dynamics) or the camera and lighting (novel rendering). These are exactly the axes where world-model fidelity is weakest and least validated, and none of these papers validates per-perturbation failure boundaries. Possible later use: a cheap nominal ranking of many checkpoints before real simulation.</p>
+
+<h2>7. Recommended pipeline, with the Rollout contract as the seam</h2>
+<div class=diag>
+<div class=row>
+<div class="blk new"><b>1 · Scenario spec</b><code>PerturbationSpec</code> with the LIBERO-Plus factor names (<code>LIBERO_PLUS_FACTORS</code>), task, seed. Agents may draft it.</div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk vis"><b>2 · Sim backends via adapters</b>
+ <ul>
+ <li>(a) LIBERO-Plus MuJoCo: primary, local</li>
+ <li>(b) RoboVerse-native: cross-implementation check, local</li>
+ <li>(c) Isaac Lab-Arena: new tasks and scale, cloud</li>
+ </ul>
+ Each implements <code>Env</code>: <code>reset(seed, spec)</code>, <code>step</code>, <code>identity</code>, <code>scene_descriptor</code>.</div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk vl"><b>3 · Policy server</b>GR00T native server or openpi websocket, <b>extended with splice arms</b>: <code>act(obs, arms=[T, I, S, A, W], noise=ε)</code> returns one chunk per arm.</div>
+</div>
+<div class=arrow>↓</div>
+<div class=row>
+<div class="blk vis"><b>4 · Capture</b><code>Rollout</code>: per-step privileged state, paired nominal renders (a second camera in Isaac; <code>nominal_observation</code> in MuJoCo), splice arms, content-addressed id</div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk phys"><b>5 · Our diagnosis</b>transfer τ per input, decided-at-forward-k, rescue, offset curves. <b>Humans decide.</b></div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk phys"><b>6 · Data</b>Option A bridge-and-join on MuJoCo; GR00T-Mimic only for Isaac-native tasks</div>
+<div class=arrow style="align-self:center">→</div>
+<div class="blk phys"><b>7 · Retrain → frozen regression gate</b>LoRA; promote only through <code>RegressionSet</code> with non-target cells included</div>
+</div>
+</div>
+<ul>
+<li><b>Why the splice must live in the policy server.</b> A token or pixel splice needs the model's internals for the same observation and noise. Once the policy sits behind a wire (Arena's architecture), splices are possible only if the server implements them. Specifying "arms" in the request makes our mechanism layer simulator-agnostic, and is the single most valuable interface decision here <span class="tag i">inferred</span>.</li>
+<li><b>Where agents help:</b> scenario authoring (Arena's NL → Env Spec), asset finding, wiring backends (Isaac Sim MCP and skills), writing adapters and recorder terms, and running experiment definitions.</li>
+<li><b>Where they don't:</b> diagnosis, deciding what data to collect, and promotion. AgenticRobotics (<a href="https://arxiv.org/abs/2608.07555">2608.07555</a>) <span class="tag v">verified</span>: the loop is an "operational claim, not a selection claim … not because the loop picks better checkpoints than a human; on the one lineage we measured, it does not." Its gates did buy false-promotion control (0.001 vs 0.005–0.021). Borrow the gates, not the decisions.</li>
+</ul>
+
+<h2>8. Costed next steps</h2>
+<div class=tw><table>
+<tr><th>#</th><th>Step</th><th>Where</th><th class=num>Cost</th><th>Decides</th></tr>
+<tr><td>N1</td><td><b>Fix the lighting knob</b> to reproduce LIBERO-Plus light variants (dim, direction, specular, shadows) directly in our MuJoCo env</td><td>local CPU</td><td class=num>½ day, $0</td><td>Closes the ~4% coverage gap without any generative model</td></tr>
+<tr><td>N2</td><td><b>RoboVerse-native cross-implementation check</b> of the start-pose boundary: replay R-047's recorded start states and actions under native MetaSim (MuJoCo 3.2.3), compare success; then 1–2 GPU-h of GR00T on the 12–16 cm band</td><td>local</td><td class=num>1 day + 2 GPU-h</td><td>Whether our boundary is a harness artefact</td></tr>
+<tr><td>N3</td><td><b>One-day Arena trial</b> on a RunPod RTX 4090 or L40S (8 h × $0.74–1.09 ≈ $6–9; budget $25 with retries)</td><td>cloud</td><td class=num>1 engineer-day, ≤ $25</td><td>Whether Arena can host our seams (Q1–Q7 below)</td></tr>
+<tr><td>N4</td><td>Splice-arm policy-server API spec (<code>act(obs, arms, noise)</code>) and a MuJoCo-side implementation</td><td>local</td><td class=num>1–2 days</td><td>Makes the mechanism layer backend-agnostic</td></tr>
+<tr><td>N5</td><td>Cosmos Transfer offline augmentation</td><td>cloud, H100 80 GB-class</td><td class=num>defer</td><td>Only if D21's source needs appearance diversity</td></tr>
+<tr><td>—</td><td>MuJoCo Warp port; world-model pre-screen</td><td>—</td><td class=num>skip</td><td>See §4 and §6</td></tr>
+</table></div>
+<div class=card><div class=q>N3 pass/fail questions</div>
+<ol>
+<li><b>Q1 Boot:</b> a Franka Arena environment runs headless with cameras at 1, 16 and 64 envs. Record VRAM and step time.</li>
+<li><b>Q2 Maintained path:</b> GR00T N1.6-DROID served via the <code>serve-gr00t-policy</code> skill runs an existing experiment end to end.</li>
+<li><b>Q3 Our model:</b> GR00T N1.7 (our LIBERO checkpoint) serves through the native PolicyClient with a Franka/LIBERO modality YAML. Record what had to change. Expected: config work, plus low success because the scenes are foreign.</li>
+<li><b>Q4 Our perturbations:</b> a start-pose variation (<code>reset_joints_by_offset</code>) and a camera-rotation variation, each in &lt; 200 lines, recorded in the episode JSONL.</li>
+<li><b>Q5 Our contract:</b> one episode converts from <code>PostStepStatesRecorder</code> HDF5 + episode JSONL to a <code>Rollout</code> that passes our schema validation.</li>
+<li><b>Q6 Pairing:</b> (i) <code>reset_to(initial_state)</code> with a zero-action policy reproduces the trajectory bitwise; (ii) a second nominal camera gives a paired render per step; (iii) the result is stable across <code>num_envs</code> 1 vs 16.</li>
+<li><b>Q7 Their analysis vs ours:</b> run the sensitivity report on a two-factor sweep and compare it with a per-factor success curve on the same episodes.</li>
+</ol>
+<p><b>Pass</b> = Q1, Q4, Q5 and Q6(i–ii). If those pass, Arena becomes our scale-out backend for new tasks behind the adapter. If Q6 fails, Arena is usable for behavioural sweeps only.</p></div>
+
+<h2>9. Updating RL_GYM_LANDSCAPE §7: which "invalidations" have partly happened</h2>
+<div class=tw><table>
+<tr><th>§7 risk (24 Sep)</th><th>Status 6 Oct</th><th>Evidence</th></tr>
+<tr><td>"Isaac Lab-Arena shipping per-step privileged state and paired counterfactual probes"</td><td class=amb>Partly</td><td><span class="tag v">verified</span> v0.3 ships per-episode variation provenance, per-step subtask predicate events, and factor-level sensitivity analysis. Isaac Lab already offered per-step full state and <code>reset_to</code>. <b>Not shipped:</b> paired counterfactual probes, one-factor revert, input-channel or time attribution, start-pose variation, rotational camera variation. The roadmap names Newton-based evaluation, contact-rich tasks and a growing skill library, not counterfactuals.</td></tr>
+<tr><td>"Lightwheel's 'bottleneck diagnosis' turning out to mean per-factor attribution"</td><td class=amb>Partly, via the ecosystem</td><td>Not checked against RoboFinals output. But the Arena ecosystem now ships per-factor <i>behavioural</i> attribution (sbi posterior), and RoboLab (<a href="https://arxiv.org/abs/2604.09860">2604.09860</a>, NVIDIA) quantifies "the sensitivity of [policy] behavior to controlled perturbations" <span class="tag v">verified</span>. Per-factor behavioural sensitivity is now commodity.</td></tr>
+<tr><td>"A follow-up to AgenticRobotics … a measurement-driven selector that does beat last-checkpoint"</td><td class=ok>Not happened</td><td>None found as of 10-06 <span class="tag i">inferred</span>; searches can miss things</td></tr>
+</table></div>
+<p><b>Net.</b> The moat has narrowed exactly where §7 predicted. What remains ours:</p>
+<ul>
+<li><i>input-channel and time</i> attribution (splices, decided-at-k, rescue);</li>
+<li>a data specification written from it;</li>
+<li>a frozen regression gate that includes non-target cells.</li>
+</ul>
+<p>Behavioural per-factor sensitivity, per-step state and subtask tracing are no longer differentiators. The splice-arm server API (N4) is how we keep the remaining edge portable onto NVIDIA's stack rather than competing with it <span class="tag i">inferred</span>.</p>
+
+<h2>Glossary</h2>
+<div class=tw><table>
+<tr><th>Term</th><th>Meaning here</th></tr>
+<tr><td>Rollout contract</td><td>Our <code>Rollout</code>/<code>Step</code>/<code>Env</code> schema: per-step state and actions, content-addressed ids, identity fingerprints</td></tr>
+<tr><td>Variation (Arena)</td><td>A sampled perturbation, run-time (event per reset) or build-time (once per env build), recorded per (env, episode)</td></tr>
+<tr><td>Subtask predicate</td><td>Arena's per-step check (grasp, lift, transport, place) emitting events with a step index</td></tr>
+<tr><td>sbi / NPE / MNPE</td><td>Simulation-based inference; (mixed) neural posterior estimation, used to fit <var>p</var>(factors | outcome)</td></tr>
+<tr><td>Splice arm</td><td>One policy evaluation with one input restored to its nominal value at fixed noise (R-039 method)</td></tr>
+<tr><td>Cross-implementation vs cross-simulator</td><td>Same physics engine, independently written env/controller/predicates, vs a different physics engine and renderer</td></tr>
+</table></div>
+
+<p class=small style="margin-top:3em">Sources:
+<ul class=small>
+<li><a href="https://github.com/isaac-sim/IsaacLab-Arena">IsaacLab-Arena</a> @ 413b0f4: <code>README.md</code>, <code>isaaclab_arena/variations/*</code>, <code>analysis/sensitivity/*</code>, <code>recording/*</code>, <code>progress_tracking/progress_tracker.py</code>, <code>policy/remote_policy_base.py</code>, <code>isaaclab_arena_gr00t/*</code>, <code>embodiments/franka/franka.py</code>, <code>docs/pages/references/performance.rst</code>, <code>docs/pages/concepts/variations/variations.rst</code>, <code>skills/</code>.</li>
+<li><a href="https://github.com/isaac-sim/IsaacLab-Arena/discussions/1245">Arena v0.3 discussion #1245</a>.</li>
+<li><a href="https://github.com/isaac-sim/IsaacLab">Isaac Lab</a> <code>envs/mdp/recorders/recorders.py</code>, <code>envs/manager_based_env.py</code>.</li>
+<li><a href="https://docs.isaacsim.omniverse.nvidia.com/6.0.0/installation/requirements.html">Isaac Sim 6.0 requirements</a>; <a href="https://github.com/isaac-sim/IsaacSim/discussions/655">Isaac Sim 6.0 GA</a>.</li>
+<li><a href="https://github.com/LightwheelAI/LW-BenchHub">LW-BenchHub</a>.</li>
+<li><a href="https://github.com/google-deepmind/mujoco_warp">MuJoCo Warp</a> (<code>pyproject.toml</code>, <code>_src/io.py</code>, <code>_src/render.py</code>).</li>
+<li><a href="https://github.com/RoboVerseOrg/RoboVerse">RoboVerse</a> <code>docs/source/dataset_benchmark/integrations/libero.md</code>.</li>
+<li><a href="https://docs.nvidia.com/cosmos/latest/transfer2.5/model_matrix.html">Cosmos Transfer 2.5 model matrix</a>; <a href="https://github.com/nvidia-cosmos/cosmos-transfer2.5/blob/main/docs/inference.md">inference.md</a>.</li>
+<li>arXiv: ROBOGATE 2603.22126 · RoboLab 2604.09860 · Cosmos Policy 2601.16163 · Cosmos 3 2606.02800 · Ctrl-World 2510.10125 · WorldEval 2505.19017 · dWorldEval 2604.22152 · PiL-World 2606.05773 · WorldSimProbe 2608.09298 · WorldEcho 2608.24885 · AgenticRobotics 2608.07555 · RoboVerse 2504.18904 · Isaac Lab 2511.04831.</li>
+<li>GPU prices: <a href="https://calculator.holori.com/aws/ec2/g6.xlarge">Holori g6.xlarge</a>, <a href="https://northflank.com/blog/runpod-gpu-pricing">Northflank on RunPod pricing</a>.</li>
+<li>Ours: <code>vla_harness/schema.py</code>, <code>README.md</code>, <code>docs/robustness_of_exps.html</code> §1, <code>docs/LIBERO_PLUS_LEVELS.md</code>, <code>docs/RL_GYM_LANDSCAPE.html</code> §4, §7, <code>VLA Scenario Testing.md</code> §7.2.</li>
+</ul></p>
+</div></body></html>
