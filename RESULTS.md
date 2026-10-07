@@ -237,6 +237,7 @@ Every entry records its expectation and **says when it was written**:
 | R-057 | 09-28 | EVAL | When is the episode decided: drive-until sweep k ∈ {1,2,4,all} on start pose and camera | DONE (scored 10-06) | Start pose k* = 1 (P 6, k1 24, all 19 of 30); camera throughout (k4 23 vs all 30); all six held, E1 at its boundary |
 | R-058 | 09-28 | EVAL | LoRA rank sweep on the start-pose pilot: r ∈ {4, 64} vs R-056's r = 16 | DONE (r = 64 deviates: 1500/2000 steps, transfer not run) | Ranks 4 / 16 / 64: 65 / 59 / 64 of 108 vs base 67 (paired p 0.86 / 0.24 / 0.74); scene 1327 2 / 4 / 3 of 12 at every rank; capacity is not the lever |
 | R-059 | 09-29 | ANALYSIS + EVAL | Sentinel STAC on GR00T at matched forward index, B seeded draws, against a clock baseline | PRE-REGISTERED, NOT RUN | part A CPU on R-047; B smoke; C1 240 start-pose rollouts (~4 h at B = 32); gate: STAC ≥ 3× the noise floor |
+| R-060 | 10-07 | GATE + EVAL | FTM visual-token recalibration (4K params) on GR00T camera and noise failures vs a matched-data DiT-only LoRA (E1 at S1, E2 at S2, C) | PRE-REGISTERED, NOT RUN | ~660 rollouts ≈ 9 GPU-h + ~2 h training; part 0 CPU gates first; method doc SPATIAL_ADAPT_MATHS §9A–§10 |
 
 ---
 
@@ -5508,3 +5509,122 @@ needs only the policy's actions (the black-box access level in
   `docs/AMBITIOUS_DIRECTIONS.html` is corrected.
 - **In every case:** any per-episode detector score reported in this project
   must be compared at matched forward index and against the clock.
+
+---
+
+## R-060 — PRE-REGISTERED, NOT YET RUN: can a 4K-parameter visual-token recalibration (FTM) fix GR00T's camera-viewpoint and sensor-noise failures, and does it beat an action-head fix at matched data?
+
+**Date registered** 2026-10-07 (drafted by res21; registered by prim on the user's instruction, as drafted) · **Status** PRE-REGISTERED, NOT YET RUN · **Run** not queued ·
+**Type** GATE (part 0, CPU) + EVAL (parts A–C, GPU) · **Method doc** `docs/SPATIAL_ADAPT_MATHS.html` §3, §9A, §10 (E1–E3) ·
+**Runner** to be written by impl. The FTM hook reuses the adapter-output splice point in `vla_harness/capture/splice.py`, with a transform in place of a source · **Queue** under `flock /tmp/vla_gpu.lock`, announced first, AC power
+
+### Why
+
+Two LIBERO-Plus rows reach GR00T's action almost entirely through **one camera's pixels**. The camera row is agent view 0.98 (R-048); sensor noise is agent view 0.97 (R-051). Both are appearance shifts: the world is unchanged and only the image differs. arXiv:2512.02902 reports that a per-channel affine on π0.5's visual tokens (FTM, (1+γ)⊙F+β, 4K parameters) recovers camera-viewpoint success from 48.5% to 87.1%. On GR00T the architecture differs in ways that matter (`SPATIAL_ADAPT_MATHS.html` §9A):
+
+- there are four visual entry points into the LLM;
+- cameras are separable only before the LLM;
+- the 4-block `vl_self_attention` adapter already removes most of the pooled moment shift (R-037: 1.37× → 1.02×), while the action-relevant residual survives at its output (R-039 image-token transfer: camera 0.69, noise 0.45).
+
+This run tests whether the cheap, local version of the idea works on GR00T. It also tests whether a vision-side fix beats an action-head fix when both get the same data (E3, partial).
+
+Base rates on libero_spatial (R-031): **camera 64.5%**, **sensor noise 92.8%**, nominal ≈ 100% (R-056 base 27/27). Camera has a gap worth closing. Noise is mostly passed already, so this run treats noise as secondary and enriches it for failures (below). R-052: within the camera cone, **distance** is the damaging axis (50% at 1.87×).
+
+### Design
+
+**Part 0 — gates (CPU, or a single forward; ~1 h).**
+- **G0a, camera order.** Record which camera's 64 image tokens come first in the LLM input sequence. The processor orders them by the checkpoint's video modality keys (`processor_groot.py` `_ordered_image_keys`), so read the actual order from one forward's `image_mask` and the processor state. If the agent view comes first, its S1 tokens are wrist-free under causal attention, and arm A2-S1 below becomes a per-camera site. Otherwise drop A2-S1.
+- **G0b, zero-init conformance.** With γ = β = 0, the FTM-hooked policy must reproduce base actions **bitwise** on 10 forwards at fixed noise (R-055 standard).
+- **G0c, training-pair exactness.**
+  - Camera: the perturbed-view render at a nominal state must match LIBERO-Plus's own render of that variant (R-048's exactness check, run in reverse).
+  - Noise: the noised agent frame must equal the clean frame passed through LIBERO-Plus's noise function, with the noise seeded.
+
+**Variant split (fixed before any training; written to `experiments/repro/r060_split.json`).**
+- **Camera:** the 376 Camera Viewpoints variants of libero_spatial, split by **camera pose** into train and held-out, so no held-out pose appears in training.
+  - Held-out = 60 variants, stratified by level (L1–L5) and covering the distance axis to 2.0×.
+  - The 10 R-048 instances go into held-out for continuity.
+  - Train = up to 120 of the remaining variants.
+- **Noise:** the 351 Sensor Noise variants, split by (family, severity).
+  - Held-out = 40 variants, enriched to ~50% from the families and severities where base fails. The failure campaign gives these; glass and motion blur were never in our instances and must be represented.
+  - Train = up to 80 others.
+  - If base fails < 5 of the 40 held-out at P, the noise part is reported as underpowered and not scored on its own expectations.
+- **Nominal** (forgetting check): R-056's 27 nominal starts.
+
+**Training pairs (one GPU pass, ~1 h).** Run base GR00T on the *nominal* scene for each train variant's task and seed. At every forward, also render the perturbed observation of the same state (the camera variant's pose; for noise, the noised agent frame) and cache:
+- the adapter output **S2** for both views;
+- **S1** for both views;
+- base's **nominal chunk**, which serves as the label.
+
+The target is "act on the perturbed view as you would on the nominal one". No new demonstrations are needed, and no new behaviour is taught, only a visual recalibration. Only forwards 0–8 of successful nominal episodes are used.
+
+**Arms (evaluation).** Every arm runs on the same variant, env seed and fixed denoising noise (noise_key = 1000·seed + forward, R-044).
+
+| Arm | What changes | Parameters | Trained on |
+|---|---|---|---|
+| **P** | nothing: base on the perturbed variant | 0 | — |
+| **N** | oracle: nominal-view frames at every forward (R-057 N-all), camera only | 0 | — |
+| **A1, E1 closed form** | γ, β from per-channel moment matching (`SPATIAL_ADAPT_MATHS` eq. 3.2) at **S1**, on image-token positions, all cameras | 4,096 | train-pair statistics, no gradients |
+| **A2-S1** (if G0a passes) | as A1, but on agent-view token positions only | 4,096 | as A1 |
+| **B, E2 learned FTM at S2** | (1+γ)⊙F+β on image-token positions of S2; γ, β initialised at 0 | 4,096 per row (one for camera, one for noise) | flow-matching loss through the frozen DiT, perturbed S2 → base's nominal chunk; cached features; AdamW, fixed step budget set from a 10% validation split of train pairs, chosen before evaluation |
+| **C, physical-side control** | DiT-only LoRA r 4 (no `vl_self_attention`) | ≈ 4.8M | **identical pairs and steps** as B, same loss, input = perturbed S2 unmodified |
+
+Arm C matches B on **data and optimiser steps, not parameters**. That is the comparison the localisation claim makes: same supervision, vision-side vs action-head-side.
+
+**Evaluation sets.**
+- **Camera:** P, N, A1, (A2-S1), B and C on the 60 held-out variants, plus B and C on 30 train variants (fit check, the D20 lesson).
+- **Noise:** P, A1, B and C on the 40 held-out variants.
+- **Nominal:** A1, B and C on the 27 nominal starts.
+
+**Size and time** (R-053 rate, ≈ 50 s per rollout):
+- camera ≈ 60×6 + 30×2 = 420;
+- noise 160;
+- nominal 81;
+- total ≈ 660 rollouts ≈ 9 h of GPU, plus ≈ 2 h training for C and minutes for B.
+
+Can be split across two nights; camera first.
+
+**Readouts.**
+- **Primary:** success per arm on the held-out sets, paired against P (exact McNemar), with rescues and regressions reported.
+- **Secondary:**
+  - first-chunk transfer toward N, R-048 metric, forward 0;
+  - recovery fraction = (arm − P)/(N − P) on camera;
+  - nominal success (forgetting);
+  - train-variant vs held-out recovery (generalisation across poses);
+  - per-level and per-distance curves;
+  - stage of failure (approach / grasp / transport) from phase segmentation.
+
+### Pre-registered expectations
+
+1. **G0b conformance is bitwise exact.** *High.* Failing it voids parts A–C.
+2. **N ≫ P on camera** (N recovers ≥ 70% of P's held-out failures). *High.* It is the upper bound. R-057 has camera N-all 30/30, but that was on 30 instances. If N does not beat P, the camera failures are not view-caused at these variants and the run is uninformative.
+3. **E1 (A1) is weak:** it recovers < 25% of the N−P gap on camera. *Medium-high.* This is the `SPATIAL_ADAPT_MATHS` §9A.4 prediction: the adapter already removes most of the moment shift. **If A1 recovers ≥ 50%, the prediction is wrong and the cheapest fix works.**
+4. **E2 (B) recovers ≥ 30% of the N−P gap on held-out camera variants**, with rescues > regressions (p < 0.05). *Medium.* This is the paper's claim, carried to GR00T at the cheap site.
+5. **B does not reduce nominal success by more than 2/27.** *High.* γ, β start at identity and are applied only to image positions.
+6. **B ≥ C on held-out camera at matched data.** *Medium.* If C ≥ B, localising the fault to vision does not tell us where to adapt, and the action head is an equally good place to fix a visual shift.
+7. **B's held-out recovery is ≥ half of its train-variant recovery.** *Medium.* If it is much smaller, B memorised training poses: the D20 failure again, now on the vision side.
+8. **Noise, if powered: B ≥ P.** *Low-medium*, reported without a strength claim given base 92.8%.
+
+### What would make this a failed experiment rather than a negative result
+
+Any of:
+- G0b not exact;
+- G0c not exact;
+- the training-pair loss not decreasing for B;
+- N not beating P on camera.
+
+A negative B with a positive N is a **result**: the cheap S2 site cannot carry the fix. The decision then moves to the paper-faithful site (before the LLM, agent view, merger + 3 DeepStack; rented GPU), which is **not** part of this registration.
+
+### What each outcome buys
+
+| Outcome | Reading | Next |
+|---|---|---|
+| A1 ≥ 50% | it is a statistics shift; a training-free per-camera recalibration knob exists | deploy-time recalibration; skip training arms for this row |
+| B ≥ 30% and B ≥ C | vision-side recalibration works and is the better place | extend to lighting/texture with both-camera FTM; write it up as the "parameter-only" arm of direction #1 |
+| B ≥ 30% but C ≥ B | either side works with this supervision | where-to-adapt is a cost question; prefer B (4K vs 4.8M parameters) |
+| B < 30%, N ≫ P | the S2 site is too late | paper-faithful pre-LLM FTM / FLA on a rented GPU |
+| B fits train poses but not held-out | memorisation | more pose diversity in train pairs (cheap: they are renders) before any other change |
+
+### Not in this registration
+
+- Pre-LLM or DeepStack FTM, FLA (ViT LoRA), lighting and texture rows, and start pose (not an appearance shift; `SPATIAL_ADAPT_MATHS` §9A.6).
+- Each needs its own registration.
