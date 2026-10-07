@@ -239,6 +239,70 @@ a{color:var(--accent)}
 </ol>
 <p>That three-arm comparison is also what makes the "does the source matter?" question publishable.</p>
 
+<h3>3.7 Portability to GR00T N1.7 (added 2026-10-07)</h3>
+<p class="sub">Added on the user's approval via prim. <span class="tag est">established</span> means read from our code, configs or run outputs (file cited). <span class="tag hyp">hypothesis</span> means my inference, not checked. Backbone: Cosmos-Reason2-2B (Qwen3-VL layout), truncated to 16 of 28 LLM layers (<code>third_party/lerobot/src/lerobot/policies/groot/groot_n1_7.py:86, 305, 747–803</code>).</p>
+
+<p><b>What the new source has to cover.</b> <span class="tag est">established</span> Today's fit test (<code>runs/r056_diag/fit_firstchunk.json</code>) changes the target:</p>
+<ul class="tight">
+<li>On its own 100 training starts, the r16 adapter closed 30% of the first-chunk gap overall, and 42–61% in the 12–20 cm bands (n = 7 and 2, so thin).</li>
+<li>On the held-out direction × cm cells it closed 1–15%.</li>
+<li>The 100 training starts used 100 different direction seeds (<code>dir1000…dir1145</code>), one start each. Held-out cells use fixed directions (<code>dir100</code>, <code>dir101</code>).</li>
+<li>Ranks 4/16/64 score 65/59/64 of 108 (R-058, via prim). Capacity is not the lever.</li>
+</ul>
+<p><span class="tag hyp">hypothesis</span> The data spread the start directions thinly instead of covering any region densely. A source must therefore place <b>several demos per direction × cm cell</b>, including the neighbourhoods of the eval directions (held out by instance), with enough frame-0 dose per cell. Any source whose yield depends on the base policy succeeding cannot do this where the policy fails.</p>
+
+<p><b>The pipeline every source plugs into</b> <span class="tag est">established</span>:</p>
+<ul class="tight">
+<li><b>Records</b> are env-native (<code>vla_harness/data/contract.py</code>). <code>export_lerobot.py</code> maps them to the IPEC-COMMUNITY <code>libero_spatial_no_noops</code> schema the checkpoint was trained on (20 fps):
+  <ul class="tight">
+  <li>images flipped 180°, then INTER_AREA resized to 256;</li>
+  <li>8-d state: EEF position, axis-angle, 2 gripper qpos;</li>
+  <li>7-d action: OSC EEF delta dims 0–5 unchanged; the gripper is mapped from env −1 = open / +1 = close to dataset 1 = open / 0 = close. The exporter <b>refuses</b> a non-binarised gripper.</li>
+  </ul>
+  Normalisation statistics are copied from the checkpoint, not recomputed.</li>
+<li><b>Action normalisation</b> maps each dimension to [−1, 1] with the checkpoint's stats and <b>clamps</b> (<code>use_percentiles: true</code>, <code>clip_outliers: true</code> in R-056's <code>policy_preprocessor.json</code>; clamp at <code>processor_groot.py:1823–1825</code>). An action outside the IPEC range is silently clipped in the label. I did not trace whether the bounds are q01/q99 or min/max.</li>
+<li><b>Chunk length.</b> The model generates 40 steps and executes 16. Our fine-tunes set <code>chunk_size = 16</code>, so each frame's label is the next 16 actions, padded and masked beyond the episode end (<code>configuration_groot.py:509–514</code>, <code>processor_groot.py:1935–1973</code>). A truncated episode gives masked, partial chunks near its cut, as in R-054's 48-step truncation.</li>
+<li><b>Mix.</b> <code>vla_harness/training/mix.py</code> draws each part with a fixed share (R-056: 1:1 with IPEC replay) whatever the part sizes, and checks that features and fps agree across parts.</li>
+</ul>
+
+<div class="tbl"><table>
+<tr><th>Fit to GR00T N1.7</th><th>A: bridge-and-join</th><th>B: scripted expert + DART</th><th>S2, fixed</th></tr>
+<tr><td>Action space</td><td>The bridge is a privileged OSC controller, so it emits env deltas directly. After the join, it tracks the demo's recorded EEF targets through the same OSC. Fits the exporter as is. <span class="tag hyp">hypothesis</span> The gripper must stay binarised ±1; a controller that ramps the gripper will be rejected at export.</td><td>Same, if the planner outputs OSC deltas. A planner that outputs absolute poses or joint targets needs a conversion step into the env's delta action, scaled the way the env scales it. <span class="tag hyp">hypothesis</span></td><td>Native: the actions are the policy's own or the nominal chunk, already in env deltas. <span class="tag est">established</span> (R-054 exported and trained)</td></tr>
+<tr><td>Normalisation / clipping</td><td>Far-offset bridges ask for larger corrective deltas than human teleop. <b>Check before training</b>: the share of bridge frames with any dimension clamped at ±1 after normalisation. If it is high, slow the bridge (more frames, smaller deltas) rather than let labels clip. <span class="tag hyp">hypothesis</span></td><td>Same check. Scripted speeds are a design choice, so set them inside the IPEC envelope from the start.</td><td>Within range by construction (policy outputs). <span class="tag hyp">hypothesis</span></td></tr>
+<tr><td>Chunk length 40 / 16</td><td>Full episodes, so every frame has a full 16-step label. If a later recipe supervises all 40, episodes still suffice.</td><td>Same.</td><td>Only if the fix records full episodes; the old 48-step truncation must go.</td></tr>
+<tr><td>"no_noops" convention</td><td>IPEC data has no-op actions removed. Controller stalls at the join or at grasp are no-ops and must be dropped the same way, or the mix teaches waiting. <span class="tag hyp">hypothesis</span></td><td>Same; scripted pauses especially.</td><td>Same rule.</td></tr>
+<tr><td>1:1 replay mix</td><td>Fits <code>mix.py</code> unchanged. Dose: report frame-0 views per direction × cm cell, not only per demo.</td><td>Same.</td><td>Same.</td></tr>
+<tr><td>Direction × cm coverage</td><td><b>Free</b>: yield is set by the controller, so cells can be sampled to quota.</td><td><b>Free</b>, same.</td><td><b>Biased</b>: yield falls where the base fails (0.2 beyond 16 cm; dir1 7/20 at 8–12 cm), the cells we most need. <span class="tag est">established</span></td></tr>
+</table></div>
+
+<p><b>Does DATAFARM-style "style alignment" apply to GR00T?</b> <span class="tag hyp">hypothesis</span> Yes, for B certainly and for A partly.</p>
+<ul class="tight">
+<li><b>B.</b> The base was fine-tuned on IPEC human teleop demos (20 fps, no-ops removed). DATAFARM's gap (8.3% for raw planner data against 56.7% once aligned, abstract) is between planner-like and human-like action statistics. B's actions are planner-like throughout.</li>
+<li><b>A.</b> A is planner-like only on the bridge, and human-shaped after the join, since it tracks the human EEF path. But even the post-join actions are produced by our controller, not the human's recorded actions. Where the state is back on the demo, prefer the demo's own recorded actions as labels.</li>
+<li><b>S2</b> uses the policy's own or nominal actions, so style is native. Its problem is coverage, not style.</li>
+</ul>
+<p><b>How to measure it</b>, all CPU or one inference pass, before any training:</p>
+<ol class="tight">
+<li>Per-dimension action mean and std, translation speed, jerk, gripper-transition timing and time-to-grasp, each inside the IPEC p5–p95 band (already a §4.5 gate).</li>
+<li>A two-sample classifier on 16-step action chunks, IPEC against generated, scored on non-bridge segments. An AUROC near 0.5 means indistinguishable. Report it per segment type (bridge, post-join, grasp).</li>
+<li>The base model's own flow-matching loss on the new labels at fixed seed. It should sit near IPEC's level on non-bridge frames (D20(i) base median on IPEC: 0.0077) and be high only on the bridge frames, where the label is meant to be new. High loss on post-join frames means a style or label mismatch, not new signal.</li>
+<li>The clamp share from the table above.</li>
+</ol>
+
+<p><b>What fits on 8 GB, and what needs rented compute.</b></p>
+<div class="tbl"><table>
+<tr><th>Step</th><th>8 GB laptop</th><th>Evidence</th></tr>
+<tr><td>Generating A or B data (sim only, no policy)</td><td><b>Fits.</b> CPU plus MuJoCo rendering. Rendering uses an EGL context on the GPU, so run it when no GPU job holds the lock. Two live EGL contexts are the leading suspect for the r64 transfer OOM.</td><td><span class="tag est">established</span> OOM note: R-058 r64 transfer, 7.39 / 7.53 GiB · <span class="tag hyp">hypothesis</span> for the cause</td></tr>
+<tr><td>S2 minting (needs policy rollouts)</td><td>Fits, but slow (GPU inference per attempt), and the yield is biased (above).</td><td><span class="tag est">established</span> R-054</td></tr>
+<tr><td>LoRA on DiT + <code>vl_self_attention</code>, backbone frozen, micro-batch 1</td><td><b>Fits.</b> 6.3–6.7 GB peak, 19.1 M trainable at r16, 113 min per 2,000 optimiser steps at effective batch 8. Eval ~70 min.</td><td><span class="tag est">established</span> <code>runs/overnight/SUMMARY_r056fix.txt</code></td></tr>
+<tr><td>The same at the post-mortem's effective batch 32–64</td><td>Fits in memory (accumulation), at roughly 4–8× the wall time: ~7.5–15 h per 2,000 steps. The cached-backbone-feature path (<code>vla_harness/training/feature_cache.py</code>, used for R-058 r64) removes the backbone forward; its speedup is not measured.</td><td><span class="tag hyp">hypothesis</span> linear scaling</td></tr>
+<tr><td>Three-arm comparison (replay / S2 fixed / new source), matched budget</td><td>Fits as several overnight runs (my 09-30 estimate was 25–35 GPU-hours in total). Rented compute would turn it into a day.</td><td><span class="tag hyp">hypothesis</span></td></tr>
+<tr><td>Full fine-tune of the action head (~1.6 B trainable by default)</td><td><b>Rent.</b> AdamW states for ~1.6 B parameters alone exceed 8 GB.</td><td><span class="tag hyp">hypothesis</span> arithmetic; the 1.62 B figure is from impl's port notes</td></tr>
+<tr><td>Unfreezing Cosmos-Reason2-2B (LLM or vision)</td><td><b>Rent</b>, 40–80 GB class. This is also the route to the checkpoint's own batch 320.</td><td><span class="tag hyp">hypothesis</span></td></tr>
+<tr><td>RL post-training (RIPT-VLA, SimpleVLA-RL)</td><td><b>Rent</b> (§1.3 verdict unchanged).</td><td><span class="tag rec">recommendation</span></td></tr>
+</table></div>
+<p><span class="tag rec">recommendation</span> Nothing in A or B needs rented compute until the three-arm comparison shows the source matters. Rent first for the recipe question (effective batch), because the post-mortem flags it as a live confound, not for data generation.</p>
+
 <h2>4. Q3: Measuring data quality before training</h2>
 <p><span class="tag rec">recommendation</span> Every item below is CPU-only except §4.5, and each has a pass or fail threshold, so a dataset can be rejected before any GPU training. The thresholds are proposals to pre-register, not measured values.</p>
 
