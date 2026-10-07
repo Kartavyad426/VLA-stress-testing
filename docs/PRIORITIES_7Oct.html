@@ -50,6 +50,13 @@
   li .who{font-size:.75rem; color:var(--faint); white-space:nowrap; text-align:right;}
   li .when{grid-column:2/4; font-family:var(--mono); font-size:.75rem; color:var(--ok);}
   li.done .t{text-decoration:line-through; color:var(--muted);}
+  li .ap{grid-column:2/4; display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; font-size:.78rem; color:var(--muted);}
+  li .ap label{display:inline-flex; gap:5px; align-items:center; cursor:pointer;}
+  li .ap input{width:14px; height:14px; margin:0; accent-color:var(--accent);}
+  li .ap .at{font-family:var(--mono); color:var(--accent);}
+  .pill{font-size:.68rem; font-weight:600; padding:1px 7px; border-radius:99px; border:1px solid currentColor; margin-left:6px; vertical-align:middle;}
+  .p-ap{color:var(--accent);} .p-done{color:var(--ok);}
+  #inprog ul li{grid-template-columns:1fr auto;}
   code{font-family:var(--mono); font-size:.82em; background:var(--surface-2); padding:.05em .3em; border-radius:3px; overflow-wrap:anywhere;}
   @media (max-width:600px){ li{grid-template-columns:24px 1fr;} li .who{grid-column:2; text-align:left;} }
 </style>
@@ -57,13 +64,14 @@
 <body>
 <div class="wrap">
 <h1>Experiment priorities, 7 October</h1>
-<p class="sub">From the 7pm review of 6 Oct: the deep-read papers, the decision tracker (<code>Decision_28Sep.html</code>) and RESULTS.md. Tick an item when it's done; the time is recorded. Order within each tier is the suggested order.</p>
+<p class="sub">Two marks per item: <b>approved</b> (you gave the go-ahead) and <b>done</b> (finished). Each records its time. From the 7pm review of 6 Oct: the deep-read papers, the decision tracker (<code>Decision_28Sep.html</code>) and RESULTS.md. Tick an item when it's done; the time is recorded. Order within each tier is the suggested order.</p>
 <div class="bar">
   <span id="mode"><span class="dot" style="background:var(--warn)"></span>checking storage…</span>
   <span id="count"></span>
   <span class="prog"><i id="progbar"></i></span>
   <button id="export" type="button">Export JSON</button>
 </div>
+<section id="inprog"><h2>Approved, in progress<small>approved but not yet done</small></h2><ul id="inprog-list"></ul></section>
 <div id="list"></div>
 </div>
 
@@ -144,7 +152,7 @@ function fmt(iso){ const d = new Date(iso); return d.toLocaleString(undefined,{y
 
 function render(){
   const root = document.getElementById("list"); root.innerHTML = "";
-  let total = 0, done = 0;
+  let total = 0, done = 0; const inprog = [];
   for (const [title, hint, items] of TIERS){
     const sec = document.createElement("section");
     sec.innerHTML = `<h2>${title}${hint ? `<small>${hint}</small>` : ""}</h2>`;
@@ -152,18 +160,27 @@ function render(){
     for (const [id, t, d, who] of items){
       total++; const s = state[id]; if (s && s.done) done++;
       const li = document.createElement("li"); if (s && s.done) li.className = "done";
-      li.innerHTML = `<input type="checkbox" id="${id}" ${s && s.done ? "checked" : ""}>
-        <label class="t" for="${id}">${t}</label><span class="who">${who}</span>
+      const ap = s && s.approved;
+      li.innerHTML = `<input type="checkbox" class="dn" id="${id}" ${s && s.done ? "checked" : ""} title="done">
+        <label class="t" for="${id}">${t}${ap && !(s && s.done) ? '<span class="pill p-ap">approved</span>' : ""}</label><span class="who">${who}</span>
         ${d ? `<span class="d">${d}</span>` : ""}
-        ${s && s.done ? `<span class="when">✓ ticked ${fmt(s.at)}</span>` : ""}`;
-      li.querySelector("input").addEventListener("change", e => {
-        state[id] = e.target.checked ? {done:true, at:new Date().toISOString()} : {done:false, at:new Date().toISOString()};
+        <span class="ap"><label><input type="checkbox" class="apr" ${ap ? "checked" : ""}> approved</label>${ap ? `<span class="at">${fmt(s.approved_at)}</span>` : ""}</span>
+        ${s && s.done ? `<span class="when">✓ done ${fmt(s.at)}</span>` : ""}`;
+      li.querySelector("input.dn").addEventListener("change", e => {
+        state[id] = Object.assign({}, state[id], {done:e.target.checked, at:new Date().toISOString()});
         save().then(render);
       });
+      li.querySelector("input.apr").addEventListener("change", e => {
+        state[id] = Object.assign({}, state[id], {approved:e.target.checked, approved_at:new Date().toISOString()});
+        save().then(render);
+      });
+      if (ap && !(s && s.done)) inprog.push([t, who, s.approved_at]);
       ul.appendChild(li);
     }
     sec.appendChild(ul); root.appendChild(sec);
   }
+  const il = document.getElementById("inprog-list");
+  il.innerHTML = inprog.length ? inprog.map(([t,w,at]) => `<li><span class="t">${t}</span><span class="who">${w} · approved ${fmt(at)}</span></li>`).join("") : '<li><span class="d">Nothing approved and pending.</span></li>';
   document.getElementById("count").textContent = `${done} / ${total} done`;
   document.getElementById("progbar").style.width = (total ? 100*done/total : 0) + "%";
 }
