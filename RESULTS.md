@@ -229,13 +229,13 @@ Every entry records its expectation and **says when it was written**:
 | R-049 | 09-24 | EVAL | Layout, texture and language rows | DONE | Layout agent view 0.55; texture cross-camera; a language rewrite moves the first action by 1.4 (doubled on R-038's scenes) |
 | R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
 | R-051 | 09-25 | EVAL | Reverse direction, noise seeds and layout rescue for the remaining rows | DONE (scored 09-28) | 4 of 6 held: noise single-camera; lighting and texture joint; layout agent view; a corrected first chunk does not rescue layout |
-| R-052 | 09-28 | EVAL | Benchmark camera cone: yaw, pitch and distance about LIBERO-Plus's own pivots | PRE-REGISTERED, NOT RUN | ~760 rollouts, ~9.5 h; runs after R-047; knobs camera_bench_* |
+| R-052 | 09-28 | EVAL | Benchmark camera cone: yaw, pitch and distance about LIBERO-Plus's own pivots | DONE | Bench yaw is gentler than harness yaw (paired 48 vs 28, p = 0.03): 0.81 at 75°, 0/9 scenes ≤ 0.2. Distance is the damaging axis: 0.88 at 1.4× → 0.50 at 2.0×, 50% at 1.87×, top-drawer cliff at 1.4×. Pitch 15° 0.91 (top-drawer 1/4). Neutral < 100% (on-ramekin seeds 1–2; on-wooden-cabinet flaky), excluded per scene. 2 of 6 held |
 | R-053 | 09-28 | EVAL | Start-pose no-op baseline: how many R-044 rescues are render jitter | DONE (scored 10-06) | 4/4 held: N 24/30; N flips 20/24 P-failures, a plain re-run 0/22. The forward-0 rescue is real |
 | R-054 | 09-28 | DATA | Rescue-minting pilot: 100 start-pose demos, LeRobot converter, dataset gates | DONE (scored 10-06) | Yield 100/146 = 68.5% (E1 missed narrowly); G1, G4, G6 pass; G7 never signed off; the post-mortem later found 16/100 failed-first-grasp demos |
 | R-055 | 09-28 | GATE | GR00T LoRA fine-tune gates: zero-step conformance, overfit, memory on 8 GB | DONE (scored 10-06) | Conformance exact (10/10), 2b and memory pass (6.73 GiB); overfit missed a miscalibrated bar (13.9%) and is informational (user, 09-29) |
-| R-056 | 09-28 | EVAL | Start-pose retraining pilot, arm (a): LoRA head, frozen VLM, 100 minted demos + 1:1 replay | DONE — UNINTERPRETABLE BY ITS OWN RULE; interpretation provisional (D20) | Held-out 59/108 vs base 67/108 (p = 0.24), gap −0.20; whole drop is scene 1327 at the grasp (12/12 → 4/12); excluding 1327, 55 vs 55 |
+| R-056 | 09-28 | EVAL | Start-pose retraining pilot, arm (a): LoRA head, frozen VLM, 100 minted demos + 1:1 replay | DONE — UNINTERPRETABLE BY ITS OWN RULE; post-hoc D20 diagnosis (10-07) | Held-out 59/108 vs base 67/108 (p = 0.24), gap −0.20; whole drop is scene 1327 at the grasp (12/12 → 4/12); excluding 1327, 55 vs 55. D20: training starts closed 30% toward their labels, held-out 12%, so it is a generalisation failure, not a fit failure. WiSE α 0.5: 69/108 |
 | R-057 | 09-28 | EVAL | When is the episode decided: drive-until sweep k ∈ {1,2,4,all} on start pose and camera | DONE (scored 10-06) | Start pose k* = 1 (P 6, k1 24, all 19 of 30); camera throughout (k4 23 vs all 30); all six held, E1 at its boundary |
-| R-058 | 09-28 | EVAL | LoRA rank sweep on the start-pose pilot: r ∈ {4, 64} vs R-056's r = 16 | PARTIAL — r = 64 PENDING (D18) | r = 4: 65/108 vs base 67 and r = 16 59 (paired p 0.86 and 0.38). r = 64 OOM-killed at opt ~1900; checkpoints 500–1500 not evaluated |
+| R-058 | 09-28 | EVAL | LoRA rank sweep on the start-pose pilot: r ∈ {4, 64} vs R-056's r = 16 | DONE (r = 64 deviates: 1500/2000 steps, transfer not run) | Ranks 4 / 16 / 64: 65 / 59 / 64 of 108 vs base 67 (paired p 0.86 / 0.24 / 0.74); scene 1327 2 / 4 / 3 of 12 at every rank; capacity is not the lever |
 | R-059 | 09-29 | ANALYSIS + EVAL | Sentinel STAC on GR00T at matched forward index, B seeded draws, against a clock baseline | PRE-REGISTERED, NOT RUN | part A CPU on R-047; B smoke; C1 240 start-pose rollouts (~4 h at B = 32); gate: STAC ≥ 3× the noise floor |
 
 ---
@@ -4304,9 +4304,9 @@ Medians over 10 instances each.
 
 ---
 
-## R-052 — PRE-REGISTERED, NOT YET RUN: the benchmark's own camera cone — yaw, pitch and distance about LIBERO-Plus's pivots
+## R-052 — DONE: the benchmark's camera cone is milder than the harness knob on yaw; distance is the damaging axis (0.50 at 2.0×); pitch 15° holds; two scenes fail with nothing perturbed
 
-**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
+**Date registered** 2026-09-28 · **Run** 2026-09-29 07:21 → 12:24 (yaw, scale, 34 pitch rollouts; deadline-cut) and 2026-10-06 17:26 → 18:08 (pitch resumed, 126 rollouts) · **Status** DONE (scored 2026-10-07 by my prim) · **Type** EVAL ·
 **Runner** `experiments/r047_run.py` (axes `camera_bench_*`) · **Queue** to be
 written (`experiments/queue_r052.sh`); runs after R-047 releases the GPU ·
 **Knobs** `vla_harness/envs/libero_env.py` `_apply_bench_camera`, tested by
@@ -4394,6 +4394,68 @@ against R-047's yaw axis.
 Magnitude-neutral success below 100% pooled; `tests/test_bench_camera.py`
 failing on the code state recorded in `runs/r052/code_state`; or more than 3 of
 the 10 scenes dropped from the scale axis.
+
+### RESULT, 2026-10-07 — two of six held; benchmark yaw is gentler than harness yaw, distance is where GR00T breaks, pitch 15° holds
+
+`runs/r052/{camera_bench_yaw_deg,camera_bench_scale,camera_bench_pitch_deg}/manifest.jsonl`: 360 + 240 + 160 = 760 rollouts, every (scene, magnitude, seed) key unique, all axes rc=0. Scoring is in `runs/r052/score.json` (script `runs/r052/score_r052.py`, the R-047 scorer generalised to three axes, plus the bench-vs-harness yaw pairing). `runs/r052/PARTIAL` is a false negative. Pitch completed: its log reads `] done` at line 2411. `queue_r052.sh` looks for "done" only in the log's last 3 lines, and EGL teardown tracebacks after exit push it out. Code unchanged by user decision (10-06).
+
+**Pooled success by magnitude.** All ten scenes; brackets give the scored scenes after the exclusions below.
+
+| bench yaw (deg) | 0 | 5 | 10 | 20 | 30 | 40 | 50 | 60 | 75 |
+|---|---|---|---|---|---|---|---|---|---|
+| success /40 | 38 (36/36) | 39 (35) | 40 (36) | 38 (34) | 31 (28) | 34 (30) | 29 (25) | 36 (32) | 32 (29/36) |
+| harness yaw, R-047 /40 | 37 (35/36) | 40 (36) | 39 (35) | 37 (33) | 32 (28) | 32 (28) | 23 (20) | 27 (24) | 29 (25/36) |
+
+| bench scale (×) | 1.0 | 1.2 | 1.4 | 1.6 | 1.8 | 2.0 |
+|---|---|---|---|---|---|---|
+| success /40 | 35 (32/32) | 38 (30) | 31 (28) | 22 (19) | 19 (17) | 21 (16/32) |
+
+| bench pitch (deg) | 0 | 5* | 10* | 15 |
+|---|---|---|---|---|
+| success /40 | 36 (32/32) | 40 (32) | 40 (32) | 36 (29/32) |
+
+\* interpolation points; the benchmark uses only 0 and 15.
+
+**Uninterpretability conditions.**
+- *Magnitude-neutral success below 100%: TRIGGERED, by two scenes.* Handled as in R-047, excluding per scene and per axis (forced by the pre-registered condition, applied after the run).
+  - on-ramekin (1169) times out at neutral under noise seeds 1 and 2 on all three axes. That is the same unperturbed failure R-047 found, and it's deterministic: identical ‖P−N‖ f0 and 280 steps on every axis. Excluded on all axes.
+  - on-wooden-cabinet (1327) is 4/4 at yaw 0 but 1/4 at scale 1.0 and 2/4 at pitch 0. The three neutral configs are the same episode. On seeds 1–3 the forward-0 ‖P−N‖ is identical across axes, yet the outcomes differ, so the divergence arises later in the episode (render or physics nondeterminism at the grasp). It's the same scene whose grasp regressed in R-056. Excluded on scale and pitch.
+  - The scored neutral cells are 36/36, 32/32 and 32/32.
+- *`tests/test_bench_camera.py` failing: HELD.* 10/10 passed on 2026-10-07, run as the test documents (osmesa). `vla_harness/envs/libero_env.py` and the test are unchanged since `runs/r052/code_state/HEAD` (ad52625).
+- *More than 3 of 10 scenes dropped from scale: HELD.* None dropped. No spatial-suite scene uses a class whose `_setup_camera` ignores scale.
+
+**Provenance: pitch ran under two code states.** 34 pitch rollouts are from 09-29 and 126 from 10-06, after impl's F1–F6 code, which includes the streaming bf16 load in `lerobot_policy.py`. `runs/r052/code_state` records only the 09-29 start. Check: on neutral cells, the 10-06 pitch rows match 09-29 yaw on forward-0 ‖P−N‖ in 27/31 and on outcome in 29/31. That's the same rate as two same-day axes (yaw vs scale, both 09-29: 30/40 and 37/40). The code change is not visible in the outputs, so the two halves are pooled.
+
+1. **Neutral 10/10 per scene and non-increasing in magnitude: MISSED.**
+   - Neutral: see above.
+   - Monotonicity (single-replicate flips allowed): yaw has violations on 4 of 9 scored scenes. on-stove drops to 1/4 and 0/4 at 30–40°, then returns to 4/4 at 60–75°. on-wooden-cabinet and next-to-ramekin dip in the middle. table-center dips at 50°. Scale has 1 of 8 (on-cookie-box 0.50 → 1.00 between 1.4 and 1.6×). Pitch has none.
+   - As in R-047, four replicates can't resolve a mid-range dip from noise. But on-stove's 0/4 at 40° next to 4/4 at 60° and 75° is unlikely by chance (p < 0.01 at any common rate). This is the about-origin geometry: the scene swings across the image and back. See 2.
+2. **Bench yaw at least as damaging as harness yaw: MISSED, the opposite.**
+   - Paired on the same scene, magnitude and seed (on-ramekin excluded), bench yaw succeeds where harness yaw fails 48 times, and the reverse 28 times (sign test p = 0.03). At 50–75° it's 32 vs 15 (p = 0.02).
+   - At 75°: bench 29/36 vs harness 25/36.
+   - The pooled 50% point of bench yaw lies outside the range (the logistic extrapolates to about 119°).
+   - Per scene at 75°, harness/bench: on-stove 1/4 → 4/4 and on-wooden-cabinet 2/4 → 4/4 get better; next-to-ramekin 3/4 → 1/4 gets worse; the rest are equal within one replicate.
+   - Expectation 2's reasoning (the scene translating across the image is harder) doesn't hold at these angles for this policy.
+3. **≥ 8/10 scenes reach success ≤ 0.2 by bench yaw 75°: MISSED badly.** 0/9 scored scenes are ≤ 0.2 at 75°; the lowest is next-to-ramekin at 0.25. Only on-stove reaches ≤ 0.2 at any angle (0.00 at 40°, not sustained). GR00T is robust to the benchmark's yaw range on LIBERO-Spatial. It holds 0.81 at 75° (scored scenes), the benchmark's edge.
+4. **Scale: pooled ≥ 0.8 up to 1.4×, and ≥ 5/10 scenes below 0.5 at 2.0×: MISSED (first half held).**
+   - Up to 1.4×: 32/32, 30/32, 28/32 (0.88 at 1.4×) on scored scenes. All ten: 0.78 at 1.4×.
+   - At 2.0×, 3 scenes are below 0.5: next-to-ramekin 0/4, top-drawer 0/4, on-stove 1/4. Two more sit exactly at 0.5 (on-cookie-box and next-to-cookie-box).
+   - Distance is the damaging axis. Pooled success falls from 0.88 at 1.4× to 0.59 at 1.6× and 0.50 at 2.0×. The pooled 50% point is 1.87× (all ten scenes).
+   - The edges are scene-dependent and steep: top-drawer has its 50% point at 1.40× (width 0.15×) and next-to-ramekin at 1.65× (width 0.26×), while table-center and between-plate-ramekin are flat at 1.0 to 2.0×.
+5. **Pitch 15° pooled ≥ 0.8: HELD.** 29/32 = 0.91 scored; 36/40 all ten. The loss is one scene: top-drawer falls 4/4 → 1/4 at 15° (50% point at 13.9°). The 5° and 10° points are 40/40.
+6. **‖P−N‖ at forward 0 does not predict success within a magnitude (|r| < 0.3): HELD on yaw and scale; pitch not measurable.**
+   - Yaw: r = −0.27 over 19 mixed cells (76 rollouts). Close to the bound, and the same sign as start pose in R-047.
+   - Scale: r = +0.12 over 17 cells.
+   - Pitch: 1 mixed cell.
+
+**Two of six held** (5 and 6); 4 held in its first half.
+
+**What this changes.**
+- On LIBERO-Spatial, GR00T N1.7 isn't fragile to the benchmark's camera yaw or pitch. Pooled success stays ≥ 0.81 across the benchmark's yaw cone, and pitch 15° costs one scene.
+- Its camera weakness is distance. Above 1.4× the camera offset, half the episodes fail, and three scenes collapse.
+- The harness yaw knob (R-041, R-047) overstated yaw fragility at 50–75°. Camera claims should cite this entry's geometry, not R-047's.
+- For data sourcing, camera-distance variation (1.6–2.0×) is the camera condition worth covering; yaw isn't.
+- Two scenes fail with nothing perturbed: on-ramekin deterministically under seeds 1–2, and on-wooden-cabinet nondeterministically at the grasp. Every per-scene camera curve for those two is unreliable, and on-wooden-cabinet's neutral flakiness is relevant context for its R-056 regression.
 
 ---
 
@@ -4792,9 +4854,9 @@ The adapter has 19,136,512 trainable parameters, all LoRA, with no non-LoRA tens
 
 ---
 
-## R-056 — DONE, UNINTERPRETABLE BY ITS OWN RULE (interpretation provisional, pending D20): start-pose retraining pilot, arm (a) — held-out 59/108 vs base 67/108; the whole drop is scene 1327 at the grasp
+## R-056 — DONE, UNINTERPRETABLE BY ITS OWN RULE (post-hoc diagnosis D20 added 10-07): start-pose retraining pilot, arm (a) — held-out 59/108 vs base 67/108; the whole drop is scene 1327 at the grasp; the adapter fitted its training starts and did not generalise to the held-out directions
 
-**Date registered** 2026-09-28 · **Run** 2026-09-29 19:37–23:32 (fixed-schedule retrain) · **Status** DONE — UNINTERPRETABLE BY ITS OWN RULE; interpretation provisional pending D20 (scored 2026-10-06) · **Type** EVAL (training) ·
+**Date registered** 2026-09-28 · **Run** 2026-09-29 19:37–23:32 (fixed-schedule retrain) · **Status** DONE — UNINTERPRETABLE BY ITS OWN RULE (scored 2026-10-06; post-hoc D20 diagnosis and WiSE added 2026-10-07) · **Type** EVAL (training) ·
 **Depends on** R-053 (no-op rate), R-054 (data), R-055 (gates pass) ·
 **Design basis** R-046 arm (a), which this reinstates in pilot form by user
 decision 2026-09-28. R-046 arm (b) and the 500-demo scale are follow-ups,
@@ -4933,7 +4995,7 @@ Any of the following:
 
 ### RESULT, 2026-10-06 (fixed-schedule retrain, run 2026-09-29 19:37–23:32, scored by SFT) — every gain expectation missed; uninterpretable by the entry's own rule; the whole held-out drop is scene 1327, at the grasp
 
-**The numbers below are final. The interpretation at the end is PROVISIONAL until D20 reports** (approved 2026-10-06, with impl): a fit test of the adapter on its own training starts, plus an achieved-radius check.
+**The numbers below are final.** *(2026-10-07: the provisional interpretation that stood here pending D20 has been replaced by the post-hoc D20 addendum after this section.)*
 
 **Runs.**
 - Training: `runs/r056_r16_train`. Schedule verified: max LR error 1.4e-20 over 2,000 optimizer steps. Peak 6.30 GiB allocated / 6.73 GiB `nvidia-smi`.
@@ -4966,8 +5028,7 @@ Any of the following:
 
 **Uninterpretability checks.**
 - **Base held-out vs R-047's curve at the same radii: FIRED.** R-047 predicts 0.46; base's 95% interval is [0.53, 0.71]. **By its own registered rule, R-056 is uninterpretable.** The base and retrained arms ran on identical starts and are paired, so the comparison between them stands as a measurement. What the check removes is the link to R-047's difficulty scale: the held-out set is easier than designed.
-  - The post-mortem's account (§7): achieved radius is 0.74–0.78 × requested, and the two held-out directions per scene give very different gripper offsets from R-047's average direction.
-  - D20's radius check bears on this.
+  - *Corrected 2026-10-07.* The 10-06 text here quoted the post-mortem's "achieved radius 0.74–0.78 × requested" as if it were one factor. D20(ii) shows the factor depends on direction: about 0.72 for R-047's direction 0, and about 0.95 / 0.93 for directions 1 and 2. The account of the mismatch is in the D20 addendum below.
 - **Base nominal ≥ 26/27:** passed (27/27).
 - **G4 held-out exclusion:** passed (0 violations).
 - **R-055 gates resolved:** conformance, 2b and memory passed; overfit is informational.
@@ -4985,21 +5046,63 @@ Any of the following:
 - **1327 fails at the grasp, not in the first chunk** (post-mortem §4; analyzer's measurements, not re-measured by SFT). The adapters close the gripper 5.5–5.8 cm above the bowl, against base's 4.2 cm, about 1.5 cm higher. They then cycle through 5–7 regrasps and time out. Nominal 1327 seed 0 also fails under both adapters, so this is a regression on the task, not one specific to start pose.
 - **The exploratory "≤ 8 cm offset" drop (27/27 → 21/27) is the 1327 drop plus three 1062 losses.** Every ≤ 8 cm start is joint direction 100, so offset is confounded with scene and direction (post-mortem §1.3). It carries no offset effect.
 
-**Interpretation — PROVISIONAL, pending D20.**
+### RESULT addendum, 2026-10-07 — post-hoc diagnosis (D20) and WiSE-FT. Not pre-registered.
 
-> *[D20 placeholder: impl's fit test (retrained adapter on its own training starts) and the achieved-radius check. To be written when they report. If the adapter fails on its own training starts, the reading below changes from "the data was wrong" to "the pipeline or capacity could not fit it".]*
+**D20 was approved by the user on 2026-10-06.** impl ran it and my prim read it; SFT co-read it. All runs are committed in a3dcb3d. Everything in this addendum is post hoc: diagnosis, not a test of the registered expectations. For each item, **verified** means SFT re-derived the number from the artifact. **Read** means the number was taken from the summary file without being re-derived.
 
-The current reading follows the post-mortem (§1–§9 analyzer, §10 SFT).
-- **Effect.** The pilot did not improve start-pose robustness. Pooled, it did not measurably hurt it either. The one significant effect is a grasp regression on a single task.
-- **Cause.** The likely cause is the data, not the adapter. The post-mortem lists five faults:
-  - *coverage:* kept demos sit at a median 6.1 cm offset, while 42% of held-out starts are beyond 12 cm, where there are 9 demos;
-  - *dilution:* about 83% of the gradient went to labels the base already produces, and each frame 0 was seen fewer than once by the selected checkpoint;
-  - *pollution:* 16/100 failed-first-grasp demos with their recoveries truncated, which is the 1327 signature;
-  - *phase skew:* 91% approach frames;
-  - *borrowed labels:* "act as if at the canonical pose".
-- **What R-055 contributes.** Its 1500-step diagnostic shows the pipeline can fit one episode. It does not show that the adapter fit these 100.
+**(i) Fixed-seed flow loss per subset** (`runs/r056_diag/loss_summary.json`, `loss_rows.jsonl`; post-mortem §9 A).
+- *Design:* n = 100 frames per subset, 8 draws, seed 2020, paired with base. Augmentation was off, as in training. Base repeats were bit-identical.
+- *Training frame 0 was fitted* (read). Mean loss on the minted frame-0s, which are all 100 training starts: base 0.159; r = 16 opt500 / 1000 / 2000 0.078 / 0.059 / 0.055; r = 4 opt500 0.081. Between 91% and 96% of frames fell below base, and every 95% CI on the difference excludes 0. Frames 1–15 and 16–47 also fell (ratio of means 0.36–0.83).
+- *The original-data subset (IPEC) is mixed* (read). Median loss is slightly worse: base 0.0077, adapters 0.0085–0.0097. Only 24–42% of frames fell below base. The mean fell, but only because of a few outliers in base's heavy tail, and every CI on the mean difference includes 0. This is consistent with nominal 26/27.
+- *Reading:* the "dilution means the adapter could not fit" hypothesis does not hold. Dilution stays a candidate for poor *generalisation*.
 
-**Not run.** WiSE-FT at α = 0.5 (exploratory), D19.
+**(ii) R-047's success curve against the achieved gripper offset** (`runs/r056_diag/r047_offset_curve.json`, 360/360 R-047 rollouts with a start state).
+- *Achieved / requested joint radius depends on direction* (read): direction 0 about 0.72; directions 1 and 2 about 0.95 and 0.93.
+- *Success against offset in cm* (read):
+  | offset | ≤ 8 cm | 8–12 cm | 12–16 cm | > 16 cm |
+  |---|---|---|---|---|
+  | success | ≈ 0.93 | 0.65 | 0.22 | 0.15 |
+- *Direction matters inside the same cm band* (read): at 8–12 cm, direction 0 scores 33/40 and direction 1 scores 7/20.
+- *Applied to R-056's held-out starts, the cm curve predicts base 55.7/108; base scored 67* (verified: SFT recomputed each start's t = 0 offset against `runs/r047/nominal_starts.json`). R-047's radius curve predicted 0.46 (≈ 50/108). The cm re-plot therefore closes **about a third** of the 0.46 → 0.62 gap.
+  - The rest is almost entirely one cell: held-out direction 101 at 16–20 cm, which scored **16/33 against 5.0 predicted** (+11 of the +11.3 total).
+  - R-047's > 16 cm points come only from its directions 1 and 2, and R-056's held-out directions (100, 101) are a different set.
+  - The residual is a direction effect, not a radius-labelling error.
+- **Consequence:** evals and training data should be stratified by direction × offset in cm, not by requested radius.
+
+**(iii) The first-chunk fit test on the training starts** (`runs/r056_diag/fit_firstchunk.json`, read). The metric is post-mortem an7's (`experiments/analysis_r056_postmortem/an7.py`): ‖Σ_{16 steps}(dx, dy, dz) − reference‖ over chunk 0, as a median over starts.
+- *Pipeline anchor:* the held-out re-computation reproduces an7 exactly (base 4.51, r = 16 3.98, r = 4 4.12, 30/36 closer). The one-forward path matches the stored rollouts' chunk-0 displacement at median 0.0 (max 0.13). The minted labels equal the nominal chunk at seed 0 (median 0.0). **The pipeline is cleared as a suspect.**
+- *Training starts* (n = 100, reference = each start's minted label):
+  - r = 16 moved from 3.40 to 2.37, closing **30%**, with 74% of starts closer; r = 4 closed 27%.
+  - Against the an7-style nominal reference, which is comparable with the held-out figure, r = 16 closed 24%.
+- *Held-out starts* (n = 36, seed 0): r = 16 closed **12%** overall.
+- **Pooled, the headline is 30% on training starts (n = 100) against 12% on held-out (n = 36).**
+- *Matched offset bands, only where both sides have n ≥ 9* (small n; read as pointers):
+  - 4–8 cm: training 19% (n = 49) vs held-out direction 100 ≈ 0% (0.5%, n = 9);
+  - 8–12 cm: training 48% (n = 18) vs held-out direction 100 12% (n = 9).
+  - The other cells have n < 9 on one side and are not cited.
+
+**Post-hoc reading** (SFT and my prim agree; not pre-registered).
+- **Fit:** the adapter fitted its training starts, measured both by loss and by the sampled first chunk. Even there it moved only about 30% of the way, so the recipe is also under-dosed.
+- **Generalisation:** on held-out starts it moved 12% pooled, and about 0–12% in the matched bands. That gap is **consistent with a failure to generalise across directions, not shown.** Every training start has its own random direction (one start per direction), so direction and offset are confounded within the training set. The held-out directions 100 and 101 occur nowhere in training.
+- **Suspects, in order:**
+  1. the data: direction diversity and dose per region of start space (coverage, post-mortem §10);
+  2. an under-dosed recipe: effective batch 8, each frame 0 seen fewer than once;
+  3. the adapter: ruled down by R-058, where ranks 4 / 16 / 64 give 65 / 59 / 64.
+- **Not explained by this:** the scene-1327 grasp regression (post-mortem §4). It appears at every rank and needs its own control (the replay-only arm, D23).
+
+**WiSE-FT at α = 0.5** (exploratory, as registered; on r = 16 opt1000; run 2026-10-06 by user decision D19; `runs/r056_r16/manifest.jsonl` sets `heldout_wise` and `nominal_wise`). Verified: paired counts were re-derived by SFT, joined on the start key.
+
+| readout | base | r = 16 | WiSE α = 0.5 |
+|---|---|---|---|
+| held-out (108) | 67 | 59 | **69 (0.64 [0.54, 0.72])** |
+| paired vs base | | 14 gained / 22 lost, p = 0.24 | 11 gained / 9 lost, p = 0.82 |
+| paired vs r = 16 | | | 19 gained / 9 lost, p = 0.087 |
+| scene 1327 (12) | 12 | 4 | 8 (0 gained / 4 lost vs base, p = 0.125) |
+| excluding 1327 (96) | 55 | 55 | 61 (11 / 5 vs base, p = 0.21) |
+| scene 984 (12) | 6 | 5 | 10 |
+| nominal (27) | 27 | 26 | 26 (the failure is 1327 seed 0) |
+
+Halfway interpolation recovers half of the 1327 loss and is level with base pooled. No comparison is significant at n = 108. Exploratory only.
 
 ---
 
@@ -5138,9 +5241,9 @@ Decision point k\*: **start pose k\* = 1**; **camera "throughout (> 4 forwards)"
 
 ---
 
-## R-058 — PARTIAL (r = 4 done; r = 64 pending D18): LoRA rank sweep — r = 4 scores 65/108, level with base and r = 16 within noise
+## R-058 — DONE (r = 64 truncated at 1500 steps; its transfer not run): LoRA rank sweep — ranks 4 / 16 / 64 give 65 / 59 / 64 of 108 against base 67; capacity is not the lever
 
-**Date registered** 2026-09-28 · **Run** r = 4 2026-09-29 23:32 → 09-30 02:36; r = 64 killed 09-30 10:57 · **Status** PARTIAL — r = 64 PENDING (D18) (scored 2026-10-06) · **Type** EVAL (training) ·
+**Date registered** 2026-09-28 · **Run** r = 4 2026-09-29 23:32 → 09-30 02:36; r = 64 trained to opt 1500 (killed 09-30 10:57), evaluated 2026-10-06 · **Status** DONE, with a deviation for r = 64 (r = 4 scored 2026-10-06; r = 64 scored 2026-10-07) · **Type** EVAL (training) ·
 **Depends on** R-056, which provides the r = 16 arm, the base-checkpoint
 held-out numbers and all data. It runs after R-056 whatever R-056's outcome.
 **Code** `experiments/r056_train.py` / `r056_eval.py` with the rank as a
@@ -5214,46 +5317,57 @@ Any arm's training-path conformance at step 0 not exact (R-055 gate 1); the
 held-out or nominal sets differing from R-056's; or the r = 64 arm switching
 to cached features without the cache-equivalence gate passing.
 
-### RESULT (partial), 2026-10-06 (r = 4 run 2026-09-29 23:32 → 09-30 02:36, scored by SFT) — r = 4 is level with base and with r = 16 within noise; r = 64 was never evaluated (D18)
+### RESULT, 2026-10-06 / 10-07 (r = 4 run 2026-09-29 23:32 → 09-30 02:36; r = 64 evaluated 2026-10-06; scored by SFT) — no rank beats base; ranks 4 / 16 / 64 give 65 / 59 / 64; the scene-1327 regression appears at every rank
+
+Paired counts and per-scene numbers were re-derived by SFT from the manifests, joined on the start key (verified). Training-log figures are read from `runs/overnight/SUMMARY_r056fix.txt` and `vla_train_meta.json`.
 
 **r = 4.**
 - Training: `runs/r058_r4_train`, 113 min. Schedule verified (max LR error 1.4e-20). Peak 6.08 GiB allocated / 6.46 GiB `nvidia-smi`. 4,784,128 trainable parameters.
-- Evaluation: `runs/r058_r4/{manifest.jsonl,score.json,selection.json,transfer/}`. The base arm is R-056's, on the identical sets (`--base-manifest runs/r056_r16/manifest.jsonl`), as registered.
+- Evaluation: `runs/r058_r4/`.
 - Selection: validation 5, 5, 4 and 5 of 10, so opt500 was selected on the closest-approach tie-break.
 
-| readout | base | r = 16 (R-056) | r = 4 |
-|---|---|---|---|
-| held-out success (108) | 67 (0.62) | 59 (0.55) | **65 (0.60 [0.51, 0.69])** |
-| paired against base | | 14 gained / 22 lost, p = 0.24 | 14 gained / 16 lost, p = 0.86 |
-| gap closed | | −0.20 | −0.05 |
-| band 0.2–0.3 / 0.3–0.4 / 0.4–0.5 | 14 / 13 / 40 | 14 / 8 / 37 | 10 / 8 / 47 |
-| held-out excluding scene 1327 (96) | 55 | 55 | 63 |
-| scene 1327 (12) | 12 | 4 | 2 |
-| nominal control (27) | 27 | 26 | 25 |
-| W transfer at forward 0, median | 0.88 | 0.84 | 0.82 |
-| held-out closest approach, median; improved vs base | 5.65 cm | 5.72 cm; 45/108 | 5.30 cm; 54/108 |
+**r = 64: deviation from the registered design.**
+- *Resident training ran out of CUDA memory at start* (09-30 02:36). The cache-equivalence gate passed exactly (relative difference 0.0), and training resumed from cached VLM features. As registered, that switch is not a deviation.
+- *The truncation is a deviation.* The kernel OOM-killed the cached run on 09-30 at 10:57, at optimizer step ~1900/2000 (unit peak 19.9 GB). The last checkpoint is **opt1500, not annealed:** LR 1.6e-5, against 6.8e-11 at opt2000 for r = 4 and r = 16. The registered "same optimizer steps" does not hold, so r = 64 is a shorter, unannealed arm.
+- *Selection:* among the three surviving checkpoints, validation scored 4, 4 and 6 of 10 at opt 500 / 1000 / 1500, so opt1500 was selected. Selection is near random at n = 10.
+- *Evaluation* (2026-10-06, user decision D18; `runs/r058_r64/`): held-out 108 and nominal 27 completed.
+- **Transfer was not run.** The transfer phase hit a CUDA OOM on its first forward (2026-10-06 16:28, 7.39 of 7.53 GiB), and **by the user's decision (~16:40) it was skipped with no code fix.** impl's hypothesis, two LiberoEnv EGL contexts held by `r044_reverse.py`, is **unverified** and was not patched. So `transfer.retrained` and `retrained_median_W` are null for r = 64.
 
-r = 4 against r = 16, paired on the same 108 starts: 19 succeed only under r = 4 and 13 only under r = 16 (exact p = 0.38). r = 4's two nominal failures are scene 1327 seed 0 and scene 1030 seed 0.
+| readout | base | r = 4 | r = 16 (R-056) | r = 64 (opt1500) |
+|---|---|---|---|---|
+| held-out success (108) | 67 (0.62) | 65 (0.60) | 59 (0.55) | **64 (0.59 [0.50, 0.68])** |
+| paired vs base (gained / lost, p) | | 14 / 16, 0.86 | 14 / 22, 0.24 | 17 / 20, 0.74 |
+| paired vs r = 16 | | 19 / 13, 0.38 | | 16 / 11, 0.44 |
+| gap closed | | −0.05 | −0.20 | −0.07 |
+| band 0.2–0.3 / 0.3–0.4 / 0.4–0.5 | 14 / 13 / 40 | 10 / 8 / 47 | 14 / 8 / 37 | 13 / 7 / 44 |
+| scene 1327 (12) | 12 | 2 | 4 | **3** (0 / 9, p = 0.004) |
+| excluding 1327 (96) | 55 | 63 | 55 | 61 (17 / 11, p = 0.35) |
+| nominal control (27) | 27 | 25 | 26 | 26 |
+| W transfer at forward 0, median | 0.88 | 0.82 | 0.84 | **not run** |
+| held-out closest approach, median; improved vs base | 5.65 cm | 5.30 cm; 54/108 | 5.72 cm; 45/108 | 5.41 cm; 45/108 |
 
-**r = 64: not evaluated.**
-- Resident training ran out of CUDA memory at start (09-30 02:36; marker `runs/overnight/r058_r64_resident_oom`).
-- The cache-equivalence gate then passed exactly (relative difference 0.0).
-- Training from cached features started at 02:37. The kernel OOM-killed it on 09-30 at 10:57, at optimizer step ~1900/2000; the unit's memory peak was 19.9 GB.
-- Checkpoints at 500, 1000 and 1500 survive in `runs/r058_r64_cached_train/checkpoints/`, each `schedule_verified`. They are not evaluated.
-- **Pending D18:** evaluate opt1500 as is, resume, or retrain with a memory fix.
+Per scene (held-out, 12 each; scenes 984, 1030, 1062, 1090, 1132, 1201, 1247, 1282, 1327): r = 64 scores 7, 0, 3, 6, 11, 12, 11, 11, 3. The other arms are in R-056's table. Nominal failures: r = 64 fails scene 1327 seed 0; r = 4 fails 1327 seed 0 and 1030 seed 0.
 
-1. **r = 4 within 5 pp of r = 16 on held-out success: MISSED, narrowly, with r = 4 the better.** +5.6 pp (65 vs 59; paired p = 0.38). Read as a tie within noise; it is not evidence about capacity in either direction.
-2. **r = 64 does not beat r = 16 by ≥ 10 pp: PENDING (D18).**
-3. **r = 64's nominal drop ≥ r = 4's: PENDING.** For reference, r = 4 dropped 2/27 and r = 16 1/27.
-4. **W-transfer drop within 0.1 across the three ranks: HELD so far, on two ranks.** r = 16 −0.04, r = 4 −0.06. r = 64 is pending. Neither rank moves W much, so neither learned the forward-0 invariance (R-056 expectation 4).
-5. **Closest approach agrees with 1 and 2 in direction: HELD for 1.** It favours r = 4 (5.30 vs 5.72 cm), as success does. The half that concerns 2 is pending.
+1. **r = 4 within 5 pp of r = 16 on held-out success: MISSED, narrowly, with r = 4 the better.** +5.6 pp (65 vs 59; paired p = 0.38). A tie within noise.
+2. **r = 64 does not beat r = 16 by ≥ 10 pp: HELD.** +4.6 pp (64 vs 59; paired p = 0.44). Caveat: r = 64 is the truncated, unannealed arm (see the deviation above).
+3. **r = 64's nominal drop is ≥ r = 4's: MISSED.** r = 64 dropped 1/27 and r = 4 2/27. That is a one-rollout difference at n = 27, so the registered "only a large difference is visible" applies.
+4. **W-transfer drop within 0.1 across the three ranks: NOT RUN for r = 64**, by the user's decision of 2026-10-06 ~16:40 (above). On the two ranks measured it holds: r = 16 −0.04, r = 4 −0.06. Neither moves W much.
+5. **Closest approach agrees with 1 and 2 in direction: HELD.** r = 4 beats r = 16 in both success and closest approach (5.30 vs 5.72 cm). r = 64 beats r = 16 in both, by a small margin (5.41 cm, +4.6 pp).
 
 **Uninterpretability checks.**
-- Step-0 training-path conformance was measured at r = 16 only (R-055 gate 1, exact) and **not repeated at r = 4.** With LoRA's B = 0 at initialisation the adapter is a no-op at any rank, so this is a gap in the record, not a known defect.
-- The held-out and nominal sets are R-056's.
+- Step-0 training-path conformance was measured at r = 16 only (R-055 gate 1, exact) and **not repeated at r = 4 or r = 64.** With LoRA's B = 0 at initialisation the adapter is a no-op at any rank, so this is a gap in the record, not a known defect.
+- The held-out and nominal sets are R-056's; the base arm is reused from `runs/r056_r16/manifest.jsonl`.
 - Cache equivalence passed before r = 64 used the cache.
+- None fired. The r = 64 truncation is a recorded deviation, not one of the registered conditions.
 
-**What it decides so far.** Two of three ranks are flat against base pooled. Rank does not remove the scene-1327 grasp regression: r = 4 has the larger one (2/12) and the better remainder (63/96). This points to the registered branch "every rank flat and R-056 flat: the limit is the data, not the adapter", which is consistent with the post-mortem and the user's 09-30 decision. That branch is not concluded until r = 64 is evaluated or dropped (D18).
+**What it decides.** The registered branch **"every rank flat and R-056 flat: the limit is the data, not the adapter; the next comparison is a different source (S3), not more parameters"** applies.
+- No rank differs from base pooled (p ≥ 0.24).
+- No rank differs from another.
+- The scene-1327 grasp regression appears at every rank (2, 4 and 3 of 12).
+- The 500-demo follow-up's rank choice is moot until the data source changes (D21–D23).
+- D7 (renting a GPU for a full-head fine-tune) gains nothing from this entry.
+
+The caveat on this branch is that r = 64 is a truncated, unannealed arm. A fully trained r = 64 is not expected to change the reading: by R-056's selections, the best checkpoints are early (opt500 and opt1000) anyway.
 
 ---
 
