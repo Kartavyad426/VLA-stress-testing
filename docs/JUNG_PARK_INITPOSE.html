@@ -300,5 +300,41 @@ pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(
 <div class=card><div class=q>B5 · Watch the dilution ratio</div>
 <p>Their B2 → D result (+21 pt from reweighting alone) is the same lesson as our post-mortem §3.1. Our next pilot should fix the frame-0 and bridge share explicitly (Option A's 25–50% dose) and report it before training.</p></div>
 
+<h3>8.3 Portability to GR00T N1.7</h3>
+<p class=small>Added 2026-10-07 at the user's request, modelled on <a href="SPATIAL_ADAPT_MATHS.html">SPATIAL_ADAPT_MATHS.html</a> §9A. <span class="tag v">verified</span> read in our code, config or run files; <span class="tag i">inferred</span> my reading.</p>
+<div class=tw><table>
+<tr><th></th><th>Jung &amp; Park</th><th>Us</th></tr>
+<tr><td>Model</td><td>GR00T N1.5-3B, fine-tuned per configuration</td><td>GR00T N1.7, <code>nvidia/gr00t17-lerobot-libero_spatial-640</code></td></tr>
+<tr><td>Backbone</td><td><b>Eagle</b> VLM. Our LeRobot fork states "the Eagle VLM backbone is specific to pre-N1.7 GR00T checkpoints" and rejects N1.5 checkpoints (<code>configuration_groot.py:234</code>; pin <code>lerobot==0.5.1</code> to load one) <span class="tag v">verified</span></td><td>Cosmos-Reason2-2B (Qwen3-VL), truncated to 16 LLM layers, then <code>vlln</code> + 4-block <code>vl_self_attention</code>, then a 32-block DiT <span class="tag v">verified</span></td></tr>
+<tr><td>Robot / action</td><td>G1 humanoid, two 7-DoF arms + two 7-DoF hands; absolute joint targets</td><td>single Franka in LIBERO-Plus; 7 live OSC-delta dims, 40-step chunk, 16 executed</td></tr>
+<tr><td>Cameras</td><td>head + left wrist + right wrist</td><td>agent view + one wrist</td></tr>
+</table></div>
+<p><b>Which diagnostics carry over:</b></p>
+<ul>
+<li><b>HandPriorScore, residual bias and target responsiveness (§3.2): not as defined.</b> They need two arms and a hand choice. The <i>decomposition</i> transfers, as B4 in §8.2 already proposes: score the forward-0 chunk's direction relative to the gripper→target vector, and split it into a start-pose-driven intercept and a target-driven slope <span class="tag i">inferred</span>.</li>
+<li><b>Wrist masking: transfers, and we already do a stronger version.</b> Their blank-image masking is out of distribution. Our W arm swaps in the nominal run's wrist frame, which is in distribution: denoise W 0.88 at forward 0 (R-042/R-044) <span class="tag v">verified</span>. A blank-wrist arm would be one more input value on the same splice machinery, and useful only for comparison with them <span class="tag i">inferred</span>.</li>
+<li><b>Joint-subset swaps: transfer directly.</b> LIBERO-Plus start-pose perturbations are joint-space radius × direction <span class="tag v">verified</span> (R-047), so "perturb only joints <i>J</i>" is a knob change. The test worth running is the one in B2: joints that move the wrist camera vs joints that don't, at matched gripper offset, with a magnitude-matched control <span class="tag i">inferred</span>.</li>
+<li><b>Δ<var>a</var> = <var>a</var> − <var>q</var>: already native.</b> Our actions are OSC deltas, so "state-relative" is the action itself <span class="tag v">verified</span> (7 live dims).</li>
+</ul>
+<p><b>How their augmentation maps onto our pipeline, read against today's fit test</b> (<code>runs/r056_diag/fit_firstchunk.json</code>) <span class="tag v">verified</span>:</p>
+<ul>
+<li>The R-054 training starts each used a <b>different random joint direction</b> (direction seeds 1000–1145, one start each). The matched held-out subset uses <b>two fixed directions</b> (100, 101).</li>
+<li>On its own training starts, the r 16 adapter moved the first chunk 30% of the way to its labels (r 4: 27%).</li>
+<li>On held-out starts at matched cm it moved 12% (r 4: 9%).</li>
+<li>Ranks 4 / 16 / 64 score 65 / 59 / 64 of 108 held-out (r 64 as reported by prim, 10-07).</li>
+</ul>
+<p>So capacity and pipeline are not the limit; generalisation across directions is.</p>
+<ul>
+<li><b>Their 2 → 8 pose diversification</b> fixed a <i>coupling</i> (pose determined the target side). Our analogue of a coupling is direction ↔ achieved offset: direction 0 never exceeds 12 cm <span class="tag v">verified</span> (D20(ii)). Option A's stratified sampling, ≥ 4 directions per scene by cm band, is the decoupling step <span class="tag i">inferred</span>.</li>
+<li><b>Their targeted augmentation</b> (+2 poses along PC1 beside the failing one) maps to <b>dense local coverage in joint-direction space</b>: several training directions near each region of direction space, rather than 100 directions sampled once each. That is the specific dose/diversity change the fit test points at <span class="tag i">inferred</span>. The held-out directions themselves must stay out of training.</li>
+<li><b>Their sim-ratio lesson</b> (B2 → D, +21 pt from reweighting) maps to our sampler share: frame-0 labels were ≈1% of draws in R-056 <span class="tag v">verified</span> (post-mortem §3.1).</li>
+</ul>
+<p><b>N1.5 → N1.7 differences that matter</b> <span class="tag i">inferred</span> unless marked:</p>
+<ul>
+<li><b>Backbone swap (Eagle → Qwen3-VL).</b> Their wrist-masking traces (visual embedding, DiT tokens) were taken on Eagle features, so the magnitudes don't transfer. Qwen3-VL also adds DeepStack visual inputs into LLM layers 0–2 <span class="tag v">verified</span> (<code>SPATIAL_ADAPT_MATHS.html</code> §9A.1).</li>
+<li><b>The join topology</b> is the same family, VL by cross-attention and state concatenated in the DiT (<code>VLA_JOIN_TOPOLOGY.html</code> topology C; verified for N1.7, literature-only for N1.5). Their "state shortcut" question therefore has the same structural meaning on both.</li>
+<li><b>Our R-039 found the state token near-inert on N1.7</b> <span class="tag v">verified</span>. Their joint-swap effect, if it reproduces on N1.7, should then travel through the image tokens, the wrist especially. That is exactly what B2's joint-subset test would check.</li>
+</ul>
+
 <p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2608.11769">Jung &amp; Park, arXiv:2608.11769v1</a> §I–VI, Tables I–IV, Figs. 1–7, read from the PDF on 2026-10-06 · Our <code>RESULTS.md</code> R-039, R-042, R-044, R-047, R-053, R-056, R-057, R-058 · <code>docs/PERTURBATION_MAP.html</code> · <code>docs/R056_POSTMORTEM.html</code> · <code>docs/DATA_SOURCING_RESEARCH.html</code> §Q4, §3.2 · <code>runs/r056_diag/r047_offset_curve.json</code>, <code>runs/r056_diag/loss_summary.json</code> (D20) · <code>docs/HANDOFF_6Oct.html</code> (W transfer 0.88/0.84/0.82). Fisher exact p-values recomputed in this session.</p>
 </div></body></html>
