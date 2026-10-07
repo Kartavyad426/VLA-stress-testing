@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment Priorities</title>
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5;}
+  .wrap{max-width:960px; margin:0 auto; padding:32px 16px 80px;}
+  h1{font-size:clamp(1.6rem,4.5vw,2.2rem); margin:0 0 6px; letter-spacing:-.02em;}
+  .sub{color:var(--muted); margin:0 0 14px; max-width:75ch;}
+  .bar{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:.85rem; color:var(--muted);
+       background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:10px 14px; margin-bottom:24px;}
+  .bar button{font:inherit; padding:4px 10px; border-radius:6px; border:1px solid var(--rule); background:var(--surface-2); color:var(--ink); cursor:pointer;}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle;}
+  .prog{flex:1 1 160px; height:8px; background:var(--surface-2); border-radius:99px; overflow:hidden; min-width:120px;}
+  .prog>i{display:block; height:100%; background:var(--ok); width:0;}
+  section{margin:0 0 26px;}
+  h2{font-size:1.1rem; margin:0 0 8px;}
+  h2 small{font-weight:400; color:var(--faint); font-size:.8rem; margin-left:6px;}
+  ul{list-style:none; margin:0; padding:0; background:var(--surface); border:1px solid var(--rule); border-radius:8px;}
+  li{display:grid; grid-template-columns:24px 1fr auto; gap:2px 10px; padding:10px 14px; border-bottom:1px solid var(--rule-soft); align-items:start;}
+  li:last-child{border-bottom:0;}
+  li input{width:18px; height:18px; margin:2px 0 0; accent-color:var(--ok); cursor:pointer;}
+  li .t{font-weight:500;}
+  li .d{grid-column:2/4; color:var(--muted); font-size:.85rem;}
+  li .who{font-size:.75rem; color:var(--faint); white-space:nowrap; text-align:right;}
+  li .when{grid-column:2/4; font-family:var(--mono); font-size:.75rem; color:var(--ok);}
+  li.done .t{text-decoration:line-through; color:var(--muted);}
+  code{font-family:var(--mono); font-size:.82em; background:var(--surface-2); padding:.05em .3em; border-radius:3px; overflow-wrap:anywhere;}
+  @media (max-width:600px){ li{grid-template-columns:24px 1fr;} li .who{grid-column:2; text-align:left;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Experiment priorities, 7 October</h1>
+<p class="sub">From the 7pm review of 6 Oct: the deep-read papers, the decision tracker (<code>Decision_28Sep.html</code>) and RESULTS.md. Tick an item when it's done; the time is recorded. Order within each tier is the suggested order.</p>
+<div class="bar">
+  <span id="mode"><span class="dot" style="background:var(--warn)"></span>checking storage…</span>
+  <span id="count"></span>
+  <span class="prog"><i id="progbar"></i></span>
+  <button id="export" type="button">Export JSON</button>
+</div>
+<div id="list"></div>
+</div>
+
+<script>
+const TIERS = [
+ ["1 · Finish what already ran", "cheap; unblocks the rest", [
+  ["t1a","Score R-058 r64 (no transfer)","CPU, ~1 min. Transfer skipped after GPU OOM; E4 and transfer metrics 'not run'.","impl"],
+  ["t1b","Interpret the D20 fit test and loss into R-056's provisional paragraph","Training starts closed 30% of the gap, held-out 12%: coverage AND loss-vs-sampling. runs/r056_diag/fit_firstchunk.json","SFT · my prim"],
+  ["t1c","Score WiSE α=0.5 into RESULTS, with a paired test","69/108 vs base 67, r16 59; scene 1327 8 (base 12, r16 4).","SFT"],
+  ["t1d","Score R-052 pitch (now 160/160) and fix its index row","Index still says 'pre-registered, not run'. Completion check gave a false PARTIAL.","my prim · SFT"],
+  ["t1e","Write up stalled R-027 (MINERVA, 506 episodes)","Open since 09-18.","my prim"]]],
+ ["2 · Next retraining round (the spine)", "decide, then pre-register", [
+  ["t2a","Full read of Mulligan (arXiv:2610.05882)","Failure-targeted vs uniform start states at matched budget; narrows our novelty claim.","res21"],
+  ["t2b","Decide D21: the next demo source","Option A bridge-and-join vs B scripted expert; S2 only as a comparison arm.","you"],
+  ["t2c","D22: obtain raw LIBERO-Spatial HDF5 demos with initial states","Needed for Option A.","impl"],
+  ["t2d","Decide directions-review calls C5, C11/C22, C12, C17, C18, C21","docs/AMBITIOUS_DIRECTIONS_REVIEW.html","you"],
+  ["t2e","Pre-register D23: the six-arm matched-budget design","Broad coverage; mechanism- vs failure-targeted by labelled frames; replay-only; re-homing; stratify by direction × cm.","SFT"],
+  ["t2f","Bridge no-training rescue check","CPU yield on ~60 starts, then ~1 GPU-h bridge-then-handback.","impl"]]],
+ ["3 · Cheap mechanism tests on 8 GB", "", [
+  ["t3a","SPATIAL E1: closed-form token moment matching on GR00T","Inference only. Predicted weak (R-037/R-039). SPATIAL_ADAPT_MATHS §9A–§10.","impl"],
+  ["t3b","Wrist-token steering at forward 0 (start pose)","Parameter-only arm for start pose (C18).","design: res21 · SFT"],
+  ["t3c","Design E3 double dissociation (camera vs start pose)","Needs a DiT-only adapter variant.","res21 · SFT"]]],
+ ["4 · Failure detection", "", [
+  ["t4a","Send the R-059 runner spec to impl (D24)","Approved 09-29; never sent.","my prim"],
+  ["t4b","R-059 part A (CPU on R-047)","","impl"],
+  ["t4c","Add VLA-FAIL ACC and LLMD arms to R-059","arXiv:2606.21386; LLMD stats on the fine-tuning demos with fixed noise.","my prim"]]],
+ ["5 · Infrastructure and housekeeping", "", [
+  ["t5a","N1: fix the lighting knob (½ day)","Currently only brightens; covers ~4% of LIBERO-Plus lighting.","impl"],
+  ["t5b","Fix rollout_id ignoring the noise seed","D25.","impl"],
+  ["t5c","Push local commits to GitHub","Blocked for prim by auto-mode; run it yourself.","you"],
+  ["t5d","README: MuJoCo pin is 3.3.2 in the run venvs, not 3.3.7","Needs your OK.","you · prim"],
+  ["t5e","N2: RoboVerse cross-implementation start-pose check","1 day + 2 GPU-h.","impl"],
+  ["t5f","N3: one-day Isaac Lab-Arena trial on a rented GPU","≤ $25; pass/fail Q1–Q7 in SIM_ALTERNATIVES_PIPELINE.","impl"],
+  ["t5g","N4: spec for a splice-arm policy server","","res21"]]],
+ ["6 · Reading and analysis docs", "", [
+  ["d1","FLOW_MATCHING_MATHS.html","In progress.","res"],
+  ["d2","Architectural analysis: decide author and scope","Training end to end, VLM pretraining, action heads, post-training with human data.","you"]]],
+ ["7 · Parked", "revisit later", [
+  ["p1","R-043 LIBERO-10 long-horizon","Needs P1–P3 prerequisites.",""],
+  ["p2","R-040 corrective-demos comparison","Mostly subsumed by tier 2.",""],
+  ["p3","R-046 frozen vs unfrozen VLM","Out of scope since 09-24.",""],
+  ["p4","D12: adjudication sheet (0 of 80)","Gates any label-based claim.","you"],
+  ["p5","docs/R042_WRIST_MATHS.pdf: commit or drop","","you"]]]
+];
+
+const LSKEY = "vla-priorities-7oct";
+const SERVER = location.protocol.startsWith("http");
+let state = {};
+
+function readLocal(){ try { return JSON.parse(localStorage.getItem(LSKEY) || "{}"); } catch(e){ return {}; } }
+function writeLocal(){ try { localStorage.setItem(LSKEY, JSON.stringify(state)); } catch(e){} }
+
+async function load(){
+  if (SERVER){
+    try {
+      const r = await fetch("priorities_state.json?ts=" + Date.now(), {cache:"no-store"});
+      if (r.ok){ state = await r.json(); setMode(true); return; }
+    } catch(e){}
+  }
+  state = readLocal(); setMode(false);
+}
+async function save(){
+  writeLocal();
+  if (SERVER){
+    try {
+      const r = await fetch("/save", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(state)});
+      setMode(r.ok); return;
+    } catch(e){}
+  }
+  setMode(false);
+}
+function setMode(onDisk){
+  document.getElementById("mode").innerHTML = onDisk
+    ? '<span class="dot" style="background:var(--ok)"></span>saved to <code>docs/priorities_state.json</code>'
+    : '<span class="dot" style="background:var(--warn)"></span>browser only. Run <code>python3 experiments/serve_priorities.py</code> to save to the repo';
+}
+function fmt(iso){ const d = new Date(iso); return d.toLocaleString(undefined,{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}); }
+
+function render(){
+  const root = document.getElementById("list"); root.innerHTML = "";
+  let total = 0, done = 0;
+  for (const [title, hint, items] of TIERS){
+    const sec = document.createElement("section");
+    sec.innerHTML = `<h2>${title}${hint ? `<small>${hint}</small>` : ""}</h2>`;
+    const ul = document.createElement("ul");
+    for (const [id, t, d, who] of items){
+      total++; const s = state[id]; if (s && s.done) done++;
+      const li = document.createElement("li"); if (s && s.done) li.className = "done";
+      li.innerHTML = `<input type="checkbox" id="${id}" ${s && s.done ? "checked" : ""}>
+        <label class="t" for="${id}">${t}</label><span class="who">${who}</span>
+        ${d ? `<span class="d">${d}</span>` : ""}
+        ${s && s.done ? `<span class="when">✓ ticked ${fmt(s.at)}</span>` : ""}`;
+      li.querySelector("input").addEventListener("change", e => {
+        state[id] = e.target.checked ? {done:true, at:new Date().toISOString()} : {done:false, at:new Date().toISOString()};
+        save().then(render);
+      });
+      ul.appendChild(li);
+    }
+    sec.appendChild(ul); root.appendChild(sec);
+  }
+  document.getElementById("count").textContent = `${done} / ${total} done`;
+  document.getElementById("progbar").style.width = (total ? 100*done/total : 0) + "%";
+}
+
+document.getElementById("export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "priorities_state.json"; a.click();
+});
+load().then(render);
+</script>
+</body>
+</html>
