@@ -1,0 +1,560 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Flow Matching Maths</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-obs:#2a78d6;--b-score:#eb6834;--b-cp:#1baf7a;--b-pol:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.caution{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.bold{font-weight:600;font-style:normal}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.where dt{display:inline;font-family:var(--serif);font-style:italic}
+.where dd{display:inline;margin:0 14px 0 4px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:140px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.obs{border-left:4px solid var(--b-obs)}.blk.score{border-left:4px solid var(--b-score)}.blk.cp{border-left:4px solid var(--b-cp)}.blk.pol{border-left:4px solid var(--b-pol)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.c{background:var(--b-cp);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+.tag.r{background:var(--b-obs);color:var(--bg)}
+.tag.d{background:var(--b-pol);color:var(--bg)}
+nav ol{columns:2;column-gap:28px;font-size:.88rem}
+@media (max-width:640px){nav ol{columns:1}}
+</style></head><body><div class=wrap>
+
+<h1>Flow matching: the maths, the VLA action heads, and what it means for our GR00T work</h1>
+<div class=meta>2026-10-07 · Session <code>res</code>, for the user via <code>prim</code> · Code read from this repo: <code>third_party/lerobot/src/lerobot/policies/{groot,pi0,pi05,common,rtc,diffusion}</code>, <code>vla_harness/capture/</code>, <code>runs/r056_diag/</code>, R-056 checkpoint configs. Tags: <span class="tag p">paper</span> stated in a paper (reading depth per source in §5) · <span class="tag c">code</span> read from the code, file:line cited · <span class="tag r">ours</span> from our RESULTS.md, runs or docs · <span class="tag d">derived</span> my derivation, checkable from the equations here · <span class="tag i">inferred</span> my reading, not verified.</div>
+
+<div class="card tldr">
+<div class=q>Direct answers</div>
+<ul>
+<li><b>What flow matching is.</b> It trains a velocity field <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>) whose ODE carries Gaussian noise to the data. The trick is that you never need the true (intractable) field. You regress on a per-sample target, here <var>a</var> − ε along the straight line from ε to <var>a</var>, and the gradient equals that of the intractable loss (§1.2, eq. 9). For a VLA, <var>x</var> is an action chunk and everything is conditioned on the observation <var>o</var>.</li>
+<li><b>GR00T N1.7 in our repo, exactly</b> <span class="tag c">code</span>. Time runs <b>from noise at <var>t</var> = 0 to data at <var>t</var> = 1</b>. The noised chunk is <var>x</var><sub>t</sub> = (1 − <var>t</var>)ε + <var>t a</var>, the target is <var>a</var> − ε, and the loss is a masked MSE. Training draws <var>t</var> = 0.999(1 − <var>u</var>) with <var>u</var> ~ Beta(1.5, 1), which puts most draws near the noise end. Inference is <b>4 Euler steps</b>, querying the net at <var>t</var> = 0, 0.25, 0.5, 0.75. Noise is a bare, unseeded <code>torch.randn</code> (<code>groot_n1_7.py:554–708</code>). π0's openpi/LeRobot code uses the <b>opposite</b> time direction from its own paper (§0).</li>
+<li><b>One identity explains much of D20</b> <span class="tag d">derived</span>. With Euler, the sampled chunk equals the network's <b>one-shot data prediction at the last grid point</b>: <var>A</var> = <var>x</var> + 0.25·<var>v</var><sub>θ</sub>(<var>x</var>, 0.75), evaluated at the sampler's own state (eq. 31). A loss averaged over random <var>t</var> can fall a lot while that one slice moves little.</li>
+<li><b>Why a 65% loss drop need not move the sample 65%.</b> There are five separable reasons (§3.1).
+  <ol>
+  <li>The loss is <b>squared</b>: a 65% drop in MSE is a ~40% drop in RMS error (0.159 → 0.055 ⇒ √ratio 0.59).</li>
+  <li>The loss was measured on <b>training</b> starts and the ~10% movement on <b>held-out</b> starts. That is a coverage question that no flow argument removes.</li>
+  <li>The loss averages over <var>t</var>, but the sample depends on the <var>t</var> = 0.75 slice, evaluated off the training interpolant.</li>
+  <li><b>Mode mixing.</b> If replay and minted labels disagree near the same observation, the flow keeps both modes and ε picks one.</li>
+  <li>The first-chunk metric is a median while the loss is a tail-sensitive mean.</li>
+  </ol>
+  <b>Today's fit test settles it in favour of reason 2</b>. On their own training starts the adapters closed 30% (r16) and 27% (r4) of the first-chunk gap, as reason 1 predicts. On held-out directions they closed 1–15%. The loss-to-sample pipeline works; the gap is coverage across directions × offsets (§3.1).</li>
+<li><b>Noise.</b> Each chunk is a deterministic map Φ<sub>o</sub>(ε) of the noise. Comparing two observations under different ε adds a pure sampler term to every difference (eq. 41). That is why R-039's splices fix ε per forward, and why single-draw STAC on R-041 was noise-dominated. Render jitter still flips outcomes at fixed ε (R-039: 23/30 agree), so a fixed seed does not make <b>rollouts</b> reproducible.</li>
+<li><b>FACT's "training mismatch"</b> <span class="tag p">paper</span>. The Beta(1.5, 1) schedule puts only 8.9% of draws in the near-data fifth of time, where fine contact corrections are made. A logit-normal shifted toward the data end gives 6× more (we recompute both numbers in §3.4). GR00T uses the same schedule, so the 8.9% holds for it too. But GR00T's 4-step sampler never <b>queries</b> <var>t</var> &gt; 0.75, and the velocity parametrisation already weights late-<var>t</var> errors by 1/(1 − <var>t</var>)². How much this matters for us is open <span class="tag i">inferred</span>.</li>
+<li><b>Practical implications for retraining.</b> Select and report with <b>sampled chunks at fixed, paired ε</b> (K = 4 as deployed, several ε per start), not with loss. Log the loss per <var>t</var>-bin. Treat a schedule change (FACT's logit-normal) as a pre-registered arm, not a default. Our fine-tunes supervise only the first 16 of the 40 generated steps (chunk_size 16), so the 24-step overlap that ACC, STAC and RTC look at is untouched by our adapters <span class="tag c">code</span>.</li>
+</ul>
+</div>
+
+<nav><ol>
+<li><a href="#s0">Conventions: which end is noise</a></li>
+<li><a href="#s1">Foundations, with derivations</a></li>
+<li><a href="#s2">Flow matching as a VLA action head</a></li>
+<li><a href="#s3">Why it matters for our work</a></li>
+<li><a href="#s4">Practical implications for retraining GR00T</a></li>
+<li><a href="#s5">Sources and reading depth</a></li>
+<li><a href="#gl">Glossary</a></li>
+</ol></nav>
+
+<h2 id=s0>0. Conventions: which end is noise</h2>
+<p>The single most common source of error when moving between these papers and codebases is the time direction. This doc uses <b>GR00T's code convention throughout: <var>t</var> = 0 is noise, <var>t</var> = 1 is data</b>, unless a row below says otherwise.</p>
+<div class=tw><table>
+<tr><th>source</th><th>noised sample</th><th>target</th><th>noise at</th><th>sampler</th></tr>
+<tr><td>Lipman et al. 2022 (FM)</td><td>μ<sub>t</sub> = <var>t x</var><sub>1</sub>, σ<sub>t</sub> = 1 − (1 − σ<sub>min</sub>)<var>t</var></td><td><var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>)</td><td><var>t</var> = 0</td><td>ODE 0 → 1</td></tr>
+<tr><td>π0 paper <span class="tag p">paper</span></td><td><var>A</var><sup>τ</sup> = τ<var>A</var> + (1 − τ)ε</td><td><var>A</var> − ε</td><td>τ = 0</td><td>10 Euler steps, δ = 0.1, τ: 0 → 1</td></tr>
+<tr><td>openpi / LeRobot π0, π0.5 <span class="tag c">code</span></td><td><var>x</var><sub>t</sub> = <var>t</var>ε + (1 − <var>t</var>)<var>a</var></td><td>ε − <var>a</var></td><td><b><var>t</var> = 1</b></td><td><code>dt = −1/num_steps</code>, <var>t</var>: 1 → 0 (<code>common/flow_matching.py</code>)</td></tr>
+<tr><td>GR00T N1 paper <span class="tag p">paper</span></td><td><var>A</var><sup>τ</sup> = τ<var>A</var> + (1 − τ)ε</td><td>written as (ε − <var>A</var>); see note</td><td>τ = 0</td><td>K = 4 Euler, τ: 0 → 1</td></tr>
+<tr><td>GR00T N1.7 in LeRobot <span class="tag c">code</span></td><td><var>x</var><sub>t</sub> = (1 − <var>t</var>)ε + <var>t a</var></td><td><var>a</var> − ε</td><td><var>t</var> = 0</td><td>4 Euler steps, <var>t</var>: 0 → 1 (<code>groot_n1_7.py:589–590, 683–708</code>)</td></tr>
+<tr><td>RTC paper (Black et al.)</td><td>τ = 0 noise</td><td>—</td><td>τ = 0</td><td>5 steps for π0.5</td></tr>
+<tr><td>LeRobot RTC <span class="tag c">code</span></td><td>uses π0 code time, inverts it internally: <code>tau = 1 − time</code></td><td>—</td><td><var>t</var> = 1</td><td><code>rtc/modeling_rtc.py:170</code></td></tr>
+<tr><td>FACT</td><td>τ = noise level (openpi convention)</td><td>ε − <var>a</var></td><td>τ = 1</td><td>—</td></tr>
+<tr><td>FAIL-Detect logpZO</td><td><var>O</var> + <var>s</var>(<var>Z</var> − <var>O</var>)</td><td><var>Z</var> − <var>O</var></td><td><var>s</var> = 1 (maps data → noise)</td><td>one Euler step 0 → 1</td></tr>
+<tr><td>VLA-FAIL</td><td>"<var>t</var> = 0" prior 𝒩(0, <var>I</var>)</td><td>—</td><td><var>t</var> = 0</td><td>—</td></tr>
+</table></div>
+<p class=small><b>Note on the GR00T N1 paper.</b> It writes the noised chunk as τ<var>A</var> + (1 − τ)ε and the target as (ε − <var>A</var>). The time derivative of that path is <var>A</var> − ε, and the code uses <code>velocity = actions - noise</code> (<code>groot_n1_7.py:590</code>) with an Euler step <code>actions + dt * pred</code>. The paper's sign is inconsistent with its own path and integrator; trust the code <span class="tag d">derived</span>. "Low τ" in FACT and "low <var>t</var>" in GR00T are opposite ends of the path.</p>
+
+<h2 id=s1>1. Foundations, with derivations</h2>
+
+<h3>1.1 Continuous normalising flows: an ODE moves a density</h3>
+<p>A time-dependent vector field <var>v</var>(<var>x</var>, <var>t</var>) on ℝ<sup><var>d</var></sup> defines a flow map ψ<sub>t</sub> by the ODE</p>
+<div class=eq><span><sup><var>d</var></sup>⁄<sub><var>dt</var></sub> ψ<sub>t</sub>(<var>x</var>) = <var>v</var>(ψ<sub>t</sub>(<var>x</var>), <var>t</var>), &nbsp; ψ<sub>0</sub>(<var>x</var>) = <var>x</var></span><span class=n>(1)</span></div>
+<p>Push a starting density <var>p</var><sub>0</sub> (here 𝒩(0, <var>I</var>)) through it: <var>p</var><sub>t</sub> = [ψ<sub>t</sub>]<sub>#</sub> <var>p</var><sub>0</sub>. Probability mass is conserved and moves with velocity <var>v</var>, so <var>p</var><sub>t</sub> satisfies the <b>continuity equation</b>:</p>
+<div class=eq><span>∂<sub><var>t</var></sub> <var>p</var><sub>t</sub>(<var>x</var>) + ∇·( <var>p</var><sub>t</sub>(<var>x</var>) <var>v</var>(<var>x</var>, <var>t</var>) ) = 0</span><span class=n>(2)</span></div>
+<p><i>Why:</i> for any fixed region Ω, the rate of change of its mass equals minus the flux through its boundary, <sup><var>d</var></sup>⁄<sub><var>dt</var></sub>∫<sub>Ω</sub><var>p</var><sub>t</sub> = −∮<sub>∂Ω</sub> <var>p</var><sub>t</sub><var>v</var>·<var>n</var>. The divergence theorem then gives (2) pointwise. Conversely, a field <var>v</var> "generates" a path <var>p</var><sub>t</sub> if and only if the pair satisfies (2) (under regularity conditions). This "iff" is what flow matching leans on.</p>
+<p>Along one trajectory <var>x</var><sub>t</sub> = ψ<sub>t</sub>(<var>x</var><sub>0</sub>), expanding (2) as ∂<sub><var>t</var></sub><var>p</var> + <var>v</var>·∇<var>p</var> + <var>p</var> ∇·<var>v</var> = 0 gives the <b>instantaneous change of variables</b> (Chen et al. 2018):</p>
+<div class=eq><span><sup><var>d</var></sup>⁄<sub><var>dt</var></sub> log <var>p</var><sub>t</sub>(<var>x</var><sub>t</sub>) = −∇·<var>v</var>(<var>x</var><sub>t</sub>, <var>t</var>) &nbsp;&nbsp;⟹&nbsp;&nbsp; log <var>p</var><sub>1</sub>(<var>x</var><sub>1</sub>) = log <var>p</var><sub>0</sub>(<var>x</var><sub>0</sub>) − ∫<sub>0</sub><sup>1</sup> ∇·<var>v</var>(<var>x</var><sub>t</sub>, <var>t</var>) <var>dt</var></span><span class=n>(3)</span></div>
+<p>Equation (3) means a flow policy has an <b>exact action likelihood</b> log <var>p</var>(<var>a</var> | <var>o</var>). Integrate the ODE backward from <var>a</var> to ε and accumulate the divergence, estimating the trace with Hutchinson's ε<sup>⊤</sup><var>J</var>ε. FAIL-Detect's logpO is a one-step, first-order version of this on observation embeddings (<code>docs/FAIL_DETECT_MATHS.html</code> §3.4).</p>
+<p>The old way to train a CNF was maximum likelihood through (3), which needs an ODE solve per gradient step. Flow matching removes the solver from training.</p>
+
+<h3>1.2 Flow matching and conditional flow matching</h3>
+<p>Pick a target <b>probability path</b> <var>p</var><sub>t</sub> from noise <var>p</var><sub>0</sub> to data <var>q</var> = <var>p</var><sub>1</sub>, and a field <var>u</var><sub>t</sub> that generates it. The ideal objective is plain regression:</p>
+<div class=eq><span>ℒ<sub>FM</sub>(θ) = 𝔼<sub><var>t</var>, <var>x</var>~<var>p</var><sub>t</sub></sub> ‖ <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>) − <var>u</var><sub>t</sub>(<var>x</var>) ‖²</span><span class=n>(4)</span></div>
+<p>We know neither <var>p</var><sub>t</sub> nor <var>u</var><sub>t</sub> in closed form. Lipman et al.'s construction builds them from <b>per-sample</b> paths. For each data point <var>x</var><sub>1</sub>, choose a simple conditional path <var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) with a known generating field <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>), and define the marginals</p>
+<div class=eq><span><var>p</var><sub>t</sub>(<var>x</var>) = ∫ <var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) <var>q</var>(<var>x</var><sub>1</sub>) <var>dx</var><sub>1</sub>, &nbsp;&nbsp; <var>u</var><sub>t</sub>(<var>x</var>) = ∫ <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) <sup><var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) <var>q</var>(<var>x</var><sub>1</sub>)</sup>⁄<sub><var>p</var><sub>t</sub>(<var>x</var>)</sub> <var>dx</var><sub>1</sub> = 𝔼[ <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) | <var>x</var><sub>t</sub> = <var>x</var> ]</span><span class=n>(5)</span></div>
+<p><b>Claim 1: the marginal field generates the marginal path.</b> The continuity equation is linear in (<var>p</var>, <var>pv</var>), so</p>
+<div class=eq><span>∂<sub><var>t</var></sub><var>p</var><sub>t</sub>(<var>x</var>) = ∫ ∂<sub><var>t</var></sub><var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) <var>q</var> <var>dx</var><sub>1</sub> = −∫ ∇·( <var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) ) <var>q</var> <var>dx</var><sub>1</sub> = −∇·( <var>p</var><sub>t</sub>(<var>x</var>) <var>u</var><sub>t</sub>(<var>x</var>) )</span><span class=n>(6)</span></div>
+<p>The last equality is the definition (5) of <var>u</var><sub>t</sub>. So if each conditional path ends at δ(<var>x</var> − <var>x</var><sub>1</sub>), the marginal ODE carries <var>p</var><sub>0</sub> to <var>q</var>.</p>
+<p><b>Claim 2: you can regress on the conditional field instead.</b> The conditional objective is</p>
+<div class=eq><span>ℒ<sub>CFM</sub>(θ) = 𝔼<sub><var>t</var>, <var>x</var><sub>1</sub>~<var>q</var>, <var>x</var>~<var>p</var><sub>t</sub>(·|<var>x</var><sub>1</sub>)</sub> ‖ <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>) − <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) ‖²</span><span class=n>(7)</span></div>
+<p>Expand both squares. The ‖<var>v</var><sub>θ</sub>‖² terms are identical expectations, because (<var>x</var><sub>1</sub>, <var>x</var>) ~ <var>q</var>·<var>p</var><sub>t</sub>(·|<var>x</var><sub>1</sub>) has <var>x</var>-marginal <var>p</var><sub>t</sub>. The cross terms are equal by (5):</p>
+<div class=eq><span>𝔼<sub><var>p</var><sub>t</sub>(<var>x</var>)</sub>⟨<var>v</var><sub>θ</sub>(<var>x</var>,<var>t</var>), <var>u</var><sub>t</sub>(<var>x</var>)⟩ = ∫⟨<var>v</var><sub>θ</sub>, ∫<var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>)<var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>)<var>q</var>(<var>x</var><sub>1</sub>)<var>dx</var><sub>1</sub>⟩<var>dx</var> = 𝔼<sub><var>q</var>, <var>p</var><sub>t</sub>(·|<var>x</var><sub>1</sub>)</sub>⟨<var>v</var><sub>θ</sub>(<var>x</var>,<var>t</var>), <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>)⟩</span><span class=n>(8)</span></div>
+<p>What is left differs only by terms that do not depend on θ:</p>
+<div class=eq><span>ℒ<sub>CFM</sub>(θ) = ℒ<sub>FM</sub>(θ) + 𝔼<sub><var>t</var>,<var>x</var></sub> tr Cov[ <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) | <var>x</var><sub>t</sub> = <var>x</var> ] &nbsp;&nbsp;⟹&nbsp;&nbsp; ∇<sub>θ</sub>ℒ<sub>CFM</sub> = ∇<sub>θ</sub>ℒ<sub>FM</sub></span><span class=n>(9)</span></div>
+<p>Two consequences matter later:</p>
+<ul>
+<li><b>The minimiser is a conditional mean.</b> <var>v</var><sup>*</sup>(<var>x</var>, <var>t</var>) = 𝔼[<var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) | <var>x</var><sub>t</sub> = <var>x</var>]. Flow matching averages the per-sample targets at each (<var>x</var>, <var>t</var>), but it does <b>not</b> average the samples. Different starting noises still land in different modes. This is why flow and diffusion heads avoid the "mode averaging" of a plain MSE regressor, a point VLA-FAIL's introduction makes in so many words <span class="tag p">paper</span>.</li>
+<li><b>The loss has a floor</b> equal to the Cov term in (9). This is the irreducible part. A training loss can therefore stop falling because the data are inconsistent, not because the model is weak (§3.1).</li>
+</ul>
+
+<h3>1.3 Gaussian conditional paths, and the one every VLA uses</h3>
+<p>Take <var>p</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) = 𝒩(μ<sub>t</sub>(<var>x</var><sub>1</sub>), σ<sub>t</sub>²<var>I</var>). The flow <var>x</var> = μ<sub>t</sub> + σ<sub>t</sub>ε generates it, and differentiating gives the conditional field</p>
+<div class=eq><span><var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) = <sup>σ′<sub>t</sub></sup>⁄<sub>σ<sub>t</sub></sub> (<var>x</var> − μ<sub>t</sub>(<var>x</var><sub>1</sub>)) + μ′<sub>t</sub>(<var>x</var><sub>1</sub>)</span><span class=n>(10)</span></div>
+<p>Lipman's "OT path" is μ<sub>t</sub> = <var>t x</var><sub>1</sub>, σ<sub>t</sub> = 1 − (1 − σ<sub>min</sub>)<var>t</var>. It gives <var>u</var><sub>t</sub>(<var>x</var>|<var>x</var><sub>1</sub>) = (<var>x</var><sub>1</sub> − (1 − σ<sub>min</sub>)<var>x</var>) ⁄ (1 − (1 − σ<sub>min</sub>)<var>t</var>). It is called OT because, for one <var>x</var><sub>1</sub>, it is the optimal-transport displacement between two Gaussians: particles move in straight lines at constant speed. With σ<sub>min</sub> → 0 and the conditioning written in ε, this is the path every VLA here uses:</p>
+<div class=eq><span><var>x</var><sub>t</sub> = (1 − <var>t</var>) ε + <var>t a</var>, &nbsp;&nbsp; <var>u</var><sub>t</sub> = <var>a</var> − ε = <sup>(<var>a</var> − <var>x</var><sub>t</sub>)</sup>⁄<sub>(1 − <var>t</var>)</sub>, &nbsp;&nbsp; ℒ = 𝔼<sub><var>t</var>, ε, (<var>o</var>,<var>a</var>)</sub> ‖ <var>v</var><sub>θ</sub>(<var>x</var><sub>t</sub>, <var>t</var>, <var>o</var>) − (<var>a</var> − ε) ‖²</span><span class=n>(11)</span></div>
+<p>Two rewritings of (11) are used repeatedly below <span class="tag d">derived</span>. Write the model's implied predictions of data and noise as</p>
+<div class=eq><span><var>â</var><sub>θ</sub>(<var>x</var>, <var>t</var>) = <var>x</var> + (1 − <var>t</var>) <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>), &nbsp;&nbsp; ε̂<sub>θ</sub>(<var>x</var>, <var>t</var>) = <var>x</var> − <var>t</var> <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>)</span><span class=n>(12)</span></div>
+<div class=eq><span>‖<var>v</var><sub>θ</sub> − (<var>a</var> − ε)‖² = <sup>‖<var>â</var><sub>θ</sub> − <var>a</var>‖²</sup>⁄<sub>(1 − <var>t</var>)²</sub> = <sup>‖ε̂<sub>θ</sub> − ε‖²</sup>⁄<sub><var>t</var>²</sub></span><span class=n>(13)</span></div>
+<p>So the velocity loss is a data-prediction loss weighted by 1/(1 − <var>t</var>)², or equivalently a noise-prediction loss weighted by 1/<var>t</var>². "Predict <var>v</var>, <var>x</var> or ε" is a choice of <b>weighting over time</b>, not of model class (§1.6).</p>
+<p>For a conditional distribution <var>p</var>(<var>a</var>|<var>o</var>), the floor in (9) becomes</p>
+<div class=eq><span>𝔼 tr Cov[<var>a</var> − ε | <var>x</var><sub>t</sub>, <var>o</var>] = 𝔼 <sup>tr Cov[<var>a</var> | <var>x</var><sub>t</sub>, <var>o</var>]</sup>⁄<sub>(1 − <var>t</var>)²</sub>, &nbsp;&nbsp; which equals tr Cov[<var>a</var> | <var>o</var>] at <var>t</var> = 0</span><span class=n>(14)</span></div>
+<p><span class="tag d">derived</span> If each observation has exactly one demonstrated chunk (a delta conditional), the floor is 0 and a perfect model has zero loss. If two demonstrations disagree at the same <var>o</var>, the loss at small <var>t</var> cannot go below their spread.</p>
+
+<h3>1.4 Rectified flow: straight paths and reflow</h3>
+<p>Liu, Gong &amp; Liu reach the same objective from a different angle. Take <b>any</b> coupling (<var>X</var><sub>0</sub>, <var>X</var><sub>1</sub>) and the linear interpolation <var>X</var><sub>t</sub> = <var>t X</var><sub>1</sub> + (1 − <var>t</var>)<var>X</var><sub>0</sub>, and fit</p>
+<div class=eq><span>min<sub><var>v</var></sub> ∫<sub>0</sub><sup>1</sup> 𝔼 ‖ (<var>X</var><sub>1</sub> − <var>X</var><sub>0</sub>) − <var>v</var>(<var>X</var><sub>t</sub>, <var>t</var>) ‖² <var>dt</var> &nbsp;&nbsp;⟹&nbsp;&nbsp; <var>v</var><sup>*</sup>(<var>x</var>, <var>t</var>) = 𝔼[<var>X</var><sub>1</sub> − <var>X</var><sub>0</sub> | <var>X</var><sub>t</sub> = <var>x</var>]</span><span class=n>(15)</span></div>
+<p>With the independent coupling <var>X</var><sub>0</sub> ~ 𝒩, this is exactly (11). The individual lines are straight, but the <b>marginal</b> ODE paths are not. Where lines from different pairs cross, <var>v</var><sup>*</sup> averages their directions and the trajectory bends. Two results from the paper <span class="tag p">paper</span>:</p>
+<ul>
+<li>The rectified coupling (<var>Z</var><sub>0</sub>, <var>Z</var><sub>1</sub>) = (<var>X</var><sub>0</sub>, ODE<sub><var>v</var>*</sub>(<var>X</var><sub>0</sub>)) has the same marginals and <b>no greater</b> convex transport cost.</li>
+<li><b>Reflow</b> retrains on that coupling, which makes the paths straighter. Straightness is measured by</li>
+</ul>
+<div class=eq><span><var>S</var>(<var>Z</var>) = ∫<sub>0</sub><sup>1</sup> 𝔼 ‖ (<var>Z</var><sub>1</sub> − <var>Z</var><sub>0</sub>) − <sup><var>d</var></sup>⁄<sub><var>dt</var></sub><var>Z</var><sub>t</sub> ‖² <var>dt</var>, &nbsp;&nbsp; <var>S</var> = 0 ⟺ one Euler step is exact</span><span class=n>(16)</span></div>
+<p><b>For a VLA</b> <span class="tag d">derived</span>: conditioned on <var>o</var>, if <var>p</var>(<var>a</var>|<var>o</var>) is a single tight mode, the conditional lines all point at nearly the same <var>a</var>, so the marginal path is nearly straight. That is why 4 steps (GR00T) or 10 (π0) suffice. Curvature, and therefore few-step error, appears where <var>p</var>(<var>a</var>|<var>o</var>) is <b>multimodal</b>, at the time when trajectories "decide" between modes.</p>
+
+<h3>1.5 Stochastic interpolants</h3>
+<p>Albergo &amp; Vanden-Eijnden generalise the interpolation:</p>
+<div class=eq><span><var>x</var><sub>t</sub> = α<sub>t</sub> <var>x</var><sub>0</sub> + β<sub>t</sub> <var>x</var><sub>1</sub> + γ<sub>t</sub> <var>z</var>, &nbsp; α<sub>0</sub> = β<sub>1</sub> = 1, α<sub>1</sub> = β<sub>0</sub> = γ<sub>0</sub> = γ<sub>1</sub> = 0, &nbsp; <var>z</var> ~ 𝒩(0, <var>I</var>)</span><span class=n>(17)</span></div>
+<div class=eq><span><var>b</var>(<var>x</var>, <var>t</var>) = 𝔼[ α̇<sub>t</sub><var>x</var><sub>0</sub> + β̇<sub>t</sub><var>x</var><sub>1</sub> + γ̇<sub>t</sub><var>z</var> | <var>x</var><sub>t</sub> = <var>x</var> ], &nbsp;&nbsp; <var>s</var>(<var>x</var>, <var>t</var>) = ∇log <var>p</var><sub>t</sub>(<var>x</var>) = −γ<sub>t</sub><sup>−1</sup> 𝔼[<var>z</var> | <var>x</var><sub>t</sub> = <var>x</var>]</span><span class=n>(18)</span></div>
+<p>Both <var>b</var> and <var>s</var> are learned by quadratic regression, exactly as in (15). The marginal density then obeys the transport equation for <var>b</var>, and for any diffusion coefficient ϵ<sub>t</sub> ≥ 0 the family</p>
+<div class=eq><span><var>dX</var><sub>t</sub> = [ <var>b</var>(<var>X</var><sub>t</sub>, <var>t</var>) + ϵ<sub>t</sub> <var>s</var>(<var>X</var><sub>t</sub>, <var>t</var>) ] <var>dt</var> + √(2ϵ<sub>t</sub>) <var>dW</var><sub>t</sub></span><span class=n>(19)</span></div>
+<p>has the <b>same</b> marginals <span class="tag p">paper</span>. The deterministic flow (ϵ = 0) and stochastic samplers are interchangeable at the level of marginals; they differ in how errors propagate. Flow matching (11) is the special case α<sub>t</sub> = 1 − <var>t</var>, β<sub>t</sub> = <var>t</var>, γ = 0 with Gaussian <var>x</var><sub>0</sub>. In that case the score is free from the velocity <span class="tag d">derived</span>:</p>
+<div class=eq><span><var>s</var>(<var>x</var>, <var>t</var>) = −<sup>𝔼[ε | <var>x</var><sub>t</sub> = <var>x</var>]</sup>⁄<sub>(1 − <var>t</var>)</sub> = −<sup>(<var>x</var> − <var>t v</var>(<var>x</var>, <var>t</var>))</sup>⁄<sub>(1 − <var>t</var>)</sub></span><span class=n>(20)</span></div>
+<p>This uses ε̂ from (12). Any trained flow head can therefore also be run as an SDE sampler, or scored with score-based tools, without retraining <span class="tag i">inferred</span>.</p>
+
+<h3>1.6 Relation to diffusion and score matching</h3>
+<p>Song et al.'s SDE view writes a forward noising process <var>dx</var> = <var>f</var>(<var>x</var>, <var>t</var>)<var>dt</var> + <var>g</var>(<var>t</var>)<var>dW</var>. Its marginals are also produced by the deterministic <b>probability-flow ODE</b> <span class="tag p">paper</span>:</p>
+<div class=eq><span><sup><var>dx</var></sup>⁄<sub><var>dt</var></sub> = <var>f</var>(<var>x</var>, <var>t</var>) − ½ <var>g</var>(<var>t</var>)² ∇<sub><var>x</var></sub> log <var>p</var><sub>t</sub>(<var>x</var>)</span><span class=n>(21)</span></div>
+<p>A Gaussian diffusion has <var>x</var><sub>t</sub> = α<sub>t</sub><var>a</var> + σ<sub>t</sub>ε. Its PF-ODE velocity is α̇<sub>t</sub> 𝔼[<var>a</var>|<var>x</var>] + σ̇<sub>t</sub> 𝔼[ε|<var>x</var>], which is (18) with γ = 0. <b>Flow matching with the linear path is a diffusion model with α<sub>t</sub> = <var>t</var>, σ<sub>t</sub> = 1 − <var>t</var>, trained with a particular weighting and sampled with its PF-ODE.</b> The prediction targets are affine reparametrisations of one another. Write ŝ for the score, <var>x̂</var> for the data prediction and ε̂ for the noise prediction:</p>
+<div class=eq><span>ε̂ = −σ<sub>t</sub> ŝ, &nbsp; <var>x̂</var> = (<var>x</var> − σ<sub>t</sub>ε̂)/α<sub>t</sub>, &nbsp; <var>v</var> = α̇<sub>t</sub><var>x̂</var> + σ̇<sub>t</sub>ε̂ &nbsp;(FM: <var>v</var> = <var>x̂</var> − ε̂)</span><span class=n>(22)</span></div>
+<p class=small><b>Two meanings of "v-prediction".</b> Salimans &amp; Ho define <var>v</var> = α<sub>t</sub>ε − σ<sub>t</sub><var>x</var> for variance-preserving schedules (α² + σ² = 1). That is the velocity along a quarter circle, not the rectified-flow velocity <var>a</var> − ε. They are the same idea (the time derivative of the path) on different paths. Do not port a "v-pred" weighting between the two without converting.</p>
+<p><b>Loss weighting.</b> Kingma &amp; Gao show that the common diffusion objectives are all</p>
+<div class=eq><span>ℒ<sub><var>w</var></sub> = ½ 𝔼<sub>ε, λ</sub> [ <var>w</var>(λ) · (−<sup><var>d</var>λ</sup>⁄<sub><var>dt</var></sub>) · ‖ε̂<sub>θ</sub>(<var>x</var><sub>λ</sub>) − ε‖² ], &nbsp; λ = log(α<sub>t</sub>²/σ<sub>t</sub>²)</span><span class=n>(23)</span></div>
+<p>The objectives differ only in the weighting <var>w</var>(λ) over log-SNR, and with monotone <var>w</var> they are ELBOs on augmented data <span class="tag p">paper</span>. For the FM path, λ = 2 log(<var>t</var>/(1 − <var>t</var>)) <span class="tag d">derived</span>. The FM velocity loss under a time density <var>p</var>(<var>t</var>) is, by (13),</p>
+<div class=eq><span>ℒ<sub>FM</sub> = 𝔼<sub><var>t</var>~<var>p</var>(<var>t</var>)</sub> <sup>1</sup>⁄<sub><var>t</var>²</sub> ‖ε̂<sub>θ</sub> − ε‖² = 𝔼<sub><var>t</var>~<var>p</var>(<var>t</var>)</sub> <sup>1</sup>⁄<sub>(1 − <var>t</var>)²</sub> ‖<var>â</var><sub>θ</sub> − <var>a</var>‖²</span><span class=n>(24)</span></div>
+<p>So the <b>effective</b> weight on data-prediction error at time <var>t</var> is <var>p</var>(<var>t</var>)/(1 − <var>t</var>)². The time sampler and the parametrisation together set it, which matters for FACT (§3.4).</p>
+
+<h3>1.7 Time schedules</h3>
+<p>The schedule <var>p</var>(<var>t</var>) is a free choice that changes where the model spends capacity, but not the optimum (the minimiser in (9) is the same for every <var>p</var>(<var>t</var>) with full support):</p>
+<div class=tw><table>
+<tr><th>schedule</th><th>density (in GR00T's <var>t</var>, data at 1)</th><th>used by</th></tr>
+<tr><td>uniform</td><td>1</td><td>Lipman 2022; Liu 2022; FAIL-Detect logpZO</td></tr>
+<tr><td>logit-normal LN(<var>m</var>, <var>s</var>)</td><td><var>t</var> = σ(<var>m</var> + <var>s z</var>), <var>z</var> ~ 𝒩(0, 1); concentrates mass mid-path for <var>m</var> = 0</td><td>Esser et al. (SD3), which compared many schedules and found LN best for images</td></tr>
+<tr><td>π0 Beta</td><td><var>t</var> = 0.999(1 − <var>u</var>), <var>u</var> ~ Beta(1.5, 1) ⇒ <var>p</var>(<var>t</var>) ∝ (1 − <var>t</var>/0.999)<sup>1/2</sup>, largest at the <b>noise</b> end</td><td>π0, π0.5, SmolVLA, GR00T N1–N1.7</td></tr>
+<tr><td>FACT LN</td><td>τ = σ(<var>s z</var> − <var>m</var>), <var>m</var> = 1.5, <var>s</var> = 1 (τ is the openpi noise level), i.e. mass shifted toward the <b>data</b> end</td><td>FACT post-training</td></tr>
+</table></div>
+<p><b>Where GR00T's Beta puts its draws</b> <span class="tag d">derived</span>. <var>P</var>(<var>u</var> &lt; <var>x</var>) = <var>x</var><sup>1.5</sup>, so</p>
+<div class=tw><table>
+<tr><th><var>t</var> interval</th><th>[0, 0.25)</th><th>[0.25, 0.5)</th><th>[0.5, 0.75)</th><th>[0.75, 1]</th><th><var>t</var> &gt; 0.8</th></tr>
+<tr><td>share of training draws</td><td class=num>35.1%</td><td class=num>29.6%</td><td class=num>22.9%</td><td class=num>12.4%</td><td class=num>8.9%</td></tr>
+</table></div>
+<p>π0's rationale <span class="tag p">paper</span> is that observations constrain actions far more than a caption constrains an image. The hard part is therefore the high-noise end, where the model must pick the mode from <var>o</var> alone, so the schedule emphasises it.</p>
+
+<h3>1.8 Sampling: Euler, Heun, and the few-step error</h3>
+<p>The sampler integrates d<var>x</var>/d<var>t</var> = <var>v</var><sub>θ</sub>(<var>x</var>, <var>t</var>) on a grid 0 = <var>t</var><sub>0</sub> &lt; … &lt; <var>t</var><sub>K</sub> = 1, step <var>h</var><sub>k</sub> = <var>t</var><sub>k+1</sub> − <var>t</var><sub>k</sub>:</p>
+<div class=eq><span>Euler: &nbsp;<var>x</var><sub>k+1</sub> = <var>x</var><sub>k</sub> + <var>h</var><sub>k</sub> <var>v</var><sub>θ</sub>(<var>x</var><sub>k</sub>, <var>t</var><sub>k</sub>) &nbsp;&nbsp;&nbsp; Heun: &nbsp;<var>x̃</var> = <var>x</var><sub>k</sub> + <var>h</var><sub>k</sub><var>v</var><sub>k</sub>, &nbsp; <var>x</var><sub>k+1</sub> = <var>x</var><sub>k</sub> + ½<var>h</var><sub>k</sub>[<var>v</var><sub>k</sub> + <var>v</var><sub>θ</sub>(<var>x̃</var>, <var>t</var><sub>k+1</sub>)]</span><span class=n>(25)</span></div>
+<p>Euler has global error <var>O</var>(<var>h</var>) at 1 network call per step; Heun has <var>O</var>(<var>h</var>²) at 2 calls per step (Karras et al. recommend Heun for diffusion ODEs). For a field with Lipschitz constant <var>L</var> in <var>x</var>, the standard bound on the Euler endpoint error is</p>
+<div class=eq><span>‖<var>x</var><sub>K</sub> − <var>x</var>(1)‖ ≤ <sup><var>h</var></sup>⁄<sub>2</sub> · sup ‖<sup><var>d</var>²<var>x</var></sup>⁄<sub><var>dt</var>²</sub>‖ · <sup>(<var>e</var><sup><var>L</var></sup> − 1)</sup>⁄<sub><var>L</var></sub></span><span class=n>(26)</span></div>
+<p>Here <var>d</var>²<var>x</var>/<var>dt</var>² is the <b>path curvature</b>; it is zero for straight paths (16). Benton et al. bound the Wasserstein-2 distance between the generated and true distributions by the <var>L</var><sup>2</sup> velocity error times an exponential in the Lipschitz constant <span class="tag p">paper</span> (title and abstract only). Velocity error, not just loss, controls sample error, and it can be amplified.</p>
+<p><b>Two exact identities for the linear path</b> <span class="tag d">derived</span>. Both are central to §3.1.</p>
+<div class=eq><span>(i) Last-step identity: &nbsp; <var>x</var><sub>K</sub> = <var>x</var><sub>K−1</sub> + (1 − <var>t</var><sub>K−1</sub>) <var>v</var><sub>θ</sub>(<var>x</var><sub>K−1</sub>, <var>t</var><sub>K−1</sub>) = <var>â</var><sub>θ</sub>(<var>x</var><sub>K−1</sub>, <var>t</var><sub>K−1</sub>)</span><span class=n>(27)</span></div>
+<p>The Euler output <b>is</b> the model's one-shot data prediction (12) at the last grid point, evaluated at the state the sampler itself produced. This holds for any network, with no assumptions.</p>
+<div class=eq><span>(ii) Straight-path exactness: &nbsp; if <var>v</var> = (<var>a</var> − <var>x</var>)/(1 − <var>t</var>), then <var>x</var><sub>k+1</sub> − <var>a</var> = (<var>x</var><sub>k</sub> − <var>a</var>) · <sup>(1 − <var>t</var><sub>k+1</sub>)</sup>⁄<sub>(1 − <var>t</var><sub>k</sub>)</sub> ⇒ <var>x</var><sub>K</sub> = <var>a</var> for any K</span><span class=n>(28)</span></div>
+<p>Now let <var>v</var><sub>θ</sub> = <var>v</var><sup>*</sup> + <var>e</var><sub>k</sub> at step <var>k</var>, for a delta conditional. Then δ<sub>k+1</sub> = δ<sub>k</sub>(1 − <var>t</var><sub>k+1</sub>)/(1 − <var>t</var><sub>k</sub>) + <var>h</var><sub>k</sub><var>e</var><sub>k</sub>, and the product telescopes to zero at <var>t</var><sub>K</sub> = 1:</p>
+<div class=eq><span><var>x</var><sub>K</sub> − <var>a</var> = <var>h</var><sub>K−1</sub> <var>e</var><sub>K−1</sub> &nbsp;&nbsp;(for GR00T: 0.25 · <var>e</var>(<var>x</var><sub>0.75</sub>, 0.75))</span><span class=n>(29)</span></div>
+<p>The ideal field contracts toward <var>a</var> at rate 1/(1 − <var>t</var>), which erases earlier velocity errors. Only the last one survives. With a learned field, earlier errors matter only through which state <var>x</var><sub>K−1</sub> the sampler reaches, and, if <var>p</var>(<var>a</var>|<var>o</var>) is multimodal, through which mode basin it has entered.</p>
+
+<h3>1.9 OT couplings: straightening by pairing</h3>
+<p>Tong et al. (OT-CFM) and Pooladian et al. (multisample FM) replace the independent coupling in (15) with a minibatch optimal-transport coupling. Each data point is paired with a nearby noise sample within the batch, which reduces crossing, makes marginal paths straighter and cuts the number of steps needed <span class="tag p">paper</span>. <b>For VLAs</b> this buys little <span class="tag i">inferred</span>. Conditioning on <var>o</var> already makes each conditional target nearly a point (§1.4), and VLA heads train on one (<var>o</var>, <var>a</var>) pair at a time, so minibatch couplings across different <var>o</var> would be meaningless. None of π0, π0.5 or GR00T uses OT coupling <span class="tag c">code</span>.</p>
+
+<h3>1.10 One-step models: consistency, shortcut, MeanFlow</h3>
+<p>All three learn the <b>integral</b> of the flow rather than its derivative, so sampling needs one or two network calls.</p>
+<ul>
+<li><b>Consistency models</b> (Song et al. 2023; continuous-time version Lu &amp; Song 2024) learn <var>f</var><sub>θ</sub>(<var>x</var><sub>t</sub>, <var>t</var>) ≈ the ODE endpoint, with the boundary condition <var>f</var>(<var>x</var>, <var>t</var><sub>data</sub>) = <var>x</var>. Training enforces self-consistency along a trajectory:
+<div class=eq><span>ℒ<sub>CM</sub> = 𝔼 <var>d</var>( <var>f</var><sub>θ</sub>(<var>x</var><sub>t+Δ</sub>, <var>t</var>+Δ), sg[<var>f</var><sub>θ</sub>(<var>x̂</var><sub>t</sub>, <var>t</var>)] ), &nbsp; <var>x̂</var><sub>t</sub> one ODE step from <var>x</var><sub>t+Δ</sub></span><span class=n>(30)</span></div>
+Here sg is stop-gradient. Training is by distillation from a teacher field or standalone. FAIL-Detect's CFM scorer adds a penalty of this kind to a flow.</li>
+<li><b>Shortcut models</b> (Frans et al. 2024) condition the network on a step size <var>d</var> as well and enforce that one step of size 2<var>d</var> equals two steps of size <var>d</var>:
+<div class=eq><span><var>s</var><sub>θ</sub>(<var>x</var><sub>t</sub>, <var>t</var>, 2<var>d</var>) = ½ <var>s</var><sub>θ</sub>(<var>x</var><sub>t</sub>, <var>t</var>, <var>d</var>) + ½ <var>s</var><sub>θ</sub>(<var>x</var><sub>t</sub> + <var>d</var>·<var>s</var><sub>θ</sub>(<var>x</var><sub>t</sub>, <var>t</var>, <var>d</var>), <var>t</var> + <var>d</var>, <var>d</var>)</span><span class=n>(31)</span></div>
+At <var>d</var> → 0 the network is trained with ordinary flow matching. One model can then sample with 1, 2, 4, … steps.</li>
+<li><b>MeanFlow</b> (Geng et al. 2025) learns the <b>average</b> velocity over an interval and derives a training target from the identity obtained by differentiating its definition:
+<div class=eq><span><var>u</var>(<var>z</var>, <var>r</var>, <var>t</var>) = <sup>1</sup>⁄<sub>(<var>t</var> − <var>r</var>)</sub>∫<sub><var>r</var></sub><sup><var>t</var></sup> <var>v</var>(<var>z</var><sub>τ</sub>, τ)<var>d</var>τ &nbsp;⟹&nbsp; <var>u</var> = <var>v</var>(<var>z</var><sub>t</sub>, <var>t</var>) − (<var>t</var> − <var>r</var>) <sup><var>d</var></sup>⁄<sub><var>dt</var></sub><var>u</var>(<var>z</var><sub>t</sub>, <var>r</var>, <var>t</var>)</span><span class=n>(32)</span></div>
+One step is then <var>z</var><sub>r</sub> = <var>z</var><sub>t</sub> − (<var>t</var> − <var>r</var>)<var>u</var>(<var>z</var><sub>t</sub>, <var>r</var>, <var>t</var>). The <var>d</var>/<var>dt</var> term is a Jacobian-vector product. Their sign and time conventions follow the paper's own (noise at 1).</li>
+</ul>
+<p><b>Relevance to VLAs</b> <span class="tag i">inferred</span>. GR00T already runs at K = 4, and its output is the 0.75-step data prediction (27), so it is effectively a near-one-step model with three refinement steps. A one-step head matters most for <b>detectors that need many samples</b>: STAC uses 256 chunks per step (§3.3). It also matters for RTC-style guidance, which backpropagates through the denoiser at every step.</p>
+
+<h2 id=s2>2. Flow matching as a VLA action head</h2>
+
+<h3>2.1 π0 and π0.5</h3>
+<p><b>Training</b> <span class="tag c">code</span> <code>pi0/modeling_pi0.py:593–641</code>, <code>common/flow_matching.py</code>. This uses openpi time (noise at 1):</p>
+<pre class=code>time  = Beta(1.5, 1.0).sample() * 0.999 + 0.001           # sample_time_beta(scale=0.999, offset=0.001)
+x_t   = time * noise + (1 - time) * actions               # :595
+u_t   = noise - actions                                    # :596
+v_t   = action_out_proj(expert(prefix=[img, lang], suffix=[state, x_t ⊕ time]))
+loss  = mse(u_t, v_t, reduction="none")                    # :641, reduced by the caller</pre>
+<p>Beta(1.5, 1) has density ∝ τ<sup>1/2</sup>, so in this convention mass sits near τ = 1, which is <b>noise</b>. That is the same emphasis as the paper's Beta((<var>s</var> − τ)/<var>s</var>; 1.5, 1) with τ = 0 as noise <span class="tag d">derived</span>.</p>
+<p><b>Inference</b> <span class="tag c">code</span> <code>euler_integrate</code>: <code>dt = −1/num_steps</code>, <code>time = 1 + step·dt</code>, <code>x_t += dt·v_t</code>, 10 steps by default (<code>configuration_pi0.py:44</code>, <code>configuration_pi05.py:59</code>). The prefix KV cache is computed once and only the action suffix is recomputed per step <span class="tag p">paper</span> <span class="tag c">code</span> <code>denoise_step</code>.</p>
+<p><b>Architecture</b> <span class="tag p">paper</span>:</p>
+<ul>
+<li>A ~300M-parameter <b>action expert</b> (a second set of transformer weights) shares attention layers with the 3B PaliGemma VLM.</li>
+<li>Attention is blockwise causal:
+  <ul>
+  <li>[images + language] attend among themselves;</li>
+  <li>[state] attends to those;</li>
+  <li>[noisy actions] attend to everything, bidirectionally within the chunk.</li>
+  </ul>
+  The VLM never attends to action tokens (<code>att_masks += [1] + [0]*(chunk_size−1)</code>, <code>modeling_pi0.py:583</code> <span class="tag c">code</span>).</li>
+<li>H = 50. Execution is 16 or 25 actions per inference depending on control rate.</li>
+</ul>
+<p><b>π0 vs π0.5 in the code</b> <span class="tag c">code</span>:</p>
+<ul>
+<li>π0 concatenates the sinusoidal time embedding with the action embedding and passes the result through an MLP (<code>action_time_mlp_in/out</code>, <code>:529–590</code>).</li>
+<li>π0.5 instead passes the time embedding through <code>time_mlp_in/out</code> and injects it as <b>adaRMS</b> conditioning into every expert layer's norms (<code>adarms_cond = time_emb</code>, <code>pi05/modeling_pi05.py:693–694</code>).</li>
+<li>π0.5's suffix embedding takes no continuous state. That is consistent with the paper's discretised state in the language prefix <span class="tag i">inferred</span>.</li>
+</ul>
+<p>The knowledge-insulation recipe (Driess et al.) trains the VLM on discrete FAST action tokens and stops the expert's flow gradient from flowing into the VLM <span class="tag p">paper</span> (abstract only).</p>
+
+<h3>2.2 GR00T N1.7, as it runs in our repo</h3>
+<div class=diag>
+ <div class=row>
+  <div class="blk obs"><b>Backbone</b>Cosmos-Reason2-2B (Qwen3-VL), LLM truncated to <code>select_layer = 16</code> of 28 layers (<code>groot_n1_7.py:86, 305</code>). Output: VL tokens <var>φ</var> plus <code>image_mask</code>.</div>
+  <div class="blk obs"><b>vlln + vl_self_attention</b>LayerNorm, then 4 self-attention blocks over the VL tokens (<code>:504–509, 562–565</code>). Our splice point (R-039) is after this.</div>
+ </div>
+ <div class=arrow>↓ cross-attention keys/values</div>
+ <div class=row>
+  <div class="blk pol"><b>Tokens the DiT denoises</b>[state token (<code>state_encoder</code>, per-embodiment MLP) ‖ 40 action tokens]. Each action token is <code>action_encoder(x_t, t_bucket)</code> + learned position embedding (<code>:592–598</code>).</div>
+  <div class="blk pol"><b>AlternateVLDiT, 32 blocks</b>
+    <ul style="margin:4px 0 0">
+    <li>odd blocks: self-attention over [state ‖ actions];</li>
+    <li>even blocks: cross-attention to <var>φ</var>;</li>
+    <li>the cross-attending blocks alternate between text/non-image tokens (idx % 4 == 0) and image tokens (idx % 4 == 2);</li>
+    <li>time enters every block via AdaLayerNorm and at the output via shift/scale (<code>cross_attention_dit.py:64–88, 355–384</code>).</li>
+    </ul></div>
+ </div>
+ <div class=arrow>↓</div>
+ <div class=row>
+  <div class="blk cp"><b>action_decoder</b>Per-embodiment MLP → velocity for the last 40 tokens (<code>:618–619</code>). 132-wide, padded; 7 live dims for LIBERO.</div>
+ </div>
+</div>
+<p><b>Training loss</b> <span class="tag c">code</span> <code>groot_n1_7.py:554–622</code>:</p>
+<pre class=code>u     = Beta(1.5, 1.0).sample()                  # sample_time
+t     = (1 - u) * 0.999                          # t=0 noise, t≈1 data
+x_t   = (1 - t) * noise + t * actions            # :589
+target= actions - noise                          # :590
+tb    = long(t * 1000)                           # num_timestep_buckets: time is floor-quantised
+pred  = action_decoder(DiT([state_feat, action_encoder(x_t, tb)+pos], vl_embeds, tb))[:, -40:]
+loss  = sum(mse(pred, target) * action_mask) / sum(action_mask)</pre>
+<div class=eq><span>ℒ<sub>GR00T</sub>(θ) = 𝔼<sub><var>u</var>~Beta(1.5,1), ε, (<var>o</var>,<var>a</var>)</sub> <sup>Σ<sub><var>h</var>,<var>j</var></sub> <var>m</var><sub><var>hj</var></sub> ( <var>v</var><sub>θ</sub>(<var>x</var><sub>t</sub>, ⌊1000<var>t</var>⌋, <var>o</var>)<sub><var>hj</var></sub> − (<var>a</var><sub><var>hj</var></sub> − ε<sub><var>hj</var></sub>) )²</sup>⁄<sub>Σ<sub><var>h</var>,<var>j</var></sub> <var>m</var><sub><var>hj</var></sub></sub>, &nbsp; <var>t</var> = 0.999(1 − <var>u</var>)</span><span class=n>(33)</span></div>
+<dl class=where><dt>m</dt><dd>action mask over horizon <var>h</var> ≤ 40 and dimension <var>j</var> ≤ 132</dd><dt>⌊1000t⌋</dt><dd>integer time bucket fed to both the action encoder and the DiT</dd></dl>
+<p><b>Details that matter for us</b> <span class="tag c">code</span>:</p>
+<ul>
+<li><b>Our fine-tunes supervise 16 of 40 steps.</b> The checkpoint and R-056 configs have <code>chunk_size = 16</code>, <code>n_action_steps = 16</code> (<code>runs/r056_r16_train/checkpoints/016000/pretrained_model/config.json</code>). <code>action_delta_indices</code> returns <code>range(min(chunk_size, 40))</code> (<code>configuration_groot.py:509–514</code>), so the dataset supplies 16 actions. The processor zero-pads to 40 with <code>action_mask</code> = 0 beyond them (<code>processor_groot.py:1935–1973</code>). The model still generates all 40 at inference; the harness executes 16.</li>
+<li><b>State dropout.</b> When the head is in train mode, the whole state token is zeroed for 20% of samples (<code>state_dropout_prob</code> 0.2 default, <code>:579–583</code>). It is off at inference. I did not check whether R-056 overrode it <span class="tag i">inferred</span>. R-039 found the state token near-inert anyway <span class="tag r">ours</span>.</li>
+<li><b>What our LoRA can change.</b> R-056's adapter targets 248 modules (<code>adapter_config.json</code>):
+  <ul>
+  <li>in each of the 32 DiT blocks: q/k/v/out, the feed-forward layers, and <code>norm1.linear</code>. The last one is the AdaLN map from the time embedding to scale/shift, so the adapter <b>can</b> change how behaviour depends on <var>t</var>;</li>
+  <li>the 4 <code>vl_self_attention</code> blocks.</li>
+  </ul>
+  It does not touch the action encoder or decoder, the time encoder or the backbone.</li>
+</ul>
+<p><b>Inference loop</b> <span class="tag c">code</span> <code>groot_n1_7.py:644–708</code>:</p>
+<pre class=code>x  = torch.randn(B, 40, 132)            # :657, unseeded
+dt = 1 / num_inference_timesteps        # 4 in the checkpoint config ⇒ 0.25
+for k in range(4):                      # t = 0, .25, .5, .75 → buckets 0, 250, 500, 750
+    v = decoder(DiT([state, encoder(x, bucket_k)+pos], vl, bucket_k))[:, -40:]
+    x = x + dt * v * vel_strength        # vel_strength ≡ 1 unless native RTC is active
+return x                                # = â_θ(x_0.75, 0.75) by (27)</pre>
+<p>The checkpoint's <code>num_inference_timesteps</code> is 4 (HF snapshot <code>32a6ec7…/config.json</code>, and every <code>experiments/repro/runs/groot_*/eval.log</code>). The GR00T N1 paper reports K = 4 "works well across all embodiments" and 63.9 ms for a 16-action chunk on an L40 <span class="tag p">paper</span>. N1 used the 12th LLM layer; N1.7 in our port uses 16 <span class="tag c">code</span>.</p>
+<p><b>Native RTC in GR00T</b> <span class="tag c">code</span> <code>:665–681</code>, <code>modeling_groot.py:347–442</code>. If the previous chunk's leftovers are passed in:</p>
+<ul>
+<li>the first <code>overlap</code> rows of the <b>initial noise</b> are overwritten with those clean actions;</li>
+<li>the velocity is multiplied by 0 on the first <code>frozen = inference_delay</code> rows, and by an exponential ramp 1 − <var>e</var><sup>−6<var>s</var></sup> (normalised) across the rest of the overlap.</li>
+</ul>
+<p>This is a hard-inpainting variant with soft release, not the paper's guidance (§3.5). <b>Our harness never passes leftovers</b>: no <code>prev_chunk_left_over</code> or <code>rtc_config</code> appears in <code>vla_harness/</code> or the experiment scripts, so <code>vel_strength</code> ≡ 1 in all our runs <span class="tag c">code</span>.</p>
+
+<h3>2.3 Diffusion Policy, for contrast</h3>
+<p><span class="tag c">code</span> <code>diffusion/modeling_diffusion.py:360–386</code>, defaults in <code>configuration_diffusion.py:139–150</code>:</p>
+<ul>
+<li>DDPM with 100 discrete training steps and a squared-cosine β schedule;</li>
+<li><b>ε-prediction</b>: the loss is MSE(ε̂, ε) at a uniformly sampled integer timestep;</li>
+<li>clipped samples;</li>
+<li>at inference, <code>noise_scheduler.step</code> over <code>num_inference_steps</code>, which defaults to all 100. DDIM can be swapped in for fewer steps;</li>
+<li>a 1-D temporal U-Net with FiLM conditioning on the observation features;</li>
+<li>horizon 64, 32 executed, 2 observation frames.</li>
+</ul>
+<p>By (22)–(24) this is the same family as flow matching, with a different path (variance-preserving), parametrisation (ε) and time weighting (uniform over discrete steps), and a stochastic sampler. The practical differences are many more sampling steps and no straight-path argument for few-step sampling.</p>
+
+<h3>2.4 Side by side</h3>
+<div class=tw><table>
+<tr><th></th><th>π0 / π0.5 (LeRobot)</th><th>GR00T N1.7 (LeRobot)</th><th>Diffusion Policy (LeRobot)</th></tr>
+<tr><td>noise end</td><td><var>t</var> = 1</td><td><var>t</var> = 0</td><td>step <var>T</var></td></tr>
+<tr><td>target</td><td>ε − <var>a</var></td><td><var>a</var> − ε</td><td>ε</td></tr>
+<tr><td>time sampler</td><td>Beta(1.5,1)·0.999 + 0.001, continuous</td><td>0.999(1 − Beta(1.5,1)), 1000 buckets</td><td>uniform integer of 100</td></tr>
+<tr><td>sampler</td><td>Euler, 10</td><td>Euler, 4</td><td>DDPM, 100 (or DDIM)</td></tr>
+<tr><td>time injection</td><td>π0: concat + MLP; π0.5: adaRMS</td><td>sinusoid into the action encoder + AdaLN in every DiT block</td><td>FiLM / diffusion step embedding</td></tr>
+<tr><td>observation conditioning</td><td>shared attention with the VLM (expert attends to the prefix KV)</td><td>cross-attention to post-<code>vl_self_attention</code> tokens, image and text alternating</td><td>FiLM on the global obs vector</td></tr>
+<tr><td>chunk / executed</td><td>50 / 50 by default</td><td>40 generated / 16 executed (ours)</td><td>64 / 32</td></tr>
+<tr><td>noise seeding</td><td><code>torch.normal</code> (caller may pass noise)</td><td>bare <code>torch.randn</code></td><td>optional <code>generator</code></td></tr>
+</table></div>
+
+<h2 id=s3>3. Why it matters for our work</h2>
+
+<h3>3.1 (a) D20: the loss fell ~65%, but the sampled first chunk moved ~10%</h3>
+<p><b>The data</b> <span class="tag r">ours</span> (<code>runs/r056_diag/loss_summary.json</code>; <code>docs/R056_POSTMORTEM.html</code>). The loss is mean flow-matching loss at random <var>t</var> (the training Beta), with a fixed seed: 8 (<var>t</var>, ε) draws per frame and n = 100 frames per subset, model in eval mode (<code>experiments/r056_diag_loss.py</code>).</p>
+<div class=tw><table>
+<tr><th>subset</th><th>base mean</th><th>r16 opt1000</th><th>r16 opt2000</th><th>r4 opt500</th><th>base median → r16 opt2000</th></tr>
+<tr><td>minted frame 0 (training starts)</td><td class=num>0.159</td><td class=num>0.059 (0.37×)</td><td class=num>0.055 (0.34×)</td><td class=num>0.081 (0.51×)</td><td>0.102 → 0.047</td></tr>
+<tr><td>minted frames 1–15</td><td class=num>0.104</td><td class=num>0.38×</td><td class=num>0.36×</td><td class=num>0.51×</td><td></td></tr>
+<tr><td>minted frames 16–47</td><td class=num>0.079</td><td class=num>0.55×</td><td class=num>0.51×</td><td class=num>0.83×</td><td></td></tr>
+<tr><td>IPEC (original data)</td><td class=num>0.051</td><td class=num>0.43×</td><td class=num>0.38×</td><td class=num>0.46×</td><td>0.0077 → 0.0085 (median <i>rose</i>)</td></tr>
+</table></div>
+<p>The sampled first chunk on <b>held-out</b> seed-0 starts moved toward the nominal chunk in 30 of 36 starts, but the median distance went only 4.51 → 3.98 (r16) and 4.12 (r4). That is 9–12% of the way <span class="tag r">ours</span> post-mortem.</p>
+<p>When can a lower flow loss at random <var>t</var> fail to produce a better sampled chunk? There are five mechanisms, which can be told apart. The first two are not about flow matching at all.</p>
+
+<p><b>M1. Squared versus linear</b> <span class="tag d">derived</span>. The loss is a mean <b>squared</b> velocity error, while chunk distance is linear in the error. By (13), at fixed <var>t</var>, the data-prediction error is (1 − <var>t</var>)·(velocity error). If the error shrank uniformly over <var>t</var>, the endpoint error would shrink by √(loss ratio):</p>
+<div class=eq><span>√(0.055/0.159) = 0.59, &nbsp; √(0.059/0.159) = 0.61, &nbsp; √(0.081/0.159) = 0.72 &nbsp;⟹&nbsp; expected movement on training starts ≈ 28–41%, not 65%</span><span class=n>(34)</span></div>
+<p>The means are also tail-dominated. On IPEC the mean fell 55–62% while the median <b>rose</b> slightly, so the "65%" is mostly a few large-error frames being fixed. This alone does not explain 10%, but it shrinks the gap by about half.</p>
+
+<p><b>M2. Training starts versus held-out starts</b> (the confound). The loss is measured on the frames the adapter was trained on. The 10% is measured on starts it never saw. A model can fit its 100 training starts (D20(i): frame 0 fitted, 91–96% of frames below base) and still generalise weakly to new offsets. That is the coverage hypothesis (D20(ii): 42% of held-out starts lie beyond 12 cm, where training demos are scarce). <b>No property of flow matching is needed to explain this.</b></p>
+<p><b>The fit test has now run and confirms M2</b> <span class="tag r">ours</span> (<code>runs/r056_diag/fit_firstchunk.json</code>, read 2026-10-07). The metric is the chunk-0 commanded translation ‖Σ<sub>h&lt;16</sub> <var>a</var><sub><var>h</var>,1:3</sub> − ref‖ in env action units, with medians over starts. Its anchor reproduces 4.514 / 3.979 / 4.120.</p>
+<div class=tw><table>
+<tr><th>starts</th><th>reference</th><th>r16 opt1000: share of base's median gap closed</th><th>r4 opt500</th></tr>
+<tr><td>100 training starts, all</td><td>own label</td><td class=num>30%</td><td class=num>27%</td></tr>
+<tr><td>training, 8–12 / 12–16 / 16–20 cm (n = 18 / 7 / 2)</td><td>own label</td><td class=num>48% / 42% / 61%</td><td class=num>26% / 29% / 45%</td></tr>
+<tr><td>training, all</td><td>nominal chunk</td><td class=num>24%</td><td class=num>20%</td></tr>
+<tr><td>36 held-out starts, all</td><td>nominal chunk</td><td class=num>12%</td><td class=num>9%</td></tr>
+<tr><td>held-out, per direction × cm cell (n = 3–11)</td><td>nominal chunk</td><td class=num>1–15%</td><td class=num>5–8%</td></tr>
+</table></div>
+<p>On its own training starts, the sampled chunk moved about as far as M1's √(loss ratio) predicts (30% against a predicted 28–41%). On held-out directions it barely moved. The loss-to-sample link is therefore <b>intact</b>, and the D20 tension is mostly generalisation across directions and offsets, which is a data-coverage and dose problem, not a flow-matching one. Two caveats:</p>
+<ul>
+<li>the far training bands hold only 7 and 2 starts;</li>
+<li>the label equals the nominal chunk at seed 0 but differs at seeds 1 and 2 (<code>label_vs_nominal_seed0</code>).</li>
+</ul>
+
+<p><b>M3. The time slice that sets the sample</b> <span class="tag d">derived</span>. By (27), the executed chunk is <var>â</var><sub>θ</sub>(<var>x</var><sub>0.75</sub>, 0.75). The loss (33) averages over all <var>t</var> with the Beta weights of §1.7. Two facts pull in opposite directions:</p>
+<ul>
+<li><b>By draw count</b>, only 12.4% of draws land in [0.75, 1] and 35% in [0, 0.25). Most of a 65% drop could come from the noise end. There the optimal velocity is <var>v</var><sup>*</sup>(ε, 0) = 𝔼[<var>a</var>|<var>o</var>] − ε, so learning a <b>mean shift</b> in 𝔼[<var>a</var>|<var>o</var>] is enough to cut the loss.</li>
+<li><b>By weight on endpoint error</b>, (24) gives an effective weight <var>p</var>(<var>t</var>)/(1 − <var>t</var>)² ∝ (1 − <var>t</var>)<sup>−3/2</sup>, which <i>grows</i> toward the data end. Per unit of endpoint error, a draw at <var>t</var> = 0.75 counts 8× more than one at <var>t</var> = 0.</li>
+</ul>
+<p>Without per-<var>t</var> losses we cannot tell which end drove the drop. <b>Cheap test:</b> recompute the D20 loss with <var>t</var> fixed at the four sampler times {0, 0.25, 0.5, 0.75}, same frames and same ε. This is one extra flag on <code>r056_diag_loss.py</code> <span class="tag i">inferred</span>, and it reports the endpoint error (1 − <var>t</var>)·√loss at each.</p>
+<p>There is also <b>exposure bias</b>. The loss evaluates <var>â</var><sub>θ</sub> at the training interpolant <var>x</var> = 0.25ε + 0.75<var>a</var>, but the sampler evaluates it at <var>x</var><sub>0.75</sub> produced by its own first three steps. On held-out starts, those steps are driven by a field that has not learned the new label, so <var>x</var><sub>0.75</sub> sits in a region the training interpolant never visited.</p>
+
+<p><b>M4. Mode mixing</b> <span class="tag i">inferred</span>, a hypothesis. By (9), <var>v</var><sup>*</sup> is a conditional mean over targets that share (<var>x</var><sub>t</sub>, <var>o</var>). Suppose two kinds of training frame have nearly the same observation but different labels. Here those are minted frames (nominal-run chunk as label) and 1:1 replay frames from IPEC, or the base model's own learned behaviour. The flow then represents a <b>mixture</b>. The loss on minted frames can fall because the model now puts mass on the minted mode, while a fresh ε lands in that mode only with the mixture weight π<sub>minted</sub>. The expected movement of the median sampled chunk is then roughly π<sub>minted</sub> times the full distance, and with frame 0 at ~1% of draws (post-mortem §3.1) π could be small.</p>
+<ul>
+<li><b>Signature:</b> a <b>bimodal</b> spread of sampled first chunks across ε at a fixed start, some near nominal and some near base, rather than a uniform 10% shift.</li>
+<li><b>Test:</b> sample 8–16 ε per start at fixed observation (frozen-obs path, as in V3) and look at the distribution of distances.</li>
+<li><b>Free proxy:</b> a K = 1 sample returns <var>â</var><sub>θ</sub>(ε, 0) ≈ 𝔼[<var>a</var>|<var>o</var>], the mean of the mixture. A large K = 1 vs K = 4 difference flags multimodality.</li>
+</ul>
+
+<p><b>M5. Conditioning shift between loss and rollout</b> <span class="tag i">inferred</span>. Several things differ between the loss frames and live rollouts:</p>
+<ul>
+<li>The loss frames' observations are minted-rollout renders through the training preprocessor (augmentation off, checked in <code>loss_summary.json</code>). Live rollouts render fresh, with the R-039 render jitter.</li>
+<li>Training applied state dropout (if not overridden), which inference never does.</li>
+<li>Time is bucketed in both paths, so that is not a source.</li>
+</ul>
+<p>The wrist camera carries the start-pose signal (W = 0.88, R-042), so small pixel differences at the wrist are exactly what the adapter needs to read. This is a minor candidate unless the fit test shows training-start renders and live renders diverge.</p>
+
+<div class="card caution"><b>Reading order, after the fit test.</b> M1 (arithmetic) and M2 (coverage, now confirmed) together account for the tension: the adapter fits training starts about as far as its loss implies and does not transfer to new directions. M3 and M4 remain cheap secondary checks for the next fine-tune: the per-<var>t</var> loss at sampler times, and multi-ε sampling at frozen observations. Neither needs training. M5 is last.</div>
+
+<h3>3.2 (b) Noise as a source of rollout variance, and why splices fix it</h3>
+<p>For fixed weights and observation, the sampler is a deterministic map of the initial noise:</p>
+<div class=eq><span><var>A</var> = Φ<sub><var>o</var></sub>(ε), &nbsp; ε ~ 𝒩(0, <var>I</var><sub>40×132</sub>), &nbsp; Φ<sub><var>o</var></sub> = 4 Euler steps of <var>v</var><sub>θ</sub>(·, ·, <var>o</var>)</span><span class=n>(35)</span></div>
+<p>GR00T draws ε from an <b>unseeded</b> <code>torch.randn</code> at every forward (<code>groot_n1_7.py:657</code>) <span class="tag c">code</span>. How much ε matters depends on <var>p</var>(<var>a</var>|<var>o</var>) <span class="tag d">derived</span>:</p>
+<ul>
+<li>for a tight unimodal conditional, Φ<sub><var>o</var></sub> is nearly constant in ε (by (28), every ε lands near the same <var>a</var>);</li>
+<li>near a <b>mode boundary</b> (grasp now or reposition, approach from the left or the right), ε chooses the basin, and a closed-loop rollout amplifies that choice.</li>
+</ul>
+<p>Outcome flips under resampling are therefore partly a <b>multimodality signal</b>, not just noise. Render jitter is a second, independent source: R-039's two passes shared the seed and the fixed noise and still agreed on outcome in only 23/30 rollouts, while the action-level measurements agreed to within 0.06 <span class="tag r">ours</span>. The working figure in RESULTS.md is a ~30% outcome flip rate at one seed. R-048 measured 43% without correction for the camera row.</p>
+<p><b>Why the splices must share ε</b> <span class="tag d">derived</span>. R-039's transfer fraction is τ = 1 − ‖<var>a</var><sub>X</sub> − <var>a</var><sub>N</sub>‖ / ‖<var>a</var><sub>P</sub> − <var>a</var><sub>N</sub>‖ (<code>vla_harness/capture/splice.py</code>). If each arm drew its own noise:</p>
+<div class=eq><span><var>a</var><sub>P</sub> − <var>a</var><sub>N</sub> = [Φ<sub><var>o</var><sub>P</sub></sub>(ε) − Φ<sub><var>o</var><sub>N</sub></sub>(ε)] + [Φ<sub><var>o</var><sub>N</sub></sub>(ε) − Φ<sub><var>o</var><sub>N</sub></sub>(ε′)]</span><span class=n>(36)</span></div>
+<p>The second bracket is pure sampler spread. It enters both the numerator and the denominator of τ, biasing τ toward 0 and adding variance that has nothing to do with the spliced input. Fixing ε, by seeding each arm with <code>torch.manual_seed(noise_key(forward))</code> and restoring the generator afterwards, deletes that bracket exactly. The model-level determinism gate (bitwise-identical <code>action_pred</code> for identical inputs and seed) makes this auditable <span class="tag r">ours</span> RESULTS R-039. The same logic explains why <b>single-draw STAC</b> on R-041 was noise-dominated. Its distance between consecutive chunks contains a bracket like the second one at every step (§3.3).</p>
+<p>Two different noise mechanisms exist in the harness, and they must not be mixed:</p>
+<ul>
+<li><b>capture</b> (<code>groot_features.py</code>) leaves the model's own draw untouched and replays it (save, draw, rewind), so rollouts are unchanged;</li>
+<li><b>splice</b> seeds the draw.</li>
+</ul>
+
+<h3>3.3 (c) Failure detectors that use the flow structure</h3>
+<div class=tw><table>
+<tr><th>detector</th><th>what it uses from the flow</th><th>formula</th><th>noise handling</th></tr>
+<tr><td><b>FAIL-Detect logpZO</b> (<code>docs/FAIL_DETECT_MATHS.html</code>)</td><td>Not the policy's flow. It trains a <b>separate</b> rectified flow mapping observation embeddings to 𝒩(0, <var>I</var>) and uses the one-step latent norm as a density proxy (3) with the Jacobian dropped.</td><td>‖<var>O</var> + <var>f</var><sub>θ</sub>(<var>O</var>, 0)‖²</td><td>deterministic: no sampling at test time</td></tr>
+<tr><td><b>VLA-FAIL LLMD</b> (arXiv:2606.21386)</td><td>The action head's <b>last-layer features before the output projection</b>, per action token, computed at the <b>noise end</b> with one <b>fixed</b> noise vector <var>a</var><sub>0</sub><sup>*</sup>. The prior there is 𝒩(0, <var>I</var>) and independent of <var>o</var>, so feature differences reflect only the observation.</td><td>max<sub><var>s</var></sub> (<var>f</var><sup>*</sup>(<var>o</var>)<sub><var>s</var></sub> − μ<sub><var>s</var></sub>)<sup>⊤</sup>(Σ<sub><var>s</var></sub> + λ<var>I</var>)<sup>−1</sup>(<var>f</var><sup>*</sup>(<var>o</var>)<sub><var>s</var></sub> − μ<sub><var>s</var></sub>), with μ and Σ per token from the fine-tuning demos</td><td>one fixed ε for everything, the same principle as our splices</td></tr>
+<tr><td><b>VLA-FAIL ACC</b></td><td>The executed chunks: the overlap between the previous chunk's unexecuted suffix and the new chunk's prefix.</td><td>(1/<var>D</var>)(1/(<var>H</var>−<var>R</var>)) Σ<sub><var>d</var></sub> (1/<var>v</var><sub><var>d</var></sub>) Σ<sub><var>i</var></sub> |<var>a</var><sup><var>t</var>−1</sup><sub><var>R</var>+<var>i</var>,<var>d</var></sub> − <var>a</var><sup><var>t</var></sup><sub><var>i</var>,<var>d</var></sub>|, EE position only (<var>D</var> = 3), range-normalised per dimension, EMA α = 0.9</td><td>one sample per step; normalisation and EMA tame the noise bracket of (36)</td></tr>
+<tr><td><b>STAC</b> (Sentinel, arXiv:2410.04640; <code>docs/SENTINEL_METHODOLOGY.html</code>)</td><td>The policy as a <b>distribution</b>, i.e. the pushforward Φ<sub><var>o</var></sub>(ε) (35). Many ε give samples of each chunk's marginal over the overlap.</td><td>η<sub>t</sub> = Σ<sub><var>i</var></sub> <var>D̂</var>(π̄<sub><var>ik</var></sub>, π̃<sub>(<var>i</var>+1)<var>k</var></sub>), MMD with an RBF kernel, cumulative and monotone</td><td>needs many samples (256 in their runs); a single draw collapses to the noisy bracket</td></tr>
+</table></div>
+<p><b>How this maps to GR00T</b> <span class="tag i">inferred</span>:</p>
+<ul>
+<li><b>The overlap.</b> At 40 generated and 16 executed, consecutive chunks overlap by 24 steps. Those 24 steps lie in positions 17–40, which our fine-tunes <b>never supervise</b> (§2.2). For an adapted model, ACC and STAC compare base-learned tails, not anything the adapter trained.</li>
+<li><b>An LLMD port at fixed ε</b> reuses the splice seeding. The "last layer" would be the DiT output before <code>action_decoder</code>, at the <var>t</var> = 0 query.</li>
+<li><b>A fourth, untried score is the exact action likelihood (3)</b>: log <var>p</var>(<var>A</var><sub>executed</sub> | <var>o</var>) by integrating backward with Hutchinson traces. It would flag observations where the policy's own chunk is unlikely under its own flow. None of the three papers does this.</li>
+</ul>
+
+<h3>3.4 (d) FACT: what the "flow-matching policy training mismatch" is</h3>
+<p><span class="tag p">paper</span> (arXiv:2608.01402; HTML read for the relevant sections).</p>
+<ul>
+<li><b>The claim.</b> Sub-millimetre contact corrections are generated in the <b>low-noise</b> part of the flow. The Beta(1.5, 1) schedule of π0, π0.5 and SmolVLA allocates "only 8.9% of gradient signal to τ &lt; 0.2" (τ = noise level, openpi convention). The model is therefore under-trained exactly where precision is decided, and actions "collapse to near-zero magnitude" in contact.</li>
+<li><b>The fix.</b> At post-training, swap the schedule for a logit-normal τ = σ(<var>s z</var> − <var>m</var>) with <var>m</var> = 1.5 and <var>s</var> = 1. They report 6× more mass at τ &lt; 0.2, with no architecture change and no new data. A force pathway via adaRMS is added separately.</li>
+<li><b>Results</b> (π0.5, five contact-rich tasks): 39% → 66% average.</li>
+<li><b>How they localised it.</b> Force profiles and delta-collapse plots. The paper does not measure gradient flow per noise level.</li>
+</ul>
+<p><b>Recomputed</b> <span class="tag d">derived</span>:</p>
+<ul>
+<li>Under Beta(1.5, 1), <var>P</var>(τ &lt; 0.2) = 0.2<sup>1.5</sup> ≈ 0.089, matching their 8.9%.</li>
+<li>Under their LN, <var>P</var>(τ &lt; 0.2) = Φ(logit 0.2 + 1.5) = Φ(0.114) ≈ 0.545, a 6.1× ratio, matching their "6×". An unshifted LN would give 0.083.</li>
+<li>So "8.9% of gradient signal" means 8.9% of <b>draws</b>.</li>
+</ul>
+<p><b>What it means for GR00T</b> <span class="tag d">derived</span> <span class="tag i">inferred</span>:</p>
+<ul>
+<li><b>Same schedule, same number.</b> GR00T uses the identical Beta. In its convention the near-data fifth is <var>t</var> &gt; 0.8, which also receives 8.9% of draws (§1.7).</li>
+<li><b>Two reasons it may matter less than for π0.5.</b>
+  <ol>
+  <li>GR00T's 4-step sampler <b>never queries</b> <var>t</var> &gt; 0.75. The output is the data prediction at <var>t</var> = 0.75 (27), so draws above 0.8 shape the sample only through weights shared across <var>t</var>. π0.5 at 10 steps queries down to openpi τ = 0.1.</li>
+  <li>Per unit of endpoint error, the velocity loss already up-weights late <var>t</var> by 1/(1 − <var>t</var>)² (24). "Fewer draws" is not "less gradient" in endpoint units.</li>
+  </ol></li>
+<li><b>A shift toward the data end could still help</b> where precision fails. Scene 1327's grasp closes 5.5 cm high, against 4.2 cm for base (post-mortem). But that failure is traced to polluted minted labels, not a schedule. If tried, it must be a <b>pre-registered arm</b>. Changing <var>p</var>(<var>t</var>) for a LoRA on ~100 demos also changes what the adapter does at the noise end, where π0's rationale says mode selection happens.</li>
+</ul>
+
+<h3>3.5 (e) Real-time chunking and inpainting for chunked flow policies</h3>
+<p><b>The problem</b> <span class="tag p">paper</span> (Black, Galliker &amp; Levine). Inference takes <var>d</var> control steps. The next chunk must therefore agree with the <var>d</var> actions already committed, and it should not switch strategy across the rest of the overlap. Naive asynchronous execution switches mode at chunk boundaries. Temporal ensembling averages modes and produces invalid actions.</p>
+<p><b>RTC as inpainting with guidance</b>. Treat the previous chunk's overlap <var>Y</var> as a partial observation and correct the velocity with a pseudo-inverse guidance (ΠGDM) term:</p>
+<div class=eq><span><var>v̂</var>(<var>A</var><sup>τ</sup>) = <var>v</var>(<var>A</var><sup>τ</sup>) + min(β, <sup>(1 − τ)</sup>⁄<sub>(τ <var>r</var><sub>τ</sub>²)</sub>) · (<var>Y</var> − <var>Â</var><sup>1</sup>)<sup>⊤</sup> diag(<var>W</var>) · <sup>∂<var>Â</var><sup>1</sup></sup>⁄<sub>∂<var>A</var><sup>τ</sup></sub>, &nbsp; <var>r</var><sub>τ</sub>² = <sup>(1 − τ)²</sup>⁄<sub>(τ² + (1 − τ)²)</sub></span><span class=n>(37)</span></div>
+<p>Here <var>Â</var><sup>1</sup> = <var>A</var><sup>τ</sup> + (1 − τ)<var>v</var> is exactly the data prediction (12). The weight <var>W</var> is a soft mask:</p>
+<ul>
+<li>1 on the first <var>d</var> steps (frozen);</li>
+<li>exponentially decaying across the rest of the overlap;</li>
+<li>0 after <var>H</var> − <var>s</var>.</li>
+</ul>
+<p>The guidance weight β is clipped (≈ 5 with few steps), and 5 denoising steps are used for π0.5. The paper finds hard masking of only the first <var>d</var> steps insufficient: a small <var>d</var> gives weak guidance, so the chunk can still switch strategy.</p>
+<p><b>In code</b> <span class="tag c">code</span>:</p>
+<ul>
+<li><b>LeRobot's generic RTC</b> (<code>rtc/modeling_rtc.py:205–243</code>) implements (37) for π0, π0.5 and SmolVLA. It works in openpi time with <code>tau = 1 − time</code>, the vector-Jacobian product by autograd, LINEAR or EXP prefix schedules, and <code>max_guidance_weight</code> 10.</li>
+<li><b>GR00T's native RTC</b> (§2.2) does something simpler. It writes the clean prefix into the initial noise and damps the velocity there (0 when frozen, an exponential ramp elsewhere), with no guidance gradient. Feeding clean actions as if they were noise at <var>t</var> = 0 is off the training distribution for those rows <span class="tag i">inferred</span>.</li>
+</ul>
+<p><b>Relevance to us</b> <span class="tag i">inferred</span>:</p>
+<ul>
+<li><b>Delay.</b> Simulation is synchronous (<var>d</var> = 0), and our harness passes no leftovers, so every chunk is sampled from fresh ε with no continuity constraint. Chunk-boundary mode switches are therefore possible every 16 steps. That is the effect ACC measures and RTC suppresses.</li>
+<li><b>Start pose.</b> R-057 found the episode decided at forward 0 (k* = 1), and there is no previous chunk at forward 0. RTC cannot fix the start-pose failure. It is relevant only to mid-episode thrash, such as scene 1327's regrasp cycles.</li>
+<li><b>Overlap supervision.</b> Inpainting needs the model to be good on the overlapped tail (steps 17–40), which our adapters never trained (§2.2).</li>
+</ul>
+
+<h2 id=s4>4. Practical implications for retraining GR00T</h2>
+<div class=tw><table>
+<tr><th>topic</th><th>recommendation</th><th>basis</th></tr>
+<tr><td><b>Select and report with sampled chunks, not loss</b></td><td>For checkpoint selection and the mechanism readout, use the <b>sampled first chunk at paired fixed ε</b>: the same <code>noise_key</code> for base and adapter at each (start, forward), the splice seeding. Use K = 4 as deployed, and 8 ε per start to get both the mean shift and the spread. Report distance to target on <b>training</b> and <b>held-out</b> starts side by side. Keep closed-loop success with paired seeds as the outcome. Treat the loss as a training-health signal only.</td><td>(27), (34), (36); M1–M4</td></tr>
+<tr><td><b>Log the loss per <var>t</var>-bin</b></td><td>Log mean loss in the 4 quartiles of <var>t</var>, and exactly at <var>t</var> ∈ {0, 0.25, 0.5, 0.75}, using a fixed ε and frame set. Report the endpoint error (1 − <var>t</var>)·√loss. This tells you whether a fine-tune moved the 0.75 slice that sets the executed chunk.</td><td>(13), (24), (27)</td></tr>
+<tr><td><b>Time schedule</b></td><td>Keep Beta(1.5, 1) as the default: it matches pretraining, and a LoRA on ~100 demos should not also relearn the time weighting. A FACT-style data-end shift (LN, <var>m</var> = 1.5) is a candidate <b>arm</b> only for precision failures, pre-registered against the default at matched budget.</td><td>§1.7, §3.4</td></tr>
+<tr><td><b>Denoising steps in eval</b></td><td>Headline numbers: <b>K = 4</b>, so base and adapter are compared on the deployed sampler and our base number stays comparable with the published one. As a <b>diagnostic</b> on frozen observations, sweep K ∈ {1, 2, 4, 5, 8, 10}. Use divisors of 1000 so the grid hits buckets exactly (K = 3 floors to 333/666). Large K-sensitivity means curved paths, i.e. multimodality. K = 1 gives the conditional mean 𝔼[<var>a</var>|<var>o</var>] (M4 proxy).</td><td>(26)–(29), <code>groot_n1_7.py:684–685</code></td></tr>
+<tr><td><b>Supervised horizon</b></td><td>Decide deliberately between <code>chunk_size</code> 16 and 40. At 16, only executed steps are trained, which matches what the eval measures. If ACC, STAC or RTC will be used on the 24-step overlap, consider supervising all 40 (the demos carry them) and record it as a deviation.</td><td>§2.2, §3.3, §3.5</td></tr>
+<tr><td><b>Dose in flow terms</b></td><td>Count frame-0 views as (frame, <var>t</var>, ε) draws. One view per epoch gives one random <var>t</var>, so the probability a given frame 0 was ever trained at <var>t</var> ≥ 0.75 is ≈ 1 − (1 − 0.124)<sup><var>n</var></sup>. At the post-mortem's 0.42–0.83 views per frame that is about 5–10%. Expected views at <var>t</var> ≥ 0.75 should be ≥ 1 per new-signal frame. This adds a time dimension to the dose rule (≥ 5 views).</td><td>§1.7; post-mortem dose figures <span class="tag d">derived</span></td></tr>
+<tr><td><b>Noise in every comparison</b></td><td>Any A/B on action outputs uses one ε per (start, forward) across arms. Any outcome A/B uses paired seeds plus replicates, because render jitter flips ~30% even at fixed ε.</td><td>§3.2</td></tr>
+</table></div>
+
+<h2 id=s5>5. Sources and reading depth</h2>
+<p>All arXiv IDs below were matched to titles and authors through the arXiv API on 2026-10-07. "Fetched" means I read the stated sections of the arXiv HTML today; the specific equations and numbers used above came from that read. "Standard" means the result is textbook-level and I state it from prior knowledge, with only the title and ID checked today.</p>
+<div class=tw><table>
+<tr><th>source</th><th>arXiv</th><th>depth</th><th>used for</th></tr>
+<tr><td>Chen, Rubanova, Bettencourt, Duvenaud, Neural ODEs</td><td><a href="https://arxiv.org/abs/1806.07366">1806.07366</a></td><td>standard</td><td>(1)–(3)</td></tr>
+<tr><td>Lipman, Chen, Ben-Hamu, Nickel, Le, Flow Matching for Generative Modeling</td><td><a href="https://arxiv.org/abs/2210.02747">2210.02747</a></td><td>standard</td><td>§1.2–1.3</td></tr>
+<tr><td>Lipman et al., Flow Matching Guide and Code</td><td><a href="https://arxiv.org/abs/2412.06264">2412.06264</a></td><td>title only</td><td>general reference</td></tr>
+<tr><td>Liu, Gong, Liu, Rectified Flow</td><td><a href="https://arxiv.org/abs/2209.03003">2209.03003</a></td><td>standard</td><td>§1.4</td></tr>
+<tr><td>Albergo, Vanden-Eijnden, Building Normalizing Flows with Stochastic Interpolants</td><td><a href="https://arxiv.org/abs/2209.15571">2209.15571</a></td><td>standard</td><td>§1.5</td></tr>
+<tr><td>Albergo, Boffi, Vanden-Eijnden, Stochastic Interpolants: A Unifying Framework</td><td><a href="https://arxiv.org/abs/2303.08797">2303.08797</a></td><td>standard</td><td>(17)–(19)</td></tr>
+<tr><td>Song et al., Score-Based Generative Modeling through SDEs</td><td><a href="https://arxiv.org/abs/2011.13456">2011.13456</a></td><td>standard</td><td>(21)</td></tr>
+<tr><td>Ho, Jain, Abbeel, DDPM · Song, Meng, Ermon, DDIM</td><td><a href="https://arxiv.org/abs/2006.11239">2006.11239</a> · <a href="https://arxiv.org/abs/2010.02502">2010.02502</a></td><td>standard</td><td>§2.3</td></tr>
+<tr><td>Salimans, Ho, Progressive Distillation (v-prediction)</td><td><a href="https://arxiv.org/abs/2202.00512">2202.00512</a></td><td>standard</td><td>§1.6 note</td></tr>
+<tr><td>Kingma, Gao, Understanding Diffusion Objectives as the ELBO</td><td><a href="https://arxiv.org/abs/2303.00848">2303.00848</a></td><td>standard</td><td>(23)</td></tr>
+<tr><td>Kingma et al., Variational Diffusion Models</td><td><a href="https://arxiv.org/abs/2107.00630">2107.00630</a></td><td>standard</td><td>log-SNR view</td></tr>
+<tr><td>Karras et al., Elucidating the Design Space of Diffusion Models</td><td><a href="https://arxiv.org/abs/2206.00364">2206.00364</a></td><td>standard</td><td>Heun sampler</td></tr>
+<tr><td>Esser et al., Scaling Rectified Flow Transformers (SD3)</td><td><a href="https://arxiv.org/abs/2403.03206">2403.03206</a></td><td>standard</td><td>logit-normal schedule</td></tr>
+<tr><td>Benton, Deligiannidis, Doucet, Error Bounds for Flow Matching Methods</td><td><a href="https://arxiv.org/abs/2305.16860">2305.16860</a></td><td>title and abstract only</td><td>§1.8</td></tr>
+<tr><td>Tong et al., minibatch OT (OT-CFM) · Pooladian et al., Multisample FM</td><td><a href="https://arxiv.org/abs/2302.00482">2302.00482</a> · <a href="https://arxiv.org/abs/2304.14772">2304.14772</a></td><td>standard</td><td>§1.9</td></tr>
+<tr><td>Song, Dhariwal, Chen, Sutskever, Consistency Models · Lu, Song, sCM</td><td><a href="https://arxiv.org/abs/2303.01469">2303.01469</a> · <a href="https://arxiv.org/abs/2410.11081">2410.11081</a></td><td>standard</td><td>(30)</td></tr>
+<tr><td>Frans, Hafner, Levine, Abbeel, One Step Diffusion via Shortcut Models</td><td><a href="https://arxiv.org/abs/2410.12557">2410.12557</a></td><td>standard</td><td>(31)</td></tr>
+<tr><td>Geng et al., Mean Flows for One-step Generative Modeling</td><td><a href="https://arxiv.org/abs/2505.13447">2505.13447</a></td><td>standard</td><td>(32)</td></tr>
+<tr><td>Black et al., π0</td><td><a href="https://arxiv.org/abs/2410.24164">2410.24164</a></td><td><b>fetched</b>: loss, schedule and rationale, sampler, attention, KV cache</td><td>§0, §2.1</td></tr>
+<tr><td>Physical Intelligence, π0.5</td><td><a href="https://arxiv.org/abs/2504.16054">2504.16054</a></td><td>title only; behaviour from code</td><td>§2.1</td></tr>
+<tr><td>Driess, Springenberg, Ichter et al., Knowledge Insulating VLAs</td><td><a href="https://arxiv.org/abs/2505.23705">2505.23705</a></td><td>title and abstract-level summary</td><td>§2.1</td></tr>
+<tr><td>NVIDIA, GR00T N1</td><td><a href="https://arxiv.org/abs/2503.14734">2503.14734</a></td><td><b>fetched</b>: loss, schedule, K = 4, DiT conditioning, layer choice, latency</td><td>§0, §2.2</td></tr>
+<tr><td>Chi et al., Diffusion Policy</td><td><a href="https://arxiv.org/abs/2303.04137">2303.04137</a></td><td>standard; behaviour from LeRobot code</td><td>§2.3</td></tr>
+<tr><td>Black, Galliker, Levine, Real-Time Execution of Action Chunking Flow Policies (RTC)</td><td><a href="https://arxiv.org/abs/2506.07339">2506.07339</a></td><td><b>fetched</b>: setup, guidance equation, mask, steps, baselines</td><td>(37)</td></tr>
+<tr><td>Xu et al., FAIL-Detect</td><td><a href="https://arxiv.org/abs/2503.08558">2503.08558</a></td><td>read in full on 09-28 (<code>docs/FAIL_DETECT_MATHS.html</code>)</td><td>§3.3</td></tr>
+<tr><td>Seligmann et al., VLA-FAIL</td><td><a href="https://arxiv.org/abs/2606.21386">2606.21386</a></td><td><b>fetched</b>: LLMD, ACC and calibration definitions; also read in full by another session on 10-06 (<code>docs/AMBITIOUS_DIRECTIONS.html</code>)</td><td>§3.3</td></tr>
+<tr><td>Agia et al., Unpacking Failure Modes of Generative Policies (Sentinel / STAC)</td><td><a href="https://arxiv.org/abs/2410.04640">2410.04640</a></td><td>via our <code>docs/SENTINEL_METHODOLOGY.html</code> (full read by another session)</td><td>§3.3</td></tr>
+<tr><td>Parés-Morlans et al., FACT</td><td><a href="https://arxiv.org/abs/2608.01402">2608.01402</a></td><td><b>fetched</b>: mismatch, fix, hyperparameters, results, localisation method</td><td>§3.4</td></tr>
+<tr><td>Zhang, Pfrommer, Pan et al., Action Chunking and Exploratory Data</td><td><a href="https://arxiv.org/abs/2507.09061">2507.09061</a></td><td>title only</td><td>background to chunking</td></tr>
+</table></div>
+<p class=small><b>Code read today</b> (this repo): <code>third_party/lerobot/src/lerobot/policies/groot/{groot_n1_7.py, modeling_groot.py, configuration_groot.py, processor_groot.py, action_head/cross_attention_dit.py}</code>; <code>pi0/modeling_pi0.py</code>, <code>pi0/configuration_pi0.py</code>, <code>pi05/modeling_pi05.py</code>, <code>pi05/configuration_pi05.py</code>; <code>common/flow_matching.py</code>; <code>rtc/modeling_rtc.py</code>, <code>rtc/README.md</code>; <code>diffusion/{configuration,modeling}_diffusion.py</code>; <code>vla_harness/capture/{splice.py, groot_features.py, analysis.py}</code>; <code>experiments/r056_diag_loss.py</code> (header and seeding); R-056 r16 checkpoint 016000 <code>config.json</code>, <code>adapter_config.json</code>; the HF snapshot <code>config.json</code> of <code>nvidia/gr00t17-lerobot-libero_spatial-640</code>. <b>Ours:</b> <code>runs/r056_diag/loss_summary.json</code>, <code>docs/R056_POSTMORTEM.html</code>, RESULTS.md R-039, R-042, R-048, R-053, R-057. <code>runs/r056_diag/fit_firstchunk.json</code> (read 2026-10-07). <b>Not verified:</b> whether R-056 overrode <code>state_dropout_prob</code>; any per-<var>t</var> loss (not yet measured).</p>
+
+<h2 id=gl>Glossary</h2>
+<div class=tw><table>
+<tr><th>term</th><th>meaning here</th></tr>
+<tr><td>Velocity field <var>v</var>(<var>x</var>, <var>t</var>)</td><td>The network's output. Integrating d<var>x</var>/d<var>t</var> = <var>v</var> from noise produces an action chunk.</td></tr>
+<tr><td>Probability path <var>p</var><sub>t</sub></td><td>The distribution of <var>x</var><sub>t</sub> at time <var>t</var>, from 𝒩(0, <var>I</var>) to the data.</td></tr>
+<tr><td>Continuity equation</td><td>∂<sub><var>t</var></sub><var>p</var> + ∇·(<var>pv</var>) = 0, the statement that mass is conserved while being moved by <var>v</var>. A field generates a path iff they satisfy it.</td></tr>
+<tr><td>CFM</td><td>Conditional flow matching: regress on per-sample targets; same gradient as the intractable marginal loss (9).</td></tr>
+<tr><td>Rectified flow / reflow</td><td>Linear interpolation between coupled pairs; reflow retrains on the model's own coupling to straighten paths.</td></tr>
+<tr><td>Stochastic interpolant</td><td><var>x</var><sub>t</sub> = α<var>x</var><sub>0</sub> + β<var>x</var><sub>1</sub> + γ<var>z</var>; gives both ODE and SDE samplers with the same marginals.</td></tr>
+<tr><td>PF-ODE</td><td>Probability-flow ODE: the deterministic sampler that shares a diffusion's marginals.</td></tr>
+<tr><td>ε-, x-, v-prediction</td><td>Affine reparametrisations of one predictor; they differ in the implied time weighting (13), (22).</td></tr>
+<tr><td><var>â</var><sub>θ</sub>(<var>x</var>, <var>t</var>)</td><td>Implied one-shot data prediction <var>x</var> + (1 − <var>t</var>)<var>v</var><sub>θ</sub>. GR00T's executed chunk is this at <var>t</var> = 0.75 (27).</td></tr>
+<tr><td>Time schedule <var>p</var>(<var>t</var>)</td><td>How training draws <var>t</var>. GR00T and π0 use a Beta(1.5, 1) emphasising the noise end; FACT shifts toward the data end.</td></tr>
+<tr><td>NFE / K</td><td>Network evaluations / denoising steps at inference. GR00T K = 4, π0 10, Diffusion Policy 100.</td></tr>
+<tr><td>Straightness</td><td><var>S</var> in (16); zero means one Euler step is exact.</td></tr>
+<tr><td>Mode averaging</td><td>What MSE regression does to multimodal targets. Flow matching averages velocities, not samples, so it avoids it.</td></tr>
+<tr><td>Fixed-noise splice</td><td>Running several input variants with the same ε so action differences reflect only the inputs (36).</td></tr>
+<tr><td>RTC</td><td>Real-time chunking: inpainting the next chunk to agree with the committed overlap, via guided velocity (37).</td></tr>
+<tr><td>Exposure bias</td><td>The sampler evaluates the network at its own intermediate states, not at the training interpolants.</td></tr>
+</table></div>
+
+</div></body></html>
