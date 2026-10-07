@@ -97,7 +97,9 @@ const TIERS = [
  ["4 · Failure detection", "", [
   ["t4a","Send the R-059 runner spec to impl (D24)","Approved 09-29; never sent.","my prim"],
   ["t4b","R-059 part A (CPU on R-047)","","impl"],
-  ["t4c","Add VLA-FAIL ACC and LLMD arms to R-059","arXiv:2606.21386; LLMD stats on the fine-tuning demos with fixed noise.","my prim"]]],
+  ["t4c","Add VLA-FAIL ACC and LLMD arms to R-059","arXiv:2606.21386; LLMD stats on the fine-tuning demos with fixed noise.","my prim"],
+  ["t4d","D26 write-up: approve the §13 subsection and tracker row","End on success vs run to timeout (options 1–5). Draft ready: docs/drafts/D26_draft.html. Approving the text does not approve the flag or the probe.","you"],
+  ["t4e","D26 post-success calibration probe","~20 nominal successes run to the timeout with a post_success tag (~15 min GPU + a harness flag). Per detector, include post-success data only if its AUROC vs failures ≥ 0.7 at f8–18. After R-059 part A and your OK for the flag; runs with the part B smoke; after D21/D23. Default route instead: more successes + censoring-aware calibration.","impl · my prim"]]],
  ["5 · Infrastructure and housekeeping", "", [
   ["t5a","N1: fix the lighting knob (½ day)","Currently only brightens; covers ~4% of LIBERO-Plus lighting.","impl"],
   ["t5b","Fix rollout_id ignoring the noise seed","D25.","impl"],

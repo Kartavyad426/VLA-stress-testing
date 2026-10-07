@@ -1,0 +1,88 @@
+<!-- ===== (a) SENTINEL_METHODOLOGY.html §13: insert before <div class="note measured"> "Status at writing" ===== -->
+<h3>Added 2026-10-07: end on success, or run to the timeout?</h3>
+<p>FAIL-Detect and Sentinel build their thresholds pointwise over time, so every score curve has
+to be the same length. FAIL-Detect gets that by never ending an episode early: robomimic's
+<code>is_done()</code> always returns <code>False</code> ("Robosuite envs always rollout to fixed
+horizon"). Episodes truncate at 400 env steps (50 forwards), and success is the maximum reward
+afterwards (CXU-TRI/FAIL-Detect @ b758e55, <code>multistep_wrapper.py:113–116</code>, runner
+line 514). Our harness ends on success (<code>vla_harness/envs/libero_env.py:346</code>).</p>
+<p><b>Our lengths</b> (measured 2026-10-07 from the manifests): successes run a median of 7 forwards
+(8 on bench scale), interquartile 6–8, p95 10–15, range 4–18. Every failure runs 18.
+f<sub>c</sub>, the first forward with ≤ 5% of successes still running, is 12 for R-047 start pose
+and harness yaw and for R-052 bench yaw, 15 for bench scale and 11 for bench pitch. Half the
+successes have finished by f7, so any per-forward band is estimated from a thinning set from
+about f8. Median length depends on scene (unperturbed: 5 to 10.5 forwards) more than on
+perturbation size (6–7 at every start-pose radius).</p>
+<p><b>Unequal lengths and the max-over-time score.</b> If each calibration success is scored by
+its maximum over its own length, the marginal false-alarm guarantee still holds for a random
+success. But short successes have fewer chances to spike, so they pull h down. Slow successes
+are then flagged more often than α, and failures, which always run 18 forwards, get the most
+chances to cross. Part of any late "detection" is exposure time, which is the clock confound
+again.</p>
+<table>
+<tr><th>option</th><th>for</th><th>against</th></tr>
+<tr><td><b>1. Run to the timeout</b> (detection runs only, behind a flag)</td>
+<td>Equal-length curves. The band is defined at every forward, the numbers are comparable with
+FAIL-Detect, and the exposure-time confound is gone.</td>
+<td>About 2.5× the rollout time for successes. Everything after success is off-task (idling,
+re-grasping, knocking the object off), and those segments are useless for anything else.
+Success must become "reached at some point", or a fumble after success flips the outcome. The
+late band would be calibrated on post-success behaviour, not on the task (see 5). It's a
+harness change.</td></tr>
+<tr><td><b>2. End on success; score only the early window</b> (≤ f<sub>c</sub>, 11–15 on our runs)</td>
+<td>Costs nothing, adds no polluted data, and answers the question that matters: can the
+failure be caught before it's simply taking too long?</td>
+<td>Not directly comparable with the papers. The band is thin from about f8. Detectors that need
+time to accumulate evidence are disadvantaged.</td></tr>
+<tr><td><b>3. Pad finished successes with their last score</b></td>
+<td>Simple.</td>
+<td>It invents data and biases the late band. Rejected.</td></tr>
+<tr><td><b>4. Censoring-aware calibration</b> (a success ending at f<sub>end</sub> is
+right-censored)</td>
+<td>Principled where padding isn't. No new rollouts and no env change. At each forward, the band
+is built over the successes still running (the at-risk set), or with Kaplan–Meier-weighted
+quantiles.</td>
+<td>The late band thins out just as in option 2. Exchangeability then holds only among
+still-running successes. Inferred (prim); not yet checked against the literature for a VLA
+use.</td></tr>
+<tr><td><b>5. Post-success segments as calibration data</b> (the user's proposal, 2026-10-07)</td>
+<td>Each success contributes up to 18 forwards instead of about 7, so per-run maxima and the late
+band are estimated from more points. If the robot lingers after success "not knowing what to
+do", that behaviour may be the closest nominal analogue of failure.</td>
+<td>The band is meant to model task-in-progress behaviour. If post-success scores look like
+failure scores, calibrating on them raises the band over failure-like scores: fewer false
+alarms but lower TPR, so it's quieter, not more discriminative. Post-success segments sit at
+f8–18, exactly where our failures are still running.</td></tr>
+</table>
+<p><b>Option 5 is detector-dependent</b> (inferred, prim and my prim). Still post-success idling
+is likely LOW for action-consistency scores (STAC; VLA-FAIL's ACC), since consistent idling looks
+consistent. It is likely HIGH for observation-OOD scores (FAIL-Detect logpZO; VLA-FAIL's LLMD;
+Mahalanobis), because demos end at success, so post-success states are OOD by construction. In
+FAIL-Detect, each calibration success's maximum runs over all 50 forwards including
+post-success, so a success's worst point may often fall after success, inflating the band and
+lowering TPR. Their runner records per-step reward, so this is checkable, but it isn't
+reported.</p>
+<p><b>Pre-registered rule for option 5, per detector:</b> include post-success segments in
+calibration only if they are distinguishable from failures at matched forwards f8–18 (AUROC
+post-success vs failure ≥ 0.7). Otherwise exclude them. Option 5 decides whether post-success data
+can be <i>added</i>. The default route to a more robust band from short successes is more
+successes (more seeds and scenes, no flag) together with option 4.</p>
+<p><b>Decision:</b> option 2 stays the primary readout, as pre-registered. Option 4 is the
+no-new-rollouts check beyond f<sub>c</sub>. Options 1 and 5 merge into one <b>post-success
+calibration probe</b>: about 20 nominal successes run to the timeout with a per-step
+<code>post_success</code> tag, about 15 min GPU plus the harness flag. Order: R-059 part A (CPU)
+→ user OK for the flag → part B smoke and this probe together. GPU priority stays after the
+D21/D23 retraining decisions unless the user says otherwise. A FAIL-Detect-comparable
+reproduction arm is not planned.</p>
+<p><b>Conditions for the flag</b> (it must never become the default):</p>
+<ul>
+<li>The flag is part of the env identity and fingerprint, so it never hits end-on-success caches.</li>
+<li>Each Rollout step carries a <code>post_success</code> flag. Post-success segments are excluded by default everywhere except detector scoring.</li>
+<li>Those segments are never minted, never exported as demos, and never used in phase detection or failure-family mining.</li>
+<li>Success is "reached at some point" (the max-reward rule), so R-047/R-052-style curves and paired McNemar tests keep their meaning.</li>
+<li>Per-episode aggregates (d_pn_mean, closest_approach, length) are computed only up to first success.</li>
+<li>Success rates from these runs are not compared with published LIBERO/LIBERO-Plus numbers, which end on success.</li>
+</ul>
+
+<!-- ===== (b) Decision_28Sep.html: new row after D25 ===== -->
+    <tr><td class="id">D26</td><td><b>Post-success calibration probe for failure detection.</b> FAIL-Detect and Sentinel assume equal-length score curves (FAIL-Detect never ends on success: 50 forwards fixed). We end on success: successes median f7 (f<sub>c</sub> 11–15), failures all f18, so the band thins from about f8 and late detections partly measure exposure time. The user proposes calibrating on post-success segments. That may help or hurt depending on the detector: likely harmless for action-consistency scores, likely harmful for observation-OOD scores (inferred). Probe: about 20 nominal successes run to the timeout with a <code>post_success</code> tag (about 15 min GPU plus a harness flag). Include post-success data per detector only if post-success vs failure AUROC ≥ 0.7 at f8–18. Default route to robustness: more successes plus censoring-aware calibration. Write-up: <code>SENTINEL_METHODOLOGY.html</code> §13, 2026-10-07.</td><td>approve flag + probe with R-059 part B · not now · never default</td><td>After R-059 part A: OK the flag, then run the probe with the part B smoke, after D21/D23 for GPU.</td><td>R-059</td></tr>
