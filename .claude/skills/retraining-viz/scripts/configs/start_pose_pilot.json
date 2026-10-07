@@ -1,0 +1,94 @@
+{
+  "title": "Retraining visualisation: R-055 to R-058",
+  "subtitle": "Every retraining run in the start-pose pilot (GR00T N1.7 LoRA on the action head, VLM frozen), plotted from its logs and result files. This page shows the numbers only; it does not interpret them. For interpretation, see <code>docs/R056_POSTMORTEM.html</code> and <code>RESULTS.md</code>.",
+  "read_rollouts": false,
+
+  "arms": {
+    "base": {"n": "base (no adapter)", "c": "--base"},
+    "r16":  {"n": "R-056 r=16", "c": "--s1"},
+    "r4":   {"n": "R-058 r=4", "c": "--s2"},
+    "r64":  {"n": "R-058 r=64 (cached, 1900/2000)", "c": "--s3"},
+    "wise": {"n": "R-056 r=16 WiSE α=0.5", "c": "--s4"},
+    "cyc":  {"n": "R-056 r=16 cyclic LR (superseded)", "c": "--s5"},
+    "od":   {"n": "R-055 overfit runs (1 episode)", "c": "--s7"}
+  },
+
+  "train_runs": [
+    {"key": "r16", "arm": "r16", "title": "R-056 r = 16 (LR-fixed, the evaluated run)", "row": "R-056 r16", "arm_label": "(a)",
+     "log": "runs/overnight/R056fix_train.log", "accum": 8, "report": "runs/r056_r16_train_report.json", "lr_trace_from_report": true,
+     "inventory": "report", "ckpt_dir": "runs/r056_r16_train/checkpoints", "eval": "runs/r056_r16", "overlay": true,
+     "status": "complete; evaluated"},
+    {"key": "r4", "arm": "r4", "title": "R-058 r = 4", "row": "R-058 r4", "arm_label": "rank sweep",
+     "log": "runs/overnight/R058_r4_train.log", "accum": 8, "report": "runs/r058_r4_train_report.json", "lr_trace_from_report": true,
+     "inventory": "report", "ckpt_dir": "runs/r058_r4_train/checkpoints", "eval": "runs/r058_r4", "overlay": true,
+     "status": "complete; evaluated"},
+    {"key": "r64", "arm": "r64", "title": "R-058 r = 64, cached VLM features (killed at opt 1900)", "row": "R-058 r64 cached", "arm_label": "rank sweep",
+     "log": "runs/overnight/R058_r64_cached_train.log", "log_format": "cached", "no_grad": true,
+     "inventory": "ckpt_meta", "ckpt_dir": "runs/r058_r64_cached_train/checkpoints", "eval": "runs/r058_r64", "overlay": true,
+     "status": "killed at opt 1900 (no report json); no transfer"},
+    {"key": "r16_cyclic", "arm": "cyc", "title": "R-056 r = 16, cyclic LR (superseded)", "row": "R-056 r16 cyclic", "arm_label": "(a), superseded",
+     "log": "runs/overnight/R056_train.log", "accum": 8, "report": "runs/r056_r16_cyclic_train_report.json",
+     "inventory": "report", "ckpt_dir": "runs/r056_r16_cyclic_train/checkpoints", "overlay": true,
+     "lr_text": "1e-4, cosine built over opt steps but stepped per micro-step (LR cycled)",
+     "status": "moved aside (MOVED.txt); only opt500 validated before the eval was killed"},
+    {"key": "overfit_diag", "arm": "od", "title": "R-055 overfit diagnostic: 1 episode, 1500 steps, constant LR (micro-batch = opt step)", "row": "R-055 overfit diag", "arm_label": "1 episode",
+     "log": "runs/overnight/R055_overfit_diag_1500.log", "accum": 1, "short": true, "report": "runs/r055/overfit_diag_1500_report.json",
+     "curve_json": "runs/r055/overfit_diag_1500.json", "curve_blob_key": "overfit_diag_curve", "gate": "overfit_diag"},
+    {"key": "overfit_const", "arm": "od", "title": "R-055 overfit gate: 1 episode, 300 steps, constant LR", "row": "R-055 overfit (gate)", "arm_label": "1 episode",
+     "log": "runs/overnight/R055_overfit_const.log", "accum": 1, "short": true, "report": "runs/r055/overfit_report.json", "gate": "overfit", "opt_steps": 300},
+    {"key": "overfit_cosine", "arm": "od", "title": "R-055 overfit gate (first try): 1 episode, 300 steps, cosine LR", "row": "R-055 overfit cosine", "arm_label": "1 episode",
+     "log": "runs/overnight/R055_overfit.log", "accum": 1, "short": true, "gate": "overfit_cosine", "opt_steps": 300,
+     "note": "its report file was overwritten by the constant-LR rerun (same path); recipe from gates.json"},
+    {"key": "smoke", "kind": "smoke", "arm": "r16", "title": "R-056 smoke (2 episodes, 4 optimizer steps)", "row": "R-056 smoke", "arm_label": "2 episodes",
+     "report": "runs/r056_smoke_train_report.json", "ckpt_dir": "runs/r056_smoke_train/checkpoints", "status": "plumbing only"}
+  ],
+
+  "failed_runs": [
+    {"key": "r64_resident", "title": "R-058 r = 64, resident (VLM on GPU): OOM", "row": "R-058 r64 resident", "arm_label": "rank sweep",
+     "log": "runs/overnight/R058_r64_train.log", "total_micro": 16000, "planned": "r=64/α=64, 1 × 8 = 8, 1e-4 cosine, 2000 opt steps (same argv as the cached run)",
+     "note": "No loss was logged; the run died inside <code>optimizer.step()</code>. It was relaunched with cached VLM features.",
+     "extra_sources": ["runs/overnight/SUMMARY_r056fix.txt"]}
+  ],
+
+  "gates": "runs/r055/gates.json",
+
+  "evals": [
+    {"dir": "runs/r056_r16", "arm": "r16", "base_arm": "base", "wise_arm": "r16_wise"},
+    {"dir": "runs/r058_r4", "arm": "r4"},
+    {"dir": "runs/r058_r64", "arm": "r64"}
+  ],
+  "base_eval": "runs/r056_r16",
+  "wise": {"eval": "runs/r056_r16", "arm": "wise", "pr": "r16_wise"},
+  "pr_arm": {"r16_wise": "wise"},
+  "manifest_counts": ["runs/r056_r16", "runs/r058_r4", "runs/r058_r64", "runs/r056_r16_cyclic_eval"],
+  "val_extra": [{"mc": "r056_r16_cyclic_eval", "key": "opt500|val", "step": 500, "arm": "cyc"}],
+  "nominal_starts": "runs/r047/nominal_starts.json",
+  "outcomes_note": "The base arm is the same held-out and nominal rollouts in every score file (r = 4 and r = 64 use <code>base_manifest = runs/r056_r16/manifest.jsonl</code>). WiSE α = 0.5 is the r = 16 adapter at half strength and is exploratory. Rollouts are joined by manifest position and start key, never by <code>rollout_id</code>.",
+  "transfer_note": "No transfer was run for r = 64 (its <code>transfer/</code> directory is empty).",
+
+  "diag": {
+    "loss_summary": "runs/r056_diag/loss_summary.json",
+    "fit": "runs/r056_diag/fit_firstchunk.json",
+    "fit_rows": "runs/r056_diag/fit_firstchunk_rows.jsonl",
+    "offset_curve": "runs/r056_diag/r047_offset_curve.json",
+    "models": {"r16_opt500": {"arm": "r16", "step": 500}, "r16_opt1000": {"arm": "r16", "step": 1000},
+               "r16_opt2000": {"arm": "r16", "step": 2000}, "r4_opt500": {"arm": "r4", "step": 500}}
+  },
+
+  "data": {
+    "dataset": "data/r054_train48",
+    "datasets": ["data/r054_full", "data/r054_train48", "data/r054_smoke48", "data/r054_smoke_full"],
+    "mint_manifest": "runs/r054/manifest.jsonl",
+    "yield": "runs/r054/yield.json",
+    "coverage": "runs/r056_r16/postmortem_coverage.json",
+    "mix_run": "r16"
+  },
+
+  "upstream": {"r053": "runs/r053/score.json", "r057": "runs/r057/score.json"},
+
+  "extra_sources": [
+    ["third_party/lerobot/src/lerobot/scripts/lerobot_train.py:698,767-792", "logged loss = AverageMeter mean over log_freq=10 micro-batches, reset at each log"],
+    ["experiments/r056_train.py:472-479", "cached-mode logged loss = mean of the last accum×10 micro-batch losses"],
+    ["RESULTS.md (entries R-053 to R-058, R-056 amendment 2026-09-29 17:31)", "status wording and labels only"]
+  ]
+}

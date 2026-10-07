@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f5f2; --surface:#fcfcfb; --surface-2:#f0efec; --border:#e2e0da;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#8a8984; --grid:#e8e6e1;
+  --base:#6b6a66; --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s7:#4a3aa7; --s6:#008300; --s8:#e34948;
+  --good:#008300; --bad:#e34948; --mid:#f0efec;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#33332f;
+    --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8e8d86; --grid:#2c2c29;
+    --base:#a3a29b; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s7:#9085e9; --s6:#2fa52f; --s8:#e66767;
+    --good:#2fa52f; --bad:#e66767; --mid:#383835;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#33332f;
+  --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8e8d86; --grid:#2c2c29;
+  --base:#a3a29b; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s7:#9085e9; --s6:#2fa52f; --s8:#e66767;
+  --good:#2fa52f; --bad:#e66767; --mid:#383835;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:20px;margin:40px 0 8px;padding-top:8px;border-top:1px solid var(--border)}
+h3{font-size:15px;margin:22px 0 6px}
+p,li{color:var(--ink-2);max-width:900px}
+code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface-2);padding:1px 4px;border-radius:4px;color:var(--ink)}
+a{color:var(--s1)}
+nav{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 6px;font-size:13.5px}
+.sub{color:var(--ink-2);margin:0 0 6px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 14px 10px;margin:12px 0}
+.card h3{margin-top:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.note{font-size:13px;color:var(--ink-3);margin:6px 0 0}
+.src{font-size:12px;color:var(--ink-3);margin-top:6px}
+.src code{font-size:11.5px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--ink-2);margin:2px 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+.sw.dot{width:9px;height:9px;border-radius:50%}
+.sw.dash{background:none!important;border-top:2px dashed}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;width:100%}
+th,td{padding:5px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+th{color:var(--ink-2);font-weight:600;background:var(--surface-2)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11.5px;padding:0 6px;border-radius:9px;border:1px solid var(--border);color:var(--ink-2)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.tile .k{font-size:12px;color:var(--ink-3)}
+.tile .v{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}
+.tile .d{font-size:12px;color:var(--ink-2)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink-2);font:11px system-ui,sans-serif}
+svg .ax{stroke:var(--ink-3);stroke-width:1}
+svg .gr{stroke:var(--grid);stroke-width:1}
+svg .ttl{fill:var(--ink);font-weight:600}
+#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;
+  padding:6px 9px;font-size:12px;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.15);display:none;z-index:10;max-width:320px}
+#tip b{font-weight:600}
+.heat td.c{text-align:center;font-variant-numeric:tabular-nums;min-width:52px}
+.ctrl{font-size:13px;color:var(--ink-2);display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:4px 0}
+.ctrl label{display:inline-flex;gap:5px;align-items:center}
+.theme{position:fixed;top:10px;right:12px;font-size:12px;background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer}
+ol.sources li{margin:6px 0;font-size:13px}
+ol.sources li span{color:var(--ink-3)}
+.skip{border:1px dashed var(--border);border-radius:8px;padding:8px 10px;color:var(--ink-3);font-size:13px;margin:8px 0}
+</style>
+</head>
+<body>
+<button class="theme" id="themebtn" type="button">theme</button>
+<div id="tip"></div>
+<main>
+<h1 id="pgtitle"></h1>
+<p class="sub" id="pgsub"></p>
+<div class="legend" id="armlegend"></div>
+<nav>
+<a href="#inventory">1 · Run inventory</a><a href="#loss">2 · Loss curves</a><a href="#val">3 · Validation per checkpoint</a>
+<a href="#outcomes">4 · Held-out and nominal outcomes</a><a href="#d20">5 · Diagnostics</a><a href="#data">6 · Training data</a>
+<a href="#upstream">7 · Upstream</a><a href="#sources">8 · Sources</a>
+</nav>
+<div id="skiplist"></div>
+
+<h2 id="inventory">1 · Run inventory</h2>
+<div class="tblwrap card" data-panel="inventory"><table id="invtbl"></table><div class="src" id="s_inventory"></div></div>
+<div class="card" data-panel="gates"><h3>Pre-training gates</h3><div class="tblwrap"><table id="gatetbl"></table></div><div class="src" id="s_gates"></div></div>
+
+<h2 id="loss">2 · Loss curves</h2>
+<p>The x-axis is the optimizer step in every chart. lerobot_train logs a <code>loss:</code> value every 10 <b>micro</b>-steps, which is the mean of those 10 micro-batch losses (lerobot <code>AverageMeter</code>, reset at each log; <code>third_party/lerobot/src/lerobot/scripts/lerobot_train.py:698,792</code>). The micro-step is read from the tqdm counter (<code>N/TOTAL</code>) and divided by the run's accumulation, so with accumulation 8 a point lands every 1.25 optimizer steps. Cached-feature runs log the mean of the last accumulation × 10 micro-batch losses every 10 optimizer steps (<code>experiments/r056_train.py:478</code>). Faint dots are the raw logged values, and the solid line is the median of each block of optimizer steps. LR and gradient norm are plotted in their own panels, never on a second y-axis.</p>
+<div class="ctrl"><label><input type="checkbox" id="logy" checked> log y</label><label><input type="checkbox" id="rawdots" checked> raw points</label>
+<label>block <select id="blk"><option>25</option><option selected>50</option><option>100</option><option>200</option></select> opt steps</label></div>
+<div class="card" data-panel="loss"><h3>Full-length runs: block-median loss overlaid</h3><div class="legend" id="lg_over"></div><div id="c_over"></div><div class="src" id="s_over"></div></div>
+<div id="lossruns"></div>
+<div class="grid2" id="extraruns"></div>
+
+<h2 id="val">3 · Validation per checkpoint</h2>
+<p>Validation rollouts per checkpoint, the same starts for every arm. The selection rule is shown from <code>selection.json → rule</code>: <span id="selrule"></span>. A ring marks the selected checkpoint.</p>
+<div class="grid2" data-panel="score">
+<div class="card"><h3>Validation successes</h3><div class="legend" id="lg_val"></div><div id="c_val"></div></div>
+<div class="card"><h3>Validation median closest approach (m)</h3><div class="legend" id="lg_valca"></div><div id="c_valca"></div></div>
+</div>
+<div class="src" id="s_val"></div>
+<div class="card" data-panel="d20"><h3>Fixed-seed training loss per checkpoint (diagnostic loss probe, subsets pooled)</h3><p class="note">Mean over the probe's subsets, ±1 SE of the pooled mean. The per-subset breakdown is in section 5.</p><div class="legend" id="lg_ckl"></div><div id="c_ckl"></div><div class="src" id="s_ckl"></div></div>
+
+<h2 id="outcomes">4 · Held-out and nominal outcomes</h2>
+<p id="outnote"></p>
+<div class="grid2" data-panel="score">
+<div class="card"><h3>Held-out success rate, Wilson 95%</h3><div id="c_ho"></div></div>
+<div class="card"><h3>Nominal success rate, Wilson 95%</h3><div id="c_nom"></div></div>
+</div>
+<div class="src" id="s_rates"></div>
+<div class="card" data-panel="per_rollout"><h3>Held-out success by scene</h3><div class="tblwrap"><table class="heat" id="scenetbl"></table></div><div class="src" id="s_scene"></div></div>
+<div class="grid2">
+<div class="card" data-panel="score"><h3>Held-out success by requested radius band</h3><div class="legend" id="lg_band"></div><div id="c_band"></div><div class="src" id="s_band"></div></div>
+<div class="card" data-panel="offset"><h3>Held-out success by achieved t = 0 gripper offset</h3><div class="legend" id="lg_off"></div><div id="c_off"></div><div class="src" id="s_off"></div></div>
+</div>
+<div class="grid2" data-panel="score">
+<div class="card"><h3>Paired comparison vs base (held-out pairs)</h3><div class="tblwrap"><table id="pairtbl"></table></div><div class="src" id="s_pair"></div></div>
+<div class="card"><h3>Registered expectations (as recorded in score.json)</h3><div class="tblwrap"><table id="exptbl"></table></div><div class="src" id="s_exp"></div></div>
+</div>
+<div class="card" data-panel="transfer"><h3>Forward-0 transfer: W score per instance (denoised)</h3><p class="note" id="trnote"></p>
+<div class="legend" id="lg_tr"></div><div id="c_tr"></div><div class="src" id="s_tr"></div></div>
+
+<h2 id="d20">5 · Diagnostics</h2>
+<div class="card" data-panel="d20"><h3>Fixed-seed flow-matching loss per data subset</h3><p class="note" id="d20lnote"></p><div class="legend" id="lg_d20l"></div><div id="c_d20l"></div><div class="src" id="s_d20l"></div></div>
+<div class="grid2">
+<div class="card" data-panel="d20_fit"><h3>First-chunk distance to the demo's own label, by training-start offset</h3><div class="legend" id="lg_fit"></div><div id="c_fit"></div><div class="src" id="s_fit"></div></div>
+<div class="card" data-panel="d20_fit_rows"><h3>Per training start: distance to label vs offset</h3><div class="legend" id="lg_fitsc"></div><div id="c_fitsc"></div><div class="src" id="s_fitsc"></div></div>
+</div>
+<div class="card" data-panel="d20_fit"><h3>First-chunk summary: training starts vs held-out starts</h3><div class="tblwrap"><table id="fittbl"></table></div><div class="src" id="s_fittbl"></div></div>
+<div class="card" data-panel="r047_curve"><h3>Base success vs achieved t = 0 offset (radius axis)</h3><div class="legend" id="lg_r047"></div><div id="c_r047"></div><div class="src" id="s_r047"></div></div>
+
+<h2 id="data">6 · Training data distribution</h2>
+<div data-panel="data">
+<div class="tiles" id="t_data"></div>
+<div class="grid2">
+<div class="card"><h3>Sampler mix over the run</h3><div id="c_mix"></div>
+<p class="note">Draws per frame are computed as opt steps × effective batch × share ÷ frames. This is arithmetic on the report fields, not a logged count.</p><div class="src" id="s_mix"></div></div>
+<div class="card"><h3>Minted demos per scene: kept vs attempted</h3><div class="legend" id="lg_scene"></div><div id="c_scene"></div><div class="src" id="s_mintscene"></div></div>
+</div>
+<div class="grid2">
+<div class="card"><h3>Mint yield by requested radius band</h3><div class="legend" id="lg_yield"></div><div id="c_yield"></div><div class="src" id="s_yield"></div></div>
+<div class="card"><h3>Achieved offset: training demos vs held-out eval starts</h3><div class="legend" id="lg_offbins"></div><div id="c_offbins"></div><div class="src" id="s_offbins"></div></div>
+</div>
+<div class="grid3">
+<div class="card"><h3>Phase of the training window</h3><div id="c_phase"></div><div class="src" id="s_phase"></div></div>
+<div class="card"><h3>Minting noise seed</h3><div id="c_noise"></div><div class="src" id="s_noise"></div></div>
+<div class="card"><h3>Datasets on disk</h3><div class="tblwrap"><table id="dstbl"></table></div><div class="src" id="s_ds"></div></div>
+</div>
+<div class="card"><h3>Scene coverage: training kept vs held-out eval</h3><div class="tblwrap"><table id="covtbl"></table></div><div class="src" id="s_cov"></div></div>
+</div>
+
+<h2 id="upstream">7 · Upstream pilots (no training)</h2>
+<div class="grid2" data-panel="upstream">
+<div class="card"><h3>R-053: forward-0 rescue (N) vs plain policy (P), per noise seed</h3><div class="tblwrap"><table id="r053tbl"></table></div><div class="src" id="s_r053"></div></div>
+<div class="card"><h3>R-057: success vs drive-until k</h3><div class="legend" id="lg_r057"></div><div id="c_r057"></div><div class="src" id="s_r057"></div></div>
+</div>
+
+<h2 id="sources">8 · Sources</h2>
+<p>Every file this page reads, with the fields used. Numbers are copied as stored, and anything computed on the page says so where it is shown. Generated by <code>.claude/skills/retraining-viz/scripts/build.py --config <span id="cfgpath"></span></code>.</p>
+<ol class="sources" id="srclist"></ol>
+</main>
+<script id="vizdata" type="application/json">__DATA__</script>
+<script id="vizmeta" type="application/json">__META__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("vizdata").textContent);
+const $ = id => document.getElementById(id);
+const css = v => `var(${v})`;
+const f3 = x => x==null?"–":(+x).toFixed(3), f2 = x => x==null?"–":(+x).toFixed(2), pct = x => x==null?"–":(100*x).toFixed(1)+"%";
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs){ if((k==="fill"||k==="stroke")&&String(attrs[k]).startsWith("var(")) e.style[k]=attrs[k]; else e.setAttribute(k,attrs[k]); } if(parent) parent.appendChild(e); return e; }
+function legend(id, items){ const L=$(id); if(!L) return; L.innerHTML = items.map(([name,col,kind])=>`<span><i class="sw ${kind||""}" style="background:var(${col});border-color:var(${col})"></i>${name}</span>`).join(""); }
+const tip = $("tip");
+function showTip(ev, html){ tip.innerHTML=html; tip.style.display="block"; const w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=ev.clientX+14, y=ev.clientY+14; if(x+w>innerWidth-8) x=ev.clientX-w-14; if(y+h>innerHeight-8) y=ev.clientY-h-14; tip.style.left=x+"px"; tip.style.top=y+"px"; }
+function hideTip(){ tip.style.display="none"; }
+function niceTicks(lo, hi, n){ const span=hi-lo||1, step0=span/n, mag=10**Math.floor(Math.log10(step0)); const step=[1,2,2.5,5,10].map(s=>s*mag).find(s=>s>=step0);
+  const out=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+1e-12; v+=step) out.push(+v.toFixed(10)); return out; }
+function logTicks(lo, hi){ const t=logTicks0(lo,hi,[1,2,5]); return t.length>=3?t:logTicks0(lo,hi,[1,1.5,2,3,4,5,6,8]); }
+function logTicks0(lo, hi, ms){ const out=[]; for(let e=Math.floor(Math.log10(lo)); e<=Math.ceil(Math.log10(hi)); e++) for(const m of ms){ const v=m*10**e; if(v>=lo*0.999&&v<=hi*1.001) out.push(v);} return out; }
+const fmtTick = v => (Math.abs(v)>=1000? (v/1000)+"k" : (Math.abs(v)<0.01&&v!==0? v.toExponential(0) : +v.toPrecision(3)+""));
+
+/* Generic XY chart: series = [{name, col, pts:[[x,y,extra]], kind:'line'|'dots'|'step', dash, r, ci:[[x,lo,hi]]}] */
+function xyChart(host, o){
+  const W=o.w||Math.max(340,Math.round(host.clientWidth||1000)), H=o.h||300, m={l:58,r:16,t:12,b:o.xLabel?40:24};
+  host.innerHTML=""; const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":o.aria||""},host);
+  const all=o.series.flatMap(s=>s.pts.concat((s.ci||[]).flatMap(c=>[[c[0],c[1]],[c[0],c[2]]])));
+  let xs=all.map(p=>p[0]), ys=all.map(p=>p[1]).filter(v=>v!=null&&isFinite(v));
+  let x0=o.xMin??Math.min(...xs), x1=o.xMax??Math.max(...xs);
+  let y0=o.yMin??Math.min(...ys), y1=o.yMax??Math.max(...ys);
+  const logY=!!o.logY; if(logY){ y0=Math.max(y0, o.yFloor||1e-4); }
+  else if(o.yMin==null){ const pad=(y1-y0)*0.06||0.1; y0=Math.min(y0-pad, y0>=0&&y0-pad<0?0:y0-pad); y1+=pad; }
+  const X=v=>m.l+(v-x0)/(x1-x0||1)*(W-m.l-m.r);
+  const Y=v=>logY? H-m.b-(Math.log10(Math.max(v,y0))-Math.log10(y0))/(Math.log10(y1)-Math.log10(y0)||1)*(H-m.t-m.b) : H-m.b-(v-y0)/(y1-y0||1)*(H-m.t-m.b);
+  const yt = logY? logTicks(y0,y1) : niceTicks(y0,y1,5);
+  for(const t of yt){ el("line",{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),class:"gr"},svg); el("text",{x:m.l-6,y:Y(t)+4,"text-anchor":"end"},svg).textContent=o.yFmt?o.yFmt(t):fmtTick(t); }
+  const xt = o.xTicks || niceTicks(x0,x1,o.xn||8);
+  for(const t of xt){ el("line",{x1:X(t),x2:X(t),y1:H-m.b,y2:H-m.b+4,class:"ax"},svg); el("text",{x:X(t),y:H-m.b+16,"text-anchor":"middle"},svg).textContent=o.xFmt?o.xFmt(t):fmtTick(t); }
+  el("line",{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,class:"ax"},svg);
+  if(o.xLabel) el("text",{x:(m.l+W-m.r)/2,y:H-4,"text-anchor":"middle"},svg).textContent=o.xLabel;
+  if(o.yLabel){ const t=el("text",{x:14,y:(m.t+H-m.b)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`},svg); t.textContent=o.yLabel; }
+  for(const r of (o.refs||[])){ if(r.y!=null){ el("line",{x1:m.l,x2:W-m.r,y1:Y(r.y),y2:Y(r.y),stroke:css(r.col||"--ink-3"),"stroke-width":1.5,"stroke-dasharray":"5 4"},svg);
+      if(r.label) el("text",{x:m.l+4,y:Y(r.y)-5},svg).textContent=r.label; }
+    if(r.x!=null){ el("line",{x1:X(r.x),x2:X(r.x),y1:m.t,y2:H-m.b,stroke:css(r.col||"--ink-3"),"stroke-width":1,"stroke-dasharray":"3 4"},svg);
+      if(r.label){ const nr=X(r.x)>W-m.r-70; el("text",{x:X(r.x)+(nr?-4:4),y:m.t+10,"text-anchor":nr?"end":"start"},svg).textContent=r.label; } } }
+  const hits=[];
+  for(const s of o.series){ const col=css(s.col);
+    for(const c of (s.ci||[])) el("line",{x1:X(c[0])+(s.dx||0),x2:X(c[0])+(s.dx||0),y1:Y(c[1]),y2:Y(c[2]),stroke:col,"stroke-width":2,"stroke-linecap":"round",opacity:.75},svg);
+    if(s.kind==="line"||s.kind==="step"){ let d=""; s.pts.forEach((p,i)=>{ if(p[1]==null) return; const px=X(p[0]),py=Y(p[1]);
+        if(s.kind==="step"&&i>0) d+=`L${px},${Y(s.pts[i-1][1])}`; d+=(d?"L":"M")+px+","+py; });
+      el("path",{d,fill:"none",stroke:col,"stroke-width":s.sw||2,"stroke-linejoin":"round","stroke-dasharray":s.dash||"",opacity:s.op||1},svg);
+      if(s.markers) for(const p of s.pts) el("circle",{cx:X(p[0])+(s.dx||0),cy:Y(p[1]),r:4.5,fill:col,stroke:css("--surface"),"stroke-width":2},svg); }
+    if(s.kind==="dots"){ const g=el("g",{opacity:s.op||1},svg); for(const p of s.pts){ if(p[1]==null) continue; el("circle",{cx:X(p[0])+(s.dx||0),cy:Y(p[1]),r:s.r||1.6,fill:col,stroke:s.ring?css("--surface"):"none","stroke-width":s.ring?2:0},g);} }
+    if(s.ringAt) for(const p of s.pts.filter(p=>p[0]===s.ringAt)) el("circle",{cx:X(p[0])+(s.dx||0),cy:Y(p[1]),r:9,fill:"none",stroke:col,"stroke-width":2},svg);
+    if(!s.noHover) for(const p of s.pts) if(p[1]!=null) hits.push({x:X(p[0])+(s.dx||0),y:Y(p[1]),s,p});
+  }
+  // hover: nearest point in x (crosshair) for line charts, nearest in 2D otherwise
+  const cross=el("line",{y1:m.t,y2:H-m.b,stroke:css("--ink-3"),"stroke-width":1,opacity:0},svg);
+  const ov=el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:"transparent"},svg);
+  ov.addEventListener("mousemove",ev=>{ const r=svg.getBoundingClientRect(), sx=(ev.clientX-r.left)*W/r.width, sy=(ev.clientY-r.top)*H/r.height;
+    if(o.crosshair){ const byS=new Map(); for(const h of hits){ const d=Math.abs(h.x-sx); const b=byS.get(h.s); if(!b||d<b.d) byS.set(h.s,{d,h}); }
+      const near=[...byS.values()].filter(v=>v.d<40).map(v=>v.h); if(!near.length){hideTip();cross.setAttribute("opacity",0);return;}
+      const hx=near[0].x; cross.setAttribute("x1",hx); cross.setAttribute("x2",hx); cross.setAttribute("opacity",.6);
+      showTip(ev, (o.tipHead?o.tipHead(near[0].p):"")+near.map(h=>`<div><i class="sw" style="background:${css(h.s.col)}"></i> ${h.s.name}: <b>${o.tipFmt?o.tipFmt(h.p,h.s):f3(h.p[1])}</b></div>`).join(""));
+    } else { let best=null,bd=1e9; for(const h of hits){ const d=Math.hypot(h.x-sx,h.y-sy); if(d<bd){bd=d;best=h;} }
+      if(!best||bd>28){hideTip();return;} showTip(ev, o.tip?o.tip(best.p,best.s):`${best.s.name}<br><b>${f3(best.p[1])}</b>`); } });
+  ov.addEventListener("mouseleave",()=>{hideTip();cross.setAttribute("opacity",0);});
+  return svg;
+}
+/* Grouped horizontal-category bar chart: cats = labels, groups=[{name,col,vals:[v], ci:[[lo,hi]], tips:[]}] */
+function barChart(host, o){
+  const W=o.w||Math.max(340,Math.round(host.clientWidth||1000)), H=o.h||280, m={l:58,r:12,t:12,b:o.xLabel?52:34};
+  host.innerHTML=""; const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},host);
+  const vals=o.groups.flatMap(g=>g.vals.concat((g.ci||[]).flat())).filter(v=>v!=null);
+  const y1=o.yMax??Math.max(...vals)*1.08, y0=o.yMin??0;
+  const Y=v=>H-m.b-(v-y0)/(y1-y0)*(H-m.t-m.b);
+  for(const t of niceTicks(y0,y1,5)){ el("line",{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),class:"gr"},svg); el("text",{x:m.l-6,y:Y(t)+4,"text-anchor":"end"},svg).textContent=o.yFmt?o.yFmt(t):fmtTick(t); }
+  if(o.yLabel){ const t=el("text",{x:14,y:(m.t+H-m.b)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`},svg); t.textContent=o.yLabel; }
+  const nC=o.cats.length, nG=o.groups.length, cw=(W-m.l-m.r)/nC, gap=2, bw=Math.min(46,(cw*0.78-gap*(nG-1))/nG);
+  o.cats.forEach((c,i)=>{ const cx=m.l+cw*i+cw/2; el("text",{x:cx,y:H-m.b+16,"text-anchor":"middle"},svg).textContent=c;
+    if(o.catSub) el("text",{x:cx,y:H-m.b+29,"text-anchor":"middle",style:"fill:var(--ink-3)"},svg).textContent=o.catSub[i]||"";
+    o.groups.forEach((g,j)=>{ const v=g.vals[i]; if(v==null) return; const x=cx-(nG*bw+(nG-1)*gap)/2+j*(bw+gap);
+      const top=Y(Math.max(v,y0)), base=Y(y0), h=Math.max(base-top,0.5), rr=Math.min(4,bw/2,h);
+      const d=`M${x},${base}V${top+rr}Q${x},${top} ${x+rr},${top}H${x+bw-rr}Q${x+bw},${top} ${x+bw},${top+rr}V${base}Z`;
+      const p=el("path",{d,fill:css(g.col),opacity:g.op||1},svg);
+      if(g.ci&&g.ci[i]) el("line",{x1:x+bw/2,x2:x+bw/2,y1:Y(g.ci[i][0]),y2:Y(g.ci[i][1]),stroke:css("--ink"),"stroke-width":1.5,opacity:.7},svg);
+      if(o.labels) el("text",{x:x+bw/2,y:top-4,"text-anchor":"middle",style:"fill:var(--ink-2);font-size:10px"},svg).textContent=o.labels(v,g,i);
+      const hit=el("rect",{x:x-1,y:m.t,width:bw+2,height:H-m.t-m.b,fill:"transparent"},svg);
+      hit.addEventListener("mousemove",ev=>showTip(ev,`<b>${c}</b> · ${g.name}<br>${g.tips?g.tips[i]:f3(v)}`)); hit.addEventListener("mouseleave",hideTip); }); });
+  el("line",{x1:m.l,x2:W-m.r,y1:Y(y0),y2:Y(y0),class:"ax"},svg);
+  if(o.xLabel) el("text",{x:(m.l+W-m.r)/2,y:H-4,"text-anchor":"middle"},svg).textContent=o.xLabel;
+}
+/* Dot + CI chart (categories on y) */
+function dotCI(host, rows, o){
+  const W=Math.max(340,Math.round(host.clientWidth||1000)), rh=34, m={l:Math.min(230,Math.round(W*0.36)),r:118,t:10,b:34}, H=m.t+m.b+rows.length*rh;
+  host.innerHTML=""; const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},host);
+  const X=v=>m.l+v*(W-m.l-m.r);
+  for(const t of [0,.2,.4,.6,.8,1]){ el("line",{x1:X(t),x2:X(t),y1:m.t,y2:H-m.b,class:"gr"},svg); el("text",{x:X(t),y:H-m.b+16,"text-anchor":"middle"},svg).textContent=(t*100)+"%"; }
+  if(o&&o.ref!=null) el("line",{x1:X(o.ref),x2:X(o.ref),y1:m.t,y2:H-m.b,stroke:css("--base"),"stroke-dasharray":"5 4","stroke-width":1.5},svg);
+  rows.forEach((r,i)=>{ const y=m.t+rh*i+rh/2, col=css(r.col);
+    el("text",{x:m.l-10,y:y+4,"text-anchor":"end",style:"fill:var(--ink)"},svg).textContent=r.label;
+    if(r.rate==null){ el("text",{x:X(0)+6,y:y+4,style:"fill:var(--ink-3)"},svg).textContent="not run"; return; }
+    el("line",{x1:X(r.ci[0]),x2:X(r.ci[1]),y1:y,y2:y,stroke:col,"stroke-width":3,"stroke-linecap":"round",opacity:.55},svg);
+    el("circle",{cx:X(r.rate),cy:y,r:6,fill:col,stroke:css("--surface"),"stroke-width":2},svg);
+    el("text",{x:W-m.r+12,y:y+4},svg).textContent=`${r.k}/${r.n} = ${pct(r.rate)}`;
+    const hit=el("rect",{x:0,y:y-rh/2,width:W,height:rh,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",ev=>showTip(ev,`<b>${r.label}</b><br>${r.k}/${r.n} = ${pct(r.rate)}<br>Wilson 95% [${pct(r.ci[0])}, ${pct(r.ci[1])}]${r.ca!=null?`<br>median closest approach ${f3(r.ca)} m`:""}`));
+    hit.addEventListener("mouseleave",hideTip); });
+}
+function table(id, head, rows, numCols){ const T=$(id); numCols=numCols||[];
+  T.innerHTML="<thead><tr>"+head.map((h,i)=>`<th class="${numCols.includes(i)?"num":""}">${h}</th>`).join("")+"</tr></thead><tbody>"+
+  rows.map(r=>"<tr>"+r.map((c,i)=>`<td class="${numCols.includes(i)?"num":""}">${c??"–"}</td>`).join("")+"</tr>").join("")+"</tbody>"; }
+function tiles(id, items){ $(id).innerHTML=items.map(([k,v,d])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d||""}</div></div>`).join(""); }
+const median = a => { const s=[...a].sort((x,y)=>x-y), n=s.length; return n? (n%2? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2) : null; };
+function blockMedian(rows, B){ const g=new Map(); for(const r of rows){ const b=Math.ceil(r[0]/B)*B; if(!g.has(b)) g.set(b,[]); g.get(b).push(r[1]); }
+  return [...g.entries()].sort((a,b)=>a[0]-b[0]).map(([b,v])=>[b,median(v),v.length]); }
+
+const M = JSON.parse(document.getElementById("vizmeta").textContent);
+const ARMS = M.arms;
+const arm = k => ARMS[k] || {n:k, c:"--ink-3"};
+const SRC = M.src || {};
+for(const [id,html] of Object.entries(SRC)){ const e=$("s_"+id); if(e) e.innerHTML=html; }
+$("pgtitle").textContent=M.title; $("pgsub").innerHTML=M.subtitle; $("cfgpath").textContent=M.config;
+legend("armlegend", Object.values(ARMS).map(a=>[a.n,a.c,"dot"]));
+const SK=Object.entries(M.skipped||{});
+if(SK.length) $("skiplist").innerHTML=`<div class="skip"><b>Skipped (source missing or not requested):</b><ul>${SK.map(([k,v])=>`<li><code>${k}</code>: ${v}</li>`).join("")}</ul></div>`;
+
+/* A section draws only when its blob keys exist; otherwise every [data-panel] block for it shows the skip note. */
+const blocked=new Set();
+function skipPanel(name, why){ if(blocked.has(name)) return; blocked.add(name);
+  document.querySelectorAll(`[data-panel="${name}"]`).forEach(e=>{ e.innerHTML=`<div class="skip">Panel <code>${name}</code> skipped: ${why}</div>`; }); }
+function guard(name, ok, fn){ if(blocked.has(name)) return; if(!ok){ skipPanel(name, (M.skipped||{})[name] || (M.skipped||{})[name.split("_")[0]] || "source missing"); return; }
+  try{ fn(); } catch(e){ console.error(e); skipPanel(name, "render error: "+e.message); } }
+
+const INV=D.inventory||{}, CK=D.checkpoints||{}, MC=D.manifest_counts||{}, SC=D.score||{}, PR=D.per_rollout||{};
+const lossRows=D.loss||{};
+
+/* ---------- 1 inventory ---------- */
+guard("inventory", M.inventory_rows && M.inventory_rows.length, ()=>table("invtbl", M.inventory_head, M.inventory_rows, []));
+guard("gates", !!D.gates, ()=>table("gatetbl", ["Gate","Measured","Bar","Pass"], M.gate_rows));
+
+/* ---------- 2 loss ---------- */
+const RUNS=(M.train_runs||[]).filter(R=>lossRows[R.key]);
+for(const R of M.train_runs||[]) if(!lossRows[R.key] && R.has_log){ $("lossruns").insertAdjacentHTML("beforeend",`<div class="skip">${R.title}: ${(M.skipped||{})["loss:"+R.key]||"no loss parsed"}</div>`); }
+const lhost=$("lossruns");
+for(const R of RUNS){ const c=document.createElement("div"); c.className="card";
+  c.innerHTML=`<h3>${R.title}</h3><div class="legend" id="lg_${R.key}"></div><div id="c_${R.key}"></div><div id="lr_${R.key}"></div>${R.noGrad?"":`<div id="gn_${R.key}"></div>`}<div class="src">${R.src_html}</div>`;
+  lhost.appendChild(c); }
+for(const F of M.failed_runs||[]){ const d=D[F.key]; $("extraruns").insertAdjacentHTML("beforeend",`<div class="card"><h3>${F.title}</h3>${d?`<div class="tiles" id="t_${F.key}"></div>`:`<div class="skip">${(M.skipped||{})["failed:"+F.key]||"log missing"}</div>`}<p class="note">${F.note||""}</p><div class="src">${F.src_html}</div></div>`);
+  if(d) tiles("t_"+F.key,[["Last tqdm position",`${d.last_micro} / ${F.total_micro}`,"micro-steps"],["Trainable",d.trainable?d.trainable[0]:"–",d.trainable?`of ${d.trainable[1]}`:""],["OOM",d.oom?"yes":"no","torch.OutOfMemoryError in log"]]); }
+for(const S of M.smoke_runs||[]){ const d=D[S.key]; $("extraruns").insertAdjacentHTML("beforeend",`<div class="card"><h3>${S.title}</h3>${d?`<div class="tiles" id="t_${S.key}"></div>`:`<div class="skip">report missing</div>`}<div class="src">${S.src_html}</div></div>`);
+  if(d) tiles("t_"+S.key,[["Fixed-seed eval loss, step 0",f3(d.eval_loss_step0),"before training"],[`after ${d.opt_steps} opt steps`,f3(d.eval_loss_final),`effective batch ${d.effective_batch}`],["Data",`${d.parts[0].episodes} ep / ${d.parts[0].frames} fr`,d.parts[0].name]]); }
+function drawLoss(){
+  if(!RUNS.length){ skipPanel("loss", (M.skipped||{}).loss||"no training logs"); return; }
+  const logY=$("logy").checked, raw=$("rawdots").checked, B=+$("blk").value;
+  const over=[];
+  for(const R of RUNS){ const rows=lossRows[R.key].rows, a=arm(R.arm), Bk=R.short?Math.max(5,B/5):B;
+    const bm=blockMedian(rows,Bk);
+    const series=[];
+    if(raw) series.push({name:"raw logged loss",col:a.c,pts:rows.map(r=>[r[0],r[1]]),kind:"dots",op:.35,r:1.5,noHover:true});
+    series.push({name:`block median (${Bk} opt steps)`,col:a.c,pts:bm.map(b=>[b[0],b[1],b[2]]),kind:"line"});
+    const cks=(R.ck&&CK[R.ck])||[];
+    const refs=cks.map(c=>({x:c.opt_step,label:(c.opt_step===R.sel?"★ ":"")+"opt"+c.opt_step}));
+    if(R.curve_key&&D[R.curve_key]) series.push({name:"fixed-seed eval loss (train-time curve)",col:"--ink",pts:D[R.curve_key].eval,kind:"line",markers:true,sw:1.5});
+    if(R.endpoints&&D.gates&&D.gates[R.endpoints]){ const g=D.gates[R.endpoints]; series.push({name:"fixed-seed eval loss (step 0, final)",col:"--ink",pts:[[0,g.loss_step0],[R.opt_steps,g.loss_final]],kind:"dots",r:5,ring:true}); }
+    legend("lg_"+R.key, series.map(s=>[s.name,s.col,s.kind==="dots"?"dot":""]).concat(refs.length?[["checkpoint (★ = selected)","--ink-3","dash"]]:[]));
+    xyChart($("c_"+R.key),{series,logY,yFloor:R.short?1e-3:3e-3,h:280,xLabel:"optimizer step",yLabel:"training loss",refs,xMin:0,
+      crosshair:true,tipHead:p=>`<b>opt step ${p[0]}</b>`,tipFmt:(p,s)=>f3(p[1])+(p[2]&&s.kind==="line"&&!s.markers?` <span style="color:var(--ink-3)">(${p[2]} logs)</span>`:"")});
+    const tr=lossRows[R.key].lr_trace;
+    const lrPts = tr? tr.map((v,i)=>[i+1,v]) : rows.map(r=>[r[0],r[3]]);
+    xyChart($("lr_"+R.key),{series:[{name:tr?"applied LR (lr_trace)":"logged LR",col:a.c,pts:lrPts,kind:"line",sw:1.5}],h:120,yLabel:"LR",xMin:0,xMax:Math.max(...rows.map(r=>r[0])),
+      yMin:0,crosshair:true,tipHead:p=>`<b>opt step ${p[0]}</b>`,tipFmt:p=>p[1].toExponential(2),yFmt:v=>v===0?"0":v.toExponential(0)});
+    if(!R.noGrad) xyChart($("gn_"+R.key),{series:[{name:"grad norm (grdn)",col:a.c,pts:rows.map(r=>[r[0],r[2]]),kind:"dots",r:1.3,op:.5},{name:"block median",col:a.c,pts:blockMedian(rows.map(r=>[r[0],r[2]]),Bk),kind:"line",sw:1.5}],
+      h:120,yLabel:"grad norm",xMin:0,yMin:0,crosshair:true,tipHead:p=>`<b>opt step ${p[0]}</b>`});
+    if(R.overlay) over.push({name:a.n,col:a.c,pts:bm.map(b=>[b[0],b[1]]),kind:"line"});
+  }
+  legend("lg_over", over.map(s=>[s.name,s.col]));
+  if(over.length) xyChart($("c_over"),{series:over,logY,yFloor:3e-3,h:300,xLabel:"optimizer step",yLabel:`block median loss (${B} opt steps)`,xMin:0,crosshair:true,tipHead:p=>`<b>≤ opt step ${p[0]}</b>`});
+}
+["logy","rawdots","blk"].forEach(id=>$(id).addEventListener("change",drawLoss));
+
+function drawRest(){
+const EV=(M.evals||[]).filter(e=>SC[e.score]);
+const BASE=M.base&&SC[M.base.score]?SC[M.base.score]:null;
+const WISE=M.wise&&SC[M.wise.score]&&SC[M.wise.score].wise&&SC[M.wise.score].wise.heldout.n?SC[M.wise.score].wise:null;
+/* ---------- 3 validation ---------- */
+guard("score", EV.length>0, ()=>{
+  $("selrule").textContent=(EV.find(e=>SC[e.score].selected)||{score:null}).score?SC[EV[0].score].selected.rule:"–";
+  const nVal=Math.max(...EV.map(e=>SC[e.score].selected.n));
+  const off=(i,n)=>Math.round((i-(n-1)/2)*4);
+  const valS=EV.map((e,i)=>({name:arm(e.arm).n,col:arm(e.arm).c,pts:SC[e.score].selected.all.map(a=>[a.step,a.success,a.median_ca]),kind:"line",markers:true,ringAt:SC[e.score].selected.step,dx:off(i,EV.length+(M.val_extra||[]).length)}));
+  (M.val_extra||[]).forEach((x,j)=>{ const c=MC[x.mc]&&MC[x.mc][x.key]; if(c) valS.push({name:arm(x.arm).n,col:arm(x.arm).c,pts:[[x.step,c[0]]],kind:"dots",r:5,ring:true,dx:off(EV.length+j,EV.length+M.val_extra.length)}); });
+  const steps=[...new Set(valS.flatMap(s=>s.pts.map(p=>p[0])))].sort((a,b)=>a-b);
+  const xr=[Math.min(...steps)-100,Math.max(...steps)+100];
+  legend("lg_val", valS.map(s=>[s.name,s.col,"dot"]));
+  xyChart($("c_val"),{series:valS,h:280,xMin:xr[0],xMax:xr[1],xTicks:steps,yMin:0,yMax:nVal,xLabel:"checkpoint (optimizer step)",yLabel:`successes of ${nVal}`,
+    tip:(p,s)=>`<b>${s.name}</b><br>opt${p[0]}: ${p[1]}/${nVal}${p[2]!=null?`<br>median CA ${f3(p[2])} m`:""}`});
+  const valCa=valS.slice(0,EV.length).map(s=>({...s,pts:s.pts.map(p=>[p[0],p[2],p[1]])}));
+  legend("lg_valca", valCa.map(s=>[s.name,s.col,"dot"]));
+  xyChart($("c_valca"),{series:valCa,h:280,xMin:xr[0],xMax:xr[1],xTicks:steps,xLabel:"checkpoint (optimizer step)",yLabel:"median closest approach (m)",
+    tip:(p,s)=>`<b>${s.name}</b><br>opt${p[0]}: median CA ${f3(p[1])} m<br>${p[2]}/${nVal} success`});
+
+  /* ---------- 4 outcome rates ---------- */
+  $("outnote").innerHTML=M.outcomes_note||"";
+  const row=(label,col,o)=>({label,col,k:o.success,n:o.n,rate:o.n?o.rate:null,ci:o.wilson95,ca:o.median_ca});
+  const rowsFor=set=>[BASE?row(arm("base").n,arm("base").c,BASE[set].base):null].concat(EV.map(e=>row(`${arm(e.arm).n} · ${SC[e.score].selected.label}`,arm(e.arm).c,SC[e.score][set].retrained)))
+    .concat(WISE?[row(arm(M.wise.arm).n,arm(M.wise.arm).c,WISE[set])]:[]).filter(Boolean);
+  dotCI($("c_ho"),rowsFor("heldout"),{ref:BASE?BASE.heldout.base.rate:null});
+  dotCI($("c_nom"),rowsFor("nominal"),{ref:BASE?BASE.nominal.base.rate:null});
+  const bands=Object.keys(SC[EV[0].score].per_band||{});
+  if(bands.length){ const bandG=(BASE?[["base",arm("base").c,bands.map(b=>BASE.per_band[b].base)]]:[]).concat(EV.map(e=>[arm(e.arm).n,arm(e.arm).c,bands.map(b=>SC[e.score].per_band[b].retrained)]));
+    legend("lg_band", bandG.map(g=>[g[0],g[1]]));
+    barChart($("c_band"),{cats:bands.map(b=>b+" rad"),catSub:bands.map(b=>"n = "+(BASE?BASE:SC[EV[0].score]).per_band[b].base.n),groups:bandG.map(([n,c,v])=>({name:n,col:c,vals:v.map(x=>x.rate),tips:v.map(x=>`${x.success}/${x.n} = ${pct(x.rate)}`)})),
+      yMax:1,yFmt:v=>(v*100)+"%",yLabel:"success rate",labels:(v,g,i)=>Math.round(v*100)}); }
+  table("pairtbl",["Arm","b (base ✓, arm ✗)","c (base ✗, arm ✓)","McNemar p","CA improved / pairs","gap closed"],
+    EV.map(e=>{const s=SC[e.score]; return [arm(e.arm).n,s.paired.mcnemar.b,s.paired.mcnemar.c,s.paired.mcnemar.p_value,`${s.paired.ca_improved}/${s.paired.ca_pairs}`,f3(s.gap_closed)];}),[1,2,3,4,5]);
+  const tf=v=>v===true?"✓ true":v===false?"✗ false":"– null";
+  const ek=Object.keys(SC[EV[0].score].expectations||{});
+  table("exptbl",["Key"].concat(EV.map(e=>arm(e.arm).n)), ek.map(k=>[k].concat(EV.map(e=>tf((SC[e.score].expectations||{})[k]))))
+    .concat([["failure_criterion_gap_lt_one_third"].concat(EV.map(e=>tf(SC[e.score].failure_criterion_gap_lt_one_third))),
+      ["base held-out consistent with prior curve"].concat(EV.map(e=>tf(((SC[e.score].uninterpretable_checks||{}).base_heldout_vs_r047_curve||{}).consistent)))]));
+});
+/* per scene (manifest only) */
+guard("per_rollout", Object.keys(PR).length>0, ()=>{
+  const armsS=Object.keys(PR); const isHo=x=>x.set==="heldout"||x.set==="heldout_wise";
+  const scenes=[...new Set(armsS.flatMap(a=>PR[a].filter(isHo).map(x=>x.scene)))].sort((a,b)=>a-b);
+  const cellBg=rate=>`background:color-mix(in oklab, var(--s1) ${Math.round(rate*70)}%, var(--surface))`;
+  const per=Math.max(...armsS.map(a=>PR[a].filter(isHo).filter(x=>x.scene===scenes[0]).length));
+  $("scenetbl").closest(".card").querySelector("h3").textContent=`Held-out success by scene (successes out of ${per})`;
+  $("scenetbl").innerHTML="<thead><tr><th>scene</th>"+armsS.map(a=>`<th class="num"><i class="sw dot" style="background:var(${arm(M.pr_arm[a]||a).c})"></i> ${arm(M.pr_arm[a]||a).n}</th>`).join("")+"</tr></thead><tbody>"+
+    scenes.concat(["all"]).map(sc=>"<tr><td>"+sc+"</td>"+armsS.map(a=>{ const xs=PR[a].filter(isHo).filter(x=>sc==="all"||x.scene===sc); const k=xs.filter(x=>x.success).length;
+      return `<td class="c" style="${cellBg(xs.length?k/xs.length:0)}" title="${arm(M.pr_arm[a]||a).n}, scene ${sc}: ${k}/${xs.length}">${k}/${xs.length}</td>`; }).join("")+"</tr>").join("")+"</tbody>";
+});
+/* by achieved offset (needs rollouts) */
+const hasOff=Object.values(PR).some(rows=>rows.length&&rows[0].offset_cm!=null);
+guard("offset", hasOff, ()=>{
+  const OB=[[0,4],[4,8],[8,12],[12,16],[16,99]], obl=OB.map(b=>b[1]===99?`>${b[0]} cm`:`${b[0]}–${b[1]} cm`);
+  const offG=Object.keys(PR).filter(a=>!a.endsWith("_wise")).map(a=>{ const xs=PR[a].filter(x=>x.set==="heldout"); const cnt=OB.map(([lo,hi])=>{ const s=xs.filter(x=>x.offset_cm>lo&&x.offset_cm<=hi||(lo===0&&x.offset_cm===0)); return [s.filter(x=>x.success).length,s.length]; });
+    return {name:arm(M.pr_arm[a]||a).n,col:arm(M.pr_arm[a]||a).c,vals:cnt.map(c=>c[1]?c[0]/c[1]:null),tips:cnt.map(c=>`${c[0]}/${c[1]}`),n:cnt.map(c=>c[1])}; });
+  legend("lg_off", offG.map(g=>[g.name,g.col]));
+  barChart($("c_off"),{cats:obl,catSub:offG[0].n.map(n=>"n = "+n),groups:offG,yMax:1,yFmt:v=>(v*100)+"%",yLabel:"success rate",labels:v=>Math.round(v*100)});
+});
+/* transfer */
+const TR=D.transfer||{};
+guard("transfer", Object.keys(TR).length>0, ()=>{
+  const ks=Object.keys(TR), trLabels=TR[ks[0]].map(r=>r.label);
+  const baseW=EV.map(e=>SC[e.score].transfer&&SC[e.score].transfer.base_median_W).find(v=>v!=null);
+  $("trnote").innerHTML=`<code>denoise_W</code> per transfer instance for each arm with transfer rows. The dashed line is base's median${baseW!=null?" of "+baseW:""} (<code>score.json → transfer.base_median_W</code>). ${M.transfer_note||""}`;
+  const trS=ks.map((k,i)=>({name:arm(k).n,col:arm(k).c,pts:TR[k].map(r=>[trLabels.indexOf(r.label),r.denoise_W,r.label]),kind:"dots",r:6,ring:true,dx:Math.round((i-(ks.length-1)/2)*10)}));
+  legend("lg_tr", trS.map(s=>[s.name,s.col,"dot"]).concat(baseW!=null?[[`base median ${baseW}`,"--base","dash"]]:[]));
+  xyChart($("c_tr"),{series:trS,h:280,xMin:-0.5,xMax:trLabels.length-0.5,xTicks:trLabels.map((_,i)=>i),xFmt:i=>TR[ks[0]][i].task_id,xLabel:"transfer instance (task_id)",yLabel:"denoise_W",
+    refs:baseW!=null?[{y:baseW,col:"--base",label:`base median ${baseW}`}]:[],tip:(p,s)=>`<b>${s.name}</b><br>${p[2]}<br>denoise_W ${f3(p[1])}`});
+});
+
+/* ---------- 5 diagnostics ---------- */
+const DM=M.d20_models||{};
+const mCol=m=>m==="base"?"--base":arm((DM[m]||{}).arm).c;
+guard("d20", !!D.d20_loss, ()=>{
+  const subs=Object.keys(D.d20_loss.subsets), first=D.d20_loss.subsets[subs[0]];
+  const models=Object.keys(first).filter(k=>k!=="n");
+  const pooled=m=>{ const s=subs.map(k=>D.d20_loss.subsets[k][m]); const mu=s.reduce((a,b)=>a+b.mean,0)/s.length, se=Math.sqrt(s.reduce((a,b)=>a+b.se*b.se,0))/s.length; return [mu,se]; };
+  const b=pooled("base");
+  const byArm={}; for(const m of models){ if(m==="base"||!DM[m]) continue; (byArm[DM[m].arm]=byArm[DM[m].arm]||[]).push([DM[m].step,...pooled(m)]); }
+  const S=Object.entries(byArm).map(([a,pts],i)=>{ pts.sort((x,y)=>x[0]-y[0]); return {name:arm(a).n,col:arm(a).c,pts:pts.map(p=>[p[0],p[1],p[2]]),ci:pts.map(p=>[p[0],p[1]-p[2],p[1]+p[2]]),kind:pts.length>1?"line":"dots",markers:true,r:5,ring:true,dx:(i-0.5)*8}; });
+  const steps=[...new Set(Object.values(DM).map(x=>x.step))].sort((a,b)=>a-b);
+  legend("lg_ckl", S.map(s=>[s.name,s.col,"dot"]).concat([["base (no adapter)","--base","dash"]]));
+  xyChart($("c_ckl"),{series:S,h:240,xMin:0,xMax:Math.max(...steps)+100,xTicks:[0].concat(steps),yMin:0,yMax:b[0]*1.15,xLabel:"checkpoint (optimizer step)",yLabel:"mean fixed-seed loss",
+    refs:[{y:b[0],col:"--base",label:`base ${f3(b[0])}`}],tip:(p,s)=>`<b>${s.name}</b> opt${p[0]}<br>mean ${p[1].toFixed(4)} ± ${p[2].toFixed(4)} (SE)`});
+  $("d20lnote").textContent=`${first.n} frames per subset, ${D.d20_loss.draws} noise draws, seed ${D.d20_loss.seed}. Whisker = ±1 SE.`;
+  const maxStep=Math.max(...steps);
+  const mOp=m=>m==="base"?1:(DM[m]?0.45+0.55*DM[m].step/maxStep:1);
+  const d20g=models.map(m=>({name:m,col:mCol(m),op:mOp(m),vals:subs.map(s=>D.d20_loss.subsets[s][m].mean),ci:subs.map(s=>{const v=D.d20_loss.subsets[s][m];return [v.mean-v.se,v.mean+v.se];}),
+    tips:subs.map(s=>{const v=D.d20_loss.subsets[s][m];return `mean ${v.mean.toFixed(4)} ± ${v.se.toFixed(4)} SE<br>median ${v.median.toFixed(4)}${v.ci?`<br>Δ vs base 95% CI [${v.ci[0].toFixed(4)}, ${v.ci[1].toFixed(4)}]<br>frames below base ${pct(v.below)}`:""}`;})}));
+  $("lg_d20l").innerHTML=models.map(m=>`<span><i class="sw dot" style="background:var(${mCol(m)});opacity:${mOp(m)}"></i>${m}</span>`).join("")+`<span>whisker = ±1 SE</span>`;
+  barChart($("c_d20l"),{cats:subs,catSub:subs.map(s=>"n = "+D.d20_loss.subsets[s].n),groups:d20g,yLabel:"mean loss",h:300});
+});
+guard("d20_fit", !!D.d20_fit, ()=>{
+  const FA=D.d20_fit, bins=Object.keys(FA.to_label_by_cm).filter(b=>FA.to_label_by_cm[b].n>0);
+  const fm=Object.keys(FA.to_label_all).filter(k=>k!=="n"), adapters=fm.filter(m=>m!=="base");
+  const fitG=fm.map(m=>({name:m,col:mCol(m),vals:bins.map(b=>FA.to_label_by_cm[b][m].median_to_ref),
+    tips:bins.map(b=>{const v=FA.to_label_by_cm[b][m];return `median ${f2(v.median_to_ref)}${v.share_closer_than_base!=null?`<br>closer than base: ${pct(v.share_closer_than_base)}<br>fraction closed: ${pct(v.fraction_closed_of_median)}`:""}`;})}));
+  legend("lg_fit", fitG.map(g=>[g.name,g.col]));
+  barChart($("c_fit"),{cats:bins.map(b=>b+" cm"),catSub:bins.map(b=>"n = "+FA.to_label_by_cm[b].n),groups:fitG,yLabel:"median distance to label",h:280});
+  table("fittbl",["Reference","Starts","base median"].concat(adapters.map(m=>m+" median"),adapters.map(m=>m+" closer than base"),adapters.map(m=>m+" fraction closed")),
+    [["own label (training starts)",FA.to_label_all],["nominal chunk (training starts)",FA.to_nominal_all],["nominal chunk (held-out starts, matched)",FA.heldout_all]].map(([n,v])=>
+    [n,v.n,f2(v.base.median_to_ref)].concat(adapters.map(m=>f2(v[m].median_to_ref)),adapters.map(m=>pct(v[m].share_closer_than_base)),adapters.map(m=>pct(v[m].fraction_closed_of_median)))),
+    [...Array(3+3*adapters.length).keys()].slice(1));
+});
+guard("d20_fit_rows", !!D.d20_fit_rows, ()=>{
+  const FR=D.d20_fit_rows, ms=Object.keys(FR[0]).filter(k=>k!=="offset_cm"&&k!=="scene");
+  const fsc=ms.map((m,i)=>({name:m,col:mCol(m),pts:FR.map(r=>[r.offset_cm+(i-(ms.length-1)/2)*0.12,r[m],r.scene]),kind:"dots",r:3.2,op:.8}));
+  legend("lg_fitsc", fsc.map(s=>[s.name,s.col,"dot"]));
+  xyChart($("c_fitsc"),{series:fsc,h:280,yMin:0,xMin:0,xLabel:"training start offset (cm)",yLabel:"distance to label",tip:(p,s)=>`<b>${s.name}</b><br>offset ${f2(p[0])} cm, scene ${p[2]}<br>distance ${f2(p[1])}`});
+});
+guard("r047_curve", !!D.r047_curve, ()=>{
+  const RB=D.r047_curve.bands, rbk=Object.keys(RB).filter(k=>RB[k].n>0);
+  const mid=k=>{const [a,b]=k.split("-").map(Number); return (a+Math.min(b,30))/2;};
+  const S=[{name:"all directions",col:"--base",pts:rbk.map(k=>[mid(k),RB[k].rate,k,RB[k].success,RB[k].n]),ci:rbk.map(k=>[mid(k),RB[k].wilson95[0],RB[k].wilson95[1]]),kind:"line",markers:true}];
+  const dirCols=["--s1","--s2","--s3"];
+  Object.entries(D.r047_curve.bands_by_dir).forEach(([d,bb],i)=>{ const ks=Object.keys(bb).filter(k=>bb[k].n>0);
+    S.push({name:"direction "+d,col:dirCols[i%3],pts:ks.map(k=>[mid(k),bb[k].rate,k,bb[k].success,bb[k].n]),kind:"line",markers:true,sw:1.5,dash:"5 3",dx:(i-1)*4}); });
+  legend("lg_r047", S.map((s,i)=>[s.name,s.col,i?"dash":""]).concat([["whisker = Wilson 95% (all)","--base"]]));
+  xyChart($("c_r047"),{series:S,h:300,yMin:0,yMax:1,xMin:0,xMax:26,xLabel:"achieved t = 0 gripper offset, band midpoint (cm)",yLabel:"base success rate",yFmt:v=>Math.round(v*100)+"%",
+    tip:(p,s)=>`<b>${s.name}</b><br>band ${p[2]} cm: ${p[3]}/${p[4]} = ${pct(p[1])}`});
+});
+
+/* ---------- 6 data ---------- */
+const MIXINV=INV[M.mix_run];
+guard("data", !!D.data && !!MIXINV, ()=>{
+  const DA=D.data, parts=MIXINV.parts, sh=MIXINV.shares, draws=MIXINV.opt_steps*MIXINV.eff;
+  tiles("t_data",[["Minted demos (kept / attempted)",`${DA.yield.pooled.successes} / ${DA.yield.pooled.attempts}`,`yield ${pct(DA.yield.pooled.yield)}`],
+    ["Frames per training demo",Object.keys(DA.n_frames).join(","),`truncated to ${DA.export.truncate_steps} steps; ${Object.keys(DA.n_driven).join(",")} driven`],
+    ["Minted frames / replay frames",parts.map(p=>p.frames.toLocaleString()).join(" / "),parts.map(p=>p.episodes).join(" / ")+" episodes"],
+    ["Samples drawn per run",draws.toLocaleString(),`${MIXINV.opt_steps} opt × ${MIXINV.eff}`],
+    ["Source",Object.entries(DA.source).map(([k,v])=>`${k} ${v}`).join(", "),"provenance.source"],
+    ["Untruncated demo length (steps)",`${Math.min(...DA.full_steps)}–${Math.max(...DA.full_steps)}`,`median ${median(DA.full_steps)}`]]);
+  barChart($("c_mix"),{cats:parts.map(p=>p.name.replace("IPEC-COMMUNITY/","")),catSub:parts.map((p,i)=>`share ${sh[i]} · ${p.frames} frames`),
+    groups:[{name:"samples drawn (computed)",col:"--s1",vals:sh.map(s=>s*draws),tips:sh.map((s,i)=>`${(s*draws).toLocaleString()} samples<br>${(s*draws/parts[i].frames).toFixed(2)} draws per frame`)},
+            {name:"frames in dataset",col:"--base",vals:parts.map(p=>p.frames),tips:parts.map(p=>`${p.frames.toLocaleString()} frames, ${p.episodes} episodes`)}],
+    yLabel:"count",h:260,labels:v=>v>=1000?(v/1000).toFixed(1)+"k":v});
+  const scK=Object.keys(DA.mint_attempts_by_scene).sort((a,b)=>a-b);
+  legend("lg_scene",[["attempted","--base"],["kept","--s1"]]);
+  barChart($("c_scene"),{cats:scK,groups:[{name:"attempted",col:"--base",op:.6,vals:scK.map(s=>DA.mint_attempts_by_scene[s][1])},{name:"kept",col:"--s1",vals:scK.map(s=>DA.scene[s]||0),
+    tips:scK.map(s=>`${DA.scene[s]||0}/${DA.mint_attempts_by_scene[s][1]} kept`)}],yLabel:"demos",xLabel:"scene",h:260,labels:v=>v});
+  const yb=Object.keys(DA.yield).filter(k=>k!=="pooled");
+  legend("lg_yield",[["attempts","--base"],["kept","--s1"]]);
+  barChart($("c_yield"),{cats:yb.map(b=>b+" rad"),catSub:yb.map(b=>"yield "+pct(DA.yield[b].yield)),groups:[{name:"attempts",col:"--base",op:.6,vals:yb.map(b=>DA.yield[b].attempts)},{name:"kept",col:"--s1",vals:yb.map(b=>DA.yield[b].successes)}],yLabel:"demos",h:260,labels:v=>v});
+  const OBn=Object.keys(DA.coverage.offset_bins);
+  legend("lg_offbins",[["mint attempts","--base"],["kept (training)","--s1"],["held-out eval starts","--s2"]]);
+  barChart($("c_offbins"),{cats:OBn.map(b=>b+" cm"),groups:[{name:"attempts",col:"--base",op:.6,vals:OBn.map(b=>DA.coverage.offset_bins[b].attempts)},{name:"kept",col:"--s1",vals:OBn.map(b=>DA.coverage.offset_bins[b].kept)},
+    {name:"held-out eval",col:"--s2",vals:OBn.map(b=>DA.coverage.offset_bins[b].eval),tips:OBn.map(b=>{const o=DA.coverage.offset_bins[b];return `${o.eval} rollouts<br>success `+Object.entries(o.eval_success||{}).map(([k,v])=>`${k} ${v}`).join(", ");})}],yLabel:"count",h:260,labels:v=>v});
+  const WP=DA.coverage.window_phases;
+  barChart($("c_phase"),{cats:Object.keys(WP),groups:[{name:"share of training-window frames",col:"--s1",vals:Object.values(WP),tips:Object.values(WP).map(pct)}],yMax:1,yFmt:v=>Math.round(v*100)+"%",h:220,labels:v=>pct(v)});
+  $("c_phase").insertAdjacentHTML("beforeend",`<p class="note">Gripper-closed fraction: replay ${pct(DA.coverage.gripper_closed_fraction.replay)}, minted export ${pct(DA.coverage.gripper_closed_fraction.export)}.</p>`);
+  barChart($("c_noise"),{cats:Object.keys(DA.noise).sort().map(k=>"seed "+k),groups:[{name:"demos",col:"--s1",vals:Object.keys(DA.noise).sort().map(k=>DA.noise[k])}],h:220,yLabel:"demos",labels:v=>v});
+  table("dstbl",["Dataset","Episodes","Frames","fps"],Object.entries(DA.datasets).map(([k,v])=>["data/"+k,v.total_episodes,v.total_frames.toLocaleString(),v.fps]),[1,2,3]);
+  const CV=DA.coverage.scenes, bpr=PR[M.base?M.base.pr:"base"]||[];
+  table("covtbl",["Scene","Kept demos","Kept directions","Held-out rollouts","Held-out directions","Shared directions","Held-out base success"],
+    Object.keys(CV).sort((a,b)=>a-b).map(s=>{const xs=bpr.filter(x=>x.set==="heldout"&&String(x.scene)===s);return [s,CV[s].kept,CV[s].kept_dirs,CV[s].eval,CV[s].eval_dirs,CV[s].shared_dirs,xs.length?`${xs.filter(x=>x.success).length}/${xs.length}`:"–"];}),[1,2,3,4,5,6]);
+});
+
+/* ---------- 7 upstream ---------- */
+guard("upstream", !!(D.r053||D.r057), ()=>{
+  if(D.r053) table("r053tbl",["Seed","n","P failures","N successes","N flips","re-run flips","re-run breaks","median CA P / N (m)"],
+    Object.entries(D.r053).map(([s,v])=>[s,v.n,v.P_fail,v.N_success,v.N_flips,v.rerun_flips,v.rerun_breaks,`${f3(v.median_ca_P)} / ${f3(v.median_ca_N)}`]),[1,2,3,4,5,6]);
+  if(D.r057){ const ks=["P","k1","k2","k4","all"];
+    const r57=Object.entries(D.r057).map(([ax,v],i)=>({name:ax==="ris"?"start pose (ris)":"camera (cam)",col:i?"--s2":"--s1",pts:ks.filter(k=>v[k]).map(k=>[ks.indexOf(k),v[k].rate,k,v[k].success,v[k].n]),
+      ci:ks.filter(k=>v[k]).map(k=>[ks.indexOf(k),...v[k].wilson95]),kind:"line",markers:true,dx:i?4:-4}));
+    legend("lg_r057", r57.map(s=>[s.name,s.col]).concat([["whisker = Wilson 95%","--ink-3"]]));
+    xyChart($("c_r057"),{series:r57,h:260,xMin:-0.4,xMax:4.4,xTicks:[0,1,2,3,4],xFmt:i=>ks[i],yMin:0,yMax:1,yFmt:v=>Math.round(v*100)+"%",xLabel:"drive-until k (P = plain policy, all = drive whole episode)",yLabel:"success rate",
+      tip:(p,s)=>`<b>${s.name}</b> k=${p[2]}<br>${p[3]}/${p[4]} = ${pct(p[1])}`}); }
+});
+}
+
+/* ---------- 8 sources ---------- */
+$("srclist").innerHTML=(M.sources||[]).map(([f,what])=>`<li><code>${f}</code> <span>· ${what}</span></li>`).join("");
+
+drawLoss(); drawRest();
+let rz=null, lastW=innerWidth; addEventListener("resize",()=>{ if(innerWidth===lastW) return; lastW=innerWidth; clearTimeout(rz); rz=setTimeout(()=>{drawLoss(); drawRest();},150); });
+$("themebtn").addEventListener("click",()=>{ const r=document.documentElement, cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  r.setAttribute("data-theme",cur==="dark"?"light":"dark"); });
+</script>
+</body>
+</html>
