@@ -1,0 +1,60 @@
+
+==== camera_bench_yaw_deg n=360 unique keys=360 scenes=10 mags=[0.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 75.0]
+terminations {'success': 317, 'timeout': 43}
+pooled {0.0: '38/40', 5.0: '39/40', 10.0: '40/40', 20.0: '38/40', 30.0: '31/40', 40.0: '34/40', 50.0: '29/40', 60.0: '36/40', 75.0: '32/40'}
+between-plate-ramekin  1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 0.50 | x50    76.2 w    15.3 viol []
+next-to-ramekin        1.00 1.00 1.00 0.50 0.75 0.75 0.25 1.00 0.25 | x50    60.6 w      68 viol [(20.0, 60.0), (50.0, 60.0)]
+table-center           1.00 1.00 1.00 1.00 1.00 1.00 0.50 1.00 1.00 | x50     131 w    89.1 viol [(50.0, 60.0), (50.0, 75.0)]
+on-cookie-box          1.00 1.00 1.00 1.00 0.75 1.00 0.75 0.75 1.00 | x50     131 w     107 viol []
+top-drawer             1.00 0.75 1.00 1.00 0.75 1.00 1.00 0.25 0.50 | x50    71.4 w    61.4 viol []
+on-ramekin             0.50 1.00 1.00 1.00 0.75 1.00 1.00 1.00 0.75 | x50     inf w     inf viol [(0.0, 5.0), (0.0, 10.0), (0.0, 20.0)]
+next-to-cookie-box     1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-stove               1.00 1.00 1.00 1.00 0.25 0.00 0.25 1.00 1.00 | x50    87.9 w     155 viol [(30.0, 60.0), (30.0, 75.0), (40.0, 60.0)]
+next-to-plate          1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-wooden-cabinet      1.00 1.00 1.00 1.00 0.50 0.75 0.50 1.00 1.00 | x50     160 w     189 viol [(30.0, 60.0), (30.0, 75.0), (50.0, 60.0)]
+within-cell r = -0.23837975540869055 over 21 mixed cells
+pooled x50 119.13011561900696
+
+==== camera_bench_scale n=240 unique keys=240 scenes=10 mags=[1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
+terminations {'success': 166, 'timeout': 74}
+pooled {1.0: '35/40', 1.2: '38/40', 1.4: '31/40', 1.6: '22/40', 1.8: '19/40', 2.0: '21/40'}
+between-plate-ramekin  1.00 0.75 1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+next-to-ramekin        1.00 1.00 1.00 0.50 0.25 0.00 | x50    1.65 w   0.256 viol []
+table-center           1.00 1.00 1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-cookie-box          1.00 1.00 0.50 1.00 0.75 0.50 | x50    2.09 w    1.04 viol [(1.4, 1.6)]
+top-drawer             1.00 1.00 0.50 0.00 0.00 0.00 | x50     1.4 w   0.152 viol []
+on-ramekin             0.50 1.00 0.00 0.25 0.00 0.50 | x50    1.18 w    1.58 viol [(1.0, 1.2), (1.4, 2.0), (1.8, 2.0)]
+next-to-cookie-box     1.00 1.00 1.00 0.25 0.50 0.50 | x50     1.8 w   0.661 viol []
+on-stove               1.00 0.75 1.00 0.25 0.25 0.25 | x50    1.61 w   0.595 viol []
+next-to-plate          1.00 1.00 1.00 0.75 0.50 0.75 | x50    2.05 w   0.713 viol []
+on-wooden-cabinet      0.25 1.00 0.75 0.50 0.50 0.75 | x50     inf w     inf viol [(1.0, 1.2), (1.0, 1.4), (1.0, 2.0)]
+within-cell r = 0.051140271818366265 over 23 mixed cells
+pooled x50 1.8742799861979396
+
+==== camera_bench_pitch_deg n=160 unique keys=160 scenes=10 mags=[0.0, 5.0, 10.0, 15.0]
+terminations {'success': 152, 'timeout': 8}
+pooled {0.0: '36/40', 5.0: '40/40', 10.0: '40/40', 15.0: '36/40'}
+between-plate-ramekin  1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+next-to-ramekin        1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+table-center           1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-cookie-box          1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+top-drawer             1.00 1.00 1.00 0.25 | x50    13.9 w    3.27 viol []
+on-ramekin             0.50 1.00 1.00 0.75 | x50     inf w     inf viol [(0.0, 5.0), (0.0, 10.0)]
+next-to-cookie-box     1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-stove               1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+next-to-plate          1.00 1.00 1.00 1.00 | x50     inf w     inf viol []
+on-wooden-cabinet      0.50 1.00 1.00 1.00 | x50     inf w     inf viol [(0.0, 5.0), (0.0, 10.0), (0.0, 15.0)]
+within-cell r = -0.38246502559687456 over 2 mixed cells
+pooled x50 inf
+
+==== bench vs harness yaw: 360 matched (scene,mag,seed); harness n=360 scenes=[984, 1030, 1062, 1090, 1132, 1169, 1201, 1247, 1282, 1327]
+yaw   0.0: harness 37/40 bench 38/40  (harness-only 0, bench-only 1)
+yaw   5.0: harness 40/40 bench 39/40  (harness-only 1, bench-only 0)
+yaw  10.0: harness 39/40 bench 40/40  (harness-only 0, bench-only 1)
+yaw  20.0: harness 37/40 bench 38/40  (harness-only 2, bench-only 3)
+yaw  30.0: harness 32/40 bench 31/40  (harness-only 6, bench-only 5)
+yaw  40.0: harness 32/40 bench 34/40  (harness-only 5, bench-only 7)
+yaw  50.0: harness 23/40 bench 29/40  (harness-only 6, bench-only 12)
+yaw  60.0: harness 27/40 bench 36/40  (harness-only 4, bench-only 13)
+yaw  75.0: harness 29/40 bench 32/40  (harness-only 6, bench-only 9)
+per scene @75 (harness/bench): {'between-plate-ramekin': '2/2 of 4', 'next-to-ramekin': '3/1 of 4', 'table-center': '4/4 of 4', 'on-cookie-box': '4/4 of 4', 'top-drawer': '2/2 of 4', 'on-ramekin': '4/3 of 4', 'next-to-cookie-box': '3/4 of 4', 'on-stove': '1/4 of 4', 'next-to-plate': '4/4 of 4', 'on-wooden-cabinet': '2/4 of 4'}
