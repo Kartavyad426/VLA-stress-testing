@@ -1,0 +1,813 @@
+diff --git a/RESULTS.md b/RESULTS.md
+index d2b93fa..036c1a8 100644
+--- a/RESULTS.md
++++ b/RESULTS.md
+@@ -230,6 +230,12 @@ Every entry records its expectation and **says when it was written**:
+ | R-050 | 09-24 | EVAL | How one corrected chunk flows downstream | DONE | Halves the downstream gap on start pose (10/10); the gap re-opens on camera (8/10) |
+ | R-051 | 09-25 | EVAL | Reverse direction, noise seeds and layout rescue for the remaining rows | DONE (scored 09-28) | 4 of 6 held: noise single-camera; lighting and texture joint; layout agent view; a corrected first chunk does not rescue layout |
+ | R-052 | 09-28 | EVAL | Benchmark camera cone: yaw, pitch and distance about LIBERO-Plus's own pivots | PRE-REGISTERED, NOT RUN | ~760 rollouts, ~9.5 h; runs after R-047; knobs camera_bench_* |
++| R-053 | 09-28 | EVAL | Start-pose no-op baseline: how many R-044 rescues are render jitter | PRE-REGISTERED, NOT RUN | 60 rollouts, ~50 min |
++| R-054 | 09-28 | DATA | Rescue-minting pilot: 100 start-pose demos, LeRobot converter, dataset gates | PRE-REGISTERED, NOT RUN | ~1.7 h GPU; converter and runner by impl |
++| R-055 | 09-28 | GATE | GR00T LoRA fine-tune gates: zero-step conformance, overfit, memory on 8 GB | PRE-REGISTERED, NOT RUN | bf16 load, LoRA r16 on head, projectors and VLM frozen |
++| R-056 | 09-28 | EVAL | Start-pose retraining pilot, arm (a): LoRA head, frozen VLM, 100 minted demos + 1:1 replay | PRE-REGISTERED, NOT RUN | reinstates R-046 (a) as a pilot; ~290 eval rollouts |
++| R-057 | 09-28 | EVAL | When is the episode decided: drive-until sweep k ∈ {1,2,4,all} on start pose and camera | PRE-REGISTERED, NOT RUN | 240–300 rollouts, ~3–3.8 h; layout excluded (needs a state-conditional source) |
++| R-058 | 09-28 | EVAL | LoRA rank sweep on the start-pose pilot: r ∈ {4, 64} vs R-056's r = 16 | PRE-REGISTERED, NOT RUN | ~350 rollouts + 2 trainings; decides rank for the 500-demo run and whether D7 (rent) is needed |
+ 
+ ---
+ 
+@@ -4387,3 +4393,511 @@ against R-047's yaw axis.
+ Magnitude-neutral success below 100% pooled; `tests/test_bench_camera.py`
+ failing on the code state recorded in `runs/r052/code_state`; or more than 3 of
+ the 10 scenes dropped from the scale axis.
++
++---
++
++## R-053 — PRE-REGISTERED, NOT YET RUN: the start-pose no-op baseline (how many R-044 "rescues" are render jitter)
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
++**Runner** `experiments/r039_run.py` (existing flags) · **Selection**
++`experiments/repro/r044_selection_ris.json` (the ten Robot Initial States
++instances of R-042/R-044) · **Queue** to be written (`experiments/queue_r053.sh`),
++pattern of `queue_r048.sh` · **Part of** the start-pose retraining pilot
++(R-053 → R-056), user decision 2026-09-28; design in `docs/DATA_MINER_SPEC.html` §4
++
++### Why
++
++R-044's forward-0 rescue (nominal chunk: 7 of 7 failures flipped) had no
++no-op arm. R-048 then measured a plain re-run flipping 3 of 7 camera failures,
++and made a no-op drive mandatory for every rescue design. Start pose is the
++only row without one. Rescue minting (R-054) keeps the successes of
++nominal-driven episodes. A success that a plain re-run would also have
++produced carries no correction, so the no-op rate sets what fraction of
++minted demos are real rescues.
++
++### Design
++
++The ten instances × noise seeds 0, 1, 2 × two drives at forward 0 only:
++- **P**, a re-run with no correction (the no-op);
++- **N**, the nominal chunk, which replicates R-044 at seed 0 and extends it to seeds 1 and 2.
++
++That is 60 rollouts, `--arms extended --drive {P,N} --drive-until 1 --no-video`,
++env seed 0. Run under `flock /tmp/vla_gpu.lock`, announced first. About 50 min.
++
++Readouts, per seed and pooled:
++- failures under P;
++- flips = P-failures that succeed under N;
++- flips under the re-run relative to R-042's original P outcome;
++- median closest approach;
++- ‖P−N‖ at forward 0 (must match R-044 within 0.05).
++
++### Pre-registered expectations
++
++1. **N succeeds on ≥ 21/30 episodes pooled (≥ 70%).** *Medium.* R-044 9/10,
++   R-050 rerun 7/10.
++2. **N flips more P-failures than the re-run does, by ≥ 30 pp of P-failures
++   pooled over seeds.** *Medium.* R-050's gap halving (10/10) says the
++   correction is real at the action level; the outcome rate is noisier.
++3. **The no-op re-run at seed 0 flips ≤ 3 of R-042's 7 failures.**
++   *Medium-low.* Camera flipped 3 of 7, layout 0 of 8.
++4. **Closest approach under N beats P on ≥ 20/30.** *Medium.*
++
++### What would make this uninterpretable
++
++‖P−N‖ at forward 0 not matching R-044 within 0.05 on ≥ 9/10 at seed 0, or any
++run rc ≠ 0.
++
++### What it decides
++
++- **If 2 holds:** proceed with R-054 unchanged.
++- **If 2 misses** (the nominal chunk is not better than a re-run on outcome):
++  R-054 still runs, since the action-level effect is established, but R-056's
++  success expectations are halved, and the scripted-expert source (spec S3)
++  becomes the priority comparison.
++
++---
++
++## R-054 — PRE-REGISTERED, NOT YET RUN: rescue minting pilot, 100 start-pose demos, and the dataset gates
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** DATA ·
++**Code** to be written by `impl`:
++- a minting runner (splice `drive="N"`, `drive_until=1`, per-step recording on);
++- a `driven` frame tag and provenance stamp;
++- a held-out exclusion list;
++- a harness-rollout → LeRobot dataset converter.
++
++**Spec** `docs/DATA_MINER_SPEC.html` §1, §4, §5 (source S2, gates G1, G4, G5, G6, G7).
++
++### Design
++
++**Sampling.**
++- **Scenes:** the ten R-047 start-pose scenes, excluding on-ramekin, which fails unperturbed (R-047).
++- **Radius bands:** 0.1–0.2, 0.2–0.3, 0.3–0.4, 0.4–0.5 rad.
++- **Directions:** random joint directions, excluding the two held-out directions per scene fixed for R-056.
++
++**Nominal features.** The nominal forward-0 features are recorded once per
++(scene, noise seed) and reused across radii.
++
++**Minting.**
++- **Generation:** run until 100 successes are kept; the yield is recorded per band.
++- **Recording:** failures are recorded but not exported.
++- **Tagging:** each episode carries provenance and per-frame `driven` tags (frames 0–15).
++
++**Export.** A LeRobot dataset matching `IPEC-COMMUNITY/libero_spatial_no_noops`'s
++schema:
++- both 256×256 cameras, the 8-d state, the 7-d action, the task string, the same fps;
++- normalisation statistics taken from the checkpoint's processor, not recomputed.
++
++**Gates.**
++- **G1 contract:** on all episodes.
++- **G4 held-out exclusion:** by provenance.
++- **G6 round trip:** replay the exported actions from the recorded initial state on 10 episodes.
++- **G7 eyes on:** 10 videos.
++
++**Cost.** About 100 / 0.75 × 45 s ≈ 1.7 h of GPU, plus gates, under the flock.
++
++### Pre-registered expectations
++
++1. **Pooled yield ≥ 70%.** *Medium.* R-044/R-050 (70–90%) at L4/L5 instances.
++2. **Yield falls with radius: the 0.4–0.5 band's yield is below the 0.1–0.2
++   band's by ≥ 15 pp.** *Medium.* R-047's success curve and R-044's reading
++   that the nominal move stops being safe far from home.
++3. **G6 round trip: ≥ 9/10 replayed episodes reach the same outcome.**
++   *Medium-low.* Open-loop replay determinism in LIBERO-Plus is unmeasured.
++   A miss does not block R-056 (training reads recorded frames, not
++   replays), but it blocks the re-render source (spec S1) until explained.
++4. **G1 passes on 100%.** *High.* A failure is a converter bug, fixed before R-056.
++
++### What would make this uninterpretable
++
++The recorded forward-0 N chunk not matching a fresh splice forward on 3
++spot-checked episodes, or the exported state/action not matching the rollout
++trace bit-for-bit on those episodes.
++
++### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
++
++- **Source dataset.** The checkpoint's `train_config.json` names
++  `IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot` (LeRobot v2.1, AV1
++  video). It is converted locally to v3.0 under
++  `~/.cache/huggingface/lerobot/`. That converted copy is the schema target
++  and the replay source.
++- **Gripper convention.** The spec's "[−1, 1]" was wrong for this dataset. The
++  dataset's gripper action is {0, 1} with 1 = open. The export writes (1−g)/2
++  from the harness's executed g ∈ [−1, 1]; the checkpoint's postprocessor
++  inverts it as −sign(2x−1). The G6 round trip validates this end to end.
++- **Images.** The export flips 180° and then resizes 360→256 with INTER_AREA:
++  the same order and operation as the checkpoint's own preprocessor, checked
++  against a real dataset frame.
++- **Held-out radii.** For the four scenes whose R-047 50% point is ≥ 0.475 rad
++  (984, 1030, 1090, 1282), the rule "x50 + 0.025 / x50 + 0.075, clipped to
++  0.5" collapses to one radius. They use (0.45, 0.5) instead: capped at 0.5,
++  because training never goes beyond it. The lists are
++  `experiments/repro/r056_heldout.json` (108 starts) and `r056_val.json` (10).
++- **G6 at smoke scale (n = 2)** reports pass = false by threshold only. The
++  ≥ 9/10 criterion applies to the registered 10-episode check.
++
++---
++
++## R-055 — PRE-REGISTERED, NOT YET RUN: GR00T LoRA fine-tune gates — zero-step conformance, overfit, memory on 8 GB
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** GATE ·
++**Code** to be written by `impl`: a training config for
++`third_party/lerobot` `lerobot_train` with the GR00T policy loaded from
++`nvidia/gr00t17-lerobot-libero_spatial-640`. The config must set:
++- **LoRA** through the generic PEFT path (`--policy.use_peft`, explicit
++  `--peft.target_modules`). GR00T's own `lora_*` fields are declared but read
++  nowhere (`configuration_groot.py:358`).
++- **Targets:** every linear of the action-head DiT and `vl_self_attention`,
++  r = 16, α = 16, dropout 0.1, ≈ 19 M parameters.
++- **Frozen modules:** the projectors (state/action encoders, action decoder,
++  0.34 B) and the whole VLM.
++- **bf16 weights.** `model_params_fp32` must be false and the load bf16: the
++  port's default fp32 cast is 12.6 GB (`modeling_groot.py:116`). The harness
++  inference path avoids it the same way (R-021, 5.87 GiB).
++
++**Background** `docs/FINE_TUNING_101.html` §6, §12.
++
++### Design, three gates in order
++
++1. **Zero-step conformance.** Load through the training path, attach the
++   untrained adapter (B = 0), put it in eval mode, and compute the forward-0
++   action on the ten R-044 instances with the harness's fixed noise. Compare
++   with the harness policy's action.
++2. **Overfit.** 300 steps on one R-054 episode at LR 1e-4.
++3. **Memory.** 20 steps at batch 1 and batch 2, gradient checkpointing on,
++   recording `torch.cuda.max_memory_allocated` and `nvidia-smi` peak. The GPU
++   is under the flock and nothing else holds it.
++
++### Pre-registered expectations
++
++1. **Conformance: ‖a_train − a_harness‖ ≤ 1e-3 per dimension on 10/10.** *Medium.*
++   Same weights and noise; differences would come from preprocessing or dtype.
++   A miss is a pipeline bug and blocks R-056.
++2. **Overfit: flow-matching loss on the episode falls below 10% of its step-0
++   value.** *High.*
++3. **Memory: peak ≤ 7.4 GiB at batch 1 with the VLM resident.** *Medium.*
++   Arithmetic: 5.87 GiB of measured weights, plus ≈ 0.3 GiB of LoRA state,
++   plus head activations.
++4. **Batch 2 also fits (≤ 7.8 GiB).** *Medium-low.*
++
++### What it decides
++
++- **If 3 fails:** switch to cached VLM features (spec §12, estimated ≈ 5 GiB)
++  and re-run gate 3.
++- **If that fails too:** D7 (rent a GPU) becomes blocking.
++- **If gate 1 fails:** nothing trains until the difference is explained.
++
++### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
++
++- **Overfit gate measure.** The criterion is a *fixed-seed* flow-matching loss
++  on the episode (τ, ε and dropout seeded per frame, eval mode), measured
++  before and after the 300 steps. The noisy step-0 training loss is not used.
++  The threshold is unchanged (< 10% of the before value).
++- **Gradient checkpointing.** The port's DiT flag is never read, so impl added
++  non-reentrant block checkpointing to the DiT and `vl_self_attention` blocks.
++  It is added gate 2b: loss and gradients on one fixed batch must match with
++  and without checkpointing (bf16 tolerance).
++- **Micro-batch.** GR00T's tokenizer pads on the left, and `vl_self_attention`
++  takes no mask, so at micro-batch > 1 the features depend on batch
++  composition. Training therefore runs at **micro-batch 1** with gradient
++  accumulation 8 (effective batch 8, as registered). Gate 3's batch-2
++  measurement stays as a memory readout only; expectation 4 is kept but no
++  longer decides anything.
++- **Cached-feature equivalence** (only if the cache is used) is measured at
++  micro-batch 1, where it is exact. Measured size: 153 tokens per frame,
++  ≈ 0.63 MB bf16.
++- **Smoke readings (not the registered run; recorded for provenance).**
++  19,136,512 trainable parameters, all LoRA, over 248 Linears. Peak 6.30 GiB
++  (`max_memory_allocated`) / 6.40 GiB (`nvidia-smi`) at batch 1 with the VLM
++  resident. Conformance max |Δa| = 0.0 on 3 instances.
++
++---
++
++## R-056 — PRE-REGISTERED, NOT YET RUN: start-pose retraining pilot, arm (a) — LoRA on the action head, VLM frozen, 100 minted demos
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL (training) ·
++**Depends on** R-053 (no-op rate), R-054 (data), R-055 (gates pass) ·
++**Design basis** R-046 arm (a), which this reinstates in pilot form by user
++decision 2026-09-28. R-046 arm (b) and the 500-demo scale are follow-ups,
++registered separately after this reads out.
++
++### Design
++
++**Data.**
++- **Minted:** R-054's 100 minted episodes, truncated to the approach: the
++  first 48 steps, i.e. three chunks including the 16 driven.
++- **Replay:** mixed 1:1 by sampling weight with the original
++  `libero_spatial_no_noops` demos, as the regression guard.
++
++**Training.**
++- **Trainable parameters:** R-055's LoRA configuration. The VLM, the projectors and the base head weights stay frozen.
++- **Optimiser settings:** LR 1e-4, 5% warmup, cosine decay; effective batch 8
++  (micro-batch per R-055, accumulated); 2,000 steps; one seed.
++- **Checkpoints:** saved at 500, 1000, 1500 and 2000 steps.
++
++**Checkpoint selection.** Chosen by rollout success on a **validation** set
++of 10 perturbed starts at 1 seed, disjoint from both training and held-out.
++Not chosen by loss.
++
++**Held-out set.**
++- **Starts:** the nine scored scenes × 2 radii just beyond each scene's
++  R-047 50% point (clipped to 0.5 rad) × the 2 held-out directions × noise seeds 0–2.
++- **Size:** 108 rollouts per checkpoint.
++- **Comparison:** the base checkpoint is run on the identical set.
++
++**Controls.**
++- **Nominal:** R-029's unperturbed control on the same scenes × 3 seeds, for the retrained checkpoint.
++- **Mechanism check:** W and A transfer at forward 0 on the ten R-044
++  instances, on the retrained checkpoint (no rollouts).
++
++**Exploratory, not scored against expectations.** WiSE-FT at α = 0.5 on the
++held-out and nominal sets.
++
++**Readouts.**
++- success;
++- closest approach;
++- per-radius success;
++- gap closed = (retrained − base) / (nominal − base) on the held-out set.
++
++### Pre-registered expectations
++
++1. **Held-out success rises by ≥ 15 pp over the base checkpoint, pooled over
++   the 108.** *Medium.* 100 demos, first-chunk-decided failure, information
++   present at the VLM output (R-045, post-hoc).
++2. **Gap closed ≥ 40%.** *Medium-low.* The plan's ≥ 70% is for 500 demos. The
++   pilot is a fifth of that, and R-053's attribution may shrink it.
++3. **Nominal control regresses by < 5 pp.** *Medium.* LoRA plus 1:1 replay.
++4. **W transfer at forward 0 falls by ≥ 0.2 (median, from 0.88).** *Medium.*
++   The minted labels teach invariance to start pose at forward 0 (spec §4.3).
++   If success rises and W does not fall, the policy learned to recover rather
++   than to start correctly: a different fix than intended.
++5. **Gains concentrate where minting yield was high: the per-radius gain in
++   the lowest held-out band exceeds that in the highest.** *Medium-low.*
++   Selection bias of the success filter (spec §4.3).
++6. **Closest approach improves over base on ≥ 60% of held-out instances.** *Medium.*
++
++### What would count as failure
++
++Less than a third of the gap closed, with R-055's gates passed.
++- **Before concluding** that the data specification is wrong: scale to 500
++  demos (the plan's size).
++- **If 500 also fails:** it counts as a negative result for the
++  mechanism-targeted arm, and R-040's direct arm (D) is the comparison to run.
++
++### What would make this uninterpretable
++
++Any of the following:
++- the base checkpoint's held-out success differing from R-047's curve at the same
++  radii by more than its binomial 95% interval;
++- the nominal control on the base checkpoint below 29/30;
++- G4 held-out exclusion failing;
++- any R-055 gate unresolved.
++
++### Cost
++
++- **Training:** 1–3 h local.
++- **Evaluation:** 108 × 2 checkpoints plus 30 nominal plus 40 validation ≈ 290
++  rollouts ≈ 3.6 h.
++- **Exploratory WiSE-FT:** ≈ 1.8 h more.
++- **All GPU work** under the flock, announced.
++
++### Amendment 2026-09-28 19:11 — before any run (user-approved rulings on impl's build report)
++
++- **Augmentation off.** The port's processors run with `training=False` under
++  `lerobot_train` (dataset_meta is passed only for reward models,
++  `lerobot_train.py:513`): no random crop and no state dropout. The original
++  recipe's ColorJitter is also left off. This is a deliberate **deviation from
++  the checkpoint's original training recipe**, kept for the pilot so that
++  cached features stay exact and the comparison is clean.
++- **Micro-batch 1, accumulation 8** (see R-055's amendment). "2000 steps; save
++  at 500/1000/1500/2000" means *optimizer* steps. The trainer rescales its
++  micro-step counters, and checkpoint metadata must record the optimizer step.
++- **Mixing.** A custom weighted `MixedDataset` gives 1:1 by sampling weight
++  (0.496 minted, measured), because `lerobot_train` rejects
++  `MultiLeRobotDataset`.
++- **Nominal control: 9 scenes, not 10.** The R-029 scenes minus on-ramekin
++  (1169), × env seeds 0–2 with noise seed = env seed = 27 episodes per
++  checkpoint. On-ramekin fails unperturbed (R-047), is excluded from minting,
++  and is reported separately. The uninterpretability condition "nominal
++  control on the base checkpoint below 29/30" becomes **"below 26/27"** (the
++  same one-failure allowance). The cost figure drops by 3 rollouts.
++- **Held-out radii** per R-054's amendment (four scenes use 0.45 and 0.5).
++
++---
++
++## R-057 — PRE-REGISTERED, NOT YET RUN: when is the episode decided — a drive-until sweep k ∈ {1, 2, 4, all} on start pose and camera
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL ·
++**Runner** `experiments/r039_run.py` (existing flags: `--arms extended --drive N
++--drive-until k`; omitting `--drive-until` drives every forward) · **Selections**
++`experiments/repro/r044_selection_ris.json` (start pose),
++`experiments/repro/r048_selection_cam.json` (camera) · **Queue** to be written
++(`experiments/queue_r057.sh`) · **Depends on** R-053 (reuses its P and k = 1 arms) ·
++**Spec** `docs/DATA_MINER_SPEC.html` §2, note "How 'decided' is measured"
++
++### Why
++
++The data miner spec labels each row by when its episode is decided: first
++chunk (start pose) or throughout (camera). Both labels rest on k = 1 only.
++Forward-0 rescue plus R-050's downstream gap show that one corrected chunk
++suffices for start pose and does not for camera. Neither says *how many*
++corrected forwards a camera episode needs, or whether start pose gains
++anything from more than one.
++
++"Decided at forward k" is defined here as the earliest k at which executing
++the corrected chunk for forwards 0…k−1 and then handing back matches a fully
++corrected episode. The answer sets how many frames per demo need corrected
++labels (R-056 truncates start-pose demos to 48 steps = 3 forwards) and which
++source a row needs (spec §3: rescue minting covers k = 1; camera needs
++whole-episode labels, i.e. re-render).
++
++### What N means per row (not the same thing)
++
++- **Camera** (vision category): the source at every forward is a *paired
++  render* of the current state under the nominal camera
++  (`LiberoEnv.nominal_observation`). N at forward k is a state-conditional
++  correction, and N-all is the policy acting on the nominal view throughout.
++- **Start pose** (`RECORDED_CATS`): the source is the *recorded* per-forward
++  features of the R-029 control episode, time-aligned by forward index, not
++  state-aligned. Past forward 0, N is increasingly "follow the control's
++  chunks" rather than a correction at the current state. So N-all on start
++  pose is an open-loop-ish upper reference, not a nominal episode.
++- **Layout is excluded.** Its recorded source is the control episode in a
++  different world: N past forward 0 replays chunks aimed at objects that
++  moved, so a k-sweep would measure nothing about correction. Layout's
++  decision time needs a state-conditional correction, i.e. the scripted
++  expert (spec S3) driving the first k forwards. That is a later entry, if S3
++  is built.
++
++### Design
++
++- **Drives:** P (the no-op re-run) and N with k ∈ {1, 2, 4, all}; noise seeds
++  0, 1, 2; env seed 0; ten instances per row. One forward = 16 env steps.
++- **Rollouts:**
++  - start pose: k ∈ {2, 4, all} × 30 = 90 new; P and k = 1 are reused from R-053
++    if `runs/r053_*/code_state` matches this run's, otherwise rerun (+60);
++  - camera: 5 drives × 30 = 150.
++  - Total 240 (≈ 3 h at ~45 s), or 300 (≈ 3.8 h) with the start-pose reruns.
++  - Run under `flock /tmp/vla_gpu.lock`, announced first.
++- **Readouts per (row, k):**
++  - pooled success over 30, with Wilson 95% intervals;
++  - flips relative to P;
++  - median closest approach;
++  - the **post-hand-back gap**: median ‖P−N‖ over forwards k … k+2 as a ratio to
++    P's own ‖P−N‖ at the same forwards (R-050's measure; primary). For start
++    pose, read it with the time-alignment caveat above.
++- **Decision point k\*:** the smallest tested k whose pooled success is within
++  10 pp of N-all's *and* at least 20 pp above P. If no finite k qualifies, the
++  row is "throughout (> 4 forwards)".
++
++### Pre-registered expectations
++
++1. **Start pose k\* = 1: k = 1's success is within 10 pp of k = 4's.** *Medium.*
++   R-044, R-050: the cause is behind the robot once it moves.
++2. **Start pose: the post-hand-back gap at k = 1 is ≤ 0.6 × P's.** *Medium-high.*
++   Replicates R-050 (6.06 → 3.44) over three seeds.
++3. **Camera N-all succeeds on ≥ 27/30.** *High.* It is the policy on the nominal
++   view throughout; R-029's control is 100/100.
++4. **Camera k\* is "throughout": k = 4's success is ≥ 15 pp below N-all's.**
++   *Medium.* R-050: the gap re-opens at the next forward because the view is
++   still wrong.
++5. **Camera: after hand-back at every finite k, the gap at forward k is ≥ 0.8 ×
++   P's.** *Medium.* The correction does not persist.
++6. **Camera: success rises monotonically in k (P ≤ 1 ≤ 2 ≤ 4 ≤ all, within
++   one-episode ties).** *Medium-low.* Outcome noise at n = 30.
++
++### What would make this uninterpretable
++
++- Forward-0 arms not matching R-048 (camera) or R-044/R-053 (start pose)
++  within 0.05 on ≥ 9/10 at seed 0.
++- Camera N-all below 24/30: the paired render would then not be a nominal
++  observation.
++- Any run with rc ≠ 0.
++
++### What it decides
++
++- **Start pose k\* = 1:** R-056's 48-step truncation stands, and the 16 driven
++  steps are the whole correction.
++- **Start pose k\* = 2 or 4:** minting drives N for k forwards and truncation
++  becomes 16·(k+2) steps; R-054/R-056 are amended before they run if possible.
++- **Camera "throughout":** confirms re-render (spec S1) as camera's only source.
++- **Camera k\* finite:** rescue minting with `drive_until = k` becomes a
++  camera source too, much cheaper than building re-render.
++
++---
++
++## R-058 — PRE-REGISTERED, NOT YET RUN: LoRA rank sweep on the start-pose pilot — r ∈ {4, 64} against R-056's r = 16
++
++**Date registered** 2026-09-28 · **Status** PRE-REGISTERED · **Type** EVAL (training) ·
++**Depends on** R-056, which provides the r = 16 arm, the base-checkpoint
++held-out numbers and all data. It runs after R-056 whatever R-056's outcome.
++**Code** `experiments/r056_train.py` / `r056_eval.py` with the rank as a
++parameter (no new code expected). **Background** `docs/FINE_TUNING_101.html` §1,
++§3.
++
++### Why
++
++The fine-tuning primer's claim, and the map's, is that the start-pose fix is a
++small mapping in the action head: the information is present at the VLM
++output (R-045), and the episode is decided in the first chunk (R-044, R-050).
++If so, capacity is not the limit. A much smaller adapter should do as well as
++r = 16, and a much larger one should not do clearly better. If a larger rank
++does clearly better, the fix needs more capacity than the map suggests, and a
++full-head fine-tune (rented GPU, D7) becomes worth running.
++
++### Design
++
++Everything identical to R-056 as amended at 19:11: same minted data and 1:1
++replay, same 48-step truncation, same targets (every Linear in the DiT and
++`vl_self_attention`), same LR, schedule, optimizer steps, micro-batch 1 ×
++accumulation 8, seed, checkpoint cadence, and selection by validation
++rollouts. Only the rank changes.
++
++| arm | rank r | α | scale α/r | trainable params (approx.) |
++|---|---|---|---|---|
++| R-058 small | 4 | 4 | 1 | ≈ 4.8 M |
++| R-056 (reference) | 16 | 16 | 1 | 19.1 M (measured) |
++| R-058 large | 64 | 64 | 1 | ≈ 76.5 M |
++
++- **α = r keeps α/r = 1**, the same effective update scale as R-056, so rank
++  is the only change.
++- **Memory:** the r = 64 arm is estimated at ≈ 7.2 GiB with the VLM resident.
++  If R-055's memory procedure shows it does not fit, it trains from cached
++  VLM features, which is exact at micro-batch 1 per R-055's amendment. That
++  is recorded; it is not a deviation.
++- **Evaluation per arm:**
++  - the R-056 held-out set (108);
++  - the 9-scene nominal control (27);
++  - validation selection (4 checkpoints × 10);
++  - W/A transfer at forward 0 on the ten R-044 instances.
++
++  The base-checkpoint numbers are R-056's, on the identical set.
++- **Cost:** 2 × (1–3 h training) + 2 × 175 ≈ 350 rollouts ≈ 4.4 h, under the flock.
++
++### Pre-registered expectations
++
++1. **r = 4 is within 5 pp of r = 16 on held-out success.** *Medium.* A
++   first-chunk remapping needs little capacity (intrinsic-dimension argument).
++2. **r = 64 does not beat r = 16 by ≥ 10 pp on held-out success.** *Medium.*
++3. **Nominal regression does not shrink with rank: r = 64's drop is ≥ r = 4's.**
++   *Medium-low.* n = 27, so only a large difference is visible.
++4. **The W-transfer drop at forward 0 is within 0.1 across the three ranks.**
++   *Medium-low.* All three learn the same invariance, if they learn it at all.
++5. **Closest approach agrees with 1 and 2 in direction.** *Medium.* It is the
++   continuous readout and resolves smaller differences than success.
++
++### What it decides
++
++- **1 holds:** the 500-demo follow-up and arm (b) use r = 4. That is cheaper,
++  and leaves room for arm (b)'s top-4 LLM LoRA on 8 GB.
++- **2 misses (r = 64 better by ≥ 10 pp):** capacity was limiting. A full-head
++  fine-tune on a rented GPU (D7) is registered next.
++- **Every rank flat and R-056 flat:** the limit is the data (source S2's
++  borrowed labels, selection bias), not the adapter. The scripted-expert
++  source (S3) is the next comparison, not more parameters.
++
++### What would make this uninterpretable
++
++Any arm's training-path conformance at step 0 not exact (R-055 gate 1); the
++held-out or nominal sets differing from R-056's; or the r = 64 arm switching
++to cached features without the cache-equivalence gate passing.
+diff --git a/docs/Decision_28Sep.html b/docs/Decision_28Sep.html
+index 9bceecc..1eaf68e 100644
+--- a/docs/Decision_28Sep.html
++++ b/docs/Decision_28Sep.html
+@@ -79,7 +79,7 @@
+   <p class="eyebrow">Decision tracker · VLA perturbation programme</p>
+   <h1>Decisions and pending work, 28 September</h1>
+   <p class="stand">Everything waiting on a call from you, every pre-registered experiment not yet run, every proposal that stopped short of a pre-registration, and the ideas you raised that have not come to fruition. Assembled from RESULTS.md, HANDOFF.md (§0–§11), PENDING_DECISIONS.md, the docs/ write-ups, and status reports from all five peer sessions on 2026-09-28.</p>
+-  <div class="meta"><span>Compiled by <code>my prim</code>, which now holds the <code>primary</code> and <code>vla-a5</code> (Sentinel/OOD) roles</span><span>Snapshot: 2026-09-28 ~12:00</span><span>Last commit on main: <code>cc9f633</code> (27 unpushed)</span></div>
++  <div class="meta"><span>Compiled by <code>my prim</code>, which now holds the <code>primary</code> and <code>vla-a5</code> (Sentinel/OOD) roles</span><span>Snapshot: 2026-09-28 ~12:00</span><span>Last commit on main: <code>50c1a6a</code> (pushed 09-28)</span></div>
+ </header>
+ 
+ <section class="check" id="actioned">
+@@ -95,8 +95,11 @@
+     <li><span class="box">✓</span><span><b>SFT briefed</b> on the retraining plan: context and the seven undecided items, no task attached.</span><span class="who">09-28 · my prim</span></li>
+     <li><span class="box">✓</span><span><b>D5 done</b>: R-047 yaw runs as-is (with a caveat). <code>camera_bench_yaw_deg / _pitch_deg / _scale</code> were added in <code>vla_harness/envs/libero_env.py</code>. They call the scene class's own LIBERO-Plus <code>_setup_camera</code>, so each scene's canonical pose is picked up. <code>schema.knob_neutral</code> makes scale's nominal 1.0. Grids are in <code>r047_run.py</code>. <code>tests/test_bench_camera.py</code>: 10/10, matching 7 real LIBERO-Plus views to 1e-4 (re-run by my prim); the existing suite is 93/93. The old knobs are byte-for-byte unchanged, so the pending R-047 yaw resume is unaffected. Uncommitted.</span><span class="who">09-28 · impl, verified</span></li>
+     <li><span class="box">✓</span><span><b>D5 caveat recorded in the map.</b> <code>docs/PERTURBATION_MAP.html</code> now gives the 0.16–0.35 m pivot offset and says R-047 yaw is "comparable with R-041, not the benchmark's cone". The R-047 entry gets the same caveat when scored.</span><span class="who">09-28 · fable</span></li>
+-    <li class="wip"><span class="box">◐</span><span><b>D16 decided: R-052 pre-registered</b>. Benchmark camera cone on the <code>camera_bench_*</code> axes: yaw 0–75, scale 1.0–2.0, pitch 0–15 (5/10 marked as interpolation), 10 scenes × 4 seeds, ~760 rollouts, ~9.5 h, queued after R-047. No look-away knobs.</span><span class="who">09-28 · my prim, impl</span></li>
+-    <li class="wip"><span class="box">◐</span><span><b>D1: commit and push in 8 revertible stages</b>: S1 R-051 (fable) · S2 R-047 runner fixes (fable) · S3 bench camera knobs · S4 index + R-035 · S5 Sentinel correction · S6 handoffs + STAC script · S7 R-052 pre-registration · S8 docs. Held back: <code>FINE_TUNING_101.html</code>, <code>R042_WRIST_MATHS.pdf</code>, <code>viz/*</code>, <code>r049_selection_smoke.json</code>, <code>runs/r047*</code>, <code>runs/r041</code> arrays and logs.</span><span class="who">09-28 · impl</span></li>
++    <li><span class="box">✓</span><span><b>D16: R-052 pre-registered</b> (<code>c0042c7</code>). Benchmark camera cone on the <code>camera_bench_*</code> axes: yaw 0–75, scale 1.0–2.0, pitch 0–15 (5/10 interpolation), 10 scenes × 4 seeds, ~760 rollouts, ~9.5 h, after R-047. No look-away knobs. The queue script is not written yet.</span><span class="who">09-28 · my prim, impl</span></li>
++    <li><span class="box">✓</span><span><b>D1: committed in 8 stages and pushed</b> (<code>a50e533..50c1a6a</code>, 35 commits including the 27 earlier ones). S1 <code>031ec14</code> R-051 · S2 <code>7ebd0a2</code> R-047 runner fixes · S3 <code>790bdf6</code> bench camera knobs · S4 <code>f65df0a</code> index + R-035 · S5 <code>9af19f8</code> Sentinel correction · S6 <code>55d20e4</code> handoffs + STAC script · S7 <code>c0042c7</code> R-052 · S8 <code>50c1a6a</code> docs. Revert any one with <code>git revert &lt;hash&gt;</code>. Held back: <code>FINE_TUNING_101.html</code>, <code>R042_WRIST_MATHS.pdf</code>, <code>viz/*</code>, <code>r049_selection_smoke.json</code>, <code>runs/r047*</code>, <code>runs/r041/*</code>, <code>runs/r045/features.npz</code>, logs and DONE markers.</span><span class="who">09-28 · impl, verified</span></li>
++    <li><span class="box">✓</span><span><b>FAIL-Detect (TRI, RSS 2025) read and written up</b>: <code>docs/FAIL_DETECT_MATHS.html</code> covers all five scorers and the functional CP band, checked against the code at <code>b758e55</code>. Verdict: it works on a frozen checkpoint (only a small scorer is trained), but <var>O</var><sub>t</sub> must be S1+S0e, not S2 (R-037). Expect detection, not failure prediction. The code licence is CC BY-NC, so reimplement rather than reuse. Nothing is run or proposed as an R-number yet.</span><span class="who">09-28 · my prim</span></li>
++    <li><span class="box">✓</span><span><b>Robustness gap review written</b>: <code>docs/robustness_of_exps.html</code>. Only start pose is swept over the benchmark's range, and it is not robust; yaw was swept on the wrong pivot; distance, pitch, negative yaw, lighting and noise severity are unknown. <code>queue_r052.sh</code> is still unwritten.</span><span class="who">09-28 · this session</span></li>
++    <li><span class="box">✓</span><span><b>Benchmark ranges decoded from LIBERO-Plus source</b>, added as §1 of <code>docs/robustness_of_exps.html</code>. Two findings: (1) the harness <code>light_intensity</code> knob only brightens and clips at 1.25× from m = 0.25 (<code>libero_env.py:444–448</code>), while the benchmark mostly dims (median 0.62×), so R-041's lighting result covers ~4% of the benchmark's variants; (2) noise index N = 5 families × severity 1–10, not a severity, and our instances never used motion or glass blur (161/351). <code>sweep</code>'s literature review (<code>docs/SWEEP_DESIGN_LITERATURE.html</code>) is summarised in §7.</span><span class="who">09-28 · my prim, sweep</span></li>
+   </ul>
+ </section>
+ 
+diff --git a/experiments/r044_reverse.py b/experiments/r044_reverse.py
+index da3c10e..7ca1690 100644
+--- a/experiments/r044_reverse.py
++++ b/experiments/r044_reverse.py
+@@ -45,12 +45,13 @@ from vla_harness.schema import PerturbationSpec
+ LIVE = 7
+ 
+ 
+-def build_policy():
++def build_policy(adapter=None, adapter_alpha=1.0):
+     from lerobot.envs.configs import LiberoPlusEnv
+     return LeRobotPolicy("nvidia/gr00t17-lerobot-libero_spatial-640", n_action_steps=16,
+                          env_cfg=LiberoPlusEnv(task="libero_spatial"),
+                          policy_overrides={"base_model_path": "nvidia/GR00T-N1.7-3B", "embodiment_tag": "libero_sim"},
+-                         dtype="bfloat16", rename_map={"observation.images.image2": "observation.images.wrist_image"})
++                         dtype="bfloat16", rename_map={"observation.images.image2": "observation.images.wrist_image"},
++                         adapter=adapter, adapter_alpha=adapter_alpha)
+ 
+ 
+ def make_env(task_id):
+@@ -72,10 +73,12 @@ def main():
+     ap.add_argument("--selection", required=True)
+     ap.add_argument("--out", required=True)
+     ap.add_argument("--noise-seed", type=int, default=0)
++    ap.add_argument("--adapter", default=None, help="R-056: a LoRA adapter dir on top of the base checkpoint")
++    ap.add_argument("--adapter-alpha", type=float, default=1.0)
+     a = ap.parse_args()
+     os.makedirs(a.out, exist_ok=True)
+     sel = json.load(open(a.selection))
+-    pol = build_policy(); pol.reset()
++    pol = build_policy(a.adapter, a.adapter_alpha); pol.reset()
+     head = pol._policy._groot_model.action_head
+     model = pol._policy._groot_model
+     t0 = time.time()
+@@ -124,7 +127,8 @@ def main():
+     summary = {"n": len(rows), "medians": med,
+                "noise_W_gt_A": int(sum(r["noise_W"] > r["noise_A"] for r in rows)),
+                "denoise_W_gt_A": int(sum(r["denoise_W"] > r["denoise_A"] for r in rows)),
+-               "noise_seed": a.noise_seed}
++               "noise_seed": a.noise_seed, "policy_id": pol.policy_id, "adapter": a.adapter,
++               "adapter_alpha": a.adapter_alpha}
+     json.dump(summary, open(os.path.join(a.out, "summary.json"), "w"), indent=1)
+     log("summary", summary)
+ 
+diff --git a/experiments/r047_run.py b/experiments/r047_run.py
+index bb7f0ea..183ef22 100644
+--- a/experiments/r047_run.py
++++ b/experiments/r047_run.py
+@@ -12,12 +12,19 @@ noise) for the state axis) so ‖P−N‖ at forward 0 is on record.
+ 
+ Writes runs/<run-id>/<axis>/manifest.jsonl (one row per rollout) and the
+ per-rollout npz; resumable at rollout granularity.
++
++SIGTERM (e.g. `timeout` at a queue deadline) finishes the rollout in flight,
++writes its row, and exits 0: the next run resumes from the manifest. A scene
++whose camera setup ignores a bench knob (the knob raises NotImplementedError,
++R-052's scale axis) is dropped from that axis and listed in
++<axis>/dropped_scenes.json.
+ """
+ from __future__ import annotations
+ 
+ import argparse
+ import json
+ import os
++import signal
+ import sys
+ import time
+ 
+@@ -86,7 +93,16 @@ def closest_to_bowl(r, env):
+     return np.array(out, dtype=np.float32)
+ 
+ 
++STOP = {"requested": False}
++
++
++def _on_term(signum, frame):
++    STOP["requested"] = True
++    print(f"signal {signum}: stopping after the rollout in flight", flush=True)
++
++
+ def main():
++    signal.signal(signal.SIGTERM, _on_term)
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--run-id", required=True)
+     ap.add_argument("--axis", required=True, choices=list(GRIDS))
+@@ -115,8 +131,14 @@ def main():
+     log(f"axis {a.axis}: {len(scenes)} scenes x {len(mags)} magnitudes x {len(rep['dirs'])*len(rep['noise'])} replicates = {total}; done {len(done)}")
+ 
+     recorded = {}      # (scene, dir, noise) -> magnitude-0 features, for the state axis
++    dropped_p = os.path.join(out_dir, "dropped_scenes.json")
++    dropped = json.load(open(dropped_p)) if os.path.exists(dropped_p) else {}
+     for scene in scenes:
++        if str(scene) in dropped:
++            log(f"scene {scene}: dropped from {a.axis} ({dropped[str(scene)]})"); continue
+         for d in rep["dirs"]:
++            if str(scene) in dropped:
++                break
+             for ns in rep["noise"]:
+                 noise_key = lambda i, s=ns: 1000 * s + i
+                 for m in mags:                       # magnitude 0 first: it is the recorded source
+@@ -145,6 +167,13 @@ def main():
+                     h = attach_splice(pol._policy, source=source, drive="P", noise_key=noise_key)
+                     try:
+                         r = rollout(env, pol, ENV_SEED, spec_for(a.axis, m, d), video_dir=None)
++                    except NotImplementedError as e:
++                        if not a.axis.startswith("camera_bench_"):
++                            raise
++                        dropped[str(scene)] = f"{type(e).__name__}: {e}"[:300]
++                        json.dump(dropped, open(dropped_p, "w"), indent=1)
++                        log(f"scene {scene}: {a.axis} not supported, dropped: {e}")
++                        break
+                     finally:
+                         h.detach()
+                         if rec is not None:
+@@ -172,6 +201,10 @@ def main():
+                         log("max-rollouts reached"); return
+                     log(f"scene {scene} m={m:<6} dir {d} noise {ns}: success={r.success} F={F} d_pn0={row['d_pn_f0']:.3f} ca={row['closest_approach_m']}")
+                     del env
++                    if STOP["requested"]:
++                        log("stopped on signal; resumable"); return
++                if str(scene) in dropped:
++                    break
+                 # the magnitude-0 features are GPU clones used only by this magnitude loop; keeping them OOM'd the first run
+                 recorded.pop((scene, d, ns), None); torch.cuda.empty_cache()
+     log("done")
+diff --git a/runs/r051/queue.log b/runs/r051/queue.log
+index 378bbee..da10ae6 100644
+--- a/runs/r051/queue.log
++++ b/runs/r051/queue.log
+@@ -52,3 +52,6 @@ wrote docs/PERTURBATION_MAP.html 344422 bytes
+ wrote docs/PERTURBATION_MAP.html 344422 bytes
+ [17:21:28] DONE
+ [17:21:28] R-047 start
++[14:46:36] R-047 rc=0
++wrote docs/PERTURBATION_MAP.html 352904 bytes
++[14:46:39] ALL DONE
+diff --git a/vla_harness/policies/lerobot_policy.py b/vla_harness/policies/lerobot_policy.py
+index 3c89760..902a793 100644
+--- a/vla_harness/policies/lerobot_policy.py
++++ b/vla_harness/policies/lerobot_policy.py
+@@ -39,8 +39,21 @@ class LeRobotPolicy:
+                  env_cfg=None, policy_overrides: dict | None = None,
+                  dtype: str | None = None, rename_map: dict | None = None,
+                  preprocessor_overrides: dict | None = None,
+-                 capture_dir: str | None = None, capture_k_resample: int = 1):
++                 capture_dir: str | None = None, capture_k_resample: int = 1,
++                 adapter: str | None = None, adapter_merge: bool = False,
++                 adapter_alpha: float = 1.0):
+         self.checkpoint = checkpoint
++        # A PEFT (LoRA) adapter on top of `checkpoint` (R-056): a directory with
++        # adapter_config.json + adapter_model.safetensors, e.g. a lerobot_train
++        # checkpoint's pretrained_model/. `adapter_alpha` scales the LoRA delta
++        # (WiSE-FT between base, 0, and the fine-tune, 1); `adapter_merge` folds
++        # it into the bf16 base weights (faster, but rounds the delta to bf16).
++        # All three are behaviour, so all three are in identity(), with the
++        # adapter's CONTENT hash rather than its path.
++        self.adapter = adapter
++        self.adapter_merge = bool(adapter_merge)
++        self.adapter_alpha = float(adapter_alpha)
++        self._adapter_sha = _adapter_sha(adapter) if adapter else None
+         self.device = device
+         self.n_action_steps = n_action_steps
+         # Documented eval settings that are not n_action_steps, e.g. MINERVA's
+@@ -118,17 +131,24 @@ class LeRobotPolicy:
+         policy evaluated at a different horizon is a different policy, and must
+         miss the cache.
+         """
+-        return {"name": f"lerobot:{self.checkpoint}",
+-                "checkpoint": self.checkpoint,
+-                "checkpoint_revision": self._cfg.get("revision"),
+-                "n_action_steps": self.n_action_steps,
+-                "policy_overrides": dict(sorted(self.policy_overrides.items())),
+-                "dtype": self.dtype,
+-                "rename_map": dict(sorted(self.rename_map.items())),
+-                "preprocessor_overrides": {k: dict(sorted(v.items()))
+-                                           for k, v in sorted(self.preprocessor_overrides.items())},
+-                "action_dims": list(self.action_dims),
+-                "state_fn": getattr(self.state_fn, "__name__", "custom")}
++        ident = {"name": f"lerobot:{self.checkpoint}",
++                 "checkpoint": self.checkpoint,
++                 "checkpoint_revision": self._cfg.get("revision"),
++                 "n_action_steps": self.n_action_steps,
++                 "policy_overrides": dict(sorted(self.policy_overrides.items())),
++                 "dtype": self.dtype,
++                 "rename_map": dict(sorted(self.rename_map.items())),
++                 "preprocessor_overrides": {k: dict(sorted(v.items()))
++                                            for k, v in sorted(self.preprocessor_overrides.items())},
++                 "action_dims": list(self.action_dims),
++                 "state_fn": getattr(self.state_fn, "__name__", "custom")}
++        # Only present with an adapter, so every base-checkpoint policy_id (and
++        # every cached rollout keyed on it) is unchanged by this field existing.
++        if self.adapter:
++            ident["name"] = f"lerobot:{self.checkpoint}+lora"
++            ident["adapter"] = {"sha": self._adapter_sha, "alpha": self.adapter_alpha,
++                                "merged": self.adapter_merge}
++        return ident
+ 
+     def _load(self):
+         """Load the policy AND LeRobot's own processor pipelines.
+@@ -176,6 +196,8 @@ class LeRobotPolicy:
+                 self._policy.config.device = str(self.device)
+             except Exception:
+                 pass
++        if self.adapter:
++            self._policy = self._attach_adapter(self._policy)
+         if self.n_action_steps is not None:
+             try:
+                 self._policy.config.n_action_steps = self.n_action_steps
+@@ -213,6 +235,25 @@ class LeRobotPolicy:
+         if self.capture_dir is not None:
+             self._attach_capture()
+ 
++    def _attach_adapter(self, policy):
++        """Inject the LoRA adapter into `policy` IN PLACE and return the policy itself (not
++        the PeftModel), so `_groot_model`, the splice and the taps see the usual structure.
++        The adapter keeps the dtype it was saved in (fp32); PEFT casts activations to it."""
++        from peft import PeftModel
++        peft = PeftModel.from_pretrained(policy, self.adapter, is_trainable=False)
++        n = 0
++        if self.adapter_alpha != 1.0:
++            from peft.tuners.lora import LoraLayer
++            for m in peft.modules():
++                if isinstance(m, LoraLayer):
++                    m.scale_layer(self.adapter_alpha); n += 1
++            if n == 0:
++                raise RuntimeError(f"adapter {self.adapter}: no LoRA layers to scale")
++        if self.adapter_merge:
++            return peft.merge_and_unload()
++        self._peft = peft                        # keeps the wrapper (and its config) alive
++        return peft.base_model.model
++
+     def _attach_capture(self) -> None:
+         """Attach taps to the loaded model. GR00T only, and it says so loudly.
+ 
+@@ -389,6 +430,22 @@ class LeRobotPolicy:
+         return Action([float(x) for x in arr], self.action_dims)
+ 
+ 
++def _adapter_sha(path: str) -> str:
++    """Content hash of a PEFT adapter directory: its weights and its config."""
++    import hashlib
++    import os
++    h = hashlib.sha1()
++    for name in ("adapter_config.json", "adapter_model.safetensors", "adapter_model.bin"):
++        p = os.path.join(path, name)
++        if os.path.exists(p):
++            with open(p, "rb") as f:
++                for chunk in iter(lambda: f.read(1 << 20), b""):
++                    h.update(chunk)
++    if h.hexdigest() == hashlib.sha1().hexdigest():
++        raise FileNotFoundError(f"no adapter_config.json / adapter_model.* in {path}")
++    return h.hexdigest()[:12]
++
++
+ def libero_state(obs: Observation):
+     """LIBERO's 8-dim state: eef position, axis-angle orientation, gripper qpos."""
+     import numpy as np
