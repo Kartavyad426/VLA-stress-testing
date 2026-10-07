@@ -1,0 +1,287 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Mulligan Targeted Init</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Mulligan: failure-targeted initial states at a matched budget</h1>
+<div class=meta>2026-10-07 · res21 · Paper: Ankile, Dong, Bhowmik, Muppidi, Yuan, Song, Finn (Stanford), "Mulligan: Performance-Guided Data Collection for Efficient On-Robot Learning", <a href="https://arxiv.org/abs/2610.05882">arXiv:2610.05882v1</a> (5 Oct 2026). Read in full from the arXiv PDF, with appendices A–K (64 pages). Code: <a href="https://github.com/ankile/mulligan">github.com/ankile/mulligan</a> (stated in §G, not opened). Requested by prim for the user (checklist t2a). Tags: <span class="tag v">verified</span> stated in the full text, or recomputed by me · <span class="tag i">inferred</span> my reading · <span class="tag p">ours</span> a fact about our runs, with its source.</div>
+
+<div class="card tldr">
+<div class=q>Verdict: the published, rigorous version of our "failure-targeted" arm</div>
+<ul>
+<li><b>The method.</b> Supervised batch-online learning. An operator places objects and intervenes. Mulligan decides <i>where each round's episodes start</i>:
+ <ul>
+ <li><b>retry</b> the exact initial states where the last evaluation failed, earliest-breakdown first, up to a cap;</li>
+ <li><b>fill</b> the rest of the budget with the initial states farthest from everything collected so far, optionally tilted toward a hardness estimate;</li>
+ <li>at a retried state, record a <b>counterfactual full demonstration</b> when a correction would only teach recovery.</li>
+ </ul>
+ The learner is unchanged (HG-DAgger, or HiL-IDQL with critic best-of-N reranking).</li>
+<li><b>The numbers.</b>
+ <ul>
+ <li>Collection effect, real world, round-pooled, actor only: <b>+11.7 / +10.9 / +6.0 pp</b> on three tasks (exact McNemar p = 0.002 / 0.0007 / 0.036; 300–350 paired episodes each).</li>
+ <li>Headline "+10–34 pp" is the full recipe (collection + critic) at the final round; only one of three final-round actor-only contrasts is significant on its own.</li>
+ <li>Simulation: +2–12 pp per round, every round positive, 5 seeds <span class="tag v">verified</span>.</li>
+ </ul></li>
+<li><b>About half the simulated gain is better coverage, not failure targeting.</b> Square-Narrow round 1 (Table 5):
+ <ul>
+ <li>Sobol coverage alone: +3.9 pp over i.i.d. uniform;</li>
+ <li>performance-guided: +7.0;</li>
+ <li>plus counterfactual demos: +7.8.</li>
+ </ul>
+ The budget is matched in <i>episodes</i>, not human frames. Mulligan's data held 8–28% more human frames, because counterfactuals are full demos <span class="tag v">verified</span>.</li>
+<li><b>Novelty consequence for us.</b> "Failure-targeted beats uniform at a matched budget" is now published, on real robots, with blinded paired evaluation. Still ours:
+ <ol>
+ <li>choosing <i>which frames</i> to label from an internal mechanism (forward 0, the wrist input);</li>
+ <li>the mechanism-targeted vs failure-targeted contrast;</li>
+ <li>a pre-registered mechanism readout.</li>
+ </ol>
+ Mulligan's hardness signals are behavioural throughout: failure stage, plus geometric heuristics picked by inspecting rollouts.</li>
+<li><b>For D23 (C17, C21).</b>
+ <ul>
+ <li>Build the failure-targeted arm <i>as</i> Mulligan's Alg. 2, so it is not a strawman.</li>
+ <li>Build the broad arm as <b>low-discrepancy coverage</b> over (joint direction × achieved cm), not i.i.d.</li>
+ <li>Isolate the mechanism claim by holding start selection fixed and varying only <i>what is labelled</i>: full episode vs forward-0/1 bridge frames.</li>
+ <li>Match on labelled frames and sampler share.</li>
+ </ul>
+ Today's fit test (training directions learned, new directions not) is exactly the gap Mulligan's coverage fill addresses: direction diversity, plus dose per region through the promotion cap.</li>
+</ul>
+</div>
+
+<h2>1. The claim, and what it would take to prove it</h2>
+<p>The claim <span class="tag v">verified</span>: in supervised deployment, "failures can concentrate in a small subset of initial states, so uniform collection spends much of the operator's time on states the policy already handles". Choosing each round's initial states from observed performance "outperforms uniform initial-state sampling at matched collection budgets".</p>
+<p>The premise is shown directly (§F.1). A round-2 Square-Narrow policy at 86% overall, evaluated on an 80-state lattice × 50 rollouts, has most states at or near 100% and a small tail failing most of the time. That policy came from the <i>coverage-only</i> arm with even collection density, so concentration is not a collection artefact. In Fig. 1, 95% of failures fall in 25% of states.</p>
+<p>Proving "targeting helps" needs three things:</p>
+<ol>
+<li>the same learner and budget, with only the start-state rule changed;</li>
+<li>held-out states disjoint from collection;</li>
+<li>paired, blinded evaluation.</li>
+</ol>
+<p>The paper does all three for the <i>actor-only</i> contrast (HG-DAgger vs HG-DAgger+Mulligan). Proving "targeting the <i>failures</i> is what helps" needs a further ablation separating it from better coverage. Table 5 provides it in simulation only.</p>
+
+<h2>2. The method from first principles</h2>
+<h3>2.1 Setting</h3>
+<p>An MDP (𝒮, 𝒜, <var>P</var>, <var>r</var>, γ, ρ₀) has sparse 0/1 reward, and ρ₀ is uniform over a bounded box 𝒮₀ of object poses. The goal is autonomous success on ρ₀. Each round <var>r</var> runs <span class="tag v">verified</span> (Alg. 1):</p>
+<ol>
+<li><b>Train</b> the actor π<sub>θ</sub> (Diffusion Policy U-Net) by BC on 𝒟<sub>h</sub>, the human frames of <i>successful</i> episodes, and the critic (<var>Q</var><sub>ψ</sub>, <var>V</var><sub>ξ</sub>) on all data 𝒟<sub>all</sub>, failures included.</li>
+<li><b>Evaluate</b> with <var>K</var> = 50 unassisted episodes on a fresh block of held-out states.</li>
+<li><b>Analyze</b>: choose the next <var>M</var> initial states (Alg. 2).</li>
+<li><b>Collect</b> <var>M</var> supervised episodes (50, or 100 on Route Cable and in sim), the operator intervening on failure.</li>
+</ol>
+<p>Round 0 is 100 base demonstrations (200 on Square-Broad) at scrambled-Sobol initial states.</p>
+
+<h3>2.2 Choosing the initial states (Alg. 2)</h3>
+<p>Given budget <var>M</var>, previously collected initial states 𝒫, this round's evaluation failures ℱ, and a promotion cap <var>m</var><sub>f</sub>:</p>
+<div class=eq><span><b>Promotion:</b>&nbsp; 𝒢 ← up to <var>m</var><sub>f</sub> states of ℱ, earliest failure stage first</span><span class=n>(1)</span></div>
+<div class=eq><span><b>Fill:</b>&nbsp; while |𝒢| &lt; <var>M</var>:&nbsp; 𝒢 ← 𝒢 ∪ { argmax<sub><var>c</var>∈𝒮₀</sub> <var>d</var>(<var>c</var>, 𝒫 ∪ 𝒢) · (1 + β <var>h</var>(<var>c</var>)) },&nbsp;&nbsp; <var>d</var>(<var>c</var>, 𝒴) = min<sub><var>y</var>∈𝒴</sub> ‖<var>c</var> − <var>y</var>‖<sub>w</sub></span><span class=n>(2)</span></div>
+<ul>
+<li><b>Distance.</b> ‖·‖<sub>w</sub> is a normalized, axis-weighted Euclidean distance: each pose coordinate is scaled to [0, 1], yaw is periodic, and axes with no hardness signal are down-weighted (§F.6).</li>
+<li><b>β = 0</b> gives pure farthest-point coverage. <var>h</var>(<var>c</var>) ∈ [0, 1] is a task-specific hardness estimate.</li>
+<li><b>Budgets.</b> Real world: <var>M</var> = 50, <var>m</var><sub>f</sub> = 25 (Route Cable 100 / 50). Simulation: <var>M</var> = 100 and every diagnostic failure is promoted.</li>
+<li><b>Guardrails</b> (§F.7):
+ <ul>
+ <li>the cumulative fill's p95 nearest-neighbour radius must not exceed that of a fresh pure-Sobol block of the same size;</li>
+ <li>no candidate reuses a collected or evaluation state.</li>
+ </ul></li>
+</ul>
+<p><b>The hardness signal is chosen by hand, per round</b> <span class="tag v">verified</span> (§F.5–F.6):</p>
+<ul>
+<li><b>Simulation:</b> after each round the authors inspect where failures and interventions concentrate and write a geometric heuristic <var>h</var>. On Square-Narrow it is a weighted nut-y + yaw term; on Square-Broad, a ridge regression of episode length on seven placement features. β is picked "during the same inspection, typically in [0.5, 1.0]".</li>
+<li><b>Real world:</b> β = 0 unless a geometric term predicts failure. On Route Cable, eight pre-registered hardness terms failed. A descriptive analysis then found the rope's bend at the first clip (success 17.6% → 2.5% from straightest to sharpest), used at β = 1.0 in round 5.</li>
+</ul>
+
+<h3>2.3 Counterfactual demonstrations</h3>
+<p>A correction starts from where the policy went wrong, so it teaches <i>recovery</i>. When the mistake is large (a dropped object), the operator also resets to the same initial state and records a full demonstration, which counts against <var>M</var>. This "places the missing behavior in the actor's support" <span class="tag v">verified</span>.</p>
+
+<h3>2.4 The learner (unchanged by Mulligan)</h3>
+<p>HiL-IDQL trains the critic by IQL on 𝒟<sub>all</sub>, with an expectile value loss:</p>
+<div class=eq><span>min<sub>ξ</sub> 𝔼 |τ − 𝟙[<var>u</var> &lt; 0]| <var>u</var>²,&nbsp; <var>u</var> = <var>Q</var><sub>ψ</sub>(<var>s</var>, <var>a</var>) − <var>V</var><sub>ξ</sub>(<var>s</var>);&nbsp;&nbsp; chunked target <var>y</var> = Σ<sub><var>i</var>&lt;<var>h</var></sub> γ<sup><var>i</var></sup><var>r</var><sub><var>t</var>+<var>i</var></sub> + γ<sup><var>h</var></sup>(1−done) <var>V</var><sub>ξ</sub>(<var>s</var><sub><var>t</var>+<var>h</var></sub>)</span><span class=n>(3)</span></div>
+<p>Real-world critics use a λ-return and a distributional (DIVL) head. At deployment the critic picks the best of <var>N</var> actor samples, <var>a</var><sub><var>i</var>*</sub> with <var>i</var>* = argmax<sub><var>i</var></sub> <var>Q</var><sub>ψ</sub>(<var>s</var>, <var>a</var><sub><var>i</var></sub>). No gradient reaches the actor <span class="tag v">verified</span>.</p>
+
+<h2>3. Matched-budget design and controls</h2>
+<div class=tw><table>
+<tr><th>Control</th><th>How it is done</th><th>Assessment</th></tr>
+<tr><td>Same budget</td><td><var>M</var> supervised episodes per round in every arm; counterfactuals count against <var>M</var></td><td class=amb>Matched in <b>episodes</b>. Mulligan's training data hold <b>19% / 28% / 8% more human frames</b> (Insert Marker / Thread Nut / Route Cable), from the full-length counterfactuals <span class="tag v">verified</span> (§B.9)</td></tr>
+<tr><td>One factor at a time</td><td>Simulation: all 4 combinations of {uniform, Mulligan} × {HG-DAgger, HiL-IDQL}. Real world: one campaign per strategy, with HG-DAgger+Mulligan as the actor-only arm of the Mulligan campaign</td><td class=ok>The actor-only real-world contrast is clean on collection. The headline "+10–34 pp" mixes collection <i>and</i> critic</td></tr>
+<tr><td>Held-out states</td><td>Each round, a fresh block of 50 Sobol initial states never trained on, shared by all arms. Route Cable uses one shared block of 50 for all six rounds. Simulation uses a fixed grid of 8,000 (Narrow) or 30,000 (Broad) states × 5 seeds</td><td class=ok>Disjoint from collection. One leak (§5) disclosed and checked</td></tr>
+<tr><td>Blinding and pairing</td><td>Arms interleaved on a shuffled list under operator-blind labels; paired per-state McNemar tests; Wilson intervals</td><td class=ok>Better than most robot-learning evaluations</td></tr>
+<tr><td>Round 0</td><td>The Mulligan arm's round-0 demos use Sobol states; the uniform arm's use i.i.d. states (sim R0 differs "only in Sobol versus uniform demonstrations")</td><td class=amb>The bundle includes better coverage from round 0 on</td></tr>
+</table></div>
+
+<h2>4. Results ledger</h2>
+<h3>4.1 Real world, held-out (DROID Franka, Diffusion Policy)</h3>
+<p><b>Held-out definition:</b> per round, 50 fresh Sobol initial states disjoint from all collection, blind and interleaved. Route Cable uses a shared block of 50 across rounds and a final separate block <span class="tag v">verified</span>.</p>
+<div class=tw><table>
+<tr><th>Task (initial-state range)</th><th class=num>Round-pooled paired n</th><th class=num>HG-DAgger</th><th class=num>HG-DAgger+Mulligan</th><th class=num>Δ [95% CI]</th><th class=num>McNemar p</th></tr>
+<tr><td>Insert Marker (pen 15×30 cm, 360° yaw)</td><td class=num>300</td><td class=num>34.3%</td><td class=num>46.0%</td><td class=num>+11.7 [+5, +19]</td><td class=num>0.0019</td></tr>
+<tr><td>Thread Nut (nut 25×46 cm, 360°)</td><td class=num>350</td><td class=num>40.6%</td><td class=num>51.4%</td><td class=num>+10.9 [+5, +17]</td><td class=num>0.0007</td></tr>
+<tr><td>Route Cable</td><td class=num>300</td><td class=num>11.0%</td><td class=num>17.0%</td><td class=num>+6.0 [+1, +11]</td><td class=num>0.036</td></tr>
+</table></div>
+<div class=tw><table>
+<tr><th>Final round (n = 50 each)</th><th class=num>HG-DAgger</th><th class=num>+Mulligan (actor)</th><th class=num>p vs base</th><th class=num>+Mulligan +critic</th><th class=num>p vs base</th><th class=num>critic increment p</th></tr>
+<tr><td>Insert Marker R5</td><td class=num>42%</td><td class=num>64%</td><td class=num>0.035</td><td class=num>76%</td><td class=num>0.0015</td><td class=num>0.146</td></tr>
+<tr><td>Thread Nut R5</td><td class=num>62%</td><td class=num>70%</td><td class=num>0.45</td><td class=num>72%</td><td class=num>0.36</td><td class=num>1.0</td></tr>
+<tr><td>Route Cable R5 (both clips)</td><td class=num>18%</td><td class=num>28%</td><td class=num>0.30</td><td class=num>34%</td><td class=num>0.077</td><td class=num>0.63</td></tr>
+</table></div>
+<p class=small>Mechanism of the gain, per stage (§B.7): guided collection wins at the <b>grasp</b> stage early, and the arms converge later. The critic's gains sit at the precise insertion stage. Rescues outnumber regressions on every task (78:43, 80:42, 42:24). The human-robot team completed 98% of 1,009 collection episodes, with no round below 90% <span class="tag v">verified</span>.</p>
+
+<h3>4.2 Simulation (Robosuite 1.5.2, MuJoCo 3.3.7, MimicGen Square D0/D1; 5 seeds)</h3>
+<div class=tw><table>
+<tr><th>Contrast (pp, Welch 95% CI)</th><th class=num>R0</th><th class=num>R1</th><th class=num>R2</th><th class=num>R3</th></tr>
+<tr><td>Square-Narrow: HG-DAgger+Mulligan vs HG-DAgger</td><td class=num>+8.4</td><td class=num>+8.5</td><td class=num>+3.6</td><td class=num>+1.8</td></tr>
+<tr><td>Square-Broad: HG-DAgger+Mulligan vs HG-DAgger</td><td class=num>+3.3</td><td class=num>+8.5</td><td class=num>+11.1</td><td class=num>+7.6</td></tr>
+</table></div>
+<p>Every cell is positive with an interval above 0 (p ≤ 0.028). At R0 the arms differ only in Sobol vs i.i.d. demonstrations <span class="tag v">verified</span>.</p>
+
+<h3>4.3 Decomposition (Square-Narrow R1, Table 5)</h3>
+<div class=tw><table>
+<tr><th>Collection / actor data</th><th class=num>Success</th><th class=num>Δ vs uniform</th></tr>
+<tr><td>Uniform i.i.d., human-only actor (reference)</td><td class=num>85.7%</td><td class=num>—</td></tr>
+<tr><td>Uniform + successful autonomous rollouts in the actor's data</td><td class=num>82.4%</td><td class=num>−3.4 [−6.5, −0.2]</td></tr>
+<tr><td>Sobol coverage, no counterfactuals</td><td class=num>89.6%</td><td class=num>+3.9 [+0.7, +7.0]</td></tr>
+<tr><td>Sobol coverage, with counterfactuals</td><td class=num>91.5%</td><td class=num>+5.8</td></tr>
+<tr><td>Performance-guided (β = 0.5), no counterfactuals</td><td class=num>92.7%</td><td class=num>+7.0 [+3.8, +10.1]</td></tr>
+<tr><td>Performance-guided, with counterfactuals</td><td class=num>93.5%</td><td class=num>+7.8 [+4.6, +11.0]</td></tr>
+</table></div>
+<p>Counterfactuals in the real world: Insert Marker R1 is 38% with vs 14% without, converging by R2 (47 vs 48%). They matter early and wash out <span class="tag v">verified</span>.</p>
+
+<h2>5. Critique</h2>
+<ul>
+<li><b>"Failure-targeted" is a bundle of four things:</b>
+ <ul>
+ <li>low-discrepancy coverage (Sobol R0, farthest-point fill);</li>
+ <li>failure promotion;</li>
+ <li>a hand-tuned hardness tilt;</li>
+ <li>full-length counterfactual demos.</li>
+ </ul>
+ In simulation, coverage alone gives about half the round-1 gain, and failure guidance adds +3.1 pp beyond Sobol. The real world has no coverage-only arm.</li>
+<li><b>The hardness signal is human analysis, not an algorithm.</b> Per-round inspection picks <var>h</var> and β. On Route Cable, eight pre-registered terms failed before a post-hoc axis was found. The paper is open about this, but "performance-guided" partly means "an expert looked at the failures". Ironically, that is closer to our mechanism-driven route than the paper's framing admits.</li>
+<li><b>An evaluation-grid leak in 3 sim rounds</b> (§F.5): the fill used the previous round's success in the <i>evaluation-set</i> cell. It is disclosed, and the gaps in those rounds are not systematically larger. Real-world results have no such term.</li>
+<li><b>Budget unit.</b> Episodes are matched; human frames are not (+8–28%). A frame-matched comparison would be the stricter test.</li>
+<li><b>Final-round evidence is thin.</b> Only Insert Marker's actor-only contrast is significant on its own; the pooled-over-rounds effect carries the claim.</li>
+<li><b>Not a VLA.</b> A Diffusion Policy U-Net is trained from 100–200 task demos. The authors list generalist policies as open. Whether failure concentration survives a pretrained policy's smoother failure landscape is untested.</li>
+<li><b>Well done:</b>
+ <ul>
+ <li>blinded, interleaved, paired evaluation on disjoint states;</li>
+ <li>2,550 real held-out episodes;</li>
+ <li>honest negative findings (FQE and offline critic selection do not work; reranking helps only later);</li>
+ <li>autonomous successes in the actor data <i>hurt</i>.</li>
+ </ul></li>
+</ul>
+
+<h2>6. How it changes our novelty claim</h2>
+<div class=tw><table>
+<tr><th>Claim</th><th>Status after Mulligan</th></tr>
+<tr><td>Targeted beats uniform at a matched budget</td><td class=warn><b>Published</b> (Mulligan; also Jung &amp; Park's +2 poses, uncontrolled). Not ours.</td></tr>
+<tr><td>Failure concentration in initial-state space</td><td class=warn>Published (§F.1). Ours shows it too: success by achieved cm, 0.93 → 0.15 <span class="tag p">ours</span> (D20).</td></tr>
+<tr><td>Choose <i>where to start</i> from behaviour</td><td class=warn>Published: Mulligan's promotion + fill.</td></tr>
+<tr><td>Choose <i>what to label</i> from an internal mechanism (forward 0, wrist input, k* = 1)</td><td class=ok><b>Not in Mulligan.</b> Its labels are whole episodes or corrections, chosen by failure stage and by operator judgement.</td></tr>
+<tr><td>Mechanism-targeted vs failure-targeted at a matched budget</td><td class=ok><b>Open</b>, and now well-posed: Mulligan supplies the strongest failure-targeted arm to beat.</td></tr>
+<tr><td>Pre-registered mechanism readout before and after training</td><td class=ok>Not in Mulligan</td></tr>
+</table></div>
+<p><b>Restated claim</b> <span class="tag i">inferred</span>: "At a matched labelled-frame budget, labels placed by an internal mechanism (which input, which forward) close more of a failure gap than Mulligan-style failure-targeted whole-episode collection at the same starts."</p>
+
+<h2>7. What it implies for D23 (C17, C21)</h2>
+<p><b>Context, today's fit test</b> <span class="tag p">ours</span> (<code>runs/r056_diag/fit_firstchunk.json</code>):</p>
+<ul>
+<li>The r 16 adapter closed 30% of the first-chunk gap on its own training starts, but 12% on held-out starts at matched cm.</li>
+<li>Training used 100 one-off random joint directions; the matched held-out subset uses directions 100 and 101.</li>
+<li>Ranks 4 / 16 / 64 give 65 / 59 / 64 of 108 (r 64 as relayed by prim).</li>
+</ul>
+<p>So direction coverage and dose per region are the suspects, and Mulligan's two mechanisms address exactly those <span class="tag i">inferred</span>.</p>
+<div class=tw><table>
+<tr><th>Arm (C21's six)</th><th>Build it as</th><th>Why (from Mulligan)</th></tr>
+<tr><td>1 · Replay only</td><td>unchanged</td><td>no-new-data control</td></tr>
+<tr><td>2 · Broad coverage</td><td><b>Scrambled Sobol / farthest-point</b> over (joint-direction on the sphere, achieved-cm band), stratified by scene. Not i.i.d.</td><td>Coverage alone was ~half of the sim gain (+3.9 of +7.8). An i.i.d. broad arm would be a weak baseline and flatter the targeted arms.</td></tr>
+<tr><td>3 · Failure-targeted</td><td><b>Mulligan Alg. 2:</b> promote failing starts (cap <var>m</var><sub>f</sub>), fill by farthest-point, label <b>whole episodes</b> (Option B scripted expert = counterfactual demo)</td><td>The strongest published version, so beating it means something.</td></tr>
+<tr><td>4 · Mechanism-targeted</td><td><b>Same starts as arm 3</b>; label only forward-0/1 bridge frames (Option A), wrist-bearing</td><td>Holding starts fixed isolates C17's "which frames" question from "which starts".</td></tr>
+<tr><td>5 · Parameter-only; 6 · run-time</td><td>unchanged (C18, C5)</td><td>—</td></tr>
+</table></div>
+<p>Design rules taken from Mulligan <span class="tag i">inferred</span>:</p>
+<ol>
+<li><b>Match on labelled frames and on sampler share</b> (the dose per region), not episodes. Report views per frame per region (post-mortem §3.1).</li>
+<li><b>Evaluate on fresh, disjoint directions</b> drawn low-discrepancy, not two or three fixed ones. Report per direction × cm, paired and blinded where possible.</li>
+<li><b>Keep the base policy's own frames out of the actor's data.</b> Mulligan's actor degrades when its autonomous successes are added (−3.4 pp). R-054's minted frames 16–47 are the base's own actions and were 33% of draws (post-mortem §3.1). Drop them or down-weight them.</li>
+<li><b>Plan for ≥ 2 rounds</b> if the budget allows. Mulligan's gains are largest at R1–R2 and converge later. One round is where targeting should show most.</li>
+<li><b>Promotion cap = dose control.</b> <var>m</var><sub>f</sub> ≤ <var>M</var>/2 plus a coverage floor stops targeting from collapsing coverage. That is the trade-off the fit test exposed.</li>
+</ol>
+
+<h2>8. What it means for our stack</h2>
+<h3>8.1 Verdict</h3>
+<p><b>Same path on "where to collect", different on "what to label".</b> Mulligan is the best available template for the failure-targeted and broad arms, and its evaluation protocol is the bar. It does not touch input- or time-level attribution, so the mechanism contrast remains ours to test.</p>
+
+<h3>8.2 What to borrow</h3>
+<div class=card><div class=q>B1 · Alg. 2 as our start sampler</div><p>Farthest-point fill with a periodic-axis distance over (direction, cm band), Sobol for round 0, a promotion cap, and the p95-radius coverage guardrail. It is cheap: CPU-side code in the start-state generator <span class="tag i">inferred</span>.</p></div>
+<div class=card><div class=q>B2 · Their evaluation protocol</div><p>A fresh disjoint block per round, arms interleaved, paired McNemar, and rescues vs regressions reported. Ours already pairs seeds; add fresh directions per evaluation.</p></div>
+<div class=card><div class=q>B3 · Actor-data hygiene</div><p>Train the actor on corrected or demonstrated frames only. Any critic or analysis gets everything.</p></div>
+<div class=card><div class=q>B4 · Stage-wise reporting</div><p>Their grasp-vs-insert split shows <i>where</i> a collection strategy helps. Our phase segmentation gives the same split for free (approach / grasp / transport), which matters given scene 1327's grasp-stage regression.</p></div>
+
+<h3>8.3 Portability to GR00T N1.7</h3>
+<div class=tw><table>
+<tr><th></th><th>Mulligan</th><th>Us</th></tr>
+<tr><td>Policy</td><td>Diffusion Policy U-Net trained from task demos; separate IQL critic for best-of-N <span class="tag v">verified</span></td><td>GR00T N1.7 (Cosmos-Reason2-2B / Qwen3-VL + 32-block DiT), fine-tuned by LoRA r 16 on DiT + <code>vl_self_attention</code>, vision and LLM frozen <span class="tag p">ours</span></td></tr>
+<tr><td>Supervisor</td><td>human operator: placement, interventions, counterfactual demos</td><td>synthetic: privileged bridge controller (Option A) or scripted expert (Option B); no teleop in the loop</td></tr>
+<tr><td>Initial-state space</td><td>object poses, 5 DoF, ranges 5–46 cm, 360° yaw</td><td>robot start pose: joint direction × radius, read as achieved gripper offset (cm) <span class="tag p">ours</span></td></tr>
+<tr><td>Round cost</td><td>50–100 supervised + 50 evaluation real episodes</td><td>about 2 h LoRA training + about 70 min evaluation per round on 8 GB <span class="tag p">ours</span> (R-056 summary), plus CPU generation</td></tr>
+</table></div>
+<ul>
+<li><b>Collection strategy: ports unchanged</b> <span class="tag i">inferred</span>. Alg. 2 only needs a parameterised initial-state space, a distance and observed failures. Our start pose is parameterised by joint direction and radius, and the harness records failures per start. Use a direction-on-sphere distance plus a cm axis, not raw joint angles.</li>
+<li><b>Counterfactual demonstrations</b> map to Option B's whole-episode scripted demos from the failing start. <b>Corrections</b> map to Option A bridges from the drifted state. R-053's forward-0 rescue is the closest existing analogue of a correction <span class="tag p">ours</span>.</li>
+<li><b>Hardness signal.</b> Their "earliest failure stage first" is uninformative for start pose, because every start-pose failure is decided at forward 0 (R-057) <span class="tag p">ours</span>. A better <var>h</var> for us is the D20 offset curve, or R-047's first-action-size correlation (r = −0.36). Both are behavioural; the mechanism arm uses the splice instead <span class="tag i">inferred</span>.</li>
+<li><b>Critic + best-of-N: low priority on GR00T.</b> It needs <var>N</var> GR00T samples per forward (VRAM and time on 8 GB) and a trained critic. R-053's plain re-run flipped 0/22 start-pose failures, so diversity across noise samples at forward 0 looks small <span class="tag i">inferred</span>. Their own finding that reranking helps only once on-policy data accumulates also argues against it for a one- or two-round pilot.</li>
+<li><b>Generalist-policy caveat.</b> Mulligan's failure concentration was shown on a policy trained from scratch. On GR00T it is confirmed for start pose by our own offset curve (D20), so the premise holds where we need it <span class="tag p">ours</span>.</li>
+</ul>
+
+<p class=small style="margin-top:3em">Sources: <a href="https://arxiv.org/abs/2610.05882">Ankile et al., Mulligan, arXiv:2610.05882v1</a>, §1–5, Alg. 1–2, Figs. 1–9, App. B (Tabs. 1–7), C, F (F.1–F.7), I.3–I.4, J, read from the PDF on 2026-10-07 · Our <code>runs/r056_diag/fit_firstchunk.json</code>, <code>r047_offset_curve.json</code> (D20) · <code>RESULTS.md</code> R-047, R-053, R-056, R-057, R-058 · <code>docs/R056_POSTMORTEM.html</code> §3.1 · <code>docs/AMBITIOUS_DIRECTIONS_REVIEW.html</code> C5, C17, C18, C21 · <code>docs/DATA_SOURCING_RESEARCH.html</code> §3.2 (Options A, B) · <code>docs/JUNG_PARK_INITPOSE.html</code>, <code>docs/FLARE_RECOVERY.html</code>.</p>
+</div></body></html>
