@@ -104,3 +104,28 @@
 [2026-09-30 02:36:43] [r056cont] R058_r64_cache_equiv start
 [2026-09-30 02:37:18] [r056cont] R058_r64_cache_equiv end rc=0 (0 min) peaks: RSS tree 17.787 GiB (anon 8.087), largest proc 17.785 GiB, GPU 6.967 GiB
 [2026-09-30 02:37:18] [r056cont] R058_r64_cached_train start
+[2026-10-06 14:27:08] [d1006] d1006_selftest start (MemAvailable 15.9 GiB): echo hi
+[2026-10-06 14:27:08] [d1006] d1006_selftest end rc=0 (0 min) peaks: RSS tree 0.0 GiB (anon 0.0), GPU 0.104 GiB
+[2026-10-06 14:27:08] [d1006] d1006_selftest REFUSED: MemAvailable 15.9 GiB < 999
+[2026-10-06 14:40:27] [d1006] D20_loss_smoke start (MemAvailable 15.5 GiB): .venvs/libero-plus/bin/python experiments/r056_diag_loss.py --limit 4
+[2026-10-06 14:41:49] [d1006] D20_loss_smoke end rc=0 (1 min) peaks: RSS tree 15.441 GiB (anon 7.163), GPU 7.18 GiB
+[2026-10-06 14:44:01] [d1006] D20_loss start (MemAvailable 17.6 GiB): .venvs/libero-plus/bin/python experiments/r056_diag_loss.py
+[2026-10-06 15:03:01] [d1006] D20_loss end rc=0 (19 min) peaks: RSS tree 15.352 GiB (anon 6.617), GPU 7.18 GiB
+[2026-10-06 15:04:08] [d1006] R058_r64_select start (MemAvailable 16.9 GiB): .venvs/libero-plus/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl select
+[2026-10-06 15:17:48] [d1006] R058_r64_select end rc=0 (13 min) peaks: RSS tree 16.124 GiB (anon 10.665), GPU 7.401 GiB
+[2026-10-06 15:21:47] [d1006] R058_r64_heldout start (MemAvailable 16.8 GiB): .venvs/libero-plus/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl heldout
+[2026-10-06 16:05:09] [d1006] R058_r64_heldout end rc=0 (43 min) peaks: RSS tree 13.999 GiB (anon 7.159), GPU 7.507 GiB
+[2026-10-06 16:16:38] [d1006] R058_r64_nominal start (MemAvailable 16.2 GiB): .venvs/libero-plus/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl nominal
+[2026-10-06 16:24:14] [d1006] R058_r64_nominal end rc=0 (7 min) peaks: RSS tree 13.351 GiB (anon 6.876), GPU 7.18 GiB
+[2026-10-06 16:27:23] [d1006] R058_r64_transfer start (MemAvailable 16.4 GiB): .venvs/libero-plus/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl transfer
+[2026-10-06 16:28:18] [d1006] R058_r64_transfer end rc=1 (0 min) peaks: RSS tree 13.385 GiB (anon 7.206), GPU 7.456 GiB
+[2026-10-06 16:32:28] [d1006] R056_wise start (MemAvailable 15.8 GiB): .venvs/libero-plus/bin/python experiments/r056_eval.py wise
+[2026-10-06 17:21:00] [d1006] R056_wise end rc=0 (48 min) peaks: RSS tree 15.87 GiB (anon 9.843), GPU 7.45 GiB
+[2026-10-06 17:22:46] [d1006] R056_wise_score start (MemAvailable 17.3 GiB): .venvs/groot/bin/python experiments/r056_eval.py score
+[2026-10-06 17:22:47] [d1006] R056_wise_score end rc=0 (0 min) peaks: RSS tree 0.016 GiB (anon 0.007), GPU 0.104 GiB
+[2026-10-06 17:26:27] [d1006] R052_resume start (MemAvailable 17.3 GiB): bash experiments/queue_r052.sh
+[2026-10-06 18:08:49] [d1006] R052_resume end rc=0 (42 min) peaks: RSS tree 14.571 GiB (anon 7.121), GPU 7.364 GiB
+[2026-10-06 18:33:29] [d1006] D20_fit start (MemAvailable 16.9 GiB): .venvs/libero-plus/bin/python experiments/r056_diag_fit.py run
+[2026-10-06 18:46:42] [d1006] D20_fit end rc=0 (13 min) peaks: RSS tree 13.251 GiB (anon 6.875), GPU 7.478 GiB
+[2026-10-07 11:25:03] [d1006] R058_r64_score start (MemAvailable 17.6 GiB): .venvs/groot/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl score
+[2026-10-07 11:25:05] [d1006] R058_r64_score end rc=0 (0 min) peaks: RSS tree 0.013 GiB (anon 0.007), GPU 0.104 GiB

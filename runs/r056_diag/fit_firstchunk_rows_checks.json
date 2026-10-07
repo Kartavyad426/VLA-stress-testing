@@ -1,0 +1,20 @@
+{
+ "adapters": {
+  "r16_opt1000": "runs/r056_r16_train/checkpoints/008000/pretrained_model",
+  "r4_opt500": "runs/r058_r4_train/checkpoints/004000/pretrained_model"
+ },
+ "input": "recorded frame-0 observation, minting noise seed",
+ "info_fresh_vs_recorded_start0": {
+  "pixels_equal": {
+   "image": true,
+   "image2": true
+  },
+  "eef_max_abs_diff_m": 0.0,
+  "chunk_max_abs_diff": 0.0
+ },
+ "base_after_attach_bit_identical": true,
+ "adapter_chunk_differs_from_base": {
+  "r16_opt1000": true,
+  "r4_opt500": true
+ }
+}

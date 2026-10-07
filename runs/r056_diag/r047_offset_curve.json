@@ -1,0 +1,3913 @@
+{
+ "what": "D20(ii) revised: R-047 radius-axis success vs achieved t=0 gripper offset (cm)",
+ "n_manifest": 360,
+ "n_with_start_state": 360,
+ "trace_t0_conflicts": 0,
+ "achieved_over_requested_by_dir": {
+  "0": {
+   "mean": 0.7193560814672391,
+   "min": 0.6976692206966368,
+   "max": 0.7384390104584946
+  },
+  "1": {
+   "mean": 0.9529699385040282,
+   "min": 0.8822995999172315,
+   "max": 1.0663750618000107
+  },
+  "2": {
+   "mean": 0.930267988400155,
+   "min": 0.8851381780807611,
+   "max": 0.9606314454313208
+  }
+ },
+ "offset_definition": "|t=0 obs_state.eef_pos - nominal_starts[scene].eef_pos| x 100, per rollout (not derived from joint radius)",
+ "per_requested_radius": {
+  "0": {
+   "n": 60,
+   "success": 57,
+   "rate": 0.95,
+   "wilson95": [
+    0.8629926537490016,
+    0.9828508088208587
+   ],
+   "achieved_rad_mean": 0.0,
+   "achieved_over_requested": null,
+   "offset_cm_median": 0.0,
+   "offset_cm_p10_p90": [
+    0.0,
+    0.0
+   ]
+  },
+  "0.1": {
+   "n": 60,
+   "success": 57,
+   "rate": 0.95,
+   "wilson95": [
+    0.8629926537490016,
+    0.9828508088208587
+   ],
+   "achieved_rad_mean": 0.08884958260286888,
+   "achieved_over_requested": 0.8884958260286887,
+   "offset_cm_median": 2.8131696683085567,
+   "offset_cm_p10_p90": [
+    2.0615331411691082,
+    4.882565025700553
+   ]
+  },
+  "0.2": {
+   "n": 60,
+   "success": 44,
+   "rate": 0.7333333333333333,
+   "wilson95": [
+    0.6099104639810865,
+    0.8286750351292115
+   ],
+   "achieved_rad_mean": 0.17540307036670377,
+   "achieved_over_requested": 0.8770153518335189,
+   "offset_cm_median": 5.659009056467655,
+   "offset_cm_p10_p90": [
+    4.19538474593458,
+    9.593555741080685
+   ]
+  },
+  "0.3": {
+   "n": 60,
+   "success": 34,
+   "rate": 0.5666666666666667,
+   "wilson95": [
+    0.44103214654694856,
+    0.6842779960559936
+   ],
+   "achieved_rad_mean": 0.25953784689485293,
+   "achieved_over_requested": 0.8651261563161765,
+   "offset_cm_median": 8.539329579172026,
+   "offset_cm_p10_p90": [
+    6.397116612086949,
+    14.12168663116079
+   ]
+  },
+  "0.4": {
+   "n": 60,
+   "success": 33,
+   "rate": 0.55,
+   "wilson95": [
+    0.42491714548981496,
+    0.6690654614623918
+   ],
+   "achieved_rad_mean": 0.3423625473126587,
+   "achieved_over_requested": 0.8559063682816467,
+   "offset_cm_median": 11.44082036434125,
+   "offset_cm_p10_p90": [
+    8.677347751204445,
+    18.483478244613345
+   ]
+  },
+  "0.5": {
+   "n": 60,
+   "success": 23,
+   "rate": 0.38333333333333336,
+   "wilson95": [
+    0.2708808958488824,
+    0.5098263545959686
+   ],
+   "achieved_rad_mean": 0.42555648907950344,
+   "achieved_over_requested": 0.8511129781590069,
+   "offset_cm_median": 14.366015230972714,
+   "offset_cm_p10_p90": [
+    11.035891353909475,
+    22.745124680483595
+   ]
+  }
+ },
+ "per_requested_radius_by_dir": {
+  "0": {
+   "0": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "achieved_over_requested": null,
+    "offset_cm_median": 0.0
+   },
+   "0.1": {
+    "n": 20,
+    "success": 20,
+    "rate": 1.0,
+    "achieved_over_requested": 0.7160614789411438,
+    "offset_cm_median": 2.0745720707213824
+   },
+   "0.2": {
+    "n": 20,
+    "success": 20,
+    "rate": 1.0,
+    "achieved_over_requested": 0.7139701371456775,
+    "offset_cm_median": 4.2053662530177585
+   },
+   "0.3": {
+    "n": 20,
+    "success": 17,
+    "rate": 0.85,
+    "achieved_over_requested": 0.7150558770029775,
+    "offset_cm_median": 6.404448802143987
+   },
+   "0.4": {
+    "n": 20,
+    "success": 18,
+    "rate": 0.9,
+    "achieved_over_requested": 0.721171747027585,
+    "offset_cm_median": 8.683676697691755
+   },
+   "0.5": {
+    "n": 20,
+    "success": 15,
+    "rate": 0.75,
+    "achieved_over_requested": 0.7305211672188113,
+    "offset_cm_median": 11.045353574369928
+   }
+  },
+  "1": {
+   "0": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "achieved_over_requested": null,
+    "offset_cm_median": 0.0
+   },
+   "0.1": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "achieved_over_requested": 1.0282301147065154,
+    "offset_cm_median": 4.8767514710037165
+   },
+   "0.2": {
+    "n": 20,
+    "success": 7,
+    "rate": 0.35,
+    "achieved_over_requested": 0.9885578436624876,
+    "offset_cm_median": 9.588551245087562
+   },
+   "0.3": {
+    "n": 20,
+    "success": 4,
+    "rate": 0.2,
+    "achieved_over_requested": 0.9469265736109302,
+    "offset_cm_median": 14.114841009094455
+   },
+   "0.4": {
+    "n": 20,
+    "success": 3,
+    "rate": 0.15,
+    "achieved_over_requested": 0.9123018665927008,
+    "offset_cm_median": 18.47574644136731
+   },
+   "0.5": {
+    "n": 20,
+    "success": 3,
+    "rate": 0.15,
+    "achieved_over_requested": 0.8888332939475081,
+    "offset_cm_median": 22.732054596523426
+   }
+  },
+  "2": {
+   "0": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "achieved_over_requested": null,
+    "offset_cm_median": 0.0
+   },
+   "0.1": {
+    "n": 20,
+    "success": 18,
+    "rate": 0.9,
+    "achieved_over_requested": 0.9211958844384074,
+    "offset_cm_median": 2.8131696683085567
+   },
+   "0.2": {
+    "n": 20,
+    "success": 17,
+    "rate": 0.85,
+    "achieved_over_requested": 0.9285180746923922,
+    "offset_cm_median": 5.659009056467655
+   },
+   "0.3": {
+    "n": 20,
+    "success": 13,
+    "rate": 0.65,
+    "achieved_over_requested": 0.9333960183346213,
+    "offset_cm_median": 8.539329579172026
+   },
+   "0.4": {
+    "n": 20,
+    "success": 12,
+    "rate": 0.6,
+    "achieved_over_requested": 0.9342454912246537,
+    "offset_cm_median": 11.44082036434125
+   },
+   "0.5": {
+    "n": 20,
+    "success": 5,
+    "rate": 0.25,
+    "achieved_over_requested": 0.9339844733107008,
+    "offset_cm_median": 14.366015230972714
+   }
+  }
+ },
+ "per_offset_band_cm": {
+  "0-0.5": {
+   "n": 60,
+   "success": 57,
+   "rate": 0.95,
+   "wilson95": [
+    0.8629926537490016,
+    0.9828508088208587
+   ],
+   "start_states": 30,
+   "requested_rad_values": [
+    0.0
+   ]
+  },
+  "0.5-4": {
+   "n": 40,
+   "success": 38,
+   "rate": 0.95,
+   "wilson95": [
+    0.834958291820748,
+    0.9861796228538989
+   ],
+   "start_states": 20,
+   "requested_rad_values": [
+    0.1
+   ]
+  },
+  "4-8": {
+   "n": 80,
+   "success": 73,
+   "rate": 0.9125,
+   "wilson95": [
+    0.8302301722291654,
+    0.95696854535256
+   ],
+   "start_states": 40,
+   "requested_rad_values": [
+    0.1,
+    0.2,
+    0.3
+   ]
+  },
+  "8-12": {
+   "n": 100,
+   "success": 65,
+   "rate": 0.65,
+   "wilson95": [
+    0.5525426042919797,
+    0.7363589534652197
+   ],
+   "start_states": 50,
+   "requested_rad_values": [
+    0.2,
+    0.3,
+    0.4,
+    0.5
+   ]
+  },
+  "12-16": {
+   "n": 40,
+   "success": 9,
+   "rate": 0.225,
+   "wilson95": [
+    0.1231595325467853,
+    0.3750339640409305
+   ],
+   "start_states": 20,
+   "requested_rad_values": [
+    0.3,
+    0.5
+   ]
+  },
+  "16-20": {
+   "n": 20,
+   "success": 3,
+   "rate": 0.15,
+   "wilson95": [
+    0.05236779195949584,
+    0.36042329588695743
+   ],
+   "start_states": 10,
+   "requested_rad_values": [
+    0.4
+   ]
+  },
+  "20-30": {
+   "n": 20,
+   "success": 3,
+   "rate": 0.15,
+   "wilson95": [
+    0.05236779195949584,
+    0.36042329588695743
+   ],
+   "start_states": 10,
+   "requested_rad_values": [
+    0.5
+   ]
+  },
+  "30-100": {
+   "n": 0,
+   "success": 0,
+   "rate": null,
+   "wilson95": [
+    null,
+    null
+   ],
+   "start_states": 0,
+   "requested_rad_values": []
+  }
+ },
+ "per_offset_band_cm_by_dir": {
+  "0": {
+   "0-0.5": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "wilson95": [
+     0.7638641064874331,
+     0.9911187805671268
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.0
+    ]
+   },
+   "0.5-4": {
+    "n": 20,
+    "success": 20,
+    "rate": 1.0,
+    "wilson95": [
+     0.8388698745050667,
+     1.0
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.1
+    ]
+   },
+   "4-8": {
+    "n": 40,
+    "success": 37,
+    "rate": 0.925,
+    "wilson95": [
+     0.8013546984090248,
+     0.9741644432281419
+    ],
+    "start_states": 20,
+    "requested_rad_values": [
+     0.2,
+     0.3
+    ]
+   },
+   "8-12": {
+    "n": 40,
+    "success": 33,
+    "rate": 0.825,
+    "wilson95": [
+     0.6804970794560755,
+     0.9125469700311694
+    ],
+    "start_states": 20,
+    "requested_rad_values": [
+     0.4,
+     0.5
+    ]
+   },
+   "12-16": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "16-20": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "20-30": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "30-100": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   }
+  },
+  "1": {
+   "0-0.5": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "wilson95": [
+     0.7638641064874331,
+     0.9911187805671268
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.0
+    ]
+   },
+   "0.5-4": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "4-8": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "wilson95": [
+     0.7638641064874331,
+     0.9911187805671268
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.1
+    ]
+   },
+   "8-12": {
+    "n": 20,
+    "success": 7,
+    "rate": 0.35,
+    "wilson95": [
+     0.18118954786794464,
+     0.5671494897805354
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.2
+    ]
+   },
+   "12-16": {
+    "n": 20,
+    "success": 4,
+    "rate": 0.2,
+    "wilson95": [
+     0.0806563532712,
+     0.41602172202575993
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.3
+    ]
+   },
+   "16-20": {
+    "n": 20,
+    "success": 3,
+    "rate": 0.15,
+    "wilson95": [
+     0.05236779195949584,
+     0.36042329588695743
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.4
+    ]
+   },
+   "20-30": {
+    "n": 20,
+    "success": 3,
+    "rate": 0.15,
+    "wilson95": [
+     0.05236779195949584,
+     0.36042329588695743
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.5
+    ]
+   },
+   "30-100": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   }
+  },
+  "2": {
+   "0-0.5": {
+    "n": 20,
+    "success": 19,
+    "rate": 0.95,
+    "wilson95": [
+     0.7638641064874331,
+     0.9911187805671268
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.0
+    ]
+   },
+   "0.5-4": {
+    "n": 20,
+    "success": 18,
+    "rate": 0.9,
+    "wilson95": [
+     0.6989617935882066,
+     0.9721341060158468
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.1
+    ]
+   },
+   "4-8": {
+    "n": 20,
+    "success": 17,
+    "rate": 0.85,
+    "wilson95": [
+     0.6395767041130426,
+     0.9476322080405041
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.2
+    ]
+   },
+   "8-12": {
+    "n": 40,
+    "success": 25,
+    "rate": 0.625,
+    "wilson95": [
+     0.47032160054531913,
+     0.7577722646420829
+    ],
+    "start_states": 20,
+    "requested_rad_values": [
+     0.3,
+     0.4
+    ]
+   },
+   "12-16": {
+    "n": 20,
+    "success": 5,
+    "rate": 0.25,
+    "wilson95": [
+     0.11186005278940309,
+     0.4687050099580636
+    ],
+    "start_states": 10,
+    "requested_rad_values": [
+     0.5
+    ]
+   },
+   "16-20": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "20-30": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   },
+   "30-100": {
+    "n": 0,
+    "success": 0,
+    "rate": null,
+    "wilson95": [
+     null,
+     null
+    ],
+    "start_states": 0,
+    "requested_rad_values": []
+   }
+  }
+ },
+ "rows": [
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.068138820666156,
+   "achieved_rad": 0.07078374715612841
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.203131652392978,
+   "achieved_rad": 0.14185790586310523
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.404868839900277,
+   "achieved_rad": 0.21340990828679837
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.686278716380611,
+   "achieved_rad": 0.28721265757289016
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.0485398062295,
+   "achieved_rad": 0.36385972087714047
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.068138820666156,
+   "achieved_rad": 0.07078374715612841
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.203131652392978,
+   "achieved_rad": 0.14185790586310523
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.404868839900277,
+   "achieved_rad": 0.21340990828679837
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.686278716380611,
+   "achieved_rad": 0.28721265757289016
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.0485398062295,
+   "achieved_rad": 0.36385972087714047
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.870326922366561,
+   "achieved_rad": 0.10254703997266779
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.578506266834582,
+   "achieved_rad": 0.19753644249928098
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.094726502405821,
+   "achieved_rad": 0.28409003523241905
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.45045135605942,
+   "achieved_rad": 0.36519576893358835
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 22.70368294464118,
+   "achieved_rad": 0.4448897088629626
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.870326922366561,
+   "achieved_rad": 0.10254703997266779
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 9.578506266834582,
+   "achieved_rad": 0.19753644249928098
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.094726502405821,
+   "achieved_rad": 0.28409003523241905
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 18.45045135605942,
+   "achieved_rad": 0.36519576893358835
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 22.70368294464118,
+   "achieved_rad": 0.4448897088629626
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.824491447781686,
+   "achieved_rad": 0.0914600307892341
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.682922828243346,
+   "achieved_rad": 0.18485043646127672
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.574614721419362,
+   "achieved_rad": 0.27896158130643883
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.485581795377154,
+   "achieved_rad": 0.3724385549303091
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.419599907093813,
+   "achieved_rad": 0.4655295510602318
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.824491447781686,
+   "achieved_rad": 0.0914600307892341
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.682922828243346,
+   "achieved_rad": 0.18485043646127672
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.574614721419362,
+   "achieved_rad": 0.27896158130643883
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.485581795377154,
+   "achieved_rad": 0.3724385549303091
+  },
+  {
+   "scene": 984,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.419599907093813,
+   "achieved_rad": 0.4655295510602318
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.0810053207766086,
+   "achieved_rad": 0.07250329253889441
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.207600853642539,
+   "achieved_rad": 0.1434479120284198
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 6.404028764387698,
+   "achieved_rad": 0.21496496569974022
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.680655969178835,
+   "achieved_rad": 0.28880473547233865
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.039391376044996,
+   "achieved_rad": 0.3655356380428718
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.0810053207766086,
+   "achieved_rad": 0.07250329253889441
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.207600853642539,
+   "achieved_rad": 0.1434479120284198
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.404028764387698,
+   "achieved_rad": 0.21496496569974022
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.680655969178835,
+   "achieved_rad": 0.28880473547233865
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.039391376044996,
+   "achieved_rad": 0.3655356380428718
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.8343612267414615,
+   "achieved_rad": 0.09996562023731506
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.544800749668102,
+   "achieved_rad": 0.1946920496419282
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.064173623189577,
+   "achieved_rad": 0.28097773483597216
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.424019892766026,
+   "achieved_rad": 0.36176835000484286
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.681425743433554,
+   "achieved_rad": 0.44114979995861575
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.8343612267414615,
+   "achieved_rad": 0.09996562023731506
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 9.544800749668102,
+   "achieved_rad": 0.1946920496419282
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.064173623189577,
+   "achieved_rad": 0.28097773483597216
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 18.424019892766026,
+   "achieved_rad": 0.36176835000484286
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 22.681425743433554,
+   "achieved_rad": 0.44114979995861575
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.762893550013895,
+   "achieved_rad": 0.08851381780807611
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 5.599861043388742,
+   "achieved_rad": 0.18199233650170846
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.469076301227464,
+   "achieved_rad": 0.2761613551997143
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.35604065972338,
+   "achieved_rad": 0.3696384094568818
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.26473845689144,
+   "achieved_rad": 0.4626693434016232
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.762893550013895,
+   "achieved_rad": 0.08851381780807611
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 5.599861043388742,
+   "achieved_rad": 0.18199233650170846
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.469076301227464,
+   "achieved_rad": 0.2761613551997143
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.35604065972338,
+   "achieved_rad": 0.3696384094568818
+  },
+  {
+   "scene": 1030,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.26473845689144,
+   "achieved_rad": 0.4626693434016232
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.054700435935295,
+   "achieved_rad": 0.07057267212355228
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.179797158399161,
+   "achieved_rad": 0.14146453195187927
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.372838143004146,
+   "achieved_rad": 0.21289860038166272
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.64757378943494,
+   "achieved_rad": 0.2867048982797768
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 11.004391154689781,
+   "achieved_rad": 0.363395398303154
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.054700435935295,
+   "achieved_rad": 0.07057267212355228
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.179797158399161,
+   "achieved_rad": 0.14146453195187927
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.372838143004146,
+   "achieved_rad": 0.21289860038166272
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.64757378943494,
+   "achieved_rad": 0.2867048982797768
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.004391154689781,
+   "achieved_rad": 0.363395398303154
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.878170038676431,
+   "achieved_rad": 0.10283036767910222
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.591449177708935,
+   "achieved_rad": 0.19783213998380586
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.11195578305997,
+   "achieved_rad": 0.28437658255774323
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.46978892852406,
+   "achieved_rad": 0.36536936766066386
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.72251010488397,
+   "achieved_rad": 0.444759271869834
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.878170038676431,
+   "achieved_rad": 0.10283036767910222
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 9.591449177708935,
+   "achieved_rad": 0.19783213998380586
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.11195578305997,
+   "achieved_rad": 0.28437658255774323
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.46978892852406,
+   "achieved_rad": 0.36536936766066386
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.72251010488397,
+   "achieved_rad": 0.444759271869834
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.81641193601883,
+   "achieved_rad": 0.09199216130680128
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.6599948198309695,
+   "achieved_rad": 0.18539638698058863
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 8.53458649510569,
+   "achieved_rad": 0.27946624120607555
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.42693542201215,
+   "achieved_rad": 0.37291931683971336
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.339949765385498,
+   "achieved_rad": 0.4659111172883264
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.81641193601883,
+   "achieved_rad": 0.09199216130680128
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.6599948198309695,
+   "achieved_rad": 0.18539638698058863
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.53458649510569,
+   "achieved_rad": 0.27946624120607555
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.42693542201215,
+   "achieved_rad": 0.37291931683971336
+  },
+  {
+   "scene": 1062,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.339949765385498,
+   "achieved_rad": 0.4659111172883264
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.119517737885223,
+   "achieved_rad": 0.07167313068831821
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.286033720415417,
+   "achieved_rad": 0.1431953050285714
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.51948487481199,
+   "achieved_rad": 0.21520646477015676
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.830731356660415,
+   "achieved_rad": 0.2893555627259289
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.221724002806589,
+   "achieved_rad": 0.36627471766531905
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.119517737885223,
+   "achieved_rad": 0.07167313068831821
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.286033720415417,
+   "achieved_rad": 0.1431953050285714
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.51948487481199,
+   "achieved_rad": 0.21520646477015676
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.830731356660415,
+   "achieved_rad": 0.2893555627259289
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.221724002806589,
+   "achieved_rad": 0.36627471766531905
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.858387980425039,
+   "achieved_rad": 0.10009068213483316
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.585653312466187,
+   "achieved_rad": 0.19485245894473704
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.121649948675232,
+   "achieved_rad": 0.2811459793533367
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.498286298798313,
+   "achieved_rad": 0.3620034168542053
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.772426461574547,
+   "achieved_rad": 0.44154799900803277
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.858387980425039,
+   "achieved_rad": 0.10009068213483316
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 9.585653312466187,
+   "achieved_rad": 0.19485245894473704
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.121649948675232,
+   "achieved_rad": 0.2811459793533367
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.498286298798313,
+   "achieved_rad": 0.3620034168542053
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.772426461574547,
+   "achieved_rad": 0.44154799900803277
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.7758887180110206,
+   "achieved_rad": 0.08877039190581307
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.623559227264909,
+   "achieved_rad": 0.18218463243701105
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.505949958478599,
+   "achieved_rad": 0.2763355054817666
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.408467761444625,
+   "achieved_rad": 0.3698260976310095
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 14.335007802575436,
+   "achieved_rad": 0.46289308014889463
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.7758887180110206,
+   "achieved_rad": 0.08877039190581307
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.623559227264909,
+   "achieved_rad": 0.18218463243701105
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.505949958478599,
+   "achieved_rad": 0.2763355054817666
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.408467761444625,
+   "achieved_rad": 0.3698260976310095
+  },
+  {
+   "scene": 1090,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 14.335007802575436,
+   "achieved_rad": 0.46289308014889463
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.1110258836231948,
+   "achieved_rad": 0.07213079644176879
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.284817342317644,
+   "achieved_rad": 0.14385688475504893
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.5249189150937275,
+   "achieved_rad": 0.21609104733778509
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.840308870340854,
+   "achieved_rad": 0.290288280182847
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 11.236460444822633,
+   "achieved_rad": 0.367290514506308
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.1110258836231948,
+   "achieved_rad": 0.07213079644176879
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.284817342317644,
+   "achieved_rad": 0.14385688475504893
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.5249189150937275,
+   "achieved_rad": 0.21609104733778509
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.840308870340854,
+   "achieved_rad": 0.290288280182847
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.236460444822633,
+   "achieved_rad": 0.367290514506308
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.9059999255254505,
+   "achieved_rad": 0.10295674729991403
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.64727201036396,
+   "achieved_rad": 0.19776765334074572
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.195301723177492,
+   "achieved_rad": 0.28390295261693776
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.582388571458367,
+   "achieved_rad": 0.36443830782229886
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.86834994599186,
+   "achieved_rad": 0.4437028245771622
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.9059999255254505,
+   "achieved_rad": 0.10295674729991403
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 9.64727201036396,
+   "achieved_rad": 0.19776765334074572
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.195301723177492,
+   "achieved_rad": 0.28390295261693776
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.582388571458367,
+   "achieved_rad": 0.36443830782229886
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.86834994599186,
+   "achieved_rad": 0.4437028245771622
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.8099274005982835,
+   "achieved_rad": 0.09269161662526229
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.656922025639759,
+   "achieved_rad": 0.18646700606965338
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.538524884737368,
+   "achieved_rad": 0.28097303777065613
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 11.440937867971678,
+   "achieved_rad": 0.37484796992045527
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.368182804983018,
+   "achieved_rad": 0.4683518597466993
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.8099274005982835,
+   "achieved_rad": 0.09269161662526229
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.656922025639759,
+   "achieved_rad": 0.18646700606965338
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.538524884737368,
+   "achieved_rad": 0.28097303777065613
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.440937867971678,
+   "achieved_rad": 0.37484796992045527
+  },
+  {
+   "scene": 1132,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.368182804983018,
+   "achieved_rad": 0.4683518597466993
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.062292330639532,
+   "achieved_rad": 0.07256846649556042
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.197116700105182,
+   "achieved_rad": 0.14382023510465966
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.399814219762816,
+   "achieved_rad": 0.2155888141453019
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.681074679002899,
+   "achieved_rad": 0.2895485721342954
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.042167342510355,
+   "achieved_rad": 0.3663315716147239
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.062292330639532,
+   "achieved_rad": 0.07256846649556042
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.197116700105182,
+   "achieved_rad": 0.14382023510465966
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.399814219762816,
+   "achieved_rad": 0.2155888141453019
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.681074679002899,
+   "achieved_rad": 0.2895485721342954
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.042167342510355,
+   "achieved_rad": 0.3663315716147239
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.890464188073642,
+   "achieved_rad": 0.10532486301317297
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 9.602197997236765,
+   "achieved_rad": 0.20027006382036525
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 14.122016773530815,
+   "achieved_rad": 0.2865827438256148
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.48170395421056,
+   "achieved_rad": 0.36728706948947537
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.741599088162882,
+   "achieved_rad": 0.4467823312346399
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.890464188073642,
+   "achieved_rad": 0.10532486301317297
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 9.602197997236765,
+   "achieved_rad": 0.20027006382036525
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 14.122016773530815,
+   "achieved_rad": 0.2865827438256148
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.48170395421056,
+   "achieved_rad": 0.36728706948947537
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.741599088162882,
+   "achieved_rad": 0.4467823312346399
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.84371657082704,
+   "achieved_rad": 0.09490565905898846
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.7087001743355685,
+   "achieved_rad": 0.1887818165769364
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 8.608774287333679,
+   "achieved_rad": 0.2834179428310073
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.52874401563157,
+   "achieved_rad": 0.37742264072279025
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 14.473117182504907,
+   "achieved_rad": 0.4710854861119865
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.84371657082704,
+   "achieved_rad": 0.09490565905898846
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.7087001743355685,
+   "achieved_rad": 0.1887818165769364
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 8.608774287333679,
+   "achieved_rad": 0.2834179428310073
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.52874401563157,
+   "achieved_rad": 0.37742264072279025
+  },
+  {
+   "scene": 1169,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.473117182504907,
+   "achieved_rad": 0.4710854861119865
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.08812555045252,
+   "achieved_rad": 0.0713232285406788
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.239449028508889,
+   "achieved_rad": 0.1426220332464966
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.457473331687215,
+   "achieved_rad": 0.21445888049590212
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.753449981384572,
+   "achieved_rad": 0.2884415322198676
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.130396417592793,
+   "achieved_rad": 0.36524923164453127
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.08812555045252,
+   "achieved_rad": 0.0713232285406788
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.239449028508889,
+   "achieved_rad": 0.1426220332464966
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.457473331687215,
+   "achieved_rad": 0.21445888049590212
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.753449981384572,
+   "achieved_rad": 0.2884415322198676
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.130396417592793,
+   "achieved_rad": 0.36524923164453127
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.885866882066988,
+   "achieved_rad": 0.10319294588226492
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.614933077291635,
+   "achieved_rad": 0.1978999627408156
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.151431794629119,
+   "achieved_rad": 0.28412356661625277
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.526289540114778,
+   "achieved_rad": 0.3648137609087449
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.798190433690728,
+   "achieved_rad": 0.4441196837853079
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.885866882066988,
+   "achieved_rad": 0.10319294588226492
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 9.614933077291635,
+   "achieved_rad": 0.1978999627408156
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.151431794629119,
+   "achieved_rad": 0.28412356661625277
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.526289540114778,
+   "achieved_rad": 0.3648137609087449
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.798190433690728,
+   "achieved_rad": 0.4441196837853079
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.798457726378292,
+   "achieved_rad": 0.09311383223030682
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.640930141540867,
+   "achieved_rad": 0.18663767241419812
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.51524108966312,
+   "achieved_rad": 0.28081593299048524
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.407925771919626,
+   "achieved_rad": 0.37431542995398365
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.323504543787807,
+   "achieved_rad": 0.46742422961815094
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.798457726378292,
+   "achieved_rad": 0.09311383223030682
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.640930141540867,
+   "achieved_rad": 0.18663767241419812
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.51524108966312,
+   "achieved_rad": 0.28081593299048524
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.407925771919626,
+   "achieved_rad": 0.37431542995398365
+  },
+  {
+   "scene": 1201,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.323504543787807,
+   "achieved_rad": 0.46742422961815094
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.0512793503380506,
+   "achieved_rad": 0.07384390104584947
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.1761999353251404,
+   "achieved_rad": 0.14505635370467726
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 6.368674332178628,
+   "achieved_rad": 0.2168245946312655
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 8.64010655848769,
+   "achieved_rad": 0.2908522507289403
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 10.990766469166639,
+   "achieved_rad": 0.36774675075681007
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.0512793503380506,
+   "achieved_rad": 0.07384390104584947
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.1761999353251404,
+   "achieved_rad": 0.14505635370467726
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 6.368674332178628,
+   "achieved_rad": 0.2168245946312655
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 8.64010655848769,
+   "achieved_rad": 0.2908522507289403
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 10.990766469166639,
+   "achieved_rad": 0.36774675075681007
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.8821981527709495,
+   "achieved_rad": 0.10663750618000109
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.580970463387462,
+   "achieved_rad": 0.20168483711879887
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.088294859955768,
+   "achieved_rad": 0.28802057898275185
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.437884816161862,
+   "achieved_rad": 0.36875267946114987
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.690319737288537,
+   "achieved_rad": 0.44848657657983515
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.8821981527709495,
+   "achieved_rad": 0.10663750618000109
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 9.580970463387462,
+   "achieved_rad": 0.20168483711879887
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.088294859955768,
+   "achieved_rad": 0.28802057898275185
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.437884816161862,
+   "achieved_rad": 0.36875267946114987
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.690319737288537,
+   "achieved_rad": 0.44848657657983515
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.8654353668634185,
+   "achieved_rad": 0.09606314454313208
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.746403273996823,
+   "achieved_rad": 0.1901426213513695
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 8.664636920378834,
+   "achieved_rad": 0.28509623485128555
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 11.604540668127925,
+   "achieved_rad": 0.37950161555996986
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.570596348822304,
+   "achieved_rad": 0.47367247263540235
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.8654353668634185,
+   "achieved_rad": 0.09606314454313208
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.746403273996823,
+   "achieved_rad": 0.1901426213513695
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 8.664636920378834,
+   "achieved_rad": 0.28509623485128555
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.604540668127925,
+   "achieved_rad": 0.37950161555996986
+  },
+  {
+   "scene": 1247,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.570596348822304,
+   "achieved_rad": 0.47367247263540235
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.08484890651134,
+   "achieved_rad": 0.07089532184072936
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.22860300801162,
+   "achieved_rad": 0.1420577634103875
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.439217040713778,
+   "achieved_rad": 0.2137229478127917
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.72939471494019,
+   "achieved_rad": 0.2876422957284667
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.100672625062021,
+   "achieved_rad": 0.36440379999022193
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.08484890651134,
+   "achieved_rad": 0.07089532184072936
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.22860300801162,
+   "achieved_rad": 0.1420577634103875
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.439217040713778,
+   "achieved_rad": 0.2137229478127917
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.72939471494019,
+   "achieved_rad": 0.2876422957284667
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 11.100672625062021,
+   "achieved_rad": 0.36440379999022193
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.875332903331001,
+   "achieved_rad": 0.10185560713926803
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 9.592595490396675,
+   "achieved_rad": 0.19678106443406598
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 14.117726235128938,
+   "achieved_rad": 0.28326427651487124
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.48183290525946,
+   "achieved_rad": 0.3642884983813103
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.742091149251266,
+   "achieved_rad": 0.4438565600682191
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.875332903331001,
+   "achieved_rad": 0.10185560713926803
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 9.592595490396675,
+   "achieved_rad": 0.19678106443406598
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 14.117726235128938,
+   "achieved_rad": 0.28326427651487124
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 18.48183290525946,
+   "achieved_rad": 0.3642884983813103
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.742091149251266,
+   "achieved_rad": 0.4438565600682191
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.8091525696531336,
+   "achieved_rad": 0.09092710507993296
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 5.658023293104339,
+   "achieved_rad": 0.1842674327840677
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.540134273606686,
+   "achieved_rad": 0.27832673078682224
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 11.440702860710818,
+   "achieved_rad": 0.37171902493308867
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 14.363847656962411,
+   "achieved_rad": 0.46468998716483423
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.8091525696531336,
+   "achieved_rad": 0.09092710507993296
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.658023293104339,
+   "achieved_rad": 0.1842674327840677
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.540134273606686,
+   "achieved_rad": 0.27832673078682224
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.440702860710818,
+   "achieved_rad": 0.37171902493308867
+  },
+  {
+   "scene": 1282,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 14.363847656962411,
+   "achieved_rad": 0.46468998716483423
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 2.052571643772041,
+   "achieved_rad": 0.06976692206966369
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 4.171325125065665,
+   "achieved_rad": 0.14056134919810895
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 6.3578742964714845,
+   "achieved_rad": 0.21200140744752838
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 8.625717122697738,
+   "achieved_rad": 0.2858362030649896
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 10.973300278162986,
+   "achieved_rad": 0.3625184926929761
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 2.052571643772041,
+   "achieved_rad": 0.06976692206966369
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.171325125065665,
+   "achieved_rad": 0.14056134919810895
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 6.3578742964714845,
+   "achieved_rad": 0.21200140744752838
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 8.625717122697738,
+   "achieved_rad": 0.2858362030649896
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 0,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 10.973300278162986,
+   "achieved_rad": 0.3625184926929761
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 4.871244309073315,
+   "achieved_rad": 0.10282873516797611
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 9.575819302658417,
+   "achieved_rad": 0.19779901480043122
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.08923532575002,
+   "achieved_rad": 0.28429527029689106
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 18.442776842285603,
+   "achieved_rad": 0.36529024685452305
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 22.694543655940617,
+   "achieved_rad": 0.4448717137929306
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 4.871244309073315,
+   "achieved_rad": 0.10282873516797611
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 9.575819302658417,
+   "achieved_rad": 0.19779901480043122
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.08923532575002,
+   "achieved_rad": 0.28429527029689106
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 18.442776842285603,
+   "achieved_rad": 0.36529024685452305
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 1,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 22.694543655940617,
+   "achieved_rad": 0.4448717137929306
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 2.8220921410506183,
+   "achieved_rad": 0.09275812509086033
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 5.6748263460420505,
+   "achieved_rad": 0.18631580780797433
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 8.560277526538572,
+   "achieved_rad": 0.2806334925796129
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 11.46474724642594,
+   "achieved_rad": 0.374352904950413
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 0,
+   "success": false,
+   "offset_cm": 14.39186168220894,
+   "achieved_rad": 0.46769523937735513
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.0,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 0.0,
+   "achieved_rad": 0.0
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.1,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 2.8220921410506183,
+   "achieved_rad": 0.09275812509086033
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.2,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": true,
+   "offset_cm": 5.6748263460420505,
+   "achieved_rad": 0.18631580780797433
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.3,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 8.560277526538572,
+   "achieved_rad": 0.2806334925796129
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.4,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 11.46474724642594,
+   "achieved_rad": 0.374352904950413
+  },
+  {
+   "scene": 1327,
+   "requested_rad": 0.5,
+   "dir": 2,
+   "noise_seed": 1,
+   "success": false,
+   "offset_cm": 14.39186168220894,
+   "achieved_rad": 0.46769523937735513
+  }
+ ]
+}

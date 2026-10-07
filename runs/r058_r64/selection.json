@@ -1,0 +1,35 @@
+{
+ "label": "opt1500",
+ "adapter": "runs/r058_r64_cached_train/checkpoints/001500/pretrained_model",
+ "success": 6,
+ "n": 10,
+ "median_ca": 0.0565714538354528,
+ "step": 1500,
+ "all": [
+  {
+   "label": "opt500",
+   "adapter": "runs/r058_r64_cached_train/checkpoints/000500/pretrained_model",
+   "success": 4,
+   "n": 10,
+   "median_ca": 0.057810520336908255,
+   "step": 500
+  },
+  {
+   "label": "opt1000",
+   "adapter": "runs/r058_r64_cached_train/checkpoints/001000/pretrained_model",
+   "success": 4,
+   "n": 10,
+   "median_ca": 0.0571746630656768,
+   "step": 1000
+  },
+  {
+   "label": "opt1500",
+   "adapter": "runs/r058_r64_cached_train/checkpoints/001500/pretrained_model",
+   "success": 6,
+   "n": 10,
+   "median_ca": 0.0565714538354528,
+   "step": 1500
+  }
+ ],
+ "rule": "max val success, then min median closest approach, then later step"
+}
