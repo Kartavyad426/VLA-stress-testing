@@ -108,9 +108,18 @@ const TIERS = [
   ["t5e","N2: RoboVerse cross-implementation start-pose check","1 day + 2 GPU-h.","impl"],
   ["t5f","N3: one-day Isaac Lab-Arena trial on a rented GPU","≤ $25; pass/fail Q1–Q7 in SIM_ALTERNATIVES_PIPELINE.","impl"],
   ["t5g","N4: spec for a splice-arm policy server","","res21"]]],
+ ["2b · R-060 and the perturbation map (added 10-08)", "", [
+  ["r60a","R-060 part 0: CPU gates (token order, identity at γ=β=0, pair exactness)","Pre-registered 10-07 (8110654). impl builds; my prim validates.","impl · my prim"],
+  ["r60b","Decide: amend R-060 before its GPU parts?","Libero-V's camera axis differs from LIBERO-Plus (res). Options: score per camera family, add the Adapt3R-pose bridge arm, revisit the noise row. GPU parts on hold until you decide.","you"],
+  ["r60c","R-060 GPU parts (~9 GPU-h + ~2 h training)","After r60b and my prim's OK.","impl"],
+  ["pm1","Perturbation-map validity audit","docs/PERTURBATION_MAP_VALIDITY.html; 8 threats, CPU re-scores allowed.","res21"],
+  ["pm2","Add the 'Method lineage and validity' paragraph to the map","After pm1 and your OK on the text; compile_map.py + rebuild.","impl"]]],
  ["6 · Reading and analysis docs", "", [
   ["d1","FLOW_MATCHING_MATHS.html","In progress.","res"],
-  ["d2","Architectural analysis: decide author and scope","Training end to end, VLM pretraining, action heads, post-training with human data.","you"]]],
+  ["d2","Architectural analysis: decide author and scope","Training end to end, VLM pretraining, action heads, post-training with human data.","you"],
+  ["d3","VLA-Corrector full read + runtime-correction framing","docs/VLA_CORRECTOR_MATHS.html; can our first-chunk mechanism become an oracle-free runtime correction?","res"],
+  ["d4","retraining-viz skill","Done 10-07 (7f8e86e); reproduces RETRAINING_VIZ data exactly.","viz"],
+  ["d5","Optional: VLA-FAIL and SAE papers as docs","Discussed in chat only.","you"]]],
  ["7 · Parked", "revisit later", [
   ["p1","R-043 LIBERO-10 long-horizon","Needs P1–P3 prerequisites.",""],
   ["p2","R-040 corrective-demos comparison","Mostly subsumed by tier 2.",""],
