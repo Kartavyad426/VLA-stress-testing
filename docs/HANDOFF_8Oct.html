@@ -186,7 +186,92 @@
 <section class="sess" id="impl">
   <h2>impl</h2>
   <p class="lead"><span class="owner">owner: impl</span> · Implementor: builds and runs approved changes and GPU jobs</p>
-  <div class="slot"><!-- HANDOFF-SLOT:impl -->Awaiting handoff from <code>impl</code>.</div>
+<!-- HANDOFF-SLOT:impl filled -->
+  <h3>1 · Role</h3>
+  <p><code>impl</code> is the implementor. It writes harness, experiment and queue code and runs every GPU step. Work comes from <code>prim</code> (the user's approvals, relayed) and from <code>SFT</code> or <code>my prim</code> for run-specific requests. <code>my prim</code> validates every launch plan before it starts and monitors the run. impl never commits: it sends prim paths and commit groups. It never pushes and spawns no subagents.</p>
+
+  <h3>2 · What I did, 06–08 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>item</th><th>output path</th><th>commit</th><th>status</th></tr>
+    <tr><td>R-053..R-058 training and data code, F1–F6 LR-schedule fix</td><td><code>vla_harness/training/</code>, <code>experiments/r056_train.py</code>, <code>r056_eval.py</code></td><td>b476c19</td><td>committed</td></tr>
+    <tr><td>Queue scripts and systemd launchers, R-052..R-058</td><td><code>experiments/queue_r05*.sh</code>, <code>launch_r056_fixed.sh</code></td><td>4733230</td><td>committed</td></tr>
+    <tr><td>Run metadata, overnight summary, V1–V6 evidence</td><td><code>runs/r05*/</code>, <code>runs/overnight/</code>, <code>runs/impl_smoke/</code></td><td>31cf6fb</td><td>committed</td></tr>
+    <tr><td>10-06 GPU runs: D20 loss, offset curve, first-chunk fit test; R-058 r64 eval (no transfer); WiSE α 0.5; R-052 pitch</td><td><code>runs/r056_diag/</code>, <code>runs/r058_r64/</code>, <code>runs/r052/</code>, <code>experiments/d_step.sh</code>, <code>r056_diag_{loss,offset,fit}.py</code></td><td>a3dcb3d</td><td>committed, done 10-07</td></tr>
+    <tr><td>D22: downloaded and verified the raw LIBERO-Spatial demo HDF5s</td><td><code>experiments/d22_verify_libero_raw.py</code>, <code>data/libero_raw/verify.json</code> (data gitignored, 5.9 GB)</td><td>874bd1c</td><td>committed</td></tr>
+    <tr><td>R-060 part 0 harness and gates (WIP)</td><td><code>vla_harness/envs/libero_env.py</code> (<code>perturbed_frames</code>, <code>lplus_sensor_noise</code>, end-point knobs on <code>_bench_camera_pose</code>), <code>vla_harness/capture/splice.py</code> (<code>FTM</code>, <code>TransformHandle</code>, <code>attach_transform</code>), <code>experiments/r060_gates.py</code>, <code>runs/r060/gates/</code></td><td>dcdd172</td><td>committed as WIP; G0c failing</td></tr>
+  </table></div>
+
+  <h3>3 · In flight: R-060 part 0 (priorities r60a), about 50%</h3>
+  <ul class="tight">
+    <li><b>G0a, camera order: PASS</b> [verified, <code>runs/r060/gates/g0a.json</code>]. The agent view is first: image tokens 4–67 are agent, 70–133 wrist, of 154. Three readings agree: the pack step's ordered keys, a black/white pixel_values swap, and the input_ids runs. Qwen3-VL places image <i>i</i> into the <i>i</i>-th block (transformers 5.5.4 <code>modeling_qwen3_vl.py:1161,1297</code>). Caveat: the checkpoint ships <code>video_modality_keys: null</code>, so the order comes from the processor's alphabetical fallback (<code>image</code> &lt; <code>wrist_image</code>). Consequence: arm A2-S1 runs.</li>
+    <li><b>G0c, training-pair exactness: FAIL, undiagnosed</b> [measured, <code>runs/r060/gates/g0c.json</code>, <code>g0c.log</code>].
+      <ul class="tight">
+        <li><b>Camera:</b> 0/15 pass. <code>perturbed_frames(variant)</code> from the control env vs the variant env's own render differs in 41–1,255 px (max abs 11–48).</li>
+        <li><b>N side:</b> also fails. The variant's <code>nominal_frames()</code> vs the control's own render differs in about 22k px (max 52).</li>
+        <li><b>Noise:</b> the seeded dispatch equals LIBERO-Plus's own wrapper dispatch bitwise on 9/10 (motion 6 is off by 1 on 40 px). The end-to-end gaussian/zoom check fails (max 1–30).</li>
+        <li><b>Physics:</b> differs between the variant and control envs on 3/25 (all with control 1132: tasks 768, 1522, 1534).</li>
+      </ul></li>
+    <li><b>Lead for the G0c diagnosis</b> (from the same json, not yet isolated). The control env's own re-render with NO knob changed (<code>control_unchanged_after</code>) differs from its reset frame on every row. The wrist camera, which nothing touches, also differs (2.7k–15k px). So a <code>force_update</code> re-render is not the frame the step loop returned. The likely cause is the comparison reference (step frame vs re-render), not the pairing.<br>
+      Caveat: that field was read after a <code>perturbed_frames</code> call, so a restore bug is not yet excluded.<br>
+      If this holds, it also bears on the paired N source of R-039/R-042/R-048/R-057, which uses the same re-render. That is unverified; flag it to res21's validity audit (pm1).</li>
+    <li><b>G0c diagnosis plan</b>, in order:
+      <ul class="tight">
+        <li>(a) In one control env with no knob: compare the reset frame with <code>nominal_frames()</code>, before and after any <code>perturbed_frames</code> call. This separates render timing from a restore bug.</li>
+        <li>(b) Compare re-render against re-render on both sides: the control re-rendered at the variant pose vs the variant env re-rendered at its own pose. Also check a step-loop frame against the re-render one step later.</li>
+        <li>(c) Diff the init states of the variants against control 1132 for the phys mismatch.</li>
+        <li>(d) Look at motion 6 (wand rounding?).</li>
+      </ul>
+      Every check is CPU and render only. A changed gate definition is a deviation: draft a timestamped amendment for SFT and my prim.</li>
+    <li><b>G0b, zero-init bitwise: NOT RUN.</b> The code is ready. It loads GR00T bf16 on the CPU (about 7 GB RAM) and runs 10 R-048 forward-0 observations. It checks base vs base, γ=β=0 at S2 and S1 vs base under <code>torch.equal</code>, plus a liveness check (a non-zero FTM must change the action).</li>
+    <li><b>Not started:</b> <code>experiments/repro/r060_split.json</code> (draft only, per my prim's HOLD), the pair generator, the B/C trainers, the eval runner. Per-variant base outcomes exist only at L4/L5 (<code>runs/lplus_fail_groot</code>: camera 40/62, noise 64/69). Task index = catalogue id − 1. The control of a scene is <code>&lt;scene&gt;_language_1_view_0_0_100_0_0_initstate_0</code>.</li>
+    <li><b>Resume commands</b> (repo root). Do NOT set <code>CUDA_VISIBLE_DEVICES=""</code>: EGL needs it.<br>
+      <code>ENV="PYTHONPATH=$PWD/third_party/LIBERO-plus LIBERO_CONFIG_PATH=$PWD/third_party/libero-plus-config MUJOCO_GL=egl CUBLAS_WORKSPACE_CONFIG=:4096:8"</code><br>
+      <code>env $ENV .venvs/libero-plus/bin/python experiments/r060_gates.py g0c</code> (after the fix)<br>
+      <code>env $ENV flock /tmp/vla_gpu.lock .venvs/libero-plus/bin/python experiments/r060_gates.py g0b</code><br>
+      Report all three gates to prim and my prim. No GPU step until my prim gives an explicit OK (HOLD, 10-07).</li>
+  </ul>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>r60b:</b> amend R-060 before its GPU parts? Options: score camera per LIBERO-Plus family, an Adapt3R-pose bridge arm, the noise row. This gates <b>r60c</b> (the GPU parts) and the split file.</li>
+    <li><b>t5b / D25:</b> the go to fix <code>rollout_id</code> ignoring the noise seed.</li>
+    <li><b>r64 transfer (D18a):</b> skipped by the user, no code change. Fix (a) or (b) in §6 needs a fresh go.</li>
+    <li><b>t2b / D21:</b> the next demo source. Option A needs a replay check of the D22 demos (§5).</li>
+  </ul>
+
+  <h3>5 · Findings</h3>
+  <ul class="tight">
+    <li><b>D20(i) loss</b> [verified, <code>runs/r056_diag/loss_summary.json</code>]: minted frame-0 loss went 0.159 → 0.078/0.059/0.055 (r16 opt500/1000/2000) and 0.081 (r4). 91–96% of frames came in below base and every CI excludes 0, so frame 0 was fitted.</li>
+    <li><b>D20(ii) offset</b> [verified, <code>r047_offset_curve.json</code>]: achieved/requested is 0.72 for dir 0 and about 0.94 for dirs 1 and 2. Success by achieved offset: ≤8 cm 0.93, 8–12 0.65, 12–16 0.22, &gt;16 0.15. The cm bands predict about 56/108 base vs 67 observed. Stratify by direction × cm, not radius.</li>
+    <li><b>Fit test</b> [verified, <code>fit_firstchunk.json</code>]: training starts close 30% of the first-chunk gap (3.40 → 2.37 r16) vs 12% held-out (r4: 9%). The held-out anchor reproduced 4.514/3.979/4.120 exactly. This rules out the pipeline; data is the suspect.</li>
+    <li><b>R-058 r64 / WiSE</b> [verified]: r64 64/108 (opt1500, not annealed); WiSE α 0.5 69/108. <b>r64 transfer GPU-OOMed</b> at 16:28 on its first forward (7.39 of 7.53 GiB; r4 had peaked at 7.45). The cause is unverified (§6).</li>
+    <li><b>D22</b> [verified, <code>data/libero_raw/verify.json</code>]: 500 demos, sha256 values match HF, each demo's <code>init_state</code> = <code>states[0]</code>, 128 px, actions include no-ops. No demo initial state matches any LIBERO-Plus <code>.init</code>/<code>.pruned_init</code> row: object coords differ by 0.08–0.16, <code>on_the_ramekin</code> by 2.28. Replay from <code>states[0]</code> is unverified.</li>
+    <li><b>clip_outliers</b> [verified by res, DATA_SOURCING §3.7]: the GR00T preprocessor clamps labels to [−1, 1] (<code>use_percentiles</code> and <code>clip_outliers</code> both true; <code>processor_groot.py:1823–1825</code>). Out-of-range demo actions are clipped silently. Unverified: whether the bounds are q01/q99 or min/max.</li>
+    <li><b>R-052 PARTIAL marker is a false negative</b> [verified]: 760/760 ran. <code>queue_r052.sh</code>'s <code>tail -n 3 | grep "] done$"</code> misses "done" behind EGL teardown tracebacks. Not fixed (user: no code changes).</li>
+  </ul>
+
+  <h3>6 · Bugs, risks, gotchas</h3>
+  <ul class="tight">
+    <li><b><code>rollout_id</code> ignores the noise seed</b> (<code>runner._cell_id</code>, D25/t5b): join by position or start key, never by id across noise seeds.</li>
+    <li><b>EGL contexts in <code>r044_reverse.py</code></b>: env_p and env_n stay alive through all forwards (deleted only at :125). That is my UNVERIFIED cause of the r64 transfer OOM. Fix (a): del both envs + <code>gc</code> before <code>act()</code>, then verify with nvidia-smi at 0/1/2 envs and an r16 diff on frozen obs (render jitter at instances 313 and 281). Fallback (b): merge_and_unload, as a logged deviation. Neither is applied.</li>
+    <li><b>RAM:</b> 30 GB total, swap full (7/7 GiB) on 10-07. <code>d_step.sh</code> refuses with rc 75 when MemAvailable &lt; 14 GiB (<code>MIN_AVAIL_GIB</code>). Run every GPU step as <code>UNIT=vla-x bash experiments/launch_r056_fixed.sh -- bash experiments/d_step.sh NAME --gpu CMD</code>: flock, stepmeter peaks, <code>[d1006]</code> lines in <code>runs/overnight/queue.log</code>.</li>
+    <li><b>Never two GR00T loads at once</b>, including a CPU load (G0b), which can OOM RAM next to a GPU job. Use <code>flock /tmp/vla_gpu.lock</code> and announce first.</li>
+    <li><b>AC power:</b> check <code>/sys/class/power_supply/AC*/online</code> before launching; a flat battery killed an earlier chain. <code>queue_r056_cont.sh</code> resumes r64: never run it as is.</li>
+    <li>Render nondeterminism: compare actions on frozen observations. Outcomes flip 30–40% across seeds.</li>
+  </ul>
+
+  <h3>7 · Memory and scratchpad</h3>
+  <p>Memory: <code>impl-is-implementor</code>, <code>prim-owns-commits</code>, <code>d20-d18a-d19-run-1006</code>, <code>r058-r64-transfer-and-d20</code>, <code>d22-libero-raw</code>, <code>r056-lr-fix-handoff</code>, <code>r039-r042-state</code>. No R-060 memory written yet. Scratchpad: nothing worth keeping (one 48 KB text extract of SPATIAL_ADAPT_MATHS).</p>
+
+  <h3>8 · Next steps</h3>
+  <div class="tbl"><table>
+    <tr><th>step</th><th>owner</th><th>gate</th></tr>
+    <tr><td>Diagnose and fix G0c (plan in §3), then run G0b; report to prim and my prim</td><td>impl</td><td>CPU only; any gate change gets an amendment</td></tr>
+    <tr><td>Decide the R-060 amendment (r60b)</td><td>user</td><td>none</td></tr>
+    <tr><td>Freeze <code>r060_split.json</code>; plan → my prim; pair generation, B/C training, evals (r60c)</td><td>impl</td><td>r60b + my prim's OK; schedule_verified; metadata-only</td></tr>
+    <tr><td>Check whether the paired-N re-render offset affects earlier runs</td><td>res21 (pm1) with impl</td><td>after G0c step (a)</td></tr>
+    <tr><td>rollout_id fix (t5b), r64 transfer fix, R-052 marker fix</td><td>impl</td><td>user go</td></tr>
+  </table></div>
 </section>
 
 <!-- ============================================================ -->
