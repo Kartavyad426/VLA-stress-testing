@@ -98,7 +98,7 @@
   </ul>
 </section>
 
-<nav><ol><li><a href="#prim">prim</a></li><li><a href="#impl">impl</a></li><li><a href="#my-prim">my prim</a></li><li><a href="#SFT">SFT</a></li><li><a href="#res">res</a></li><li><a href="#res21">res21</a></li></ol></nav>
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#impl">impl</a></li><li><a href="#my-prim">my prim</a></li><li><a href="#SFT">SFT</a></li><li><a href="#res">res</a></li><li><a href="#res21">res21</a></li><li><a href="#res22">res22</a></li></ol></nav>
 
 <!-- ============================================================ -->
 <section class="sess" id="prim">
@@ -710,6 +710,94 @@
     <tr><td>Diagnose the G0c render mismatch (r60b input)</td><td>impl; audit uses it</td></tr>
     <tr><td>Decide t2d, t2e (D23), r60b, N1–N4</td><td>user</td></tr>
     <tr><td>Add Mulligan and R-060 to HANDOFF_6Oct §9 if that doc stays live</td><td>prim's call</td></tr>
+  </table></div>
+</section>
+
+<section class="sess" id="res22">
+  <h2>res22</h2>
+  <p class="lead"><span class="owner">owner: res22</span> · Research: task diversity and failure modes beyond LIBERO</p>
+  <!-- HANDOFF-SLOT:res22 filled -->
+  <h3>1. Role</h3>
+  <p><code>res22</code> is a research session the user set up on 08 Oct.</p>
+  <ul class="tight">
+    <li><b>Job:</b> find benchmarks, datasets and models whose task sets go beyond LIBERO tabletop pick-and-place, with failure modes other than perturbations.</li>
+    <li><b>Scope:</b> set by <code>prim</code> and approved by the user.
+      <ul class="tight">
+        <li><b>Out:</b> start-pose, camera, lighting and noise perturbations; choosing a sim engine (res21); data sourcing (res); GPU jobs.</li>
+        <li><b>Reported for every candidate, but not a filter for inclusion:</b> 8 GB fit and GR00T fit.</li>
+        <li><b>User additions:</b> a fast proof of concept comes first, without dropping anything qualitatively better; include cited examples of tasks and failures.</li>
+      </ul></li>
+    <li><b>Rules:</b> no subagents, no GPU, no commits (<code>prim</code> commits), local HTML only, user approves the outline first. Tags: [V] checked against the paper or code, [I] inferred.</li>
+  </ul>
+
+  <h3>2. What was done, 08 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Item</th><th>Path</th><th>Commit</th><th>Status</th></tr>
+    <tr><td>Task-diversity landscape. Contents:
+      <ul class="tight">
+        <li>a failure-mode table with cited task and failure examples;</li>
+        <li>Tier A: same tasks, new condition, no retraining;</li>
+        <li>Tier A′: same simulator, new tasks, needs a fine-tune;</li>
+        <li>Tier B: new stack;</li>
+        <li>failure-labelled datasets;</li>
+        <li>10 proposed corrections to DATA_AND_BENCHMARKS;</li>
+        <li>a ranked shortlist with costs.</li>
+      </ul>
+      Cites FAILURE_MINING_RELEVANCE for the move beyond LIBERO (user request).</td><td><code>docs/TASK_DIVERSITY_LANDSCAPE.html</code></td><td>uncommitted; path and 5-line verdict sent to prim</td><td>done; content not yet reviewed by the user</td></tr>
+  </table></div>
+
+  <h3>3. Findings that matter</h3>
+  <ul class="tight">
+    <li><b>LIBERO-MAX</b> (2609.36518) is the top pick.
+      <ul class="tight">
+        <li>A mid-task event (target or receptacle moves, distractor burst, obstacle inserted), paired against a twin rollout with the same prefix and no event.</li>
+        <li>It reports <b>GR00T N1.7 at 69.3% Base vs 50.0% Dynamic</b>, a reproduction gate for us.</li>
+        <li>It pins our LIBERO-Plus SHA <code>4976dc3</code>, with MuJoCo 3.2.6 and robosuite 1.4.0.</li>
+        <li>It has no GR00T runner script and no licence file. <span class="small">[V]</span></li>
+      </ul></li>
+    <li><b>LIBERO-Recover</b> (2609.05178) starts from natural failure states from six policies, GR00T among them.
+      <ul class="tight">
+        <li>4 recovery levels and 5 failure categories.</li>
+        <li>Data is Apache-2.0 on ModelScope (<code>ataier/LIBERO_Recovery_*</code>); the full release is due 2026-10-20.</li>
+        <li>The paper counts 2,178 scenarios; the README releases 880.</li>
+        <li>Its client pins MuJoCo 3.2.3. <span class="small">[V]</span></li>
+      </ul></li>
+    <li><b>LIBERO-Para</b> and <b>LIBERO-Occ</b> reuse LIBERO tasks, so our checkpoints should apply without retraining <span class="small">[I]</span>.</li>
+    <li><b>Everything with new tasks needs a GR00T fine-tune first:</b> LIBERO-Safety, VLA-Arena (robosuite 1.5.1), LIBERO-X, RoboCerebra, MimicGen and RoboCasa365. The RoboCasa N1.7 fine-tune (70.8%) has no released checkpoint.</li>
+    <li><b>The qualitatively better new stack is SimplerEnv</b> with <code>nvidia/GR00T-N1.7-SimplerEnv-{Bridge,Fractal}</code>: published per-task numbers (eggplant in sink 2/100, place in closed drawer 7/100), and 6.44 GiB safetensors with <code>processor_config.json</code>. Our LeRobot maps <code>simpler_env_widowx/google</code>, so it may load through the <code>groot</code> type <span class="small">[I]</span>.</li>
+    <li><b>LeRobot's "RoboCerebra" eval</b> is <code>env.type=libero</code> on <code>libero_10</code>, not RoboCerebra's own benchmark <span class="small">[V]</span>.</li>
+  </ul>
+
+  <h3>4. Open decisions (for the user)</h3>
+  <div class="tbl"><table>
+    <tr><th>Decision</th><th>Notes</th></tr>
+    <tr><td>Review TASK_DIVERSITY_LANDSCAPE content</td><td>Written after the outline was approved; content not yet reviewed</td></tr>
+    <tr><td>Apply the 10 DATA_AND_BENCHMARKS corrections (§7)?</td><td>Item by item; not applied</td></tr>
+    <tr><td>Start shortlist #1 (LIBERO-MAX Lite, in-scope events)?</td><td>2–3 days of harness work (impl), ~5–8 GPU-h; first read their GR00T result files for checkpoint and cadence</td></tr>
+    <tr><td>LIBERO-MAX licence</td><td>No licence file; ask the authors before anything client-facing</td></tr>
+  </table></div>
+
+  <h3>5. Gotchas</h3>
+  <ul class="tight">
+    <li>Paper numbers marked [V] for LIBERO-MAX, LIBERO-Recover, LIBERO-Para, LIBERO-Occ, LIBERO-Safety, RoboCerebra and VLABench come from a summarising fetch of the arXiv HTML, not a full PDF read. Check against the PDF before quoting in a result.</li>
+    <li>A LIBERO-MAX "Base" case is already LIBERO-Plus/PRO-perturbed, so it is not nominal LIBERO.</li>
+    <li>LIBERO-Recover runs half its trials with the gripper closed, which is a start-state perturbation; use the open split for task-diversity claims.</li>
+    <li><code>raw.githubusercontent.com</code> fetches sometimes hang; one timed out and was rerun in the background.</li>
+  </ul>
+
+  <h3>6. Memory and scratchpad</h3>
+  <ul class="tight">
+    <li>Memory: <code>res22-task-diversity-role.md</code> (scope, rules, status).</li>
+    <li>Scratchpad: README dumps, the arXiv API helper (<code>arx.py</code>), the HTML-to-text helper and a mobile-width screenshot. All are re-fetchable, so nothing was kept.</li>
+  </ul>
+
+  <h3>7. Next steps</h3>
+  <div class="tbl"><table>
+    <tr><th>Step</th><th>Owner</th></tr>
+    <tr><td>User review of the doc; prim commits it</td><td>user, prim</td></tr>
+    <tr><td>Re-check LIBERO-Recover after the 10-20 release (scene counts, splits)</td><td>res22 or successor</td></tr>
+    <tr><td>CPU-only check that the GR00T N1.7 SimplerEnv checkpoint's processor config loads in our LeRobot</td><td>impl, if approved</td></tr>
+    <tr><td>Decide shortlist items 1–5 (§8)</td><td>user</td></tr>
   </table></div>
 </section>
 
