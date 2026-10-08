@@ -1,0 +1,373 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>VLA-Corrector Maths</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-obs:#2a78d6;--b-score:#eb6834;--b-cp:#1baf7a;--b-pol:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-obs:#3987e5;--b-score:#d95926;--b-cp:#199e70;--b-pol:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.caution{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.bold{font-weight:600;font-style:normal}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.where dt{display:inline;font-family:var(--serif);font-style:italic}
+.where dd{display:inline;margin:0 14px 0 4px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:140px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.obs{border-left:4px solid var(--b-obs)}.blk.score{border-left:4px solid var(--b-score)}.blk.cp{border-left:4px solid var(--b-cp)}.blk.pol{border-left:4px solid var(--b-pol)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.c{background:var(--b-cp);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+.tag.r{background:var(--b-obs);color:var(--bg)}
+.tag.d{background:var(--b-pol);color:var(--bg)}
+nav ol{columns:2;column-gap:28px;font-size:.88rem}
+@media (max-width:640px){nav ol{columns:1}}
+</style></head><body><div class=wrap>
+
+<h1>VLA-Corrector: the maths, the code, and whether our first-chunk mechanism can become a runtime correction</h1>
+<div class=meta>2026-10-08 · Session <code>res</code>, for the user via <code>prim</code> (priorities d3) · Pan, Pan, Lu, Huang, Zhang et al. (Zhejiang University / Alibaba DAMO), "VLA-Corrector: Lightweight Detect-and-Correct Inference for Adaptive Action Horizon", <a href="https://arxiv.org/abs/2607.01804">arXiv:2607.01804v1</a> (2 Jul 2026), read in full including appendices B–E · Code <a href="https://github.com/ZJU-OmniAI/vla-corrector">ZJU-OmniAI/vla-corrector</a> @ <code>e02ab51</code> (2026-09-25); the files used are copied to <code>docs/drafts/vla_corrector_sources/code_e02ab51/</code>. Tags: <span class="tag p">paper</span> stated in the paper · <span class="tag c">code</span> read from the release, file:line cited · <span class="tag r">ours</span> from our RESULTS.md, runs or docs · <span class="tag d">derived</span> my derivation, checkable here · <span class="tag i">inferred</span> my reading, not verified.</div>
+
+<div class="card tldr">
+<div class=q>Direct answers</div>
+<ul>
+<li><b>What it is.</b> A runtime layer around a frozen, chunked, flow-matching VLA, with no backbone retraining. Three parts:
+  <ol>
+  <li>a <b>~40M token-wise MLP</b> <var>M</var><sub>φ</sub> predicts how the policy's own SigLIP image tokens should change <var>k</var> steps after the executed action;</li>
+  <li>the <b>monitor</b> scores 1 − cos(predicted change, actual change) every env step, and a robust median/MAD state machine decides that drift is persistent;</li>
+  <li>on a trigger it <b>discards the rest of the chunk</b> and replans once with <b>Online Gradient Guidance (OGG)</b>.</li>
+  </ol></li>
+<li><b>What OGG actually is</b> <span class="tag c">code</span>. It is <b>not</b> classifier guidance through the VLA. At guided denoising steps it detaches the velocity <var>v</var> and forms the one-shot clean estimate <var>Â</var> = <var>x</var><sub>τ</sub> − τ<var>v</var> (openpi time). It feeds only the <b>first action</b> <var>Â</var>[0] into <var>M</var><sub>φ</sub> and takes the gradient of a cosine loss <b>with respect to <var>v</var></b>. The step is <var>v</var> ← <var>v</var> − η∇<sub><var>v</var></sub>ℒ, with η = 1, on every 3rd of π0.5's 10 steps (<code>pi05m.py:241–302</code>). The gradient is non-zero <b>only on row 0</b> of <var>v</var> <span class="tag d">derived</span>; the other 49 actions change only indirectly, through attention in later steps.</li>
+<li><b>Where the gains come from</b> <span class="tag p">paper</span>. On MetaWorld with π0.5 at horizon 50, success goes 48.7 → 64.35. <b>Truncation alone</b> (replan sooner, no OGG) gets 60.35, so OGG adds ~4 points and is negative on the Hard split (50.0 → 47.5). The method is mostly an <b>event-triggered adaptive horizon</b>; the gradient part is a modest add-on.</li>
+<li><b>What it fixes.</b> Mid-episode drift: 83.7% of truncations fall in grasp or align phases, and the largest real-robot gain is on "object moved mid-task" (+28 pp). <b>Nothing in the paper tests a bad start.</b> The released monitor cannot fire in the first 15 control steps: its threshold is 10.0 until a 15-score bootstrap queue fills (<code>eval_det.py:500–566</code>). Those 15 steps are almost exactly GR00T's forward 0 (16 executed steps).</li>
+<li><b>Can our method be framed as a runtime correction in this family?</b> Yes, but not by porting VLA-Corrector. Our failures are decided at forward 0 (R-057, k* = 1), and three things differ:
+  <ul>
+  <li>the <b>detector</b> is trivial: the start pose is in proprioception (‖<var>q</var> − <var>q</var><sub>home</sub>‖), so no learned visual monitor is needed;</li>
+  <li>the <b>correction</b> must act on the first chunk, before any drift can be observed;</li>
+  <li>the bar is <b>re-homing</b> (move the arm to its canonical start, then run the policy). That is free, oracle-free and the obvious competitor (Directions review C5).</li>
+  </ul>
+  Of the three candidates:
+  <ul>
+  <li><b>(a) wrist-image or wrist-token substitution</b> is the most promising <i>mechanism-guided</i> arm. W = 0.88 transfer means showing the policy a nominal wrist view moves its first chunk 88% of the way to nominal (R-042).</li>
+  <li><b>(b) OGG-style guidance</b> needs a new objective (no drift exists yet at forward 0) and, on GR00T, would edit essentially one action.</li>
+  <li><b>(c) RTC-style inpainting</b> is the cleanest way to splice a re-homing or bridge prefix into the policy's own chunk, and GR00T already ships native RTC code.</li>
+  </ul>
+  §8.2 gives a pre-registrable 6-arm test on the R-053 instances plus an R-047 held-out grid, about 3 GPU-hours.</li>
+</ul>
+</div>
+
+<nav><ol>
+<li><a href="#s1">The problem it targets</a></li>
+<li><a href="#s2">The method from first principles</a></li>
+<li><a href="#s3">What the released code does (and where it differs)</a></li>
+<li><a href="#s4">Policies and cost</a></li>
+<li><a href="#s5">Results ledger</a></li>
+<li><a href="#s6">Critique</a></li>
+<li><a href="#s7">Related runtime-correction methods</a></li>
+<li><a href="#s8">What it means for our stack</a></li>
+<li><a href="#s9">Sources and glossary</a></li>
+</ol></nav>
+
+<h2 id=s1>1. The problem it targets: the open-loop blind spot of action chunks</h2>
+<p>A chunked policy samples <var>A</var><sub>t</sub> = [<var>a</var><sub>t</sub>, …, <var>a</var><sub>t+C−1</sub>] ~ π<sub>θ</sub>(· | <var>Z</var><sub>t</sub>, <var>l</var>), with <var>Z</var><sub>t</sub> = <var>E</var>(<var>o</var><sub>t</sub>) the visual latent and <var>l</var> the instruction, and executes the first <var>H</var> ≤ <var>C</var> open-loop <span class="tag p">paper</span> eq. 1. Observations keep arriving during those <var>H</var> steps but are ignored. A disturbance inside the window therefore compounds until the next call. The paper's motivating sweep shows the trade-off: π0.5 on MetaWorld drops from ≈ 64% to below 49% as <var>H</var> grows, with about 4× fewer policy calls (Fig. 2, Table 4). The paper's thesis is that the question is not which fixed <var>H</var> to use, but <b>when to stop trusting the current chunk</b>.</p>
+<div class=diag>
+ <div class=row>
+  <div class="blk pol"><b>Frozen VLA</b>π0.5 / SmolVLA / X-VLA, fine-tuned on the benchmark, then frozen. Emits a chunk; executes up to <var>H</var>.</div>
+  <div class="blk obs"><b>Encode every step</b><var>Z</var><sub>t</sub> = the policy's own image tokens (SigLIP + projector, all cameras).</div>
+ </div>
+ <div class=arrow>↓</div>
+ <div class=row>
+  <div class="blk score"><b>LVM: predicted vs actual change</b><var>E</var><sub>t</sub> = 1 − cos(<var>M</var><sub>φ</sub>(<var>Z</var><sub>t−k</sub>, <var>a</var><sub>t−k</sub>), <var>Z</var><sub>t</sub> − <var>Z</var><sub>t−k</sub>)</div>
+  <div class="blk cp"><b>Trigger</b>median + λ·MAD thresholds, persistence and hysteresis → interrupt</div>
+ </div>
+ <div class=arrow>↓ on interrupt</div>
+ <div class=row>
+  <div class="blk pol"><b>Truncate + OGG replan</b>Drop the rest of the queue; the next call's flow is guided so the first action's predicted latent effect points along ∆<var>Z</var><sub>exp</sub> − ∆<var>Z</var><sub>dev</sub>.</div>
+ </div>
+</div>
+
+<h2 id=s2>2. The method from first principles</h2>
+
+<h3>2.1 The latent dynamics corrector <var>M</var><sub>φ</sub></h3>
+<p>From demonstration transitions (<var>o</var><sub>t</sub>, <var>a</var><sub>t</sub>, <var>o</var><sub>t+k</sub>), passed through the <b>frozen</b> policy's own visual encoder <span class="tag p">paper</span> eq. 2–4:</p>
+<div class=eq><span>∆<var>Z</var><sup>*</sup><sub>t+k</sub> = <var>E</var>(<var>o</var><sub>t+k</sub>) − <var>E</var>(<var>o</var><sub>t</sub>), &nbsp;&nbsp; ∆<var>Ẑ</var><sub>t+k</sub> = <var>M</var><sub>φ</sub>(<var>Z</var><sub>t</sub>, <var>a</var><sub>t</sub>)</span><span class=n>(1)</span></div>
+<div class=eq><span>ℒ<sub>corr</sub> = ‖∆<var>Ẑ</var> − ∆<var>Z</var><sup>*</sup>‖²₂ + β [ 1 − cos(∆<var>Ẑ</var>, ∆<var>Z</var><sup>*</sup>) ]</span><span class=n>(2)</span></div>
+<p><b>Why a residual.</b> Predicting the change rather than the next latent removes the static background, which would otherwise dominate an MSE on hundreds of tokens.</p>
+<p><b>What the network is</b> <span class="tag c">code</span> <code>siglip_dynamics_mlp.py:65–133</code>:</p>
+<ul>
+<li>The action is embedded once and broadcast to every token. Each token is concatenated with it and mapped by the <b>same</b> residual MLP (width [2048]×4), then projected back to the token width.</li>
+<li>Tokens are processed <b>independently</b>; there is no cross-token mixing. "40M" is the per-token network. In effect it is a learned optical-flow-like predictor per patch, conditioned on the action.</li>
+<li>Training uses AdamW 3·10<sup>−4</sup>, cosine schedule, 30 epochs, batch 512 for the deployed "h1-k10" correctors <span class="tag p">paper</span> App. C.3. So <var>k</var> = 10 control steps with a history of 1 frame <span class="tag i">inferred</span> from the name.</li>
+<li>The deployed models are trained with "a cosine-based training loss", i.e. not exactly (2).</li>
+</ul>
+<p><b>The latent</b> <span class="tag c">code</span> <code>pi05m.py:361–377</code>: <code>encode_siglip_only</code> runs <code>embed_image</code> (SigLIP vision tower + multimodal projector) on every present camera and concatenates the token blocks. For π0.5 on LIBERO that means agent view <b>and wrist</b> tokens, about 2 × 256 tokens of width 2048 <span class="tag i">inferred</span>.</p>
+
+<h3>2.2 The online inconsistency score</h3>
+<div class=eq><span><var>E</var><sub>t</sub> = 1 − cos( ∆<var>Z</var><sup>exp</sup><sub>t</sub>, ∆<var>Z</var><sup>real</sup><sub>t</sub> ), &nbsp; ∆<var>Z</var><sup>exp</sup><sub>t</sub> = <var>M</var><sub>φ</sub>(<var>Z</var><sub>t−k</sub>, <var>a</var><sub>t−k</sub>), &nbsp; ∆<var>Z</var><sup>real</sup><sub>t</sub> = <var>Z</var><sub>t</sub> − <var>Z</var><sub>t−k</sub></span><span class=n>(3)</span></div>
+<p>Cosine is computed on the flattened token stack, so <var>E</var><sub>t</sub> ∈ [0, 2] <span class="tag c">code</span> <code>eval_det.py:1201–1212</code>.</p>
+<ul>
+<li><b>Scale-free.</b> Cosine ignores the magnitude of the change. A correct direction at the wrong speed scores 0. A stalled robot (∆<var>Z</var><sup>real</sup> ≈ 0) gives an ill-defined cosine; the code adds 10<sup>−4</sup> noise when ‖∆<var>Z</var><sup>real</sup>‖ &lt; 10<sup>−4</sup> (<code>:1202–1205</code>), so a stall scores ≈ 1 at random <span class="tag d">derived</span>.</li>
+<li><b>One action predicts <var>k</var> steps.</b> The prediction uses only <var>a</var><sub>t−k</sub>, the first of the <var>k</var> actions actually executed. The other <var>k</var> − 1 actions are unseen by <var>M</var><sub>φ</sub>, so it must learn the <i>typical</i> continuation of the demos after <var>a</var><sub>t−k</sub>. <var>E</var><sub>t</sub> measures "is the scene changing the way demos usually change after an action like this", which is an on-manifold test, not a prediction of the commanded effect <span class="tag d">derived</span>.</li>
+</ul>
+
+<h3>2.3 The trigger</h3>
+<p><b>Paper version</b> <span class="tag p">paper</span> eq. 6–7, 12–13, App. B.2:</p>
+<div class=eq><span><var>T</var><sub>on</sub> = Me + λ<sub>on</sub>·MAD, &nbsp; <var>T</var><sub>off</sub> = Me + λ<sub>off</sub>·MAD over the last <var>w</var> scores; &nbsp; <var>c</var><sub>t</sub> = <var>c</var><sub>t−1</sub>+1 if <var>E</var><sub>t</sub> &gt; <var>T</var><sub>on</sub>; 0 if <var>E</var><sub>t</sub> &lt; <var>T</var><sub>off</sub>; else <var>c</var><sub>t−1</sub>; &nbsp; fire when <var>c</var><sub>t</sub> ≥ <var>p</var></span><span class=n>(4)</span></div>
+<p>The stated parameters are <var>w</var> = 15, λ<sub>on</sub> = 3, λ<sub>off</sub> = 2, <var>p</var> = 5, 5 safe steps to reset, and a 10-step cooldown. The threshold is <b>self-referenced to the episode's own recent scores</b>, so no calibration set and no false-alarm guarantee are involved. Compare FAIL-Detect's conformal band or CheckVLA's conformal threshold.</p>
+<p><b>Code version</b> <span class="tag c">code</span> <code>eval_det.py:500–610</code>, the state machine actually used in evaluation. It is richer than the paper's:</p>
+<ul>
+<li><var>E</var><sub>t</sub> is smoothed by an EWMA (α = 0.35) before thresholding.</li>
+<li>Thresholds are floored at 0.25 (<code>base_noise_floor</code>).</li>
+<li><b>No trigger is possible until 15 scores have been collected</b>: the threshold is 10.0, above the maximum of 2, during bootstrap.</li>
+<li>A <b>jump trigger</b> fires immediately when the EWMA rises by more than 0.06 in one step and is above <var>T</var><sub>on</sub>. This contradicts the paper's "only after <var>p</var> consecutive steps".</li>
+<li>A hard re-trigger fires after 3 steps 0.08 above <var>T</var><sub>on</sub>, even in cooldown.</li>
+<li>The trigger margin is 0.02 and the default cooldown is <b>0</b> (the paper says 10).</li>
+</ul>
+<p>Scores exist only from <var>t</var> ≥ <var>k</var>, so with <var>k</var> = 10 and a 15-score bootstrap the earliest possible interrupt is around env step 25 <span class="tag d">derived</span>.</p>
+
+<h3>2.4 Truncation: the adaptive horizon</h3>
+<p>On an interrupt the remaining queue is cleared (<code>action_plan.clear()</code>, <code>eval_det.py:1236–1237</code>) and the next call is made immediately. If <var>h</var> actions of the planned <var>H</var> had executed, the realised horizon is <var>H</var><sub>adaptive</sub> = <var>h</var> &lt; <var>H</var> <span class="tag p">paper</span>. This part alone produces most of the gain (§5).</p>
+
+<h3>2.5 Online Gradient Guidance: exactly what is guided</h3>
+<p>Here the paper and the code agree. The equations are in openpi time (τ = 1 noise, τ → 0 data; see <code>docs/FLOW_MATCHING_MATHS.html</code> §0).</p>
+<div class=eq><span><var>Â</var><sub>0</sub>(τ) = <var>A</var><sup>τ</sup> − τ<var>v</var><sub>τ</sub>, &nbsp;&nbsp; <var>â</var> = <var>Â</var><sub>0</sub>[0], &nbsp;&nbsp; ∆<var>Ẑ</var><sub>act</sub> = <var>M</var><sub>φ</sub>(<var>Z</var><sub>t</sub>, <var>â</var>)</span><span class=n>(5)</span></div>
+<div class=eq><span>∆<var>Z</var><sub>corr</sub> = ∆<var>Z</var><sub>exp</sub> − ∆<var>Z</var><sub>dev</sub> = <var>M</var><sub>φ</sub>(<var>Z</var><sub>t−k</sub>, <var>a</var><sub>t−k</sub>) − (<var>Z</var><sub>t</sub> − <var>Z</var><sub>t−k</sub>)</span><span class=n>(6)</span></div>
+<div class=eq><span>ℒ<sub>OGG</sub> = 1 − cos(∆<var>Ẑ</var><sub>act</sub>, ∆<var>Z</var><sub>corr</sub>), &nbsp;&nbsp; <var>v</var><sup>guide</sup><sub>τ</sub> = <var>v</var><sub>τ</sub> − η∇<sub><var>v</var><sub>τ</sub></sub>ℒ<sub>OGG</sub>, &nbsp;&nbsp; <var>A</var><sup>τ−∆τ</sup> = <var>A</var><sup>τ</sup> − ∆τ·<var>v</var><sup>guide</sup><sub>τ</sub></span><span class=n>(7)</span></div>
+<p><span class="tag c">code</span> In <code>pi05m.py:241–302</code>, <code>v_in = v_t.detach().requires_grad_(True)</code>; <code>x0_hat = x_t − t·v_in</code>; <code>a = x0_hat[:,0,:]</code>; <code>loss.backward()</code>; <code>v_t = v_in − eta·v_in.grad</code>. The target is <code>delta_z_right − delta_z_t</code>, with <code>delta_z_right</code> the corrector's prediction and <code>delta_z_t</code> the real residual at the trigger (<code>eval_det.py:1234–1235</code>), which is (6) exactly. Guidance runs when <code>step % 3 == 0</code>: steps 0, 3, 6, 9 of π0.5's 10. The default η in the config is 0.0, and the paper's η = 1 is set on the command line.</p>
+<p><b>Consequences</b> <span class="tag d">derived</span>:</p>
+<ul>
+<li><b>The gradient lives on one row.</b> <var>â</var> depends on <var>v</var> only through <var>v</var>[0], so ∇<sub><var>v</var></sub>ℒ = −τ·(∂ℒ/∂<var>â</var>) on row 0 and zero on rows 1…<var>C</var>−1. The guided step moves the first action's denoising trajectory directly; later actions move only because later denoising steps attend to the changed row 0.</li>
+<li><b>The step size shrinks toward the data end.</b> It is η·τ·∂ℒ/∂<var>â</var>: largest at the noise end (τ = 1), and multiplied by τ = 0.1 at the last guided step (step 9). Most of the steering happens early, where it is then partly washed out by subsequent unguided denoising.</li>
+<li><b>It is not classifier guidance.</b> Classifier guidance would add ∇<sub><var>x</var></sub> log <var>p</var>(<var>y</var>|<var>x</var><sub>τ</sub>) through the denoiser. OGG never differentiates through the VLA. It is a cheap, local edit of the velocity through a 40M MLP, which is why it is "plug-in" for any flow head that exposes <var>v</var>.</li>
+<li><b>The target direction is a heuristic.</b> (6) asks the first action's predicted effect to point along "what should have happened minus what did happen", i.e. back toward the expected trajectory. It is a direction-only objective (cosine), so the magnitude of the correction is set by the flow prior, not by the deviation's size.</li>
+</ul>
+
+<h2 id=s3>3. What the released code does, and where it differs from the paper</h2>
+<div class=tw><table>
+<tr><th>item</th><th>paper</th><th>code @ e02ab51</th><th>matters?</th></tr>
+<tr><td>trigger rule</td><td>median/MAD on raw <var>E</var><sub>t</sub>, <var>w</var> 15, λ 3/2, <var>p</var> 5, cooldown 10</td><td>EWMA α 0.35; floor 0.25; 15-step bootstrap at threshold 10; jump trigger (+0.06 in one step); hard re-trigger; cooldown 0 by default (<code>eval_det.py:500–610</code>)</td><td>Yes: earliest trigger ≈ step 25, and the jump trigger allows one-step firing</td></tr>
+<tr><td>second monitor class</td><td>—</td><td><code>inference/circuit_breaker.py</code>: window 100, median + 3·MAD, cooldown 5, no persistence. Not the one used by the eval script.</td><td>Only as a source of confusion</td></tr>
+<tr><td>OGG target and loss</td><td>(6)–(7)</td><td>identical; the option <code>repel_delta_z_error</code> (old objective) is also present</td><td>no</td></tr>
+<tr><td>OGG schedule</td><td>"injects the gradient" (all steps implied)</td><td>every 3rd denoising step (<code>guidance_apply_every = 3</code>)</td><td>small</td></tr>
+<tr><td>η default</td><td>1</td><td>0.0 in the dataclass; must be passed</td><td>reproduction trap</td></tr>
+<tr><td>baseline in the same run</td><td>—</td><td><code>guidance_compare_baseline: True</code> runs a guided and an unguided replan (<code>:1315–1360</code>); a parallel <code>env_baseline</code> also steps</td><td>The 2.12× OGG-query timing may include the comparison replan <span class="tag i">inferred</span></td></tr>
+</table></div>
+
+<h2 id=s4>4. Policies and cost</h2>
+<ul>
+<li><b>Backbones</b> <span class="tag p">paper</span>: π0.5 (main), SmolVLA, X-VLA, all flow-matching chunked VLAs fine-tuned per benchmark. No diffusion-policy or autoregressive VLA is tested. GR00T N1 is cited, not tested.</li>
+<li><b>Training cost.</b> Only <var>M</var><sub>φ</sub>, on cached frozen features (App. C), on 8×A100-40GB. <var>M</var><sub>φ</sub> sizes: 10M is worse, and 160M is no better than 40M (Table 9).</li>
+<li><b>Runtime cost</b> <span class="tag p">paper</span> App. D.3, MetaWorld:
+  <ul>
+  <li>a standard chunk call takes 278 ms, an OGG recovery call 588 ms (2.12×);</li>
+  <li>per episode, wall-clock is 1.62× for π0.5 (2.49 → 4.03 s), with 6.2 calls per episode and about 3.6 OGG events per episode (71.28 per task of 20 episodes);</li>
+  <li>the monitor itself is one vision-tower forward and one <var>M</var><sub>φ</sub> forward <b>per environment step</b>, a cost the paper does not separate out <span class="tag i">inferred</span>.</li>
+  </ul></li>
+</ul>
+
+<h2 id=s5>5. Results ledger</h2>
+<h3>5.1 MetaWorld, cross-architecture (Table 1; 50 tasks × 20 episodes, 4 difficulty splits)</h3>
+<div class=tw><table>
+<tr><th>backbone</th><th>baseline avg</th><th>+ VLA-Corrector</th><th>Δ</th></tr>
+<tr><td>π0.5</td><td class=num>48.70</td><td class=num>64.35</td><td class=num>+15.65</td></tr>
+<tr><td>SmolVLA</td><td class=num>61.90</td><td class=num>66.65</td><td class=num>+4.75</td></tr>
+<tr><td>X-VLA</td><td class=num>55.55</td><td class=num>59.60</td><td class=num>+4.05</td></tr>
+</table></div>
+<p class=small>The horizon is not stated in Table 1. The π0.5 baseline equals Table 4's horizon-50 row (48.72), so <var>H</var> = 50 <span class="tag i">inferred</span>. SmolVLA's 61.90 equals its horizon-10 row, so the backbones may be at different horizons. At n ≈ 1,000 per arm, ±3 pp is the 95% scale.</p>
+
+<h3>5.2 Horizon sweep (Table 4, MetaWorld)</h3>
+<div class=tw><table>
+<tr><th>π0.5 horizon</th><th>baseline succ / calls</th><th>ours succ / calls</th><th>Δ succ</th></tr>
+<tr><td>10</td><td>64.50 / 20.41</td><td>72.40 / 17.64</td><td class=num>+7.9</td></tr>
+<tr><td>20</td><td>61.40 / 10.77</td><td>69.10 / 9.95</td><td class=num>+7.7</td></tr>
+<tr><td>30</td><td>56.10 / 7.97</td><td>63.50 / 7.92</td><td class=num>+7.4</td></tr>
+<tr><td>40</td><td>54.45 / 5.96</td><td>60.80 / 6.04</td><td class=num>+6.35</td></tr>
+<tr><td>50</td><td>48.72 / 5.15</td><td>58.70 / 4.98</td><td class=num>+9.98</td></tr>
+</table></div>
+<p class=small>The horizon-50 "ours" here (58.70) differs from Table 1's 64.35 for what is presumably the same configuration. The paper does not explain the 5.65-point gap <span class="tag i">inferred</span>: maybe a different corrector, as Table 10's "MetaWorld-trained corrector" is also 58.7.</p>
+
+<h3>5.3 Ablations (π0.5, MetaWorld)</h3>
+<div class=tw><table>
+<tr><th>variant</th><th>Easy</th><th>Medium</th><th>Hard</th><th>Very Hard</th><th>avg</th></tr>
+<tr><td>baseline (open loop)</td><td class=num>70.5</td><td class=num>45.0</td><td class=num>38.3</td><td class=num>41.0</td><td class=num>48.70</td></tr>
+<tr><td>+ truncation only</td><td class=num>81.8</td><td class=num>53.6</td><td class=num>50.0</td><td class=num>56.0</td><td class=num>60.35</td></tr>
+<tr><td>+ truncation + OGG</td><td class=num>83.2</td><td class=num>61.7</td><td class=num>47.5</td><td class=num>65.0</td><td class=num>64.35</td></tr>
+<tr><td>internal head (coupled detector) + OGG</td><td class=num>65.2</td><td class=num>46.0</td><td class=num>36.5</td><td class=num>50.5</td><td class=num>49.55</td></tr>
+<tr><td>η = 0.1 / 1 / 10 / 100</td><td colspan=4></td><td>62.68 / 64.35 / 60.65 / 58.90</td></tr>
+<tr><td>corrector data r = 0.2 / 0.6 / 1.0</td><td colspan=4></td><td>48.32 / 52.20 / 54.32 (a different protocol: held-out split)</td></tr>
+<tr><td>corrector trained on LIBERO vs MetaWorld</td><td colspan=4></td><td>51.8 vs 58.7 (cross-domain transfer is weak)</td></tr>
+</table></div>
+
+<h3>5.4 LIBERO (Table 2) and real robot (Table 5)</h3>
+<ul>
+<li><b>LIBERO, π0.5:</b>
+  <ul>
+  <li>few-shot fine-tuned (<code>pi05_libero_base</code>): 94.0 → 97.8 with the corrector;</li>
+  <li>fully fine-tuned, no corrector: 96.95;</li>
+  <li>Spatial suite: 95.4 → 100.0.</li>
+  </ul>
+  Unperturbed LIBERO only: no LIBERO-Plus, no start-pose or camera perturbation. Horizon not stated.</li>
+<li><b>AgileX PiPER, π0.5 fine-tuned on 10–30 teleop demos per task, 9 tasks × 20 trials:</b>
+  <ul>
+  <li>pick-place 70.0 → 78.3;</li>
+  <li>alignment 56.7 → 73.3;</li>
+  <li>disturbance recovery 40.0 → 68.3;</li>
+  <li>average 55.6 → 73.3.</li>
+  </ul>
+  Disturbances are human moves of the object or target at a predefined phase.</li>
+<li><b>Mechanism figures:</b>
+  <ul>
+  <li>failures have a heavier high-<var>E</var><sub>t</sub> tail (Fig. 5);</li>
+  <li>83.7% of truncations fall in hand-labelled "critical" phases (Fig. 6);</li>
+  <li>post-interrupt recovery, defined as <var>E</var><sub>t</sub> &lt; <var>T</var><sub>off</sub> within 10 steps, is +0.23 with OGG (Fig. 7).</li>
+  </ul></li>
+<li><b>Failure types:</b> all mid-episode (contact, alignment, moved objects). <b>No start-state or camera perturbation is tested.</b> Baselines are the same backbone at the same horizon only. There is <b>no comparison</b> with RTC, bidirectional decoding, Rewind-IL or CheckVLA.</li>
+</ul>
+
+<h2 id=s6>6. Critique</h2>
+<div class="card caution"><ul style="margin:0">
+<li><b>Most of the gain is the adaptive horizon, not the guidance.</b> Truncation alone gives +11.65 of the +15.65 (Table 6). OGG's extra +4.0 is inside the ±3 pp scale per split, negative on Hard, and its recovery metric is <var>E</var><sub>t</sub> falling below <var>T</var><sub>off</sub>: a monitor-defined outcome, not task success <span class="tag p">paper</span> <span class="tag d">derived</span>.</li>
+<li><b>OGG edits one action.</b> The gradient lives on row 0 of the velocity (§2.5). For a 50-step chunk, "guided replanning" is a nudge to the first action plus whatever the attention layers propagate. That is consistent with a modest effect <span class="tag d">derived</span>.</li>
+<li><b>The truncation comparison is not matched.</b> Without the monitor, the natural control is "replan whenever a cheap trigger fires", e.g. RTC-style continuous replanning or a proprioceptive-error trigger. The only detector ablation is a coupled internal head that also changes the backbone (Table 7). A random-trigger control at matched call count, which would tell whether <i>when</i> to truncate matters or just <i>that</i> replanning happens more in critical phases, is missing <span class="tag i">inferred</span>.</li>
+<li><b>Table 1 and Table 4 disagree</b> for π0.5 at <var>H</var> = 50 (64.35 vs 58.70), and the backbones' horizons in Table 1 look different <span class="tag i">inferred</span>.</li>
+<li><b>The code is richer than the paper</b>: EWMA, floor, bootstrap, jump trigger, cooldown 0 vs 10. Reproduction should use the eval script's state machine, not §3.3's description or <code>circuit_breaker.py</code> <span class="tag c">code</span>.</li>
+<li><b>No false-alarm control.</b> The thresholds are relative to the episode's own scores, so the false-trigger rate on clean episodes is not reported or bounded. It is unknown how often a nominal success is interrupted and what that costs.</li>
+<li><b>The monitor needs a domain-matched corrector</b> (Table 10: LIBERO-trained on MetaWorld gives +3.1 vs +10.0). The latent is the policy's own SigLIP tokens of all cameras, so wrist motion dominates the residual during manipulation <span class="tag i">inferred</span>.</li>
+<li><b>Blind at the start, by construction.</b> No score before step <var>k</var>, and no trigger before the bootstrap fills (≈ step 25). It cannot address failures decided in the first chunk, and the paper does not claim to.</li>
+</ul></div>
+
+<h2 id=s7>7. Related runtime-correction methods (abstract level unless stated)</h2>
+<div class=tw><table>
+<tr><th>method</th><th>detects with</th><th>corrects by</th><th>acts at the start?</th><th>relation to us</th></tr>
+<tr><td><b>VLA-Corrector</b> (this doc)</td><td>predicted vs actual latent change of the policy's own image tokens</td><td>truncate; one guided replan (first-action velocity edit)</td><td>no (≈ step 25 earliest)</td><td>mid-episode drift; its guidance is the cheapest plug-in for a flow head</td></tr>
+<tr><td><b>CheckVLA</b>, <a href="https://arxiv.org/abs/2607.26789">2607.26789</a></td><td>a separately trained, frozen action-conditioned world model; conformal threshold bounding the episode-level false-first-intervention rate</td><td>rewrites the chunk suffix, retaining the old chunk in proportion to the exceedance; latency-aware hard prefix</td><td>no: verifies committed chunks</td><td>the false-alarm control VLA-Corrector lacks. RoboCasa365: 36.1 vs 27.6 for periodic replanning at matched invocations</td></tr>
+<tr><td><b>Rewind-IL</b>, <a href="https://arxiv.org/abs/2604.16683">2604.16683</a></td><td>TIDE: inter-chunk self-consistency of overlapping chunks, split-conformal</td><td><b>respawns</b> to the latest VLM-verified safe checkpoint state, then restarts inference</td><td>no</td><td>the "re-home and retry" family. For start pose, re-homing to the canonical start is its degenerate case</td></tr>
+<tr><td><b>COAST</b>, <a href="https://arxiv.org/abs/2605.17144">2605.17144</a></td><td>none (always on)</td><td>conceptor steering of hidden states into a "success" subspace fitted from a few success and failure rollouts; training-free; flow, AR and DP policies; +20 sim / +40 real</td><td><b>yes</b>: it steers latents at every call, including forward 0</td><td>the closest published analogue of option (a), wrist-token steering</td></tr>
+<tr><td><b>RTC</b>, <a href="https://arxiv.org/abs/2506.07339">2506.07339</a> (read in full sections; FLOW_MATCHING_MATHS §3.5)</td><td>none</td><td>ΠGDM inpainting so the next chunk agrees with the committed overlap; soft mask; guidance through the denoiser</td><td>no previous chunk at forward 0, but the machinery accepts any prefix</td><td>option (c): splice a re-homing or bridge prefix and let the flow complete it</td></tr>
+</table></div>
+
+<h2 id=s8>8. What it means for our stack</h2>
+
+<h3>8.1 Portability of VLA-Corrector itself to GR00T N1.7</h3>
+<p>GR00T facts are from <code>docs/FLOW_MATCHING_MATHS.html</code> §2.2 <span class="tag c">code</span>:</p>
+<ul>
+<li>Cosmos-Reason2-2B backbone (Qwen3-VL), truncated to 16 LLM layers;</li>
+<li>a 32-block AlternateVLDiT flow head;</li>
+<li><var>x</var><sub>t</sub> = (1−<var>t</var>)ε + <var>t a</var>, noise at <var>t</var> = 0;</li>
+<li>4 Euler steps at <var>t</var> = 0, .25, .5, .75;</li>
+<li>40 actions generated, 16 executed;</li>
+<li>unseeded <code>torch.randn</code>.</li>
+</ul>
+<div class=tw><table>
+<tr><th>component</th><th>port</th><th>notes</th></tr>
+<tr><td>latent <var>Z</var><sub>t</sub></td><td>Qwen3-VL vision tokens after the merger, both cameras: the image-token positions of the backbone input, or our S1 tap (<code>vla_harness/capture/groot_features.py</code>)</td><td>Needs a vision-tower forward <b>every env step</b>, where GR00T normally runs the backbone every 16. That cost is unmeasured on the 8 GB card <span class="tag i">inferred</span>. R-037: S2 (post-<code>vl_self_attention</code>) is flat under vision perturbations, so use pre-adapter tokens <span class="tag r">ours</span>.</td></tr>
+<tr><td><var>M</var><sub>φ</sub> training</td><td>Token-wise MLP on cached features from the IPEC LIBERO-Spatial demos (or our R-054 records); <var>k</var> = 10</td><td>Fits on 8 GB (40M parameters). Cached-feature tooling exists (<code>vla_harness/training/feature_cache.py</code>).</td></tr>
+<tr><td>OGG in GR00T time</td><td><var>Â</var> = <var>x</var> + (1 − <var>t</var>)<var>v</var> (data at 1); first action = row 0 of the 40; guidance step <var>v</var> ← <var>v</var> − η·(1−<var>t</var>)·∂ℒ/∂<var>â</var> on row 0</td><td>With 4 steps and "every 3rd", guidance runs at <var>t</var> = 0 and <var>t</var> = 0.75. At <var>t</var> = 0.75 it edits row 0 of the <b>final</b> output directly (the last-step identity, FLOW_MATCHING_MATHS eq. 27) and nothing else. The net effect on GR00T is a change to essentially 1 of the 16 executed actions <span class="tag d">derived</span>.</td></tr>
+<tr><td>truncation</td><td>Clear the harness's 16-step queue on a trigger; call the policy</td><td>Easy in <code>lerobot_policy.py</code>. With chunks every 16 steps, a trigger can save at most 15 steps per call.</td></tr>
+<tr><td>noise</td><td>Seed ε per call when comparing guided vs unguided (splice seeding)</td><td>Otherwise the comparison carries sampler spread (FLOW_MATCHING_MATHS eq. 36).</td></tr>
+</table></div>
+<p><b>Verdict</b> <span class="tag i">inferred</span>. Porting VLA-Corrector to GR00T is feasible on 8 GB. It would target scene 1327's regrasp cycling or other mid-episode drift, not our start-pose row. Expect most of any gain from truncation, i.e. replanning when the monitor fires.</p>
+
+<h3>8.2 The key question: a deployable, mechanism-guided first-chunk correction</h3>
+<p><b>What we know</b> <span class="tag r">ours</span>:</p>
+<ul>
+<li><b>Decided at forward 0 (R-057).</b> Start-pose success with the nominal chunk driven for <var>k</var> forwards is 24 / 22 / 21 / 19 of 30 for <var>k</var> = 1, 2, 4, all, against 6/30 with no correction. So k* = 1.</li>
+<li><b>The forward-0 rescue is real but an oracle (R-053).</b> The nominal first chunk flips 20/24 P-failures, against 0/22 for a plain re-run. The nominal chunk comes from the recorded control episode, aligned by forward index (res21's audit; Directions review C5).</li>
+<li><b>The wrist camera carries it (R-042).</b> Restoring only the wrist pixels to nominal transfers <b>W = 0.88</b> of the forward-0 action gap (median, 7 failing instances), against A = 0.17 for the agent view and IT = 0.96 for both token blocks. Stable across seeds at 0.85.</li>
+<li><b>Coverage, not capacity, limited retraining.</b> The adapters closed 30% on training starts and 12% held-out.</li>
+</ul>
+<p><b>Two simplifications VLA-Corrector does not have</b> <span class="tag d">derived</span>:</p>
+<ul>
+<li><b>The detector is free.</b> The perturbation is the joint configuration, which proprioception reports exactly. A forward-0 detector is ‖<var>q</var><sub>0</sub> − <var>q</var><sub>home</sub>‖ &gt; ε, or better the D20 achieved gripper offset in cm, which predicts success: ≤ 8 cm 0.93, 8–12 cm 0.65, 12–16 cm 0.22, &gt; 16 cm 0.15. No learned visual monitor is needed, and it has a calibrated meaning.</li>
+<li><b>The obvious correction needs no mechanism: re-homing.</b> Drive the arm to <var>q</var><sub>home</sub> with a joint-space controller, then start the policy. It is oracle-free, training-free and costs ~1 s of motion. Any mechanism-guided arm must beat it, or be preferable where re-homing is impossible (cluttered workspace, a real robot holding an object).</li>
+</ul>
+<div class=tw><table>
+<tr><th>option</th><th>what it needs</th><th>oracle-free?</th><th>8 GB cost</th><th>expected, and the risk</th></tr>
+<tr><td><b>(a1) wrist-image substitution at forward 0</b>: feed a <b>reference</b> wrist frame (the scene's nominal start view) in place of the live one, for the first call only</td><td>A per-scene reference wrist image: in simulation, render the scene at <var>q</var><sub>home</sub>; on a robot, the demo's first frame. Live agent view and state stay as they are.</td><td><b>Mostly.</b> No future and no nominal rollout is needed, only the canonical start view. It assumes the layout matches the reference.</td><td>Inference only; one extra render</td><td>Closest to the measured W = 0.88, so it should approach R-053's 20/24 <span class="tag i">inferred</span>. Risk: wrong for any other perturbation (layout, camera, objects), so gate it on the proprio detector. It "lies" to the policy; the executed chunk is nominal-shaped from a displaced start, which is what R-053 executed anyway.</td></tr>
+<tr><td><b>(a2) wrist-token steering</b> (Directions C18 / priorities t3b): add a learned direction δ to the wrist image tokens at S1 at forward 0, e.g. a COAST-style conceptor or the mean nominal-minus-perturbed shift</td><td>Paired features (perturbed vs nominal) on <b>training</b> starts to fit δ or a conceptor; direction × cm coverage</td><td>Yes, once fitted</td><td>Fitting is CPU or small GPU; inference is free</td><td>A single δ is unlikely to fit 7-D joint directions: the wrist view shift depends on direction <span class="tag i">inferred</span>. A state-conditioned δ(<var>q</var><sub>0</sub>) is the natural refinement. It shares retraining's coverage problem (held-out directions).</td></tr>
+<tr><td><b>(b) OGG-style guidance of the first chunk</b></td><td>A new objective, because no drift exists at forward 0. For example, train <var>M</var><sub>φ</sub>(<var>Z</var>, <var>a</var>) on demos and guide so that the first action's predicted wrist-latent change points toward <var>Z</var><sub>ref</sub> − <var>Z</var><sub>0</sub>, i.e. latent re-homing</td><td>Yes, with <var>Z</var><sub>ref</sub> = the reference frame's tokens</td><td><var>M</var><sub>φ</sub> training on cached features fits; guidance is cheap (no VLA backprop)</td><td>On GR00T's 4-step sampler it edits ~1 of 16 executed actions (§8.1), far too weak for a 12–20 cm offset <span class="tag d">derived</span>. Making it strong needs guidance through the DiT on all rows (classifier-style), which loses the cheapness. Lowest expected value.</td></tr>
+<tr><td><b>(c) RTC-style inpainting</b>: at forward 0, give GR00T's native RTC path a <b>prefix</b> (a short re-homing or bridge segment toward <var>q</var><sub>home</sub>) and let the flow complete the rest of the chunk consistently</td><td>A prefix generator: a joint-space interpolation toward <var>q</var><sub>home</sub>, or the Option A bridge controller. GR00T's <code>rtc_overlap_steps</code> / <code>rtc_frozen_steps</code> code (<code>groot_n1_7.py:665–681</code>).</td><td>Yes</td><td>Inference only</td><td>Unifies re-homing with the policy: the policy sees itself already moving home. Risk: the native path writes clean actions into the initial <b>noise</b>, which is off the training distribution (FLOW_MATCHING_MATHS §2.2). LeRobot's generic ΠGDM RTC is the principled alternative, but it is wired only for π0, π0.5 and SmolVLA.</td></tr>
+</table></div>
+
+<p><b>A minimal pre-registrable test</b> <span class="tag i">inferred</span>, design only, for SFT to pre-register and impl to build.</p>
+<ul>
+<li><b>Instances:</b> R-053's 10 start-pose instances × 3 noise seeds (P = 6/30, k1-oracle = 24/30 known), plus a <b>held-out</b> R-047 grid: ≥ 4 directions per scene, stratified by cm, so we do not measure on a failure-selected set only.</li>
+<li><b>Arms</b>, each with paired seeds and ε seeded per forward:
+  <ol>
+  <li>P (no correction);</li>
+  <li>R-053 oracle (upper bound);</li>
+  <li><b>re-home then run</b> (the bar);</li>
+  <li>(a1) reference-wrist substitution at forward 0;</li>
+  <li>(c) native-RTC re-homing prefix of 8 steps;</li>
+  <li>(a2) mean-shift wrist steering, fitted on training starts only.</li>
+  </ol>
+  Drop (b) unless (a1) works and a cheaper-than-re-homing story is needed.</li>
+<li><b>Readouts:</b>
+  <ul>
+  <li>primary: success /30 per arm (McNemar against P and against re-home);</li>
+  <li>secondary: first-chunk translation distance to nominal at fixed ε (the D20 metric, <code>runs/r056_diag/fit_firstchunk.json</code>);</li>
+  <li>time-to-success;</li>
+  <li>the nominal control (base ≥ 26/27, the R-055 convention) to show no harm at <var>q</var><sub>home</sub>.</li>
+  </ul></li>
+<li><b>Cost:</b> 6 arms × 30 rollouts ≈ 180 rollouts at ~45 s (R-057's rate) ≈ 2.3 GPU-hours, plus a held-out grid of ≈ 1 GPU-hour. No training except fitting δ for (a2).</li>
+<li><b>Reading:</b>
+  <ul>
+  <li>(a1) ≈ oracle and &gt; re-home → a mechanism-guided runtime fix exists, and the wrist finding becomes actionable;</li>
+  <li>re-home ≈ oracle → the start-pose row is solved by a 1-second manoeuvre, and mechanism work should move to rows without a free fix (camera);</li>
+  <li>(a2) &gt; P on held-out → parameter-only steering generalises where retraining did not.</li>
+  </ul></li>
+</ul>
+<div class="card caution"><b>The gap to keep in view.</b> VLA-Corrector, CheckVLA, Rewind-IL and RTC all address failures that develop <b>during</b> execution, observable as a mismatch between expected and actual change. Ours are <b>decided before any change is observed</b> (k* = 1), are fully visible in proprioception, and have a trivial physical fix. The publishable angle is therefore not "another detector" (Directions review: detection is crowded). It is a measured comparison of a <b>mechanism-specified</b> correction (wrist evidence) against re-homing and against retraining at matched cost. That comparison is only interesting if (a1) or (a2) wins somewhere re-homing cannot be used.</div>
+
+<h2 id=s9>9. Sources and glossary</h2>
+<div class=tw><table>
+<tr><th>source</th><th>depth</th></tr>
+<tr><td>Pan et al., VLA-Corrector, <a href="https://arxiv.org/abs/2607.01804">2607.01804v1</a></td><td><b>full</b> (PDF text, all sections and appendices; <code>docs/drafts/vla_corrector_sources/vla_corrector_2607.01804v1.txt</code>)</td></tr>
+<tr><td>ZJU-OmniAI/vla-corrector @ <code>e02ab51</code></td><td><b>read</b>: <code>policies/pi05_modified/modeling_pi05_modified.py</code>, <code>scripts/lerobot_eval_modified_detection.py</code> (state machine, trigger wiring), <code>safety/siglip_dynamics_mlp.py</code>, <code>siglip_dynamics/inference/{circuit_breaker,guidance_injector,safety_module}.py</code>; <code>extract.py</code> header only</td></tr>
+<tr><td>CheckVLA <a href="https://arxiv.org/abs/2607.26789">2607.26789</a> · Rewind-IL <a href="https://arxiv.org/abs/2604.16683">2604.16683</a> · COAST <a href="https://arxiv.org/abs/2605.17144">2605.17144</a></td><td>abstract only (arXiv API, 2026-10-07)</td></tr>
+<tr><td>RTC <a href="https://arxiv.org/abs/2506.07339">2506.07339</a>; ACG (Park et al., <a href="https://arxiv.org/abs/2510.22201">2510.22201</a>, cited by the paper as OGG's origin)</td><td>RTC: sections read 10-07; ACG: citation only, not read</td></tr>
+<tr><td>Ours</td><td>RESULTS.md R-037, R-042, R-053, R-057; <code>runs/r056_diag/</code>; <code>docs/FLOW_MATCHING_MATHS.html</code>; <code>docs/AMBITIOUS_DIRECTIONS_REVIEW.html</code> C5, C18; priorities t3b, d3</td></tr>
+</table></div>
+<div class=tw><table>
+<tr><th>term</th><th>meaning here</th></tr>
+<tr><td>LVM</td><td>Latent-space Vision Monitor: the score <var>E</var><sub>t</sub> (3) and its trigger.</td></tr>
+<tr><td><var>M</var><sub>φ</sub> ("corrector")</td><td>Token-wise MLP predicting the <var>k</var>-step change of the policy's image tokens from (tokens, one action).</td></tr>
+<tr><td>Truncation / adaptive horizon</td><td>Discarding the rest of the chunk on a trigger, so the executed horizon becomes <var>h</var> &lt; <var>H</var>.</td></tr>
+<tr><td>OGG</td><td>Online Gradient Guidance: one guided replan in which the first action's velocity is nudged by −η∇<sub><var>v</var></sub> of a cosine loss through <var>M</var><sub>φ</sub>.</td></tr>
+<tr><td>Re-homing</td><td>Moving the arm to its canonical start configuration before running the policy. The oracle-free baseline for start-pose failures.</td></tr>
+<tr><td>W, A, IT</td><td>R-042 splice arms: wrist pixels nominal; agent-view pixels nominal; both image-token blocks restored after the adapter.</td></tr>
+<tr><td>k*</td><td>The earliest number of corrected forwards that achieves the rescue (R-057): 1 for start pose.</td></tr>
+</table></div>
+
+</div></body></html>
