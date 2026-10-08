@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 7 (D10–D14; §7b branching, with PoC corrections, 10-08).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 8 (D10–D15; §6c external data; §7b branching with PoC corrections; 10-08).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -148,6 +148,7 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <li><b>Return</b> the segment from entry to exit, plus the policy's context frames before it.</li>
 </ol>
 The prefix (how the episode got there) is not part of the search. It is used only to <em>reach</em> the situation (sim state restore, teleop setup), and as an optional cheap filter where initial states are shared. An empty result is a finding: the situation is a coverage gap, and the spec falls back to producing it instead of finding it. Worked example in §6b.</td><td>GR00T N1.7 has no memory: its preprocessor has <code>state_horizon: 1</code> and <code>video_horizon: null</code>, so the situation is fully described by one snapshot. History that matters (e.g. an earlier nudge) already shows in the snapshot. A full-prefix match would discard nearly all usable data, since dataset episodes almost never share a trajectory. A policy with history would match over its observation window, which is why the window is a field.</td><td>Match the full prefix up to the failure: rejected (needlessly narrow).</td></tr>
+<tr><td class="id">D15 <span class="tag prop">proposed · not yet read by the user</span></td><td><b>Every situation field records its source and uncertainty</b>: <code>exact (sim)</code>, <code>estimated (model, ±σ)</code> or <code>unavailable</code>. The search compares only the fields both sides have, and widens each tolerance by the estimate's error. An image-embedding match is the universal fallback for any data with images. See §6c for what each external tier needs.</td><td>Outside a simulator, object pose, contacts and "holding" have to be estimated or replaced. Without a source tag, an estimated 4 cm looks as trustworthy as an exact one. Which fields can be estimated depends on the data tier (§6c). The mechanism decides whether an external tier can help at all: vision faults need appearance (embeddings, any tier); geometry faults need metric object position (tier 1, or tier 2 with depth and calibration).</td><td>Treating estimated fields as exact: rejected. Embedding-only search everywhere: rejected as the default (fuzzy, hard to explain), kept as a fallback.</td></tr>
 </table></div>
 
 <h3>The four pieces</h3>
@@ -227,6 +228,35 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
 <tr><td>Unknown</td><td>Everything</td><td>Nothing</td><td>Narrowest; most likely empty</td></tr>
 </table></div>
 <p><b>Prefix use:</b> the 12 cm start offset and the six forwards of approach are not in the query. They are used only to reproduce the situation: restoring the sim state at the root, or setting up a teleoperator.</p>
+
+<h2>6c · Searching external datasets <span class="tag prop">proposed · not yet read by the user</span></h2>
+<div class="tw"><table>
+<tr><th>Tier</th><th>Examples</th><th>Has</th><th>Lacks</th></tr>
+<tr><td>1 · Other sim datasets</td><td>LIBERO-Recover, RoboCasa, MimicGen, LIBERO-MAX</td><td>Full sim state, if states and scene files ship</td><td>Nothing important: restore states as the toy did</td></tr>
+<tr><td>2 · Real-robot logs</td><td>DROID, Bridge, Fractal (OXE)</td><td>Images, proprioception (eef pose, gripper width), actions, often camera calibration and an episode success flag</td><td>Object poses, contacts, "holding"</td></tr>
+<tr><td>3 · Video only</td><td>Human or egocentric video, generated video</td><td>Images</td><td>Proprioception, actions, object poses</td></tr>
+</table></div>
+<div class="tw"><table>
+<tr><th>Component</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr>
+<tr><td>Phase and root detection</td><td>Exact</td><td>Mostly deterministic from proprioception: gripper closing, eef speed, gripper width</td><td>A hand or gripper pose model, or IDM-predicted gripper actions, then the same rules; noisier</td></tr>
+<tr><td>Holding / success criterion</td><td>Exact</td><td>Gripper width stopping short of fully closed gives a deterministic holding test on parallel grippers. "Lifted ≥ h" needs object height (estimate) or a VLM judge</td><td>VLM or video judge</td></tr>
+<tr><td>Gripper → object offset</td><td>Exact</td><td>Estimated: a 2D detector + depth (where available, e.g. DROID stereo) + calibration, or a 6D pose model (needs a mesh). Tolerances widen.</td><td>Image-space only, no metric units</td></tr>
+<tr><td>Layout / neighbours</td><td>Exact</td><td>Detector + depth</td><td>Image-space</td></tr>
+<tr><td>Visual condition</td><td>Exact (known perturbation)</td><td>Image embedding</td><td>Image embedding</td></tr>
+</table></div>
+<ul>
+<li><b>A match isn't automatically training data.</b> Under D10, a successful real-robot segment is evidence the situation is solvable: a reference for teleop or sim generation, and a corpus count. It can't fine-tune our LIBERO-tuned GR00T without converting it to that action space and camera setup. For our own policy, external search mostly says <em>what to produce</em>; producing still happens in sim or teleop.</li>
+<li><b>Suggested order:</b> a tier-1 dataset first (no new models; tests the search on data we didn't generate), then one tier-2 dataset with depth and calibration (DROID) to measure the cost of estimation, then tier 3, embedding-only.</li>
+<li><b>Where an inverse dynamics model (IDM) helps.</b> An IDM predicts actions between frames. It fills the <em>action and proprioception</em> gaps, which matter for turning matched video into training data (tier 3), not the <em>object-pose</em> gaps that the search needs. Tier 2 already has actions, so an IDM adds little there. On tier 3 the actions come out in the IDM's training embodiment, so human video needs retargeting from hand to gripper. One direct use for search: IDM-predicted gripper open/close gives tier-3 phase boundaries.</li>
+<li><b>Phase segmentation without labels.</b> Cheapest first:
+  <ol>
+  <li><b>rules on proprioception</b> (gripper events + eef speed), no training, for tiers 1–2;</li>
+  <li>for tier 3, <b>the same rules on a predicted gripper signal</b> (IDM or hand-pose model);</li>
+  <li>if rules fail, <b>weak supervision</b>: train a phase classifier on (vision + proprio) using labels from our sim segmenter, or zero-shot VLM labels on key frames, then distil. Expect a sim-to-real gap on the vision part; proprio features transfer better;</li>
+  <li>unsupervised change-point detection or clustering of embeddings, as a last resort (its segments still need naming).</li>
+  </ol>
+  Every route needs a small hand-labelled check set per tier (20–40 episodes) to measure accuracy, the same as P4b.</li>
+</ul>
 
 <h2>7 · Pending for a working PoC design</h2>
 <p class="muted">Updated at iteration 5. "Must" items block a PoC; "later" items don't.</p>
