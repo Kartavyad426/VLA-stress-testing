@@ -477,7 +477,7 @@
     <tr><td>Data-sourcing §3.7, portability to GR00T N1.7: format fit per source, the <code>clip_outliers</code> clamp, direction × cm coverage, style alignment, what fits on 8 GB and what needs rented compute</td><td>same</td><td><code>1d3eeaf</code></td><td>done</td></tr>
     <tr><td>Flow matching from first principles; the GR00T N1.7 and π0 action heads from code; reading of the D20 loss vs the sampled chunk; detectors; RTC; retraining recommendations. Updated with the 10-07 fit test.</td><td><code>docs/FLOW_MATCHING_MATHS.html</code></td><td><code>bfff07c</code></td><td>done (priorities d1)</td></tr>
     <tr><td>Libero-V (arXiv:2512.02902) vs our perturbations</td><td>message to prim only (10-07), no doc</td><td>—</td><td>done; verdict below</td></tr>
-    <tr><td>VLA-Corrector full read and the runtime-correction framing</td><td><code>docs/VLA_CORRECTOR_MATHS.html</code></td><td>— (uncommitted)</td><td><b>done 10-08</b> after this section was first written (priorities d3); verdict sent to prim. §3 below is kept as the record of what was verified.</td></tr>
+    <tr><td>VLA-Corrector full read and the runtime-correction framing</td><td><code>docs/VLA_CORRECTOR_MATHS.html</code></td><td><code>ea86076</code></td><td>done 10-08 (priorities d3); verdict sent to prim; see §3</td></tr>
   </table></div>
   <p><b>Libero-V verdict</b>, kept here so it isn't lost. [V] = read in the paper, code or PDF; [I] = inferred.</p>
   <ul class="tight">
@@ -498,27 +498,26 @@
     <li><b>Reproducible here.</b> A ~10-line knob (<code>cam_pos += Δp</code>; <code>cam_quat = q</code>) would reproduce Adapt3R's poses exactly on tabletop scenes [I]. LIBERO-Plus remains the closest benchmark to ours. For R-060, note Domain Arithmetic (arXiv:2607.00666, one-shot adaptation under camera shift; abstract only).</li>
   </ul>
 
-  <h3>3. In flight: VLA_CORRECTOR_MATHS (~45%, priorities d3)</h3>
+  <h3>3. VLA_CORRECTOR_MATHS: done 10-08 (priorities d3, <code>ea86076</code>)</h3>
   <ul class="tight">
-    <li><b>Read in full:</b> arXiv:2607.01804v1, including appendices B–E. Code is released at <code>github.com/ZJU-OmniAI/vla-corrector</code>, read at <code>e02ab51</code>.</li>
+    <li><b>Read in full:</b> arXiv:2607.01804v1, including appendices B–E, and the released code at <code>ZJU-OmniAI/vla-corrector@e02ab51</code>: the modified π0.5 policy, the eval script's trigger state machine, the corrector MLP and the inference helpers.</li>
     <li><b>Verified from code:</b>
       <ul class="tight">
-      <li><b>OGG gradient path.</b> In <code>src/lerobot/policies/pi05_modified/modeling_pi05_modified.py:215–302</code>, <code>v</code> is detached. The loss flows only through <code>x0_hat = x_t − t·v</code> → the first action <code>x0_hat[:,0,:]</code> → the ~40M MLP corrector. So there is no backprop through the VLA, and only row 0 of the velocity gets a direct correction.</li>
-      <li>OGG is applied every 3rd denoising step by default, with η = 1.</li>
-      <li>The target is <code>delta_z_right − delta_z_t</code> = (corrector-predicted residual) − (real residual). This matches paper eq. 9 (<code>lerobot_eval_modified_detection.py:1234–1235</code>).</li>
-      <li>The latent is a SigLIP token cache (<code>src/siglip_dynamics/extract.py</code>).</li>
+      <li><b>OGG never backprops through the VLA.</b> It detaches <code>v</code> and takes the gradient only through <code>x̂ = x_t − t·v</code> → the <b>first</b> action → the 40M MLP, so only row 0 of the velocity is edited (<code>modeling_pi05_modified.py:241–302</code>).</li>
+      <li>OGG runs on every 3rd denoising step; η defaults to 0 in the config, and the paper's η = 1 is passed on the command line.</li>
+      <li>The target is (predicted residual − real residual), which is paper eq. 9.</li>
+      <li>The latent is SigLIP + projector tokens of <b>all</b> cameras, wrist included.</li>
+      <li>The corrector MLP processes each token independently.</li>
       </ul></li>
-    <li><b>Discrepancy.</b> The released <code>src/siglip_dynamics/inference/circuit_breaker.py</code> (window 100, median + 3·MAD, cooldown 5, no persistence or hysteresis) differs from the paper's rule (window 15, λ<sub>on</sub> 3 / λ<sub>off</sub> 2, p = 5, cooldown 10). The eval script has its own state machine (<code>threshold_window_size</code> 15, line 502) that I have not finished reading.</li>
-    <li><b>Paper facts to use:</b>
+    <li><b>Code vs paper.</b> The trigger actually used (<code>lerobot_eval_modified_detection.py:500–610</code>) adds EWMA smoothing, a 0.25 floor, a 15-score bootstrap during which it cannot fire, a one-step jump trigger and cooldown 0 (the paper says persistence 5 and cooldown 10). The earliest trigger is about env step 25. <code>circuit_breaker.py</code> is a third, unused variant.</li>
+    <li><b>Results.</b> MetaWorld π0.5: 48.7 → 64.35, of which truncation alone gives 60.35; OGG adds ~4 and is negative on the Hard split. Table 1 and Table 4 disagree at H = 50 (64.35 vs 58.70). LIBERO, unperturbed and few-shot: 94.0 → 97.8. Real robot: 55.6 → 73.3, with the biggest gain (+28 pp) on mid-task object moves. No start-state or camera perturbation is tested, and there are no RTC, Rewind-IL or CheckVLA baselines.</li>
+    <li><b>Verdict on the key question.</b> Our method can be framed as a runtime correction, but not by porting this one.
       <ul class="tight">
-      <li>Backbones: π0.5, SmolVLA, X-VLA (all flow-based).</li>
-      <li>MetaWorld π0.5, horizon 50: 48.7 → 64.35. Truncation alone gets to 60.35.</li>
-      <li>LIBERO few-shot: 94.0 → 97.8.</li>
-      <li>OGG queries take 2.12× longer (588 vs 278 ms); per-episode overhead is 1.62×.</li>
-      <li>83.7% of truncations fall in grasp or align phases. All targets are mid-episode drift; nothing on a bad start.</li>
+      <li>At forward 0 the detector is free: proprioception, i.e. joint distance or the D20 achieved cm offset.</li>
+      <li>The bar is <b>re-homing</b> (Directions review C5).</li>
+      <li>Ranked candidates: (a1) a reference wrist frame substituted at forward 0, the closest to R-042's W = 0.88; (c) GR00T's native RTC path with a re-homing prefix; (a2) learned wrist-token steering, the COAST analogue, which carries the coverage risk; (b) OGG-style guidance, too weak on GR00T's 4-step sampler (it edits ≈ 1 of 16 executed actions).</li>
+      <li>§8.2 sketches a 6-arm test (P, oracle, re-home, a1, c, a2) on R-053's instances plus an R-047 held-out grid, ≈ 3.3 GPU-hours. It is <b>not pre-registered</b>.</li>
       </ul></li>
-    <li><b>Left to do:</b> finish the eval-script state machine and the definitions of k and the latent; write §1–8, including the key question (detector at forward 0 plus (a) wrist-token steering, (b) OGG-style first-chunk guidance, (c) RTC inpainting: what each needs, whether it is oracle-free, its 8 GB cost, and a minimal pre-registrable test); position against CheckVLA, Rewind-IL, COAST and RTC at abstract level. Then send prim a 5-line verdict.</li>
-    <li><b>To resume:</b> sources are in <code>docs/drafts/vla_corrector_sources/</code> (see 7). Copy the style from <code>docs/FLOW_MATCHING_MATHS.html</code> (same CSS and tag classes; its §2.2 has the GR00T facts).</li>
   </ul>
 
   <h3>4. Open decisions for the user</h3>
@@ -527,7 +526,7 @@
     <li><b>t2e / D23:</b> pre-registration (SFT). Per §3.7, include a pre-training clamp-share check and the style checks.</li>
     <li><b>r60b:</b> whether to amend R-060 before its GPU parts: score per LIBERO-Plus camera family, add an Adapt3R-pose bridge arm, and revisit the noise row given FTM's zero noise gain in the source paper.</li>
     <li><b>Whether to write the Libero-V comparison into a doc</b> (none exists; this section is the only record).</li>
-    <li><b>d3:</b> nothing pending. The user approved the VLA-Corrector doc; it only needs finishing.</li>
+    <li><b>d3 follow-up:</b> whether SFT should pre-register the first-chunk runtime-correction test (VLA_CORRECTOR_MATHS §8.2). It overlaps priorities t3b (wrist-token steering) and the re-homing arm of t2e / D23.</li>
   </ul>
 
   <h3>5. Findings with numbers</h3>
@@ -569,13 +568,13 @@
       <li><code>spatial_adapt_2512.02902v2.txt</code>;</li>
       <li><code>libero_plus_2510.13626v3.txt</code>.</li>
       </ul>
-      These are third-party texts and code, so prim decides whether to commit or gitignore them.</li>
+      Third-party texts and code, <b>gitignored</b> by prim (<code>.gitignore:58</code>). They exist only on this machine.</li>
   </ul>
 
   <h3>8. Next steps</h3>
   <div class="tbl"><table>
     <tr><th>Step</th><th>Owner</th></tr>
-    <tr><td>Finish <code>docs/VLA_CORRECTOR_MATHS.html</code> (d3) and send prim the 5-line verdict</td><td>res</td></tr>
+    <tr><td>If approved: turn VLA_CORRECTOR_MATHS §8.2 into a pre-registration (6 arms, R-053 instances plus a held-out grid)</td><td>user to decide · SFT to pre-register · impl to build</td></tr>
     <tr><td>Decide t2b/D21, r60b, and whether a Libero-V doc is wanted</td><td>user</td></tr>
     <tr><td>If D23 goes ahead: add the clamp-share and style checks (§3.7) to the pre-registration</td><td>SFT</td></tr>
     <tr><td>If r60b amends R-060: the Adapt3R-pose knob (~10 lines in <code>vla_harness/envs/libero_env.py</code>)</td><td>impl</td></tr>
