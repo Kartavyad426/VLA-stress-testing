@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mining Spec Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code,pre{font:13px var(--mono);background:var(--surface-2);border-radius:3px}
+  code{padding:1px 4px}
+  pre{padding:12px 14px;overflow-x:auto;border:1px solid var(--rule)}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);vertical-align:1px;white-space:nowrap}
+  .tag.agreed{background:var(--ok);color:var(--surface)}
+  .tag.prop{background:var(--warn);color:var(--surface)}
+  .tag.open{background:var(--accent);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+  .piece{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;font-size:14px}
+  .piece b{display:block;font-size:15px;margin-bottom:2px}
+  .piece .n{font:500 12px var(--mono);color:var(--accent)}
+  .piece.core{border-top:3px solid var(--accent)}
+  .piece.prod{border-top:3px solid var(--ok)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Mining Spec Design</h1>
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 1.
+Records what has been decided about the failure-scenario mining spec, why, and what is still open.
+Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
+<span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
+<span class="tag open">open</span> not yet discussed.</p>
+
+<div class="card top">
+<h3>Bottom line so far</h3>
+<ul>
+<li>A <b>mining spec</b> describes the failure scenarios of <b>one policy in one deployment setting</b>. Each instance is precise enough to do three jobs: query a dataset, brief a teleoperator, and seed sim generation.</li>
+<li>An instance is either a <b>complete episode</b> or the <b>segment</b> of an episode where the failure happens. Segments serve as sub-failures. Complete episodes are the basis for generating more demos.</li>
+<li>The work splits into four pieces: a shared <b>scenario index</b> (built first), the <b>mining spec</b> (the product for now), a <b>failure corpus</b> of frequencies across policies and deployments built from open-source data, and a <b>client intent spec</b> (Phase 1 input).</li>
+<li>Phase 0 specs carry <b>no cost</b>. Cost, severity and urgency arrive with the client in Phase 1. This is consistent with PLAN.md §9.3: we do not ship a cardinal severity without the client's prevalence.</li>
+<li>The mining spec is the successor to PLAN.md §9's <b>Data Gap Manifest</b>. It widens a manifest row from "a perturbation boundary" to "any failure scenario, at episode or segment level, usable three ways".</li>
+</ul>
+</div>
+
+<h2>1 · Intent</h2>
+<h3>What the user said</h3>
+<ul>
+<li>Not all failures are equal. Some matter more to a business requirement, so we need an estimate of the loss each failure mode causes, driven by how often it appears. Each failure gets cost, severity and urgency factors.</li>
+<li>A failure in a bigger task can be an aggregate of smaller failures across a range of tasks. Some of the smaller ones may not be human-interpretable.</li>
+<li>For start-pose failures the spec has an initial configuration. For mid-episode failures such as a retry loop, we need to mine scenarios that contain a similar section.</li>
+<li>One spec instance should let us mine scenarios from a dataset, let a teleoperator understand it in isolation and perform a successful demonstration, and generate sim data.</li>
+<li>Phase 0 covers the general failures of a policy (perturbations plus possible fixes). Phase 1 starts from the client: their domain problems, the failures they most want solved, their purpose, and what they hand us (a spec request only, or a policy plus raw data to test on their deployment settings in sim). In Phase 1 the spec becomes an intermediate state rather than the final product. <b>For now, treat the mining spec as the final product</b>, while keeping it easy to mine from.</li>
+<li>The format is ours to decide: fixed core fields, plus room for customer-domain settings when needed.</li>
+<li>Our mechanism localisation is proven only on perturbations. Whether it generalises to diverse tasks is untested; res22 is researching failure modes beyond perturbations. The user expects similar efforts to generalise.</li>
+<li>For now we work on open-source datasets, so we can build a corpus of failure frequencies across policies and deployment scenarios, per scenario and sub-scenario. That strengthens the offering.</li>
+<li>It may become a commercial offering.</li>
+</ul>
+<h3>Success criteria (prim's reading, to confirm)</h3>
+<ul>
+<li>A teleoperator who has never seen our harness can read one instance and know what situation to set up and what a successful demonstration looks like.</li>
+<li>The same instance, run as a query, returns matching episodes or segments from a dataset, with no human in the loop.</li>
+<li>The same instance gives a sim generator enough to reproduce the situation: initial state, conditions, task.</li>
+<li>Specs from different policies and clients can be compared through shared scenario ids, without exposing one client's details in another's spec.</li>
+</ul>
+
+<h2>2 · What already exists in this repo</h2>
+<div class="tw"><table>
+<tr><th>Where</th><th>What it gives the mining spec</th><th>How the new design relates</th></tr>
+<tr><td><code>PLAN.md</code> §9 Data Gap Manifest</td><td>A schema for failure rows with evidence attached: <code>failure_conditional</code> (P(fail | condition) with CI), <code>condition_prevalence</code> (client-supplied), <code>severity</code> (computed at delivery), <code>failure_family</code>, <code>symptom</code>, <code>trigger</code>, <code>boundary</code>, <code>coverage_required</code> (diversity, never counts), <code>fixability</code>, <code>failure_cost</code>, <code>provenance</code></td><td>The predecessor. A manifest row is perturbation-shaped (axis plus boundary). A mining-spec instance generalises it to episode and segment scenarios with three uses. Most of §9's rules carry over (§4 below).</td></tr>
+<tr><td><code>PLAN.md</code> §9.3</td><td>Severity is not ours to compute. P(condition) in sim is an artifact of the grid we chose.</td><td>Matches the decision that Phase 0 carries no cost (D6). It bears on how the corpus reports frequency (T1).</td></tr>
+<tr><td><code>PLAN.md</code> §7b</td><td>Fixability class (augmentation / data / architecture / operational), operating envelope, failure cost (benign / disruptive / safety)</td><td>Candidate fields. Fixability says whether mining is even the right remedy.</td></tr>
+<tr><td><code>vla_harness/mining/classify.py</code>, <code>phases.py</code></td><td>Families: visual_grounding, language_grounding, spatial_reasoning, planning, manipulation, recovery, distribution_shift, ambiguous. Terminal behaviours, including <code>retry_loop</code>, <code>failed_grasp_no_retry</code> and <code>never_reached</code>. Phase segmentation (approach / grasp / transport / place). A per-failure cost from terminal state.</td><td>A working seed for the scenario index and for machine-checkable segment definitions. Built and tested on LIBERO only.</td></tr>
+<tr><td><code>docs/DATA_MINER_SPEC.html</code></td><td>Seven demo <em>sources</em> behind one output contract (re-render, rescue minting, scripted expert, MimicGen-style, relabel, DAgger, teleop)</td><td>Downstream. The mining spec says <em>what</em> to mine or produce; DATA_MINER_SPEC says <em>how</em> a demo gets made.</td></tr>
+<tr><td><code>docs/FAILURE_TO_DATA_PIPELINE.html</code></td><td>A failure becomes a data specification once localised to a mechanism: which dimension to hold fixed and which to resample</td><td>The optional mechanism block (D7).</td></tr>
+<tr><td><code>docs/FAILURE_MINING_RELEVANCE.html</code></td><td>Unit of analysis (policy, task, condition) plus the client's ODD, prevalence weighting, and margin to the boundary</td><td>The Phase 1 framing and the client intent spec.</td></tr>
+</table></div>
+
+<h2>3 · Decisions and why</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Decision</th><th>Why</th><th>Alternatives considered</th></tr>
+<tr><td class="id">D1 <span class="tag agreed">agreed</span></td><td><b>One instance, three uses:</b> dataset query, teleoperator brief, sim generation recipe.</td><td>One description of a scenario avoids three drifting ones. Each use checks the others: a query that finds nothing, or a brief the operator can't act on, exposes an under-specified scenario.</td><td>Separate artefacts per use: rejected, because they drift apart.</td></tr>
+<tr><td class="id">D2 <span class="tag agreed">agreed</span></td><td><b>Phase 0 then Phase 1.</b> Phase 0 is a generic spec per policy (perturbations plus possible fixes), written by us. Phase 1 is client-driven. The spec is the final product now and an intermediate state later.</td><td>Phase 0 can be built today from our harness and open data. Phase 1 needs a client. Designing for "executable later" now avoids a rewrite.</td><td>—</td></tr>
+<tr><td class="id">D3 <span class="tag agreed">agreed</span></td><td><b>A spec is per (policy, deployment setting).</b> A new policy, or a new deployment, gets a new spec. Entries are inline and self-contained.</td><td>It's the natural unit to sell (one engagement, one document). The operator and the miner need only this file. Rates and mechanism sit next to their scenario, so no join can go wrong (cf. the <code>rollout_id</code> join bug, D25). Versioning is simple: retest, get a new spec.</td><td>A shared scenario catalogue plus per-policy assessment records (prim's first proposal). Rejected: no single deliverable, client details would sit in a shared catalogue, and it's more machinery than Phase 0 needs. Its one real benefit, cross-spec comparison, is kept through D9's shared index.</td></tr>
+<tr><td class="id">D4 <span class="tag agreed">agreed</span></td><td><b>Instance granularity: a complete episode or a segment.</b> Segments are where the failure happens and serve as sub-failures. Complete episodes are the basis for generating more demos.</td><td>Start-pose failures are decided at forward 0 and need the whole episode from its initial configuration. Mid-episode failures (a retry loop) need a window that can be matched inside other episodes.</td><td>—</td></tr>
+<tr><td class="id">D5 <span class="tag agreed">agreed</span></td><td><b>Non-interpretable sub-failures are allowed.</b> They are used to measure the <em>feasibility</em> and the <em>severity</em> of solving a problem, treated independently of each other. A teleoperator brief isn't required for them. Whether more demos on them help is deferred; they may still be useful for mining.</td><td>Some sub-failures are defined by signals a human can't see (e.g. an internal-feature pattern). Forcing a human description would invent one. Keeping feasibility and severity separate avoids ranking an easy, low-impact fix above a hard, high-impact one.</td><td>Requiring every instance to be interpretable: rejected, because it would drop real failures.</td></tr>
+<tr><td class="id">D6 <span class="tag agreed">agreed</span></td><td><b>Phase 0 carries no cost.</b> Cost, severity and urgency enter in Phase 1 from the client. A Phase 0 spec may not even show the failures a client has in mind, and that is acceptable.</td><td>Consistent with PLAN.md §9.3: P(condition) in sim is our own choice, so a cost built on it would be invented.</td><td>A default cost in Phase 0: rejected.</td></tr>
+<tr><td class="id">D7 <span class="tag agreed">agreed</span></td><td><b>Mechanism is an optional block with an evidence status.</b> It is filled where localisation has been run, otherwise marked untested.</td><td>Localisation is validated only on perturbations. Its generality across task diversity is untested; res22 is working on that.</td><td>A mandatory mechanism: rejected for now.</td></tr>
+<tr><td class="id">D8 <span class="tag agreed">agreed</span></td><td><b>Fixed core plus customer extensions.</b> We define the core fields; customer-domain settings go in a declared extension area.</td><td>A stable core keeps specs comparable and searchable; extensions keep the core from bloating per client.</td><td>—</td></tr>
+<tr><td class="id">D9 <span class="tag agreed">agreed</span></td><td><b>Four pieces, in this order:</b> (1) scenario index, (2) mining spec, (3) failure corpus, (4) client intent spec. Each gets its own short design.</td><td>The index is what the other three point at. The corpus is counting once 1 and 2 exist. Intent is Phase 1.</td><td>One combined design: rejected, too large to settle at once.</td></tr>
+</table></div>
+
+<h3>The four pieces</h3>
+<div class="pieces">
+<div class="piece core"><span class="n">1 · first</span><b>Scenario index</b>A shared hierarchy of scenarios and sub-scenarios with stable, versioned ids. No client details.</div>
+<div class="piece prod"><span class="n">2 · the product</span><b>Mining spec</b>Per (policy, deployment). Instances are episodes or segments, each tagged with index ids.</div>
+<div class="piece"><span class="n">3</span><b>Failure corpus</b>Frequency per index id across (policy, deployment), measured on open-source datasets and our sim runs.</div>
+<div class="piece"><span class="n">4 · Phase 1</span><b>Client intent spec</b>What the client has in mind: domain, priority failures, purpose, assets. Shapes which instances a spec focuses on.</div>
+</div>
+<p class="muted">2, 3 and 4 refer to 1 by id. 3 aggregates over many 2s. 4 drives which 2 gets built.</p>
+
+<h2>4 · Rules carried over from PLAN.md §9 <span class="tag prop">proposed</span></h2>
+<ul>
+<li><b>Every instance is a claim with its evidence attached:</b> the episodes it was observed in, the seeds, the run ids, the checkpoint revision. An instance without evidence is a hypothesis and must say so.</li>
+<li><b>Coverage is diversity, not counts.</b> What to mine is stated as the axes to vary (objects, scenes, poses), never "500 more demos" (§9.1, Lin et al. 2024).</li>
+<li><b>Untested is visible.</b> An empty mechanism or validation block renders as "untested", never as absent.</li>
+<li><b>Fixability.</b> Each instance says whether mining is the right remedy at all (augmentation / data / architecture / operational).</li>
+<li><b>Sampling arm.</b> Any frequency records whether it came from uniform or failure-targeted sampling. Only uniform-arm frequencies are comparable.</li>
+</ul>
+
+<h2>5 · Tensions</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Tension</th><th>Status</th></tr>
+<tr><td class="id">T1</td><td><b>What a corpus frequency means.</b> Counting a scenario across open datasets gives a real frequency only where the data is naturalistic (deployment logs, or demos as collected). On a perturbation grid, or on failure-enriched sampling, the frequency is set by whoever chose the grid (PLAN §9.3). The corpus must record its sampling and report P(fail | condition) separately from P(condition).</td><td><span class="tag open">open</span> for piece 3</td></tr>
+<tr><td class="id">T2</td><td><b>Non-interpretable sub-failures vs the teleoperator brief.</b></td><td><span class="tag agreed">resolved</span> by D5: the brief is optional for them</td></tr>
+<tr><td class="id">T3</td><td><b>Frequency before cost.</b> The user wants loss estimated from frequency. In Phase 0 only P(fail | condition) exists.</td><td><span class="tag agreed">resolved</span> by D6: loss is computed only once Phase 1 supplies prevalence and cost</td></tr>
+<tr><td class="id">T4</td><td><b>What counts as "one policy".</b> Is a fine-tuned checkpoint of the same model a new policy and so a new spec, or a new version of the same spec?</td><td><span class="tag open">open</span></td></tr>
+<tr><td class="id">T5</td><td><b>Successor or replacement.</b> Does the mining spec replace PLAN §9's manifest, or does a manifest row become one instance type within it?</td><td><span class="tag open">open</span></td></tr>
+</table></div>
+
+<h2>6 · Shape of an instance, for orientation only <span class="tag prop">proposed</span></h2>
+<p>Nothing below is decided. It shows which blocks the next iterations need to settle, not their fields.</p>
+<pre>{
+  "spec":     { policy, checkpoint, deployment, phase: 0|1, schema_version },
+  "instance": {
+    "id", "scenario_ids": [ index ids, parent → child ],
+    "unit": "episode" | "segment",
+    "situation":  how to reach it: initial config, or the segment's entry condition
+    "signature":  machine-checkable definition: what makes a window match (D5: required)
+    "brief":      teleoperator text, plus what success looks like (optional if not interpretable)
+    "generate":   sim recipe: env, task, knobs, init states
+    "evidence":   episodes, seeds, runs, P(fail | condition) with CI, sampling arm
+    "mechanism":  optional, with evidence status (D7)
+    "fixability", "coverage_required"
+    "assessment": Phase 1 only: prevalence, cost, severity, urgency, feasibility (D5, D6)
+    "ext":        customer extension fields (D8)
+  }
+}</pre>
+
+<h2>7 · Next questions, in order</h2>
+<ol>
+<li><b>Index levels and nesting</b> (piece 1). Which levels, and how a big-task failure decomposes into sub-scenarios across tasks. Candidate seed: task family → phase (approach / grasp / transport / place) → failure mode (e.g. <code>retry_loop</code>) → condition. Where do non-interpretable sub-scenarios sit?</li>
+<li><b>Id scheme and versioning</b> of the index: stable across specs and readable (<code>grasp.slip.transport</code>).</li>
+<li><b>Segment definition</b>: what bounds a segment (phase boundaries, start and end predicates), and what a signature must contain to match across different tasks and robots.</li>
+<li><b>The teleoperator brief</b>: what an operator needs, and what "successful demonstration" means for a segment-level instance.</li>
+<li><b>The generation recipe</b>: the minimum needed to reproduce a situation in sim, and what happens for instances from real-robot data with no sim twin.</li>
+<li>T4 and T5 above.</li>
+<li>Later: corpus sampling (piece 3), client intent fields (piece 4), the extension mechanism (D8).</li>
+</ol>
+
+<h2>8 · Inputs and owners</h2>
+<ul>
+<li><b>res22</b> (scoped 10-08): its survey of datasets and failure modes beyond LIBERO feeds the index (piece 1) and which datasets the corpus counts over (piece 3).</li>
+<li><b>res21</b>: the perturbation map and its validity audit (<code>docs/PERTURBATION_MAP_VALIDITY.html</code>) feed Phase 0 instances.</li>
+<li>Building anything (index files, schema validation, the miner) goes to impl once the design is approved. Nothing is built yet.</li>
+</ul>
+
+<footer>Written by prim, 2026-10-08, from the design discussion with the user. Sources in this repo: PLAN.md §7b, §9, §9.1, §9.3; vla_harness/mining/classify.py; docs/DATA_MINER_SPEC.html; docs/FAILURE_TO_DATA_PIPELINE.html; docs/FAILURE_MINING_RELEVANCE.html.</footer>
+</main>
+</body>
+</html>
