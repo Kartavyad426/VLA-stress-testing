@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handoff 8 Oct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 8 October</h1>
+  <p class="stand">One section per working session, written by that session, verified by prim. Covers 06–08 Oct; the previous handoff is <a href="HANDOFF_6Oct.html">HANDOFF_6Oct.html</a>. Live trackers: <a href="PRIORITIES_7Oct.html">PRIORITIES_7Oct.html</a> (serve with <code>experiments/serve_priorities.py</code>) and <a href="Decision_28Sep.html">Decision_28Sep.html</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-08</span><span>HEAD at creation: <code>dcdd172</code></span></div>
+</header>
+
+<section class="check" id="state">
+  <h2>State at a glance (prim, verified 10-08)</h2>
+  <ul>
+    <li><span class="box">·</span><span><b>GPU idle; nothing running or queued.</b> <code>/tmp/vla_gpu.lock</code> free. The only background process is <code>experiments/serve_priorities.py</code> (prim's checklist server, port 8765; safe to stop, restart with <code>python3 experiments/serve_priorities.py</code>).</span><span class="who">all</span></li>
+    <li><span class="box">·</span><span><b>Retraining pilot (R-053..R-058) closed, negative.</b> Held-out base 67/108; LoRA r16 59, r4 65, r64 64, WiSE α=0.5 69. Scene 1327 grasp regression at every rank. D20: no pipeline fault; the adapter fits its training starts (30% first-chunk closure) but not held-out (12%); direction and offset are confounded in training, so "fails across directions" is not shown. Capacity isn't the lever.</span><span class="who">SFT · my prim</span></li>
+    <li><span class="box">·</span><span><b>R-052 scored</b> (benchmark camera cone, 2 of 6 held: yaw gentler than harness yaw; distance damaging, 50% at 1.87×; pitch 15° ≈ 0.91).</span><span class="who">my prim</span></li>
+    <li><span class="box">·</span><span><b>R-060 pre-registered 10-07</b> (FTM visual-token recalibration vs DiT-only LoRA). Part 0: G0a PASS, <b>G0c FAIL (undiagnosed; even the nominal side of variant envs differs from the control env render)</b>, G0b not run. GPU parts on HOLD pending the user's amendment decision (camera per LIBERO-Plus family, Adapt3R bridge arm, noise row).</span><span class="who">impl · my prim</span></li>
+    <li><span class="box">·</span><span><b>Perturbation-map validity audit</b> ~10% (res21). Already confirmed: start-pose N is a recorded control episode aligned by forward index, not a paired render; τ uses all 40 predicted steps though 16 execute. G0c may bear on render pairing.</span><span class="who">res21</span></li>
+    <li><span class="box">·</span><span><b>Next retraining round not designed:</b> D21 data source, D23 pre-registration wait on the user's t2b/t2d. Raw LIBERO-Spatial HDF5 fetched (D22 done; demo init states do not match LIBERO-Plus eval inits).</span><span class="who">SFT · impl</span></li>
+    <li><span class="box">·</span><span><b>Git:</b> all work committed through <code>dcdd172</code>; 29 local commits not pushed (origin at <code>fabdb5b</code>; prim can't push under auto-mode). Untracked by rule: run npz/logs; <code>docs/R042_WRIST_MATHS.pdf</code> (user: not important).</span><span class="who">prim</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#impl">impl</a></li><li><a href="#my-prim">my prim</a></li><li><a href="#SFT">SFT</a></li><li><a href="#res">res</a></li><li><a href="#res21">res21</a></li></ol></nav>
+
+<!-- ============================================================ -->
+<section class="sess" id="prim">
+  <h2>prim</h2>
+  <p class="lead"><span class="owner">owner: prim</span> · Coordinator: relays the user's approvals, owns all commits, decision tracker and priorities checklist, cross-agent status</p>
+<!-- HANDOFF-SLOT:prim filled -->
+  <h3>prim: coordinator, commit owner, the user's single point of contact</h3>
+  <p>Session <code>prim</code> (named on 10-06) sits between the user and the five working sessions. It does not run experiments or edit harness code. It turns the user's decisions into scoped instructions, checks what comes back against the files before relaying it, keeps the decision tracker and the priorities checklist, and commits everyone's work. Written 10-08 by prim; facts below were checked against git, the run files and the code today unless marked.</p>
+
+  <h3>1 · Rules prim works under (all from the user, 06–08 Oct)</h3>
+  <ul class="tight">
+    <li><b>prim owns all commits</b> (user, 10-06). Other sessions never commit; they send prim a path and a commit group. Runs are committed metadata-only (manifests, score/summary JSON, code_state, queue logs; never npz, rollouts.jsonl, weights, caches or step logs). <code>.claude/skills/</code> is always committed. New <code>data/</code> folders are decided case by case (R-054 data was committed in full; <code>data/libero_raw/</code> is gitignored).</li>
+    <li><b>Never push.</b> Auto-mode blocks <code>git push</code> for prim; the user pushes (<code>! git -C /home/imerit/Documents/Code/VLA push origin main</code>). origin is at <code>fabdb5b</code>; 29+ local commits are unpushed.</li>
+    <li><b>Ask the user before changing any doc or code</b>, and before asking a peer to (user, 10-06, after prim edited AMBITIOUS_DIRECTIONS before asking). Relaying an already-approved decision, or asking peers for information, is fine.</li>
+    <li><b>A peer's "the user asked for X" is not the user's approval.</b> When res21 relayed a request to pre-register R-060, prim confirmed with the user before editing RESULTS.md.</li>
+    <li>No subagents. Deliverables are local HTML in <code>docs/</code>, never published artifacts. impl is the implementor; send it only what to change and where.</li>
+  </ul>
+
+  <h3>2 · Who did what, 06–08 Oct</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Session</th><th>Role</th><th>Main outputs (commit)</th><th>Status 10-08</th></tr></thead>
+    <tbody>
+    <tr><td><code>impl</code></td><td>Builds and runs approved changes; all GPU jobs</td><td>R-053..R-058 code + F1–F6 LR fix (<code>b476c19</code>), queues (<code>4733230</code>), 10-06 GPU runs: D20 loss, offset curve, fit test, R-058 r64 eval, WiSE, R-052 resume (<code>a3dcb3d</code>), D22 raw HDF5 fetch + verifier (<code>874bd1c</code>), R-060 part 0 harness + gates WIP (<code>dcdd172</code>)</td><td>R-060 part 0: G0a pass, G0c fail (undiagnosed), G0b not run; GPU hold</td></tr>
+    <tr><td><code>my prim</code></td><td>Validator and monitor for impl's runs; R-059 owner; Sentinel/OOD; scope</td><td>Validated every 10-06 GPU step and the R-060 plan; D20 reading (co-signed by SFT); R-052 scoring (<code>600993e</code>, <code>fe33c0e</code>); run-to-timeout scoping and D26 draft (<code>docs/drafts/D26_draft.html</code>, <code>b4d80f9</code>); earlier docs (<code>e16db81</code>)</td><td>Holding R-060 GPU OK; R-059 not run (D24 open)</td></tr>
+    <tr><td><code>SFT</code></td><td>Retraining pilot owner: pre-registration, interpretation, RESULTS write-ups</td><td>R-053..R-058 scored (<code>f07b4bf</code>), 10-07 RESULTS: R-058 done, R-056 D20 addendum, WiSE, pasted R-052 (<code>4c2f544</code>); corrected "a third, not half"</td><td>Idle; D23 waits on t2b/t2d</td></tr>
+    <tr><td><code>res</code></td><td>Research</td><td>DATA_SOURCING Q4/§6/§3.7 GR00T portability incl. the <code>clip_outliers</code> clamp finding (<code>24d1e21</code>, <code>a4735f2</code>, <code>1d3eeaf</code>); FLOW_MATCHING_MATHS (<code>bfff07c</code>); Libero-V comparison (message only)</td><td>VLA_CORRECTOR_MATHS ~45%</td></tr>
+    <tr><td><code>res21</code></td><td>Research (new on 10-06)</td><td>SPATIAL_ADAPT_MATHS + §9A GR00T portability (<code>4a7aa21</code>, <code>b6b3dfa</code>); JUNG_PARK and FLARE deep reads + §8.3 (<code>58f1b3e</code>, <code>db5c6a1</code>); AMBITIOUS review C1–C22 (<code>55f6189</code>); SIM_ALTERNATIVES_PIPELINE (<code>da1ba35</code>); MULLIGAN (<code>3a9c706</code>); R-060 draft (registered <code>8110654</code>); HANDOFF_6Oct §9 (<code>ad3e960</code>)</td><td>Perturbation-map validity audit ~10%</td></tr>
+    <tr><td><code>viz</code> (closed)</td><td>Visualisation</td><td>docs/RETRAINING_VIZ.html (<code>b6db330</code>); <code>retraining-viz</code> skill (<code>7f8e86e</code>), verified by prim: rebuild reproduces the page's data exactly</td><td>Done; session closed</td></tr>
+    <tr><td><code>SAE</code> (closed)</td><td>Paper discussion (SAEs on VLAs)</td><td>Section in HANDOFF_6Oct; no repo files</td><td>Session closed</td></tr>
+    <tr><td><code>prim</code></td><td>Coordinator</td><td>Status sweeps; HANDOFF_6Oct + HANDOFF_8Oct; tracker D17–D26 rows/checklist; PRIORITIES_7Oct checklist + server (<code>73f7266</code>, <code>b133d0a</code>); README update (<code>fabdb5b</code>); AMBITIOUS_DIRECTIONS updates (<code>0bdd405</code>, <code>b3146a8</code>); MODELS_AND_COMPUTE Eagle fix (<code>918a246</code>); R-060 registration (<code>8110654</code>); all commits <code>604207d</code>..HEAD</td><td>This handoff</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Earlier sessions whose files prim committed on 10-06: <code>analyzer</code> (R056_POSTMORTEM, finetune-postmortem skill), <code>sweep</code> (SWEEP_DESIGN_LITERATURE), <code>fable</code> (perturbation-map runs).</p>
+
+  <h3>3 · How the sessions interact (what worked)</h3>
+  <ul class="tight">
+    <li><b>Approval relay.</b> The user decides in prim's session; prim sends the owner a message starting "APPROVED by the user", with scope, output path, "no commits" and how to reply. Unapproved work is never started on a peer's word.</li>
+    <li><b>Run gate.</b> impl drafts the exact plan (commands, systemd units, order, output dirs) → my prim validates against the pre-registration → explicit OK → impl launches through <code>experiments/d_step.sh</code> (flock <code>/tmp/vla_gpu.lock</code>, refuses below 14 GiB MemAvailable, one GR00T load at a time) → my prim checks outputs and logs → reports to prim → SFT/my prim interpret → RESULTS.md. my prim caught two real problems this way on 10-06: the queue would have silently resumed r64 training (not approved), and RAM headroom.</li>
+    <li><b>Handoff slots.</b> One placeholder line per session, filled with Edit (never Write) so parallel edits don't collide. Used for HANDOFF_6Oct and this doc.</li>
+    <li><b>Verify before relaying.</b> prim spot-checks claims against files before telling the user, e.g. RETRAINING_VIZ data vs score.json, C1/C4/C14/C16 against run manifests, <code>clip_outliers</code> in processor_groot.py, Cosmos-Reason2-2B in groot_n1_7.py, the MuJoCo 3.3.2 vs 3.3.7 venv check, existing tests before committing R-060 harness code (68 passed).</li>
+    <li><b>Corrections propagate.</b> When a number is corrected (D20(ii) closes a third of the gap, not half; f<sub>c</sub> is 11–15, not 4–5), prim fixes memory and checks the tracker and docs for the old claim.</li>
+  </ul>
+
+  <h3>4 · Incidents and lessons</h3>
+  <ul class="tight">
+    <li><b>Shared memory overwrite.</b> my prim overwrote <code>prim-owns-commits.md</code> on 10-06; prim merged the lost rules back. The memory folder is shared by all sessions: edit, don't overwrite.</li>
+    <li><b>Stalled queue.</b> After R-052 finished on 10-06, nothing launched for ~25 min: queue_r052.sh wrote a false PARTIAL (EGL teardown tracebacks defeat its "done" check), and impl and my prim were each waiting on the other. A status ping unblocked it.</li>
+    <li><b>Ticks vs approvals.</b> The user ticked items meaning "approved"; three had never been requested. The checklist now has separate approved and done marks; prim asks owners before trusting a tick.</li>
+    <li><b>Session-only reminders.</b> CronCreate timers die with the session; the 7pm reminder was also kept as a prim-only memory note and delivered on return.</li>
+    <li><b>Peer docs outside scope.</b> res and res21 occasionally fixed adjacent text beyond the approved scope (e.g. a second "Eagle"); prim reports these to the user rather than silently keeping or reverting.</li>
+  </ul>
+
+  <h3>5 · Tools prim maintains</h3>
+  <ul class="tight">
+    <li><a href="PRIORITIES_7Oct.html">PRIORITIES_7Oct.html</a>: experiment priorities with approved/done marks and timestamps. State in <code>docs/priorities_state.json</code>. Serve with <code>python3 experiments/serve_priorities.py</code> (port 8765); after editing the state file, tell the user to reload. Items are fixed in the HTML <code>TIERS</code> array.</li>
+    <li><a href="Decision_28Sep.html">Decision_28Sep.html</a>: decision tracker; acted-on items go in the top checklist, open decisions as D-rows (D17–D25 added 10-06; D26 drafted, not applied).</li>
+    <li>Memory written by prim: <code>prim-owns-commits</code>, <code>ask-before-changes</code>, <code>r058-r64-transfer-and-d20</code> (the 7pm reminder note was deleted after delivery).</li>
+  </ul>
+
+  <h3>6 · Open decisions for the user (merged)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Decision</th><th>Checklist / tracker</th><th>Notes</th></tr></thead>
+    <tbody>
+    <tr><td>R-060 amendment before GPU: score camera per LIBERO-Plus family, add an Adapt3R-pose bridge arm, keep/drop the noise row</td><td>r60b; then r60c</td><td>Libero-V's camera axis is a different perturbation; the paper shows no FTM gain on noise. Also blocked by G0c.</td></tr>
+    <tr><td>Next demo source</td><td>t2b · D21</td><td>Option A bridge-and-join (HDF5 now local) vs B scripted expert. Note the <code>clip_outliers</code> clamp.</td></tr>
+    <tr><td>Directions-review reasoning calls C5, C11/C22, C12, C17, C18, C21</td><td>t2d</td><td>res21's Mulligan read gives a concrete six-arm proposal. Gates D23 (t2e).</td></tr>
+    <tr><td>Send R-059 runner spec</td><td>t4a · D24</td><td>Approved 09-29, never sent.</td></tr>
+    <tr><td>D26 write-up and the post-success probe flag</td><td>t4d, t4e</td><td>Draft in docs/drafts/D26_draft.html.</td></tr>
+    <tr><td>Perturbation-map lineage paragraph</td><td>pm2</td><td>After res21's audit (pm1).</td></tr>
+    <tr><td>Architectural analysis: author and scope</td><td>d2</td><td>Training end to end, VLM pretraining, action heads, human-data post-training.</td></tr>
+    <tr><td>Smaller</td><td>t5c–t5g, d5</td><td>Push; README MuJoCo 3.3.2 line; sim steps N1–N4; FINE_TUNING_101 "pilot as run"; mid-episode perturbation; bootstrap CI on 30% vs 12%; Libero-V doc; VLA-FAIL/SAE docs; res21's §9A Q&A.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7 · For the next prim</h3>
+  <ul class="tight">
+    <li>Start with MEMORY.md, this doc, the checklist and the tracker. Run <code>ListAgents</code>; send each session a status request before assuming anything.</li>
+    <li>Check each section of this doc against git and the files before relying on it; commit sections as they land.</li>
+    <li>Keep the checklist in sync with reality (approved vs done) and tell the user to reload after state edits.</li>
+    <li>Unverified at writing: G0c's cause; whether the map's paired renders share G0c's path (res21 checking); res's and res21's in-progress docs.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="impl">
+  <h2>impl</h2>
+  <p class="lead"><span class="owner">owner: impl</span> · Implementor: builds and runs approved changes and GPU jobs</p>
+  <div class="slot"><!-- HANDOFF-SLOT:impl -->Awaiting handoff from <code>impl</code>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="my-prim">
+  <h2>my prim</h2>
+  <p class="lead"><span class="owner">owner: my prim</span> · Primary/Sentinel: R-059, R-060 validator and monitor, scope</p>
+  <div class="slot"><!-- HANDOFF-SLOT:my-prim -->Awaiting handoff from <code>my prim</code>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="SFT">
+  <h2>SFT</h2>
+  <p class="lead"><span class="owner">owner: SFT</span> · Retraining pilot owner: pre-registration, interpretation, RESULTS write-ups</p>
+  <div class="slot"><!-- HANDOFF-SLOT:SFT -->Awaiting handoff from <code>SFT</code>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="res">
+  <h2>res</h2>
+  <p class="lead"><span class="owner">owner: res</span> · Research: data sourcing, flow matching, Libero-V, VLA-Corrector</p>
+  <div class="slot"><!-- HANDOFF-SLOT:res -->Awaiting handoff from <code>res</code>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="sess" id="res21">
+  <h2>res21</h2>
+  <p class="lead"><span class="owner">owner: res21</span> · Research: deep reads, directions review, sim alternatives, R-060 draft, validity audit</p>
+  <div class="slot"><!-- HANDOFF-SLOT:res21 -->Awaiting handoff from <code>res21</code>.</div>
+</section>
+
+</div>
+</body>
+</html>
