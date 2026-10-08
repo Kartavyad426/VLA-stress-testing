@@ -1,0 +1,2173 @@
+{
+ "what": "R-060 G0c diagnosis, CPU/render only, no gate change",
+ "started": "2026-10-08 12:50:31",
+ "d_motion": {
+  "input": "runs/r060/gates/g0c_diag_motion_input.npy",
+  "in_process_distinct_of_20": 1,
+  "in_process_max_ndiff": 0,
+  "MAGICK_THREAD_LIMIT_env": null,
+  "subprocess_distinct_of_20_threads_1": "1",
+  "subprocess_distinct_of_20_threads_default": "1"
+ },
+ "a_render_timing": [
+  {
+   "control": 1030,
+   "variant_used": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_22_15_100_0_0_initstate_0",
+   "reset_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 41.0,
+     "n_diff": 204
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 54.0,
+     "n_diff": 5383
+    }
+   },
+   "rerender_noforward_repeat": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 6
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "xpos_change_on_forward_max_m": 1.3353712181418675e-05,
+   "phys_unchanged_by_forward": true,
+   "reset_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 41.0,
+     "n_diff": 432
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 54.0,
+     "n_diff": 9128
+    }
+   },
+   "nominal_frames_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 6
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam_restored_after_perturbed_frames": true,
+   "phys_unchanged_by_perturbed_frames": true,
+   "nominal_frames_before_vs_after_perturbed": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "substeps_per_env_step": 25,
+   "step_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 770
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 75.0,
+     "n_diff": 16139
+    }
+   },
+   "step_vs_forward_render_of_state_before_last_substep": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 770
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 75.0,
+     "n_diff": 16139
+    }
+   },
+   "step_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 914
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 75.0,
+     "n_diff": 17673
+    }
+   }
+  },
+  {
+   "control": 1132,
+   "variant_used": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0",
+   "reset_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 30.0,
+     "n_diff": 110
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 44.0,
+     "n_diff": 1454
+    }
+   },
+   "rerender_noforward_repeat": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "xpos_change_on_forward_max_m": 7.37300697636889e-06,
+   "phys_unchanged_by_forward": true,
+   "reset_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 30.0,
+     "n_diff": 229
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 2764
+    }
+   },
+   "nominal_frames_vs_rerender_forward": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam_restored_after_perturbed_frames": true,
+   "phys_unchanged_by_perturbed_frames": true,
+   "nominal_frames_before_vs_after_perturbed": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "substeps_per_env_step": 25,
+   "step_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 42.0,
+     "n_diff": 557
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 47.0,
+     "n_diff": 5901
+    }
+   },
+   "step_vs_forward_render_of_state_before_last_substep": {
+    "agent": {
+     "equal": false,
+     "max_abs": 42.0,
+     "n_diff": 557
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 47.0,
+     "n_diff": 5901
+    }
+   },
+   "step_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 42.0,
+     "n_diff": 602
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 47.0,
+     "n_diff": 6389
+    }
+   }
+  },
+  {
+   "control": 1327,
+   "variant_used": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_196_0_0_initstate_0",
+   "reset_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 19.0,
+     "n_diff": 114
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 56.0,
+     "n_diff": 5459
+    }
+   },
+   "rerender_noforward_repeat": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "xpos_change_on_forward_max_m": 7.407140027837489e-06,
+   "phys_unchanged_by_forward": true,
+   "reset_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 41.0,
+     "n_diff": 241
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "nominal_frames_vs_rerender_forward": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam_restored_after_perturbed_frames": true,
+   "phys_unchanged_by_perturbed_frames": true,
+   "nominal_frames_before_vs_after_perturbed": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "substeps_per_env_step": 25,
+   "step_vs_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 568
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 73.0,
+     "n_diff": 21343
+    }
+   },
+   "step_vs_forward_render_of_state_before_last_substep": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 568
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 73.0,
+     "n_diff": 21343
+    }
+   },
+   "step_vs_rerender_forward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 36.0,
+     "n_diff": 609
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 73.0,
+     "n_diff": 23667
+    }
+   }
+  }
+ ],
+ "a_trajectory": {
+  "control": 1030,
+  "steps": 40,
+  "phys_equal_after": true,
+  "phys_max_abs": 0.0,
+  "step_frames_equal_all": false,
+  "first_unequal_step": 0
+ },
+ "c_init_states": {
+  "control": 1132,
+  "control_name": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_language_1_view_0_0_100_0_0_initstate_0",
+  "control_init_file": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_language_1_view_0_0_100_0_0_initstate_0.pruned_init",
+  "control_bddl": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_language_1_view_0_0_100_0_0_initstate_0.bddl",
+  "control_shape": [
+   50,
+   92
+  ],
+  "nq": 48,
+  "rows": [
+   {
+    "task_id": 768,
+    "name": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_68_15_100_0_0_initstate_0",
+    "init_file": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_68_15_100_0_0_initstate_0.pruned_init",
+    "bddl": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_68_15_100_0_0_initstate_0.bddl",
+    "shape": [
+     50,
+     92
+    ],
+    "row0_equal": true,
+    "row0_max_abs": 0.0,
+    "row0_diff_by_joint": {}
+   },
+   {
+    "task_id": 1522,
+    "name": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_20",
+    "init_file": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_20.pruned_init",
+    "bddl": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_20.bddl",
+    "shape": [
+     50,
+     92
+    ],
+    "row0_equal": true,
+    "row0_max_abs": 0.0,
+    "row0_diff_by_joint": {}
+   },
+   {
+    "task_id": 1534,
+    "name": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_38",
+    "init_file": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_38.pruned_init",
+    "bddl": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_38.bddl",
+    "shape": [
+     50,
+     92
+    ],
+    "row0_equal": true,
+    "row0_max_abs": 0.0,
+    "row0_diff_by_joint": {}
+   },
+   {
+    "task_id": 745,
+    "name": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0",
+    "init_file": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0.pruned_init",
+    "bddl": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0.bddl",
+    "shape": [
+     50,
+     92
+    ],
+    "row0_equal": true,
+    "row0_max_abs": 0.0,
+    "row0_diff_by_joint": {}
+   }
+  ]
+ },
+ "b_rerender_pairs": [
+  {
+   "row": "camera",
+   "task_id": 635,
+   "control": 1030,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_22_15_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 2
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 37.0,
+     "n_diff": 1131
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 54.0,
+     "n_diff": 9128
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 24170
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 639,
+   "control": 1030,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_24_15_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 40.0,
+     "n_diff": 1170
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 54.0,
+     "n_diff": 9128
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 24170
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 828,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_299_15_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 48.0,
+     "n_diff": 1255
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 49.0,
+     "n_diff": 12686
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22062
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 889,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_317_0_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 41.0,
+     "n_diff": 982
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 88.0,
+     "n_diff": 15320
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 21776
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 745,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 39.0,
+     "n_diff": 201
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 2764
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22980
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 700,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_8_350_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 676
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 9612
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 77.0,
+     "n_diff": 22806
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 657,
+   "control": 1062,
+   "variant": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate_view_0_0_100_6_10_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 11.0,
+     "n_diff": 41
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 6919
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 23535
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 652,
+   "control": 1062,
+   "variant": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate_view_0_0_125_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 29.0,
+     "n_diff": 484
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 6919
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 23535
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 952,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_196_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 26.0,
+     "n_diff": 229
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22108
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 6
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 956,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_200_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 35.0,
+     "n_diff": 215
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22108
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 965,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_345_0_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 25.0,
+     "n_diff": 258
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22108
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 792,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_0_0_100_350_2_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 44.0,
+     "n_diff": 505
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 49.0,
+     "n_diff": 12686
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22062
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 768,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_68_15_100_0_0_initstate_0",
+   "phys_equal": false,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 173.0,
+     "n_diff": 43296
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 193.0,
+     "n_diff": 57080
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 42.0,
+     "n_diff": 584
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 2764
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 166.0,
+     "n_diff": 56771
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 193.0,
+     "n_diff": 57080
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 166.0,
+     "n_diff": 35182
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 193.0,
+     "n_diff": 57080
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 978,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_354_15_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 35.0,
+     "n_diff": 319
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22108
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "camera",
+   "task_id": 974,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_350_15_100_0_0_initstate_0",
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_variant_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 31.0,
+     "n_diff": 318
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 55.0,
+     "n_diff": 8783
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 52.0,
+     "n_diff": 22108
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "cam": {
+    "control_model_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "control_model_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "bench_000_pos": [
+     0.6586,
+     0.0,
+     1.6104
+    ],
+    "bench_000_quat": [
+     0.6380337911643937,
+     0.3048161434904502,
+     0.3048161434904502,
+     0.6380337911643937
+    ],
+    "nominal_CAMERA_pos": [
+     0.6586131746834771,
+     0.0,
+     1.6103500240372424
+    ],
+    "nominal_CAMERA_quat": [
+     0.6380177736282349,
+     0.3048497438430786,
+     0.30484986305236816,
+     0.6380177736282349
+    ],
+    "nominal_vs_control_pos_max": 4.997596275768679e-05,
+    "bench_vs_control_pos_max": 0.0,
+    "nominal_vs_control_quat_max": 3.371956191794423e-05,
+    "bench_vs_control_quat_max": 0.0
+   },
+   "N_canonical_pose_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1377,
+   "control": 984,
+   "variant": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_6",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 25
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1691,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_9",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1522,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_20",
+   "phys_equal": false,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": false,
+     "max_abs": 30.0,
+     "n_diff": 81903
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 193.0,
+     "n_diff": 50630
+    }
+   },
+   "variant_reset_vs_noise_of_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 322
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 2764
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 159.0,
+     "n_diff": 38779
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 193.0,
+     "n_diff": 50630
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1483,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_15",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_noise_of_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 1.0,
+     "n_diff": 390
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 46.0,
+     "n_diff": 9612
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1567,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_30",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_noise_of_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 4.0,
+     "n_diff": 1193
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 49.0,
+     "n_diff": 12686
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1635,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_22",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "variant_reset_vs_noise_of_rerender_noforward": {
+    "agent": {
+     "equal": false,
+     "max_abs": 5.0,
+     "n_diff": 1199
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 88.0,
+     "n_diff": 15320
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1602,
+   "control": 1201,
+   "variant": "pick_up_the_black_bowl_next_to_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_35",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1534,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_38",
+   "phys_equal": false,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": false,
+     "max_abs": 32.0,
+     "n_diff": 24538
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 196.0,
+     "n_diff": 60628
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": false,
+     "max_abs": 166.0,
+     "n_diff": 41202
+    },
+    "wrist": {
+     "equal": false,
+     "max_abs": 196.0,
+     "n_diff": 60628
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1654,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_47",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  },
+  {
+   "row": "noise",
+   "task_id": 1505,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_50",
+   "phys_equal": true,
+   "P_vs_noise_of_variant_rerender_seed0": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    },
+    "wrist": {
+     "equal": true,
+     "max_abs": 0.0,
+     "n_diff": 0
+    }
+   }
+  }
+ ],
+ "finished": "2026-10-08 12:53:59"
+}
