@@ -1,0 +1,52 @@
+{
+ "gate": "G0a camera order",
+ "video_modality_keys": null,
+ "available_keys": [
+  "observation.images.image",
+  "observation.images.wrist_image"
+ ],
+ "ordered_keys": [
+  "observation.images.image",
+  "observation.images.wrist_image"
+ ],
+ "image_grid_thw": [
+  [
+   1,
+   16,
+   16
+  ],
+  [
+   1,
+   16,
+   16
+  ]
+ ],
+ "pixel_values_shape": [
+  512,
+  1536
+ ],
+ "pixel_block_means_agent_black": [
+  -1.0,
+  1.0
+ ],
+ "pixel_block_means_agent_white": [
+  1.0,
+  -1.0
+ ],
+ "image_token_id": 151655,
+ "image_token_runs_[start,len]": [
+  [
+   4,
+   64
+  ],
+  [
+   70,
+   64
+  ]
+ ],
+ "seq_len": 154,
+ "first_camera": "agentview",
+ "consistent_across_readings": true,
+ "PASS": true,
+ "A2_S1_runs": true
+}

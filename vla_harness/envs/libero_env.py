@@ -622,9 +622,10 @@ class LiberoEnv:
         sim.model.cam_quat[cid] = q
         sim.forward()
 
-    def _bench_camera_pose(self, yaw: int, pitch: int, scale: float):
+    def _bench_camera_pose(self, yaw: int, pitch: int, scale: float,
+                           end_rot: int = 0, end_vert: int = 0):
         """agentview (pos, quat [w, x, y, z]) for LIBERO-Plus view
-        `{yaw}_{pitch}_{scale*100}_0_0`.
+        `{yaw}_{pitch}_{scale*100}_{end_rot}_{end_vert}`.
 
         Runs the scene class's own `_setup_camera` against a stub and a
         recording arena, so the canonical pose, the pivots, the order (pitch
@@ -650,7 +651,7 @@ class LiberoEnv:
                 got[camera_name] = (pos, quat)
 
         stub = types.SimpleNamespace(horizon_view=yaw, vertical_view=pitch, scale_factor=scale,
-                                     end_point_rot=0, end_point_vertical=0)
+                                     end_point_rot=end_rot, end_point_vertical=end_vert)
         setup(stub, _Arena())
         pos, quat = got[MAIN_CAMERA]
         q = np.array(quat, dtype=float)
@@ -751,6 +752,64 @@ class LiberoEnv:
         """`_obs()` with the frames swapped for `nominal_frames()`."""
         obs = self._obs()
         obs.frames = self.nominal_frames()
+        return obs
+
+    def perturbed_frames(self, variant: str, noise_seed: int | None = None) -> dict:
+        """R-060: the inverse of `nominal_frames`. Frames this CANONICAL env would
+        show RIGHT NOW under LIBERO-Plus variant `variant`'s camera and/or sensor
+        noise, without stepping physics.
+
+        Camera: the scene class's own `_setup_camera` with the variant's five
+        view knobs (`_bench_camera_pose`), written into `sim.model` and restored.
+        Noise: the wrapper's dispatch (env_wrapper.py:294-327) applied to the
+        clean agentview frame, under `np.random.seed(noise_seed)` because motion
+        blur, fog and glass blur draw from the global numpy stream; the caller's
+        stream is restored. G0c (experiments/r060_gates.py) checks both against
+        LIBERO-Plus's own render of the variant.
+        """
+        import numpy as np
+        from . import nominal
+        if not self.libero_plus:
+            raise NotImplementedError("perturbed_frames needs the LIBERO-Plus stack")
+        outer = self._env.unwrapped
+        wrapper = outer._env
+        inner = wrapper.env
+        sim = inner.sim
+        if getattr(wrapper, "noise", 0) != 0:
+            raise ValueError("perturbed_frames renders FROM the canonical condition; this env is a noise variant")
+        knobs = nominal.variant_perturbations(variant)
+        saved = None
+        try:
+            if knobs["view"] is not None:
+                h, v, scale, r, e = knobs["view"]
+                cid = sim.model.camera_name2id(MAIN_CAMERA)
+                pos0, q0 = self._bench_camera_pose(0, 0, 1.0)
+                qm = np.array(sim.model.cam_quat[cid], dtype=float)
+                if (not np.allclose(sim.model.cam_pos[cid], pos0, atol=1e-6)
+                        or min(np.abs(qm - q0).max(), np.abs(qm + q0).max()) > 1e-6):
+                    raise ValueError(f"{MAIN_CAMERA} is not at the canonical pose; perturbed_frames "
+                                     f"needs a canonical-camera env")
+                saved = (cid, sim.model.cam_pos[cid].copy(), sim.model.cam_quat[cid].copy())
+                pos, q = self._bench_camera_pose(h, v, scale, r, e)
+                sim.model.cam_pos[cid] = pos
+                sim.model.cam_quat[cid] = q
+            sim.forward()
+            raw = inner._get_observations(force_update=True)
+            if knobs["noise"]:
+                raw = dict(raw)
+                raw["agentview_image"] = lplus_sensor_noise(raw["agentview_image"], knobs["noise"], noise_seed)
+            return dict(outer._format_raw_obs(raw)["pixels"])
+        finally:
+            if saved is not None:
+                cid, p0, q0 = saved
+                sim.model.cam_pos[cid] = p0
+                sim.model.cam_quat[cid] = q0
+                sim.forward()
+
+    def perturbed_observation(self, variant: str, noise_seed: int | None = None) -> Observation:
+        """`_obs()` with the frames swapped for `perturbed_frames()`."""
+        obs = self._obs()
+        obs.frames = self.perturbed_frames(variant, noise_seed)
         return obs
 
     # --- observation ------------------------------------------------------
@@ -966,3 +1025,36 @@ class LiberoEnv:
                        for x in self._raw["robot_state"]["eef"]["pos"]]},
             "cameras": cameras,
         }
+
+
+def lplus_sensor_noise(img, noise: int, seed: int | None = None):
+    """LIBERO-Plus's sensor-noise dispatch (env_wrapper.py:294-327), verbatim:
+    1-10 motion blur, 11-20 gaussian, 21-30 zoom, 31-40 fog, 41-50 glass, each at
+    severity `noise - 10k`. Motion blur's result is NOT cast to uint8 there and is
+    not here. With `seed`, the global numpy stream is seeded for the call and
+    restored afterwards (motion blur's angle, fog's plasma and glass blur's
+    shuffles draw from it)."""
+    import numpy as np
+    from PIL import Image
+    from libero.libero.envs import env_wrapper as W
+    state = np.random.get_state() if seed is not None else None
+    try:
+        if seed is not None:
+            np.random.seed(int(seed))
+        if img.dtype != np.uint8:
+            img = (img * 255).astype(np.uint8)
+        pil = Image.fromarray(img)
+        if noise <= 10:
+            return W.motion_blur(pil, severity=noise)
+        if noise <= 20:
+            return W.gaussian_blur(pil, severity=noise - 10).astype(np.uint8)
+        if noise <= 30:
+            return W.zoom_blur(pil, severity=noise - 20).astype(np.uint8)
+        if noise <= 40:
+            return W.fog(pil, severity=noise - 30).astype(np.uint8)
+        if noise <= 50:
+            return W.glass_blur(pil, severity=noise - 40).astype(np.uint8)
+        raise ValueError(f"no LIBERO-Plus noise family for {noise}")
+    finally:
+        if state is not None:
+            np.random.set_state(state)

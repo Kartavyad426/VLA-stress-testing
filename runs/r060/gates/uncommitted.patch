@@ -1,0 +1,368 @@
+diff --git a/docs/HANDOFF_6Oct.html b/docs/HANDOFF_6Oct.html
+index dc309b3..cede8c1 100644
+--- a/docs/HANDOFF_6Oct.html
++++ b/docs/HANDOFF_6Oct.html
+@@ -605,6 +605,106 @@
+     <li>No scratchpad files are worth keeping; nothing was written there.</li>
+     <li>No other repo files were created or edited, and no runs were launched.</li>
+   </ul>
++
++  <h3>9. res21 update, 06–07 Oct (successor research session)</h3>
++  <p><b>Role.</b> res21 is a general research agent set up by the user on 10-06. Its job is to widen what the project could become and to propose experiments. Rules: no subagents, no GPU jobs, no commits (prim commits), local HTML only, and the user approves a doc's content before it is written or edited. Later briefs came from <code>prim</code> on the user's behalf. Sections 1–8 above are the earlier res session's data-sourcing work and are unchanged. Its "not verified" items for FLARE and Jung &amp; Park (§7) are superseded by the full reads below.</p>
++
++  <p><b>Deliverables (all committed by prim):</b></p>
++  <ul class="tight">
++    <li><code>docs/SPATIAL_ADAPT_MATHS.html</code> (<code>4a7aa21</code>, <code>b6b3dfa</code>): deep read of arXiv 2512.02902 (FTM/FLA, CVPR'26).
++      <ul class="tight">
++        <li>Its 467M "LoRA" baseline is mostly a full SigLIP fine-tune (414.8M), verified against openpi's freeze filter.</li>
++        <li>FLA is r16 LoRA on SigLIP's MLP layers only.</li>
++        <li>FTM's Libero-V average is misprinted (90.5 printed vs 93.2 recomputed).</li>
++        <li>The control that would isolate its claim (adapt the language side with vision frozen) is missing.</li>
++        <li>§9A covers portability to GR00T N1.7:
++          <ul class="tight">
++            <li>Four visual entry points into the LLM (merger plus 3 DeepStack).</li>
++            <li>A clean per-camera boundary exists only before the LLM.</li>
++            <li>R-037 plus R-039 predict E1 (moment matching) will be weak and E2 (learned FTM) is the real test.</li>
++          </ul>
++        </li>
++        <li>Corrected "Eagle" to Cosmos-Reason2-2B (Qwen3-VL).</li>
++      </ul>
++    </li>
++    <li><code>docs/JUNG_PARK_INITPOSE.html</code> and <code>docs/FLARE_RECOVERY.html</code> (<code>58f1b3e</code>, §8.3 in <code>db5c6a1</code>): full reads.
++      <ul class="tight">
++        <li>Jung &amp; Park overlap with us: same question, but out-of-distribution wrist masking and physical joint swaps, with targeting chosen by pose coverage.</li>
++        <li>FLARE is separate from us on diagnosis (Gemini video triage), but its bridging is Option A's basic idea, already published.</li>
++        <li>What is still ours:
++          <ul class="tight">
++            <li>in-distribution splices;</li>
++            <li>"decided at forward k";</li>
++            <li>the rescue;</li>
++            <li>the mechanism readout before and after training.</li>
++          </ul>
++        </li>
++      </ul>
++    </li>
++    <li><code>docs/AMBITIOUS_DIRECTIONS_REVIEW.html</code> (<code>55f6189</code>): 22 proposed changes, C1–C22. <b>Proposals only. AMBITIOUS_DIRECTIONS.html itself was not edited</b>, and items wait on user approval.
++      <ul class="tight">
++        <li>Fixes stale claims (e.g. "rescues 24/30").</li>
++        <li>Adds re-homing as the zero-cost run-time baseline.</li>
++        <li>Notes the direction × offset confound.</li>
++        <li>Separates mechanism-targeted from failure-targeted arms.</li>
++        <li>Adds Mulligan (2610.05882) and about 20 other papers.</li>
++        <li>All 41 arXiv IDs were checked.</li>
++      </ul>
++    </li>
++    <li><code>docs/SIM_ALTERNATIVES_PIPELINE.html</code> (<code>da1ba35</code>): Isaac Lab-Arena v0.3 read from code, plus Cosmos Transfer, MuJoCo Warp, RoboVerse and world-model evaluators.
++      <ul class="tight">
++        <li>Keep LIBERO-Plus on MuJoCo as primary.</li>
++        <li>Arena has no start-pose variation, a translation-only camera variation and no paired counterfactuals.</li>
++        <li>Pipeline: the Rollout contract is the seam, behind a policy server that runs splice arms.</li>
++        <li>Costed next steps N1–N5, including a ≤ $25 one-day Arena trial with questions Q1–Q7.</li>
++      </ul>
++    </li>
++  </ul>
++
++  <p><b>Findings a successor should not re-derive:</b></p>
++  <ul class="tight">
++    <li>The run venvs (<code>.venvs/libero-plus</code>, <code>.venvs/groot</code>) have MuJoCo <b>3.3.2</b>, while README says 3.3.7. Both are below 3.4, so the pin's purpose holds.</li>
++    <li>GR00T N1.7's vision tower attends per image. DeepStack injects ViT layers 5, 11 and 17 into LLM layers 0–2. The LLM is truncated at <code>select_layer=16</code>. We have no capture tap inside the backbone.</li>
++    <li>D20 fit test (<code>runs/r056_diag/fit_firstchunk.json</code>): the r16 adapter closed 30% of the first-chunk gap on its own training starts, against 12% on held-out starts at matched cm. The training starts used 100 one-off random directions; the matched held-out subset uses directions 100 and 101. Read this as direction density and dose, not capacity.</li>
++    <li>Arena's "sensitivity analysis" is an sbi neural posterior of factors against success. It is behavioural only.</li>
++  </ul>
++
++  <p><b>Open and pending:</b></p>
++  <ul class="tight">
++    <li>User approval of AMBITIOUS_DIRECTIONS review items C1–C22 (prim applies only what is approved).</li>
++    <li><code>DATA_SOURCING_RESEARCH.html</code> Q4 still says Jung &amp; Park and FLARE are "unverified beyond abstract". Point it at the two full-read docs (not edited; not res21's file).</li>
++    <li>Proposed, not approved or run:
++      <ul class="tight">
++        <li>SPATIAL E1–E5 on GR00T;</li>
++        <li>SIM N1, fixing the lighting knob to reproduce LIBERO-Plus light variants ($0);</li>
++        <li>N2, the RoboVerse-native cross-implementation check of the start-pose boundary;</li>
++        <li>N3, the Arena trial;</li>
++        <li>N4, the splice-arm policy-server API spec.</li>
++      </ul>
++    </li>
++  </ul>
++
++  <p><b>Verified vs not verified.</b></p>
++  <ul class="tight">
++    <li><b>Verified:</b> papers 2512.02902, 2608.11769 and 2608.26645 read from the full PDF; openpi, Arena, Isaac Lab, LW-BenchHub, MuJoCo Warp and RoboVerse claims read from source; arXiv IDs via the arXiv API; our numbers from RESULTS.md and <code>runs/</code>.</li>
++    <li><b>Not verified:</b>
++      <ul class="tight">
++        <li>2026 papers in the review beyond their abstracts;</li>
++        <li>cloud GPU prices (third-party trackers);</li>
++        <li>the R-058 r64 figure of 64/108 (relayed by prim);</li>
++        <li>the order of the cameras' tokens in GR00T's LLM;</li>
++        <li>GR00T memory with the backbone in the backward pass.</li>
++      </ul>
++    </li>
++  </ul>
++
++  <p><b>Files.</b></p>
++  <ul class="tight">
++    <li>The five docs above, all committed.</li>
++    <li>This subsection.</li>
++    <li>The scratchpad holds source clones and API dumps only, none worth keeping.</li>
++    <li>No runs were launched and no GPU was used.</li>
++  </ul>
+ </section>
+ 
+ <!-- ============================================================ -->
+diff --git a/vla_harness/capture/splice.py b/vla_harness/capture/splice.py
+index 3e2d48a..e0af823 100644
+--- a/vla_harness/capture/splice.py
++++ b/vla_harness/capture/splice.py
+@@ -270,3 +270,124 @@ def attach_recorder(policy) -> RecorderHandle:
+     if head is None:
+         raise RuntimeError("no GR00T action head found on the policy")
+     return RecorderHandle(head)
++
++
++# ----------------------------------------------------------------------------
++# R-060: the same splice point with a TRANSFORM in place of a source.
++
++class FTM(torch.nn.Module):
++    """Feature Token Modulation (arXiv:2512.02902; SPATIAL_ADAPT_MATHS.html eq. 3.1):
++    F_hat = (1 + gamma) * F + beta on the IMAGE-token positions only, one
++    (gamma, beta) per channel shared across tokens, cameras and tasks. fp32
++    parameters, applied in fp32 and cast back to the feature dtype. Zero-init
++    is the identity (G0b checks that bitwise on the real forward)."""
++
++    def __init__(self, dim: int = 2048):
++        super().__init__()
++        self.gamma = torch.nn.Parameter(torch.zeros(dim))
++        self.beta = torch.nn.Parameter(torch.zeros(dim))
++
++    def forward(self, x: torch.Tensor, positions: torch.Tensor) -> torch.Tensor:
++        g = self.gamma.to(x.device)
++        b = self.beta.to(x.device)
++        out = x.clone()
++        out[positions] = (x[positions].float() * (1 + g) + b).to(x.dtype)
++        return out
++
++    @classmethod
++    def from_moments(cls, mu_s, sd_s, mu_t, sd_t) -> "FTM":
++        """E1, eq. 3.2: 1 + gamma = sd_s / sd_t, beta = mu_s - (1 + gamma) mu_t,
++        s = source (nominal view), t = target (perturbed view)."""
++        m = cls(int(mu_s.numel()))
++        with torch.no_grad():
++            scale = sd_s.double() / sd_t.double()
++            m.gamma.copy_((scale - 1).float())
++            m.beta.copy_((mu_s.double() - scale * mu_t.double()).float())
++        return m
++
++
++def image_positions(bo) -> torch.Tensor:
++    """image_mask & backbone_attention_mask: the image-token positions the DiT reads."""
++    image = _get(bo, "image_mask")
++    attn = _get(bo, "backbone_attention_mask")
++    return image & attn if attn is not None else image
++
++
++class TransformHandle:
++    """`transform(features, positions) -> features` at one site, every forward,
++    under the same common-random-numbers noise as the splice:
++
++      S2  the adapter output, i.e. `backbone_features` as `get_action_with_features`
++          receives it (post-`vlln` + `vl_self_attention`) -- the splice point.
++      S1  the backbone output BEFORE `vlln`: `process_backbone_output` is wrapped,
++          which is the only place both the pre-`vlln` tensor and `image_mask`
++          are in hand (`_encode_features` -> `process_backbone_output`).
++
++    `transform=None` is the seeded, untransformed base. `enabled` switches the
++    transform off without detaching (paired-source features must be the base's).
++    Each forward's `action_pred` is recorded."""
++
++    def __init__(self, head, transform, site: str, noise_key: Callable[[int], int]):
++        if site not in ("S1", "S2"):
++            raise ValueError(f"site must be S1 or S2, got {site!r}")
++        self._head = head
++        self.transform = transform
++        self.site = site
++        self.enabled = True
++        self._noise_key = noise_key
++        self._fidx = 0
++        self.records: list[dict] = []
++        self._had_override = {n: n in vars(head) for n in ("get_action_with_features", "process_backbone_output")}
++        self._original = head.get_action_with_features
++        self._original_pbo = head.process_backbone_output
++        head.get_action_with_features = self._wrapped
++        if site == "S1":
++            head.process_backbone_output = self._wrapped_pbo
++
++    def begin_episode(self) -> None:
++        self._fidx = 0
++        self.records = []
++
++    def detach(self) -> None:
++        for name, orig in (("get_action_with_features", self._original),
++                           ("process_backbone_output", self._original_pbo)):
++            if self._had_override[name]:
++                setattr(self._head, name, orig)
++            elif name in vars(self._head):
++                delattr(self._head, name)
++
++    def _live(self) -> bool:
++        return self.enabled and self.transform is not None
++
++    def _wrapped_pbo(self, backbone_output):
++        if self._live():
++            backbone_output["backbone_features"] = self.transform(
++                backbone_output["backbone_features"], image_positions(backbone_output))
++        return self._original_pbo(backbone_output)
++
++    def _wrapped(self, *args, **kwargs):
++        if args:
++            raise RuntimeError("get_action_with_features was called positionally; the transform "
++                               "needs keyword arguments")
++        fidx = self._fidx
++        self._fidx += 1
++        if self.site == "S2" and self._live():
++            kwargs = {**kwargs, "backbone_features": self.transform(
++                kwargs["backbone_features"], image_positions(kwargs["backbone_output"]))}
++        device = kwargs["backbone_features"].device
++        outer = _rng_state(device)
++        try:
++            torch.manual_seed(int(self._noise_key(fidx)))
++            out = self._original(**kwargs)
++        finally:
++            _restore_rng(outer)
++        self.records.append({"forward_idx": fidx, "action": out["action_pred"].detach().clone()})
++        return out
++
++
++def attach_transform(policy, transform, site: str = "S2",
++                     noise_key: Callable[[int], int] | None = None) -> TransformHandle:
++    head = find_action_head(policy)
++    if head is None:
++        raise RuntimeError("no GR00T action head found on the policy")
++    return TransformHandle(head, transform, site, noise_key or (lambda i: i))
+diff --git a/vla_harness/envs/libero_env.py b/vla_harness/envs/libero_env.py
+index 5391f97..919fd4c 100644
+--- a/vla_harness/envs/libero_env.py
++++ b/vla_harness/envs/libero_env.py
+@@ -622,9 +622,10 @@ class LiberoEnv:
+         sim.model.cam_quat[cid] = q
+         sim.forward()
+ 
+-    def _bench_camera_pose(self, yaw: int, pitch: int, scale: float):
++    def _bench_camera_pose(self, yaw: int, pitch: int, scale: float,
++                           end_rot: int = 0, end_vert: int = 0):
+         """agentview (pos, quat [w, x, y, z]) for LIBERO-Plus view
+-        `{yaw}_{pitch}_{scale*100}_0_0`.
++        `{yaw}_{pitch}_{scale*100}_{end_rot}_{end_vert}`.
+ 
+         Runs the scene class's own `_setup_camera` against a stub and a
+         recording arena, so the canonical pose, the pivots, the order (pitch
+@@ -650,7 +651,7 @@ class LiberoEnv:
+                 got[camera_name] = (pos, quat)
+ 
+         stub = types.SimpleNamespace(horizon_view=yaw, vertical_view=pitch, scale_factor=scale,
+-                                     end_point_rot=0, end_point_vertical=0)
++                                     end_point_rot=end_rot, end_point_vertical=end_vert)
+         setup(stub, _Arena())
+         pos, quat = got[MAIN_CAMERA]
+         q = np.array(quat, dtype=float)
+@@ -753,6 +754,64 @@ class LiberoEnv:
+         obs.frames = self.nominal_frames()
+         return obs
+ 
++    def perturbed_frames(self, variant: str, noise_seed: int | None = None) -> dict:
++        """R-060: the inverse of `nominal_frames`. Frames this CANONICAL env would
++        show RIGHT NOW under LIBERO-Plus variant `variant`'s camera and/or sensor
++        noise, without stepping physics.
++
++        Camera: the scene class's own `_setup_camera` with the variant's five
++        view knobs (`_bench_camera_pose`), written into `sim.model` and restored.
++        Noise: the wrapper's dispatch (env_wrapper.py:294-327) applied to the
++        clean agentview frame, under `np.random.seed(noise_seed)` because motion
++        blur, fog and glass blur draw from the global numpy stream; the caller's
++        stream is restored. G0c (experiments/r060_gates.py) checks both against
++        LIBERO-Plus's own render of the variant.
++        """
++        import numpy as np
++        from . import nominal
++        if not self.libero_plus:
++            raise NotImplementedError("perturbed_frames needs the LIBERO-Plus stack")
++        outer = self._env.unwrapped
++        wrapper = outer._env
++        inner = wrapper.env
++        sim = inner.sim
++        if getattr(wrapper, "noise", 0) != 0:
++            raise ValueError("perturbed_frames renders FROM the canonical condition; this env is a noise variant")
++        knobs = nominal.variant_perturbations(variant)
++        saved = None
++        try:
++            if knobs["view"] is not None:
++                h, v, scale, r, e = knobs["view"]
++                cid = sim.model.camera_name2id(MAIN_CAMERA)
++                pos0, q0 = self._bench_camera_pose(0, 0, 1.0)
++                qm = np.array(sim.model.cam_quat[cid], dtype=float)
++                if (not np.allclose(sim.model.cam_pos[cid], pos0, atol=1e-6)
++                        or min(np.abs(qm - q0).max(), np.abs(qm + q0).max()) > 1e-6):
++                    raise ValueError(f"{MAIN_CAMERA} is not at the canonical pose; perturbed_frames "
++                                     f"needs a canonical-camera env")
++                saved = (cid, sim.model.cam_pos[cid].copy(), sim.model.cam_quat[cid].copy())
++                pos, q = self._bench_camera_pose(h, v, scale, r, e)
++                sim.model.cam_pos[cid] = pos
++                sim.model.cam_quat[cid] = q
++            sim.forward()
++            raw = inner._get_observations(force_update=True)
++            if knobs["noise"]:
++                raw = dict(raw)
++                raw["agentview_image"] = lplus_sensor_noise(raw["agentview_image"], knobs["noise"], noise_seed)
++            return dict(outer._format_raw_obs(raw)["pixels"])
++        finally:
++            if saved is not None:
++                cid, p0, q0 = saved
++                sim.model.cam_pos[cid] = p0
++                sim.model.cam_quat[cid] = q0
++                sim.forward()
++
++    def perturbed_observation(self, variant: str, noise_seed: int | None = None) -> Observation:
++        """`_obs()` with the frames swapped for `perturbed_frames()`."""
++        obs = self._obs()
++        obs.frames = self.perturbed_frames(variant, noise_seed)
++        return obs
++
+     # --- observation ------------------------------------------------------
+     def _sim(self):
+         return self._env.unwrapped._env.env.sim
+@@ -966,3 +1025,36 @@ class LiberoEnv:
+                        for x in self._raw["robot_state"]["eef"]["pos"]]},
+             "cameras": cameras,
+         }
++
++
++def lplus_sensor_noise(img, noise: int, seed: int | None = None):
++    """LIBERO-Plus's sensor-noise dispatch (env_wrapper.py:294-327), verbatim:
++    1-10 motion blur, 11-20 gaussian, 21-30 zoom, 31-40 fog, 41-50 glass, each at
++    severity `noise - 10k`. Motion blur's result is NOT cast to uint8 there and is
++    not here. With `seed`, the global numpy stream is seeded for the call and
++    restored afterwards (motion blur's angle, fog's plasma and glass blur's
++    shuffles draw from it)."""
++    import numpy as np
++    from PIL import Image
++    from libero.libero.envs import env_wrapper as W
++    state = np.random.get_state() if seed is not None else None
++    try:
++        if seed is not None:
++            np.random.seed(int(seed))
++        if img.dtype != np.uint8:
++            img = (img * 255).astype(np.uint8)
++        pil = Image.fromarray(img)
++        if noise <= 10:
++            return W.motion_blur(pil, severity=noise)
++        if noise <= 20:
++            return W.gaussian_blur(pil, severity=noise - 10).astype(np.uint8)
++        if noise <= 30:
++            return W.zoom_blur(pil, severity=noise - 20).astype(np.uint8)
++        if noise <= 40:
++            return W.fog(pil, severity=noise - 30).astype(np.uint8)
++        if noise <= 50:
++            return W.glass_blur(pil, severity=noise - 40).astype(np.uint8)
++        raise ValueError(f"no LIBERO-Plus noise family for {noise}")
++    finally:
++        if state is not None:
++            np.random.set_state(state)

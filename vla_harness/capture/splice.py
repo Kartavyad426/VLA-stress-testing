@@ -270,3 +270,124 @@ def attach_recorder(policy) -> RecorderHandle:
     if head is None:
         raise RuntimeError("no GR00T action head found on the policy")
     return RecorderHandle(head)
+
+
+# ----------------------------------------------------------------------------
+# R-060: the same splice point with a TRANSFORM in place of a source.
+
+class FTM(torch.nn.Module):
+    """Feature Token Modulation (arXiv:2512.02902; SPATIAL_ADAPT_MATHS.html eq. 3.1):
+    F_hat = (1 + gamma) * F + beta on the IMAGE-token positions only, one
+    (gamma, beta) per channel shared across tokens, cameras and tasks. fp32
+    parameters, applied in fp32 and cast back to the feature dtype. Zero-init
+    is the identity (G0b checks that bitwise on the real forward)."""
+
+    def __init__(self, dim: int = 2048):
+        super().__init__()
+        self.gamma = torch.nn.Parameter(torch.zeros(dim))
+        self.beta = torch.nn.Parameter(torch.zeros(dim))
+
+    def forward(self, x: torch.Tensor, positions: torch.Tensor) -> torch.Tensor:
+        g = self.gamma.to(x.device)
+        b = self.beta.to(x.device)
+        out = x.clone()
+        out[positions] = (x[positions].float() * (1 + g) + b).to(x.dtype)
+        return out
+
+    @classmethod
+    def from_moments(cls, mu_s, sd_s, mu_t, sd_t) -> "FTM":
+        """E1, eq. 3.2: 1 + gamma = sd_s / sd_t, beta = mu_s - (1 + gamma) mu_t,
+        s = source (nominal view), t = target (perturbed view)."""
+        m = cls(int(mu_s.numel()))
+        with torch.no_grad():
+            scale = sd_s.double() / sd_t.double()
+            m.gamma.copy_((scale - 1).float())
+            m.beta.copy_((mu_s.double() - scale * mu_t.double()).float())
+        return m
+
+
+def image_positions(bo) -> torch.Tensor:
+    """image_mask & backbone_attention_mask: the image-token positions the DiT reads."""
+    image = _get(bo, "image_mask")
+    attn = _get(bo, "backbone_attention_mask")
+    return image & attn if attn is not None else image
+
+
+class TransformHandle:
+    """`transform(features, positions) -> features` at one site, every forward,
+    under the same common-random-numbers noise as the splice:
+
+      S2  the adapter output, i.e. `backbone_features` as `get_action_with_features`
+          receives it (post-`vlln` + `vl_self_attention`) -- the splice point.
+      S1  the backbone output BEFORE `vlln`: `process_backbone_output` is wrapped,
+          which is the only place both the pre-`vlln` tensor and `image_mask`
+          are in hand (`_encode_features` -> `process_backbone_output`).
+
+    `transform=None` is the seeded, untransformed base. `enabled` switches the
+    transform off without detaching (paired-source features must be the base's).
+    Each forward's `action_pred` is recorded."""
+
+    def __init__(self, head, transform, site: str, noise_key: Callable[[int], int]):
+        if site not in ("S1", "S2"):
+            raise ValueError(f"site must be S1 or S2, got {site!r}")
+        self._head = head
+        self.transform = transform
+        self.site = site
+        self.enabled = True
+        self._noise_key = noise_key
+        self._fidx = 0
+        self.records: list[dict] = []
+        self._had_override = {n: n in vars(head) for n in ("get_action_with_features", "process_backbone_output")}
+        self._original = head.get_action_with_features
+        self._original_pbo = head.process_backbone_output
+        head.get_action_with_features = self._wrapped
+        if site == "S1":
+            head.process_backbone_output = self._wrapped_pbo
+
+    def begin_episode(self) -> None:
+        self._fidx = 0
+        self.records = []
+
+    def detach(self) -> None:
+        for name, orig in (("get_action_with_features", self._original),
+                           ("process_backbone_output", self._original_pbo)):
+            if self._had_override[name]:
+                setattr(self._head, name, orig)
+            elif name in vars(self._head):
+                delattr(self._head, name)
+
+    def _live(self) -> bool:
+        return self.enabled and self.transform is not None
+
+    def _wrapped_pbo(self, backbone_output):
+        if self._live():
+            backbone_output["backbone_features"] = self.transform(
+                backbone_output["backbone_features"], image_positions(backbone_output))
+        return self._original_pbo(backbone_output)
+
+    def _wrapped(self, *args, **kwargs):
+        if args:
+            raise RuntimeError("get_action_with_features was called positionally; the transform "
+                               "needs keyword arguments")
+        fidx = self._fidx
+        self._fidx += 1
+        if self.site == "S2" and self._live():
+            kwargs = {**kwargs, "backbone_features": self.transform(
+                kwargs["backbone_features"], image_positions(kwargs["backbone_output"]))}
+        device = kwargs["backbone_features"].device
+        outer = _rng_state(device)
+        try:
+            torch.manual_seed(int(self._noise_key(fidx)))
+            out = self._original(**kwargs)
+        finally:
+            _restore_rng(outer)
+        self.records.append({"forward_idx": fidx, "action": out["action_pred"].detach().clone()})
+        return out
+
+
+def attach_transform(policy, transform, site: str = "S2",
+                     noise_key: Callable[[int], int] | None = None) -> TransformHandle:
+    head = find_action_head(policy)
+    if head is None:
+        raise RuntimeError("no GR00T action head found on the policy")
+    return TransformHandle(head, transform, site, noise_key or (lambda i: i))
