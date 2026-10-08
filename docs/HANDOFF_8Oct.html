@@ -193,28 +193,440 @@
 <section class="sess" id="my-prim">
   <h2>my prim</h2>
   <p class="lead"><span class="owner">owner: my prim</span> · Primary/Sentinel: R-059, R-060 validator and monitor, scope</p>
-  <div class="slot"><!-- HANDOFF-SLOT:my-prim -->Awaiting handoff from <code>my prim</code>.</div>
+  <!-- HANDOFF-SLOT:my-prim filled -->
+  <h3>my prim: validator and monitor, R-059 owner, Sentinel/OOD (06–08 Oct)</h3>
+  <p><b>Role.</b> I validate impl's run plans against their pre-registrations before launch: I give an explicit OK or corrections, then monitor each step (outputs, logs, OOMs, silent skips) and report to <code>prim</code> after each one. I also own R-059 (Sentinel STAC on GR00T) and the Sentinel/OOD and scope/literature threads.</p>
+  <ul class="tight">
+    <li>Work comes from the user and from <code>prim</code>; prim relays approvals.</li>
+    <li>I hand implementation to <code>impl</code> as minimal what/where specs. I don't edit code: the user's no-code-changes rule from 10-06 still applies to me.</li>
+    <li>RESULTS.md text goes to <code>SFT</code> to paste. Commits go to <code>prim</code>.</li>
+    <li>No subagents. Deliverables are local HTML.</li>
+  </ul>
+
+  <h3>Done 06–08 Oct</h3>
+  <div class="tbl"><table>
+  <tr><th>Item</th><th>Path</th><th>Commit</th><th>Status</th></tr>
+  <tr><td>Validated and monitored the 10-06 run (D20, D18a, D19). I caught that <code>queue_r056_cont.sh</code> step 3 would have <code>--resume</code>d r64 training (D18b, not approved).</td><td><code>runs/overnight/queue.log</code> <code>[d1006]</code> lines; <code>experiments/d_step.sh</code> (impl)</td><td>run metadata (prim)</td><td>done; r64 transfer phase GPU-OOM at 16:28, skipped by the user</td></tr>
+  <tr><td>D20 analysis: per-subset loss, R-047 offset re-plot, first-chunk fit test (spec and anchor check). SFT co-signed.</td><td><code>runs/r056_diag/</code></td><td>prim (RESULTS 4c2f544)</td><td>done; reading in R-056</td></tr>
+  <tr><td>R-052 scored, 2 of 6 held</td><td><code>runs/r052/score.json</code>, <code>score_r052.py</code>, <code>score.log</code>; RESULTS via SFT</td><td>600993e / fe33c0e</td><td>done</td></tr>
+  <tr><td>Run-to-timeout vs end-on-success scoping (options 1–5) and the post-success calibration probe</td><td><code>docs/drafts/D26_draft.html</code></td><td>b4d80f9</td><td>parked by the user (t4d, t4e)</td></tr>
+  <tr><td>Retraining visualisation request relayed to <code>viz</code></td><td><code>docs/RETRAINING_VIZ.html</code></td><td>b6db330</td><td>done (viz)</td></tr>
+  <tr><td>Answered user questions: FAIL-Detect CP band, length confound, O<sub>t</sub> vs p(A|O), mid-episode perturbation support, FTM/FLA transfer claims and their real-robot §7</td><td>chat only</td><td>—</td><td>done</td></tr>
+  </table></div>
+
+  <h3>In flight</h3>
+  <ul class="tight">
+    <li><b>R-060 validation (r60a–c), GPU HOLD.</b> impl may finish the part 0 CPU gates. I told impl explicitly: no R-060 GPU step without my OK, pending r60b (prim's amendment: score camera per LIBERO-Plus family; an optional Adapt3R-pose bridge arm; reconsider the noise row). Gate results not yet received. <code>experiments/repro/r060_split.json</code> doesn't exist yet.<br>
+    <b>Checklist for impl's plan:</b>
+      <ul class="tight">
+        <li>G0b is bitwise at γ=β=0. G0a camera order decides whether A2-S1 runs. G0c is exact for both camera and noise.</li>
+        <li>The split is written before training: camera pose-disjoint, 60 held-out stratified L1–L5 to 2.0×, the R-048 ten in held-out; noise 40 held-out, ~50% failure-enriched, including glass and motion blur.</li>
+        <li>Training pairs: forwards 0–8 of successful nominal episodes only.</li>
+        <li>B's step budget is fixed from a 10% validation split before any eval.</li>
+        <li>C is DiT-only LoRA r4 (no <code>vl_self_attention</code>) on identical pairs and steps. It should train on cached S2, or RSS OOM is likely (the r64 lesson).</li>
+        <li>Fixed noise_key = 1000·seed + forward. 30 train-variant fit checks for B and C.</li>
+        <li><code>d_step.sh</code>, one GR00T load at a time, 14 GiB floor, each step its own unit.</li>
+      </ul>
+    <b>Next:</b> receive the gate results, then the user decides r60b, then validate the (amended) plan and give the OK, then monitor and report to prim after each GPU step.</li>
+    <li><b>R-059 (t4a/D24, t4b, t4c).</b> Pre-registered and approved 09-29; nothing run. <b>Next:</b> send impl the B-draw runner spec once the user says go. It's in the 10-06 handoff my-prim section: a per-forward seeded generator into <code>torch.randn</code> at <code>groot_n1_7.py:657</code>, backbone and state features repeated B×, draw 0 executed, F×B×40×7 stored, flags <code>--draws B --seed-noise</code>. Part A (CPU on <code>runs/r047/</code>) needs no spec and is also the gate for t4e.</li>
+  </ul>
+
+  <h3>Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>r60b</b>: amend R-060 before its GPU parts; then <b>r60c</b>, the GPU OK.</li>
+    <li><b>t4a / D24</b>: send the R-059 runner spec. <b>t4c</b>: add the VLA-FAIL ACC and LLMD arms.</li>
+    <li><b>t4d / D26</b>: approve the §13 subsection and tracker row. <b>t4e</b>: the harness flag for the post-success probe (gated after t4b).</li>
+    <li><b>Mid-episode perturbation</b> (no id yet): the harness doesn't support it by design. <code>vla_harness/schema.py:123</code> says "Frozen: knobs never change mid-episode", and knobs are applied only in <code>reset()</code> (<code>libero_env.py:315</code>). Camera and lighting could be applied at step t; that needs a new onset field in the spec identity and a code change. All our robustness results so far are perturbed from the first frame.</li>
+    <li><b>Bootstrap CI on 30% vs 12%</b> (no id; CPU, minutes): it tests whether the fit-test train-vs-held-out difference is real before t2b/D21 leans on it. Offered, not run.</li>
+    <li><b>t2b / D21</b>: the data source. The evidence doesn't yet separate "data doesn't generalise" from "dose too weak".</li>
+    <li><code>docs/R042_WRIST_MATHS.pdf</code>: commit or not (the user's call since 09-24).</li>
+  </ul>
+
+  <h3>Findings (V = checked against files)</h3>
+  <ul class="tight">
+    <li><b>D20(i) loss</b> [V]: minted frame-0 loss 0.159 (base) → 0.055–0.081 (all adapters); 91–96% of frames below base. Frame 0 was fitted. IPEC median slightly worse (mild drift).</li>
+    <li><b>Fit test</b> [V]: the pipeline is consistent (anchor 4.514/3.979/4.120 reproduced exactly). r16 closes 30% of the gap on training starts (n=100) vs 12% held-out (n=36); 4–8 cm 19% vs ≈0% (n 49/9); 8–12 cm 48% vs 12% (n 18/9). This is consistent with a failure to generalise across directions, but not shown, because direction and offset are confounded in training. Under-dosing is the second suspect.</li>
+    <li><b>D20(ii)</b> [V]: achieved/requested radius by direction is 0.72 / 0.95 / 0.93. Success ≈ 0.93 at ≤ 8 cm, 0.65 at 8–12, 0.22 at 12–16, 0.15 beyond. The cm-band prediction is 55.7/108 vs 67 observed. The residual is mostly dir 101 at 16–20 cm.</li>
+    <li><b>R-058 r64</b> [V]: 64/108 (base 67, p=0.74), scene 1327 3/12. Ranks 4/16/64 give 65/59/64, so capacity isn't the lever. <b>WiSE α=0.5</b>: 69/108, 1327 8/12.</li>
+    <li><b>R-052</b> [V]: bench yaw is gentler than harness yaw (paired 48 vs 28, p=0.03; 0.81 at 75°). Distance is the damaging axis (0.88 at 1.4× → 0.50 at 2.0×). Pitch 15° gives 0.91. on-ramekin fails at neutral (seeds 1–2), and on-wooden-cabinet is flaky at neutral (outcomes differ at an identical forward 0).</li>
+    <li><b>Success lengths</b> [V]: median 7 forwards (scale 8), p95 10–15. Every failure is 18. f<sub>c</sub> 11–15.</li>
+    <li><b>FAIL-Detect</b> [V, code b758e55]: it never ends on success (robomimic <code>is_done()</code> is always False; 50 forwards fixed). Real robot: ≈ 72% balanced accuracy. <b>FTM paper</b> [V, arXiv v2]: the real-robot §7 is FLA only and qualitative, with no counts and no unadapted baseline.</li>
+    <li><b>Unverified</b>: that post-success scores are high for observation-OOD detectors and low for consistency detectors (inferred); the censoring-aware band (prim's inference).</li>
+  </ul>
+  <p><b>Corrections, so they aren't repeated:</b> f<sub>c</sub> is <b>11–15</b>, not 4–5. D20(ii) closes about <b>a third</b> of the 0.46 → 0.62 gap, not half (SFT). Don't cite fit-test bands with <b>n &lt; 9</b> (the 61% band was n=2). The lerobot <code>loss:</code> field is a mean over <b>10 micro-steps</b> (1.25 opt steps), not 10 opt steps (viz).</p>
+
+  <h3>Gotchas</h3>
+  <ul class="tight">
+    <li><code>queue_r052.sh</code> marks an axis INCOMPLETE/PARTIAL when EGL <code>__del__</code> tracebacks push "] done" out of <code>tail -3</code>. Check the log and the row counts. <code>runs/r052/PARTIAL</code> is false; pitch has 160/160.</li>
+    <li><code>queue_r056_cont.sh</code> step 3 resumes r64 training whenever no opt2000 checkpoint and the resident-OOM marker both hold. Never run it as is.</li>
+    <li>r16/r4 checkpoint directories are named by micro-step: opt500 = <code>004000</code>. Map via <code>vla_train_meta.json</code> <code>opt_step</code>.</li>
+    <li><code>rollout_id</code> ignores the noise seed. Join by position or by start key.</li>
+    <li><code>tests/test_bench_camera.py</code> must run with <code>MUJOCO_GL=osmesa PYOPENGL_PLATFORM=osmesa</code> and the repo on PYTHONPATH; it errors under EGL.</li>
+    <li><code>r044_reverse.py</code> (transfer) GPU-OOMs with r64. impl's unverified hypothesis: two live EGL env contexts. Its patch was not applied, per the user.</li>
+  </ul>
+
+  <h3>Memory and scratchpad</h3>
+  <p>Memory files written: <code>d1006-validator-role</code>, <code>retraining-viz-default</code>, <code>d26-post-success-probe</code> (all indexed in MEMORY.md). No scratchpad files need keeping. The R-052 scorer is in <code>runs/r052/</code>, the R-052 RESULT text is in RESULTS.md, and the D26 draft is in <code>docs/drafts/</code>.</p>
+
+  <h3>Next steps</h3>
+  <ul class="tight">
+    <li><b>User</b>: r60b, then r60c; t4a/D24; t4d/t4e; the mid-episode question; the bootstrap CI; t2b/D21.</li>
+    <li><b>impl</b>: finish the R-060 gates and send them to my prim. No GPU before the OK.</li>
+    <li><b>my prim / successor</b>: validate the R-060 plan against the checklist above; send the R-059 spec on go; run the bootstrap CI if approved.</li>
+    <li><b>prim</b>: commit this section.</li>
+  </ul>
 </section>
 
 <!-- ============================================================ -->
 <section class="sess" id="SFT">
   <h2>SFT</h2>
   <p class="lead"><span class="owner">owner: SFT</span> · Retraining pilot owner: pre-registration, interpretation, RESULTS write-ups</p>
-  <div class="slot"><!-- HANDOFF-SLOT:SFT -->Awaiting handoff from <code>SFT</code>.</div>
+  <!-- HANDOFF-SLOT:SFT filled -->
+  <h3>SFT: retraining pilot R-053..R-058, pre-registration and write-up (06–08 Oct)</h3>
+  <p><b>Role.</b> I own the GR00T N1.7 start-pose retraining pilot, R-053 to R-058. That covers pre-registration, interpreting the results and writing them into RESULTS.md. I also paste RESULTS.md text that other sessions draft, when asked.</p>
+  <ul class="tight">
+    <li>Work comes from the user, relayed by <code>prim</code>, and from <code>my prim</code> for analysis that we co-read.</li>
+    <li>Code and runs go to <code>impl</code>, as minimal what/where specs. I don't edit code.</li>
+    <li>Commits go to <code>prim</code>, as a path plus a commit group. I don't commit.</li>
+    <li>No subagents. Deliverables are local HTML.</li>
+  </ul>
+
+  <h3>Done 06–08 Oct</h3>
+  <div class="tbl"><table>
+  <tr><th>Item</th><th>Path</th><th>Commit</th><th>Status</th></tr>
+  <tr><td>D17: R-053..R-058 scored. Headings, status lines, index rows and a RESULT section each. R-056 was marked uninterpretable by its own rule; R-058 was PARTIAL at that point.</td><td><code>RESULTS.md</code></td><td>f07b4bf</td><td>done</td></tr>
+  <tr><td>R-056: post-hoc D20 addendum (loss per subset, offset curve, first-chunk fit test). WiSE α 0.5 scored with paired tests. The single-factor "0.74–0.78" radius bullet corrected (timestamped 10-07).</td><td><code>RESULTS.md</code> R-056</td><td>4c2f544</td><td>done</td></tr>
+  <tr><td>R-058 completed: r64 scored. Transfer marked "not run" per the user's decision of 10-06 ~16:40. r64 recorded as a deviation: opt1500 of 2000, not annealed (LR 1.6e-5).</td><td><code>RESULTS.md</code> R-058</td><td>4c2f544</td><td>done</td></tr>
+  <tr><td>R-052 RESULT, heading, status and index row pasted verbatim from my prim's text</td><td><code>RESULTS.md</code> R-052</td><td>4c2f544 (artifacts 600993e / fe33c0e, my prim)</td><td>done</td></tr>
+  <tr><td>Co-read D20 with my prim. I supplied the an7 metric's source and the spec for the fit test on training starts (relayed to impl), the direction-confound wording, and the "a third, not half" correction.</td><td><code>runs/r056_diag/</code>; messages</td><td>a3dcb3d (runs)</td><td>done</td></tr>
+  <tr><td>The one-shot edit scripts that wrote the two RESULTS commits above, kept for provenance</td><td><code>docs/drafts/retraining_scoring_sources/</code> (<code>score_r053_r058.py</code>, <code>score_d20_r058.py</code>; 44 KB)</td><td>uncommitted (prim)</td><td>copied 10-08</td></tr>
+  </table></div>
+
+  <h3>In flight</h3>
+  <p>Nothing is running and nothing of mine is uncommitted apart from the drafts folder above.</p>
+  <ul class="tight">
+    <li><b>D23 / t2e, the pre-registration of the six-arm design: not started.</b> Its preconditions are:
+      <ul class="tight">
+        <li>the user explicitly asks for it;</li>
+        <li>D21 / t2b (the demo source) is decided, since it sets which arms are buildable;</li>
+        <li>ideally, a replay check of the D22 demos in LIBERO-Plus's env, which nobody has run yet.</li>
+      </ul></li>
+    <li><b>"The pilot as run" section of <code>docs/FINE_TUNING_101.html</code>: not started.</b> The user said to ask first. It has no priorities id.</li>
+  </ul>
+
+  <h3>Open decisions for the user</h3>
+  <div class="tbl"><table>
+  <tr><th>Priority id</th><th>D-number</th><th>Decision</th><th>Notes</th></tr>
+  <tr><td>t2b</td><td>D21</td><td>Next demo source: A, bridge-and-join (MimicGen-lite), or B, a scripted expert. S2 rescue minting stays only as a comparison arm.</td><td>A depends on D22's demos replaying in LIBERO-Plus. Unchecked, and none of their init states matches an eval init row.</td></tr>
+  <tr><td>t2e</td><td>D23</td><td>Pre-register the six-arm matched-budget design</td><td>Not requested yet. Design notes below.</td></tr>
+  <tr><td>t2f</td><td>(D23 b)</td><td>Bridge no-training rescue check: CPU yield on ~60 starts, then ~1 GPU-h</td><td>The cheapest test of option A before any training</td></tr>
+  <tr><td>t2d</td><td>—</td><td>Directions-review calls (C5, C11/C22, C12, C17, C18, C21)</td><td>my prim's thread. C18 (wrist steering) is a parameter-only start-pose arm that could join D23.</td></tr>
+  <tr><td>—</td><td>D25 (part)</td><td>The "pilot as run" section of FINE_TUNING_101; spot-checking res's unverified 2026 citations</td><td>Low priority</td></tr>
+  <tr><td>t2c</td><td>D22</td><td><b>DONE</b>, not open. impl, 10-07, 874bd1c: <code>data/libero_raw/libero_spatial/</code>, 500 demos, 5.9 GB.</td><td>No demo init_state matches any LIBERO-Plus eval init row (objects off by 0.08–0.16, ramekin 2.28).</td></tr>
+  </table></div>
+
+  <h3>Findings, with verification status</h3>
+  <p><b>Verified</b> means SFT re-derived the number from the run artifacts. Paired counts are joined on (scene, dir, radius, noise_seed). <b>Read</b> means the number was taken from a summary file or another session without being re-derived.</p>
+  <ul class="tight">
+    <li><b>Held-out, R-056/R-058</b> (verified): base 67/108. Ranks 4 / 16 / 64 score 65 / 59 / 64 (paired p vs base 0.86 / 0.24 / 0.74). No rank differs from another. <b>Capacity is not the lever.</b></li>
+    <li><b>Scene 1327</b> (verified): base 12/12; at ranks 4 / 16 / 64 it scores 2 / 4 / 3 (r16 p = 0.008). Excluding 1327: base 55/96; ranks 4 / 16 / 64 score 63 / 55 / 61. The grasp-height mechanism (adapters close 5.5–5.8 cm above the bowl, against 4.2 cm for base) is analyzer's figure, not re-measured. It is unexplained and needs the replay-only control.</li>
+    <li><b>WiSE α 0.5</b> (verified, exploratory): 69/108; vs base 11 gained / 9 lost, p = 0.82; vs r16 p = 0.087; scene 1327 8/12.</li>
+    <li><b>Frame 0 was fitted</b> (read, loss_summary.json): minted frame-0 loss falls from 0.159 to 0.055–0.081, with 91–96% of frames below base. IPEC is mixed: medians slightly worse, CIs include 0. Dilution is ruled out as a fit failure but remains a candidate for poor generalisation.</li>
+    <li><b>The fit test</b> (read, fit_firstchunk.json): the pipeline anchor is exact, so the pipeline is cleared.
+      <ul class="tight">
+        <li>Training starts closed <b>30%</b> of the first-chunk gap (n = 100); held-out starts closed <b>12%</b> (n = 36).</li>
+        <li>Matched bands, small n: 4–8 cm 19% vs ≈ 0% (n 49 / 9); 8–12 cm 48% vs 12% (n 18 / 9).</li>
+      </ul></li>
+    <li><b>The confound:</b> every training start has its own random direction (one start per direction), so direction and offset cannot be separated within training. The held-out directions 100 and 101 never appear in training. "Fails to generalise across directions" is <b>consistent, not shown</b>.</li>
+    <li><b>The offset curve</b> (achieved/requested by direction read: 0.72 vs ≈ 0.94; prediction verified): the cm curve predicts base 55.7/108 against 67 observed. It closes <b>about a third</b> of the 0.46 → 0.62 gap, not "about half" (my prim corrected). The residual is almost all held-out direction 101 at 16–20 cm (16/33 vs 5.0 predicted).</li>
+    <li><b>R-057</b> (verified): start pose k* = 1 and camera "throughout". Start-pose success falls as k grows (24, 22, 21, 19 of 30).</li>
+  </ul>
+
+  <h3>Gotchas</h3>
+  <ul class="tight">
+    <li><code>rollout_id</code> ignores the noise seed (D25 / t5b, not fixed). Join manifests and rollouts on (scene, dir_seed, radius, noise_seed), or by line position where the two files are written in lockstep. Never join on rollout_id. The post-mortem's <code>perstart.py</code> joins by position.</li>
+    <li><code>experiments/r057_score.py:167</code> tests <code>abs(0.8 − 0.7) &lt;= 0.10</code>, which is False in floating point. R-057 E1 is recorded as held at its boundary, with a note. Not fixed.</li>
+    <li>Step-0 training-path conformance was measured only at r = 16. It was not re-run at r = 4 or r = 64 (a no-op by construction, since LoRA B = 0), and is recorded as a gap.</li>
+    <li>The R-058 r64 transfer phase OOMs on its first forward (7.39 / 7.53 GiB). impl's EGL-context hypothesis is unverified.</li>
+    <li>Score files print R-056's expectation names even for R-058 runs. Score R-058's own expectations by hand.</li>
+  </ul>
+
+  <h3>Memory and kept files</h3>
+  <ul class="tight">
+    <li>Memory: <code>start-pose-retrain-pilot.md</code> (main, updated to 10-08), <code>r056-postmortem.md</code>, <code>retraining-pilot-overnight.md</code>, <code>r056-lr-fix-handoff.md</code>, <code>prim-owns-commits.md</code>.</li>
+    <li>Kept from the scratchpad: <code>docs/drafts/retraining_scoring_sources/</code>, 2 files, 44 KB. Nothing else in the scratchpad is worth keeping.</li>
+  </ul>
+
+  <h3>Next steps and design notes for D23 (once requested)</h3>
+  <ul class="tight">
+    <li><b>Owners.</b> SFT pre-registers. impl builds and runs. my prim validates the run plan. prim commits.</li>
+    <li><b>Order:</b>
+      <ol>
+        <li>the user decides t2b (D21);</li>
+        <li>impl replay-checks the D22 demos in LIBERO-Plus;</li>
+        <li>t2f, the bridge no-training check (impl, ~1 GPU-h);</li>
+        <li>SFT pre-registers D23;</li>
+        <li>the matched-budget arms run (~25–35 GPU-h).</li>
+      </ol></li>
+    <li><b>Strata.</b> Stratify eval and data by direction × achieved offset in cm, not requested radius. Training starts need several starts per direction, and held-out directions should be shared with training, so that direction can be separated from offset.</li>
+    <li><b>Coverage.</b> Cover the region where failures are (8–20 cm, including direction-101-like directions), not where minting succeeds (≤ 8 cm).</li>
+    <li><b>Data hygiene.</b> Never truncate mid-grasp. Drop or cut demos with a failed first grasp (16/100 in R-054). Keep a replay-only arm, the same recipe at 0% new data, to attribute the scene-1327 regression to the recipe or to the data.</li>
+    <li><b>Dose.</b> Even training starts closed only 30%, so dose per region (frame-0 exposures) is an explicit design variable. Consider a larger effective batch and restoring augmentation and state dropout as a recipe arm.</li>
+    <li><b>Analysis.</b> Evaluate with <code>.claude/skills/finetune-postmortem/</code>; reuse the an7 first-chunk metric (<code>experiments/analysis_r056_postmortem/an7.py</code>) and the D20 loss-per-subset script as standing diagnostics.</li>
+  </ul>
 </section>
 
 <!-- ============================================================ -->
 <section class="sess" id="res">
   <h2>res</h2>
   <p class="lead"><span class="owner">owner: res</span> · Research: data sourcing, flow matching, Libero-V, VLA-Corrector</p>
-  <div class="slot"><!-- HANDOFF-SLOT:res -->Awaiting handoff from <code>res</code>.</div>
+  <!-- HANDOFF-SLOT:res filled -->
+  <h3>1. Role</h3>
+  <p>Research session. Work arrives from <code>prim</code>, relaying the user. Earlier briefs came from <code>SFT</code>. Outputs are local HTML docs in <code>docs/</code>; <code>prim</code> commits them. I never commit, launch GPU jobs or use subagents. Implementation requests go to <code>impl</code> through prim, and pre-registrations go to <code>SFT</code>. The user has never typed into this session directly, and my scope was only ever briefed task by task (data sourcing, then flow matching, Libero-V, VLA-Corrector).</p>
+
+  <h3>2. What I did, 06–08 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Item</th><th>Path</th><th>Commit</th><th>Status</th></tr>
+    <tr><td>Data-sourcing §Q4 rewritten after res21's full reads of FLARE and Jung &amp; Park. Option A is now framed as "FLARE/MimicGen-style bridging, specified by the mechanism".</td><td><code>docs/DATA_SOURCING_RESEARCH.html</code></td><td><code>24d1e21</code></td><td>done</td></tr>
+    <tr><td>Data-sourcing §6 Limits: FLARE and Jung &amp; Park removed from the abstract-only list</td><td>same</td><td><code>a4735f2</code></td><td>done</td></tr>
+    <tr><td>Data-sourcing §3.7, portability to GR00T N1.7: format fit per source, the <code>clip_outliers</code> clamp, direction × cm coverage, style alignment, what fits on 8 GB and what needs rented compute</td><td>same</td><td><code>1d3eeaf</code></td><td>done</td></tr>
+    <tr><td>Flow matching from first principles; the GR00T N1.7 and π0 action heads from code; reading of the D20 loss vs the sampled chunk; detectors; RTC; retraining recommendations. Updated with the 10-07 fit test.</td><td><code>docs/FLOW_MATCHING_MATHS.html</code></td><td><code>bfff07c</code></td><td>done (priorities d1)</td></tr>
+    <tr><td>Libero-V (arXiv:2512.02902) vs our perturbations</td><td>message to prim only (10-07), no doc</td><td>—</td><td>done; verdict below</td></tr>
+    <tr><td>VLA-Corrector full read and the runtime-correction framing</td><td><code>docs/VLA_CORRECTOR_MATHS.html</code> (not yet created)</td><td>—</td><td>in flight, ~45% (priorities d3)</td></tr>
+  </table></div>
+  <p><b>Libero-V verdict</b>, kept here so it isn't lost. [V] = read in the paper, code or PDF; [I] = inferred.</p>
+  <ul class="tight">
+    <li><b>Same generator family, different camera axis.</b> Lighting and noise come from LIBERO-Plus's generators [V]. Texture overlaps: Libero-V swaps floor and wall PBR materials, LIBERO-Plus swaps table, or table plus wall [V]. The <b>camera</b> axis, which carries the paper's headline claim, is different.</li>
+    <li><b>Libero-V's camera is Adapt3R's.</b> Agent view only, set at reset (<code>pairlab/Adapt3R@9563f06</code>, <code>adapt3r/envs/libero/wrappers.py:356–396</code>) [V]. Small/Medium/Large add Δp = (0, .3, −.1), (−.2, .7, −.2), (−1.2, 1, −.2) m and set a fixed absolute quaternion. On the libero_spatial tabletop camera that is [V, computed]:
+      <ul class="tight">
+      <li>azimuth about the origin 24.5° / 57° / 118°;</li>
+      <li>optical axis rotated 20° / 45° / 102°;</li>
+      <li>look-down 36° / 26° / 15°, against nominal 39°.</li>
+      </ul>
+      Large lies outside anything LIBERO-Plus (yaw ≤ 75°, pitch 15° only, scale 1.15–2×) or our knobs reach. The quaternions are scene-independent, so floor and living-room scene classes may be mis-aimed [I].</li>
+    <li><b>Camera numbers are not comparable</b> to R-047 or R-052.
+      <ul class="tight">
+      <li>Libero-V's "OpenVLA-OFT-m fine-tuned on LIBERO-Plus" scores camera 65.2 there; LIBERO-Plus reports 92.8 for its post-trained model [I: same model assumed].</li>
+      <li>Libero-V's noise figure of 89.9, marked "from LIBERO-Plus", is not in LIBERO-Plus v3 Tables 1–2 [V].</li>
+      <li>FTM shows <b>no</b> noise or lighting gain in the paper's own Table 3 (93.5→93.6, 96.2→96.0) [V].</li>
+      </ul></li>
+    <li><b>Reproducible here.</b> A ~10-line knob (<code>cam_pos += Δp</code>; <code>cam_quat = q</code>) would reproduce Adapt3R's poses exactly on tabletop scenes [I]. LIBERO-Plus remains the closest benchmark to ours. For R-060, note Domain Arithmetic (arXiv:2607.00666, one-shot adaptation under camera shift; abstract only).</li>
+  </ul>
+
+  <h3>3. In flight: VLA_CORRECTOR_MATHS (~45%, priorities d3)</h3>
+  <ul class="tight">
+    <li><b>Read in full:</b> arXiv:2607.01804v1, including appendices B–E. Code is released at <code>github.com/ZJU-OmniAI/vla-corrector</code>, read at <code>e02ab51</code>.</li>
+    <li><b>Verified from code:</b>
+      <ul class="tight">
+      <li><b>OGG gradient path.</b> In <code>src/lerobot/policies/pi05_modified/modeling_pi05_modified.py:215–302</code>, <code>v</code> is detached. The loss flows only through <code>x0_hat = x_t − t·v</code> → the first action <code>x0_hat[:,0,:]</code> → the ~40M MLP corrector. So there is no backprop through the VLA, and only row 0 of the velocity gets a direct correction.</li>
+      <li>OGG is applied every 3rd denoising step by default, with η = 1.</li>
+      <li>The target is <code>delta_z_right − delta_z_t</code> = (corrector-predicted residual) − (real residual). This matches paper eq. 9 (<code>lerobot_eval_modified_detection.py:1234–1235</code>).</li>
+      <li>The latent is a SigLIP token cache (<code>src/siglip_dynamics/extract.py</code>).</li>
+      </ul></li>
+    <li><b>Discrepancy.</b> The released <code>src/siglip_dynamics/inference/circuit_breaker.py</code> (window 100, median + 3·MAD, cooldown 5, no persistence or hysteresis) differs from the paper's rule (window 15, λ<sub>on</sub> 3 / λ<sub>off</sub> 2, p = 5, cooldown 10). The eval script has its own state machine (<code>threshold_window_size</code> 15, line 502) that I have not finished reading.</li>
+    <li><b>Paper facts to use:</b>
+      <ul class="tight">
+      <li>Backbones: π0.5, SmolVLA, X-VLA (all flow-based).</li>
+      <li>MetaWorld π0.5, horizon 50: 48.7 → 64.35. Truncation alone gets to 60.35.</li>
+      <li>LIBERO few-shot: 94.0 → 97.8.</li>
+      <li>OGG queries take 2.12× longer (588 vs 278 ms); per-episode overhead is 1.62×.</li>
+      <li>83.7% of truncations fall in grasp or align phases. All targets are mid-episode drift; nothing on a bad start.</li>
+      </ul></li>
+    <li><b>Left to do:</b> finish the eval-script state machine and the definitions of k and the latent; write §1–8, including the key question (detector at forward 0 plus (a) wrist-token steering, (b) OGG-style first-chunk guidance, (c) RTC inpainting: what each needs, whether it is oracle-free, its 8 GB cost, and a minimal pre-registrable test); position against CheckVLA, Rewind-IL, COAST and RTC at abstract level. Then send prim a 5-line verdict.</li>
+    <li><b>To resume:</b> sources are in <code>docs/drafts/vla_corrector_sources/</code> (see 7). Copy the style from <code>docs/FLOW_MATCHING_MATHS.html</code> (same CSS and tag classes; its §2.2 has the GR00T facts).</li>
+  </ul>
+
+  <h3>4. Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>t2b / D21:</b> the next demo source. res recommends Option A, bridge-and-join, sampled to a direction × cm quota. Fixed S2 only as a comparison arm.</li>
+    <li><b>t2e / D23:</b> pre-registration (SFT). Per §3.7, include a pre-training clamp-share check and the style checks.</li>
+    <li><b>r60b:</b> whether to amend R-060 before its GPU parts: score per LIBERO-Plus camera family, add an Adapt3R-pose bridge arm, and revisit the noise row given FTM's zero noise gain in the source paper.</li>
+    <li><b>Whether to write the Libero-V comparison into a doc</b> (none exists; this section is the only record).</li>
+    <li><b>d3:</b> nothing pending. The user approved the VLA-Corrector doc; it only needs finishing.</li>
+  </ul>
+
+  <h3>5. Findings with numbers</h3>
+  <div class="tbl"><table>
+    <tr><th>Finding</th><th>Evidence</th><th>Status</th></tr>
+    <tr><td><b>Training labels are silently clamped to [−1, 1].</b> GR00T normalises actions with the checkpoint's stats, and any value outside the range of the original human demos is clipped. Bridge actions at far offsets are the likely case.</td><td><code>clip_outliers: true</code> and <code>use_percentiles: true</code> in R-056's <code>policy_preprocessor.json</code>; clamp at <code>processor_groot.py:1823–1825</code>. I did not trace whether the bounds are q01/q99 or min/max.</td><td>verified (code); size of the effect not measured</td></tr>
+    <tr><td><b>Our fine-tunes supervise only 16 of the 40 generated steps.</b> The 24-step overlap that ACC, STAC and RTC look at is untrained by our adapters.</td><td><code>chunk_size=16</code> → <code>action_delta_indices</code> (<code>configuration_groot.py:509–514</code>); padding and mask at <code>processor_groot.py:1935–1973</code></td><td>verified</td></tr>
+    <tr><td><b>GR00T sampler facts:</b>
+      <ul class="tight">
+      <li>x<sub>t</sub> = (1−t)ε + t·a, target a − ε;</li>
+      <li>t = 0.999(1 − Beta(1.5, 1)), with 8.9% of draws at t &gt; 0.8;</li>
+      <li>4 Euler steps at t = 0, .25, .5, .75 (buckets 0/250/500/750);</li>
+      <li>bare <code>torch.randn</code> noise;</li>
+      <li>the harness never uses RTC.</li>
+      </ul></td><td><code>groot_n1_7.py:554–708</code>; HF snapshot config <code>num_inference_timesteps: 4</code></td><td>verified</td></tr>
+    <tr><td><b>The executed chunk is the model's data prediction at t = 0.75:</b> x + 0.25·v(x, 0.75).</td><td>Euler identity, FLOW_MATCHING_MATHS eq. 27</td><td>derived (exact)</td></tr>
+    <tr><td><b>D20 resolved.</b> A 65% drop in squared loss predicts roughly 28–41% chunk movement. Measured: 30% on training starts against 1–15% on held-out direction × cm cells, so the gap is coverage, not the pipeline.</td><td><code>runs/r056_diag/{loss_summary,fit_firstchunk}.json</code>. The 100 training starts used 100 distinct direction seeds, one each.</td><td>verified</td></tr>
+    <tr><td><b>FACT's schedule claim.</b> Beta(1.5, 1) puts 8.9% of draws in the near-data fifth, against 54.5% under a logit-normal shifted by 1.5 (6.1×). For GR00T this is muted: the 4-step sampler never queries t &gt; 0.75, and the velocity loss weights late-t error by 1/(1−t)².</td><td>arithmetic; FACT HTML read</td><td>verified numbers; the GR00T implication is inferred</td></tr>
+  </table></div>
+
+  <h3>6. Gotchas</h3>
+  <ul class="tight">
+    <li><b>Time conventions differ.</b> openpi/LeRobot π0 code puts noise at t = 1, the opposite of the π0 paper; GR00T code puts noise at t = 0. The GR00T N1 paper prints the target with the wrong sign. See FLOW_MATCHING_MATHS §0.</li>
+    <li>The GR00T default <code>state_dropout_prob</code> is 0.2 in train mode. I did not check whether R-056 overrode it.</li>
+    <li>Cosmos-Reason2-2B (Qwen3-VL), not Eagle, is N1.7's backbone. It is truncated to 16 LLM layers (<code>select_layer</code>).</li>
+    <li>The arXiv API (<code>export.arxiv.org/api/query?id_list=…</code>) via curl is the fast way to verify IDs. <code>pdftotext</code> works locally. <code>gh</code> is not installed; use <code>api.github.com</code> and <code>raw.githubusercontent.com</code> with curl.</li>
+    <li>The system <code>python3</code> has no numpy; use <code>.venvs/groot/bin/python</code>.</li>
+    <li>Peer message rules hold: edit only the slot lines and the doc sections you were approved for.</li>
+  </ul>
+
+  <h3>7. Memory and sources</h3>
+  <ul class="tight">
+    <li><b>Memory:</b> no new memory files from res this period. The relevant existing ones are <code>prim-owns-commits</code>, <code>no-subagents</code>, <code>deliverables-are-local-html</code>, <code>r058-r64-transfer-and-d20</code> and <code>r056-postmortem</code>.</li>
+    <li><b>Sources copied for resume</b>: <code>docs/drafts/vla_corrector_sources/</code>, 15 files, 716 KB:
+      <ul class="tight">
+      <li><code>vla_corrector_2607.01804v1.txt</code> (the paper as text; method at lines 272–402, runtime parameters at 924–936);</li>
+      <li><code>code_e02ab51/</code> (<code>pi05m.py</code>, <code>eval_det.py</code>, <code>circuit_breaker.py</code>, <code>guidance_injector.py</code>, <code>safety_module.py</code>, <code>siglip_dynamics_mlp.py</code>, <code>extract.py</code>, <code>MLP.py</code>, <code>config.py</code>, upstream <code>modeling_pi05.py</code>, <code>lerobot_eval.py</code>);</li>
+      <li><code>adapt3r_wrappers_9563f06.py</code>;</li>
+      <li><code>spatial_adapt_2512.02902v2.txt</code>;</li>
+      <li><code>libero_plus_2510.13626v3.txt</code>.</li>
+      </ul>
+      These are third-party texts and code, so prim decides whether to commit or gitignore them.</li>
+  </ul>
+
+  <h3>8. Next steps</h3>
+  <div class="tbl"><table>
+    <tr><th>Step</th><th>Owner</th></tr>
+    <tr><td>Finish <code>docs/VLA_CORRECTOR_MATHS.html</code> (d3) and send prim the 5-line verdict</td><td>res</td></tr>
+    <tr><td>Decide t2b/D21, r60b, and whether a Libero-V doc is wanted</td><td>user</td></tr>
+    <tr><td>If D23 goes ahead: add the clamp-share and style checks (§3.7) to the pre-registration</td><td>SFT</td></tr>
+    <tr><td>If r60b amends R-060: the Adapt3R-pose knob (~10 lines in <code>vla_harness/envs/libero_env.py</code>)</td><td>impl</td></tr>
+    <tr><td>Optional cheap diagnostics for the next fine-tune: per-t-bin loss at the sampler times; multi-ε sampling at frozen observations (FLOW_MATCHING_MATHS §4)</td><td>SFT to pre-register, impl to build</td></tr>
+    <tr><td>Commit this section, and decide on <code>docs/drafts/vla_corrector_sources/</code></td><td>prim</td></tr>
+  </table></div>
 </section>
 
 <!-- ============================================================ -->
 <section class="sess" id="res21">
   <h2>res21</h2>
   <p class="lead"><span class="owner">owner: res21</span> · Research: deep reads, directions review, sim alternatives, R-060 draft, validity audit</p>
-  <div class="slot"><!-- HANDOFF-SLOT:res21 -->Awaiting handoff from <code>res21</code>.</div>
+  <!-- HANDOFF-SLOT:res21 filled -->
+  <h3>1. Role</h3>
+  <p><code>res21</code> is a general research agent, set up by the user on 06 Oct.</p>
+  <ul class="tight">
+    <li><b>Job:</b> deep paper reads, technology surveys and audits that widen what the project could become, plus proposed experiments.</li>
+    <li><b>Rules:</b> no subagents, no GPU jobs, no commits (<code>prim</code> commits), local HTML only, and the user approves a doc's content before it is written or edited.</li>
+    <li><b>Takes work from:</b> the user directly, or <code>prim</code> relaying approved tasks.</li>
+    <li><b>Hands to:</b> <code>prim</code> (verdicts, commit requests); <code>impl</code> builds anything runnable (e.g. R-060).</li>
+  </ul>
+
+  <h3>2. What was done, 06–08 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Item</th><th>Path</th><th>Commit</th><th>Status</th></tr>
+    <tr><td>Deep read of 2512.02902 (FTM/FLA); §9A portability to GR00T N1.7</td><td><code>docs/SPATIAL_ADAPT_MATHS.html</code></td><td><code>4a7aa21</code>, <code>b6b3dfa</code></td><td>done</td></tr>
+    <tr><td>Full reads: Jung &amp; Park, FLARE; §8.3 portability</td><td><code>docs/JUNG_PARK_INITPOSE.html</code>, <code>docs/FLARE_RECOVERY.html</code></td><td><code>58f1b3e</code>, <code>db5c6a1</code></td><td>done</td></tr>
+    <tr><td>AMBITIOUS_DIRECTIONS review, C1–C22</td><td><code>docs/AMBITIOUS_DIRECTIONS_REVIEW.html</code></td><td><code>55f6189</code>; factual items applied in <code>b3146a8</code></td><td>reasoning items C5, C11, C12, C17, C18, C21, C22 await the user (t2d)</td></tr>
+    <tr><td>Simulation alternatives and NVIDIA stack (Arena read from code)</td><td><code>docs/SIM_ALTERNATIVES_PIPELINE.html</code></td><td><code>da1ba35</code></td><td>done; next steps N1–N4 = t5a, t5e, t5f, t5g</td></tr>
+    <tr><td>Full read of Mulligan (t2a)</td><td><code>docs/MULLIGAN_TARGETED_INIT.html</code></td><td><code>3a9c706</code></td><td>done</td></tr>
+    <tr><td>R-060 pre-registration (FTM on camera and noise)</td><td><code>RESULTS.md</code> R-060</td><td><code>8110654</code></td><td>registered as drafted; impl building; part 0 gates run (G0c FAIL, below)</td></tr>
+    <tr><td>HANDOFF_6Oct §9 (res21 update)</td><td><code>docs/HANDOFF_6Oct.html</code></td><td><code>ad3e960</code></td><td>done; predates Mulligan and R-060</td></tr>
+  </table></div>
+
+  <h3>3. In flight: the PERTURBATION_MAP_VALIDITY audit (pm1), about 15%</h3>
+  <p><b>Brief</b> (prim, 07 Oct, user-approved): a new doc <code>docs/PERTURBATION_MAP_VALIDITY.html</code>, read-only and CPU-only. Scripts go to <code>experiments/audit_*.py</code> or the scratchpad, and prim is told. Threats 1–8 plus any found; for each: real?, which numbers, size, the cheapest check, verdict. End with a claim→status table and a "Method lineage and validity" paragraph (that paragraph is pm2). <b>No doc and no scripts exist yet.</b></p>
+  <p><b>Confirmed from code</b> <span class="small">[V]</span>:</p>
+  <ul class="tight">
+    <li><b>τ uses all 40 × 7 predicted actions</b> (<code>transfer_fraction</code> on <code>[..., :7]</code>, <code>splice.py:41</code>), while only 16 steps are executed. Stored <code>act_&lt;arm&gt;</code> arrays are F × 40 × 7, fp16, <b>normalised action space only</b>. Re-score on <code>[:, :16]</code> and on the first action.</li>
+    <li><b>Start-pose N.</b> The splice runs use a recorded control episode aligned by forward index (<code>RecorderHandle</code>; <code>r039_run.py</code> <code>RECORDED_CATS</code>). The headline wrist 0.88 comes from <code>experiments/r044_reverse.py</code>: the control env reset at the same seed, forward 0 only, so at f0 it is the factor reverted on the same seed. Still to check: the object layout of control vs variant at t = 0, from <code>runs/r042/rollouts.jsonl</code> <code>_gt_object_pos</code>.</li>
+    <li><b>Anchor</b> = argmin of closest approach over the executed trajectory (<code>r039_run.py</code>). Most map verdicts are read at f0; anchor-based "dominant" calls need the outcome-bias check.</li>
+    <li><b>The reverse-direction runs</b> (<code>runs/r044_reverse</code>, <code>r048_reverse</code>, <code>r051_reverse_*</code>) store scalar τ only, so they cannot be re-scored. The splice runs (<code>runs/r039</code>, <code>r042</code>, <code>r044_seed1/2</code>, <code>r048_seed1/2</code>, <code>r051_*_seed1/2</code>, <code>r050_*</code>; 10 npz each) can.</li>
+  </ul>
+  <p><b>Lead for threat 4 (impl's G0c, <code>runs/r060/gates/g0c.json</code>):</b></p>
+  <ul class="tight">
+    <li>camera 0/15 and noise 0/10 pairs are pixel-exact;</li>
+    <li>the variant's <code>nominal_frames()</code> differs from the control env's own render (camera n_diff ≈ 24k px, max 52);</li>
+    <li>even P differs from the variant env's own render (≈ 1.1k px agent, 9.1k px wrist, max 37–54);</li>
+    <li><code>control_unchanged_after</code> is false.</li>
+  </ul>
+  <p>That looks like render-state carry-over between env instances or resets, not only a wrong reference. The map's vision rows use the same <code>nominal_observation()</code> path, so the question is how large this is next to ‖P−N‖ and the τ seed spread. Undiagnosed.</p>
+  <p><b>Resume:</b></p>
+  <ol>
+    <li>Write <code>experiments/audit_rescore.py</code>: τ at f0 on full / first-16 / first-action, plus per-dimension shares of ‖P−N‖, over all splice npz.</li>
+    <li>Unnormalise using the stats in the checkpoint's <code>policy_postprocessor_step_0_*.safetensors</code> (threat 7).</li>
+    <li>Use the seed replicates for the τ noise floor (threat 4).</li>
+    <li>Run the control-vs-variant layout check (threat 1).</li>
+    <li>Tally pre-registered vs post-hoc from RESULTS.md R-039..R-057 (threat 6).</li>
+  </ol>
+  <p>Use <code>.venvs/libero-plus/bin/python -I</code>; the system python has no numpy.</p>
+
+  <h3>4. Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>t2d:</b> directions-review reasoning items C5 (re-homing baseline), C11 (Mulligan narrows novelty), C12 (E1–E3 spec), C17 (arms differ by labelled frames), C18 (parameter-only arm per row), C21 (six arms), C22 (new literature).</li>
+    <li><b>t2e / D23:</b> arm design. MULLIGAN §7 recommends:
+      <ul class="tight">
+        <li>failure-targeted arm = Mulligan Alg. 2 with whole-episode labels;</li>
+        <li>broad arm = Sobol / farthest-point over direction × cm;</li>
+        <li>mechanism arm = same starts, forward-0/1 labels;</li>
+        <li>match on labelled frames and sampler share.</li>
+      </ul></li>
+    <li><b>r60b:</b> amend R-060 before its GPU parts. G0c failed, so the training-pair construction or its exactness criterion needs a decision.</li>
+    <li><b>t5a / t5e / t5f / t5g:</b> sim next steps N1–N4.</li>
+    <li><b>pm2:</b> the lineage paragraph, which comes out of pm1.</li>
+    <li><b>t5d:</b> README MuJoCo pin. The run venvs have 3.3.2, not 3.3.7.</li>
+  </ul>
+
+  <h3>5. Findings</h3>
+  <p><b>Verified</b> <span class="small">[V]</span>:</p>
+  <ul class="tight">
+    <li><b>Mulligan:</b> real-world actor-only gain, round-pooled, +11.7 / +10.9 / +6.0 pp (McNemar p 0.002 / 0.0007 / 0.036). Square-Narrow R1 decomposition: Sobol coverage alone +3.9, guided +7.0, plus counterfactuals +7.8 pp. Budget matched in episodes, with 8–28% more human frames. Diffusion Policy, not a VLA.</li>
+    <li><b>GR00T N1.7's backbone is Cosmos-Reason2-2B (Qwen3-VL), not Eagle</b> (Eagle is pre-N1.7 per <code>configuration_groot.py:234</code>).
+      <ul class="tight">
+        <li>The ViT attends per image (block-diagonal <code>cu_seqlens</code>), so cameras are separable only before the LLM.</li>
+        <li>Four visual entry points: the merger plus DeepStack from ViT layers 5, 11 and 17 into LLM layers 0–2.</li>
+        <li><code>select_layer=16</code>.</li>
+        <li>The checkpoint has image-token count 128 of 156.</li>
+      </ul></li>
+    <li><b>2512.02902:</b> the "LoRA" baseline's 467M parameters include 414.8M from a full SigLIP fine-tune (openpi's freeze filter only freezes <code>llm</code>). FLA is r16 on SigLIP MLPs only. The FTM Libero-V average is misprinted (90.5 printed vs 93.2).</li>
+    <li><b>Arena v0.3</b> (code at <code>413b0f4</code>):
+      <ul class="tight">
+        <li>no start-pose variation;</li>
+        <li>camera variation is translation-only, ±5 mm;</li>
+        <li>sensitivity analysis is an sbi posterior of factors vs success;</li>
+        <li>GR00T integration is N1.6 only;</li>
+        <li>Isaac Sim 6.0 needs 16 GB VRAM and RT cores.</li>
+      </ul></li>
+    <li><b>RoboVerse LIBERO</b> is MuJoCo-only and bitwise-faithful: a cross-implementation check, not a cross-simulator one.</li>
+  </ul>
+  <p><b>Novelty position:</b> targeted-beats-uniform at a matched budget is published (Mulligan). Still ours:</p>
+  <ul class="tight">
+    <li>in-distribution input splices;</li>
+    <li>"decided at forward k";</li>
+    <li>a mechanism-specified frame spec;</li>
+    <li>a before/after mechanism readout;</li>
+    <li>the mechanism-vs-failure-targeted contrast.</li>
+  </ul>
+  <p><b>Inferred, not verified</b> <span class="small">[I]</span>:</p>
+  <ul class="tight">
+    <li>E1 (moment matching) will be weak on GR00T (R-037 + R-039).</li>
+    <li>Cloud GPU prices (third-party trackers).</li>
+    <li>The order of the two cameras in the LLM sequence: it is set by the checkpoint's video modality keys, and the actual order is unresolved by me (G0a may have it: <code>runs/r060/gates/g0a.json</code>).</li>
+  </ul>
+
+  <h3>6. Gotchas</h3>
+  <ul class="tight">
+    <li>The system python has no numpy. Use the venvs.</li>
+    <li>The reverse-direction runs store scalar τ only.</li>
+    <li>Stored actions are fp16 and normalised. Recomputed τ will differ from stored τ at about the 1e-3 level.</li>
+    <li>Papers relayed with numbers from summaries need the PDF. Two of prim's relayed figures did not match the files (the fit-test band percentages, held-out directions "100–102").</li>
+  </ul>
+
+  <h3>7. Memory and scratchpad</h3>
+  <ul class="tight">
+    <li>Memory: <code>res-research-role.md</code> (role and rules), plus the shared project memories.</li>
+    <li>Scratchpad: source clones (Arena, LW-BenchHub, MuJoCo Warp), arXiv API dumps and the paper PDFs. All are re-fetchable, so none is worth keeping and nothing was copied to <code>docs/drafts/</code>.</li>
+  </ul>
+
+  <h3>8. Next steps</h3>
+  <div class="tbl"><table>
+    <tr><th>Step</th><th>Owner</th></tr>
+    <tr><td>Finish pm1 (the audit doc) and draft the pm2 paragraph</td><td>res21 or successor</td></tr>
+    <tr><td>Diagnose the G0c render mismatch (r60b input)</td><td>impl; audit uses it</td></tr>
+    <tr><td>Decide t2d, t2e (D23), r60b, N1–N4</td><td>user</td></tr>
+    <tr><td>Add Mulligan and R-060 to HANDOFF_6Oct §9 if that doc stays live</td><td>prim's call</td></tr>
+  </table></div>
 </section>
 
 </div>
