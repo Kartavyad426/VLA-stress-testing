@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 4 (D10–D13 added 10-08).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 5 (D10–D14 added 10-08).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -141,6 +141,13 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <li><b>terminal outcome</b>: one field, so Phase 1 can attach cost (PLAN §7b.3).</li>
 </ul>
 <span class="tag prop">parked · not in the PoC</span> The full failure sequence (phase × outcome events, repeats collapsed) is optional raw evidence. Pattern grammar, cycle collapsing and prefix grouping of failure sequences are deferred to the failure-corpus design (piece 3). The user is not convinced of their use, and no code for them is planned in the first PoC iteration.</td><td>To fix a failure you need successful demos of the <em>same situation</em>, not more examples of the same failure. Different failure patterns (e.g. <code>miss(3) → grasp</code> vs <code>(miss → grasp)(3)</code>) can share one cause and need identical demos. Identical patterns can have different causes; <code>classify.py</code>'s <code>_attempt_spread</code> exists because "same point repeated" and "spread-out search" look alike in aggregate. So the pattern neither separates causes nor finds successes. The mechanism says which situation dimensions must match: what the camera sees for a vision fault, the configuration for a state fault (FAILURE_TO_DATA_PIPELINE: hold fixed vs resample).</td><td>Group by the full failure sequence (ordered, cycle-collapsed, prefix-matched): parked as above. Root + consequences: subsumed.</td></tr>
+<tr><td class="id">D14 <span class="tag agreed">agreed</span></td><td><b>Searching for successes matches a snapshot at the root, not the prefix.</b>
+<ol>
+<li><b>Filter:</b> same task (or instruction family); the episode reached the root's phase and met the success criterion.</li>
+<li><b>Situation match</b> at that phase's entry frame, over the policy's own observation window, on the held-fixed dimensions only, within tolerances. All dimensions are held while the mechanism is unknown.</li>
+<li><b>Return</b> the segment from entry to exit, plus the policy's context frames before it.</li>
+</ol>
+The prefix (how the episode got there) is not part of the search. It is used only to <em>reach</em> the situation (sim state restore, teleop setup), and as an optional cheap filter where initial states are shared. An empty result is a finding: the situation is a coverage gap, and the spec falls back to producing it instead of finding it. Worked example in §6b.</td><td>GR00T N1.7 has no memory: its preprocessor has <code>state_horizon: 1</code> and <code>video_horizon: null</code>, so the situation is fully described by one snapshot. History that matters (e.g. an earlier nudge) already shows in the snapshot. A full-prefix match would discard nearly all usable data, since dataset episodes almost never share a trajectory. A policy with history would match over its observation window, which is why the window is a field.</td><td>Match the full prefix up to the failure: rejected (needlessly narrow).</td></tr>
 </table></div>
 
 <h3>The four pieces</h3>
@@ -195,16 +202,46 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
   }
 }</pre>
 
-<h2>7 · Next questions, in order</h2>
-<ol>
-<li><b>Index levels and nesting</b> (piece 1). <span class="tag agreed">shape decided: D11</span> Sub-scenario key decided (D12). Still open: whether sub-scenarios nest further, and how a scenario records <em>how</em> it is made of its sub-scenarios (all of them, any of them, or a sequence). Seeds: <code>classify.py</code>'s families and terminal behaviours, and LIBERO-Recover's 5 failure categories (<code>docs/TASK_DIVERSITY_LANDSCAPE.html</code>).</li>
-<li><b>Id scheme and versioning</b> of the index: stable across specs and readable (<code>grasp.slip.transport</code>).</li>
-<li><b>Segment definition</b>: what bounds a segment (phase boundaries, start and end predicates), and what a signature must contain to match across different tasks and robots.</li>
-<li><b>The teleoperator brief</b>: what an operator needs, and what "successful demonstration" means for a segment-level instance.</li>
-<li><b>The generation recipe</b>: the minimum needed to reproduce a situation in sim, and what happens for instances from real-robot data with no sim twin.</li>
-<li>T4 and T5 above.</li>
-<li>Later: corpus sampling (piece 3), client intent fields (piece 4), the extension mechanism (D8).</li>
-</ol>
+<h2>6b · Worked example (D13, D14)</h2>
+<p class="muted">Facts marked [R] come from RESULTS.md R-056/R-058 and the post-mortem. The numbers in the instance and the query are illustrative.</p>
+<ul>
+<li><b>Failure.</b> GR00T N1.7 with the R-056 r16 adapter, LIBERO-Spatial scene 1327 ("pick up the black bowl … place it on the plate"). Base succeeds 12/12, r16 4/12 [R]. The adapter closes 5.5–5.8 cm above the bowl, against ~4.2 cm for base (analyzer's figure, not re-measured) [R]. It closes on air, re-approaches and times out.</li>
+</ul>
+<pre>root:      grasp × miss                    (first divergence, ~forward 6)
+situation: snapshot at grasp onset (gripper starts closing)
+           raw:     agent + wrist image, obs_state (8 numbers)
+           derived: eef→bowl offset (dx 0.4, dy -0.2, dz +5.6 cm)
+                    approach from above, 12° tilt; bowl pose; nearest object 9 cm
+           condition: start-pose offset 12 cm, direction 101   (not identity, D12)
+success:   bowl held and lifted ≥ 5 cm within 40 steps of grasp onset
+terminal:  timeout, gripper open, nothing dropped   (Phase 1 cost: benign)
+mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
+<ul>
+<li><b>Search</b> over the 50 human demos for this task in <code>data/libero_raw</code> plus our successful scene-1327 rollouts. Filter: same task, reached grasp, met the success criterion. Match at grasp onset: eef→bowl offset within ±1.5 cm, approach within 20°, same bowl and neighbours. Return grasp onset → lift, plus one context frame.</li>
+<li><b>Likely result: almost nothing.</b> Human demos close at the normal height, so few start a grasp 5.6 cm high. That empty result is the coverage-gap finding. The spec falls back to producing the situation (sim restore or teleop).</li>
+</ul>
+<div class="tw"><table>
+<tr><th>Mechanism found</th><th>Hold fixed</th><th>Allowed to vary</th><th>Effect on the search</th></tr>
+<tr><td>Vision: the wrist camera misreads bowl height</td><td>How the bowl looks in the wrist view (apparent size and position, lighting)</td><td>Arm path, exact offset</td><td>Wider; re-renders also qualify</td></tr>
+<tr><td>State: the adapter keys off end-effector height in <code>obs_state</code></td><td>eef→bowl height in the state</td><td>Visual appearance</td><td>Match on numbers, ignore images</td></tr>
+<tr><td>Unknown</td><td>Everything</td><td>Nothing</td><td>Narrowest; most likely empty</td></tr>
+</table></div>
+<p><b>Prefix use:</b> the 12 cm start offset and the six forwards of approach are not in the query. They are used only to reproduce the situation: restoring the sim state at the root, or setting up a teleoperator.</p>
+
+<h2>7 · Pending for a working PoC design</h2>
+<p class="muted">Updated at iteration 5. "Must" items block a PoC; "later" items don't.</p>
+<div class="tw"><table>
+<tr><th>#</th><th>Item</th><th>Why it blocks the PoC</th><th></th></tr>
+<tr><td class="id">P1</td><td><b>PoC scope and its own pass test:</b> which policy and checkpoint, which data pool, which failures, and what "working" means. For example: a spec of N instances is produced from our rollouts; each validates against the schema; the search returns segments, or an explicit empty-plus-fallback; at least one instance yields successes that meet its criterion.</td><td>Without it, there's no finish line.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P2</td><td><b>Situation snapshot contents:</b> raw (frames, state), derived (offsets, approach, neighbours, visual-condition descriptors), or both, and default tolerances per field.</td><td>Decides whether search is a feature query or an embedding match.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P3</td><td><b>Success criterion form:</b> a predicate over state per phase (e.g. grasp: held and lifted ≥ h within N steps), from a small template set.</td><td>The filter in D14 and the check on any produced success.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P4</td><td><b>Root detection and its trust level:</b> <code>PhaseSegmenter</code> + <code>divergence_point</code> are LIBERO-only and unvalidated against human labels. The D12 adjudication sheet (priorities p4) is at 0 of 80.</td><td>Every instance hangs off the root.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P5</td><td><b>Index v0:</b> the closed lists of phases and failure modes (seeded from <code>classify.py</code>), and the id format and versioning.</td><td>Instances need valid ids.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P6</td><td><b>Serialisation:</b> a JSON Schema, file layout (one spec file with its instances, or JSONL), <code>schema_version</code>, and a validator.</td><td>"Searchable JSON" needs a fixed format.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">P7</td><td><b>PoC routes:</b> dataset search only, or also sim generation (needs a restorable root: replay, or per-step state snapshots, which were discussed but not recorded) and/or a teleop brief.</td><td>Decides what gets built.</td><td><span class="tag open">must</span></td></tr>
+<tr><td class="id">L1</td><td>T4 (is a checkpoint a new policy?) and T5 (replace PLAN §9's manifest?)</td><td>Naming and lineage only</td><td><span class="tag">later</span></td></tr>
+<tr><td class="id">L2</td><td>Failure corpus (piece 3) incl. the parked sequence patterns; client intent spec (piece 4); extensions (D8); IDM / video generation as a source</td><td>Outside the PoC</td><td><span class="tag">later</span></td></tr>
+</table></div>
 
 <h2>8 · Inputs and owners</h2>
 <ul>
