@@ -1,0 +1,327 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Task Diversity Landscape</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Task diversity beyond LIBERO: benchmarks, datasets and failure modes</h1>
+<div class=meta>2026-10-08 · res22, scoped by prim, outline approved by the user · Builds on <code>docs/DATA_AND_BENCHMARKS.md</code> (09-17), <code>MODELS_AND_COMPUTE.md</code> R7/R9, <code>docs/SUITES_AND_CHECKPOINTS.html</code> §4 and <code>docs/RL_GYM_LANDSCAPE.html</code>. Engines and Isaac Lab-Arena are res21's (<code>docs/SIM_ALTERNATIVES_PIPELINE.html</code>) and only cited here. Sources read:
+<ul>
+<li>arXiv records via the export API, and the arXiv HTML full text for LIBERO-MAX, LIBERO-Recover, LIBERO-Para, LIBERO-Occ, LIBERO-Safety, RoboCerebra and VLABench (read by a summarising fetch, so treat numbers from those as checked against the paper, not re-derived);</li>
+<li>GitHub READMEs and file trees via the GitHub API (LIBERO-MAX, LIBERO-Recovery, LIBERO-Safety, VLA-Arena, LIBERO-X, Libero-Occ, LIBERO-Para, RoboCerebra, Isaac-GR00T <code>examples/</code>, MimicGen);</li>
+<li>the Hugging Face model API for NVIDIA's GR00T checkpoints, and ModelScope for LIBERO-Recover's data;</li>
+<li>our installed LeRobot (<code>third_party/lerobot</code> @ <code>b6ec006</code>): <code>envs/configs.py</code>, <code>docs/source/*.mdx</code>, <code>docker/</code>, <code>policies/groot/</code>; and the MuJoCo/robosuite versions in <code>.venvs/</code>.</li>
+</ul>
+Nothing was installed or run. Tags: <span class="tag v">V</span> checked against the paper, code, model card or our tree · <span class="tag i">I</span> my inference or estimate, or seen only in a search result.</div>
+
+<div class="card tldr">
+<div class=q>Verdict</div>
+<ul>
+<li><b>The quick win is to keep LIBERO's tasks and change what happens while they run.</b> Our four GR00T N1.7 LIBERO checkpoints, our harness and our MuJoCo stack all carry over unchanged. Two 2026 benchmarks do exactly this, and both are new to our docs:
+ <ul>
+ <li><b>LIBERO-MAX</b> (2609.36518): 8,000 paired cases. In each, the same rollout prefix is replayed and then one event fires mid-task: the target or the receptacle moves, distractors appear, or an obstacle is inserted. <b>It already reports GR00T N1.7: 69.3% Base vs 50.0% Dynamic</b> <span class="tag v">V</span>. That gives us a published number to reproduce, which no other new-failure-mode benchmark offers for our policy.</li>
+ <li><b>LIBERO-Recover</b> (2609.05178): it starts the robot from states saved at real failures of six policies, GR00T among them (a grasp that knocked the bowl over, a blocked drawer), and asks for recovery. Scene files are on ModelScope under Apache-2.0, and the full release is promised for 20 Oct <span class="tag v">V</span>.</li>
+ </ul></li>
+<li><b>Cheap add-ons on the same footing:</b> LIBERO-Para (paraphrased instructions; failures are wrong plans from the first step) and LIBERO-Occ (static occluders). Both reuse LIBERO tasks, so no retraining is needed <span class="tag i">I</span>.</li>
+<li><b>Anything with new tasks needs a fine-tune first,</b> whatever its simulator: LIBERO-Safety, VLA-Arena, LIBERO-X, RoboCerebra, MimicGen, RoboCasa365. On 8 GB that is the expensive part, as the R-053..R-058 pilot showed. These are the second wave.</li>
+<li><b>The qualitatively better option is SimplerEnv with NVIDIA's own GR00T N1.7 SimplerEnv checkpoints.</b>
+ <ul>
+ <li>Published per-task numbers, including natural failures such as <i>put eggplant in sink</i> at 2/100 and <i>place in closed drawer</i> at 7/100 <span class="tag v">V</span>.</li>
+ <li>A different robot, and sim results that are known to correlate with real ones.</li>
+ <li>The cost is a new SAPIEN adapter and new privileged-state work.</li>
+ </ul></li>
+<li><b>Ranked shortlist</b> (§8):
+ <ol>
+ <li>LIBERO-MAX Lite, in-scope events;</li>
+ <li>LIBERO-Recover;</li>
+ <li>LIBERO-Para plus LIBERO-Occ;</li>
+ <li>SimplerEnv with GR00T N1.7;</li>
+ <li>a fine-tune-gated wave led by RoboCasa365 (articulated objects and appliances) or LIBERO-Safety.</li>
+ </ol></li>
+</ul>
+</div>
+
+<h2>0 · Why move beyond LIBERO</h2>
+<p><code>docs/FAILURE_MINING_RELEVANCE.html</code> makes the case. Here is what it gives this doc:</p>
+<ul>
+<li><b>The unit a client cares about is (policy, task, condition) inside their deployment.</b> That is the operational design domain (ODD), weighted by how often each condition occurs. LIBERO fixes the task set at 40 tabletop pick-and-place variants. So every failure boundary we have measured is a boundary for those tasks only. FAILURE_MINING_RELEVANCE's "which unit is right" table spells out what each unit hides.</li>
+<li><b>LIBERO success does not carry over to other task sets.</b> ROBOGATE: a GR00T N1.6 LIBERO-Spatial fine-tune scores 97.65% on LIBERO and 0% on 68 industrial Isaac scenes <span class="tag v">V</span> (2603.22126). SIM_ALTERNATIVES §2f's caveat stands: that is a scene gap plus a simulator gap. FATE-VLA: failure-aware search takes GR00T N1.6 from 64.4% to 34.7% <span class="tag v">V</span> (2606.02307).</li>
+<li><b>LIBERO is structurally thin for several failure families.</b>
+ <ul>
+ <li>One instruction per task, so language failures are degenerate.</li>
+ <li>Grasp points cluster within 1.1–2.6 cm per task (DATA_AND_BENCHMARKS §1.2) <span class="tag v">V</span>.</li>
+ <li>No grasp predicate in BDDL.</li>
+ <li>Every episode starts from a clean reset, so recovery is never exercised (LIBERO-Recover's motivation).</li>
+ </ul></li>
+<li><b>Our own failures so far are all reset-time perturbations:</b> start pose, camera and lighting (R-039..R-058). This doc looks for failure modes that are <i>not</i> perturbations: mid-task change, recovery from a bad state, occlusion, language, safety, long horizon, articulated objects, contact, memory and bimanual work.</li>
+</ul>
+
+<h2>1 · The failure-mode axis, with examples</h2>
+<p>Each row says what the failure looks like on a concrete task, quoted or paraphrased from the source, and whether failures there are labelled.</p>
+<div class=tw><table>
+<tr><th>Failure mode</th><th>Example task → what failure looks like</th><th>Where it's exercised</th><th>Failures labelled?</th></tr>
+<tr><td><b>Mid-task world change</b></td><td><i>"pick up the black bowl … place it on the plate"</i>: the bowl is moved when the gripper first enters its neighbourhood (LIBERO-MAX's <code>pre_grasp_proximity</code> trigger <span class="tag v">V</span>). The policy keeps closing on the old location <span class="tag i">I</span>. Target relocation is the largest loss for 11 of 14 policies <span class="tag v">V</span>.</td><td>LIBERO-MAX; RoboCerebra "Random Disturbance"</td><td>Paired: each case has a Base twin, so the outcome is labelled (1,0) = event-caused regression <span class="tag v">V</span></td></tr>
+<tr><td><b>Recovery from a failed state</b></td><td>LIBERO-Recover L3: <i>"after a failed grasp displaces a bowl, the robot must first recover the bowl's pose before continuing"</i>. L4: an object outside the task blocks it and has to be moved first <span class="tag v">V</span>. GR00T N1.5 scores 14.3 / 20.6 / 17.6 / 0.0% at L1–L4 <span class="tag v">V</span>.</td><td>LIBERO-Recover; VLA-Arena "state preservation"</td><td>Yes: 5 categories (grasp_failure, placement_failure, object_displacement, collision_or_interaction_failure, environmental_obstruction) <span class="tag v">V</span></td></tr>
+<tr><td><b>Instruction following / language</b></td><td><i>"Turn on the stove"</i> → <i>"Is the range hot yet?"</i> drops to 33.2%; <i>"Put the cream cheese in the bowl"</i> → <i>"Is the spread supposed to go in the container?"</i> 31.5%. 79.5–95.5% of failures diverge from the correct trajectory <b>from the outset</b>: the policy picks the wrong task, not a bad grasp <span class="tag v">V</span>.</td><td>LIBERO-Para; VLABench; VLA-Arena W0–W4</td><td>LIBERO-Para: DTW near-GT vs far-GT split <span class="tag v">V</span></td></tr>
+<tr><td><b>Implicit intent / world knowledge</b></td><td>VLABench <code>GetDrink</code>: <i>"take out a chilled cola from the refrigerator"</i> buried in a conversation (OpenVLA 4.61% on unseen objects). <code>PlayTexasHoldem</code>: read the cards, pick the best hand and flip face-down cards (0–3.5% for all fine-tuned VLAs) <span class="tag v">V</span>.</td><td>VLABench</td><td>Per-dimension scores, not per-episode labels <span class="tag i">I</span></td></tr>
+<tr><td><b>Occlusion / partial observability</b></td><td><i>"open the top drawer and put the bowl inside"</i>: <i>"the drawer, occluder, and robot arm block"</i> the bowl, and the policy cannot act once the evidence leaves the main view. Averages fall from 88–96% to 41–57% <span class="tag v">V</span>.</td><td>LIBERO-Occ</td><td>Severity levels by visibility loss (light / medium / heavy) <span class="tag v">V</span></td></tr>
+<tr><td><b>Safety / collision</b></td><td>LIBERO-Safety tabletop avoidance: <i>"overly conservative halting or erratic oscillatory maneuvers"</i> that time out. Affordance grasping: grasps directed at a look-alike distractor. About 45–50% of failures are poor trajectories and 40–45% semantic misalignment <span class="tag v">V</span>.</td><td>LIBERO-Safety; VLA-Arena safety suites</td><td>Collision rate, LDLJ jerk, success with zero violations <span class="tag v">V</span></td></tr>
+<tr><td><b>Long horizon / sequencing</b></td><td>RoboCerebra: find the butter by opening cabinet compartments in turn. The planner <i>"assumes butter is in first cabinet compartment"</i>; mean 9.1 steps and about 2,972 sim steps per task. OpenVLA alone gets 4% in the Ideal setting <span class="tag v">V</span>.</td><td>RoboCerebra; libero_10; VLA-Arena long_horizon; RoboLab</td><td>Per-subtask segmentation in the dataset <span class="tag v">V</span></td></tr>
+<tr><td><b>Articulated objects / appliances</b></td><td>RoboCasa with GR00T N1.7: <code>OpenDoubleDoor</code> 25%, <code>TurnOffStove</code> 25%, <code>PnPCounterToMicrowave</code> 30%, against 100% on <code>CloseDrawer</code> <span class="tag v">V</span>. SimplerEnv: <i>place in closed drawer</i> 7/100 <span class="tag v">V</span>.</td><td>RoboCasa365; SimplerEnv; RoboTwin (<code>turn_switch</code>)</td><td>Success only <span class="tag i">I</span></td></tr>
+<tr><td><b>Precision / contact-rich</b></td><td>SimplerEnv <code>widowx_stack_cube</code> 48/100 with GR00T N1.7. MimicGen's <code>threading</code>, <code>three_piece_assembly</code>, <code>coffee</code> (a pod into a machine) <span class="tag v">V</span>. FailBench: VLM judges fall to below 0.60 balanced accuracy on contact-heavy assembly <span class="tag v">V</span>.</td><td>MimicGen/robomimic (robosuite); SimplerEnv; WireCraft (deformable wire insertion)</td><td>Success only</td></tr>
+<tr><td><b>Clutter / distractors</b></td><td>RoboLab with GR00T N1.7 DROID: 8.58% over 120 tasks. <i>"Failures are more common on cluttered scenes, long-horizon packing, precise shelf placement, and sequential tasks that need recovery after a poor grasp"</i> <span class="tag v">V</span>.</td><td>RoboLab; VLA-Arena distractor suites; LIBERO-MAX <code>distractor_burst</code></td><td>Per-task success</td></tr>
+<tr><td><b>Memory</b></td><td>RoboMME <code>PickXtimes</code> (count repetitions), <code>VideoUnmaskSwap</code> (track a hidden object after a swap) <span class="tag v">V</span></td><td>RoboMME; RoboCerebra "Memory Execution"</td><td>By memory type (temporal, spatial, object, procedural)</td></tr>
+<tr><td><b>Bimanual coordination</b></td><td>RoboTwin 2.0 <code>handover_block</code>, <code>lift_pot</code>. Note <code>open_laptop</code>'s success check is broken upstream <span class="tag v">V</span>.</td><td>RoboTwin 2.0</td><td>Success; the failure-recovery "backup" isn't a release (DATA_AND_BENCHMARKS §6.2)</td></tr>
+</table></div>
+
+<h2>2 · Tier A: same tasks, new failure condition (no retraining)</h2>
+<p>These keep LIBERO's 40 tasks and BDDL predicates, so the four <code>nvidia/gr00t17-lerobot-libero_*-640</code> checkpoints apply as they are. MINERVA applies too. The work is in the env wrapper, not in a new policy.</p>
+
+<div class=card>
+<div class=q>A1 · LIBERO-MAX: a mid-task event, paired with a no-event twin</div>
+<ul>
+<li><b>What it is.</b>
+ <ul>
+ <li>8,000 Base/Dynamic pairs, plus an 800-pair <b>Lite</b> subset that tracks Max within 2.4 pts and keeps 88 of 91 pairwise orderings <span class="tag v">V</span>.</li>
+ <li>8 events, 1,000 pairs each: target relocation, receptacle relocation, distractor burst, obstacle insertion (in scope), plus camera shift, sensor-noise onset, illumination switch and visual-theme switch (out of scope here, but they come free).</li>
+ <li>Source cases: 5,600 from LIBERO-Plus and 2,400 from LIBERO-PRO, over all four suites <span class="tag v">V</span>.</li>
+ </ul></li>
+<li><b>Why it fits us better than anything else found.</b> The protocol is our paired counterfactual:
+ <ul>
+ <li>Same initial state, seed and <i>executed action prefix</i>, then one frozen event. Adapters must verify that the prefix replays exactly <span class="tag v">V</span>.</li>
+ <li>Outcomes go into four cells, (1,1) (0,1) (1,0) (0,0), plus "conditional regression", i.e. McNemar-ready.</li>
+ <li>It pins <b>the same LIBERO-Plus SHA we use (<code>4976dc3</code>)</b> and LIBERO-PRO at <code>2b910b5</code>, with robosuite 1.4.0 and MuJoCo 3.2.6 <span class="tag v">V</span>.</li>
+ </ul></li>
+<li><b>GR00T N1.7 is one of its 14 policies: 69.3% Base, 50.0% Dynamic</b> <span class="tag v">V</span>. Other policies range from 11.0 to 25.7 pt drops. This is a reproduction gate for our policy on a new failure mode, which nothing else here offers.</li>
+<li><b>Caveats.</b>
+ <ul>
+ <li>Base cases are already LIBERO-Plus/PRO-perturbed, so Base is not nominal LIBERO.</li>
+ <li>The repo has <b>no licence file</b> <span class="tag v">V</span>; check before anything client-facing.</li>
+ <li>It ships adapters for X-VLA, openpi, OpenVLA-OFT, VLA-JEPA, Cosmos, FastWAM and LingBot, but <b>no GR00T runner script</b> <span class="tag v">V</span>. Which GR00T checkpoint and serving cadence they used must be read from their result artefacts first <span class="tag i">I</span>.</li>
+ <li>MuJoCo 3.2.6 against our 3.3.2. Both are below the 3.4.0 break, but renders differ around the 3.3.3 change (DATA_AND_BENCHMARKS §8) <span class="tag i">I</span>.</li>
+ </ul></li>
+<li><b>Harness work</b> <span class="tag i">I</span>:
+ <ul>
+ <li>a step-time event hook in <code>libero_env.py</code>, since today's perturbations apply at reset;</li>
+ <li>a trigger on end-effector-to-entity distance (we already log <code>_gt_eef_to_object</code>);</li>
+ <li>prefix replay, which our nominal pairing already approximates.</li>
+ </ul>
+ Our localisation methods transfer naturally: "decided-at-forward-k" becomes "first post-event forward".</li>
+</ul>
+</div>
+
+<div class=card>
+<div class=q>A2 · LIBERO-Recover: start from a real failure, measure recovery</div>
+<ul>
+<li><b>What it is.</b>
+ <ul>
+ <li>Failure states were extracted from simulator checkpoints of six policies (π0, π0.5, OpenVLA, GR00T, Wan-Policy, Cosmos-Policy). Qwen3.5-27B localised the failures in time; humans then teleoperated recovery demos <span class="tag v">V</span>.</li>
+ <li>Four levels: retry → adapt → restore the object's state → clear the environment. Five failure categories (§1).</li>
+ <li>The paper counts 2,178 scenarios over 130 subtasks. The README's released scene library holds 880: spatial 168, goal 91, object 77, libero_10 207, libero_90 337 <span class="tag v">V</span>. The two counts differ; the full release is due 2026-10-20.</li>
+ </ul></li>
+<li><b>Data.</b> <code>ataier/LIBERO_Recovery_Assets</code> (scenes as <code>.bddl</code> + <code>_sim_state.npy</code>), <code>LIBERO_Recovery_Expert</code> (recovery demos, LeRobot format) and <code>LIBERO_10_LL</code> (episodes cut just before failure), all Apache-2.0 on ModelScope <span class="tag v">V</span>. The GitHub repo has no licence file.</li>
+<li><b>Why it matters.</b> These are <i>natural</i> policy failures on our stack, labelled by category: the "75% of real failures are natural" point from FailBench, on our simulator. The <code>LIBERO_10_LL</code> pre-failure data is the closest public analogue to our failure-onset question (DATA_AND_BENCHMARKS §6.2).</li>
+<li><b>Caveats.</b>
+ <ul>
+ <li>Half the default trials start with the gripper closed. That is a start-state perturbation, so report the open split for this doc's scope <span class="tag i">I</span>.</li>
+ <li>The client env pins MuJoCo 3.2.3. Whether a flattened <code>sim_state</code> saved there loads identically on 3.3.2 is <span class="tag i">I</span> untested; check it with a zero-action settle.</li>
+ <li>Published policy numbers are for GR00T N1.5, not N1.7.</li>
+ </ul></li>
+<li><b>Harness work</b> <span class="tag i">I</span>: set the init state from <code>.npy</code> (our env already restores init states) and parse the instruction from the BDDL. libero_90 scenes need a libero_90 policy, which we don't have.</li>
+</ul>
+</div>
+
+<div class=card>
+<div class=q>A3 · LIBERO-Para: paraphrase robustness · A4 · LIBERO-Occ: occlusion</div>
+<ul>
+<li><b>LIBERO-Para</b> (2603.28301, MIT, code public).
+ <ul>
+ <li>It varies action wording and object references independently, on LIBERO-Goal tasks.</li>
+ <li>Drops of 22–52 pt across seven configurations, driven by object synonyms ("the range" for "the stove").</li>
+ <li>Models were trained on LIBERO-Goal demos, so our <code>libero_goal-640</code> checkpoint is the matching case <span class="tag i">I</span>. GR00T is not in their table <span class="tag v">V</span>.</li>
+ <li>Harness: an instruction swap only. R-038 and R-049 already do input-level language swaps. The cheapest item in this doc.</li>
+ </ul></li>
+<li><b>LIBERO-Occ</b> (2606.10862, MIT).
+ <ul>
+ <li>Occluded BDDL and init files for all four suites. Occluders are static objects added at generation, and executability was checked by replaying the demos <span class="tag v">V</span>.</li>
+ <li>Three types (target, receptacle, both) and three severities.</li>
+ <li>Baselines were "fine-tuned on the same demonstration data". I read that as standard LIBERO demos, so our checkpoints apply <span class="tag i">I</span>.</li>
+ <li>No GR00T row. Clean failure mode: the evidence is simply not in the image, which our wrist-vs-agent split (R-042) can localise.</li>
+ </ul></li>
+<li><b>LIBERO-PRO</b> (2510.03827, MIT). Object swaps and task-instruction changes within LIBERO scenes; models above 90% collapse to 0% <span class="tag v">V</span>. It is half of LIBERO-MAX's source cases, so running A1 exercises it. Its own initial-state and environment axes are perturbations and out of scope.</li>
+</ul>
+</div>
+
+<h2>3 · Tier A′: same simulator, new tasks (fine-tune first)</h2>
+<p>These run on MuJoCo/robosuite, so the privileged-state and <code>_check_grasp</code> work transfers. But the tasks are new, so no existing GR00T LIBERO checkpoint is meaningful on them. Each needs a GR00T LoRA fine-tune on their data, and our one 8 GB card and the SFT pilot's cost (hours per run) are the binding constraint.</p>
+<div class=tw><table>
+<tr><th>Benchmark</th><th>Tasks and failure modes</th><th>Data / checkpoints</th><th>GR00T evidence</th><th>Stack and licence</th></tr>
+<tr><td><b>LIBERO-Safety</b> 2606.23686, ECCV 2026</td><td>5 suites × 5 tasks × L0–L2: affordance grasp, human–robot interaction, tabletop avoidance, hand–object avoidance, semantic safety. L2 and semantic safety are held out of training <span class="tag v">V</span></td><td>19,664 collision-free demos (LeRobot); π0.5 weights <span class="tag v">V</span></td><td>GR00T N1.5 and N1.6 evaluated after fine-tuning <span class="tag v">V</span></td><td>Drop-in LIBERO fork; bundled robosuite 1.4; Apache-2.0</td></tr>
+<tr><td><b>VLA-Arena</b> 2512.22539</td><td>170 tasks / 11 suites: safety (static and dynamic obstacles, cautious grasp, hazard zones, state preservation), distractors (static and <i>moving</i>), extrapolation (prepositions, workflows, unseen objects), long horizon. Fine-tune on L0 only. Language W0–W4 and visual V0–V4 probes <span class="tag v">V</span></td><td>VLA-Arena-S/M/L datasets, official fine-tunes on HF <span class="tag v">V</span></td><td>No GR00T env (openvla, openvla_oft, univla, smolvla, openpi) <span class="tag v">V</span></td><td>robosuite <b>1.5.1</b>, CBDDL with cost constraints; Apache-2.0</td></tr>
+<tr><td><b>LIBERO-X</b> 2602.06556, RSS 2026</td><td>5 difficulty levels, multi-labelled (spatial, visual, semantic); new predicates <code>ExactIn</code>, <code>UprightOn</code>, <code>SideOn</code> <span class="tag v">V</span></td><td>2,520 teleop demos, 600 tasks, 100 scenes; fine-tuned models not yet released <span class="tag v">V</span></td><td>None found</td><td>LIBERO fork; MIT</td></tr>
+<tr><td><b>RoboCerebra</b> 2506.06677, NeurIPS 2025</td><td>Long-horizon household chains, 6 settings (Ideal, Memory Exploration, Memory Execution, Random Disturbance, Observation Mismatch, Mix) <span class="tag v">V</span></td><td><code>lerobot/robocerebra_unified</code> 6,660 eps at 20 fps; <code>smolvla_robocerebra</code> <span class="tag v">V</span></td><td>None. VLA-only success is a floor (OpenVLA 4–8%) <span class="tag v">V</span></td><td>LIBERO sim and assets; Apache-2.0</td></tr>
+<tr><td><b>MimicGen / robomimic</b> 2310.17596</td><td>Contact-rich and precision: <code>threading</code>, <code>three_piece_assembly</code>, <code>coffee</code>, <code>nut_assembly</code>, <code>hammer_cleanup</code>, <code>mug_cleanup</code>, <code>kitchen</code>, <code>stack</code> <span class="tag v">V</span></td><td>~50K generated demos over 18 task variants <span class="tag v">V</span></td><td>None</td><td>robosuite; licence NOASSERTION (NVIDIA)</td></tr>
+</table></div>
+<p class=small><b>Correction to LeRobot's packaging</b> <span class="tag v">V</span>: LeRobot's "RoboCerebra" eval runs <code>--env.type=libero --env.task=libero_10</code> with RoboCerebra's camera names (<code>robocerebra.mdx</code>). It is not RoboCerebra's own long-horizon benchmark, so a LeRobot "RoboCerebra" number is a libero_10 number.</p>
+
+<h2>4 · Tier B: qualitatively better, new stack</h2>
+<div class=card>
+<div class=q>B1 · SimplerEnv with NVIDIA's GR00T N1.7 checkpoints: the best new-stack option</div>
+<ul>
+<li><b>Checkpoints exist with published per-task numbers</b> <span class="tag v">V</span> (Isaac-GR00T <code>examples/SimplerEnv</code>).
+ <ul>
+ <li><code>nvidia/GR00T-N1.7-SimplerEnv-Bridge</code> (WidowX), average 62.3%.</li>
+ <li><code>…-Fractal</code> (Google Robot), average 72.5%.</li>
+ <li>Each ships <code>processor_config.json</code> plus 6.44 GiB of safetensors, the same size as our LIBERO checkpoint, so the 8 GB fit should match R-021 <span class="tag i">I</span>.</li>
+ </ul></li>
+<li><b>Natural failure modes, no perturbation needed</b>: eggplant in sink 2/100, place in closed drawer 7/100, stack cube 48/100, carrot on plate 58/100, against open drawer 100/100 <span class="tag v">V</span>. Those are contact, precision and articulated failures on a real-robot task set.</li>
+<li><b>Why it is qualitatively better.</b>
+ <ul>
+ <li>A second embodiment.</li>
+ <li>Tasks drawn from real datasets (Bridge, Fractal).</li>
+ <li>The sim-real correlation is published (2405.05941), so a failure found here is more likely to mean something on hardware.</li>
+ </ul></li>
+<li><b>Loading path.</b> Our LeRobot's GR00T processor maps <code>simpler_env_google: 0</code> and <code>simpler_env_widowx: 1</code>. Its docs say N1.7 "provides checkpoints for SimplerEnv, DROID, and LIBERO". So these may load through our existing <code>groot</code> policy type <span class="tag i">I</span>, untested. If not, use the Isaac-GR00T native server in its own venv (R7).</li>
+<li><b>Cost.</b> No LeRobot env. SAPIEN/ManiSkill2 needs its own version audit and its own privileged-state extraction (DATA_AND_BENCHMARKS §3.1, §8). Forks are fragmented, so use the one Isaac-GR00T's setup script pins <span class="tag i">I</span>.</li>
+</ul>
+</div>
+<div class=tw><table>
+<tr><th>Candidate</th><th>What's new</th><th>GR00T / checkpoints</th><th>8 GB</th><th>Cost and blocker</th></tr>
+<tr><td><b>RoboCasa365</b> 2603.04356</td><td>365 kitchen tasks: doors, drawers, appliances, faucets, multi-step cooking; mobile base, 3 cameras</td><td>GR00T N1.6-3B base: 66.2% on 24 tasks. N1.7 fine-tuned: 70.8%, <b>checkpoint not released</b>; reproducing it takes 8 GPUs × 60K steps <span class="tag v">V</span>. <code>lerobot/smolvla_robocasa</code> (vetoed policy)</td><td>N1.6/N1.7 weights fit (~6 GiB) <span class="tag i">I</span></td><td>LeRobot env exists (robosuite/MuJoCo, privileged state transfers). Blocker: N1.6 isn't in our LeRobot, and N1.7 needs a fine-tune. Licence NOASSERTION; Objaverse assets vary</td></tr>
+<tr><td><b>VLABench</b> 2412.18194</td><td>Language, world knowledge, physics QA, 22 composites</td><td>None for GR00T; <code>lerobot/smolvla_vlabench</code>; datasets 5,000 + 5,977 eps <span class="tag v">V</span></td><td>480×480 × 3 cams <span class="tag i">I</span></td><td>LeRobot env; MuJoCo <b>3.2.2</b> + dm_control; MIT. Success floor 0–22%</td></tr>
+<tr><td><b>RoboTwin 2.0</b> 2506.18088</td><td>50 bimanual tasks, strong domain randomisation</td><td>Not checked for GR00T</td><td><span class="tag i">I</span> SAPIEN, light</td><td>LeRobot env; 14-DoF Aloha. Wrong embodiment for our policies; MIT</td></tr>
+<tr><td><b>RoboMME</b> 2603.04639</td><td>16 memory tasks</td><td>π0.5-based memory variants</td><td><span class="tag i">I</span> light</td><td>LeRobot env; numpy&lt;2 conflict, so its own venv</td></tr>
+<tr><td><b>RoboLab</b> 2604.09860</td><td>120 tasks, clutter, long-horizon packing</td><td>GR00T N1.7 DROID <b>zero-shot</b>: 8.58% (412 / 4,800), reproduced by NVIDIA <span class="tag v">V</span></td><td>No: Isaac Sim needs 16 GB (SIM_ALTERNATIVES §2e)</td><td>Fits res21's N3 one-day rented-GPU trial; Apache-2.0</td></tr>
+<tr><td><b>BEHAVIOR-1K</b></td><td>Long-horizon household</td><td><code>nvidia/GR00T-N1.6-BEHAVIOR1k</code> <span class="tag v">V</span></td><td>No (Isaac / OmniGibson) <span class="tag i">I</span></td><td>Rented GPU, N1.6 stack; MIT</td></tr>
+<tr><td><b>Deformables</b></td><td>WireCraft 2606.18097 (industrial wire insertion with RL, IL and VLA baselines) <span class="tag v">V</span>; RGBench (garments)</td><td>None</td><td><span class="tag i">I</span></td><td>No VLA-checkpoint path found. Noted only; nothing deformable fits a quick proof of concept</td></tr>
+</table></div>
+
+<h2>5 · Fit summary</h2>
+<div class=tw><table>
+<tr><th>Candidate</th><th>New failure mode</th><th>Our GR00T ckpt usable?</th><th>Published GR00T N1.7 number</th><th>Rollout contract / harness</th><th>8 GB</th><th>Licence</th><th>Setup</th></tr>
+<tr><td>LIBERO-MAX</td><td>mid-task change</td><td class=ok>yes, 4 suites</td><td class=ok>yes, 69.3 / 50.0</td><td>event hook + prefix replay</td><td class=ok>yes</td><td class=warn>none in repo</td><td>2–3 days</td></tr>
+<tr><td>LIBERO-Recover</td><td>recovery</td><td class=ok>yes (not libero_90)</td><td class=amb>N1.5 only</td><td>load <code>sim_state</code> + BDDL</td><td class=ok>yes</td><td class=ok>Apache-2.0 (data)</td><td>1–2 days; wait for 10-20</td></tr>
+<tr><td>LIBERO-Para</td><td>language</td><td class=ok>yes (goal)</td><td class=warn>no</td><td>instruction swap</td><td class=ok>yes</td><td class=ok>MIT</td><td>&lt; 1 day</td></tr>
+<tr><td>LIBERO-Occ</td><td>occlusion</td><td class=ok>yes <span class="tag i">I</span></td><td class=warn>no</td><td>new BDDL/init files</td><td class=ok>yes</td><td class=ok>MIT</td><td>1 day</td></tr>
+<tr><td>LIBERO-Safety</td><td>safety, collisions</td><td class=warn>needs fine-tune</td><td class=amb>N1.5/N1.6</td><td>fork replaces <code>libero</code>; own venv</td><td class=amb>LoRA only</td><td class=ok>Apache-2.0</td><td>1–2 weeks</td></tr>
+<tr><td>VLA-Arena</td><td>safety, moving distractors, long horizon</td><td class=warn>needs fine-tune</td><td class=warn>no</td><td>robosuite 1.5.1 adapter</td><td class=amb>LoRA only</td><td class=ok>Apache-2.0</td><td>1–2 weeks</td></tr>
+<tr><td>SimplerEnv</td><td>contact, articulated, real-like tasks</td><td class=ok>NVIDIA's own N1.7 ckpts</td><td class=ok>yes, per task</td><td>new SAPIEN adapter</td><td class=ok>likely <span class="tag i">I</span></td><td class=ok>MIT</td><td>~1 week</td></tr>
+<tr><td>RoboCasa365</td><td>articulated, appliances, multi-step</td><td class=warn>needs fine-tune (N1.7)</td><td class=amb>yes, ckpt unreleased</td><td>3-cam, 12-D action adapter</td><td class=amb>LoRA only</td><td class=amb>NOASSERTION</td><td>2+ weeks</td></tr>
+<tr><td>VLABench</td><td>language, world knowledge</td><td class=warn>needs fine-tune</td><td class=warn>no</td><td>LeRobot env; MuJoCo 3.2.2</td><td class=amb><span class="tag i">I</span></td><td class=ok>MIT</td><td>2+ weeks</td></tr>
+<tr><td>RoboLab</td><td>clutter, long horizon</td><td class=ok>N1.7 DROID zero-shot</td><td class=ok>8.58%</td><td>Isaac (res21 pipeline)</td><td class=warn>no</td><td class=ok>Apache-2.0</td><td>rented GPU day</td></tr>
+</table></div>
+
+<h2>6 · Failure-labelled datasets (update to DATA_AND_BENCHMARKS §6)</h2>
+<div class=tw><table>
+<tr><th>Dataset</th><th>What it contains</th><th>Natural or injected?</th><th>Use to us</th></tr>
+<tr><td><b>LIBERO-Recover</b> (§2 A2)</td><td>Failure states from 6 policies on LIBERO, 5 categories, recovery demos, pre-failure clips <span class="tag v">V</span></td><td><b>Natural</b> (policy rollouts)</td><td><b>New best fixture</b>: on our simulator, includes GR00T-generated failures, Apache-2.0 data. Supersedes "B2FF failure-injected LIBERO not released" (§6.1) as the usable LIBERO failure corpus</td></tr>
+<tr><td><b>LIBERO-MAX results</b></td><td>Paired (1,0) regressions for 14 policies <span class="tag v">V</span></td><td>Caused by the event, labelled by pairing</td><td>An external check of our McNemar pairing; per-policy outcomes need their artefacts <span class="tag i">I</span></td></tr>
+<tr><td>FailBench 2609.03611</td><td>2,197 attempts, 14 sources (12 real, 2 sim), 75% natural; best VLM judge 0.77, below 0.60 on contact-heavy tasks <span class="tag v">V</span></td><td>Mostly natural</td><td>Judge-validation set (already cited in §6)</td></tr>
+<tr><td>RoboFAC 2505.12224</td><td>9,440 failed trajectories, 78,623 QA pairs, 53 scenes, sim and real <span class="tag v">V</span></td><td>Injected and categorised</td><td>Taxonomy comparison</td></tr>
+<tr><td>ViFailback 2512.02787, CVPR 2026</td><td>5,202 real ALOHA trajectories (4,545 failed), 58,126 VQA pairs <span class="tag v">V</span></td><td>Real</td><td>Real-robot failure diagnosis; still the first real fixture to look at</td></tr>
+<tr><td>Guardian / GuardianFail-36k 2512.01946</td><td>Planning and execution failures from RLBench and BridgeData V2, with step-by-step reasoning traces <span class="tag v">V</span></td><td>Injected by trajectory perturbation</td><td>Splits planning errors from execution errors, the same split LIBERO-Para measures</td></tr>
+<tr><td>LabRobFail 2607.23704</td><td>Over 20,000 trajectories, 70+ lab scenarios, 5 categories / 11 types; detection, temporal localisation, severity <span class="tag v">V</span></td><td>Injected (control, physics, semantic)</td><td>Severity and onset labels: a design reference for <code>failure_cost</code></td></tr>
+<tr><td>AHA/FailGen, RoboMIND <code>failure_data</code>, I-FailSense 2509.16072</td><td>See DATA_AND_BENCHMARKS §6. I-FailSense adds semantic-misalignment failures (a valid action for the wrong instruction) <span class="tag v">V</span></td><td>Injected / teleop rejects</td><td>Unchanged</td></tr>
+</table></div>
+
+<h2>7 · Proposed corrections to <code>DATA_AND_BENCHMARKS.md</code> (not applied)</h2>
+<div class="card fix">
+<div class=q>For prim and the user to approve item by item</div>
+<ol>
+<li><b>§0 "8 GB ⚠ (GR00T VRAM)", §7 "VRAM on 8 GB, unverified, leaning negative", §9 last row.</b> GR00T N1.7 fits in bf16 at 5.87 GiB (R-021), harness parity 98 vs 97 (R-022). <span class="tag v">V</span> MODELS_AND_COMPUTE banner</li>
+<li><b>§0 "our policies" column and §2.1 "SmolVLA ✅".</b> SmolVLA is vetoed (R-011, R-017). The roster is GR00T N1.7 plus MINERVA.</li>
+<li><b>§2 "Dockerfile.benchmark.robocerebra with no registration [?]".</b> Resolved: RoboCerebra reuses <code>env.type=libero</code> on <code>libero_10</code> (<code>robocerebra.mdx</code>) <span class="tag v">V</span>. The list of ten env types also omits <code>gym_manipulator</code> (11 registrations) <span class="tag v">V</span>.</li>
+<li><b>§1.5 LIBERO-Safety [A].</b> Now arXiv 2606.23686, ECCV 2026, Apache-2.0, 19,664 demos, π0.5 weights, GR00T N1.5/N1.6 evaluated <span class="tag v">V</span>.</li>
+<li><b>§1.4 LIBERO-PRO "not cloned or run".</b> Still not run here, but LIBERO-MAX pins it at <code>2b910b5</code> and runs 14 policies on it, which is indirect evidence the substrate runs <span class="tag v">V</span>.</li>
+<li><b>§2.1 RoboCasa, checkpoints.</b> Add GR00T: N1.6-3B base 66.2%, N1.7 fine-tune 70.8% with no checkpoint released (Isaac-GR00T <code>examples/robocasa</code>) <span class="tag v">V</span>.</li>
+<li><b>§2.2 VLABench, privileged state [?].</b> The paper exposes end-effector pose, grasp state, segmentation and grasp-point annotations <span class="tag v">V</span>. The LeRobot wrapper returns a 7-D end-effector state plus 3 images, so reachability through the wrapper is still [?].</li>
+<li><b>§3.1 SimplerEnv.</b> Now concrete: <code>nvidia/GR00T-N1.7-SimplerEnv-{Bridge,Fractal}</code> with per-task numbers (62.3% / 72.5%) <span class="tag v">V</span>.</li>
+<li><b>§6.1 "B2FF failure-injected LIBERO (not released)".</b> Add that LIBERO-Recover (natural failures, data released) and LIBERO-MAX (mid-task events) now fill this gap <span class="tag v">V</span>.</li>
+<li><b>§1.3 install note "robosuite==1.4.1 (we have 1.4.0)".</b> <code>.venvs/libero-plus</code> now has robosuite 1.4.1 and MuJoCo 3.3.2; <code>.venvs/groot</code> has 1.4.0 / 3.3.2 <span class="tag v">V</span> (imported here).</li>
+</ol>
+</div>
+
+<h2>8 · Ranked shortlist: what to run next</h2>
+<p>GPU-hour estimates use GR00T's 20–35 s per rollout (SUITES_AND_CHECKPOINTS §7) <span class="tag i">I</span>. Every item first needs the unperturbed reproduction run per checkpoint that SUITES §5 lists (about 1 h each for object, goal and libero_10).</p>
+<div class=tw><table>
+<tr><th>#</th><th>Run</th><th>First step</th><th>Engineer time</th><th>GPU</th><th>Gate before trusting results</th><th>What breaks in our methods</th></tr>
+<tr><td>1</td><td><b>LIBERO-MAX Lite, in-scope events</b> (target/receptacle relocation, distractor burst, obstacle insertion: 400 pairs = 800 rollouts)</td><td>Clone; <code>make validate</code>; read their GR00T result artefacts for checkpoint and cadence; add a step-time event hook and prefix replay to <code>libero_env.py</code></td><td>2–3 days</td><td>~5–8 h (all of Lite: ~9–16 h)</td><td>Our GR00T Base/Dynamic on Lite within CI of their 69.3 / 50.0 (Lite tracks Max within 2.4 pt). Prefix-replay agreement check passes</td><td>Phase detection must handle an object that moves mid-episode. Closest-approach needs re-targeting after relocation</td></tr>
+<tr><td>2</td><td><b>LIBERO-Recover</b>, open-gripper split, spatial + goal + object scenes (336) × 5 trials</td><td>Download <code>LIBERO_Recovery_Assets</code>; zero-action settle test of <code>sim_state</code> on MuJoCo 3.3.2 vs 3.2.3; wait for the 10-20 release for paper-matching splits</td><td>1–2 days</td><td>~10–20 h (libero_10 scenes run 520 steps, about 2× cost)</td><td>The state-load check is bit-stable; a GR00T number per level compared with their N1.5 row (direction only, since there is no N1.7 target)</td><td>The episode starts mid-task, so a "first chunk" is the recovery decision itself. R-053-style rescue maps onto it directly</td></tr>
+<tr><td>3</td><td><b>LIBERO-Para</b> on <code>libero_goal-640</code>, then <b>LIBERO-Occ</b> on all four suites</td><td>Download the goal and other checkpoints; Para is an instruction swap; Occ means loading their BDDL/init files</td><td>&lt; 1 day + 1 day</td><td>~3–5 h + ~6–10 h <span class="tag i">I</span> (variant counts not checked)</td><td>Goal-suite reproduction (published 98%)</td><td>Goal tasks without an object to carry need BDDL-based progress (SUITES §6). Para failures are "wrong plan from step 0", which our language splice (R-049) can test</td></tr>
+<tr><td>4</td><td><b>SimplerEnv + GR00T N1.7 Bridge</b> (7 tasks)</td><td>Try loading <code>nvidia/GR00T-N1.7-SimplerEnv-Bridge</code> through our LeRobot <code>groot</code> type; else the native server venv. Pin SimplerEnv to Isaac-GR00T's setup</td><td>~1 week</td><td>7 tasks × 100 ≈ 4–7 h</td><td>Per-task numbers within CI of NVIDIA's table (e.g. stack cube 48/100)</td><td>All privileged-state extraction is redone for SAPIEN; the perturbation knobs are not ported</td></tr>
+<tr><td>5</td><td><b>Fine-tune wave</b>: RoboCasa365 (articulated objects) <i>or</i> LIBERO-Safety (safety)</td><td>A decision for the user: which new task family is worth a fine-tune on rented compute (PENDING #25)</td><td>2+ weeks</td><td>Fine-tune on rented GPU; eval hours</td><td>Reproduce their published fine-tune numbers (RoboCasa N1.7 70.8% / Safety GR00T N1.6 rows)</td><td>Same as 1–3, plus the second embodiment for RoboCasa</td></tr>
+</table></div>
+<p><b>Why this order.</b> Items 1–3 need no new policy and no new simulator, and item 1 has a GR00T N1.7 number to reproduce, which keeps us inside the reproducibility rule. Item 4 is the single most informative new-stack step: NVIDIA's checkpoints and numbers, real-derived tasks. It costs roughly a week. Item 5 is where task diversity truly widens, but only after a budget decision on fine-tuning compute.</p>
+
+<h2>9 · Unverified, and what would settle it</h2>
+<div class=tw><table>
+<tr><th>Claim</th><th>Status</th><th>Check</th></tr>
+<tr><td>Which GR00T checkpoint and serving cadence LIBERO-MAX used</td><td><span class="tag i">I</span></td><td>Read their released result files and paper appendix</td></tr>
+<tr><td>LIBERO-MAX licence</td><td>No licence file in repo <span class="tag v">V</span></td><td>Ask the authors / read ACKNOWLEDGEMENTS in full</td></tr>
+<tr><td>LIBERO-Recover's <code>sim_state</code> loads identically on MuJoCo 3.3.2</td><td><span class="tag i">I</span></td><td>Zero-action settle; compare object poses</td></tr>
+<tr><td>LIBERO-Occ and LIBERO-Para baselines trained on plain LIBERO demos</td><td><span class="tag i">I</span></td><td>Read their training sections in full</td></tr>
+<tr><td>The GR00T N1.7 SimplerEnv checkpoints load through LeRobot's <code>groot</code> type</td><td><span class="tag i">I</span></td><td>A CPU-side processor-config load; no GPU needed</td></tr>
+<tr><td>Paper vs README scene counts for LIBERO-Recover (2,178 vs 880)</td><td>Both <span class="tag v">V</span>; the gap is unexplained</td><td>Re-check after the 10-20 release</td></tr>
+<tr><td>Per-candidate privileged state through the wrapper (VLABench, SimplerEnv, RoboTwin)</td><td>[?] as in DATA_AND_BENCHMARKS §9</td><td>Read each wrapper's observation extraction</td></tr>
+</table></div>
+
+<p class=small style="margin-top:3em">Sources:
+<ul class=small>
+<li>Ours: <code>docs/FAILURE_MINING_RELEVANCE.html</code>; <code>docs/DATA_AND_BENCHMARKS.md</code> §1.2, §3.1, §6, §8, §9; <code>MODELS_AND_COMPUTE.md</code> banner, R7, R9; <code>docs/SUITES_AND_CHECKPOINTS.html</code> §4–§7; <code>docs/SIM_ALTERNATIVES_PIPELINE.html</code> §2e–f, §8; <code>docs/RL_GYM_LANDSCAPE.html</code>; <code>third_party/lerobot</code> @ b6ec006: <code>src/lerobot/envs/configs.py</code>, <code>docs/source/{robocerebra,vlabench,robocasa,robotwin,robomme,groot}.mdx</code>, <code>docker/Dockerfile.benchmark.robocerebra</code>, <code>src/lerobot/policies/groot/{configuration_groot,processor_groot}.py</code>.</li>
+<li>LIBERO-derived: <a href="https://arxiv.org/abs/2609.36518">LIBERO-MAX 2609.36518</a> · <a href="https://github.com/liberomax/LIBERO-MAX">repo</a> (README, docs/BENCHMARK_SPEC.md, docs/RUNTIME_INTEGRATION.md, scripts/) · <a href="https://arxiv.org/abs/2609.05178">LIBERO-Recover 2609.05178</a> · <a href="https://github.com/liulin815/LIBERO-Recovery">repo</a> · <a href="https://www.modelscope.cn/datasets/ataier/LIBERO_Recovery_Assets">ModelScope assets</a> · <a href="https://arxiv.org/abs/2603.28301">LIBERO-Para 2603.28301</a> · <a href="https://github.com/cau-hai-lab/LIBERO-Para">repo</a> · <a href="https://arxiv.org/abs/2606.10862">LIBERO-Occ 2606.10862</a> · <a href="https://github.com/litsh/Libero-Occ">repo</a> · <a href="https://arxiv.org/abs/2606.23686">LIBERO-Safety 2606.23686</a> · <a href="https://github.com/LIBERO-SAFETY/LIBERO-Safety">repo</a> · <a href="https://arxiv.org/abs/2602.06556">LIBERO-X 2602.06556</a> · <a href="https://github.com/meituan/LIBERO-X">repo</a> · <a href="https://arxiv.org/abs/2510.03827">LIBERO-PRO 2510.03827</a> · <a href="https://arxiv.org/abs/2512.22539">VLA-Arena 2512.22539</a> · <a href="https://github.com/PKU-Alignment/VLA-Arena">repo</a> · <a href="https://arxiv.org/abs/2506.06677">RoboCerebra 2506.06677</a> · <a href="https://github.com/buaa-colalab/RoboCerebra">repo</a> · also seen, not used: LIBERO-Agent 2609.39507, LIBERO-VIFO 2608.17600, LIBERO-VPro 2609.24350 (visual perturbation, out of scope).</li>
+<li>Other benchmarks: <a href="https://github.com/NVIDIA/Isaac-GR00T/tree/main/examples">Isaac-GR00T examples</a> (SimplerEnv, robocasa, robocasa-gr1-tabletop-tasks, RoboLab, DROID READMEs) · <a href="https://arxiv.org/abs/2405.05941">SimplerEnv 2405.05941</a> · <a href="https://arxiv.org/abs/2603.04356">RoboCasa365 2603.04356</a> · <a href="https://arxiv.org/abs/2406.02523">RoboCasa 2406.02523</a> · <a href="https://arxiv.org/abs/2412.18194">VLABench 2412.18194</a> · <a href="https://arxiv.org/abs/2506.18088">RoboTwin 2.0 2506.18088</a> · <a href="https://arxiv.org/abs/2603.04639">RoboMME 2603.04639</a> · <a href="https://arxiv.org/abs/2604.09860">RoboLab 2604.09860</a> · <a href="https://arxiv.org/abs/2310.17596">MimicGen 2310.17596</a> (+ <code>mimicgen/envs/robosuite/</code>) · <a href="https://arxiv.org/abs/2606.18097">WireCraft 2606.18097</a> · <a href="https://arxiv.org/abs/2402.08191">COLOSSEUM 2402.08191</a> · <a href="https://arxiv.org/abs/2603.22126">ROBOGATE 2603.22126</a> · <a href="https://arxiv.org/abs/2606.02307">FATE-VLA 2606.02307</a> · <a href="https://arxiv.org/abs/2610.01351">Is Success All You Need? 2610.01351</a>.</li>
+<li>Failure datasets: <a href="https://arxiv.org/abs/2609.03611">FailBench 2609.03611</a> · <a href="https://arxiv.org/abs/2505.12224">RoboFAC 2505.12224</a> · <a href="https://arxiv.org/abs/2512.02787">ViFailback 2512.02787</a> · <a href="https://arxiv.org/abs/2512.01946">Guardian 2512.01946</a> · <a href="https://arxiv.org/abs/2607.23704">LabRobFail 2607.23704</a> · <a href="https://arxiv.org/abs/2509.16072">I-FailSense 2509.16072</a> · <a href="https://arxiv.org/abs/2410.00371">AHA 2410.00371</a> · <a href="https://arxiv.org/abs/2306.15724">REFLECT/RoboFail 2306.15724</a>.</li>
+<li>Checkpoints: Hugging Face API, <code>author=nvidia&amp;search=gr00t</code> (10-08): GR00T-N1.7-{DROID, SimplerEnv-Bridge, SimplerEnv-Fractal}, gr00t17-lerobot-libero_*-640, GR00T-N1.6-{3B, BEHAVIOR1k, bridge, fractal, DROID}. Licences from the GitHub API repo metadata.</li>
+</ul></p>
+</div></body></html>
