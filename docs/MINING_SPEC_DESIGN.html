@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 1.
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 2 (D10, D11 added 10-08).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -80,6 +80,7 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <li>An instance is either a <b>complete episode</b> or the <b>segment</b> of an episode where the failure happens. Segments serve as sub-failures. Complete episodes are the basis for generating more demos.</li>
 <li>The work splits into four pieces: a shared <b>scenario index</b> (built first), the <b>mining spec</b> (the product for now), a <b>failure corpus</b> of frequencies across policies and deployments built from open-source data, and a <b>client intent spec</b> (Phase 1 input).</li>
 <li>Phase 0 specs carry <b>no cost</b>. Cost, severity and urgency arrive with the client in Phase 1. This is consistent with PLAN.md §9.3: we do not ship a cardinal severity without the client's prevalence.</li>
+<li>A failure counts as a <b>failure mode</b> only inside the policy's fine-tuned domain. Outside it, it is a <b>coverage gap</b> (D10). The index links task-level scenarios to reusable, task-independent sub-scenarios (D11), which is what lets policies tuned on different tasks be compared.</li>
 <li>The mining spec is the successor to PLAN.md §9's <b>Data Gap Manifest</b>. It widens a manifest row from "a perturbation boundary" to "any failure scenario, at episode or segment level, usable three ways".</li>
 </ul>
 </div>
@@ -129,6 +130,8 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <tr><td class="id">D7 <span class="tag agreed">agreed</span></td><td><b>Mechanism is an optional block with an evidence status.</b> It is filled where localisation has been run, otherwise marked untested.</td><td>Localisation is validated only on perturbations. Its generality across task diversity is untested; res22 is working on that.</td><td>A mandatory mechanism: rejected for now.</td></tr>
 <tr><td class="id">D8 <span class="tag agreed">agreed</span></td><td><b>Fixed core plus customer extensions.</b> We define the core fields; customer-domain settings go in a declared extension area.</td><td>A stable core keeps specs comparable and searchable; extensions keep the core from bloating per client.</td><td>—</td></tr>
 <tr><td class="id">D9 <span class="tag agreed">agreed</span></td><td><b>Four pieces, in this order:</b> (1) scenario index, (2) mining spec, (3) failure corpus, (4) client intent spec. Each gets its own short design.</td><td>The index is what the other three point at. The corpus is counting once 1 and 2 exist. Intent is Phase 1.</td><td>One combined design: rejected, too large to settle at once.</td></tr>
+<tr><td class="id">D10 <span class="tag agreed">agreed</span></td><td><b>Competence domain on every instance and every corpus count.</b> Four values: <i>in-domain</i> (trained task and embodiment, nominal conditions), <i>in-domain + condition</i> (perturbed, or a mid-task event), <i>held-out task, same embodiment</i>, <i>other embodiment</i>. Only the first two produce <b>failure modes</b>; the last two are <b>coverage gaps</b>. The corpus counts each policy inside its own fine-tuned domain, not every policy on every dataset.</td><td>A fine-tune fixes the policy's whole input–output contract, not just which tasks it knows. Our GR00T LIBERO checkpoint (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>, config.json) has <code>embodiment_tag: libero_sim</code>, which selects per-embodiment state-encoder and action-decoder weights. It outputs a 7-D end-effector delta plus gripper under LIBERO normalisation, takes 8-D state and two 256 px cameras (<code>image</code>, <code>wrist_image</code>), and tuned only the projector and action head. On RoboCasa (<code>robocasa_panda_omron</code>, a mobile base) the shapes don't match. Failures there would mean "never trained", not a failure mode. Coverage gaps and failure modes need different fixes: a fine-tune vs targeted data, augmentation or an envelope. Testing an un-tuned policy on a diverse-failure corpus would confuse the two. Unverified: the preprocessor's embodiment list includes <code>robocasa_panda_omron</code>, so GR00T's pretraining probably saw RoboCasa. Whether the base model works there without fine-tuning is untested.</td><td>Running every policy on every corpus scenario: rejected, because it mostly measures coverage gaps.</td></tr>
+<tr><td class="id">D11 <span class="tag agreed">agreed</span></td><td><b>Index with two linked axes</b> (piece 1). Task-level <i>scenarios</i> ("put the bowl in the drawer fails") point at reusable, task-independent <i>sub-scenarios</i> ("grasp slip", "retry loop"). Non-interpretable sub-scenarios are a third kind, identified by their signature, not a name.</td><td>It matches the user's point that a big-task failure aggregates smaller failures across tasks. Under D10 it is also what makes cross-policy comparison possible: policies tuned on different tasks can still be compared on sub-scenario rates within their own domains (e.g. grasp slip in 12% of in-domain episodes for X, 4% for Y).</td><td>A strict tree (task family → phase → mode → condition): rejected, because the same sub-failure repeats under every task family and counting it across tasks needs a merge step. Flat tags: rejected, because they can't say "this failure is made of these".</td></tr>
 </table></div>
 
 <h3>The four pieces</h3>
@@ -166,6 +169,7 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
   "instance": {
     "id", "scenario_ids": [ index ids, parent → child ],
     "unit": "episode" | "segment",
+    "competence_domain": in-domain | in-domain+condition | held-out-task | other-embodiment   (D10)
     "situation":  how to reach it: initial config, or the segment's entry condition
     "signature":  machine-checkable definition: what makes a window match (D5: required)
     "brief":      teleoperator text, plus what success looks like (optional if not interpretable)
@@ -180,7 +184,7 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 
 <h2>7 · Next questions, in order</h2>
 <ol>
-<li><b>Index levels and nesting</b> (piece 1). Which levels, and how a big-task failure decomposes into sub-scenarios across tasks. Candidate seed: task family → phase (approach / grasp / transport / place) → failure mode (e.g. <code>retry_loop</code>) → condition. Where do non-interpretable sub-scenarios sit?</li>
+<li><b>Index levels and nesting</b> (piece 1). <span class="tag agreed">shape decided: D11</span> Still open: what a sub-scenario is keyed by (phase × failure mode × condition?), whether sub-scenarios nest further, and how a scenario records <em>how</em> it is made of its sub-scenarios (all of them, any of them, or a sequence). Seeds: <code>classify.py</code>'s families and terminal behaviours, and LIBERO-Recover's 5 failure categories (<code>docs/TASK_DIVERSITY_LANDSCAPE.html</code>).</li>
 <li><b>Id scheme and versioning</b> of the index: stable across specs and readable (<code>grasp.slip.transport</code>).</li>
 <li><b>Segment definition</b>: what bounds a segment (phase boundaries, start and end predicates), and what a signature must contain to match across different tasks and robots.</li>
 <li><b>The teleoperator brief</b>: what an operator needs, and what "successful demonstration" means for a segment-level instance.</li>
@@ -191,7 +195,7 @@ Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 
 <h2>8 · Inputs and owners</h2>
 <ul>
-<li><b>res22</b> (scoped 10-08): its survey of datasets and failure modes beyond LIBERO feeds the index (piece 1) and which datasets the corpus counts over (piece 3).</li>
+<li><b>res22</b> (scoped 10-08; <code>docs/TASK_DIVERSITY_LANDSCAPE.html</code>, 23e37cb): its survey of datasets and failure modes beyond LIBERO feeds the index (piece 1) and the corpus (piece 3). Under D10 the corpus's first sources are in-domain for checkpoints that already exist: LIBERO-MAX mid-task events and LIBERO-Recover natural failure states on our GR00T LIBERO checkpoints; SimplerEnv with NVIDIA's GR00T-N1.7-SimplerEnv checkpoints after that.</li>
 <li><b>res21</b>: the perturbation map and its validity audit (<code>docs/PERTURBATION_MAP_VALIDITY.html</code>) feed Phase 0 instances.</li>
 <li>Building anything (index files, schema validation, the miner) goes to impl once the design is approved. Nothing is built yet.</li>
 </ul>
