@@ -1,0 +1,320 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Perturbation Map Validity</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Perturbation map: threats to validity</h1>
+<div class=meta>2026-10-08 · res21 · Audit of <a href="PERTURBATION_MAP.html">PERTURBATION_MAP.html</a> (built by <code>experiments/compile_map.py</code>), <a href="R039_MATHS.html">R039_MATHS.html</a>, RESULTS.md R-039, R-041, R-042, R-044, R-045, R-048, R-049, R-050, R-051 and R-057, <code>vla_harness/capture/splice.py</code>, <code>vla_harness/envs/libero_env.py</code> and the runners in <code>experiments/</code>. CPU-only and read-only. The re-scores come from <code>experiments/audit_rescore.py</code> over 240 stored splice records (16 runs). Requested by prim for the user (checklist pm1). Tags: <span class="tag v">verified</span> from code, stored data or the re-score · <span class="tag i">inferred</span> my reading · <span class="tag p">unverified</span> reported by another session and not checked by me.</div>
+
+<div class="card tldr">
+<div class=q>Verdict</div>
+<ul>
+<li><b>The map's load-bearing claims hold.</b> Each survives every re-scoring we can do on CPU: executed steps only, the first action only, environment units, and translation only. Seed spreads are small next to the effects, and every ordering is 10/10 (two-sided sign p = 0.002, which survives Bonferroni for up to 25 claims).
+ <ul>
+ <li><b>Camera:</b> agent view 0.98.</li>
+ <li><b>Sensor noise:</b> agent view 0.97.</li>
+ <li><b>Start pose:</b> wrist 0.88.</li>
+ <li><b>State token near-inert:</b> 0.04.</li>
+ <li><b>Image tokens carry every category.</b></li>
+ </ul></li>
+<li><b>Three numbers are wrong or unstable as stated:</b>
+ <ul>
+ <li><b>Sensor-noise image-token transfer, 0.45 → 0.85 on the executed steps.</b> The 24 unexecuted steps of the 40-step chunk drag the full-chunk score down. Layout's I arm moves the same way (0.40 → 0.74).</li>
+ <li><b>Lighting, layout and texture per-camera numbers are inside their own noise.</b> Seed ranges reach 0.6–0.9 on single instances, and the orderings are 4–7/10 (p ≥ 0.34). The qualitative claim (both cameras jointly; agent view for layout) is the most these rows support.</li>
+ <li><b>Anchor-based readouts are outcome-dependent.</b> For start pose they also come from a source that no longer matches the state after forward 0. Forward-0 readouts are unaffected, and the map's verdicts are read at forward 0.</li>
+ </ul></li>
+<li><b>One open threat needs a GPU null (~10 forwards).</b> The paired nominal for the camera, lighting and noise rows is a <i>force-update re-render</i>, while P is the env's own step render. impl reports (unverified) that a re-render with nothing changed already differs from the reset frame. The wrist arm bounds that difference's action effect at ≈ 0.00 on camera and noise. The agent-view part is unmeasured; R-057's 30/30 N-all successes are indirect evidence that it is small.</li>
+<li><b>Two interpretation fixes for the map's text:</b>
+ <ul>
+ <li>State the patching convention. The map's "necessary/sufficient" is effect-centric; Heimersheim &amp; Nanda's is behaviour-centric, and the two are De Morgan duals.</li>
+ <li>Say that every claim is about one checkpoint and failure-enriched instances.</li>
+ </ul></li>
+</ul>
+</div>
+
+<h2>1. What the map measures, and its method lineage</h2>
+<p>At forward <var>f</var>, the action head runs once per <i>arm</i> from the same state and the same denoising noise ε. Each arm restores one input to its nominal value and leaves the rest perturbed <span class="tag v">verified</span> (<code>splice.py</code>). The transfer fraction is:</p>
+<div class=eq><span>τ<sub>X</sub>(<var>f</var>) = 1 − ‖<var>a</var><sub>X</sub> − <var>a</var><sub>N</sub>‖ / ‖<var>a</var><sub>P</sub> − <var>a</var><sub>N</sub>‖,&nbsp;&nbsp; norms over the 40 × 7 live chunk in normalised action units</span><span class=n>(1)</span></div>
+<div class=tw><table>
+<tr><th>Map component</th><th>Lineage</th></tr>
+<tr><td>Restore one input to its value under the counterfactual (nominal) condition</td><td>Interchange interventions: Geiger, Lu, Icard &amp; Potts, <i>Causal Abstractions of Neural Networks</i>, NeurIPS 2021, <a href="https://arxiv.org/abs/2106.02997">2106.02997</a></td></tr>
+<tr><td>Denoising (nominal into perturbed) vs noising (perturbed into nominal); a normalised recovery metric</td><td>Activation patching: Heimersheim &amp; Nanda, <a href="https://arxiv.org/abs/2404.15255">2404.15255</a>; Zhang &amp; Nanda, ICLR 2024, <a href="https://arxiv.org/abs/2309.16042">2309.16042</a>, which argues for normalised logit-difference-style metrics, and warns about corruption choice and metric choice</td></tr>
+<tr><td>Restoring states into a corrupted run to localise where information flows</td><td>Causal tracing: Meng, Bau, Andonian &amp; Belinkov, ROME, <a href="https://arxiv.org/abs/2202.05262">2202.05262</a></td></tr>
+<tr><td>The same ε for every arm (<code>noise_key = 1000·seed + f</code>)</td><td>Common random numbers: a variance-reduction technique for comparing simulated alternatives</td></tr>
+</table></div>
+<p class=small>All four arXiv IDs checked against the arXiv API on 2026-10-08 <span class="tag v">verified</span>.</p>
+
+<h2>2. Threats</h2>
+
+<h3>T1 · Start pose: is the nominal source the same situation?</h3>
+<p><b>(a) Real?</b> Partly. There are two different source paths <span class="tag v">verified</span>:</p>
+<ul>
+<li><b>Splice runs</b> (R-039, R-042 rollouts): the source is the <i>recorded</i> per-forward features of the scene's control episode (<code>RecorderHandle</code>; <code>r039_run.py</code> <code>RECORDED_CATS</code>), aligned by forward index, not by state.</li>
+<li><b>The headline wrist 0.88</b> (R-044, <code>experiments/r044_reverse.py</code>): the control env is reset at the same seed, at forward 0 only.</li>
+</ul>
+<p><b>Check run.</b> Object layout at t = 0, variant vs control, from <code>runs/r042/rollouts.jsonl</code> <span class="tag v">verified</span>. All 10 pairs have identical objects (max offset ≤ 1.4 × 10⁻¹⁰ m; 5 objects each, none unique to one side). The end-effector differs by 2.9–16.3 cm. <b>At forward 0 the pair is exactly "the factor reverted": same world, different arm.</b> After forward 0 the recorded source follows the control's own trajectory, so for <var>f</var> ≥ 1 it describes a different situation.</p>
+<p><b>(b) Numbers affected.</b> None at forward 0. Start-pose τ <i>at the anchor</i> (W 0.59, T 0.13 in R-042) and any forward &gt; 0 readout mix "the input carried it" with "a different trajectory". R-039's expectation 6 (residual at the anchor, 36/40) includes 10 such instances.</p>
+<p><b>(c) Cheapest check.</b> Done above (layout). For <var>f</var> &gt; 0, there is no stored state-aligned source. A state-aligned source would need a re-render of the control's arm pose into the target state, which is not physical.</p>
+<p><b>(d) Verdict.</b> Forward-0 start-pose claims <b class=ok>hold</b>. Start-pose readouts at the anchor or at <var>f</var> &gt; 0 are <b class=warn>invalid as pathway attributions</b>.</p>
+
+<h3>T2 · τ uses 40 predicted steps; only 16 are executed</h3>
+<p><b>(a) Real?</b> Yes <span class="tag v">verified</span>. <code>transfer_fraction</code> takes the norm over <code>[..., :7]</code> of the full 40-step chunk (<code>splice.py:41–53</code>). The harness executes 16 (<code>n_action_steps=16</code>). The executed steps carry a median 58–74% of ‖P−N‖² at forward 0 across rows.</p>
+<p><b>(b, c) Re-score at forward 0</b>, medians over 10 instances <span class="tag v">verified</span>. Recomputed full-chunk τ matches the stored value to ≤ 1.1 × 10⁻³ (fp16 storage).</p>
+<div class=tw><table>
+<tr><th>Row · arm (run)</th><th class=num>full 40</th><th class=num>executed 16</th><th class=num>first action</th><th class=num>95% CI, full (bootstrap)</th><th class=num>95% CI, exec 16</th></tr>
+<tr><td>Camera · A (r042)</td><td class=num>0.98</td><td class=num>0.98</td><td class=num>0.96</td><td class=num>[0.97, 0.98]</td><td class=num>[0.97, 0.98]</td></tr>
+<tr><td>Camera · I (r042)</td><td class=num>0.69</td><td class=num>0.72</td><td class=num>0.68</td><td class=num>[0.63, 0.75]</td><td class=num>[0.64, 0.79]</td></tr>
+<tr><td>Noise · A (r042)</td><td class=num>0.97</td><td class=num>0.98</td><td class=num>0.97</td><td class=num>[0.93, 0.98]</td><td class=num>[0.95, 0.99]</td></tr>
+<tr><td><b>Noise · I (r042)</b></td><td class=num><b>0.45</b></td><td class=num><b>0.85</b></td><td class=num>0.72</td><td class=num>[0.41, 0.56]</td><td class=num>[0.65, 0.88]</td></tr>
+<tr><td>Lighting · I (r042)</td><td class=num>0.73</td><td class=num>0.80</td><td class=num>0.83</td><td class=num>[0.66, 0.79]</td><td class=num>[0.76, 0.89]</td></tr>
+<tr><td>Start pose · W (r042)</td><td class=num>0.88</td><td class=num>0.86</td><td class=num>0.91</td><td class=num>[0.80, 0.90]</td><td class=num>[0.82, 0.90]</td></tr>
+<tr><td>Start pose · I (r042)</td><td class=num>0.83</td><td class=num>0.86</td><td class=num>0.89</td><td class=num>[0.81, 0.86]</td><td class=num>[0.84, 0.88]</td></tr>
+<tr><td>Start pose · S (r042)</td><td class=num>0.04</td><td class=num>0.06</td><td class=num>0.02</td><td class=num>[−0.00, 0.11]</td><td class=num>[−0.00, 0.12]</td></tr>
+<tr><td>Layout · A (r049)</td><td class=num>0.55</td><td class=num>0.56</td><td class=num>0.56</td><td class=num>[0.31, 0.79]</td><td class=num>[0.28, 0.77]</td></tr>
+<tr><td><b>Layout · I (r049)</b></td><td class=num><b>0.40</b></td><td class=num><b>0.74</b></td><td class=num>0.54</td><td class=num>[0.30, 0.68]</td><td class=num>[0.53, 0.88]</td></tr>
+<tr><td>Texture · I (r049)</td><td class=num>0.62</td><td class=num>0.68</td><td class=num>0.65</td><td class=num>[0.39, 0.78]</td><td class=num>[0.65, 0.80]</td></tr>
+</table></div>
+<p><b>(d) Verdict.</b> The pixel-level headlines (A, W) and the camera, lighting and start-pose I arms <b class=ok>hold</b>, within 0.05.</p>
+<ul>
+<li><b class=warn>Noise and layout I arms are understated</b> by the full-chunk metric (0.45 → 0.85; 0.40 → 0.74). The image tokens carry most of what is <i>executed</i>; the unexecuted tail adds a residual that other inputs (text) partly move. Noise T falls from 0.18 to 0.04 on the executed steps.</li>
+<li>Downstream, <code>SPATIAL_ADAPT_MATHS.html</code> §9A and R-060's rationale quote "noise 0.45". The executed-step figure is 0.85. This strengthens, not weakens, the case for a vision-side fix on noise.</li>
+</ul>
+
+<h3>T3 · The anchor uses outcome information</h3>
+<p><b>(a) Real?</b> Yes <span class="tag v">verified</span>.</p>
+<ul>
+<li>The anchor <var>f</var>* is the forward of the episode's minimum end-effector-to-bowl distance (<code>r039_run.py</code>, <code>anchor_forward</code>), so it depends on the executed trajectory and hence on outcome.</li>
+<li>On the camera row, failures (all 18-forward timeouts) anchor at forwards 3–16 (median 6 in r042, and up to 16 in r039). Successes anchor at 2–9, plus one at 17.</li>
+<li>Success/failure comparisons <i>at the anchor</i> therefore compare different phases of the task.</li>
+</ul>
+<p><b>(b) Affected:</b></p>
+<ul>
+<li>"dominant = argmax τ(<var>f</var>*) ≥ 0.9, else residual";</li>
+<li>R-039 expectation 6 (36/40 residual at the anchor);</li>
+<li>the anchor columns in the instance tables.</li>
+</ul>
+<p>Anchor medians differ from forward 0 by up to 0.4: camera A 0.98 → 0.84, noise A 0.97 → 0.57, start-pose W 0.88 → 0.59. Onset (first <var>f</var> with τ ≥ 0.5) is outcome-blind, and so are all forward-0 readouts.</p>
+<p><b>(c) Check.</b> Report anchor readouts stratified by outcome, or replace the anchor with an outcome-blind forward (a fixed forward, or a phase from the nominal run's timeline).</p>
+<p><b>(d) Verdict.</b> Forward-0 verdicts <b class=ok>hold</b>, and they are what the map's summary table uses ("dominant input at forward 0"). Anchor-based classifications are <b class=amb>weakened</b>: do not compare them across outcomes.</p>
+
+<h3>T4 · How paired are the pairs? (render nondeterminism and the re-render path)</h3>
+<p><b>(a) Real?</b> Yes, in two layers.</p>
+<ul>
+<li><b>The re-render path</b> <span class="tag v">verified</span> (<code>libero_env.py</code> <code>nominal_frames</code>). For camera, lighting and noise, N's frames come from <code>sim.forward()</code> plus <code>inner._get_observations(force_update=True)</code> with the camera or lights swapped. P's frames are the env's own reset or step render.
+ <ul>
+ <li>impl reports <span class="tag p">unverified</span> that a force-update re-render with <i>nothing changed</i> already differs from the reset frame, wrist included.</li>
+ <li>R-060's G0c <span class="tag p">unverified</span>, <code>runs/r060/gates/g0c.json</code>: the variant's nominal frames differ from the control env's own render by ≈ 24k pixels (max 52). Even P differs from the variant env's own render (≈ 1.1k agent, 9.1k wrist pixels).</li>
+ <li>So part of ‖P−N‖ on these rows may be a render-call difference, not the perturbation.</li>
+ </ul></li>
+<li><b>Between-run jitter.</b> Two rollouts with the same seed and noise disagree on success 4–9 times in 10–40 (map §0), and stored action-level replicates agree to 0.03.</li>
+</ul>
+<p><b>(b) Size, from what is stored</b> <span class="tag v">verified</span>:</p>
+<ul>
+<li><b>Wrist part.</b> On camera and noise, the wrist arm W restores the <i>nominal re-rendered wrist</i>, whose only difference from P's wrist is the render call (the perturbation leaves the wrist untouched). Its τ is 0.00 (camera, seed range 0.005) and 0.00 (noise). <b>So the wrist re-render difference has no measurable action effect.</b></li>
+<li><b>Agent-view part.</b> Cannot be separated from the perturbation with stored data.</li>
+<li><b>Indirect evidence.</b> R-057 drove N's re-rendered frames for whole episodes and got 30/30 camera successes.</li>
+<li><b>Replicate spread</b> (base run vs seed 1 vs seed 2; noise seed varies, so render jitter is included). Median per-instance range of τ:
+ <ul>
+ <li>camera A 0.002 (max 0.02); noise A 0.008 (max 0.03);</li>
+ <li>start-pose W 0.025 (max 0.17); start-pose I 0.07;</li>
+ <li>lighting A 0.10 / W 0.14 (max 0.63 / 0.36);</li>
+ <li>layout I 0.38 (max 0.49), A 0.14 (max 0.87);</li>
+ <li>texture W 0.21 (max 0.70).</li>
+ </ul>
+ Relative spread of ‖P−N‖ is 7% (camera, start pose), 12% (lighting), 14% (texture), 20% (noise) and 24% (layout).</li>
+</ul>
+<p><b>(c) Cheapest discriminating check (GPU, ≈ 10 forwards, minutes).</b> On each control (no perturbation) env, compute a(reset frame) vs a(<code>nominal_frames()</code> re-render) at forward 0 under fixed ε, and compare ‖Δa‖ with each row's ‖P−N‖. If it is below ~5% of ‖P−N‖ (≈ 0.06 camera, 0.07 noise, 0.015 lighting), the re-render path is harmless. Owner: impl (GPU); res21 cannot run it.</p>
+<p><b>(d) Verdict.</b></p>
+<ul>
+<li>Camera and noise (agent view) <b class=amb>hold, pending the null</b>. The wrist bound and R-057 make a material bias unlikely.</li>
+<li>Start pose is <b class=ok>unaffected by the re-render path</b>: both sides are reset frames from their own envs.</li>
+<li>Lighting and texture are <b class=amb>weakened</b>. Their ‖P−N‖ (0.29, 0.31) is small enough that a render-call offset of a few hundredths would be 5–10% of it. Their per-camera seed ranges already exceed 0.1.</li>
+</ul>
+
+<h3>T5 · One checkpoint and small n</h3>
+<p><b>(a) Real?</b> Yes <span class="tag v">verified</span>.</p>
+<ul>
+<li>Every row uses <code>nvidia/gr00t17-lerobot-libero_spatial-640</code> only (D11 open).</li>
+<li>n = 10 instances per row, env seed 0, one suite.</li>
+<li>Instances were selected <i>failures first</i> (<code>r039_selection_recorded.json</code> note), levels 4–5 heavy for start pose.</li>
+</ul>
+<p><b>(b) Affected.</b> Every claim is about this checkpoint, on failure-enriched instances. Mechanism claims (which input carries the effect) need not generalise to the benchmark population or to another checkpoint. "GR00T is…" phrasing should read "this checkpoint is…".</p>
+<p><b>(c) Check.</b> A second checkpoint, e.g. <code>nvidia/GR00T-N1.7-LIBERO</code> (cached locally), on the forward-0 reverse scripts only. These are cheap: one forward per arm, 10 instances per row.</p>
+<p><b>(d) Verdict.</b> The claims <b class=ok>hold as checkpoint-specific</b>. Generalisation is <b class=warn>untested</b>.</p>
+
+<h3>T6 · Multiple comparisons and post-hoc readouts</h3>
+<p><b>(a) Real?</b> Yes. The map spans 7 rows × up to 6 arms × (forward 0, anchor, seeds, reverse). Pre-registered outcomes <span class="tag v">verified</span> from RESULTS.md:</p>
+<ul>
+<li>R-039: 4 of 6 wrong;</li>
+<li>R-041: 4 of 6 missed;</li>
+<li>R-042: 2 of 5 missed (lighting A &gt; W; A + W ≈ I);</li>
+<li>R-044: 1a missed on the median;</li>
+<li>R-048: 3 missed;</li>
+<li>R-049: partial;</li>
+<li>R-051: 4 of 6 held, with the uninterpretability check missed on lighting W (4/10) and texture W (7/10);</li>
+<li>R-057: 6 of 6 held.</li>
+</ul>
+<p>Post-hoc readouts:</p>
+<ul>
+<li>R-045's scene split;</li>
+<li>the lighting "cross-camera interaction" and texture "mismatch" interpretations (both after a missed expectation);</li>
+<li>the gripper-offset note.</li>
+</ul>
+<p>The map labels these.</p>
+<p><b>(b) Which claims survive a correction.</b> Treat the dominance claims as tests: exact sign tests on per-instance orderings at forward 0 <span class="tag v">verified</span>:</p>
+<div class=tw><table>
+<tr><th>Ordering (r042 / r049, forward 0)</th><th class=num>k / 10</th><th class=num>two-sided p</th><th>Survives Bonferroni (m = 25)?</th></tr>
+<tr><td>Camera: A &gt; W</td><td class=num>10</td><td class=num>0.002</td><td class=ok>yes</td></tr>
+<tr><td>Noise: A &gt; W</td><td class=num>10</td><td class=num>0.002</td><td class=ok>yes</td></tr>
+<tr><td>Start pose: W &gt; A</td><td class=num>10</td><td class=num>0.002</td><td class=ok>yes</td></tr>
+<tr><td>Every vision row and start pose: I &gt; S</td><td class=num>10</td><td class=num>0.002</td><td class=ok>yes</td></tr>
+<tr><td>Camera, lighting, start pose: I &gt; T</td><td class=num>10</td><td class=num>0.002</td><td class=ok>yes</td></tr>
+<tr><td>Noise: I &gt; T</td><td class=num>8</td><td class=num>0.11</td><td class=warn>no</td></tr>
+<tr><td>Texture: I &gt; T, I &gt; S</td><td class=num>9</td><td class=num>0.02</td><td class=warn>no</td></tr>
+<tr><td>Layout: A &gt; W</td><td class=num>7</td><td class=num>0.34</td><td class=warn>no (R-051's reverse gave 9/10)</td></tr>
+<tr><td>Lighting: A &gt; W</td><td class=num>6</td><td class=num>0.75</td><td class=warn>no</td></tr>
+<tr><td>Texture: W &gt; A</td><td class=num>6</td><td class=num>0.75</td><td class=warn>no</td></tr>
+</table></div>
+<p>The magnitudes (0.98, 0.88, …) are estimates, and their bootstrap intervals are in T2.</p>
+<p><b>(d) Verdict.</b> The camera, noise and start-pose dominance claims and "image tokens carry it" <b class=ok>hold</b> after correction. The lighting, texture and layout per-camera attributions <b class=warn>do not survive</b>, and the map should present them as unresolved, not as "dominant input".</p>
+
+<h3>T7 · Distances in normalised action space</h3>
+<p><b>(a) Real?</b> Partly <span class="tag v">verified</span>.</p>
+<ul>
+<li>The checkpoint uses min-max normalisation to [−1, 1] (<code>policy_postprocessor.json</code>: <code>normalize_min_max</code>, <code>clip_normalized_action</code>, gripper binarised).</li>
+<li>Half-ranges are translation 0.9375, rotation 0.19 / 0.35 / 0.37, gripper 0.5. Normalising therefore <b>amplifies rotation 2.6–4.9×</b> relative to translation.</li>
+<li>Rotation's share of ‖P−N‖² is 33–49% in normalised units against 6–11% in environment units on the vision rows.</li>
+<li>The gripper's share is ≤ 4% in both, so clipping and binarisation do not compress anything that matters at forward 0.</li>
+</ul>
+<p><b>(b, c) Re-score in environment units</b> (clip, then un-normalise with the checkpoint's own stats):</p>
+<ul>
+<li>camera I 0.69 → 0.65;</li>
+<li>start-pose W 0.88 → 0.90;</li>
+<li>camera A 0.98 → 0.98;</li>
+<li>layout A 0.55 → 0.64;</li>
+<li>layout W 0.16 → 0.27.</li>
+</ul>
+<p>Translation-only on the executed steps changes no headline by more than 0.05.</p>
+<p><b>(d) Verdict.</b> <b class=ok>Holds.</b> The metric's space changes rotation weighting but no conclusion. The layout row moves the most and is already unstable (T4, T6).</p>
+
+<h3>T8 · Off-distribution hybrids, and what denoising and noising each show</h3>
+<p><b>(a) Real?</b> Yes, and the map says so ("a state no robot was in"). A/W hybrids pair one camera from one state with the other camera and state from another <span class="tag v">verified</span> (<code>hybrid_obs</code>).</p>
+<p><b>Interpretation.</b> In Heimersheim &amp; Nanda's convention:</p>
+<ul>
+<li><i>denoising</i> (clean into corrupted) tests whether a component is <i>sufficient to restore the clean behaviour</i>;</li>
+<li><i>noising</i> (corrupted into clean) tests whether it is <i>necessary for the clean behaviour</i>.</li>
+</ul>
+<p>The map uses the <i>effect-centric</i> dual. Denoise<sub>W</sub> 0.88 means the perturbed wrist is necessary for the effect. Noise<sub>W</sub> 0.46 means it is about half-sufficient on its own. By De Morgan these are the same facts: the clean wrist is nearly sufficient to restore the nominal action, and a clean agent view partly compensates when only the wrist is perturbed.</p>
+<p>The map's legend "denoising high and noising high: necessary and sufficient" is correct in its convention. "Denoising high, noising low: redundancy" is the behaviour-centric reading of the same pattern, i.e. an AND of perturbations. <b>Both are right, but the convention is never stated</b>, and a reader trained on the interpretability literature will read "necessary" the other way.</p>
+<p><b>(b) Affected.</b>
+ <ul>
+ <li>The start-pose sentence "the wrist is necessary".</li>
+ <li>The texture and lighting mismatch findings (noise<sub>A</sub> −0.40). Those are responses to the hybrid itself, by construction OOD. The map reads them as "the head responds to cross-view mismatch", which is a claim about hybrids, not about real perturbations.</li>
+ </ul></p>
+<p><b>(c) Check.</b> Wording only.</p>
+<p><b>(d) Verdict.</b> <b class=ok>Holds</b>, with a convention sentence needed.</p>
+
+<h3>T9 (added) · Small denominators</h3>
+<p>τ is a ratio with ‖P−N‖ in the denominator. On lighting (0.29) and texture (0.31), the denominators are a quarter of camera's and 1/14 of start pose's. Their τ seed ranges (0.1–0.7) come from that, not from instability in the network. <b>Verdict:</b> report ‖a<sub>X</sub> − a<sub>N</sub>‖ alongside τ for small-effect rows, and do not rank arms on these rows by τ alone.</p>
+
+<h3>T10 (added) · Outcome-level claims rest on a different, noisier footing</h3>
+<p>"Decided at forward 0" (R-057) and the forward-0 rescue (R-053: 20/24 flips vs 0/22 for a re-run) are outcome counts, not τ. They have their own no-op controls and 30 episodes each, and R-057's expectations were all pre-registered and held <span class="tag v">verified</span>. <b>Verdict:</b> <b class=ok>holds</b>. It is not touched by T2, T3 or T7. Outcome flip noise (30–40% per single episode) is the right caveat, and R-053's no-op arm is the control that addresses it.</p>
+
+<h2>3. Headline claims and their status</h2>
+<div class=tw><table>
+<tr><th>Map claim</th><th>Source</th><th>Status</th><th>Main reason</th></tr>
+<tr><td>Camera: agent-view pixels carry 0.98</td><td>R-042, R-048</td><td class=ok>holds*</td><td>robust to T2/T7; seed range 0.002; 10/10. *Pending the T4 null</td></tr>
+<tr><td>Noise: agent-view pixels 0.97</td><td>R-042, R-051</td><td class=ok>holds*</td><td>as camera; *T4 null</td></tr>
+<tr><td>Noise: image tokens 0.45</td><td>R-039</td><td class=warn>wrong as stated</td><td>0.85 on executed steps (T2)</td></tr>
+<tr><td>Lighting: both cameras jointly; agent view where large</td><td>R-042, R-051</td><td class=amb>weakened</td><td>A &gt; W 6/10; seed ranges ≤ 0.63; small denominator (T4, T6, T9)</td></tr>
+<tr><td>Start pose: wrist 0.88; wrist &gt; agent 10/10</td><td>R-042, R-044</td><td class=ok>holds</td><td>forward-0 pair is the same world (T1); 0.86–0.91 under every re-score; CI [0.80, 0.90]</td></tr>
+<tr><td>Start pose: noising 0.46 (wrist about half-sufficient)</td><td>R-044</td><td class=ok>holds</td><td>scalar-only, so not re-scorable; convention needs stating (T8)</td></tr>
+<tr><td>State token near-inert (0.04)</td><td>R-039, R-044</td><td class=ok>holds</td><td>CI [−0.00, 0.11]; noise<sub>S</sub> 0.01</td></tr>
+<tr><td>Image tokens carry every category</td><td>R-039</td><td class=ok>holds</td><td>I &gt; S 10/10 on every row (texture 9/10)</td></tr>
+<tr><td>Layout: agent view 0.55</td><td>R-049, R-051</td><td class=amb>weakened</td><td>CI [0.31, 0.79]; A &gt; W 7/10; seed range up to 0.87; I understated (0.40 → 0.74)</td></tr>
+<tr><td>Texture: both cameras jointly; mismatch effect</td><td>R-049, R-051</td><td class=amb>weakened</td><td>W seed range up to 0.70; mismatch is a hybrid-OOD response (T8)</td></tr>
+<tr><td>Language: text tokens</td><td>R-049</td><td>n/a</td><td>by construction; degenerate</td></tr>
+<tr><td>Residual ≥ 25% with no arm ≥ 0.9 at the anchor (36/40)</td><td>R-039</td><td class=amb>weakened</td><td>outcome-dependent anchor (T3); start-pose source misaligned (T1)</td></tr>
+<tr><td>Start pose decided at forward 0 (k* = 1); camera throughout</td><td>R-057</td><td class=ok>holds</td><td>outcome-level, pre-registered, all held (T10)</td></tr>
+<tr><td>Forward-0 rescue is real (20/24 vs 0/22)</td><td>R-053</td><td class=ok>holds</td><td>no-op controlled</td></tr>
+<tr><td>Pose readable from the VLM output at every radius</td><td>R-045</td><td class=amb>weakened</td><td>post-hoc split, labelled so</td></tr>
+<tr><td>Everything above</td><td>—</td><td>checkpoint-specific</td><td>one checkpoint, failure-enriched instances (T5)</td></tr>
+</table></div>
+
+<h2>4. Proposed "Method lineage and validity" paragraph for the map</h2>
+<p class=small>Text only, for <code>compile_map.py</code> after the user approves (checklist pm2). Numbers are from this audit.</p>
+<div class=card><p><i>Method lineage and validity.</i></p>
+<p>Each arm is an interchange intervention (Geiger et al. 2021): one input is set to its value under the nominal condition while the rest stay perturbed, and every arm shares the same denoising noise (common random numbers). Restoring nominal inputs into the perturbed run is "denoising" and the reverse is "noising", as in activation patching (Heimersheim &amp; Nanda 2024; Zhang &amp; Nanda 2024), with causal tracing (Meng et al. 2022) as the precedent. The transfer fraction τ is a normalised recovery metric of that family.</p>
+<p><b>Convention:</b> "necessary" and "sufficient" on this page refer to the perturbed input's role in the <i>effect</i>. In the patching literature's behaviour-centric convention, the same numbers read as the clean input being sufficient (denoising) or necessary (noising) for the <i>nominal action</i>.</p>
+<p>A CPU audit (<code>docs/PERTURBATION_MAP_VALIDITY.html</code>) re-scored every stored record:</p>
+<ul>
+<li>The forward-0 claims for camera (agent view 0.98), sensor noise (0.97), start pose (wrist 0.88, W &gt; A 10/10) and the state token (0.04) change by ≤ 0.05 when τ is computed on the 16 executed steps, the first action, environment units or translation only.</li>
+<li>Their orderings survive Bonferroni correction.</li>
+<li>Noise and layout image-token transfers are understated by the full-chunk metric (0.45 → 0.85 and 0.40 → 0.74 on executed steps).</li>
+<li>Per-camera attributions on lighting, texture and layout are within seed-to-seed spread and should be read as unresolved.</li>
+<li>Anchor-based readouts depend on the outcome, and for start pose on a source that is aligned by forward index, so only forward-0 readouts support the verdicts.</li>
+</ul>
+<p>The paired nominal for camera, lighting and noise is a re-render, whose difference from a reset frame is bounded at ≈ 0 for the wrist and is being checked for the agent view. All results are for one checkpoint on failure-enriched instances.</p></div>
+
+<h2>5. What this audit did not do</h2>
+<ul>
+<li>No GPU. The T4 null (≈ 10 forwards) and the second-checkpoint reverse runs (T5) are recommendations for impl.</li>
+<li>The reverse-direction runs (<code>r044_reverse</code>, <code>r048_reverse</code>, <code>r051_reverse_*</code>) store scalar τ only, so their numbers (noise<sub>W</sub> 0.46 and others) could not be re-scored under T2 or T7.</li>
+<li>R-041 and R-047 sweeps (outcome boundaries) and R-045 probes were checked for their pre-registration status only, not re-scored.</li>
+<li>No edits to the map, the harness, or any other doc.</li>
+</ul>
+
+<p class=small style="margin-top:3em">Sources: <code>experiments/audit_rescore.py</code> (new, CPU, read-only) → <code>runs/audit_pm/rescore.json</code> and <code>rescore_rows.jsonl</code> (240 instance records from <code>runs/r039</code>, <code>r042</code>, <code>r044_seed1/2</code>, <code>r048_seed1/2</code>, <code>r049</code>, <code>r049_lang</code>, <code>r051_{noise,light,layout,texture}_seed1/2</code>) · <code>vla_harness/capture/splice.py</code> · <code>vla_harness/envs/libero_env.py</code> (<code>nominal_frames</code>) · <code>experiments/r039_run.py</code>, <code>r044_reverse.py</code>, <code>r048_reverse.py</code>, <code>compile_map.py</code> · RESULTS.md R-039, R-041, R-042, R-044, R-045, R-048, R-049, R-050, R-051, R-053, R-057 · checkpoint <code>policy_postprocessor.json</code> and its step-0 safetensors · <code>runs/r060/gates/g0c.json</code> (impl) · arXiv 2106.02997, 2404.15255, 2309.16042, 2202.05262.</p>
+</div></body></html>
