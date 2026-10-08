@@ -605,6 +605,106 @@
     <li>No scratchpad files are worth keeping; nothing was written there.</li>
     <li>No other repo files were created or edited, and no runs were launched.</li>
   </ul>
+
+  <h3>9. res21 update, 06–07 Oct (successor research session)</h3>
+  <p><b>Role.</b> res21 is a general research agent set up by the user on 10-06. Its job is to widen what the project could become and to propose experiments. Rules: no subagents, no GPU jobs, no commits (prim commits), local HTML only, and the user approves a doc's content before it is written or edited. Later briefs came from <code>prim</code> on the user's behalf. Sections 1–8 above are the earlier res session's data-sourcing work and are unchanged. Its "not verified" items for FLARE and Jung &amp; Park (§7) are superseded by the full reads below.</p>
+
+  <p><b>Deliverables (all committed by prim):</b></p>
+  <ul class="tight">
+    <li><code>docs/SPATIAL_ADAPT_MATHS.html</code> (<code>4a7aa21</code>, <code>b6b3dfa</code>): deep read of arXiv 2512.02902 (FTM/FLA, CVPR'26).
+      <ul class="tight">
+        <li>Its 467M "LoRA" baseline is mostly a full SigLIP fine-tune (414.8M), verified against openpi's freeze filter.</li>
+        <li>FLA is r16 LoRA on SigLIP's MLP layers only.</li>
+        <li>FTM's Libero-V average is misprinted (90.5 printed vs 93.2 recomputed).</li>
+        <li>The control that would isolate its claim (adapt the language side with vision frozen) is missing.</li>
+        <li>§9A covers portability to GR00T N1.7:
+          <ul class="tight">
+            <li>Four visual entry points into the LLM (merger plus 3 DeepStack).</li>
+            <li>A clean per-camera boundary exists only before the LLM.</li>
+            <li>R-037 plus R-039 predict E1 (moment matching) will be weak and E2 (learned FTM) is the real test.</li>
+          </ul>
+        </li>
+        <li>Corrected "Eagle" to Cosmos-Reason2-2B (Qwen3-VL).</li>
+      </ul>
+    </li>
+    <li><code>docs/JUNG_PARK_INITPOSE.html</code> and <code>docs/FLARE_RECOVERY.html</code> (<code>58f1b3e</code>, §8.3 in <code>db5c6a1</code>): full reads.
+      <ul class="tight">
+        <li>Jung &amp; Park overlap with us: same question, but out-of-distribution wrist masking and physical joint swaps, with targeting chosen by pose coverage.</li>
+        <li>FLARE is separate from us on diagnosis (Gemini video triage), but its bridging is Option A's basic idea, already published.</li>
+        <li>What is still ours:
+          <ul class="tight">
+            <li>in-distribution splices;</li>
+            <li>"decided at forward k";</li>
+            <li>the rescue;</li>
+            <li>the mechanism readout before and after training.</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><code>docs/AMBITIOUS_DIRECTIONS_REVIEW.html</code> (<code>55f6189</code>): 22 proposed changes, C1–C22. <b>Proposals only. AMBITIOUS_DIRECTIONS.html itself was not edited</b>, and items wait on user approval.
+      <ul class="tight">
+        <li>Fixes stale claims (e.g. "rescues 24/30").</li>
+        <li>Adds re-homing as the zero-cost run-time baseline.</li>
+        <li>Notes the direction × offset confound.</li>
+        <li>Separates mechanism-targeted from failure-targeted arms.</li>
+        <li>Adds Mulligan (2610.05882) and about 20 other papers.</li>
+        <li>All 41 arXiv IDs were checked.</li>
+      </ul>
+    </li>
+    <li><code>docs/SIM_ALTERNATIVES_PIPELINE.html</code> (<code>da1ba35</code>): Isaac Lab-Arena v0.3 read from code, plus Cosmos Transfer, MuJoCo Warp, RoboVerse and world-model evaluators.
+      <ul class="tight">
+        <li>Keep LIBERO-Plus on MuJoCo as primary.</li>
+        <li>Arena has no start-pose variation, a translation-only camera variation and no paired counterfactuals.</li>
+        <li>Pipeline: the Rollout contract is the seam, behind a policy server that runs splice arms.</li>
+        <li>Costed next steps N1–N5, including a ≤ $25 one-day Arena trial with questions Q1–Q7.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <p><b>Findings a successor should not re-derive:</b></p>
+  <ul class="tight">
+    <li>The run venvs (<code>.venvs/libero-plus</code>, <code>.venvs/groot</code>) have MuJoCo <b>3.3.2</b>, while README says 3.3.7. Both are below 3.4, so the pin's purpose holds.</li>
+    <li>GR00T N1.7's vision tower attends per image. DeepStack injects ViT layers 5, 11 and 17 into LLM layers 0–2. The LLM is truncated at <code>select_layer=16</code>. We have no capture tap inside the backbone.</li>
+    <li>D20 fit test (<code>runs/r056_diag/fit_firstchunk.json</code>): the r16 adapter closed 30% of the first-chunk gap on its own training starts, against 12% on held-out starts at matched cm. The training starts used 100 one-off random directions; the matched held-out subset uses directions 100 and 101. Read this as direction density and dose, not capacity.</li>
+    <li>Arena's "sensitivity analysis" is an sbi neural posterior of factors against success. It is behavioural only.</li>
+  </ul>
+
+  <p><b>Open and pending:</b></p>
+  <ul class="tight">
+    <li>User approval of AMBITIOUS_DIRECTIONS review items C1–C22 (prim applies only what is approved).</li>
+    <li><code>DATA_SOURCING_RESEARCH.html</code> Q4 still says Jung &amp; Park and FLARE are "unverified beyond abstract". Point it at the two full-read docs (not edited; not res21's file).</li>
+    <li>Proposed, not approved or run:
+      <ul class="tight">
+        <li>SPATIAL E1–E5 on GR00T;</li>
+        <li>SIM N1, fixing the lighting knob to reproduce LIBERO-Plus light variants ($0);</li>
+        <li>N2, the RoboVerse-native cross-implementation check of the start-pose boundary;</li>
+        <li>N3, the Arena trial;</li>
+        <li>N4, the splice-arm policy-server API spec.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <p><b>Verified vs not verified.</b></p>
+  <ul class="tight">
+    <li><b>Verified:</b> papers 2512.02902, 2608.11769 and 2608.26645 read from the full PDF; openpi, Arena, Isaac Lab, LW-BenchHub, MuJoCo Warp and RoboVerse claims read from source; arXiv IDs via the arXiv API; our numbers from RESULTS.md and <code>runs/</code>.</li>
+    <li><b>Not verified:</b>
+      <ul class="tight">
+        <li>2026 papers in the review beyond their abstracts;</li>
+        <li>cloud GPU prices (third-party trackers);</li>
+        <li>the R-058 r64 figure of 64/108 (relayed by prim);</li>
+        <li>the order of the cameras' tokens in GR00T's LLM;</li>
+        <li>GR00T memory with the backbone in the backward pass.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <p><b>Files.</b></p>
+  <ul class="tight">
+    <li>The five docs above, all committed.</li>
+    <li>This subsection.</li>
+    <li>The scratchpad holds source clones and API dumps only, none worth keeping.</li>
+    <li>No runs were launched and no GPU was used.</li>
+  </ul>
 </section>
 
 <!-- ============================================================ -->
