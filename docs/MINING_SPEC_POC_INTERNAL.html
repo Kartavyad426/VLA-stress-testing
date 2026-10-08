@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mining Spec PoC Internals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code{font:13px var(--mono);background:var(--surface-2);border-radius:3px;padding:1px 4px}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 6px;border-radius:10px;vertical-align:1px;white-space:nowrap}
+  .V{background:var(--ok);color:var(--surface)}
+  .I{background:var(--warn);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:900px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:13.5px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  td.eff{white-space:nowrap}
+  .muted{color:var(--muted)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Mining spec PoC: what each piece needs</h1>
+<p class="sub">Internal, for the user only · 2026-10-08 · PoC session · companion to the stakeholder toy
+(<code>docs/MINING_SPEC_TOY.html</code>) and to <code>docs/MINING_SPEC_DESIGN.html</code> §7b, which it builds on rather than repeats.
+<span class="tag V">V</span> = checked against code or files in this session. <span class="tag I">I</span> = inferred.</p>
+
+<div class="card top">
+<b>Bottom line.</b> Every component of a LIBERO-only PoC on route P7a (dataset search) can be built deterministically from sim state, with no
+learned model or API. Most of it now exists as toy scripts (<code>experiments/poc_toy_*.py</code>). The work left is generalising from one task
+to ten, fixing two silent detector bugs, and validating root detection. My rough estimate is <b>~9–12 working days</b> for P7a, including a day of labelling, plus 3–6 for sim
+generation (P7b) <span class="tag I">I</span>. The toy also produced a substantive result: on the case it ran, the human demos contain
+<b>no</b> success from the failure situation, while one of our own runs does <span class="tag V">V</span>.
+</div>
+
+<h2>0 · What the toy ran, and found</h2>
+<ul>
+<li><b>Case</b> (user's choice): base GR00T N1.7, LIBERO-Spatial scene 984, start pose 0.2 rad, joint direction 1, noise seed 0, from
+<code>runs/r047/rollouts.jsonl</code> row 14 (timeout). Row 20 has the <i>same</i> start under noise seed 1 and succeeds; row 0 is the nominal start.
+Both rows share <code>rollout_id</code> <code>d46c2c057325</code>, so everything here selects rows by line index. <span class="tag V">V</span></li>
+<li><b>Root</b>: the first grasp onset, at t=31 (1.55 s, forward 1). The gripper closes with an eef→bowl offset of (−6.8, −3.6, +1.3) cm; the same-start success closes at (−2.3, −3.0, +1.9).
+The bowl rises 2.1 cm and falls by t=52: <b>grasp × slip</b>. The two trajectories split by 3 cm at t=24. Later, the 6th attempt (t=201) lifts the bowl 9.6 cm and drops it,
+and the episode times out after 8 attempts. <span class="tag V">V</span> <code>runs/poc_toy/instance.json</code></li>
+<li><b>Search</b> (D14, all dimensions held, tolerances illustrative: ±1.5 cm per offset axis, 20° gripper rotation, 3 cm layout): 0 of 53 successful human-demo grasp onsets match;
+1 of 56 successful scene-984 rollouts matches (row 34: 0.4 rad, dir 2, seed 1, a <i>different</i> start reaching the same situation). That match is borderline.
+At ±1.0 cm nothing matches. The human demos match on offset alone from ±2.5 cm, but never together with layout up to ±4 cm. <span class="tag V">V</span> <code>runs/poc_toy/search.json</code></li>
+<li><b>Frames</b>: re-rendered by replaying stored actions (impl, d_step.sh, 10-08 18:27). Max eef drift 0.0 mm on rows 14, 20 and 34, and 2.6 mm on row 0. <span class="tag V">V</span> <code>runs/poc_toy/render/fidelity.json</code></li>
+</ul>
+
+<h2>1 · Components</h2>
+<p>Effort is in working days for one implementor, to LIBERO-Spatial scope (10 tasks, libero_raw + our rollouts). All effort figures are <span class="tag I">I</span>.</p>
+<div class="tw"><table>
+<tr><th>Component</th><th>What it needs</th><th>Det. or model</th><th>Exists</th><th>Missing</th><th>Effort</th></tr>
+
+<tr><td><b>Root detection</b></td>
+<td>Per failed episode: the first phase whose success criterion fails, plus a reference to diverge from.</td>
+<td>Det. (sim state)</td>
+<td><code>LiberoPhaseSegmenter</code>, <code>terminal_behaviour</code> <span class="tag V">V</span>. The toy's rule (first grasp onset failing its criterion) is in <code>poc_toy_instance.py</code> <span class="tag V">V</span>.
+<code>divergence_point</code> exists but is broken on LIBERO (§2, item 1) <span class="tag V">V</span>.</td>
+<td>Fix <code>divergence_point</code>. Smooth the segmenter's flicker: the toy failure segments into 22 pieces, including 1-step "retry" segments and a "transport" for the 2 cm rim lift <span class="tag V">V</span>.
+Rules for non-grasp roots (approach never reaches, transport drop, place miss). A labelled check set (the p4 sheet is at 0 of 80).</td>
+<td class="eff">2–3 d<br><span class="muted">+1 d labelling</span></td></tr>
+
+<tr><td><b>Situation snapshot</b></td>
+<td>At the root's entry frame: eef→target offset, gripper rotation, target pose, neighbour layout, aperture; frame references for the raw images.</td>
+<td>Det. for derived fields. Model only for vision-held dimensions (P2b).</td>
+<td>Rollouts log <code>eef_pos</code>, <code>joint_pos</code>, <code>_gt_scene_object_pos</code> <span class="tag V">V</span>. Demo poses from <code>states</code> via the demo's own MJCF in plain MuJoCo (<code>poc_toy_common.py</code>) <span class="tag V">V</span>.
+Gripper rotation for both pools by FK from <code>joint_pos</code>; it agrees with the stored eef to 0.6 mm <span class="tag V">V</span>.</td>
+<td>A per-task resolver for target and neighbours: the toy hard-codes scene 984's five objects. A field list plus default tolerances (P2).
+The toy's layout check compares world xy, which is too strict across demo draws.</td>
+<td class="eff">1.5–2 d<br><span class="muted">+2–3 d for an embedding rank (P2c)</span></td></tr>
+
+<tr><td><b>Success criterion</b></td>
+<td>A predicate per phase template, evaluated on any episode window.</td>
+<td>Det.</td>
+<td><code>grasp.lift</code> (target ≥ 5 cm above rest within 40 steps), in <code>poc_toy_common.grasp_events</code> <span class="tag V">V</span>. Holding inference in <code>LiberoSignals</code> / <code>_holding_by_*</code> <span class="tag V">V</span>.
+LIBERO's BDDL goal check exists in the env (<code>check_success</code>) <span class="tag V">V</span>, but needs a live env.</td>
+<td>Templates for transport (held for N steps without drop) and place (target in goal region). Place should reuse BDDL goal predicates on restored states, without the env <span class="tag I">I</span>.
+Calibrating thresholds on demos (<code>fit_from_demos</code> pattern).</td>
+<td class="eff">1–1.5 d</td></tr>
+
+<tr><td><b>Index ids (v0)</b></td>
+<td>Closed lists of phases × modes, id format, version.</td>
+<td>Det.</td>
+<td>Phases in <code>phases.py</code>. Mode-like terminal labels in <code>terminal_behaviour</code> <span class="tag V">V</span>. The toy uses the ids <code>grasp.slip</code> and <code>pick-and-place.bowl-to-plate</code>, made up for illustration.</td>
+<td>The lists themselves (P5b). An operational rule per mode: the toy's slip = lifted > 1.5 cm, then not ≥ 5 cm within the window. Miss vs slip needs exactly this kind of threshold <span class="tag V">V</span>.</td>
+<td class="eff">0.5–1 d</td></tr>
+
+<tr><td><b>Spec file + validation</b></td>
+<td>JSON Schema, layout, <code>schema_version</code>, validator, evidence links.</td>
+<td>Det.</td>
+<td><code>jsonschema</code> 4.26 is installed in the libero-plus, lerobot and groot venvs <span class="tag V">V</span>. The toy's <code>instance.json</code> follows §6's draft shape <span class="tag V">V</span>.</td>
+<td>The schema, and an evidence key that is actually unique: <code>rollout_id</code> is not (§2, item 4). Use (run, manifest row) or add the noise seed to the id.</td>
+<td class="eff">1 d</td></tr>
+
+<tr><td><b>Dataset search</b></td>
+<td>Precompute every grasp/phase event in each pool into one table, then filter by criterion and situation.</td>
+<td>Det. (P2a). Model if P2b/c.</td>
+<td><code>poc_toy_search.py</code>: one task, linear scan, about 30 s CPU for 50 demos plus 56 rollouts. Funnel and tolerance sweep <span class="tag V">V</span>.</td>
+<td>An event table across all 10 tasks (JSONL or parquet) built once per pool; the query becomes a filter. Task-to-object mapping across tasks. Tolerances from config.
+Ranking the near-misses (the toy reports the nearest by offset only).</td>
+<td class="eff">2–3 d</td></tr>
+
+<tr><td><b>Success producers</b> (P7b)</td>
+<td>Restore the root, then drive a success from it, then check it against the criterion.</td>
+<td>Det. restore + a driver: scripted, policy-based or human.</td>
+<td><b>Restore</b>: replaying stored actions reproduced 4 of 4 r047 rows (max 2.6 mm) <span class="tag V">V</span>. The harness has no sim get/set_state; the G0c diag scripts use sim state calls (per §7b). impl reports that after a restore the step frame lags by 2 substeps <span class="tag I">I</span> (impl's measurement, not re-checked here).
+<b>Drivers</b>: rescue minting (<code>r054_mint.py</code>) and forward-0 rescue (<code>r039_run.py --drive-until</code>) exist, both start-of-episode <span class="tag V">V</span>. No scripted expert and no sim teleop <span class="tag I">I</span>.</td>
+<td>Restore at an arbitrary step (replay to t is enough for our rollouts; not shown for libero_raw demos). A driver that starts mid-episode: the policy itself under resampled noise is the cheapest, and the same-start success shows noise alone can flip this case <span class="tag V">V</span>. Perturbing the root situation within tolerance, for coverage.</td>
+<td class="eff">3–6 d<br><span class="muted">+ GPU</span></td></tr>
+
+<tr><td><b>Teleop brief</b> (P7c)</td>
+<td>Template text plus key frames per instance.</td>
+<td>Det.</td>
+<td>Key-frame rendering (<code>poc_toy_render.py</code>, <code>visualise_episode_video.py</code>) <span class="tag V">V</span>.</td>
+<td>The template. Someone has to try it before it counts.</td>
+<td class="eff">0.5 d</td></tr>
+</table></div>
+
+<h2>2 · Corrections and additions to §7b (sent to prim)</h2>
+<ol>
+<li><b>P4a is not usable as is.</b> <code>divergence_point</code> reads <code>r.series("ee_xy")</code>. LIBERO traces have no <code>ee_xy</code>, and <code>series</code> returns <code>[]</code>,
+so the function returns <i>"trace stayed inside nominal envelope"</i>. It does this on the toy failure against both the same-start success and the nominal run, which starts 9.6 cm away.
+This is a silent G8 violation: the function should abstain. The fix is small (read <code>eef_pos[:2]</code>) but is impl's to make. <span class="tag V">V</span>
+<br><span class="muted">For start-pose roots, "nominal at the same seed" is also the wrong reference, because it starts elsewhere. The useful reference is a same-start success under another noise seed, which exists only where we ran replicates.</span></li>
+<li><b>P2a, the demo restore needs no env.</b> Each demo's <code>model_file</code> MJCF loads in plain MuJoCo once two asset prefixes are remapped (the authors' paths point to local LIBERO-plus and robosuite).
+Setting qpos from <code>states</code> gives object and eef poses. <code>obs/ee_pos[t]</code> equals the restored grip site of <code>states[t+1]</code> (lag 1, max 0.6 mm). Both pools must read eef and objects from the same restored state. <span class="tag V">V</span></li>
+<li><b>P2a, orientation.</b> Rollouts' <code>eef_quat</code> is not in MuJoCo's site frame: it is near identity at the start, while the site points down. Recompute gripper rotation by FK from <code>joint_pos</code> in one model for both pools. <span class="tag V">V</span></li>
+<li><b>P6, the evidence key.</b> In <code>runs/r047</code>, <code>rollout_id</code> is shared across noise seeds (rows 14 and 20). Spec evidence links need (run, row) or a seed-aware id. This is the same class as the D25 join bug. <span class="tag V">V</span></li>
+<li><b>P3a and the terminal field.</b> <code>classify.failure_cost</code> detects drops from a <code>holding</code> series that LIBERO traces lack. On the toy failure it says <i>"benign: ended without acquiring the object"</i>, although the bowl was lifted 9.6 cm and dropped.
+Cost is Phase 1, but D13's terminal field needs a drop detector built from target height. <span class="tag V">V</span></li>
+<li><b>P7b, replay determinism</b> is now shown for our LIBERO-Plus rollouts (4/4 rows, ≤ 2.6 mm). It is still not shown for libero_raw demos (D22). <span class="tag V">V</span></li>
+<li><b>P2, tolerances decide the answer.</b> On the toy, the single hit appears at ±1.5 cm and vanishes at ±1.0 cm. Human-demo offsets reach the failure only at ±2.5 cm, and never jointly with layout.
+P2's default tolerances are therefore a result-determining choice, not a detail. The PoC should report the sweep with every search. <span class="tag V">V</span></li>
+</ol>
+
+<h2>3 · What the toy adds to each pending decision</h2>
+<p>Options and their trade-offs are in §7b. This only adds what running the toy showed.</p>
+<div class="tw"><table>
+<tr><th>Item</th><th>Toy evidence</th><th>Leaning</th></tr>
+<tr><td class="id">P1 · ms1</td><td>Option a is enough to produce a non-trivial result on one instance: the human-demo coverage gap and a found success from another start. A pass test like
+"≥ 1 instance yields successes meeting its criterion" was met here, but only borderline. <span class="tag V">V</span></td><td>a. The pass test should require the tolerance sweep, so that a borderline hit isn't counted as a pass.</td></tr>
+<tr><td class="id">P2 · ms2</td><td>Derived fields were enough to search both pools, and the human-readable funnel explained the empty result. The raw wrist frames of the failure and the hit look alike but not identical (the bowl appears larger in the failure: dz 1.3 vs 2.5 cm). <span class="tag V">V</span></td><td>a now; c later, when a mechanism says vision matters.</td></tr>
+<tr><td class="id">P3 · ms3</td><td>One template (<code>grasp.lift</code>) separated the toy cleanly: slip 2.1 cm vs success 11 cm. It also flagged a mid-episode success in the failed run (t=201), which is how the drop became visible. <span class="tag V">V</span></td><td>a, with a drop rule added.</td></tr>
+<tr><td class="id">P4 · ms4</td><td>The existing divergence detector is silently wrong on LIBERO, and the segmenter flickers (§2). The toy's root came from the criterion rule, not from <code>divergence_point</code>. <span class="tag V">V</span></td><td>b, after the fix. With today's code, a's error rate is not just unknown; it is wrong.</td></tr>
+<tr><td class="id">P5 · ms5</td><td>Slip vs miss needed an explicit threshold (1.5 cm lift). The ids the toy used are placeholders. <span class="tag V">V</span></td><td>b, with numeric rules per mode.</td></tr>
+<tr><td class="id">P6 · ms6</td><td>The toy instance is a single JSON file. The searches return event lists that would fit JSONL. The evidence key needs fixing either way. <span class="tag V">V</span></td><td>a for specs; JSONL for the event tables behind search.</td></tr>
+<tr><td class="id">P7 · ms7</td><td>Route a alone turned up one success. Route b's prerequisite (restore by replay) works for our rollouts. The same-start success shows the policy itself can be the driver from a restored root. <span class="tag V">V</span></td><td>a for the PoC; b as the stretch, with the policy under resampled noise as the first driver.</td></tr>
+</table></div>
+
+<h2>4 · Rough total for the leaning path</h2>
+<div class="rec">
+P1a · P2a · P3a + drop · P4b · P5b · P6a + JSONL events · P7a, over LIBERO-Spatial's 10 tasks:
+root detection 2–3 d, snapshot 1.5–2 d, criteria 1–1.5 d, index 0.5–1 d, schema 1 d, search 2–3 d, plus 1 d of labelling for P4b, ≈ <b>9–12.5 days</b>. P7b adds 3–6 d plus GPU. <span class="tag I">I</span>
+</div>
+<div class="warnbox">
+<b>Risks.</b> (1) The toy is one instance; its "human demos never cover this" finding may not hold for other scenes or roots. (2) The layout check uses world xy, so demo initial-state draws (D22: 0.08–0.16 off the eval files) can exclude demos that a relative-layout check would keep. That choice is part of P2.
+(3) Everything here is sim-state based. None of it transfers to image-only data without P2b. <span class="tag I">I</span>
+</div>
+
+<footer>
+Files: <code>experiments/poc_toy_common.py</code>, <code>poc_toy_instance.py</code>, <code>poc_toy_search.py</code>, <code>poc_toy_render.py</code> (GPU, run by impl), <code>poc_toy_page.py</code>.
+Outputs: <code>runs/poc_toy/</code>. Code read: <code>vla_harness/mining/phases.py</code>, <code>phases_libero.py</code>, <code>classify.py</code>, <code>vla_harness/schema.py</code>, <code>experiments/visualise_episode_video.py</code>, <code>r054_mint.py</code>, <code>r060_gates.py</code>.
+Results: RESULTS.md R-044, R-047. Not committed; prim commits.
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,1090 @@
+{
+ "query": {
+  "t": 31,
+  "offset_m": [
+   -0.0684,
+   -0.0363,
+   0.0131
+  ],
+  "target_xyz": [
+   -0.0623,
+   0.2014,
+   0.898
+  ],
+  "neighbours_rel_m": {
+   "akita_black_bowl_2_main": [
+    -0.1264,
+    0.119,
+    0.0004
+   ],
+   "cookies_1_main": [
+    0.1202,
+    -0.1749,
+    0.0113
+   ],
+   "glazed_rim_porcelain_ramekin_1_main": [
+    -0.1351,
+    -0.0122,
+    0.0013
+   ],
+   "plate_1_main": [
+    0.1157,
+    0.0038,
+    0.0045
+   ]
+  },
+  "tilt_deg": 4.1,
+  "aperture_m": 0.0803,
+  "max_lift_m": 0.0206,
+  "success": false
+ },
+ "tolerances": {
+  "offset_per_axis_m": 0.015,
+  "gripper_rot_deg": 20.0,
+  "layout_xy_m": 0.03,
+  "status": "illustrative (P2 pending)"
+ },
+ "success_criterion": "target lifted >= 0.05 m within 40 steps",
+ "funnel": {
+  "human demo": {
+   "episodes": 50,
+   "grasp_onsets": 59,
+   "meets_success_criterion": 53,
+   "alone": {
+    "offset_ok": 0,
+    "rot_ok": 50,
+    "layout_ok": 27
+   },
+   "cumulative": {
+    "offset": 0,
+    "offset+gripper": 0,
+    "offset+gripper+layout": 0
+   }
+  },
+  "our rollout": {
+   "episodes": 56,
+   "grasp_onsets": 78,
+   "meets_success_criterion": 56,
+   "alone": {
+    "offset_ok": 1,
+    "rot_ok": 53,
+    "layout_ok": 56
+   },
+   "cumulative": {
+    "offset": 1,
+    "offset+gripper": 1,
+    "offset+gripper+layout": 1
+   }
+  }
+ },
+ "offset_tolerance_sweep_cm": {
+  "1.0": {
+   "human demo": 0,
+   "our rollout": 0,
+   "human demo, offset only": 0
+  },
+  "1.5": {
+   "human demo": 0,
+   "our rollout": 1,
+   "human demo, offset only": 0
+  },
+  "2.0": {
+   "human demo": 0,
+   "our rollout": 1,
+   "human demo, offset only": 0
+  },
+  "2.5": {
+   "human demo": 0,
+   "our rollout": 1,
+   "human demo, offset only": 1
+  },
+  "3.0": {
+   "human demo": 0,
+   "our rollout": 1,
+   "human demo, offset only": 1
+  },
+  "4.0": {
+   "human demo": 0,
+   "our rollout": 1,
+   "human demo, offset only": 3
+  }
+ },
+ "n_hits": 1,
+ "hits": [
+  {
+   "t": 34,
+   "offset_m": [
+    -0.0539,
+    -0.0469,
+    0.0251
+   ],
+   "target_xyz": [
+    -0.0668,
+    0.2024,
+    0.9066
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.1219,
+     0.1179,
+     -0.0082
+    ],
+    "cookies_1_main": [
+     0.1246,
+     -0.176,
+     0.0028
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.1306,
+     -0.0133,
+     -0.0072
+    ],
+    "plate_1_main": [
+     0.1202,
+     0.0028,
+     -0.0041
+    ]
+   },
+   "tilt_deg": 5.5,
+   "aperture_m": 0.0796,
+   "max_lift_m": 0.1073,
+   "success": true,
+   "source": "our rollout",
+   "ref": "r047 row 34",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "match": {
+    "offset_ok": true,
+    "offset_dev_cm": [
+     1.4,
+     1.1,
+     1.2
+    ],
+    "offset_dist_cm": 2.2,
+    "rot_ok": true,
+    "rot_dev_deg": 4.1,
+    "layout_ok": true,
+    "target_xy_dev_cm": 0.5,
+    "worst_neighbour_dev_cm": 0.5
+   }
+  }
+ ],
+ "nearest_by_offset": [
+  {
+   "t": 34,
+   "offset_m": [
+    -0.0539,
+    -0.0469,
+    0.0251
+   ],
+   "target_xyz": [
+    -0.0668,
+    0.2024,
+    0.9066
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.1219,
+     0.1179,
+     -0.0082
+    ],
+    "cookies_1_main": [
+     0.1246,
+     -0.176,
+     0.0028
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.1306,
+     -0.0133,
+     -0.0072
+    ],
+    "plate_1_main": [
+     0.1202,
+     0.0028,
+     -0.0041
+    ]
+   },
+   "tilt_deg": 5.5,
+   "aperture_m": 0.0796,
+   "max_lift_m": 0.1073,
+   "success": true,
+   "source": "our rollout",
+   "ref": "r047 row 34",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "match": {
+    "offset_ok": true,
+    "offset_dev_cm": [
+     1.4,
+     1.1,
+     1.2
+    ],
+    "offset_dist_cm": 2.2,
+    "rot_ok": true,
+    "rot_dev_deg": 4.1,
+    "layout_ok": true,
+    "target_xy_dev_cm": 0.5,
+    "worst_neighbour_dev_cm": 0.5
+   }
+  },
+  {
+   "t": 118,
+   "offset_m": [
+    -0.0459,
+    -0.0411,
+    0.0079
+   ],
+   "target_xyz": [
+    0.0005,
+    0.213,
+    0.9114
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.1882,
+     0.1134,
+     -0.013
+    ],
+    "cookies_1_main": [
+     0.0552,
+     -0.1844,
+     -0.0021
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.2113,
+     -0.0055,
+     -0.0121
+    ],
+    "plate_1_main": [
+     0.0754,
+     -0.0037,
+     -0.0089
+    ]
+   },
+   "tilt_deg": 20.5,
+   "aperture_m": 0.0792,
+   "max_lift_m": 0.1086,
+   "success": true,
+   "source": "human demo",
+   "ref": "demo_34",
+   "n_steps": 167,
+   "restore_err_m": 0.00062,
+   "match": {
+    "offset_ok": false,
+    "offset_dev_cm": [
+     2.2,
+     0.5,
+     0.5
+    ],
+    "offset_dist_cm": 2.4,
+    "rot_ok": false,
+    "rot_dev_deg": 21.5,
+    "layout_ok": false,
+    "target_xy_dev_cm": 6.4,
+    "worst_neighbour_dev_cm": 7.6
+   }
+  },
+  {
+   "t": 39,
+   "offset_m": [
+    -0.0374,
+    -0.0503,
+    0.0196
+   ],
+   "target_xyz": [
+    -0.0755,
+    0.1911,
+    0.9006
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.1134,
+     0.1309,
+     -0.0022
+    ],
+    "cookies_1_main": [
+     0.1327,
+     -0.1481,
+     0.0088
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.1387,
+     -0.0007,
+     -0.0013
+    ],
+    "plate_1_main": [
+     0.1573,
+     0.0077,
+     0.0019
+    ]
+   },
+   "tilt_deg": 6.9,
+   "aperture_m": 0.0795,
+   "max_lift_m": 0.0989,
+   "success": true,
+   "source": "human demo",
+   "ref": "demo_47",
+   "n_steps": 92,
+   "restore_err_m": 0.00067,
+   "match": {
+    "offset_ok": false,
+    "offset_dev_cm": [
+     3.1,
+     1.4,
+     0.6
+    ],
+    "offset_dist_cm": 3.5,
+    "rot_ok": true,
+    "rot_dev_deg": 3.7,
+    "layout_ok": false,
+    "target_xy_dev_cm": 1.7,
+    "worst_neighbour_dev_cm": 4.2
+   }
+  },
+  {
+   "t": 68,
+   "offset_m": [
+    -0.0341,
+    -0.0629,
+    0.0143
+   ],
+   "target_xyz": [
+    -0.1053,
+    0.1869,
+    0.9013
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.061,
+     0.1261,
+     -0.0029
+    ],
+    "cookies_1_main": [
+     0.1723,
+     -0.161,
+     0.0081
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.0916,
+     0.0002,
+     -0.0023
+    ],
+    "plate_1_main": [
+     0.1736,
+     0.0136,
+     0.0012
+    ]
+   },
+   "tilt_deg": 6.8,
+   "aperture_m": 0.0789,
+   "max_lift_m": 0.0962,
+   "success": true,
+   "source": "human demo",
+   "ref": "demo_14",
+   "n_steps": 112,
+   "restore_err_m": 0.00062,
+   "match": {
+    "offset_ok": false,
+    "offset_dev_cm": [
+     3.4,
+     2.7,
+     0.1
+    ],
+    "offset_dist_cm": 4.3,
+    "rot_ok": true,
+    "rot_dev_deg": 11.3,
+    "layout_ok": false,
+    "target_xy_dev_cm": 4.5,
+    "worst_neighbour_dev_cm": 6.6
+   }
+  },
+  {
+   "t": 94,
+   "offset_m": [
+    -0.0573,
+    0.0057,
+    0.0078
+   ],
+   "target_xyz": [
+    -0.0701,
+    0.2008,
+    0.9061
+   ],
+   "neighbours_rel_m": {
+    "akita_black_bowl_2_main": [
+     -0.1189,
+     0.12,
+     -0.0077
+    ],
+    "cookies_1_main": [
+     0.1279,
+     -0.1744,
+     0.0033
+    ],
+    "glazed_rim_porcelain_ramekin_1_main": [
+     -0.1213,
+     -0.0023,
+     -0.0069
+    ],
+    "plate_1_main": [
+     0.1235,
+     0.0044,
+     -0.0036
+    ]
+   },
+   "tilt_deg": 11.4,
+   "aperture_m": 0.0708,
+   "max_lift_m": 0.1106,
+   "success": true,
+   "source": "our rollout",
+   "ref": "r047 row 22",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "match": {
+    "offset_ok": false,
+    "offset_dev_cm": [
+     1.1,
+     4.2,
+     0.5
+    ],
+    "offset_dist_cm": 4.4,
+    "rot_ok": false,
+    "rot_dev_deg": 29.4,
+    "layout_ok": true,
+    "target_xy_dev_cm": 0.8,
+    "worst_neighbour_dev_cm": 1.7
+   }
+  }
+ ],
+ "human_demo_successful_onset_offsets_cm": {
+  "n": 53,
+  "median": [
+   1.0,
+   -4.8,
+   5.1
+  ],
+  "min": [
+   -4.6,
+   -7.1,
+   0.8
+  ],
+  "max": [
+   6.5,
+   -0.8,
+   9.7
+  ],
+  "all": [
+   [
+    1.3,
+    -3.1,
+    5.4
+   ],
+   [
+    -1.1,
+    -4.4,
+    3.3
+   ],
+   [
+    -1.1,
+    -5.4,
+    2.3
+   ],
+   [
+    -0.5,
+    -5.6,
+    4.0
+   ],
+   [
+    -1.0,
+    -4.8,
+    2.8
+   ],
+   [
+    1.8,
+    -5.4,
+    5.1
+   ],
+   [
+    2.7,
+    -4.7,
+    4.7
+   ],
+   [
+    2.8,
+    -5.7,
+    6.8
+   ],
+   [
+    3.1,
+    -5.8,
+    6.1
+   ],
+   [
+    3.4,
+    -4.4,
+    7.1
+   ],
+   [
+    0.4,
+    -4.7,
+    5.8
+   ],
+   [
+    -2.2,
+    -4.4,
+    2.9
+   ],
+   [
+    1.6,
+    -4.1,
+    5.1
+   ],
+   [
+    3.4,
+    -4.8,
+    4.4
+   ],
+   [
+    -3.4,
+    -6.3,
+    1.4
+   ],
+   [
+    2.7,
+    -3.9,
+    4.0
+   ],
+   [
+    1.3,
+    -5.6,
+    6.2
+   ],
+   [
+    2.2,
+    -5.4,
+    9.6
+   ],
+   [
+    1.7,
+    -5.3,
+    6.5
+   ],
+   [
+    -0.2,
+    -4.0,
+    4.7
+   ],
+   [
+    -1.2,
+    -4.0,
+    2.2
+   ],
+   [
+    2.9,
+    -4.6,
+    6.9
+   ],
+   [
+    -0.6,
+    -5.0,
+    3.9
+   ],
+   [
+    1.0,
+    -4.3,
+    5.3
+   ],
+   [
+    -0.4,
+    -7.1,
+    3.1
+   ],
+   [
+    0.2,
+    -6.6,
+    5.1
+   ],
+   [
+    3.2,
+    -5.5,
+    5.4
+   ],
+   [
+    1.3,
+    -4.1,
+    5.8
+   ],
+   [
+    0.9,
+    -4.9,
+    4.2
+   ],
+   [
+    3.6,
+    -6.8,
+    7.9
+   ],
+   [
+    -0.6,
+    -2.1,
+    5.1
+   ],
+   [
+    2.8,
+    -6.7,
+    5.1
+   ],
+   [
+    -1.0,
+    -0.8,
+    3.6
+   ],
+   [
+    3.5,
+    -4.8,
+    7.0
+   ],
+   [
+    3.4,
+    -6.1,
+    8.6
+   ],
+   [
+    1.9,
+    -5.3,
+    6.5
+   ],
+   [
+    -4.6,
+    -4.1,
+    0.8
+   ],
+   [
+    -0.1,
+    -3.9,
+    3.8
+   ],
+   [
+    1.0,
+    -3.7,
+    6.2
+   ],
+   [
+    1.2,
+    -5.8,
+    4.2
+   ],
+   [
+    -1.6,
+    -5.1,
+    1.5
+   ],
+   [
+    3.6,
+    -5.1,
+    7.0
+   ],
+   [
+    1.0,
+    -5.0,
+    6.0
+   ],
+   [
+    2.6,
+    -4.4,
+    5.5
+   ],
+   [
+    3.1,
+    -6.1,
+    5.2
+   ],
+   [
+    2.1,
+    -6.8,
+    6.5
+   ],
+   [
+    0.4,
+    -4.6,
+    2.7
+   ],
+   [
+    -1.1,
+    -3.2,
+    3.4
+   ],
+   [
+    0.5,
+    -6.5,
+    6.7
+   ],
+   [
+    6.5,
+    -4.5,
+    9.7
+   ],
+   [
+    -3.7,
+    -5.0,
+    2.0
+   ],
+   [
+    -0.0,
+    -4.6,
+    3.3
+   ],
+   [
+    -2.1,
+    -3.0,
+    3.1
+   ]
+  ]
+ },
+ "our_successful_onset_offsets_cm": [
+  [
+   3.2,
+   -5.7,
+   6.5,
+   "r047 row 0"
+  ],
+  [
+   0.7,
+   -4.8,
+   4.3,
+   "r047 row 1"
+  ],
+  [
+   0.3,
+   -5.7,
+   4.6,
+   "r047 row 2"
+  ],
+  [
+   -0.9,
+   -5.9,
+   3.4,
+   "r047 row 3"
+  ],
+  [
+   -0.6,
+   -4.9,
+   4.7,
+   "r047 row 4"
+  ],
+  [
+   -1.5,
+   -4.1,
+   4.8,
+   "r047 row 5"
+  ],
+  [
+   3.1,
+   -4.5,
+   7.1,
+   "r047 row 6"
+  ],
+  [
+   -0.1,
+   -4.6,
+   4.4,
+   "r047 row 7"
+  ],
+  [
+   -0.3,
+   -5.1,
+   4.0,
+   "r047 row 8"
+  ],
+  [
+   -0.4,
+   -5.8,
+   3.6,
+   "r047 row 9"
+  ],
+  [
+   -0.9,
+   -5.1,
+   4.1,
+   "r047 row 10"
+  ],
+  [
+   -1.5,
+   -4.1,
+   3.7,
+   "r047 row 11"
+  ],
+  [
+   2.9,
+   -5.5,
+   6.1,
+   "r047 row 12"
+  ],
+  [
+   -2.0,
+   -3.5,
+   3.0,
+   "r047 row 13"
+  ],
+  [
+   0.5,
+   2.7,
+   5.3,
+   "r047 row 17"
+  ],
+  [
+   3.1,
+   -4.5,
+   7.1,
+   "r047 row 18"
+  ],
+  [
+   -1.3,
+   -3.9,
+   2.9,
+   "r047 row 19"
+  ],
+  [
+   -2.3,
+   -3.0,
+   1.9,
+   "r047 row 20"
+  ],
+  [
+   -5.7,
+   0.6,
+   0.8,
+   "r047 row 22"
+  ],
+  [
+   2.8,
+   -5.5,
+   6.1,
+   "r047 row 24"
+  ],
+  [
+   1.5,
+   -3.4,
+   4.9,
+   "r047 row 25"
+  ],
+  [
+   1.1,
+   -3.5,
+   5.2,
+   "r047 row 26"
+  ],
+  [
+   0.4,
+   -3.9,
+   5.1,
+   "r047 row 27"
+  ],
+  [
+   4.8,
+   0.7,
+   7.3,
+   "r047 row 28"
+  ],
+  [
+   3.1,
+   -4.5,
+   7.1,
+   "r047 row 30"
+  ],
+  [
+   2.4,
+   -4.2,
+   6.7,
+   "r047 row 31"
+  ],
+  [
+   0.7,
+   -3.0,
+   4.2,
+   "r047 row 32"
+  ],
+  [
+   -0.2,
+   -3.6,
+   3.5,
+   "r047 row 33"
+  ],
+  [
+   -5.4,
+   -4.7,
+   2.5,
+   "r047 row 34"
+  ],
+  [
+   2.8,
+   -5.5,
+   6.1,
+   "r047 row 60"
+  ],
+  [
+   4.7,
+   -4.1,
+   7.6,
+   "r047 row 61"
+  ],
+  [
+   1.7,
+   -3.6,
+   6.1,
+   "r047 row 62"
+  ],
+  [
+   1.0,
+   -3.3,
+   5.2,
+   "r047 row 63"
+  ],
+  [
+   1.0,
+   -5.3,
+   6.0,
+   "r047 row 64"
+  ],
+  [
+   -0.0,
+   -6.1,
+   5.4,
+   "r047 row 65"
+  ],
+  [
+   -2.5,
+   -8.8,
+   3.7,
+   "r047 row 68"
+  ],
+  [
+   3.1,
+   -4.5,
+   7.1,
+   "r047 row 69"
+  ],
+  [
+   4.0,
+   -4.4,
+   6.2,
+   "r047 row 70"
+  ],
+  [
+   2.1,
+   -3.5,
+   5.4,
+   "r047 row 71"
+  ],
+  [
+   1.9,
+   -3.9,
+   6.1,
+   "r047 row 72"
+  ],
+  [
+   0.5,
+   -5.3,
+   5.1,
+   "r047 row 73"
+  ],
+  [
+   0.4,
+   -6.6,
+   5.4,
+   "r047 row 74"
+  ],
+  [
+   5.0,
+   -7.8,
+   1.9,
+   "r047 row 77"
+  ],
+  [
+   -1.3,
+   -8.1,
+   2.7,
+   "r047 row 77"
+  ],
+  [
+   2.4,
+   -4.7,
+   8.2,
+   "r047 row 78"
+  ],
+  [
+   3.9,
+   -5.0,
+   6.5,
+   "r047 row 79"
+  ],
+  [
+   1.9,
+   -4.8,
+   6.2,
+   "r047 row 80"
+  ],
+  [
+   1.6,
+   -4.1,
+   5.5,
+   "r047 row 81"
+  ],
+  [
+   0.3,
+   -5.8,
+   5.0,
+   "r047 row 82"
+  ],
+  [
+   -0.1,
+   -7.1,
+   5.4,
+   "r047 row 83"
+  ],
+  [
+   2.8,
+   -4.3,
+   7.4,
+   "r047 row 87"
+  ],
+  [
+   3.6,
+   -4.3,
+   7.4,
+   "r047 row 88"
+  ],
+  [
+   1.8,
+   -3.7,
+   6.1,
+   "r047 row 89"
+  ],
+  [
+   1.2,
+   -3.3,
+   5.1,
+   "r047 row 90"
+  ],
+  [
+   0.3,
+   -5.6,
+   5.7,
+   "r047 row 91"
+  ],
+  [
+   -0.4,
+   -6.4,
+   4.9,
+   "r047 row 92"
+  ]
+ ],
+ "demo_restore_err_max_m": 0.00068,
+ "n_demo_grasp_onsets": 59
+}
