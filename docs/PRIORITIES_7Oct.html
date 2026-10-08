@@ -89,6 +89,14 @@ const TIERS = [
   ["o8i","Write 'the pilot as run' section of FINE_TUNING_101 (D25 part)","[your call; low priority] No priorities id before this.","SFT"],
   ["o8j","Let SFT fix its stale memory lines (start-pose-retrain-pilot index and line 78)","[yes] R-056 'awaits D20' and R-058 'awaits D18' are done; 10-07 RESULTS edits are in 4c2f544.","SFT · prim"],
   ["o8k","Approve res22's scope (new research session: tasks and failure modes beyond LIBERO)","Builds on DATA_AND_BENCHMARKS.md and MODELS_AND_COMPUTE.md; perturbation benchmarks, sim engines (res21) and retraining data sourcing (res) are out of scope. Real-robot only if it has failure labels; 8 GB and GR00T fit reported, not required. Outline first, then a local HTML; no commits.","you"]]],
+ ["Mining spec PoC · waiting for decisions (added 10-08)", "from docs/MINING_SPEC_DESIGN.html §7 (D1–D14 agreed); all must be decided before impl builds anything; prim's suggestion in brackets", [
+  ["ms1","P1 · PoC scope and its own pass test","[base GR00T N1.7 on LIBERO-Spatial; the localised start-pose failures (R-047/R-056) plus scene 1327; pool = 500 libero_raw demos + our successful rollouts; dataset search first, sim generation as a stretch] Pass test e.g.: N instances validate, search returns segments or an explicit empty + fallback, ≥1 instance yields successes meeting its criterion.","you · prim"],
+  ["ms2","P2 · What a situation snapshot contains","Raw (frames, state), derived (offsets, approach, neighbours, visual condition) or both, plus default tolerances. Decides numeric query vs embedding match.","you · prim"],
+  ["ms3","P3 · How success criteria are written","A predicate over sim state per phase, from a small template set (e.g. grasp: held and lifted ≥ h within N steps). It's the D14 filter and the check on produced demos.","you · prim"],
+  ["ms4","P4 · How far to trust root detection","PhaseSegmenter + divergence_point are LIBERO-only and never checked against human labels; the adjudication sheet (p4) is at 0 of 80.","you"],
+  ["ms5","P5 · Index v0: phase and failure-mode lists, id format, versioning","Seeded from vla_harness/mining/classify.py; LIBERO-Recover's 5 categories as an outside check.","you · prim"],
+  ["ms6","P6 · File format","JSON Schema, file layout (one spec file or JSONL), schema_version, validator.","you · prim"],
+  ["ms7","P7 · Which routes the PoC includes","Dataset search only, or also sim generation (needs a restorable root: action replay, or per-step state snapshots, an impl harness change) and/or a teleop brief.","you"]]],
  ["1 · Finish what already ran", "cheap; unblocks the rest", [
   ["t1a","Score R-058 r64 (no transfer)","CPU, ~1 min. Transfer skipped after GPU OOM; E4 and transfer metrics 'not run'.","impl"],
   ["t1b","Interpret the D20 fit test and loss into R-056's provisional paragraph","Training starts closed 30% of the gap, held-out 12%: coverage AND loss-vs-sampling. runs/r056_diag/fit_firstchunk.json","SFT · my prim"],
