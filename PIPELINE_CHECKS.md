@@ -11,6 +11,7 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 - Three things still wait for a PASS: writing into `RESULTS.md`, committing as a run result, and justifying or launching a GPU step.
 - A **FAIL** blocks downstream use and any launch that depends on it, immediately.
 - Entries already in `RESULTS.md` from before 10-09 stand.
+- **Controls and smoke tests may run before a PASS** (user, 10-09), through the normal GPU gate (my prim's OK, `d_step.sh`). These are short steps whose job is to test the pipeline: no-model invariants, one-item smokes, default-path bitwise anchors, val's null / planted / known-answer controls. Their outputs are tagged UNVERIFIED and used only as check evidence. **Full runs** (e.g. E4 over all demos, R-059 C1, the full E7 VLM pass) still wait for the PASS.
 
 **The flow.**
 1. The author (impl, my prim, PoC, res*, prim for its own pipelines) says "done" and hands over to `val` and prim: the command, inputs, output path, the plan section it implements, a proposed anchor for check 1, and `code_state/` in the outputs. Anything missing comes back as "not ready".
@@ -33,6 +34,7 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 - **Upstream caveats:** each entry lists the known caveats of its input pipelines. No anchors come from runs flagged in the G0c follow-ups (g0c3: the env-deletion render corruption, R-039's camera pose and frame phase) until res21's audit clears them.
 - val may **ask** code owners questions directly (known issues, design choices). **Change requests** go to prim or the user first, never straight to an author.
 - NIM calls are allowed, mindful of rate limits and quotas.
+- **Uncleared upstream runs (10-09):** the runs flagged in the G0c follow-ups (R-039/R-042/R-048 camera N with the wrong pose, the mid-step frame phase, env-deletion render corruption) stay **uncleared**. Nobody owns clearing them until the user decides g0c3, so val should not wait on res21 for them; it should just avoid them as anchors.
 - No commits, no subagents.
 
 **Turnaround:** about 2 h for a CPU pipeline after a complete handover.
