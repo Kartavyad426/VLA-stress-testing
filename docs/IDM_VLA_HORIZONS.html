@@ -1,0 +1,295 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>IDM VLA Horizons</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital@0;1&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --b-vis:#2a78d6;--b-phys:#eb6834;--b-new:#1baf7a;--b-vl:#8a6fd6;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--serif:'IBM Plex Serif',Georgia,serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;
+ --b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;--b-vis:#3987e5;--b-phys:#d95926;--b-new:#199e70;--b-vl:#9b84e6;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.5em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:16px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.fix{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.fix .q{color:var(--warn)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.amb{color:var(--amber);font-weight:600}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.eq{font-family:var(--serif);font-size:1.05rem;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 16px;margin:10px 0;overflow-x:auto;white-space:nowrap;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eq .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+var{font-family:var(--serif);font-style:italic}
+.eq i{font-style:italic}
+sub,sup{font-size:.72em;line-height:0}
+.where{font-size:.86rem;color:var(--muted);margin:-4px 0 12px 8px}
+.diag{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.row{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.blk{flex:1;min-width:120px;border-radius:5px;padding:8px 10px;font-size:.8rem;line-height:1.35;border:1px solid var(--rule-soft);background:var(--surface)}
+.blk b{display:block;font-size:.82rem}
+.blk.vis{border-left:4px solid var(--b-vis)}.blk.phys{border-left:4px solid var(--b-phys)}.blk.new{border-left:4px solid var(--b-new)}.blk.vl{border-left:4px solid var(--b-vl)}
+.arrow{text-align:center;color:var(--muted);font-size:.9rem;line-height:1}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule-soft);border-radius:4px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.stat{font-size:1.9rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.statl{font-size:.8rem;color:var(--muted)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.tag.p{background:var(--surface-2);color:var(--muted)}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Policy × IDM × world model: what combining them could do for us</h1>
+<div class=meta>2026-10-09 · res22, scoped by prim (checklist c9j), outline approved by the user with prim's input · Builds on <code>docs/MINING_SPEC_DESIGN.html</code> (D1–D15, §6c, §6d UQ1–UQ9), <code>docs/ROOT_SIGNAL_EXPERIMENTS.html</code> (E1–E7) and <code>docs/MINING_SPEC_TOY.html</code>. Cited, not redone: <code>docs/SIM_ALTERNATIVES_PIPELINE.html</code> §6 (world models as evaluators, res21), <code>docs/DATA_SOURCING_RESEARCH.html</code>, <code>docs/VLA_CORRECTOR_MATHS.html</code>, <code>docs/SENTINEL_METHODOLOGY.html</code>, <code>docs/FLOW_MATCHING_MATHS.html</code>.<br>
+Sources read: arXiv HTML full texts (GR00T N1, DreamGen, Seer, UWM, VLA-RFT, AnyPos) through a summarising fetch, so treat numbers from those as checked against the paper but not re-derived. The ProTracer PDF (pp. 1–2) was read directly. GitHub READMEs and config files: GR00T-Dreams (<code>scripts/idm_training.py</code>, <code>IDM_dump/base.yaml</code>), Seer, UniVLA, LAPA, Isaac-GR00T. In our tree: the GR00T N1.7 LIBERO checkpoint's <code>policy_preprocessor.json</code>, <code>third_party/lerobot/.../processor_groot.py</code>, the cached LIBERO LeRobot dataset, <code>data/libero_raw</code> and <code>runs/r047</code>. Nothing was installed, trained or run.<br>
+Tags: <span class="tag v">V</span> checked against the paper, code, config or our tree · <span class="tag i">I</span> my inference or estimate, or seen only in a search result or abstract.</div>
+
+<div class="card tldr">
+<div class=q>Verdict: is IDM + VLA "too optimistic"?</div>
+<ul>
+<li><b>To raise GR00T's success on our LIBERO tasks soon: yes, mostly too optimistic.</b> In sim, actions are free and exact. An IDM only adds labels to video that has none. Every published performance gain needs one of two things:
+ <ul>
+ <li>a video generator that creates new situations, at very large compute: GR00T N1 used about 105k L40 GPU-h for its neural trajectories, and DreamGen RoboCasa about 54 h × 1,500 L40s <span class="tag v">V</span>;</li>
+ <li>a low-data regime: +4.2 / +8.8 / +6.8 pts on RoboCasa at 30 / 100 / 300 demos <span class="tag v">V</span>.</li>
+ </ul>
+ Our start-pose failures are decided at forwards 0–1 (R-044, R-057). R-056 showed that coverage matters, not volume. IDM labels add coverage only if the video adds new situations, and in sim rescue minting or a scripted expert already does that more cheaply and exactly <span class="tag i">I</span>.</li>
+<li><b>As instruments for the mining spec: realistic and cheap.</b> A small IDM trained on our LIBERO data fits the 8 GB card <span class="tag i">I</span>. It can serve four uses:
+ <ul>
+ <li>an E3 without proprioception ("E3b"): commanded vs achieved motion where no robot state is available;</li>
+ <li>gripper events, and so phases, on video-only data (§6c tier 3);</li>
+ <li>a label-quality check: do the labels, replayed, reproduce the video?</li>
+ <li>with latent-action models, an unsupervised segmenter (E6's next step).</li>
+ </ul></li>
+<li><b>Policies that predict the future and then apply an IDM</b> (Seer, UWM, DreamZero) <b>would replace GR00T, not add to it.</b> On LIBERO they don't beat current VLAs: Seer scores 87.7% on LIBERO-Long, against UniVLA's 92.0% on Long and 95.2% averaged over the four suites <span class="tag v">V</span>. There's no reason to switch.</li>
+<li><b>Expectation to set:</b> an IDM given the <i>true</i> future frames, run open-loop, reproduced only 55–65% of LIBERO-10 training demos in UWM's test (the policy managed 26–47%) <span class="tag v">V</span>. Replayed IDM labels will be imperfect even on clean data.</li>
+<li><b>Next step:</b> a gate package of three parts. T0: does replaying the human demos' own actions reproduce them? T1: train a small LIBERO IDM and check that its labels replay. Then E3b on r047. About 3–4 engineer-days, ≤ 6 GPU-h. Nothing else involving an IDM should run before T1 passes (§4, §6).</li>
+</ul>
+</div>
+
+<h2>1 · Terms</h2>
+<div class=tw><table>
+<tr><th>Model</th><th>Input → output</th><th>Needs to train</th><th>In our stack</th></tr>
+<tr><td><b>VLA policy</b></td><td>current frames + instruction + proprio → future action chunk</td><td>action-labelled demos</td><td>GR00T N1.7: one frame per camera (<code>video_horizon: null</code>), 8-D state (<code>state_horizon: 1</code>), predicts C = 40 steps and executes H = 16 <span class="tag v">V</span></td></tr>
+<tr><td><b>IDM</b> (inverse dynamics)</td><td>(o<sub>t</sub>, o<sub>t+k</sub>) [+ proprio] → the actions between them</td><td>action-labelled frames of the <i>same embodiment and action convention</i></td><td>none yet</td></tr>
+<tr><td><b>Latent-action model</b> (LAM)</td><td>(o<sub>t</sub>, o<sub>t+k</sub>) → a learned code (VQ token or embedding), not a real action</td><td>video only; mapping to real actions needs some labelled data</td><td>none</td></tr>
+<tr><td><b>World model</b> (forward dynamics)</td><td>o<sub>t</sub> + action → o<sub>t+1</sub> (pixels or latents)</td><td>action-labelled video</td><td>none (res21 judged world models not good enough as perturbation evaluators, SIM_ALTERNATIVES §6)</td></tr>
+<tr><td><b>Video-prediction policy</b></td><td>frames + instruction → predicted future frames → IDM → actions</td><td>video, plus action labels for the IDM part</td><td>none</td></tr>
+</table></div>
+<p class=small>An IDM gives actions, not proprioception. On video-only data, the robot state has to come from somewhere else: a state head, a pose estimator, or integrating predicted actions, which drifts. See my 10-08 FYI to prim and MINING_SPEC_DESIGN §6c.</p>
+
+<h2>2 · Landscape, grouped by what each combination is for</h2>
+
+<h3>(a) Labelling video to train a policy</h3>
+<div class=tw><table>
+<tr><th>Method</th><th>What it does</th><th>Evidence</th><th>Compute · 8 GB</th><th>Code / weights</th><th>GR00T N1.7 tie-in</th></tr>
+<tr><td><b>VPT</b> (OpenAI, 2022)</td><td>The origin of the idea: an IDM trained on a small labelled set labels a large unlabelled video corpus, then behaviour cloning on the result</td><td>About 2k h of labelled contractor play labelled about 70k h of Minecraft video <span class="tag i">I</span> (not re-checked)</td><td>Large</td><td>Minecraft only</td><td>None (game controls)</td></tr>
+<tr><td><b>GR00T N1</b> (2503.14734)</td><td>Two label sources for action-less data:
+ <ul>
+ <li>latent actions: a VQ-VAE encoder on (x<sub>t</sub>, x<sub>t+H</sub>), whose pre-quantised embedding is the flow-matching target, trained on all data jointly;</li>
+ <li>an IDM trained on real robot data, which labels "neural trajectories" (generated video).</li>
+ </ul> Prim's recollection is confirmed.</td><td>
+ <ul>
+ <li>About 827 h of video generated, 10× the 88 h of source data.</li>
+ <li>Co-training gains: +4.2 / +8.8 / +6.8 pts on RoboCasa at 30 / 100 / 300 demos; +5.8 on 8 GR-1 real tasks.</li>
+ <li>LAPA labels slightly beat IDM labels at 30 demos; IDM pulls ahead at 100–300.</li>
+ </ul> <span class="tag v">V</span></td><td>About 105k L40 GPU-h for the generation alone <span class="tag v">V</span>. Far beyond 8 GB.</td><td>Paper only for this part</td><td>Our base model's ancestor. The IDM part is about the pretraining data, not something we can reuse.</td></tr>
+<tr><td><b>GR00T N1.7</b></td><td>Pretrained on 20,854 h of EgoScale human video. "The relative EEF action representation is consistent across both human and robot data" <span class="tag v">V</span> (README), so human video seems to get EEF-relative labels from hand pose, not from an IDM <span class="tag i">I</span>.</td><td>The README and blog claim "improved generalization and language-following" vs N1.6, with no IDM ablation. A search snippet says N1.7 uses a latent-action codebook + IDM. I didn't find that in the README or blog: <b>unverified</b> <span class="tag i">I</span>.</td><td>Fine-tuning: 40 GB+ recommended; inference: 16 GB+ <span class="tag v">V</span> (we run LoRA at about 6.3–6.7 GiB peak, R-056)</td><td>Apache 2.0 code; NVIDIA Open Model License weights <span class="tag v">V</span></td><td>This is our policy. Its relative-EEF convention is what any IDM we train must output (§3b).</td></tr>
+<tr><td><b>DreamGen / GR00T-Dreams</b> (2505.12705)</td><td>A video world model fine-tuned on the robot generates new task videos; an IDM or LAM labels them; the policy co-trains on them</td><td>
+ <ul>
+ <li>RoboCasa: 17.4 → 57.6% with 333× data (240k neural trajectories) on top of the ground-truth demos.</li>
+ <li>Real robots: GR1 37 → 46.4, Franka 23 → 37, SO-100 21 → 45.5.</li>
+ <li>New behaviours: 11.2 → 43.2% in seen environments, 0 → 28.5% in unseen ones.</li>
+ <li>IDM vs LAM: "similar effects".</li>
+ <li>Generated videos are filtered by VLM judges (instruction following, physics), not by replay.</li>
+ </ul> <span class="tag v">V</span></td><td>240k RoboCasa trajectories took 54 h on 1,500 L40s. Video model Cosmos-Predict2 14B <span class="tag v">V</span>. Not 8 GB.</td><td>Apache 2.0. IDM recipe: SigLIP-2-large-patch16-256 + 8-layer DiT action head, <code>action_horizon: 16</code>, 10k steps, batch 16, lr 1e-4, 1 GPU default. <b>No released IDM weights</b> <span class="tag v">V</span></td><td>The IDM recipe is the most direct fit: LeRobot data, a 16-step horizon that equals GR00T's executed H. It needs training on our data.</td></tr>
+<tr><td><b>LAPA</b> (2410.11758)</td><td>Latent-action quantisation (LAQ) labels video; the VLA pretrains on the latent labels, then fine-tunes on real actions</td><td>The README claims it beats the then-best VLA trained on real actions, with 30× pretraining efficiency (no table in the README) <span class="tag v">V</span></td><td>LAQ: 8 H100 × 34 h; VLA fine-tune: 4 × A100-80GB <span class="tag v">V</span></td><td>MIT; <code>laq_openx.pt</code> released <span class="tag v">V</span></td><td>Latent codes are a possible segmentation signal (E6), not GR00T labels</td></tr>
+<tr><td><b>UniVLA</b> (RSS 2025)</td><td>"Task-centric" latent actions: a two-stage VQ-VAE on OpenX + Ego4D, then a policy on top</td><td>LIBERO 96.5 / 96.8 / 95.6 / 92.0 (Spatial / Object / Goal / Long), average 95.2 <span class="tag v">V</span></td><td>LAM checkpoints 3.2 GB + 2.76 GB <span class="tag v">V</span>; inference likely fits 8 GB <span class="tag i">I</span></td><td>Apache 2.0, weights on HF <span class="tag v">V</span></td><td>The only released LAM with LIBERO results: the best candidate for E6's next step</td></tr>
+<tr><td><b>villa-X</b> (2507.23682), Moto</td><td>Better LAMs, joint latent + real action modelling</td><td>Gains on LIBERO and SIMPLER (abstract) <span class="tag i">I</span></td><td>—</td><td>Not checked</td><td>Alternatives to UniVLA's LAM</td></tr>
+</table></div>
+<p><b>How this route fails.</b>
+<ul>
+<li>IDM error compounds when labels are replayed open-loop.</li>
+<li>Labels are in the IDM's training embodiment, so other robots or human hands need retargeting.</li>
+<li>Generated video can break physics. Dream.exe (2606.04811, 101 tasks) reports that "visual quality proves a poor predictor of executability" <span class="tag i">I</span>.</li>
+</ul>
+DreamGen's own filter is a VLM judge, not a sim replay <span class="tag v">V</span>. Replay in sim is the stronger filter, and we have one.</p>
+
+<h3>(b) Policies that predict the future, then apply an IDM</h3>
+<div class=tw><table>
+<tr><th>Method</th><th>What it does</th><th>Evidence</th><th>Compute · 8 GB</th><th>Code</th><th>Relation to GR00T</th></tr>
+<tr><td><b>UniPi</b> (2302.00111)</td><td>A text-conditioned video model generates the plan; an IDM executes it</td><td>The founding paper of the pattern <span class="tag i">I</span></td><td>—</td><td>—</td><td>Replacement</td></tr>
+<tr><td><b>AVDC</b> (2310.08576)</td><td>Generated video → dense optical flow → actions, with no action labels at all</td><td>Meta-World, iTHOR <span class="tag i">I</span>. AnyPos reports beating it clearly <span class="tag i">I</span></td><td>—</td><td>Public <span class="tag i">I</span></td><td>Replacement</td></tr>
+<tr><td><b>Seer</b> (2412.15109)</td><td>One transformer: foresight tokens predict future RGB; inverse-dynamics tokens read them to output actions</td><td>
+ <ul>
+ <li>LIBERO-Long 87.7% vs 77.3% for the MPI baseline.</li>
+ <li>CALVIN ABC-D 3.98, or 4.28 for Seer-Large.</li>
+ <li>Ablation: foresight alone 3.41 → + inverse dynamics 3.64 → + pretraining 3.98.</li>
+ </ul> <span class="tag v">V</span></td><td>316M parameters, 65M of them trainable. Pretraining on 8 × 4090: 30–40 h; LIBERO-Long fine-tune about 6 h <span class="tag v">V</span>. Likely fits 8 GB at a small batch <span class="tag i">I</span></td><td>Apache 2.0; CALVIN and DROID-pretrained checkpoints <span class="tag v">V</span></td><td>Replacement. Its ablation is the cleanest evidence that an inverse-dynamics objective adds over foresight alone (+0.23 average length)</td></tr>
+<tr><td><b>UWM</b> (2504.02792)</td><td>One diffusion transformer with separate noise levels for video and action. Switching them gives a policy, a forward model, an IDM or a video generator. Trains on action-free video.</td><td>The <b>IDM-mode tracking test on LIBERO</b> (open-loop, true future frames, 50 training demos): 0.65 and 0.55 success vs the policy's 0.47 and 0.26. Policies "deviate … [but] eventually recover" <span class="tag v">V</span></td><td>4 × A100, 24 h on DROID <span class="tag v">V</span></td><td>Public <span class="tag v">V</span></td><td>Replacement. Its tracking numbers set our T1 bar (§4)</td></tr>
+<tr><td><b>DreamZero</b> (2602.15922)</td><td>A 14B "world action model": autoregressive video diffusion that predicts frames and actions together, which amounts to video prediction plus an implicit IDM</td><td>More than 2× generalisation over VLAs on real robots; 7 Hz closed loop <span class="tag i">I</span></td><td>14B; not 8 GB</td><td>—</td><td>NVIDIA's direction after GR00T; a world model and an IDM in one model</td></tr>
+<tr><td><b>TC-IDM</b> (2601.18323)</td><td>A tool-centric IDM: tool point-cloud trajectories from generated video → 6-DoF EEF motion</td><td>61.1% real average; 38.5% zero-shot on deformables <span class="tag i">I</span></td><td>—</td><td>Not confirmed</td><td>Relevant to UQ5 (cloth) only</td></tr>
+</table></div>
+<p><b>GR00T N1.7 is not a predictive IDM policy.</b> Its action head conditions on one current frame and state and predicts no future frames (<code>state_horizon: 1</code>, <code>video_horizon: null</code>, MINING_SPEC_DESIGN D14) <span class="tag v">V</span>. The "Action Cascade" in the N1.7 blog separates reasoning from motor control, not prediction from inverse dynamics <span class="tag v">V</span>. Adding foresight would mean a new architecture and a full retrain, which doesn't fit 8 GB.</p>
+
+<h3>(c) Consistency and verification</h3>
+<div class=tw><table>
+<tr><th>Method</th><th>Signal</th><th>Evidence</th><th>Relation to our experiments</th></tr>
+<tr><td><b>ProTracer</b> (2609.21369, 18 Sep 2026)</td><td>Training-free:
+ <ul>
+ <li>change points in proprioception (gripper aperture, EEF motion) pick the key frames;</li>
+ <li>the robot-state signals are turned into text "narratives";</li>
+ <li>a VLM reads them with the key frames to localise the <b>failure onset</b>.</li>
+ </ul></td><td>Proposes the onset-localisation task and the FailTime benchmark. Reports sub-second onset localisation zero-shot. Ablations: proprioception matters for <i>when</i>, vision for <i>what</i> <span class="tag v">V</span> (pp. 1–2; numbers not read)</td><td><b>Close to E7 and E3 together.</b> The idea "telemetry says when, the VLM says what" (UQ8–9) is now published. E7 is still worth running as validation on our sim truth. Novelty has to come from elsewhere (§7).</td></tr>
+<tr><td><b>VLA-Corrector</b></td><td>Predicted vs actual latent dynamics during execution</td><td>See VLA_CORRECTOR_MATHS</td><td>Pointer only</td></tr>
+<tr><td><b>Sentinel / STAC</b></td><td>Disagreement between a policy's own consecutive chunks</td><td>See SENTINEL_METHODOLOGY, R-059</td><td>E1. An IDM doesn't change it (it compares the policy with itself)</td></tr>
+<tr><td><b>FoMo-FD</b></td><td>Learns nominal visual dynamics from successes and flags windows inconsistent with them</td><td>Search abstract only <span class="tag i">I</span></td><td>A learned version of an E3b-style residual</td></tr>
+<tr><td><b>Replay filtering</b> (AnyPos 2507.12768)</td><td>Run the IDM's actions from a ground-truth video in a reset environment, then check success</td><td>92.6% replay success over 10 bimanual tasks, vs 59.3% with the human-collected baseline. Their IDM's per-frame accuracy is 57.1% at a 0.06 joint threshold <span class="tag v">V</span></td><td>The template for T1's replay test. A modest per-frame accuracy can still give high replay success.</td></tr>
+<tr><td><b>FOREWARN</b> (2502.01828)</td><td>A latent world model (DreamerV3, trained on the base policy's successes and failures) imagines the outcome of each sampled plan. A fine-tuned VLM narrates the imagined latents and picks the best plan.</td><td>Real-robot steering gains (abstract) <span class="tag i">I</span></td><td>Relation to E7: E7 asks a VLM about <i>real</i> frames after the episode; FOREWARN asks about <i>imagined</i> futures before execution. For mining, E7 is cheaper and needs no world model. FOREWARN matters only if we move to runtime steering.</td></tr>
+</table></div>
+
+<h3>(d) Other uses</h3>
+<ul>
+<li><b>RL fine-tuning inside a world model.</b> VLA-RFT (2510.00406) <span class="tag v">V</span>:
+ <ul>
+ <li>Setup: a 138M LLaMA-style autoregressive world model on VQGAN tokens, pretrained on LIBERO for 150k steps.</li>
+ <li>Reward: −(L1 + LPIPS) against the expert trajectory, with both rendered through the same world model.</li>
+ <li>Result on a VLA-Adapter base (0.5B): 400 RL steps on 4 × A800 took LIBERO-Spatial 88.4 → 94.4 and the average 86.6 → 91.1. Under ±5 cm object shifts, +4.5.</li>
+ <li>Code: <code>OpenHelix-Team/VLA-RFT</code>.</li>
+ </ul>
+ HaWMPO (2609.09941) adds hallucination-aware rollouts on LIBERO Object, Spatial and Goal <span class="tag i">I</span>. RL on a 3B GR00T doesn't fit 8 GB.</li>
+<li><b>IDM as a label-quality check.</b> For each demo, compare its recorded actions with what an IDM infers from its frames. A large gap marks a suspect label: a teleop glitch, a minted label hitting the clamp, a frame/action misalignment. Our demos are sim-labelled, so this is mostly for external or minted data <span class="tag i">I</span>.</li>
+<li><b>Latent actions or prediction error as an unsupervised segmenter.</b>
+ <ul>
+ <li>SBD (2503.10684, ICCV 2025) detects skill boundaries from spikes in a pretrained action predictor's error <span class="tag i">I</span>.</li>
+ <li>HiLAM (2601.23156) learns hierarchical latent skills from action-less video by dynamic chunking <span class="tag i">I</span>.</li>
+ </ul>
+ <b>Consequence for E1 and E6:</b> the spike SBD uses <i>as a boundary signal</i> is the same "normal replanning at phase transitions" that ROOT_SIGNAL §2 lists as a false alarm for root detection. A root detector built from prediction errors has to subtract the phase-boundary spikes, or calibrate on successes as Sentinel does.</li>
+</ul>
+
+<h2>3 · Ties to our programme</h2>
+<div class=tw><table>
+<tr><th>Thread</th><th>What an IDM, LAM or world model changes</th><th>Confidence</th></tr>
+<tr><td><b>Mining spec §6c, tier 3</b> (video only)</td><td>IDM-predicted gripper open/close gives phase boundaries, then the same rules as tier 1–2. The IDM must be trained on the target embodiment; for human video, use a hand-pose model instead. On our own sim data it adds nothing.</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>D15 source tags</b></td><td>Any field derived from an IDM is <code>estimated</code>, with σ taken from T1's held-out error on the same embodiment. With no T1-style number, the field is <code>unavailable</code>.</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>UQ1</b>: symptom vs decision anchor</td><td>An IDM or residual detector (E3b) can only find the <b>symptom</b> anchor: it sees motion going wrong. It can't find the <b>decision</b> anchor, which only interventions reveal (R-044: 7/7 rescued at forward 0; R-057: decided by forward 1). Latent-action segmentation finds phase boundaries, which are neither anchor. Prim's expectation stands: residuals find symptoms.</td><td><span class="tag i">I</span>, consistent with UWM's "deviate, then recover" <span class="tag v">V</span></td></tr>
+<tr><td><b>UQ3</b>: root frame + goal → IDM → sim</td><td>The workable variant is a goal-conditioned video model filling in the frames, then the IDM, then closed-loop sim with only successes kept. That is DreamGen plus our sim filter, so it is <b>feasible in principle but not on 8 GB</b>: fine-tuning a video model needs rented GPUs (§6). Inside sim, a scripted expert or rescue minting from the restored root is cheaper and exact. The route pays off only off-sim. → horizon H4, ranked low.</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>E1</b> (STAC, R-059)</td><td>No IDM role: it compares the policy with itself. SBD's result says spikes at phase transitions are expected (§2d).</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>E2</b> (d<sub>pn</sub>)</td><td>No IDM role.</td><td>—</td></tr>
+<tr><td><b>E3</b> = my T2</td><td>Cited, not redesigned. In sim it uses exact proprioception.</td><td>—</td></tr>
+<tr><td><b>E3b</b> (new): E3 without proprio</td><td>The IDM residual ‖IDM(o<sub>t</sub>, o<sub>t+k</sub>) − commanded‖ on the <b>same r047 episodes</b>. First test: does it track E3's proprio residual? Second: does it detect failures? If both pass, it is validated for tier 2–3 data.</td><td>Test design §4</td></tr>
+<tr><td><b>E4</b> (imitation disagreement)</td><td>No IDM is needed on <code>data/libero_raw</code>, since its actions are recorded. An IDM version adds value only for <b>successful episodes that are video-only</b>: external or generated. Depth goes in the c9k companion doc.</td><td>—</td></tr>
+<tr><td><b>E6 / UQ6</b> (tokens)</td><td>Next step after FAST: a frame-pair LAM (UniVLA's released checkpoint, or a small LAQ trained on LIBERO). Unlike FAST it also works on video-only data. Test: do its code changes line up with gripper-rule phase boundaries?</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>E7 / UQ8–9</b></td><td>ProTracer is the published neighbour (§2c). FOREWARN is the before-execution version. Neither replaces E7's validation against sim truth.</td><td><span class="tag v">V</span> for ProTracer's design</td></tr>
+<tr><td><b>Retraining</b> (D21 demo source, t2b, D23)</td><td>IDM-labelled segments rank below rescue minting and a scripted expert as a demo source in sim. They would add coverage only if the frames show situations we can't simulate. T4 is gated on T1 and on the retraining decisions.</td><td><span class="tag i">I</span></td></tr>
+<tr><td><b>Perturbation and mechanism work</b></td><td>An IDM doesn't localise mechanisms. <b>Confound:</b> an IDM trained on nominal frames, applied to camera-yaw frames, is itself out of distribution. A larger residual there would be the IDM shifting, not the policy failing. Run E3b on the start-pose axis first: the camera is nominal there <span class="tag i">I</span>.</td><td><span class="tag i">I</span></td></tr>
+</table></div>
+
+<h3>3b · What must be settled before any IDM experiment</h3>
+<ul>
+<li><b>Action convention.</b> The IDM must output LIBERO's 7-D action (dx, dy, dz, droll, dpitch, dyaw, gripper) in dataset units, the same as <code>runs/r047</code> <code>action_dims</code> and the cached LeRobot dataset <span class="tag v">V</span>. Predict the gripper as a binary class, not a regression value <span class="tag i">I</span>.</li>
+<li><b>The clamp.</b> The checkpoint's preprocessor has <code>use_percentiles: true</code> and <code>clip_outliers: true</code> <span class="tag v">V</span>. In training, actions are min-max normalised to [−1, 1] and then clamped (<code>processor_groot.py</code> ~l.1763). The bounds are q01/q99 for absolute action groups and min/max for relative ones (l.2235) <span class="tag v">V</span>. Whether the <code>libero_sim</code> groups are relative is <b>unverified</b>; <code>modality_config</code> is empty in the JSON. Consequences:
+ <ul>
+ <li>IDM labels beyond the bounds saturate silently, so large IDM errors are hidden in training, not flagged.</li>
+ <li>Genuinely large corrective actions (start-pose rescue) clamp in the same way as minted labels.</li>
+ </ul>
+ Report the fraction of IDM labels that clamp, next to that fraction for the real labels.</li>
+<li><b>The gap k.</b> k = 1 (per step) suits E3b's per-step residual. k = 16 with a 16-step chunk is the GR00T-Dreams default (<code>action_horizon: 16</code>) <span class="tag v">V</span>, equals GR00T's executed H, and suits c9k. Train both; it's cheap <span class="tag i">I</span>.</li>
+<li><b>Resolution and frames.</b> GR00T sees 256 px. The cached LeRobot dataset is 256 px at 20 fps (432 episodes, 52,970 frames, AV1) <span class="tag v">V</span>. <code>data/libero_raw</code> is 128 px <span class="tag v">V</span>, so for 256 px it needs re-rendering from its stored states. <b><code>runs/r047</code> saved no frames</b> (<code>video_dir=None</code>, no mp4) <span class="tag v">V</span>, so E3b needs a render-only replay of the stored actions first. The PoC showed replay reproduces rollouts (4/4, ≤ 2.6 mm drift).</li>
+<li><b>D10.</b> Labels from an IDM for another embodiment are a coverage-gap source, not failure-mode data.</li>
+<li><b>GPU and joins.</b> Every IDM training run is a gated GPU step (prim → my prim → impl), one model on the card at a time. Never join by <code>rollout_id</code>; use the row index or (scene, radius, direction, noise seed).</li>
+</ul>
+
+<h2>4 · Cheapest tests that would settle each question</h2>
+<p class=small>Thresholds are placeholders until SFT pre-registers them.</p>
+<div class=tw><table>
+<tr><th>#</th><th>Test</th><th>Data · cost</th><th>Opens the direction if</th><th>Closes it if</th></tr>
+<tr><td><b>T0</b></td><td>Replay the <i>recorded</i> actions of the 50 scene-984 human demos from their restored <code>states[0]</code>. Measure EEF drift and task success. (D22: replay of the human demos is unverified.)</td><td><code>data/libero_raw</code>; CPU, ~2–4 h with code</td><td>≥ 90% reproduce. T1 can then score IDM labels by replay on human demos.</td><td>&lt; 90%. T1's replay test then uses our own rollouts (4/4 reproduce), and human-demo replay becomes a separate fix.</td></tr>
+<tr><td><b>T1</b> (the gate)</td><td>Train a small IDM, k = 1 and k = 16, on the 256 px LeRobot data plus re-rendered rollouts. Hold out by episode, stratified by task. Measure:
+ <ul>
+ <li>(i) per-dimension error in normalised units, against GR00T's own first-chunk error (D20 scale);</li>
+ <li>(ii) timing of gripper flips;</li>
+ <li>(iii) <b>replay success</b> of the IDM labels, open-loop and with re-labelling every 16 steps;</li>
+ <li>(iv) the fraction of labels clamped.</li>
+ </ul></td><td>Mostly GPU; see §6</td><td>Re-labelled replay success ≥ 80% of what ground-truth replay achieves, and gripper flips within ±2 steps. For reference, UWM's open-loop tracking reached 55–65% <span class="tag v">V</span>.</td><td>Replay success &lt; 50%, or gripper timing off by more than a forward. The labels are then unusable for training (T4 and H4 close); phase segmentation (§6c) might survive.</td></tr>
+<tr><td><b>E3b</b> (was T3)</td><td>On the r047 start-pose episodes (300, of which 109 failed), re-rendered: per-step IDM residual vs E3's proprio residual. Spearman ρ over steps; spike agreement within one forward; then AUROC for failure vs success.</td><td>Render ~1–3 h, IDM inference minutes, analysis ~0.5 day (CPU)</td><td>ρ ≥ 0.7 and spikes within one forward of E3's. The IDM is then validated as a proprio substitute; carry it to tier 2 (DROID) where proprio exists to check again.</td><td>ρ &lt; 0.4. The IDM residual is mostly IDM error. Keep E3 (proprio) and drop the video version.</td></tr>
+<tr><td><b>E6-LAM</b></td><td>UniVLA's stage-2 LAM over the LeRobot frames: code-change points vs gripper-rule phase boundaries. Same reference as E6-FAST.</td><td>~6 GB download, ~1 GPU-h</td><td>Boundary F1 ≥ FAST's, and it works on frames alone. It then becomes the segmenter for UQ5 task families.</td><td>Its boundaries don't line up better than chance. Fall back to a VLM (E7) for segmentation.</td></tr>
+<tr><td><b>T4</b></td><td>A matched-budget LoRA: rescue-minted demos vs the same number of IDM-labelled segments covering the <i>same situations</i>. Same R-056 recipe and readouts (held-out, nominal, D20 fit).</td><td>~6 GPU-h; gated on T1 and on t2b/D21/D23</td><td>The IDM arm matches the minting arm within CI. The labels are then good enough to use frames from sources without actions.</td><td>Clearly worse. Use IDM labels only off-sim.</td></tr>
+</table></div>
+<p>Order: T0 → T1 → E3b and E6-LAM in parallel → T4 only if T1 passes and retraining needs it. T1's replay-success rate is itself the IDM's quality number (prim, UQ3).</p>
+
+<h2>5 · Open-source IDMs and latent-action models we could start from</h2>
+<p><b>No released IDM speaks our action convention</b>: LIBERO's 7-D OSC delta, normalised the way GR00T expects. Every option means training on our data. "Fine-tuning" here means starting from a pretrained vision encoder or a pretrained IDM and training the action head on LIBERO.</p>
+<div class=tw><table>
+<tr><th>Candidate</th><th>Type</th><th>Weights</th><th>Licence</th><th>8 GB fit</th><th>How we'd use it</th></tr>
+<tr><td><b>Small custom IDM</b> (ResNet-18 or DINOv2-small, two frames, optional state → 16 × 7)</td><td>Real actions</td><td>ImageNet / DINOv2 init</td><td>—</td><td>Yes, easily (~15–25M parameters) <span class="tag i">I</span></td><td><b>T1's first arm.</b> The cheapest way to learn whether LIBERO labels replay at all.</td></tr>
+<tr><td><b>GR00T-Dreams IDM</b></td><td>Real actions, flow-matching DiT on SigLIP-2</td><td>No IDM weights; SigLIP-2-large init <span class="tag v">V</span></td><td>Apache 2.0 <span class="tag v">V</span></td><td>Only with the vision tower frozen (the config tunes it) or with gradient checkpointing and a small batch. About 0.45B parameters in total <span class="tag i">I</span></td><td><b>T1's second arm.</b> The same recipe NVIDIA used for GR00T data, with a 16-step horizon that matches GR00T. Needs conversion from LeRobot v3 to its GR00T-LeRobot format (<code>modality.json</code>, <code>stats.json</code>) <span class="tag i">I</span>.</td></tr>
+<tr><td><b>Seer</b></td><td>Predictive IDM (foresight + inverse tokens)</td><td>CALVIN; DROID-pretrained real <span class="tag v">V</span></td><td>Apache 2.0 <span class="tag v">V</span></td><td>Likely: 65M trainable <span class="tag i">I</span></td><td>Its inverse head fed with <i>true</i> future frames would act as an IDM pretrained on DROID. That needs a code check <span class="tag i">I</span>. The LIBERO-Long scripts exist.</td></tr>
+<tr><td><b>UWM</b></td><td>Joint video + action diffusion with an IDM mode</td><td>Code public; checkpoint availability not checked <span class="tag i">I</span></td><td>—</td><td>Unclear <span class="tag i">I</span></td><td>The only one with a LIBERO IDM-tracking result. A reference more than a starting point.</td></tr>
+<tr><td><b>UniVLA LAM</b></td><td>Latent actions</td><td>Stage 1 and stage 2 released <span class="tag v">V</span></td><td>Apache 2.0 <span class="tag v">V</span></td><td>Inference likely <span class="tag i">I</span></td><td>E6-LAM segmentation; not GR00T labels</td></tr>
+<tr><td><b>LAPA LAQ</b></td><td>Latent actions</td><td><code>laq_openx.pt</code> <span class="tag v">V</span></td><td>MIT <span class="tag v">V</span></td><td>Inference likely <span class="tag i">I</span></td><td>A second LAM for E6-LAM; can be trained on custom video (data loader change) <span class="tag v">V</span></td></tr>
+<tr><td>AnyPos, StableIDM, TC-IDM</td><td>Real actions</td><td>Not confirmed</td><td>—</td><td>—</td><td>AnyPos is bimanual ALOHA joint-space; TC-IDM is tool point clouds. Ideas, not starting points.</td></tr>
+<tr><td>VPT IDM</td><td>Game controls</td><td>Released</td><td>—</td><td>—</td><td>Not usable (Minecraft)</td></tr>
+</table></div>
+
+<h2>6 · Resource estimates</h2>
+<p class=small>Hardware: an 8 GB RTX PRO 1000 laptop GPU <span class="tag v">V</span>. Reference rates from our runs: about 50 s per GR00T rollout (R-053 rate, RESULTS R-060) <span class="tag v">V</span>; an R-056 LoRA r16 trains in 1–3 h at 6.3–6.7 GiB peak <span class="tag v">V</span>. Everything else is my estimate <span class="tag i">I</span>. "Eng" = impl working time.</p>
+<div class=tw><table>
+<tr><th>Item</th><th class=num>GPU</th><th>Wall time</th><th class=num>Disk</th><th>Eng</th><th>Notes</th></tr>
+<tr><td>T0 demo replay</td><td class=num>0</td><td>2–4 h</td><td class=num>&lt; 1 GB</td><td>0.5 d</td><td>Plain MuJoCo from the demo MJCF (PoC route)</td></tr>
+<tr><td>Frame prep: decode the 256 px LeRobot videos</td><td class=num>0</td><td>~0.5 h</td><td class=num>~21 GB raw</td><td>(in T1)</td><td>52,970 × 2 views × 196 KB. Decode on the fly or cache as JPEG to keep it at ~3 GB.</td></tr>
+<tr><td>Re-render r047 start-pose episodes</td><td class=num>0–1 h</td><td>1–3 h</td><td class=num>~2–4 GB as mp4</td><td>0.5 d</td><td>Render-only replay, no policy. Needed by E3b and as rollout training data for T1.</td></tr>
+<tr><td>T1 arm A: small IDM (k = 1 and k = 16)</td><td class=num>1–2 h</td><td>~0.5 d</td><td class=num>&lt; 1 GB</td><td>1–1.5 d</td><td>Fits easily</td></tr>
+<tr><td>T1 arm B: GR00T-Dreams IDM</td><td class=num>4–8 h</td><td>overnight</td><td class=num>~2 GB</td><td>1–2 d</td><td>Frozen vision tower, batch 4–8; format conversion is most of the work</td></tr>
+<tr><td>T1 replay scoring (~85 held-out episodes)</td><td class=num>0–1 h</td><td>~1 h</td><td class=num>—</td><td>(in T1)</td><td>CPU MuJoCo is possible</td></tr>
+<tr><td>E3b analysis</td><td class=num>&lt; 0.5 h</td><td>hours</td><td class=num>—</td><td>0.5–1 d</td><td>Shares E3's code path</td></tr>
+<tr><td>E6-LAM (UniVLA)</td><td class=num>~1 h</td><td>~0.5 d</td><td class=num>~6 GB</td><td>0.5 d</td><td>Weights download</td></tr>
+<tr><td><b>Gate package total</b> (T0, T1 arm A, re-render, E3b)</td><td class=num><b>≤ 6 h</b></td><td><b>~1 week calendar</b></td><td class=num><b>~10–30 GB</b></td><td><b>3–4 d</b></td><td>Arm B adds 4–8 GPU-h and 1–2 d</td></tr>
+<tr><td>T4 matched-budget LoRA</td><td class=num>~6 h</td><td>1–2 d</td><td class=num>~2 GB</td><td>1 d</td><td>~2 h training + ~250 rollouts × 50 s. Gated.</td></tr>
+<tr><td>H4: goal-conditioned video generation (UQ3 variant)</td><td class=num><b>Not on 8 GB</b></td><td>1–2 weeks</td><td class=num>~50 GB</td><td>1–2 wk</td><td>Rent: a LoRA fine-tune of a ~2B video model on LIBERO, ~10–30 H100-h, plus ~1,000 clips at ~10–20 H100-h ≈ $60–150 at ~$2.5/h. DreamGen's scale was ~81k L40-h, for reference.</td></tr>
+<tr><td>H5: world-model RL at mined roots</td><td class=num>WM ~1–2 d local; RL not on 8 GB</td><td>2–4 weeks</td><td class=num>~20 GB</td><td>2–3 wk</td><td>VLA-RFT's world model is 138M, so it could train locally. RL on a 3B GR00T needs ~4 × 80 GB rented.</td></tr>
+</table></div>
+
+<h2>7 · New horizons, ranked by novelty × feasibility</h2>
+<div class=tw><table>
+<tr><th>#</th><th>Direction</th><th>Novelty check</th><th>Feasibility for us</th><th>What it takes</th></tr>
+<tr><td><b>H1</b></td><td><b>A validated, proprio-free symptom detector.</b> The IDM residual is calibrated against the proprio residual in sim (E3b), checked again on a tier-2 dataset where proprio exists (DROID), then used on video-only data to fill the <code>anchor.symptom</code> field with a measured σ.</td><td>
+ <ul>
+ <li>ProTracer needs proprioception.</li>
+ <li>FoMo-FD learns nominal visual dynamics.</li>
+ <li>VLA-Corrector works on latents.</li>
+ </ul> I found no work that calibrates an IDM residual <i>against</i> a proprio residual as a stand-in. Medium novelty <span class="tag i">I</span>.</td><td>High: the gate package plus one DROID slice</td><td>§6 gate, then ~1 week for the DROID check (a Franka IDM; GR00T-Dreams ships a Franka config)</td></tr>
+<tr><td><b>H2</b></td><td><b>Replay-verified labels as a spec-level trust field.</b> Every demo or segment the miner returns carries "its labels replay to within X". For sim data this comes from ground-truth replay; for external data, from IDM labels replayed in a matching sim. This extends D15's <code>source</code>/σ to actions.</td><td>AnyPos uses replay to <i>evaluate an IDM</i>; DreamGen filters with a VLM judge. Using replay as a <i>per-instance trust field</i> in a mining product is new as far as I found <span class="tag i">I</span>.</td><td>High once T0 and T1 exist</td><td>A schema field plus the T1 replay code</td></tr>
+<tr><td><b>H3</b></td><td><b>Latent-action segmentation for task families without gripper events</b> (UQ5), validated on pick-and-place against gripper rules first</td><td>SBD and HiLAM already segment by prediction error or latent skills. Our angle is the validation against rule phases and its use as a timing signal. Low–medium novelty <span class="tag i">I</span>.</td><td>Medium: the released UniVLA LAM; LIBERO has only pick-and-place for validation</td><td>E6-LAM, then one non-pick-and-place dataset (LIBERO-MAX or RoboCasa drawers)</td></tr>
+<tr><td><b>H4</b></td><td><b>Generation targets driven by spec instances</b> (the UQ3 variant): root frame + success predicate → goal-conditioned video → IDM → closed-loop sim filter → successes for that root</td><td>DreamGen generates for new behaviours from prompts; LIBERO-Recover starts from failure states; VLA-RFT does RL in a world model. Targeting <i>mined failure roots</i> appears unpublished <span class="tag i">I</span>. Medium–high novelty.</td><td>Low: rental needed; in sim a scripted expert does it more cheaply; value only off-sim</td><td>§6 H4 row; only after T1 passes and a client case exists without a sim</td></tr>
+<tr><td><b>H5</b></td><td><b>World-model RL restricted to mined root situations</b></td><td>VLA-RFT and HaWMPO do world-model RL on LIBERO from standard starts. Concentrating rollouts on root snapshots is a small step from them <span class="tag i">I</span>.</td><td>Low: RL on 3B doesn't fit 8 GB, and world-model fidelity is weakest off-expert (res21, SIM_ALTERNATIVES §6)</td><td>§6 H5 row</td></tr>
+</table></div>
+<p class=small>The gap between the policy's chunk and an IDM's on successful video, as a proactive mining signal, is left to the c9k companion doc. One piece of evidence belongs here already: in UWM, the policy deviates from the reference demos more than the IDM does (tracking 0.26–0.47 vs 0.55–0.65) and yet "eventually recover[s] and solve[s] the tasks" <span class="tag v">V</span>. That is direct evidence that open-loop deviation from a demo is a weak proxy for closed-loop failure.</p>
+
+<h2>8 · Sources</h2>
+<ul class=small>
+<li>GR00T N1, <a href="https://arxiv.org/abs/2503.14734">arXiv 2503.14734</a> (§2.2, §2.3, §3.2, §4.4) · Isaac-GR00T N1.7 <a href="https://github.com/NVIDIA/Isaac-GR00T">README</a> · <a href="https://huggingface.co/blog/nvidia/gr00t-n1-7">N1.7 blog</a></li>
+<li>DreamGen, <a href="https://arxiv.org/abs/2505.12705">arXiv 2505.12705</a> · <a href="https://github.com/NVIDIA/GR00T-Dreams">GR00T-Dreams</a> (<code>scripts/idm_training.py</code>, <code>IDM_dump/base.yaml</code>)</li>
+<li>LAPA <a href="https://github.com/LatentActionPretraining/LAPA">GitHub</a> · UniVLA <a href="https://github.com/OpenDriveLab/UniVLA">GitHub</a>, <a href="https://huggingface.co/qwbu/univla-latent-action-model">LAM weights</a> · villa-X <a href="https://arxiv.org/abs/2507.23682">2507.23682</a></li>
+<li>Seer, <a href="https://arxiv.org/abs/2412.15109">2412.15109</a>, <a href="https://github.com/InternRobotics/Seer">GitHub</a> · UWM, <a href="https://arxiv.org/abs/2504.02792">2504.02792</a> · DreamZero, <a href="https://arxiv.org/abs/2602.15922">2602.15922</a> · TC-IDM, <a href="https://arxiv.org/abs/2601.18323">2601.18323</a> · UniPi 2302.00111 · AVDC 2310.08576</li>
+<li>ProTracer, <a href="https://arxiv.org/abs/2609.21369">2609.21369</a> · FOREWARN, <a href="https://arxiv.org/abs/2502.01828">2502.01828</a> · AnyPos, <a href="https://arxiv.org/abs/2507.12768">2507.12768</a> · StableIDM, <a href="https://arxiv.org/abs/2604.17887">2604.17887</a> · Dream.exe, 2606.04811</li>
+<li>VLA-RFT, <a href="https://arxiv.org/abs/2510.00406">2510.00406</a>, <a href="https://github.com/OpenHelix-Team/VLA-RFT">GitHub</a> · HaWMPO 2609.09941 · SBD 2503.10684 · HiLAM 2601.23156</li>
+<li>Our tree: <code>~/.cache/huggingface/hub/models--nvidia--gr00t17-lerobot-libero_spatial-640/.../policy_preprocessor.json</code>; <code>third_party/lerobot/src/lerobot/policies/groot/processor_groot.py</code> l.1706–1770, 2222–2243; <code>~/.cache/huggingface/lerobot/IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot/meta/info.json</code>; <code>data/libero_raw/libero_spatial/*.hdf5</code>; <code>runs/r047/rollouts.jsonl</code> and logs; RESULTS.md R-044, R-056, R-057, R-060.</li>
+</ul>
+<p class=small>Written by res22, 2026-10-09. Not committed (prim commits). The follow-up c9k (VLA vs IDM chunks on the same observations) will be a short companion doc, outlined to the user first.</p>
+</div></body></html>
