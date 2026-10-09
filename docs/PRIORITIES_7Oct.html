@@ -112,7 +112,8 @@ const TIERS = [
   ["c9g","res22: ask the LIBERO-MAX authors about its missing licence","Needed before anything client-facing.","you"],
   ["c9h","Mining spec, parked: sim generation from the root","Restore the sim at the failure point and produce a success there (scripted expert, rescue minting at step t, teleop). Replay determinism held 4/4 in the PoC toy. Same as ms7 option b.","you"],
   ["c9i","Mining spec, parked: per-step sim-state snapshots in the harness (impl)","sim.get_state() at each forward so any root can be restored exactly; only helps new rollouts. After the G0c follow-ups, since it touches the same code.","you"],
-  ["c9j","res22: IDM + VLA (+ world model) horizons research","Scoped by prim 10-09 on the user's request; outline goes to the user first. Deliverable docs/IDM_VLA_HORIZONS.html.","res22"]]],
+  ["c9j","res22: IDM + VLA (+ world model) horizons research","Scoped by prim 10-09 on the user's request; outline goes to the user first. Deliverable docs/IDM_VLA_HORIZONS.html.","res22"],
+  ["c9k","res22 (queued after c9j): VLA vs IDM chunk disagreement on the same observations","Is it useful? On own rollouts ≈ commanded-vs-achieved (c) plus IDM error; on successful demos = imitation disagreement (d), a proactive mining signal. Outline to the user first.","res22"]]],
  ["1 · Finish what already ran", "cheap; unblocks the rest", [
   ["t1a","Score R-058 r64 (no transfer)","CPU, ~1 min. Transfer skipped after GPU OOM; E4 and transfer metrics 'not run'.","impl"],
   ["t1b","Interpret the D20 fit test and loss into R-056's provisional paragraph","Training starts closed 30% of the gap, held-out 12%: coverage AND loss-vs-sampling. runs/r056_diag/fit_firstchunk.json","SFT · my prim"],
