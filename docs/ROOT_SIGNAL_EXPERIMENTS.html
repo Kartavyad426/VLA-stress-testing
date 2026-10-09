@@ -149,6 +149,15 @@ Tags: <span class="tag agreed">agreed</span> with the user; <span class="tag pro
 <li><b>E7</b>: closed-question mode for <code>vlm_label.py</code>, event frames rendered by replay, bisection mode.</li>
 <li><b>E3 controller facts</b> [V, OSC_POSE config]: input ±1 → output ±0.05 m translation, ±0.5 rad rotation per step; kp 150, so a commanded move is never fully achieved even when nothing goes wrong, and the baseline residual comes from successes.</li>
 <li><b>Code status</b> [V]: E1 adapts an existing script; E2, E3 and E6 need small new scripts; E4 reuses <code>r056_diag_fit.py</code>; E7 extends <code>vlm_label.py</code> (R-047 stores image references, not frames, so frames are re-rendered by replay); E1b needs the new runner.</li>
+<li><b>E6 prioritised and widened</b> (user, 10-09): my prim runs it next after the script in progress. All experiment code is targeted for today; runs follow through the gate. The widened scope asks whether FAST tokens can serve as an SAE-like <em>feature dictionary over actions</em> for spec labels: features that need not be human-interpretable but are usable, and come from outside the model (MINING_SPEC_DESIGN D16).
+  <ol>
+  <li><b>Timing via sliding windows:</b> FAST applies a DCT per action dimension over the whole chunk, then BPE, so its tokens are frequency patterns, not time-local [I, to be checked in the code]. Timing comes from tokenising sliding windows (16 and 10 steps, stride 1–4) over the executed action stream.</li>
+  <li><b>Enrichment</b> of tokens and bigrams in failures vs successes, around the symptom anchor vs elsewhere, and by phase. Effect sizes with episodes as the unit.</li>
+  <li><b>Partial interpretability:</b> decode enriched tokens back to action snippets (FAST is invertible) and describe what's describable.</li>
+  <li><b>Boundary alignment</b> with gripper-rule phases (the original E6).</li>
+  <li><b>Executed actions first</b> (the spec route); predicted chunks optional.</li>
+  </ol>
+  Tokenizers: the cached LIBERO-fitted one and <code>lerobot/fast-action-tokenizer</code>.</li>
 <li><b>Still open:</b> E5 (waits on the UQ1 anchor decision and Q2).</li>
 </ul>
 
