@@ -13,7 +13,7 @@ No output of **new or changed experiment / analysis / pipeline code** may be:
 
 until that pipeline has a **PASS** entry in this file.
 
-The flow: the author (impl, my prim, PoC, res*, …) says "done" and notifies the **checker session** and prim. The checker runs the checklist below and appends an entry here. Only then does the result travel. A **FAIL** goes back to the author with the failing check named, and nobody interprets the data until a later entry passes.
+The flow: the author (impl, my prim, PoC, res*, …) says "done" and notifies the **checker session (`val`)** and prim. The checker runs the checklist below and appends an entry here. Only then does the result travel. A **FAIL** goes back to the author with the failing check named, and nobody interprets the data until a later entry passes.
 
 The purpose is to separate **pipeline faults from data effects**. If a pipeline passes its controls and the result is still surprising, the surprise is in the data. If it fails, it's the pipeline. (R-056 took days to settle this; D20's anchor reproduction finally did.)
 
