@@ -1,4 +1,4 @@
-# PIPELINE_CHECKS: gate ledger for new code
+# PIPELINE_CHECKS: code-check ledger
 
 A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this file records **whether the code that produced them was fit to produce them**. Started 2026-10-09 at the user's request.
 
@@ -6,13 +6,18 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 
 **What val is for.** `val` makes sure the **pipeline isn't wrong**. It doesn't judge whether results are interesting. That covers experiment code and also training recipes (e.g. LR schedule and recipe settings for a fine-tune), and it may reproduce a model's published or earlier numbers to check our pipeline.
 
-**The gate.** No output of **new or changed experiment / analysis / pipeline code** may be reported to prim or the user as a result, interpreted, written into `RESULTS.md`, committed as a run result, or used to justify or launch a further GPU step until that pipeline has a **PASS** (or a PASS with only non-numeric notes) here. Output already produced today by new code is **UNCHECKED** until then. Entries already in `RESULTS.md` from before 10-09 stand.
+**The gate is on code, not on results** (user, 10-09).
+- Output of new or changed code **may be reported and discussed**, but it must carry the tag **UNVERIFIED (code not yet checked)** until its pipeline has a PASS here (or a PASS with only non-numeric notes).
+- Three things still wait for a PASS: writing into `RESULTS.md`, committing as a run result, and justifying or launching a GPU step.
+- A **FAIL** blocks downstream use and any launch that depends on it, immediately.
+- Entries already in `RESULTS.md` from before 10-09 stand.
 
 **The flow.**
 1. The author (impl, my prim, PoC, res*, prim for its own pipelines) says "done" and hands over to `val` and prim: the command, inputs, output path, the plan section it implements, a proposed anchor for check 1, and `code_state/` in the outputs. Anything missing comes back as "not ready".
-2. `val` runs the checklist. It may run authors' CPU scripts read-only, with its outputs only under `runs/checks/<PC-id>/`. For GPU pipelines it checks the CPU parts. The GPU controls it thinks a check needs (same-seed bit-identity, a nominal-vs-nominal null, a planted corruption) go to **prim or the user as proposals**, not to impl directly; once approved they run through the normal gate.
-3. **Judgement:** `val` records each approve/reject with its reasoning, acts on it immediately (a FAIL blocks downstream dependents at once), then asks the user to approve the judgement. The user has precedence: only the user can override a block, and a block becomes permanent only with the user's approval.
-4. `val` shows each entry and queue edit to the user before appending it. prim commits.
+2. **Before checking**, `val` asks the code owner about open known issues and which behaviours are deliberate design choices. Its report says what it learned from the owner and what it checked for itself.
+3. `val` runs the checklist. It may run authors' CPU scripts read-only, with its outputs only under `runs/checks/<PC-id>/`. For GPU pipelines it checks the CPU parts. The GPU controls it thinks a check needs (same-seed bit-identity, a nominal-vs-nominal null, a planted corruption) go to **prim or the user as proposals**, not to impl directly; once approved they run through the normal gate.
+4. **Judgement:** `val` records each approve/reject with its reasoning, acts on it immediately (a FAIL blocks downstream dependents at once), then asks the user to approve the judgement. The user has precedence: only the user can override a block, and a block becomes permanent only with the user's approval.
+5. `val` shows each entry (its judgement plus the ledger text) to the user **once**; one approval covers both. prim commits.
 
 **Strictness.**
 - Counts and labels must match exactly.
@@ -24,8 +29,9 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 **Pinning.** Each entry records the sha256 of every checked script and input. Any edit after a PASS invalidates it, and a delta re-check (PC-NNNa) covers what the edit touches.
 
 **val's own limits.**
-- It writes no code (including its own `experiments/check_*.py`) and edits no docs without approval: it proposes, waits, then acts. It may create standalone HTML check reports in the workspace's format.
-- Issues go to prim or the user first, never straight to impl.
+- **Standing approval for its own check scripts**, confined to `experiments/check_*.py` and `runs/checks/` (in the worktree for worktree pipelines), read-only on everyone else's code. Any other code or doc edit needs approval: it proposes, waits, then acts. It may create standalone HTML check reports in the workspace's format.
+- **Upstream caveats:** each entry lists the known caveats of its input pipelines. No anchors come from runs flagged in the G0c follow-ups (g0c3: the env-deletion render corruption, R-039's camera pose and frame phase) until res21's audit clears them.
+- val may **ask** code owners questions directly (known issues, design choices). **Change requests** go to prim or the user first, never straight to an author.
 - NIM calls are allowed, mindful of rate limits and quotas.
 - No commits, no subagents.
 
@@ -34,6 +40,8 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 The purpose is to separate **pipeline faults from data effects**. If a pipeline passes its controls and the result is still surprising, the surprise is in the data. If it fails, it's the pipeline. (R-056 took days to settle this; D20's anchor reproduction finally did.)
 
 **Scope:** any code that turns data into a number someone will act on: experiment runners, scorers, analysis scripts, harness changes. **Out of scope:** docs, plotting-only changes (unless the plot is the result), and one-off inspection snippets nobody reports from.
+
+**Later:** after val's first 2–3 real entries, val drafts a `pipeline-check` skill (`.claude/skills/pipeline-check/`) with the checklist, recipes for null, planted and known-answer checks per pipeline type, the repo's trap list and helpers. It's built with approval; prim commits it. Authors can use it as a pre-flight; it doesn't replace val's independent check.
 
 ## The checklist (every pipeline, every time)
 
@@ -56,7 +64,9 @@ A check that genuinely doesn't apply is marked **N/A with a reason**; it is neve
 - Date / checker: YYYY-MM-DD HH:MM, <session>
 - Author / commit or worktree path: <session>, <path @ commit>
 - Feeds: <R-0xx / E-n / doc>
-- Inputs: <paths, row counts, hashes>
+- Inputs: <paths, row counts, sha256>
+- From the code owner: <open known issues, design choices>
+- Upstream caveats: <known issues of input pipelines>
 - 1 Known answer: <anchor → reproduced value> PASS/FAIL
 - 2 Null: <what → value> PASS/FAIL
 - 3 Planted: <what, where → found where> PASS/FAIL
