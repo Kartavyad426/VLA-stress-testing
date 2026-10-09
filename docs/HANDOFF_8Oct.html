@@ -853,7 +853,7 @@
     <li><b>What the search matched on:</b> simulator state (object poses from <code>_gt_scene_object_pos</code> or restored demo states), plus the eef from proprioception and gripper rotation by FK. No images. So it doesn't transfer to image-only data without P2b. <span class="small">[V]</span></li>
     <li><b>Replay determinism</b> holds for our LIBERO-Plus rollouts: 4/4 rows, ≤ 2.6 mm. Still not shown for libero_raw demos (D22). <span class="small">[V]</span></li>
     <li><b>Segmenter reliability:</b> <code>LiberoPhaseSegmenter</code> is rule-based, with placeholder thresholds and no validation against labels. It splits the toy failure into 22 segments (1-step "retry" pieces, a "transport" for the 2 cm rim lift, a "transport" on the last step). The toy root came from my criterion rule instead, which handles grasp roots only. <span class="small">[V]</span></li>
-    <li><b>Corrections to §7b</b> were sent to prim 10-08 (Doc B §2). Not yet folded into MINING_SPEC_DESIGN.</li>
+    <li><b>Corrections to §7b</b> were sent to prim 10-08 (Doc B §2). Folded into MINING_SPEC_DESIGN §7b by prim (6580cfc).</li>
   </ul>
 
   <h3>6. Gotchas</h3>
@@ -879,7 +879,7 @@
     <tr><th>Step</th><th>Owner</th><th>Gate</th></tr>
     <tr><td>Review Doc A and Doc B; decide on the offered wording edits</td><td>user</td><td>—</td></tr>
     <tr><td>Decide val / UNVERIFIED / as-is for the toy pipeline; if val, add <code>code_state/</code> and hand over (anchor: root t=31 for row 14; search hits 0 / 1)</td><td>user → PoC successor</td><td>PIPELINE_CHECKS</td></tr>
-    <tr><td>Fold the §7b corrections into MINING_SPEC_DESIGN</td><td>prim</td><td>user approval</td></tr>
+    <tr><td>Fold the §7b corrections into MINING_SPEC_DESIGN</td><td>prim</td><td>done (6580cfc)</td></tr>
     <tr><td>Fix <code>divergence_point</code> on LIBERO (and the <code>failure_cost</code> drop rule)</td><td>impl</td><td>user via prim; then val</td></tr>
     <tr><td>Decide ms1–ms7</td><td>user · prim</td><td>—</td></tr>
     <tr><td>Build the PoC on the chosen path (event tables, schema, 10-task search)</td><td>impl</td><td>ms1–ms7 decided; val per pipeline</td></tr>
