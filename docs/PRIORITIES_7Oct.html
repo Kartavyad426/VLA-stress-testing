@@ -114,6 +114,15 @@ const TIERS = [
   ["c9i","Mining spec, parked: per-step sim-state snapshots in the harness (impl)","sim.get_state() at each forward so any root can be restored exactly; only helps new rollouts. After the G0c follow-ups, since it touches the same code.","you"],
   ["c9j","res22: IDM + VLA (+ world model) horizons research","Scoped by prim 10-09 on the user's request; outline goes to the user first. Deliverable docs/IDM_VLA_HORIZONS.html.","res22"],
   ["c9k","res22 (queued after c9j): VLA vs IDM chunk disagreement on the same observations","Is it useful? On own rollouts ≈ commanded-vs-achieved (c) plus IDM error; on successful demos = imitation disagreement (d), a proactive mining signal. Outline to the user first.","res22"]]],
+ ["Root signal experiments · in progress (added 10-09)", "docs/ROOT_SIGNAL_EXPERIMENTS.html; CPU = my prim, GPU = impl through my prim's gate", [
+  ["rs1","E1 = R-059 part A (A1 failure type, A2 clock baseline, A3 single-draw STAC) on R-047","Pre-registered 09-29; supersedes t4b. Prior: single-draw STAC at chance on R-041.","my prim"],
+  ["rs2","E2: perturbed-vs-nominal gap (d_pn) as a root/failure signal (exploratory)","CPU, stored npz.","my prim"],
+  ["rs3","E3: commanded vs achieved motion (exploratory)","CPU, rollouts.jsonl; OSC ±1 → ±5 cm per step; baseline from successes.","my prim"],
+  ["rs4","E6: FAST action-token boundaries vs gripper-rule phases (exploratory)","CPU; cached LIBERO-fitted FAST tokenizer.","my prim"],
+  ["rs5","E1b = R-059 parts B/C: multi-draw runner, smoke, C1 (240 start-pose rollouts)","Runner spec t4a sent by my prim; ~4 h GPU at B=32.","impl · my prim"],
+  ["rs6","E4: GR00T open-loop on the toy task's 50 human demos vs demo actions","GPU, ~500 forwards; reuses r056_diag_fit.py.","impl"],
+  ["rs7","E7: VLM closed questions at event frames + bisection, scored vs sim truth","GPU (replay render + local Qwen3-VL); extends vlm_label.py.","impl"],
+  ["rs8","E5: combined root vs ground truth","Waits on the UQ1 anchor decision (interventions vs hand labels).","you"]]],
  ["1 · Finish what already ran", "cheap; unblocks the rest", [
   ["t1a","Score R-058 r64 (no transfer)","CPU, ~1 min. Transfer skipped after GPU OOM; E4 and transfer metrics 'not run'.","impl"],
   ["t1b","Interpret the D20 fit test and loss into R-056's provisional paragraph","Training starts closed 30% of the gap, held-out 12%: coverage AND loss-vs-sampling. runs/r056_diag/fit_firstchunk.json","SFT · my prim"],

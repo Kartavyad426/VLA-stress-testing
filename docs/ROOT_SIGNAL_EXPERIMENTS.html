@@ -139,12 +139,25 @@ Tags: <span class="tag agreed">agreed</span> with the user; <span class="tag pro
 <li>Thresholds are placeholders until pre-registration; SFT sets them there.</li>
 </ul>
 
+<h2>5b · Started 10-09 <span class="tag agreed">agreed</span></h2>
+<ul>
+<li><b>Owners:</b> my prim runs the CPU analyses (Q1). impl builds and runs the GPU items (approved 10-09: "start all GPU items"), each through my prim's gate.</li>
+<li><b>E1 = R-059 part A3</b> (already pre-registered 09-29), run with the rest of part A (A1 failure type, A2 clock baseline). Prior: the same single-draw statistic on R-041 was at chance (noise floor ~7 vs ‖P−N‖ ~1; <code>experiments/stac_r041_single_draw.py</code>). R-059 also records the length confound (every R-047 failure is an 18-forward timeout) and "smooth and wrong" failures, which STAC targets poorly. So E1 alone is expected to be weak; E1b (multi-draw) is the informative version.</li>
+<li><b>E2, E3, E6 run as exploratory</b> (not pre-registered); outputs are labelled exploratory, and anything acted on gets a pre-registered confirmation later.</li>
+<li><b>E1b</b> = R-059 parts B/C: my prim sends impl the runner spec (t4a).</li>
+<li><b>E4 now</b> (Q3 answered: not waiting for res22), demo-action version.</li>
+<li><b>E7</b>: closed-question mode for <code>vlm_label.py</code>, event frames rendered by replay, bisection mode.</li>
+<li><b>E3 controller facts</b> [V, OSC_POSE config]: input ±1 → output ±0.05 m translation, ±0.5 rad rotation per step; kp 150, so a commanded move is never fully achieved even when nothing goes wrong, and the baseline residual comes from successes.</li>
+<li><b>Code status</b> [V]: E1 adapts an existing script; E2, E3 and E6 need small new scripts; E4 reuses <code>r056_diag_fit.py</code>; E7 extends <code>vlm_label.py</code> (R-047 stores image references, not frames, so frames are re-rendered by replay); E1b needs the new runner.</li>
+<li><b>Still open:</b> E5 (waits on the UQ1 anchor decision and Q2).</li>
+</ul>
+
 <h2>6 · Open decisions <span class="tag open">open</span></h2>
 <div class="tw"><table>
 <tr><th>#</th><th>Decision</th><th>Options / prim's suggestion</th></tr>
-<tr><td class="id">Q1</td><td>Who owns the CPU analysis (E1–E3, E5)?</td><td>[my prim]: it owns R-059, whose part A is a CPU analysis on R-047, so E1 doubles as that. Alternative: PoC, which knows the toy pipeline. SFT pre-registers either way.</td></tr>
+<tr><td class="id">Q1 ✓</td><td>Who owns the CPU analysis (E1–E3, E5)? <b>Decided 10-09: my prim.</b></td><td>[my prim]: it owns R-059, whose part A is a CPU analysis on R-047, so E1 doubles as that. Alternative: PoC, which knows the toy pipeline. SFT pre-registers either way.</td></tr>
 <tr><td class="id">Q2</td><td>The hand-labelled root set: who labels, which episodes?</td><td>[~30 R-047 episodes, failures and successes mixed, start pose + camera]. Doubles as the P4b check of root detection in the mining spec.</td></tr>
-<tr><td class="id">Q3</td><td>Is E4 in scope now, or after res22's IDM research (c9j, c9k)?</td><td>[after res22]: its demo-action version needs no IDM, but res22 may change the design.</td></tr>
+<tr><td class="id">Q3 ✓</td><td>Is E4 in scope now, or after res22's IDM research (c9j, c9k)? <b>Decided 10-09: now.</b></td><td>[after res22]: its demo-action version needs no IDM, but res22 may change the design.</td></tr>
 <tr><td class="id">Q4</td><td>Record "time from policy signals, phase from rules" as D16 in MINING_SPEC_DESIGN?</td><td>[yes, as proposed until E5 reports]</td></tr>
 </table></div>
 
