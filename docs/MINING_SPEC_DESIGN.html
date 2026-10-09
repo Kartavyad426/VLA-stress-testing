@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 8 (D10–D15; §6c external data; §7b branching with PoC corrections; 10-08).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 9 (D10–D15; §6 v0 schema; §6c external data; §7b branching; 10-09).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -179,29 +179,97 @@ The prefix (how the episode got there) is not part of the search. It is used onl
 <tr><td class="id">T5</td><td><b>Successor or replacement.</b> Does the mining spec replace PLAN §9's manifest, or does a manifest row become one instance type within it?</td><td><span class="tag open">open</span></td></tr>
 </table></div>
 
-<h2>6 · Shape of an instance, for orientation only <span class="tag prop">proposed</span></h2>
-<p>Nothing below is decided. It shows which blocks the next iterations need to settle, not their fields.</p>
+<h2>6 · v0 instance schema <span class="tag prop">proposed · P6 pending</span></h2>
+<p>Added 10-09 in place of the earlier loose outline. ✱ = required. Built on PoC's toy instance (<code>runs/poc_toy/instance.json</code>) and aligned with D1–D15.</p>
 <pre>{
-  "spec":     { policy, checkpoint, deployment, phase: 0|1, schema_version },
-  "instance": {
-    "id", "scenario_ids": [ index ids, parent → child ],
-    "unit": "episode" | "segment",
-    "competence_domain": in-domain | in-domain+condition | held-out-task | other-embodiment   (D10)
-    "root":       first divergence, phase × failure mode                                    (D13)
-    "situation":  entry state at the root; held-fixed dims marked                           (D13)
-    "success":    exit condition that defines "got past it"                                 (D13)
-    "terminal":   final outcome, for Phase 1 cost                                           (D13)
-    "sequence":   optional raw evidence, PARKED                                             (D13)
-    "signature":  machine-checkable definition: what makes a window match (D5: required)
-    "brief":      teleoperator text, plus what success looks like (optional if not interpretable)
-    "generate":   sim recipe: env, task, knobs, init states
-    "evidence":   episodes, seeds, runs, P(fail | condition) with CI, sampling arm
-    "mechanism":  optional, with evidence status (D7)
-    "fixability", "coverage_required"
-    "assessment": Phase 1 only: prevalence, cost, severity, urgency, feasibility (D5, D6)
-    "ext":        customer extension fields (D8)
+  &quot;spec&quot;: {                                   // one per (policy, deployment), D3
+    &quot;policy&quot;: &quot;✱ id@revision&quot;,
+    &quot;deployment&quot;: &quot;✱ where it runs (sim suite / client site)&quot;,
+    &quot;phase&quot;: &quot;✱ 0 | 1&quot;,                       // D2
+    &quot;index_version&quot;: &quot;✱ scenario index version&quot;,
+    &quot;schema_version&quot;: &quot;✱&quot;
+  },
+  &quot;instance&quot;: {
+    &quot;id&quot;: &quot;✱&quot;,
+    &quot;unit&quot;: &quot;✱ episode | segment&quot;,                                  // D4
+    &quot;scenario_ids&quot;: [&quot;✱ task-level id&quot;, &quot;✱ sub-scenario id&quot;],       // D11
+    &quot;competence_domain&quot;: &quot;✱ in-domain | in-domain+condition | held-out-task | other-embodiment&quot;, // D10
+    &quot;task&quot;: { &quot;suite&quot;, &quot;task_id&quot;, &quot;instruction ✱&quot; },
+
+    &quot;root&quot;: {                                 // where it first went wrong, D13
+      &quot;phase&quot;: &quot;✱ approach | grasp | transport | place&quot;,
+      &quot;failure_mode&quot;: &quot;✱ miss | slip | drop | wrong_object | stall | collision&quot;,   // D12
+      &quot;t&quot;: &quot;✱ step&quot;, &quot;detector&quot;: &quot;✱ name + version&quot;, &quot;confidence&quot;: 0.0
+    },
+
+    &quot;situation&quot;: {                            // what the policy saw at the root, D13/D14
+      &quot;at&quot;: &quot;✱ e.g. grasp onset&quot;,
+      &quot;observation_window&quot;: &quot;✱ e.g. 1 frame&quot;,
+      &quot;fields&quot;: {
+        &quot;&lt;name&gt;&quot;: { &quot;value&quot;: &quot;...&quot;, &quot;source&quot;: &quot;✱ exact | estimated | unavailable&quot;,   // D15
+                    &quot;sigma&quot;: &quot;error if estimated&quot;, &quot;held_fixed&quot;: true, &quot;tolerance&quot;: &quot;...&quot; }
+      },
+      &quot;condition&quot;: { &quot;...&quot;: &quot;the suspected trigger, NOT part of the identity (D12)&quot; }
+    },
+
+    &quot;success&quot;: {                              // what &quot;got past it&quot; means, D13
+      &quot;template&quot;: &quot;✱ e.g. grasp.lift&quot;,
+      &quot;predicate&quot;: &quot;✱ machine-checkable rule&quot;
+    },
+
+    &quot;terminal&quot;: { &quot;outcome&quot;: &quot;✱ timeout | dropped | collision | ...&quot;, &quot;gripper_open_at_end&quot;: true },  // Phase 1 cost hook
+
+    &quot;evidence&quot;: {                             // a claim with its evidence, PLAN §9
+      &quot;runs&quot;: [&quot;✱&quot;], &quot;episodes&quot;: [&quot;✱ row / seed keys, never rollout_id alone&quot;],
+      &quot;p_fail_given_condition&quot;: { &quot;value&quot;: 0.5, &quot;ci&quot;: [0, 1], &quot;n&quot;: 2, &quot;sampling_arm&quot;: &quot;uniform | targeted&quot; }
+    },
+
+    &quot;mechanism&quot;: { &quot;status&quot;: &quot;✱ untested | localised | ruled-out&quot;, &quot;finding&quot;: &quot;...&quot;, &quot;holds_fixed&quot;: [&quot;...&quot;] },  // D7
+
+    &quot;fixability&quot;: &quot;augmentation | data | architecture | operational&quot;,    // PLAN §7b, optional
+    &quot;brief&quot;: &quot;teleop text, optional (absent if not interpretable)&quot;,      // D1, D5
+    &quot;generate&quot;: { &quot;restore&quot;: &quot;replay | state_snapshot&quot;, &quot;...&quot;: &quot;parked&quot; },// parked
+    &quot;sequence&quot;: &quot;raw failure events, PARKED evidence only&quot;,               // D13
+    &quot;assessment&quot;: &quot;Phase 1 only: prevalence, cost, severity, urgency, feasibility&quot;,  // D6
+    &quot;ext&quot;: {}                                                             // customer fields, D8
   }
 }</pre>
+<h3>Filled in for the toy case (scene 984, R-047 row 14)</h3>
+<pre>{
+  &quot;spec&quot;: { &quot;policy&quot;: &quot;nvidia/gr00t17-lerobot-libero_spatial-640@db1ff223&quot;,
+            &quot;deployment&quot;: &quot;LIBERO-Spatial (sim)&quot;, &quot;phase&quot;: 0,
+            &quot;index_version&quot;: &quot;v0&quot;, &quot;schema_version&quot;: &quot;0.1&quot; },
+  &quot;instance&quot;: {
+    &quot;id&quot;: &quot;984-startpose-01&quot;, &quot;unit&quot;: &quot;segment&quot;,
+    &quot;scenario_ids&quot;: [&quot;pick-and-place.bowl-to-plate&quot;, &quot;grasp.slip&quot;],
+    &quot;competence_domain&quot;: &quot;in-domain+condition&quot;,
+    &quot;task&quot;: { &quot;suite&quot;: &quot;libero_spatial&quot;, &quot;task_id&quot;: 984,
+              &quot;instruction&quot;: &quot;pick up the black bowl between the plate and the ramekin and place it on the plate&quot; },
+    &quot;root&quot;: { &quot;phase&quot;: &quot;grasp&quot;, &quot;failure_mode&quot;: &quot;slip&quot;, &quot;t&quot;: 31,
+              &quot;detector&quot;: &quot;poc_toy slip rule (lift &gt; 1.5 cm, then &lt; 5 cm)&quot;, &quot;confidence&quot;: null },
+    &quot;situation&quot;: {
+      &quot;at&quot;: &quot;grasp onset&quot;, &quot;observation_window&quot;: &quot;1 frame&quot;,
+      &quot;fields&quot;: {
+        &quot;eef_to_target_m&quot;:  { &quot;value&quot;: [-0.068, -0.036, 0.013], &quot;source&quot;: &quot;exact&quot;, &quot;held_fixed&quot;: true, &quot;tolerance&quot;: 0.015 },
+        &quot;gripper_tilt_deg&quot;: { &quot;value&quot;: 4.1,  &quot;source&quot;: &quot;exact&quot;, &quot;held_fixed&quot;: true, &quot;tolerance&quot;: 20 },
+        &quot;layout_xy_m&quot;:      { &quot;value&quot;: &quot;4 neighbours, relative&quot;, &quot;source&quot;: &quot;exact&quot;, &quot;held_fixed&quot;: true, &quot;tolerance&quot;: 0.03 },
+        &quot;frames&quot;:           { &quot;value&quot;: &quot;agent + wrist @ t=31&quot;, &quot;source&quot;: &quot;exact&quot;, &quot;held_fixed&quot;: false }
+      },
+      &quot;condition&quot;: { &quot;start_pose_radius_rad&quot;: 0.2, &quot;joint_direction&quot;: 1 }
+    },
+    &quot;success&quot;:  { &quot;template&quot;: &quot;grasp.lift&quot;, &quot;predicate&quot;: &quot;target rises ≥ 5 cm within 40 steps of onset&quot; },
+    &quot;terminal&quot;: { &quot;outcome&quot;: &quot;timeout&quot;, &quot;behaviour&quot;: &quot;retry_loop&quot;, &quot;gripper_open_at_end&quot;: true },
+    &quot;evidence&quot;: { &quot;runs&quot;: [&quot;runs/r047&quot;], &quot;episodes&quot;: [&quot;row 14 (noise seed 0)&quot;],
+                  &quot;p_fail_given_condition&quot;: { &quot;value&quot;: 0.5, &quot;n&quot;: 2, &quot;sampling_arm&quot;: &quot;uniform&quot; } },
+    &quot;mechanism&quot;: { &quot;status&quot;: &quot;untested&quot; }
+  }
+}</pre>
+<ul>
+<li><b>Identity</b> = <code>scenario_ids</code> + <code>root</code>: the searchable part, and what the corpus counts.</li>
+<li><b>Success query</b> = <code>situation</code> + <code>success</code>: run over datasets (D14), and the teleop or sim target (D1).</li>
+<li><b>Trust</b> = <code>evidence</code> + <code>mechanism</code> + each field's <code>source</code>: how far to rely on the instance, and which fields may be loosened.</li>
+<li>Two gaps the toy shows: its root detector has no confidence value, and its p(fail) rests on 2 seeds, which is why <code>n</code> is required.</li>
+</ul>
 
 <h2>6b · Worked example (D13, D14)</h2>
 <p class="muted">Facts marked [R] come from RESULTS.md R-056/R-058 and the post-mortem. The numbers in the instance and the query are illustrative.</p>
