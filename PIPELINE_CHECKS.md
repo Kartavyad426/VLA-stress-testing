@@ -32,6 +32,7 @@ A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this f
 **val's own limits.**
 - **Standing approval for its own check scripts**, confined to `experiments/check_*.py` and `runs/checks/` (in the worktree for worktree pipelines), read-only on everyone else's code. Any other code or doc edit needs approval: it proposes, waits, then acts. It may create standalone HTML check reports in the workspace's format.
 - **Upstream caveats:** each entry lists the known caveats of its input pipelines. No anchors come from runs flagged in the G0c follow-ups (g0c3: the env-deletion render corruption, R-039's camera pose and frame phase) until res21's audit clears them.
+- **R-047 nominal forward 0 isn't fully deterministic** (my prim, 10-09 [V]): the two axes store different act_P[0] for 984/n0 (max 0.038), and 1062/n0 differs slightly (0.005); the other checked cells are identical. Bitwise anchors must avoid those cells. Likely render nondeterminism, relevant to res21's pm1.
 - val may **ask** code owners questions directly (known issues, design choices). **Change requests** go to prim or the user first, never straight to an author.
 - NIM calls are allowed, mindful of rate limits and quotas.
 - **Uncleared upstream runs (10-09):** the runs flagged in the G0c follow-ups (R-039/R-042/R-048 camera N with the wrong pose, the mid-step frame phase, env-deletion render corruption) stay **uncleared**. Nobody owns clearing them until the user decides g0c3, so val should not wait on res21 for them; it should just avoid them as anchors.
