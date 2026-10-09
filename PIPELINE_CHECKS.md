@@ -2,18 +2,34 @@
 
 A companion to `RESULTS.md`. `RESULTS.md` records what experiments found; this file records **whether the code that produced them was fit to produce them**. Started 2026-10-09 at the user's request.
 
-## The rule (user, 10-09: a necessary condition)
+## The rule (user, 10-09: a necessary condition; scope finalised 10-09)
 
-No output of **new or changed experiment / analysis / pipeline code** may be:
+**What val is for.** `val` makes sure the **pipeline isn't wrong**. It doesn't judge whether results are interesting. That covers experiment code and also training recipes (e.g. LR schedule and recipe settings for a fine-tune), and it may reproduce a model's published or earlier numbers to check our pipeline.
 
-- reported to prim or the user as a result,
-- interpreted, or written into `RESULTS.md`,
-- committed as a run result, or
-- used to justify or launch a further GPU step,
+**The gate.** No output of **new or changed experiment / analysis / pipeline code** may be reported to prim or the user as a result, interpreted, written into `RESULTS.md`, committed as a run result, or used to justify or launch a further GPU step until that pipeline has a **PASS** (or a PASS with only non-numeric notes) here. Output already produced today by new code is **UNCHECKED** until then. Entries already in `RESULTS.md` from before 10-09 stand.
 
-until that pipeline has a **PASS** entry in this file.
+**The flow.**
+1. The author (impl, my prim, PoC, res*, prim for its own pipelines) says "done" and hands over to `val` and prim: the command, inputs, output path, the plan section it implements, a proposed anchor for check 1, and `code_state/` in the outputs. Anything missing comes back as "not ready".
+2. `val` runs the checklist. It may run authors' CPU scripts read-only, with its outputs only under `runs/checks/<PC-id>/`. For GPU pipelines it checks the CPU parts. The GPU controls it thinks a check needs (same-seed bit-identity, a nominal-vs-nominal null, a planted corruption) go to **prim or the user as proposals**, not to impl directly; once approved they run through the normal gate.
+3. **Judgement:** `val` records each approve/reject with its reasoning, acts on it immediately (a FAIL blocks downstream dependents at once), then asks the user to approve the judgement. The user has precedence: only the user can override a block, and a block becomes permanent only with the user's approval.
+4. `val` shows each entry and queue edit to the user before appending it. prim commits.
 
-The flow: the author (impl, my prim, PoC, res*, …) says "done" and notifies the **checker session (`val`)** and prim. The checker runs the checklist below and appends an entry here. Only then does the result travel. A **FAIL** goes back to the author with the failing check named, and nobody interprets the data until a later entry passes.
+**Strictness.**
+- Counts and labels must match exactly.
+- Deterministic CPU floats must agree to relative 1e-6.
+- GPU or bf16 re-runs must agree within a tolerance the author states **up front** from a same-seed repeat.
+- A null test must be exactly zero for deterministic code, otherwise at or below the measured noise floor.
+- "PASS with notes" may travel only if every note is non-numeric, and the notes go wherever the result is quoted.
+
+**Pinning.** Each entry records the sha256 of every checked script and input. Any edit after a PASS invalidates it, and a delta re-check (PC-NNNa) covers what the edit touches.
+
+**val's own limits.**
+- It writes no code (including its own `experiments/check_*.py`) and edits no docs without approval: it proposes, waits, then acts. It may create standalone HTML check reports in the workspace's format.
+- Issues go to prim or the user first, never straight to impl.
+- NIM calls are allowed, mindful of rate limits and quotas.
+- No commits, no subagents.
+
+**Turnaround:** about 2 h for a CPU pipeline after a complete handover.
 
 The purpose is to separate **pipeline faults from data effects**. If a pipeline passes its controls and the result is still surprising, the surprise is in the data. If it fails, it's the pipeline. (R-056 took days to settle this; D20's anchor reproduction finally did.)
 
@@ -52,7 +68,7 @@ A check that genuinely doesn't apply is marked **N/A with a reason**; it is neve
 - Check scripts: experiments/check_*.py, outputs runs/checks/<id>/
 ```
 
-## Queue (awaiting `val`; scope being finalised 10-09)
+## Queue (awaiting `val`)
 
 | Pipeline | Author | Where | Feeds |
 |---|---|---|---|
