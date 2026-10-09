@@ -78,6 +78,7 @@ Tags: <span class="tag v">V</span> checked against the paper, code, config or ou
  </ul></li>
 <li><b>Policies that predict the future and then apply an IDM</b> (Seer, UWM, DreamZero) <b>would replace GR00T, not add to it.</b> On LIBERO they don't beat current VLAs: Seer scores 87.7% on LIBERO-Long, against UniVLA's 92.0% on Long and 95.2% averaged over the four suites <span class="tag v">V</span>. There's no reason to switch.</li>
 <li><b>Expectation to set:</b> an IDM given the <i>true</i> future frames, run open-loop, reproduced only 55–65% of LIBERO-10 training demos in UWM's test (the policy managed 26–47%) <span class="tag v">V</span>. Replayed IDM labels will be imperfect even on clean data.</li>
+<li><b>VLA vs IDM chunks (c9k, §8):</b> on our own rollouts the difference is commanded-vs-achieved motion plus IDM error, so the IDM adds nothing there. On successful demos it is imitation disagreement, which needs no IDM where actions are recorded. Its clearest direct use is label quality. As a failure predictor it is weak in aggregate and untested per situation (test K1, no IDM, ~1–2 GPU-h).</li>
 <li><b>Next step:</b> a gate package of three parts. T0: does replaying the human demos' own actions reproduce them? T1: train a small LIBERO IDM and check that its labels replay. Then E3b on r047. About 3–4 engineer-days, ≤ 6 GPU-h. Nothing else involving an IDM should run before T1 passes (§4, §6).</li>
 </ul>
 </div>
@@ -281,15 +282,136 @@ DreamGen's own filter is a VLM judge, not a sim replay <span class="tag v">V</sp
 </table></div>
 <p class=small>The gap between the policy's chunk and an IDM's on successful video, as a proactive mining signal, is left to the c9k companion doc. One piece of evidence belongs here already: in UWM, the policy deviates from the reference demos more than the IDM does (tracking 0.26–0.47 vs 0.55–0.65) and yet "eventually recover[s] and solve[s] the tasks" <span class="tag v">V</span>. That is direct evidence that open-loop deviation from a demo is a weak proxy for closed-loop failure.</p>
 
-<h2>8 · Sources</h2>
+<h2 id=c9k>8 · VLA vs IDM chunks on the same observations (c9k)</h2>
+<p class=small>Added 2026-10-09 on the user's request (c9k), as a section of this doc rather than a separate one. The question: GR00T predicts a chunk from o<sub>t</sub> alone, sees no future, and executes only H = 16 of its C = 40 steps. An IDM sees (o<sub>t</sub>, o<sub>t+k</sub>). Is the difference between their chunks useful, and for what?</p>
+
+<div class="card tldr">
+<div class=q>Bottom line</div>
+<ul>
+<li><b>On our own sim rollouts, VLA − IDM ≈ the execution gap (signal c) + IDM error.</b> Proprioception gives (c) exactly, so here the IDM adds only error. Its one use on our rollouts is to <i>validate the IDM</i> (E3b).</li>
+<li><b>On successful episodes, it is the imitation disagreement (signal d).</b>
+ <ul>
+ <li>Where the actions are recorded (<code>data/libero_raw</code>, the IPEC LeRobot set), no IDM is needed.</li>
+ <li>An IDM version is useful only for successful <i>video-only</i> data, and only if the IDM's error is well below the disagreement being measured. T1 supplies that error budget.</li>
+ </ul></li>
+<li><b>The clearest direct use is label quality, not failure detection:</b> IDM vs recorded labels on minted, external or teleop demos.</li>
+<li><b>As a predictor of failure or a source of mining targets, open-loop disagreement is weak in aggregate.</b> Validation loss and MSE track checkpoint success poorly (robomimic, data-scaling laws, AutoEval), and policies that deviate from demos often recover (UWM). <b>Per situation it is untested</b>, and that is the cheap test below (K1).</li>
+<li><b>How to measure it:</b> as the policy's flow-matching loss of the demo chunk over several fixed (t, ε) draws, which is D20's loss path. Not as an L2 distance to one sampled chunk, which penalises valid alternative ways of doing the task and mixes in sampling noise.</li>
+</ul>
+</div>
+
+<h3>8.1 · What the two chunks are, and what their difference contains</h3>
+<p>Notation:
+<ul>
+<li><var>â</var><sup>π</sup><sub>t:t+40</sub> ~ π(· | o<sub>t</sub>, s<sub>t</sub>, ℓ): GR00T's chunk. Steps t … t+15 are executed after the postprocessor un-normalises and clips <span class="tag v">V</span>.</li>
+<li><var>â</var><sup>I</sup><sub>t:t+k</sub> = I(o<sub>t</sub>, o<sub>t+k</sub> [, s<sub>t</sub>]): the IDM's chunk.</li>
+<li><var>a</var><sup>ach</sup>: the "achieved" action, meaning the action that would explain the motion that actually happened (what a perfect IDM outputs).</li>
+<li><var>a</var><sup>D</sup>: a demonstrator's recorded action.</li>
+</ul></p>
+<div class=eq><span><b>Own rollout:</b> &nbsp; <var>â</var><sup>π</sup> − <var>â</var><sup>I</sup> = (<var>â</var><sup>π</sup> − <var>a</var><sup>ach</sup>) + (<var>a</var><sup>ach</sup> − <var>â</var><sup>I</sup>) = <b>execution gap (c)</b> + <b>IDM error ε<sub>I</sub></b></span><span class=n>(8.1)</span></div>
+<div class=eq><span><b>Someone else's success:</b> &nbsp; π(o<sub>t</sub>) − <var>â</var><sup>I</sup> = (π(o<sub>t</sub>) − <var>a</var><sup>D</sup>) + (<var>a</var><sup>D</sup> − <var>a</var><sup>ach</sup>) + (<var>a</var><sup>ach</sup> − <var>â</var><sup>I</sup>) = <b>intention gap (d)</b> + demonstrator's execution gap + ε<sub>I</sub></span><span class=n>(8.2)</span></div>
+<ul>
+<li><b>Identifiability.</b> In (8.1), (c) and ε<sub>I</sub> cannot be separated without a second measurement of the motion. Proprioception is that measurement in sim, which is why E3b has to be validated in sim first. Off-sim, any VLA–IDM gap carries an unknown ε<sub>I</sub>, bounded only by T1's held-out error on the same embodiment <span class="tag i">I</span>.</li>
+<li><b>In (8.2), the middle term is small in sim free space but not at contact</b> (grasp, push), which is exactly where roots sit. Disagreement near contact therefore mixes the demonstrator's own slips with the policy's intent <span class="tag i">I</span>.</li>
+<li><b>The unexecuted tail</b> (steps 17–40) has no IDM counterpart unless k = 40. Comparing it with what happened next gives no new signal:
+ <ul>
+ <li>against the next chunk's commanded head it is STAC (a);</li>
+ <li>against the achieved motion it is (a) + (c).</li>
+ </ul>
+ The tail positions are also never supervised by our fine-tunes (FLOW_MATCHING §3.3) <span class="tag v">V</span>.</li>
+<li><b>Compare like with like.</b> Use the post-clip executed action. Compare the gripper as a commanded flip against the realised finger closure, not as a regression value <span class="tag i">I</span>.</li>
+</ul>
+
+<h3>8.2 · By data source</h3>
+<div class=tw><table>
+<tr><th>Data</th><th>IDM needed?</th><th>What VLA − IDM measures</th><th>What it could detect</th><th>Limit</th></tr>
+<tr><td>Our rollouts, with proprio (r047)</td><td>No</td><td>(c) + ε<sub>I</sub></td><td>Nothing that E3 doesn't already give exactly</td><td>Use only to validate the IDM (E3b)</td></tr>
+<tr><td>Our rollouts, video only (or tier-2 logs with poor proprio)</td><td>Yes</td><td>(c) + ε<sub>I</sub></td><td>Symptom anchors: slip, block, a grasp that misses (UQ1)</td><td>Valid only after E3b passes; camera-shifted frames are out of distribution for the IDM</td></tr>
+<tr><td>Successful demos with actions (<code>libero_raw</code>, IPEC)</td><td>No</td><td>(d) exactly (through the policy's loss on <var>a</var><sup>D</sup>)</td><td>Candidate mining targets: situations where the policy would not do what the demonstrator did</td><td>Open-loop; only demo states (K1 tests whether it predicts failure)</td></tr>
+<tr><td>Successful video only (external, generated)</td><td>Yes</td><td>(d) + demonstrator gap + ε<sub>I</sub></td><td>The same mining targets, on data we can't simulate</td><td>Needs ε<sub>I</sub> ≪ (d) (K2) and same-embodiment frames (D10)</td></tr>
+<tr><td>Failed external video</td><td>Yes</td><td>The other policy's (c) + ε<sub>I</sub></td><td>Symptom anchors of <i>that</i> policy; a corpus count, not our failure mode (D10)</td><td>Same as row 2</td></tr>
+<tr><td>Minted or rescued demos, teleop, external labelled demos</td><td>Yes (as a checker)</td><td>Recorded label vs inferred label</td><td><b>Label quality:</b> misaligned frames, clamped labels, teleop glitches</td><td>Needs T1; flags are only as good as ε<sub>I</sub></td></tr>
+</table></div>
+
+<h3>8.3 · Where an IDM changes signals (a)–(d)</h3>
+<div class=tw><table>
+<tr><th>Signal</th><th>Change from an IDM</th></tr>
+<tr><td>(a) Self-consistency (STAC, E1)</td><td>None. It compares the policy with itself and runs off-sim without an IDM.</td></tr>
+<tr><td>(b) Perturbed vs nominal (d<sub>pn</sub>, E2)</td><td>None. It needs a paired nominal run, which an IDM can't create; off-sim it is unavailable either way.</td></tr>
+<tr><td>(c) Commanded vs achieved (E3)</td><td>The IDM replaces proprioception where it is missing (E3b). In sim it is redundant.</td></tr>
+<tr><td>(d) Imitation disagreement (E4)</td><td>The IDM replaces demo actions where they are missing. On LIBERO it is unnecessary.</td></tr>
+<tr><td>New: label QA</td><td>IDM vs recorded labels. The one use with no proprio or demo-action substitute.</td></tr>
+</table></div>
+
+<h3>8.4 · Evidence: how weak is open-loop disagreement as a proxy for closed-loop failure?</h3>
+<ul>
+<li><b>Aggregate, per checkpoint: weak.</b>
+ <ul>
+ <li>Robomimic (2108.03298): picking checkpoints by validation loss gave policies 50–100% worse than the best checkpoint, as reported in secondary summaries <span class="tag i">I</span>.</li>
+ <li>Data Scaling Laws in Imitation Learning (2410.18647): no correlation between MSE and success <span class="tag i">I</span>.</li>
+ <li>AutoEval (2503.24278): weak correlation <span class="tag i">I</span>.</li>
+ </ul></li>
+<li><b>Why: covariate shift.</b> Disagreement measured on demo states says nothing about the states the policy actually reaches after small errors. Our start-pose failures are off-demo states, decided at forwards 0–1 (R-044, R-057). By construction, a demo-frame signal sees them only where demo and rollout situations overlap <span class="tag i">I</span>.</li>
+<li><b>Deviation is not failure.</b> In UWM's LIBERO tracking test, policies deviate from the reference demos more than the IDM does (0.26–0.47 vs 0.55–0.65 tracking success) and still "eventually recover and solve the tasks" <span class="tag v">V</span>.</li>
+<li><b>Our own data</b> <span class="tag v">V</span> (FLOW_MATCHING §3.1, RESULTS R-056):
+ <ul>
+ <li>D20: the mean flow loss fell about 65% while the held-out sampled first chunk moved 9–12%.</li>
+ <li>R-056 fitted its training starts by 30% of the gap, held-out starts by 12%.</li>
+ <li>The base model's flow loss on IPEC demo frames is heavy-tailed: mean 0.051, median 0.0077.</li>
+ </ul>
+ So disagreement on demos is concentrated in a few frames. That is good for <i>ranking where to look</i>, and says nothing yet about failure.</li>
+<li><b>Multimodality and noise.</b> A successful demo is one of many valid ways to do the task. An L2 distance to one sampled chunk penalises a valid alternative and mixes in flow-matching sampling noise (one draw per forward). Two remedies:
+ <ul>
+ <li>(i) the flow-matching loss of the demo chunk at fixed (t, ε) draws: D20's <code>experiments/r056_diag_loss.py</code> path, 8 draws per frame <span class="tag v">V</span>, a likelihood proxy;</li>
+ <li>(ii) the distance to the nearest of B sampled chunks, or MMD as in STAC.</li>
+ </ul>
+ The exact likelihood (FLOW_MATCHING §3.3, "untried") is the principled version.</li>
+<li><b>Untested: per-situation prediction.</b> Does high disagreement in a <i>situation</i> predict failure for rollouts that reach that situation? I found no paper that tests this. My prior is weak to moderate <span class="tag i">I</span>.</li>
+</ul>
+<p><b>Disagreement is informative when four conditions hold:</b>
+<ol>
+<li>the situation is in-domain (D10);</li>
+<li>ε<sub>I</sub> ≪ the disagreement, if an IDM is involved;</li>
+<li>it is measured distributionally;</li>
+<li>it is used to rank where to look, not as a failure label.</li>
+</ol></p>
+
+<h3>8.5 · Cheapest tests on our stack</h3>
+<p class=small>Under the new rule (PIPELINE_CHECKS.md, 10-09), any script that produces numbers here is checked by val; until then, results are reported as UNVERIFIED.</p>
+<div class=tw><table>
+<tr><th>#</th><th>Test</th><th>Cost</th><th>Opens if</th><th>Closes if</th></tr>
+<tr><td><b>K1</b> (E4, loss form, no IDM)</td><td>
+ <ul>
+ <li>Base GR00T's flow-matching loss on every frame of the 50 scene-984 human demos (8 fixed draws per frame, reusing the D20 loss path).</li>
+ <li>Map high-loss frames to situations: phase plus eef→bowl offset, the D14 fields.</li>
+ <li>Match r047 scene-984 rollouts to those situations at the same phase (the PoC toy's search).</li>
+ <li>Test whether rollouts passing through high-loss situations fail more often.</li>
+ </ul></td><td>GPU ≈ 1–2 h for ~5–6k frames <span class="tag i">I</span>; CPU ~1 day for the matching</td><td>AUROC ≥ 0.7, or the top-decile loss situations show ≥ 2× the failure rate. Disagreement then becomes a proactive mining signal.</td><td>AUROC &lt; 0.6. Keep (d) only as a ranking aid for teleop briefs.</td></tr>
+<tr><td><b>K2</b> (IDM version)</td><td>K1's loss map recomputed with the demo actions replaced by T1's IDM labels. Spearman ρ between the two maps.</td><td>Minutes of GPU after T1</td><td>ρ ≥ 0.8: the IDM doesn't reshape the map, so the method carries to video-only successes.</td><td>ρ &lt; 0.5: video-only (d) is IDM-dominated. Stop there.</td></tr>
+<tr><td><b>K3</b> (label QA)</td><td>IDM vs recorded labels on the R-054 minted demos (<code>local/r054_train48</code>, already used in D20) and on <code>libero_raw</code>. Rank by residual; check whether the top residuals line up with clamped labels and known defects.</td><td>Minutes after T1</td><td>Flags concentrate on known-bad or clamped labels.</td><td>Flags look random. The IDM is too noisy to serve as a checker.</td></tr>
+</table></div>
+<p class=small>Overlap caveat for K1: r047 starts are perturbed and the demos start nominally, so situation overlap may be thin. Match at grasp onset, where trajectories converge, and report the number of matched pairs. K1 needs no IDM and can run before T1. K2 and K3 wait for T1.</p>
+
+<h3>8.6 · Prim's readings, checked</h3>
+<div class=tw><table>
+<tr><th>Prim's reading</th><th>Verdict</th></tr>
+<tr><td>On our own rollouts, VLA vs IDM ≈ (c) + IDM error, and the IDM adds value only where proprio is missing</td><td><span class=ok>Agree.</span> Equation (8.1). Two refinements: compare post-clip executed actions, and treat the gripper as an event.</td></tr>
+<tr><td>On successful data it is imitation disagreement (d), which could find mining targets proactively</td><td><span class=amb>Agree on the definition, qualify the use.</span> It sees only demo states, while start-pose failures live off them. It is a candidate list for ranking until K1 shows a per-situation link.</td></tr>
+<tr><td>Open-loop disagreement is a weak proxy for closed-loop failure</td><td><span class=ok>Agree.</span> The evidence (§8.4) is aggregate and per checkpoint; the per-situation link is untested. The heavy tail on IPEC suggests the signal is concentrated, which helps ranking.</td></tr>
+<tr><td>Where an IDM changes (a)–(c)</td><td>(a) and (b): no change. (c): it substitutes for proprio (E3b). Plus a use not in the list: label QA (K3).</td></tr>
+<tr><td>D20 an7 as the precedent</td><td><span class=amb>Qualify.</span> an7 is an L2 distance on chunk-0 translation against one reference. For demos, use D20's <i>loss</i> path instead (multimodality, noise). Keep an7 for comparability with R-056.</td></tr>
+</table></div>
+
+<h2>9 · Sources</h2>
 <ul class=small>
 <li>GR00T N1, <a href="https://arxiv.org/abs/2503.14734">arXiv 2503.14734</a> (§2.2, §2.3, §3.2, §4.4) · Isaac-GR00T N1.7 <a href="https://github.com/NVIDIA/Isaac-GR00T">README</a> · <a href="https://huggingface.co/blog/nvidia/gr00t-n1-7">N1.7 blog</a></li>
 <li>DreamGen, <a href="https://arxiv.org/abs/2505.12705">arXiv 2505.12705</a> · <a href="https://github.com/NVIDIA/GR00T-Dreams">GR00T-Dreams</a> (<code>scripts/idm_training.py</code>, <code>IDM_dump/base.yaml</code>)</li>
 <li>LAPA <a href="https://github.com/LatentActionPretraining/LAPA">GitHub</a> · UniVLA <a href="https://github.com/OpenDriveLab/UniVLA">GitHub</a>, <a href="https://huggingface.co/qwbu/univla-latent-action-model">LAM weights</a> · villa-X <a href="https://arxiv.org/abs/2507.23682">2507.23682</a></li>
 <li>Seer, <a href="https://arxiv.org/abs/2412.15109">2412.15109</a>, <a href="https://github.com/InternRobotics/Seer">GitHub</a> · UWM, <a href="https://arxiv.org/abs/2504.02792">2504.02792</a> · DreamZero, <a href="https://arxiv.org/abs/2602.15922">2602.15922</a> · TC-IDM, <a href="https://arxiv.org/abs/2601.18323">2601.18323</a> · UniPi 2302.00111 · AVDC 2310.08576</li>
 <li>ProTracer, <a href="https://arxiv.org/abs/2609.21369">2609.21369</a> · FOREWARN, <a href="https://arxiv.org/abs/2502.01828">2502.01828</a> · AnyPos, <a href="https://arxiv.org/abs/2507.12768">2507.12768</a> · StableIDM, <a href="https://arxiv.org/abs/2604.17887">2604.17887</a> · Dream.exe, 2606.04811</li>
+<li>c9k evidence: robomimic 2108.03298 · Data Scaling Laws in Imitation Learning 2410.18647 · AutoEval 2503.24278 (all via abstracts or secondary summaries, <span class="tag i">I</span>); our tree: <code>docs/FLOW_MATCHING_MATHS.html</code> §3.1, §3.3; <code>experiments/r056_diag_loss.py</code>; <code>runs/r056_diag/loss_rows.jsonl</code>; <code>runs/r047/joint_radius_rad/*.npz</code> (act_P, 10 × 40 × 7).</li>
 <li>VLA-RFT, <a href="https://arxiv.org/abs/2510.00406">2510.00406</a>, <a href="https://github.com/OpenHelix-Team/VLA-RFT">GitHub</a> · HaWMPO 2609.09941 · SBD 2503.10684 · HiLAM 2601.23156</li>
 <li>Our tree: <code>~/.cache/huggingface/hub/models--nvidia--gr00t17-lerobot-libero_spatial-640/.../policy_preprocessor.json</code>; <code>third_party/lerobot/src/lerobot/policies/groot/processor_groot.py</code> l.1706–1770, 2222–2243; <code>~/.cache/huggingface/lerobot/IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot/meta/info.json</code>; <code>data/libero_raw/libero_spatial/*.hdf5</code>; <code>runs/r047/rollouts.jsonl</code> and logs; RESULTS.md R-044, R-056, R-057, R-060.</li>
 </ul>
-<p class=small>Written by res22, 2026-10-09. Not committed (prim commits). The follow-up c9k (VLA vs IDM chunks on the same observations) will be a short companion doc, outlined to the user first.</p>
+<p class=small>Written by res22, 2026-10-09. Committed by prim (8f969f8); §8 added afterwards. §8 (c9k, VLA vs IDM chunks) was added the same day as a section, at the user's request, instead of a companion doc.</p>
 </div></body></html>
