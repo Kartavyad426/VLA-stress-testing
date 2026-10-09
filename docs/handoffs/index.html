@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Handoffs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code,pre{font:13px var(--mono);background:var(--surface-2);border-radius:3px}
+  code{padding:1px 4px}
+  pre{padding:12px 14px;overflow-x:auto;border:1px solid var(--rule)}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);vertical-align:1px;white-space:nowrap}
+  .tag.agreed{background:var(--ok);color:var(--surface)}
+  .tag.prop{background:var(--warn);color:var(--surface)}
+  .tag.open{background:var(--accent);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+  .piece{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;font-size:14px}
+  .piece b{display:block;font-size:15px;margin-bottom:2px}
+  .piece .n{font:500 12px var(--mono);color:var(--accent)}
+  .piece.core{border-top:3px solid var(--accent)}
+  .piece.prod{border-top:3px solid var(--ok)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Daily Handoffs</h1>
+<p class="sub">One file per day, created by prim at 2 pm. Each agent fills its own section with Edit, and stamps it with the time it was filled. An agent in the middle of work finishes that work first and writes its section afterwards. Sections not yet written show as <i>pending</i>. Newest first.</p>
+<div class="tw"><table>
+<tr><th>Day</th><th>File</th><th>Notes</th></tr>
+<tr><td>2026-10-08</td><td><a href="../HANDOFF_8Oct.html">HANDOFF_8Oct.html</a></td><td>Before this folder existed; sections for prim, impl, my prim, SFT, res, res21, res22 and PoC (PoC added 10-09).</td></tr>
+<tr><td>2026-10-06</td><td><a href="../HANDOFF_6Oct.html">HANDOFF_6Oct.html</a></td><td>Before this folder existed.</td></tr>
+</table></div>
+<footer>Maintained by prim. The first file in this folder will be HANDOFF_2026-10-10.html.</footer>
+</main>
+</body>
+</html>
