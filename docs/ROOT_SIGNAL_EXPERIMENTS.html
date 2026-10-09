@@ -150,6 +150,7 @@ Tags: <span class="tag agreed">agreed</span> with the user; <span class="tag pro
 <li><b>VLA vs IDM chunks on the same observations</b> (the user's question, 10-09): queued for res22 after IDM_VLA_HORIZONS (checklist c9k). prim's reading [I]: on our own rollouts it ≈ (c) plus IDM error; on successful data it is (d).</li>
 <li>R-059 (Sentinel STAC on GR00T): pre-registered 09-29, not run; runner spec unsent (t4a). E1 overlaps its part A (t4b).</li>
 <li>MINING_SPEC_DESIGN §7b P4 (root detection trust) and §6c (phase segmentation without labels).</li>
+<li><b>Pending user decision:</b> MINING_SPEC_DESIGN §6d (UQ1) proposes splitting the root into a symptom anchor (gripper events) and a decision anchor (intervention-measured). If adopted, E5 would be validated against R-044/R-057 intervention results instead of a hand-labelled set, and Q2 would drop. UQ4/UQ5 note that signals a–c are task-agnostic where gripper rules are not.</li>
 </ul>
 
 <footer>Written by prim, 2026-10-09, from the discussion with the user. Sources: vla_harness/mining/phases.py, phases_libero.py; runs/r047 (rollouts.jsonl, npz files); runs/poc_toy; docs/MINING_SPEC_DESIGN.html; docs/VLA_CORRECTOR_MATHS.html; RESULTS.md R-047, R-059.</footer>

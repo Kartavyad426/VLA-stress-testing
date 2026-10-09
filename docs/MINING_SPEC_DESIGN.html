@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 9 (D10–D15; §6 v0 schema; §6c external data; §7b branching; 10-09).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 10 (D10–D15; §6 v0 schema; §6c external data; §6d user questions, undecided; §7b branching; 10-09).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -324,6 +324,89 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
   <li>unsupervised change-point detection or clustering of embeddings, as a last resort (its segments still need naming).</li>
   </ol>
   Every route needs a small hand-labelled check set per tier (20–40 episodes) to measure accuracy, the same as P4b.</li>
+</ul>
+
+<h2>6d · User questions, answered, nothing decided <span class="tag open">open · not decided</span></h2>
+<p class="muted">Questions the user asked on 10-09, with prim's answers. These are answers and options, <b>not decided solutions</b>. Nothing here changes D1–D15, the v0 schema or ROOT_SIGNAL_EXPERIMENTS until the user decides. [V] = checked against files; [I] = inferred.</p>
+
+<h3>UQ1 · Why do we need the root? Does knowing between which forwards the policy started deviating help? A failed grasp already shows where failure started; how does a root help if the labels aren't accurate?</h3>
+<p>The useful distinction is between <b>where the failure shows</b> and <b>where it was decided</b>. In the toy case (scene 984, start pose 0.2 rad):</p>
+<ul>
+<li><b>Where it shows:</b> t = 31, when the gripper closes 6.8 cm short. That's an event (the gripper closes, the bowl doesn't rise): easy to detect reliably, and no labels needed.</li>
+<li><b>Where it was decided:</b> probably much earlier. R-044: correcting only the first chunk (forward 0) rescued 7 of 7 start-pose failures. R-057: start-pose episodes are decided by forward 1 at the latest [V, RESULTS].</li>
+</ul>
+<div class="tw"><table>
+<tr><th>Anchor at</th><th>Data it asks for</th><th>What it teaches</th></tr>
+<tr><td>Symptom (grasp onset)</td><td>Successful grasps from the "6.8 cm short" situation</td><td>Recovery: fix it at the grasp</td></tr>
+<tr><td>Decision (forward 0–1)</td><td>Successful first chunks from the offset start pose</td><td>Prevention: don't head the wrong way. R-056 was this kind (forward-0 rescue minting); it fitted its training starts but didn't generalise.</td></tr>
+</table></div>
+<ul>
+<li><b>On accuracy:</b> a label can't find the decision point. Neither a human watching the video nor signals a–c can see where the episode was decided. Only an <b>intervention</b> shows it: correct at forward k, see whether the outcome flips (R-044, R-057; "decided at forward k" is one of our novel contributions per res21). The symptom point needs no clever detection: it's a gripper event.</li>
+<li><b>Options this suggests (not decided):</b>
+  <ol>
+  <li>The PoC needs only a symptom anchor, from deterministic gripper events. That's enough for identity, the search key, the teleop brief and recovery data.</li>
+  <li>The decision anchor becomes a separate, optional field, filled only where an intervention measured it.</li>
+  <li>Signals a–c matter only as cheap stand-ins for the decision anchor, so ROOT_SIGNAL_EXPERIMENTS E5 would be validated against R-044/R-057 intervention results, not hand labels.</li>
+  </ol>
+  If adopted, D13's <code>root</code> would split into <code>anchor.symptom</code> (required) and <code>anchor.decision</code> (optional).</li>
+</ul>
+
+<h3>UQ2 · What's the goal after having the root? Do we simulate the prefix exactly up to the root and correct after that?</h3>
+<p>The anchor marks where we act. Three uses:</p>
+<ol>
+<li><b>Search key:</b> find existing successes passing through the same situation (D14).</li>
+<li><b>Producing successes: yes, as the question describes.</b> Re-run the prefix exactly to the anchor, by replaying stored actions (4 of 4 rollouts reproduced in the PoC toy, max drift 2.6 mm [V]) or from a saved state snapshot (exact; not built). Then replace the continuation with a successful one (scripted expert, teleop, or rescue minting at that step). The demo = the policy's prefix + the new continuation, with frames tagged policy or driven.</li>
+<li><b>Where to put training weight:</b> the frames around the anchor carry almost all the new signal (R-054: only 5–13% of minted frames were new information).</li>
+</ol>
+<p>If the anchor is the decision point (forward 0–1 for start pose), the "prefix" is just the start state, which is what R-054/R-056 rescue minting did. Its lesson still applies: more corrected episodes didn't generalise to held-out starts. Coverage and diversity of situations mattered more than volume.</p>
+
+<h3>UQ3 · Could we take the root frame and the final frame (what a finished task looks like), get actions from an IDM, execute them in the simulator and keep successful rollouts for retraining?</h3>
+<p><b>Not as stated</b> [I]:</p>
+<ul>
+<li>An IDM fills short gaps: it's trained on frame pairs about a chunk apart (~16 steps). Root to final is ~250 steps (grasp, lift, transport, place). Many action sequences connect those two frames, so it's a planning problem an IDM can't solve.</li>
+<li>The final frame must belong to this scene. A finished frame from another episode has different object positions; it would need to be a success from the same initial state, or generated.</li>
+<li>Open-loop errors compound over 250 replayed steps.</li>
+</ul>
+<p><b>A variant that can work:</b></p>
+<ol>
+<li>A goal-conditioned video or world model generates the intermediate frames from the root frame to the goal frame.</li>
+<li>The IDM labels each consecutive pair.</li>
+<li>Execute in sim, ideally closed-loop (regenerate from the frame actually reached).</li>
+<li>Keep only successes, with the sim as the filter.</li>
+</ol>
+<p>That's essentially UniPi or DreamGen plus our sim check; it's within res22's research (c9j).</p>
+<ul>
+<li><b>In sim,</b> a scripted expert or motion planner with privileged object poses is simpler and more reliable from the anchor. The world-model + IDM route earns its keep where there's no simulator (real robots, video).</li>
+<li>A cheap by-product: the success rate of IDM-labelled action sequences replayed in sim is a direct quality test of the IDM.</li>
+</ul>
+
+<h3>UQ4 · In the current tasks, gripper events seem to tell what's happening. Can the current rules miss information, even after being made robust?</h3>
+<p>Yes. The rules describe mechanical events, and several failure kinds produce no telling gripper event:</p>
+<div class="tw"><table>
+<tr><th>Failure</th><th>What the rules see</th><th>Missed because</th></tr>
+<tr><td>Wrong object grasped</td><td>A clean grasp + lift</td><td>"Holding" says nothing about which object is held; it needs object identity (which object rose).</td></tr>
+<tr><td>Placed in the wrong spot</td><td>A normal release</td><td>The release event looks the same; success needs the goal relation.</td></tr>
+<tr><td>Never reaches, hesitates or oscillates</td><td>Endless approach</td><td>No event fires; <code>never_reached</code> appears only at timeout.</td></tr>
+<tr><td>Pushes the bowl during the approach</td><td>Approach, then grasp</td><td>The situation changed before the grasp, so the anchor lands too late.</td></tr>
+<tr><td>Collision or knocking things over</td><td>Nothing</td><td>No gripper event at all</td></tr>
+<tr><td>Fingers stall on the table or a neighbour</td><td>"Holding"</td><td><code>holding_by_gripper</code> only checks that the fingers stopped while still open [V, phases_libero.py]; anything between them looks like a grasp.</td></tr>
+</table></div>
+<p>Our own history shows how these rules fail: the September fixes O1–O4 in <code>phases_libero.py</code> (wrong target order, a "holding" OR that hid two broken branches) were silent errors that looked plausible [V]. Hardening helps, but the rules only cover the event vocabulary they were written for. <b>Option (not decided):</b> an explicit "unexplained deviation" class, filled by policy signals a–c or a VLM, instead of forcing every failure into the nearest rule.</p>
+
+<h3>UQ5 · How will these rules behave on a different task, such as folding cloth?</h3>
+<p>Badly. The phases (approach / grasp / transport / place) and the "holding" test are pick-and-place concepts:</p>
+<div class="tw"><table>
+<tr><th>Task family</th><th>Why gripper events break</th><th>Progress would have to come from</th></tr>
+<tr><td>Cloth folding</td><td>A pinch on thin cloth closes the fingers almost fully, so it reads as "closed on air". Regrasping is normal, not a retry failure. Success is a shape, not a lift.</td><td>Cloth state (corner positions, fold-line coverage); a learned or VLM progress score</td></tr>
+<tr><td>Pouring, wiping</td><td>The gripper is closed throughout; failure is in the motion (spill, missed area).</td><td>Trajectory, contact, liquid or particle state</td></tr>
+<tr><td>Drawers, doors</td><td>Grasping the handle works; failure is in the pull.</td><td>Articulation joint angle</td></tr>
+<tr><td>Insertion</td><td>Precision and contact force</td><td>Force/torque, pose error</td></tr>
+<tr><td>Bimanual</td><td>Two grippers, handovers</td><td>Per-arm events plus relations</td></tr>
+</table></div>
+<p><b>Implications (not decided):</b></p>
+<ul>
+<li>Phases and success predicates would be defined per task family. D12's four phases are the pick-and-place set, not a universal one, so P5's index would need a phase vocabulary per task family.</li>
+<li>For tasks without crisp events, timing has to come from progress signals (a learned value or progress model, a VLM judge) or from policy signals a–c, which are task-agnostic. That strengthens the case for the ROOT_SIGNAL_EXPERIMENTS signals.</li>
 </ul>
 
 <h2>7 · Pending for a working PoC design</h2>
