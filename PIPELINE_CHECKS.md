@@ -52,7 +52,7 @@ A check that genuinely doesn't apply is marked **N/A with a reason**; it is neve
 - Check scripts: experiments/check_*.py, outputs runs/checks/<id>/
 ```
 
-## Queue (awaiting the checker session)
+## Queue (awaiting `val`; scope being finalised 10-09)
 
 | Pipeline | Author | Where | Feeds |
 |---|---|---|---|
