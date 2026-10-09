@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Root Signal Experiments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code,pre{font:13px var(--mono);background:var(--surface-2);border-radius:3px}
+  code{padding:1px 4px}
+  pre{padding:12px 14px;overflow-x:auto;border:1px solid var(--rule)}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);vertical-align:1px;white-space:nowrap}
+  .tag.agreed{background:var(--ok);color:var(--surface)}
+  .tag.prop{background:var(--warn);color:var(--surface)}
+  .tag.open{background:var(--accent);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+  .piece{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;font-size:14px}
+  .piece b{display:block;font-size:15px;margin-bottom:2px}
+  .piece .n{font:500 12px var(--mono);color:var(--accent)}
+  .piece.core{border-top:3px solid var(--accent)}
+  .piece.prod{border-top:3px solid var(--ok)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Root Signal Experiments</h1>
+<p class="sub">Scoping draft · 2026-10-09 · prim with the user · <b>not a pre-registration</b>. Records the experiments planned around policy-side signals for finding where an episode goes wrong (the "root" in <a href="MINING_SPEC_DESIGN.html">MINING_SPEC_DESIGN</a> D13). Once the open decisions in §6 are settled, SFT turns the chosen experiments into a pre-registration in RESULTS.md.
+Tags: <span class="tag agreed">agreed</span> with the user; <span class="tag prop">proposed</span> by prim; <span class="tag open">open</span> needs a decision. [V] = checked against files today.</p>
+
+<div class="card top">
+<h3>Bottom line</h3>
+<ul>
+<li>Today the root comes from <b>rules on simulator state</b> (gripper and object height). They're LIBERO-shaped and don't work outside sim. The idea, agreed in principle by the user on 10-09, is to take the <b>time</b> of the root from signals the policy itself produces, and keep cheap gripper rules only for the <b>phase</b> label.</li>
+<li>Four signals: (a) consecutive chunks disagreeing with each other, (b) the perturbed chunk drifting from the nominal one, (c) commanded vs achieved motion, (d) the policy disagreeing with a successful demonstrator.</li>
+<li>Most of this can be tested on the <b>CPU with data we already have</b> (R-047). Two steps need the GPU, and only if the CPU results are promising.</li>
+</ul>
+</div>
+
+<h2>1 · Why</h2>
+<ul>
+<li>A mining-spec instance hangs off its root: the first moment the episode leaves the successful path (D13). The success search, the teleop brief and sim generation all start from there.</li>
+<li>The current root detectors are ours, built in September (<code>vla_harness/mining/phases.py</code>, <code>phases_libero.py</code>) [V]. Their weaknesses:
+  <ul>
+  <li><code>LiberoPhaseSegmenter</code> labels approach / pre-grasp / grasp / transport / retry from gripper width, the close command and simulator object positions. Its thresholds are placeholders that were never fitted. It has no "place" phase, and the target is "first object in the BDDL file".</li>
+  <li><code>divergence_point</code> needs a paired nominal run and is broken on LIBERO (it reads <code>ee_xy</code>, which LIBERO rollouts don't log) [V, PoC].</li>
+  <li>The PoC toy root rule (first grasp onset that fails the success criterion) needs simulator object height.</li>
+  </ul></li>
+<li>Signals that come from the policy and the robot's own motion are robot- and task-agnostic. They also work on external data, by running our policy open-loop on its frames.</li>
+</ul>
+
+<h2>2 · The signals</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Signal</th><th>What it compares</th><th>Analogue</th></tr>
+<tr><td class="id">a</td><td><b>Self-consistency</b></td><td>GR00T predicts C = 40 steps per forward but executes H = 16. The last 24 predicted steps of forward f cover the same timesteps as the first 24 of forward f+1. A jump between them means the policy changed its plan.</td><td>STAC (Sentinel), R-059</td></tr>
+<tr><td class="id">b</td><td><b>Gap to nominal</b></td><td>The perturbed chunk against the nominal chunk at the same forward (<code>d_pn</code>). Needs a paired nominal run, so sim only: a privileged reference for (a).</td><td>Our perturbation map</td></tr>
+<tr><td class="id">c</td><td><b>Commanded vs achieved</b></td><td>The end-effector motion each executed action commanded, against the motion that actually happened (from proprioception, or an IDM on video). A gap means a slip, a block or a misjudged contact.</td><td>VLA-Corrector's predicted-vs-actual idea, at action level</td></tr>
+<tr><td class="id">d</td><td><b>Imitation disagreement</b></td><td>The policy run open-loop on frames from a <em>successful</em> demonstration, against what the demonstrator did. It marks where the policy would deviate before any failure happens, so mining targets can be found proactively.</td><td>D20 first-chunk fit test (an7)</td></tr>
+</table></div>
+<p><b>What these signals can't do alone</b> <span class="tag prop">proposed</span></p>
+<ul>
+<li>They give <em>when</em>, not <em>what</em>. The instance identity (phase × failure mode, D12) still needs a phase label, so the proposal is: time from the signal, phase from gripper rules at that time.</li>
+<li>Changing plan is normal at phase transitions (e.g. grasp onset). Thresholds need calibrating on successful episodes (conformal, as in Sentinel).</li>
+<li>With one sample per forward, flow-matching noise and real plan changes mix. STAC compares distributions over several draws (R-059's multi-draw runner, not built).</li>
+<li>Failures where the policy is confidently wrong (it steadily heads to the wrong spot, likely our start-pose case [I]) may produce no (a) spike. (c) may still catch the resulting slip.</li>
+</ul>
+
+<h2>3 · Data we already have [V]</h2>
+<div class="tw"><table>
+<tr><th>Source</th><th>Contents</th><th>Signals</th></tr>
+<tr><td><code>runs/r047/rollouts.jsonl</code></td><td>720 full episodes of base GR00T N1.7, LIBERO-Spatial: start pose 300 (109 failed), camera yaw 320 (61 failed), nominal 100 (6 failed). Per step: <code>obs_state</code> (joint and eef pose, gripper, object positions, contacts), executed <code>action</code>.</td><td>c, and phase rules</td></tr>
+<tr><td><code>runs/r047/{joint_radius_rad,camera_yaw_deg}/*.npz</code></td><td>360 files per axis. Per forward, for the <b>first 10 forwards only</b>: predicted chunks <code>act_P</code> / <code>act_N</code> (10 × 40 × 7, normalised), <code>d_pn</code>, <code>env_steps</code>, <code>closest_approach</code>.</td><td>a (first ~160 of ~280 steps), b</td></tr>
+<tr><td><code>data/libero_raw</code></td><td>500 human demos (50 per task), full sim state per step, actions, both camera views (D22)</td><td>d (needs GR00T on the GPU)</td></tr>
+<tr><td><code>runs/poc_toy/</code></td><td>The toy instance: scene 984, row 14, root at t = 31 (forward 1), with same-start success row 20</td><td>Sanity check for every signal</td></tr>
+</table></div>
+<p class="muted">Joins: select R-047 rows by line index or by (scene, radius, direction, noise seed). Never by <code>rollout_id</code>, which is shared across noise seeds.</p>
+
+<h2>4 · Experiments <span class="tag prop">proposed</span></h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Signal</th><th>Computation</th><th>Questions</th><th>Cost</th><th>Limits</th></tr>
+<tr><td class="id">E1</td><td>a</td><td>Per forward f: distance between <code>act_P[f][16:40]</code> and <code>act_P[f+1][0:24]</code>. Variants: per action dimension; first action only; normalised vs environment units.</td><td>1. Do failed and successful episodes separate (AUROC per forward, and max over the first k)?<br>2. Does a spike line up with the rule-based root (lead/lag)?<br>3. How big is normal replanning (spikes in successes, e.g. at grasp onset)?</td><td>CPU, ~1 day</td><td>First 10 forwards only. One draw per forward.</td></tr>
+<tr><td class="id">E1b</td><td>a</td><td>E1 with B draws per forward (distribution distance, as STAC)</td><td>Does removing sampling noise sharpen E1?</td><td>GPU; needs R-059's multi-draw runner (t4a)</td><td>Only if E1 is promising</td></tr>
+<tr><td class="id">E2</td><td>b</td><td><code>d_pn</code> per forward</td><td>The same three questions. Serves as the privileged reference: how much does (a) lose without a paired nominal?</td><td>CPU, hours</td><td>Paired sim runs only</td></tr>
+<tr><td class="id">E3</td><td>c</td><td>Per step: commanded end-effector change (action × the controller's scaling) against the achieved change in <code>eef_pos</code></td><td>1. Does the gap spike at the root contact?<br>2. Does it tell miss from slip?<br>3. Does it separate failures from successes?</td><td>CPU, ~1 day</td><td>Controller scaling and lag must be checked first. Full episodes available.</td></tr>
+<tr><td class="id">E4</td><td>d</td><td>GR00T run open-loop on frames from the 50 human demos of the toy task; its chunk compared with the demo actions at each forward. Reuse D20's fit-test code path.</td><td>Where along successful demos does the policy disagree? Do those situations overlap with where rollouts fail?</td><td>GPU, ~500 forwards, under 1 h</td><td>Open-loop proxy (weak link to closed-loop failure). IDM version after res22 (c9k).</td></tr>
+<tr><td class="id">E5</td><td>combined</td><td>Root time from the best of (a) and (c); phase at that time from the gripper rules</td><td>Does it agree with hand-labelled roots better than the PoC rule or the phase rules alone?</td><td>~1 day of labelling + CPU</td><td>Needs a hand-labelled set (§6, Q2)</td></tr>
+</table></div>
+<p><b>Proposed order:</b> E2 and E3 first (cheap, full data), then E1, then the labelled set and E5. E1b and E4 are the GPU steps, run only if E1 or E3 is promising.</p>
+
+<h2>5 · What would close or open the direction <span class="tag prop">proposed</span></h2>
+<ul>
+<li><b>Closed:</b> none of (a)–(c) separates failures from successes better than chance, or the spikes don't line up with roots any better than the gripper rules alone.</li>
+<li><b>Open:</b> (c) or (a) reaches an AUROC above about 0.75 for failure vs success, and the spike lands within one forward of the hand-labelled root.</li>
+<li>Thresholds are placeholders until pre-registration; SFT sets them there.</li>
+</ul>
+
+<h2>6 · Open decisions <span class="tag open">open</span></h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Decision</th><th>Options / prim's suggestion</th></tr>
+<tr><td class="id">Q1</td><td>Who owns the CPU analysis (E1–E3, E5)?</td><td>[my prim]: it owns R-059, whose part A is a CPU analysis on R-047, so E1 doubles as that. Alternative: PoC, which knows the toy pipeline. SFT pre-registers either way.</td></tr>
+<tr><td class="id">Q2</td><td>The hand-labelled root set: who labels, which episodes?</td><td>[~30 R-047 episodes, failures and successes mixed, start pose + camera]. Doubles as the P4b check of root detection in the mining spec.</td></tr>
+<tr><td class="id">Q3</td><td>Is E4 in scope now, or after res22's IDM research (c9j, c9k)?</td><td>[after res22]: its demo-action version needs no IDM, but res22 may change the design.</td></tr>
+<tr><td class="id">Q4</td><td>Record "time from policy signals, phase from rules" as D16 in MINING_SPEC_DESIGN?</td><td>[yes, as proposed until E5 reports]</td></tr>
+</table></div>
+
+<h2>7 · Related</h2>
+<ul>
+<li><b>VLA vs IDM chunks on the same observations</b> (the user's question, 10-09): queued for res22 after IDM_VLA_HORIZONS (checklist c9k). prim's reading [I]: on our own rollouts it ≈ (c) plus IDM error; on successful data it is (d).</li>
+<li>R-059 (Sentinel STAC on GR00T): pre-registered 09-29, not run; runner spec unsent (t4a). E1 overlaps its part A (t4b).</li>
+<li>MINING_SPEC_DESIGN §7b P4 (root detection trust) and §6c (phase segmentation without labels).</li>
+</ul>
+
+<footer>Written by prim, 2026-10-09, from the discussion with the user. Sources: vla_harness/mining/phases.py, phases_libero.py; runs/r047 (rollouts.jsonl, npz files); runs/poc_toy; docs/MINING_SPEC_DESIGN.html; docs/VLA_CORRECTOR_MATHS.html; RESULTS.md R-047, R-059.</footer>
+</main>
+</body>
+</html>
