@@ -268,6 +268,7 @@ The prefix (how the episode got there) is not part of the search. It is used onl
 <li><b>Identity</b> = <code>scenario_ids</code> + <code>root</code>: the searchable part, and what the corpus counts.</li>
 <li><b>Success query</b> = <code>situation</code> + <code>success</code>: run over datasets (D14), and the teleop or sim target (D1).</li>
 <li><b>Trust</b> = <code>evidence</code> + <code>mechanism</code> + each field's <code>source</code>: how far to rely on the instance, and which fields may be loosened.</li>
+<li>Field definitions (grasp onset, root rule, <code>source</code>): see §6d UQ7.</li>
 <li>Two gaps the toy shows: its root detector has no confidence value, and its p(fail) rests on 2 seeds, which is why <code>n</code> is required.</li>
 </ul>
 
@@ -408,6 +409,35 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
 <li>Phases and success predicates would be defined per task family. D12's four phases are the pick-and-place set, not a universal one, so P5's index would need a phase vocabulary per task family.</li>
 <li>For tasks without crisp events, timing has to come from progress signals (a learned value or progress model, a VLM judge) or from policy signals a–c, which are task-agnostic. That strengthens the case for the ROOT_SIGNAL_EXPERIMENTS signals.</li>
 </ul>
+
+<h3>UQ6 · Can a tokenizer give more accurate labels: a hook on the one GR00T uses at inference, or a separately trained one?</h3>
+<p>GR00T N1.7 tokenises text (Qwen3-VL tokenizer) and images (vision-encoder patch tokens; agent view = tokens 4–67, wrist = 70–133, per G0a) [V]. It has <b>no action tokenizer</b>: its action head is continuous flow matching. Three readings of the idea:</p>
+<div class="tw"><table>
+<tr><th>Option</th><th>What it is</th><th>What it could label</th><th>Cost</th><th>Catch</th></tr>
+<tr><td>1 · Hook GR00T's internals</td><td>Read visual tokens or backbone outputs at each forward. Hooks exist: <code>vla_harness/capture/groot_features.py</code> (after <code>vlln</code>, after the action decoder) and <code>splice.py</code> (record, splice) [V].</td><td>Phase clusters, or a "representation changed" timing signal (cf. VLA-Corrector token dynamics)</td><td>Cheap; stored data or a short GPU run</td><td>Circular: it reports what the failing policy believes, so misperceptions become label errors. R-036: its embeddings don't separate failures; whether they separate phases is untested.</td></tr>
+<tr><td>2 · Off-the-shelf action tokenizer (FAST)</td><td>DCT + byte-pair encoding of action chunks into discrete tokens. Cached locally: <code>jadechoghari/fast-libero-tokenizer-mean-std</code> (LIBERO-fitted) and <code>lerobot/fast-action-tokenizer</code> [V].</td><td>Motion-primitive segments (boundaries where the token pattern changes)</td><td>CPU, hours; no training</td><td>Segments motion, not meaning (segments need naming). Needs actions, so no use on video-only data.</td></tr>
+<tr><td>3 · Trained latent-action tokenizer</td><td>A small VQ codebook of "skills", from action chunks (QueST / VQ-BeT style) or from frame pairs (LAPA / Genie style)</td><td>Unsupervised skill segments; the frame-pair version also works on video-only data</td><td>Small training on <code>data/libero_raw</code> + rollouts; 8 GB likely fine [I]</td><td>Codes need naming from a few labelled examples; LIBERO-learned codes may not transfer across tasks.</td></tr>
+</table></div>
+<ul>
+<li><b>More accurate?</b> For pick-and-place, probably not: gripper rules are close to physical truth there. The value is generality (task families without gripper events, UQ5) and video-only data (tier 3).</li>
+<li>None of these finds the decision point (UQ1). At best they're a timing signal, like a–c, needing the same validation.</li>
+<li>Cheapest test: ROOT_SIGNAL_EXPERIMENTS E6. Option 3 overlaps res22's IDM + VLA research (LAPA-style latent actions are in its scope).</li>
+</ul>
+
+<h3>UQ7 · In the v0 JSON, what is "grasp onset": the first time a grasp is attempted? And what is <code>source</code> in <code>situation</code>?</h3>
+<p><b>Grasp onset</b> (as the PoC toy computes it, <code>experiments/poc_toy_common.py: grasp_events</code>) [V]: every step where the policy's gripper <em>command</em> flips from open to closed. It's a commanded event, not the fingers physically closing. Each onset gets its own success check: did the target rise ≥ 5 cm within the next 40 steps?</p>
+<p>The <b>root</b> is the <em>first onset that fails</em> that check, not simply the first attempt. In the toy (row 14) they coincide: there were 8 onsets (t = 31, 80, 103, 128, 176, 201, 263, 272) and the first, t = 31, failed (lift 2.1 cm). In the same-start success (row 20) the single onset at t = 31 lifted 11 cm [V, runs/poc_toy/traces.json].</p>
+<ul>
+<li><b>Gap 1, a segment pass isn't an episode pass:</b> the onset at t = 201 passed the lift check (9.6 cm) but the bowl was later dropped, and the episode timed out.</li>
+<li><b>Gap 2, "first failing onset" can skip the real root:</b> if a grasp succeeds and the object is dropped in transport, the rule skips that successful grasp and lands on a later re-grasp. The true root would be <code>transport × drop</code>. A rule over all phase events, not only grasp onsets, would fix this. Not decided; it bears on UQ1 and P4.</li>
+</ul>
+<p><b><code>source</code></b> (D15): where each situation field's value came from:</p>
+<ul>
+<li><code>exact</code>: read from simulator state. Everything in the toy is exact.</li>
+<li><code>estimated</code>: computed by a model from images or partial data (e.g. detector + depth on a real-robot log), with its error in <code>sigma</code>.</li>
+<li><code>unavailable</code>: the dataset doesn't have it.</li>
+</ul>
+<p>The search compares only fields both sides have, and widens each tolerance by the estimate's error, so an estimated 4 cm isn't treated as trustworthy as an exact one.</p>
 
 <h2>7 · Pending for a working PoC design</h2>
 <p class="muted">Updated at iteration 5. "Must" items block a PoC; "later" items don't.</p>
