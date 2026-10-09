@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 10 (D10–D15; §6 v0 schema; §6c external data; §6d user questions, undecided; §7b branching; 10-09).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 10 (D10–D15; §6 v0 schema; §6c external data; §6d user questions UQ1–UQ9, undecided; §7b branching; 10-09).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -438,6 +438,52 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
 <li><code>unavailable</code>: the dataset doesn't have it.</li>
 </ul>
 <p>The search compares only fields both sides have, and widens each tolerance by the estimate's error, so an estimated 4 cm isn't treated as trustworthy as an exact one.</p>
+
+<h3>UQ8 · Can a VLM describe events, and together with telemetry tell the failure mode or root? E.g. where they disagree: the VLM says "red bowl picked", the target was blue, and telemetry confirms a pick, so that frame is marked as the root.</h3>
+<p>Yes. The example isn't really a VLM-vs-telemetry disagreement: both agree a bowl was picked. The mismatch is with the <b>instruction</b>, so it's a three-way check, with each source in charge of a different question:</p>
+<div class="tw"><table>
+<tr><th>Source</th><th>In charge of</th><th>Weak at</th></tr>
+<tr><td>Instruction</td><td>Intent: which object, which goal relation</td><td>—</td></tr>
+<tr><td>Telemetry</td><td>Mechanics: gripper closed, something held, object rose, dropped, timing</td><td>Semantics: <em>which</em> object, "on the plate", "between X and Y"</td></tr>
+<tr><td>VLM</td><td>Semantics: object identity, spatial relations, task progress, "knocked something over"</td><td>Fine geometry (6.8 cm short, slips), small objects at 256 px, exact timing; hallucination</td></tr>
+</table></div>
+<p><b>How they'd combine</b> (not decided):</p>
+<ul>
+<li><b>Telemetry gives <em>when</em>, the VLM gives <em>what</em>.</b> Query the VLM only at frames where telemetry fires an event (grasp onset, lift, release), e.g. "Which object is in the gripper? Is it on the plate?". Cheap (a few calls per episode), and it avoids the VLM's weak timing.</li>
+<li><b>Telemetry and VLM agree, but the result contradicts the instruction:</b> a root, with the failure mode named by how it contradicts. Red bowl lifted against a blue target → <code>grasp × wrong_object</code> at that onset. Release at the wrong place → <code>place × wrong_location</code>.</li>
+<li><b>Telemetry and VLM disagree on the same question</b> (e.g. the VLM says "picked" but nothing rose): trust telemetry on mechanics and the VLM on semantics. A disagreement within one question is <b>not a root</b>; it's a <b>low-confidence flag</b> for review. Otherwise every VLM hallucination would become a root.</li>
+<li><b>Nothing fires at all</b> (hesitation, knock-over, slow drift): query the VLM over periodic frames, or by bisection (UQ9 level 4). This is where it fills the UQ4 blind spots.</li>
+</ul>
+<p><b>Gaps it fixes:</b></p>
+<ul>
+<li>Rule blind spots (UQ4): wrong object, wrong placement, knocked over, all invisible to gripper events.</li>
+<li>Other task families (UQ5): a VLM can judge fold progress or a spill where gripper events say nothing.</li>
+<li>External data (§6c): real-robot logs have no simulator object identity, so VLM + proprioception is the realistic pairing there.</li>
+</ul>
+<p><b>What exists</b> [V]:</p>
+<ul>
+<li><code>experiments/vlm_label.py</code> in its own venv <code>.venvs/cosmos</code>. Local Qwen3-VL-8B-Thinking (4-bit) works on the 8 GB card at <code>--fps 2 --scale 0.5</code>. Nemotron-Omni works via NIM (accepts mp4). Gemma-4-31B times out on NIM, and Cosmos-Reason2-8B is unavailable (404 on NIM, gated on HF). Working NIM key: <code>NVIDIA_NIM_API_KEY</code> in <code>~/Documents/Code/robotics_agentic/.env</code>. No Gemini key.</li>
+<li><code>classify.py</code> already has the right rule: a tier-3 LLM judge is consulted only for what the tier-1 rules leave ambiguous, never overrides them, and its labels are tagged <code>tier3</code> so they can be excluded from headline numbers. The fusion above extends that.</li>
+</ul>
+<p><b>The catch: VLM labels here are unvalidated.</b> The VLM labelling setup notes say to score them against simulator truth before counting anything. In sim the VLM isn't needed for object identity (<code>_gt_scene_object_pos</code> says exactly which object rose), which makes sim the place to <b>measure</b> it. Run it at telemetry event frames on our rollouts and score each answer against sim truth (which object; on the plate or not). Only if it's accurate there is it trusted on external data, where it's the only source. → ROOT_SIGNAL_EXPERIMENTS E7. LIBERO-Spatial scenes have two black bowls, which is exactly the wrong-object trap.</p>
+
+<h3>UQ9 · Do we need the whole rollout described by the VLM, or can we narrow it down?</h3>
+<p>Narrow it down. A handful of frames is enough in most cases, and narrowing also makes the answers more reliable: closed questions on chosen frames beat open narration of a whole video. Five levels, cheapest first:</p>
+<div class="tw"><table>
+<tr><th>Level</th><th>Frames sent to the VLM</th><th>Question style</th><th>When to use</th></tr>
+<tr><td>1 · Event key frames (default)</td><td>Only where telemetry fires: grasp onset, a few steps after lift, release, final frame. About 4–10 per episode.</td><td><b>Closed questions</b> with options from the scene: "Which object is in the gripper? (black bowl left / black bowl right / ramekin / none)", "Is the bowl on the plate? yes/no". Options come from the BDDL object list and the instruction.</td><td>Every episode we label</td></tr>
+<tr><td>2 · Short clips around an event</td><td>±1 s at about 2 fps around one event</td><td>Dynamic questions: "Did the object slip out?", "Did anything get knocked over?"</td><td>When the question is about motion, not state</td></tr>
+<tr><td>3 · Start + end only</td><td>2 frames</td><td>"Is the task done? Which goal relation holds?"</td><td>Outcome and goal checks; cheapest of all</td></tr>
+<tr><td>4 · Bisection on a state question</td><td>log₂(steps) frames: about 8 for 280 steps</td><td>A yes/no state question ("Is the blue bowl on the table?") at the middle frame, then halve towards where the answer changes</td><td>When no telemetry event fired (hesitation, slow drift, knock-over). Finds <em>when</em> the state changed in ~8 calls instead of 280.</td></tr>
+<tr><td>5 · Full narration</td><td>The whole episode at low fps</td><td>Open description</td><td>Only for episodes levels 1–4 leave unexplained, and for building the question set in the first place</td></tr>
+</table></div>
+<p><b>Narrowing by episode too:</b></p>
+<ul>
+<li>Label failed episodes plus a calibration sample of successes, which shows how often the VLM falsely reports problems.</li>
+<li>Within a failure, only look between the last event that passed and the end. Everything before the last successful check is already explained.</li>
+</ul>
+<p><b>Rough cost</b> [I]: at level 1, R-047's 170 failures × ~6 frames ≈ 1,000 VLM calls, plus a success sample. Overnight-scale at most locally on the 8 GB card; faster via NIM. Full narration of the same episodes would be 50–100× more frames, and harder to score.</p>
+<p><b>Design consequence</b> (not decided): telemetry says <em>when</em>, the VLM answers a specific question at that moment, and open narration is the fallback, not the main tool. E7's validation then becomes concrete: score each closed question type against sim truth (e.g. "which object is held" against <code>_gt_scene_object_pos</code>).</p>
 
 <h2>7 · Pending for a working PoC design</h2>
 <p class="muted">Updated at iteration 5. "Must" items block a PoC; "later" items don't.</p>
