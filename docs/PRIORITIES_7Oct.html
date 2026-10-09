@@ -123,7 +123,8 @@ const TIERS = [
   ["rs5","E1b = R-059 parts B/C: multi-draw runner, smoke, C1 (240 start-pose rollouts)","Runner spec t4a sent by my prim; ~4 h GPU at B=32.","impl · my prim"],
   ["rs6","E4: GR00T open-loop on the toy task's 50 human demos vs demo actions","GPU, ~500 forwards; reuses r056_diag_fit.py.","impl"],
   ["rs7","E7: VLM closed questions at event frames + bisection, scored vs sim truth","GPU (replay render + local Qwen3-VL); extends vlm_label.py.","impl"],
-  ["rs8","E5: combined root vs ground truth","Waits on the UQ1 anchor decision (interventions vs hand labels).","you"]]],
+  ["rs8","E5: combined root vs ground truth","Waits on the UQ1 anchor decision (interventions vs hand labels).","you"],
+  ["rs9","[UNCHECKED BY USER] Record R-059's deviations in RESULTS.md R-059 (SFT pastes, timestamped)","Deviations from the 09-29 pre-registration: (1) per-draw seeds; (2) no splice arms in multi-draw mode; (3) a runtime wrapper instead of a third_party patch; (4) the gate uses the biased V-statistic MMD² for both STAC and the null, with the null POOLED over all forwards vs STAC at f=0 (my prim decided 10-09; so far only in r059_score_b.py's docstring). Not yet reviewed by the user; nothing goes into RESULTS.md until it is.","you · SFT"]]],
  ["1 · Finish what already ran", "cheap; unblocks the rest", [
   ["t1a","Score R-058 r64 (no transfer)","CPU, ~1 min. Transfer skipped after GPU OOM; E4 and transfer metrics 'not run'.","impl"],
   ["t1b","Interpret the D20 fit test and loss into R-056's provisional paragraph","Training starts closed 30% of the gap, held-out 12%: coverage AND loss-vs-sampling. runs/r056_diag/fit_firstchunk.json","SFT · my prim"],
