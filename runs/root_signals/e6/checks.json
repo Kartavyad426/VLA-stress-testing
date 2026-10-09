@@ -1,0 +1,381 @@
+{
+ "1_known_answer": {
+  "r047_rows": 720,
+  "r047_successes": 544,
+  "expect": [
+   720,
+   544
+  ],
+  "pass_counts": true,
+  "row14_onsets": [
+   31,
+   80,
+   103,
+   128,
+   176,
+   201,
+   263,
+   272
+  ],
+  "toy_onsets": [
+   31,
+   80,
+   103,
+   128,
+   176,
+   201,
+   263,
+   272
+  ],
+  "pass_onsets": true,
+  "row14_first_failing_onset": 31,
+  "pass_root_t31": true,
+  "row14_phases_equal_toy": true
+ },
+ "4_invariants": {
+  "batched_encode_equals_proc": true,
+  "roundtrip_max_abs_norm_units": 0.06911122921620794,
+  "roundtrip_bound": 0.158113883008419,
+  "pass_roundtrip": true,
+  "unique_join_keys": true,
+  "n_keys": 720,
+  "demos": 50,
+  "actions_shape_ok": true,
+  "offsets_cover_all_70_coeffs_contiguously": true
+ },
+ "2_null": {
+  "same_input_same_tokens": true,
+  "success_split": {
+   "n": 544,
+   "max_abs_auroc_minus_half": 0.086,
+   "fwer95": 0.095,
+   "n_passing": 0,
+   "pass": true
+  }
+ },
+ "3_planted": {
+  "osc": {
+   "planted_dim": "dy",
+   "steps": [
+    40,
+    56
+   ],
+   "n_planted": 82,
+   "n_clean": 82,
+   "fwer95": 0.155,
+   "n_features_passing_fwer": 26,
+   "top": [
+    {
+     "feature": "u550",
+     "auroc": 0.961,
+     "footprint_top": [
+      "k9:dz",
+      "k9:droll",
+      "k9:dpitch",
+      "k9:dyaw",
+      "k9:gripper",
+      "k3:droll"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~9 (smoothness), not a motion"
+    },
+    {
+     "feature": "u447",
+     "auroc": 0.843,
+     "footprint_top": [
+      "k9:dyaw",
+      "k9:gripper",
+      "k5:dyaw",
+      "k5:gripper",
+      "k1:gripper",
+      "k3:gripper"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~9 (smoothness), not a motion"
+    },
+    {
+     "feature": "u448",
+     "auroc": 0.82,
+     "footprint_top": [
+      "k5:dpitch",
+      "k5:dyaw",
+      "k5:gripper",
+      "k6:dyaw",
+      "k5:droll",
+      "k6:dpitch"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~5 (smoothness), not a motion"
+    },
+    {
+     "feature": "u453",
+     "auroc": 0.784,
+     "footprint_top": [
+      "k2:dx",
+      "k1:gripper",
+      "k3:dx",
+      "k6:droll",
+      "k4:droll",
+      "k2:gripper"
+     ],
+     "description": "dx oscillation/jerk at k=2 (amp 0.003); dy oscillation/jerk at k=2 (amp 0.002)"
+    },
+    {
+     "feature": "u613",
+     "auroc": 0.775,
+     "footprint_top": [
+      "k6:dx",
+      "k6:dy",
+      "k2:dx",
+      "k1:gripper",
+      "k2:gripper",
+      "k2:dyaw"
+     ],
+     "description": "dy oscillation/jerk at k=6 (amp 0.053); gripper oscillation/jerk at k=6 (amp 0.071)"
+    },
+    {
+     "feature": "u462",
+     "auroc": 0.762,
+     "footprint_top": [
+      "k5:dx",
+      "k4:gripper",
+      "k3:gripper",
+      "k4:dx",
+      "k1:gripper",
+      "k2:dx"
+     ],
+     "description": "dx oscillation/jerk at k=4 (amp 0.004); dy oscillation/jerk at k=4 (amp 0.003)"
+    },
+    {
+     "feature": "u677",
+     "auroc": 0.741,
+     "footprint_top": [
+      "k6:dyaw",
+      "k6:gripper",
+      "k7:dy",
+      "k7:dx",
+      "k6:dy",
+      "k5:dyaw"
+     ],
+     "description": "dy oscillation/jerk at k=6 (amp 0.018); gripper oscillation/jerk at k=6 (amp 0.015)"
+    },
+    {
+     "feature": "u458",
+     "auroc": 0.266,
+     "footprint_top": [
+      "k7:dyaw",
+      "k7:gripper",
+      "k8:dx",
+      "k8:dy",
+      "k8:dz",
+      "k6:gripper"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~7 (smoothness), not a motion"
+    },
+    {
+     "feature": "u452",
+     "auroc": 0.274,
+     "footprint_top": [
+      "k5:dpitch",
+      "k5:dyaw",
+      "k5:droll",
+      "k5:dy",
+      "k5:dz",
+      "k5:gripper"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~5 (smoothness), not a motion"
+    },
+    {
+     "feature": "u506",
+     "auroc": 0.716,
+     "footprint_top": [
+      "k1:dz",
+      "k4:dy",
+      "k1:dpitch",
+      "k0:dpitch",
+      "k1:droll",
+      "k1:dx"
+     ],
+     "description": "dz ramp (-0.067 over the window); dy ramp (-0.027 over the window)"
+    }
+   ],
+   "features_touching_planted_dim": [
+    "u613",
+    "u677",
+    "u458",
+    "u452",
+    "u506"
+   ],
+   "pass_enrichment": true,
+   "boundary_at_edges": {
+    "boundaries": "phase",
+    "n_episodes": 82,
+    "mean_episode_auroc": 0.412,
+    "null_mean": 0.504,
+    "null_p95": 0.534,
+    "p_value": 1.0
+   },
+   "pass_timing": false
+  },
+  "step": {
+   "planted_dim": "dz",
+   "steps": [
+    40,
+    70
+   ],
+   "n_planted": 82,
+   "n_clean": 82,
+   "fwer95": 0.152,
+   "n_features_passing_fwer": 23,
+   "top": [
+    {
+     "feature": "u448",
+     "auroc": 0.96,
+     "footprint_top": [
+      "k9:droll",
+      "k9:dpitch",
+      "k9:dyaw",
+      "k9:gripper",
+      "k5:dyaw",
+      "k5:gripper"
+     ],
+     "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~9 (smoothness), not a motion"
+    },
+    {
+     "feature": "u196",
+     "auroc": 0.878,
+     "footprint_top": [
+      "k0:dz",
+      "k0:dx",
+      "k0:dyaw",
+      "k0:dpitch"
+     ],
+     "description": "steady +z translation (+0.581/step); steady +x translation (+0.363/step)"
+    },
+    {
+     "feature": "u749",
+     "auroc": 0.856,
+     "footprint_top": [
+      "k8:droll",
+      "k8:dpitch",
+      "k8:gripper",
+      "k9:dx",
+      "k8:dyaw",
+      "k9:dy"
+     ],
+     "description": "dz oscillation/jerk at k=8 (amp 0.016)"
+    },
+    {
+     "feature": "u675",
+     "auroc": 0.85,
+     "footprint_top": [
+      "k8:gripper",
+      "k9:dx",
+      "k9:dy",
+      "k9:dz",
+      "k8:dyaw",
+      "k8:dpitch"
+     ],
+     "description": "dz oscillation/jerk at k=8 (amp 0.019)"
+    },
+    {
+     "feature": "u754",
+     "auroc": 0.785,
+     "footprint_top": [
+      "k5:gripper",
+      "k6:dx",
+      "k5:dyaw",
+      "k6:dy",
+      "k6:dz",
+      "k7:dx"
+     ],
+     "description": "dz oscillation/jerk at k=6 (amp 0.019)"
+    },
+    {
+     "feature": "u557",
+     "auroc": 0.759,
+     "footprint_top": [
+      "k3:dy",
+      "k4:dx",
+      "k3:gripper",
+      "k3:dx",
+      "k2:gripper",
+      "k4:dy"
+     ],
+     "description": "dz oscillation/jerk at k=3 (amp 0.011); dy oscillation/jerk at k=3 (amp 0.005)"
+    },
+    {
+     "feature": "u808",
+     "auroc": 0.751,
+     "footprint_top": [
+      "k9:dy",
+      "k9:dz",
+      "k8:gripper",
+      "k9:dx",
+      "k8:dpitch",
+      "k8:dyaw"
+     ],
+     "description": "dz oscillation/jerk at k=8 (amp 0.019)"
+    },
+    {
+     "feature": "u558",
+     "auroc": 0.745,
+     "footprint_top": [
+      "k3:dy",
+      "k3:dx",
+      "k2:gripper",
+      "k7:dy",
+      "k7:dx",
+      "k7:dz"
+     ],
+     "description": "dz oscillation/jerk at k=3 (amp 0.010)"
+    },
+    {
+     "feature": "b749_448",
+     "auroc": 0.738,
+     "footprint_top": [
+      "k8:droll",
+      "k8:dpitch",
+      "k8:dyaw",
+      "k8:gripper",
+      "k9:dx",
+      "k9:dy"
+     ],
+     "description": "dz oscillation/jerk at k=9 (amp 0.035)"
+    },
+    {
+     "feature": "b675_448",
+     "auroc": 0.726,
+     "footprint_top": [
+      "k8:droll",
+      "k8:dpitch",
+      "k8:dyaw",
+      "k8:gripper",
+      "k9:dx",
+      "k9:dy"
+     ],
+     "description": "dz oscillation/jerk at k=9 (amp 0.039)"
+    }
+   ],
+   "features_touching_planted_dim": [
+    "u196",
+    "u675",
+    "u754",
+    "u808",
+    "u558"
+   ],
+   "pass_enrichment": true,
+   "boundary_at_edges": {
+    "boundaries": "phase",
+    "n_episodes": 82,
+    "mean_episode_auroc": 0.45,
+    "null_mean": 0.505,
+    "null_p95": 0.538,
+    "p_value": 1.0
+   },
+   "pass_timing": false
+  }
+ },
+ "6_provenance": {
+  "code_state": true,
+  "inputs_sha256": true
+ },
+ "7_plan": "ROOT_SIGNAL_EXPERIMENTS E6 + prim's widened scope 10-09 (1 sliding windows, 2 a/b/c, 3 decode, 4 boundary, 5 executed actions). Not done: act_P comparison (optional; act_P is GR00T-normalised, executed = s_d*act_P + o_d per dim, so it would need that map first), lerobot/fast-action-tokenizer second run (no horizon, normalisation not documented)."
+}

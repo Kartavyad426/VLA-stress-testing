@@ -1,0 +1,24 @@
+{
+ "known_answer": {
+  "rows": 720,
+  "successes": 544,
+  "expect": [
+   720,
+   544
+  ],
+  "row14_anchor_t": 31,
+  "expect_row14": 31,
+  "fir_recovery_max_abs_err": 1.457167719820518e-16
+ },
+ "null_synthetic_residual_max_m": 1.0408340855860843e-17,
+ "planted_freeze_50_60": {
+  "n": 200,
+  "share_window_mean_above_rest": 0.99,
+  "share_argmax_in_[50,61)": 0.99,
+  "pass": true
+ },
+ "invariants": {
+  "obs_equals_actions_plus_1": true,
+  "no_nan_residual": true
+ }
+}

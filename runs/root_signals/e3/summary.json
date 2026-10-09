@@ -1,0 +1,440 @@
+{
+ "tag": "EXPLORATORY, not val-checked (exempt 10-09)",
+ "plan": "ROOT_SIGNAL_EXPERIMENTS E3 + prim 10-09 (3 questions)",
+ "inputs": {
+  "rollouts.jsonl_sha256": "80e85bf1a48d997df404afa7885e1d4cbf5732975c07d3bf1e172a036e10af45"
+ },
+ "controller_model": {
+  "fir_lags": 8,
+  "kernel_all_successes": [
+   [
+    0.0827,
+    0.0744,
+    0.0173,
+    0.0137,
+    0.0119,
+    0.0074,
+    0.0009,
+    -0.0095,
+    0.0481
+   ],
+   [
+    0.0876,
+    0.0902,
+    0.0308,
+    0.0174,
+    0.0119,
+    0.0069,
+    0.0024,
+    -0.0002,
+    0.0124
+   ],
+   [
+    0.114,
+    0.0914,
+    0.0183,
+    0.0029,
+    0.0025,
+    0.0025,
+    0.0036,
+    0.0042,
+    -0.0108
+   ]
+  ],
+  "dc_gain_per_axis": [
+   0.247,
+   0.259,
+   0.229
+  ],
+  "peak_lag_per_axis": [
+   0,
+   1,
+   0
+  ],
+  "half0_fit_eval_on_other_half_successes_R2": 0.9572,
+  "half1_fit_eval_on_other_half_successes_R2": 0.9465,
+  "all_successes_in_sample_R2": 0.9526,
+  "failures_R2_with_all_success_kernel": 0.8019
+ },
+ "success_residual_mm": {
+  "median": 1.155,
+  "p95": 3.509
+ },
+ "q1_anchor": {
+  "failing_first_onset": {
+   "n": 173,
+   "median_profile_mm_offsets_-16_to_+39": [
+    0.986,
+    1.068,
+    1.036,
+    1.042,
+    1.044,
+    1.053,
+    1.05,
+    1.11,
+    1.174,
+    1.275,
+    1.325,
+    1.395,
+    1.447,
+    1.51,
+    1.658,
+    1.732,
+    2.187,
+    2.1,
+    2.243,
+    2.268,
+    1.969,
+    1.768,
+    1.477,
+    1.149,
+    1.079,
+    0.908,
+    0.772,
+    0.74,
+    0.693,
+    0.726,
+    0.786,
+    0.904,
+    1.123,
+    1.114,
+    1.129,
+    1.174,
+    1.246,
+    1.154,
+    1.127,
+    1.113,
+    1.055,
+    1.07,
+    1.06,
+    1.094,
+    1.073,
+    1.05,
+    1.05,
+    1.06,
+    1.156,
+    1.213,
+    1.072,
+    1.165,
+    1.109,
+    1.081,
+    1.108,
+    1.189
+   ],
+   "peak_offset": 3,
+   "anchor_window_over_rest_median": 1.109,
+   "share_episodes_ratio_gt_1": 0.59
+  },
+  "successful_first_onset": {
+   "n": 544,
+   "median_profile_mm_offsets_-16_to_+39": [
+    1.025,
+    1.015,
+    1.037,
+    1.005,
+    0.982,
+    0.97,
+    1.057,
+    1.083,
+    1.198,
+    1.32,
+    1.454,
+    1.583,
+    1.7,
+    1.704,
+    1.754,
+    1.901,
+    2.003,
+    2.159,
+    2.441,
+    2.507,
+    2.266,
+    1.96,
+    1.577,
+    1.264,
+    1.066,
+    0.915,
+    0.898,
+    0.846,
+    0.878,
+    0.974,
+    1.059,
+    1.118,
+    1.167,
+    1.182,
+    1.209,
+    1.251,
+    1.275,
+    1.286,
+    1.304,
+    1.281,
+    1.262,
+    1.206,
+    1.226,
+    1.167,
+    1.173,
+    1.204,
+    1.234,
+    1.192,
+    1.188,
+    1.185,
+    1.178,
+    1.076,
+    0.988,
+    0.96,
+    0.965,
+    0.994
+   ],
+   "peak_offset": 3,
+   "anchor_window_over_rest_median": 1.389,
+   "share_episodes_ratio_gt_1": 0.726
+  },
+  "failing_vs_successful_onset_window_auroc": {
+   "auroc_fail_high": 0.517,
+   "n_fail": 173,
+   "n_succ": 544,
+   "within_magnitude": 0.497
+  }
+ },
+ "q2_miss_vs_slip": {
+  "n_slip": 33,
+  "n_miss": 140,
+  "slip_rule": "max lift within 40 steps > 0.015 m",
+  "auroc_slip_high": {
+   "pre_onset_mean_e[-8,0)": 0.579,
+   "post_onset_mean_e[0,40)": 0.565,
+   "pre_onset_mean_ez[-8,0)": 0.592,
+   "post_onset_mean_ez[8,40)": 0.659
+  },
+  "medians_mm": {
+   "pre_onset_mean_e[-8,0)": [
+    2.088,
+    1.604
+   ],
+   "post_onset_mean_e[0,40)": [
+    1.694,
+    1.584
+   ],
+   "pre_onset_mean_ez[-8,0)": [
+    0.595,
+    -0.303
+   ],
+   "post_onset_mean_ez[8,40)": [
+    0.542,
+    0.338
+   ]
+  }
+ },
+ "q3_fail_vs_success": {
+  "joint_radius_rad": {
+   "matched_window_mean_e": {
+    "auroc_fail_high": 0.477,
+    "within_magnitude": 0.458,
+    "median_fail_mm": 1.394,
+    "median_succ_mm": 1.46
+   },
+   "per_forward_mean_e": {
+    "0": {
+     "auroc_fail_high": 0.52,
+     "within_magnitude": 0.384,
+     "n_fail": 112,
+     "n_succ": 248
+    },
+    "1": {
+     "auroc_fail_high": 0.534,
+     "within_magnitude": 0.574,
+     "n_fail": 112,
+     "n_succ": 248
+    },
+    "2": {
+     "auroc_fail_high": 0.432,
+     "within_magnitude": 0.439,
+     "n_fail": 112,
+     "n_succ": 248
+    },
+    "3": {
+     "auroc_fail_high": 0.351,
+     "within_magnitude": 0.345,
+     "n_fail": 112,
+     "n_succ": 248
+    },
+    "4": {
+     "auroc_fail_high": 0.471,
+     "within_magnitude": 0.437,
+     "n_fail": 112,
+     "n_succ": 211
+    },
+    "5": {
+     "auroc_fail_high": 0.531,
+     "within_magnitude": 0.487,
+     "n_fail": 112,
+     "n_succ": 142
+    },
+    "6": {
+     "auroc_fail_high": 0.49,
+     "within_magnitude": 0.502,
+     "n_fail": 112,
+     "n_succ": 87
+    },
+    "7": {
+     "auroc_fail_high": 0.528,
+     "within_magnitude": 0.573,
+     "n_fail": 112,
+     "n_succ": 42
+    },
+    "8": {
+     "auroc_fail_high": 0.606,
+     "within_magnitude": 0.631,
+     "n_fail": 112,
+     "n_succ": 27
+    },
+    "9": {
+     "auroc_fail_high": 0.415,
+     "within_magnitude": 0.452,
+     "n_fail": 112,
+     "n_succ": 19
+    }
+   }
+  },
+  "camera_yaw_deg": {
+   "matched_window_mean_e": {
+    "auroc_fail_high": 0.653,
+    "within_magnitude": 0.635,
+    "median_fail_mm": 1.482,
+    "median_succ_mm": 1.274
+   },
+   "per_forward_mean_e": {
+    "0": {
+     "auroc_fail_high": 0.504,
+     "within_magnitude": 0.498,
+     "n_fail": 64,
+     "n_succ": 296
+    },
+    "1": {
+     "auroc_fail_high": 0.527,
+     "within_magnitude": 0.52,
+     "n_fail": 64,
+     "n_succ": 296
+    },
+    "2": {
+     "auroc_fail_high": 0.653,
+     "within_magnitude": 0.617,
+     "n_fail": 64,
+     "n_succ": 296
+    },
+    "3": {
+     "auroc_fail_high": 0.415,
+     "within_magnitude": 0.456,
+     "n_fail": 64,
+     "n_succ": 296
+    },
+    "4": {
+     "auroc_fail_high": 0.532,
+     "within_magnitude": 0.53,
+     "n_fail": 64,
+     "n_succ": 272
+    },
+    "5": {
+     "auroc_fail_high": 0.6,
+     "within_magnitude": 0.585,
+     "n_fail": 64,
+     "n_succ": 203
+    },
+    "6": {
+     "auroc_fail_high": 0.63,
+     "within_magnitude": 0.587,
+     "n_fail": 64,
+     "n_succ": 124
+    },
+    "7": {
+     "auroc_fail_high": 0.529,
+     "within_magnitude": 0.532,
+     "n_fail": 64,
+     "n_succ": 64
+    },
+    "8": {
+     "auroc_fail_high": 0.512,
+     "within_magnitude": 0.502,
+     "n_fail": 64,
+     "n_succ": 45
+    },
+    "9": {
+     "auroc_fail_high": 0.717,
+     "within_magnitude": 0.718,
+     "n_fail": 64,
+     "n_succ": 28
+    }
+   }
+  },
+  "pooled": {
+   "matched_window_mean_e": {
+    "auroc_fail_high": 0.559,
+    "within_magnitude": 0.517,
+    "median_fail_mm": 1.457,
+    "median_succ_mm": 1.356
+   },
+   "per_forward_mean_e": {
+    "0": {
+     "auroc_fail_high": 0.55,
+     "within_magnitude": 0.422,
+     "n_fail": 176,
+     "n_succ": 544
+    },
+    "1": {
+     "auroc_fail_high": 0.547,
+     "within_magnitude": 0.556,
+     "n_fail": 176,
+     "n_succ": 544
+    },
+    "2": {
+     "auroc_fail_high": 0.515,
+     "within_magnitude": 0.498,
+     "n_fail": 176,
+     "n_succ": 544
+    },
+    "3": {
+     "auroc_fail_high": 0.383,
+     "within_magnitude": 0.382,
+     "n_fail": 176,
+     "n_succ": 544
+    },
+    "4": {
+     "auroc_fail_high": 0.511,
+     "within_magnitude": 0.471,
+     "n_fail": 176,
+     "n_succ": 483
+    },
+    "5": {
+     "auroc_fail_high": 0.567,
+     "within_magnitude": 0.526,
+     "n_fail": 176,
+     "n_succ": 345
+    },
+    "6": {
+     "auroc_fail_high": 0.542,
+     "within_magnitude": 0.536,
+     "n_fail": 176,
+     "n_succ": 211
+    },
+    "7": {
+     "auroc_fail_high": 0.517,
+     "within_magnitude": 0.556,
+     "n_fail": 176,
+     "n_succ": 106
+    },
+    "8": {
+     "auroc_fail_high": 0.557,
+     "within_magnitude": 0.575,
+     "n_fail": 176,
+     "n_succ": 72
+    },
+    "9": {
+     "auroc_fail_high": 0.561,
+     "within_magnitude": 0.565,
+     "n_fail": 176,
+     "n_succ": 47
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,1054 @@
+{
+ "tag": "UNVERIFIED (no PIPELINE_CHECKS PASS yet)",
+ "design": "RESULTS.md R-059 part A (registered 2026-09-29 16:40)",
+ "inputs": {
+  "rollouts.jsonl_sha256": "80e85bf1a48d997df404afa7885e1d4cbf5732975c07d3bf1e172a036e10af45",
+  "n_rows": 720,
+  "n_successes": 544
+ },
+ "act_P_to_env_map": {
+  "scale": [
+   0.93642,
+   0.93754,
+   0.93492,
+   0.19232,
+   0.35196,
+   0.3675,
+   -0.98893
+  ],
+  "offset": [
+   -7e-05,
+   0.0,
+   0.00041,
+   0.00482,
+   -0.01554,
+   0.0075,
+   -0.0031
+  ],
+  "max_abs_residual": [
+   0.05829,
+   0.00025,
+   0.05087,
+   4e-05,
+   9e-05,
+   6e-05,
+   0.99901
+  ],
+  "note": "gripper dim is binarised in env (residual large by design); dropped in A3"
+ },
+ "A1": {
+  "joint_radius_rad": {
+   "n_failures": 112,
+   "counts": {
+    "erratic": 45,
+    "stalled": 38,
+    "smooth_progressing": 29
+   },
+   "erratic_share": 0.402,
+   "thresholds": {
+    "M1_p95": 0.014349867319861187,
+    "M2_p95": 3.0,
+    "M3_p5": 0.19695118943296566,
+    "n_successes": 248
+   },
+   "short_window_successes": 30
+  },
+  "camera_yaw_deg": {
+   "n_failures": 64,
+   "counts": {
+    "erratic": 18,
+    "stalled": 15,
+    "smooth_progressing": 31
+   },
+   "erratic_share": 0.281,
+   "thresholds": {
+    "M1_p95": 0.013201754385964912,
+    "M2_p95": 2.25,
+    "M3_p5": 0.22598516220790738,
+    "n_successes": 296
+   },
+   "short_window_successes": 22
+  }
+ },
+ "A1_sensitivity_no_mag0": {
+  "joint_radius_rad": {
+   "n_failures": 109,
+   "counts": {
+    "erratic": 41,
+    "stalled": 34,
+    "smooth_progressing": 34
+   },
+   "erratic_share": 0.376,
+   "thresholds": {
+    "M1_p95": 0.02531645569620253,
+    "M2_p95": 3.0,
+    "M3_p5": 0.19199435216873292,
+    "n_successes": 191
+   },
+   "short_window_successes": 24
+  },
+  "camera_yaw_deg": {
+   "n_failures": 61,
+   "counts": {
+    "erratic": 3,
+    "stalled": 23,
+    "smooth_progressing": 35
+   },
+   "erratic_share": 0.049,
+   "thresholds": {
+    "M1_p95": 0.013513513513513514,
+    "M2_p95": 3.0,
+    "M3_p5": 0.2259092484760994,
+    "n_successes": 259
+   },
+   "short_window_successes": 18
+  }
+ },
+ "A2": {
+  "joint_radius_rad": {
+   "f_c": 12,
+   "fpr_by_forward": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 0.8508,
+    "6": 0.5726,
+    "7": 0.3508,
+    "8": 0.1694,
+    "9": 0.1089,
+    "10": 0.0766,
+    "11": 0.0565,
+    "12": 0.0363,
+    "13": 0.0282,
+    "14": 0.0202,
+    "15": 0.0121,
+    "16": 0.004,
+    "17": 0.0,
+    "18": 0.0
+   },
+   "n_successes": 248,
+   "success_forwards_median": 7.0,
+   "failure_forwards_values": [
+    18
+   ]
+  },
+  "camera_yaw_deg": {
+   "f_c": 12,
+   "fpr_by_forward": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 0.9189,
+    "6": 0.6858,
+    "7": 0.4189,
+    "8": 0.2162,
+    "9": 0.152,
+    "10": 0.0946,
+    "11": 0.0777,
+    "12": 0.0473,
+    "13": 0.027,
+    "14": 0.0135,
+    "15": 0.0101,
+    "16": 0.0034,
+    "17": 0.0034,
+    "18": 0.0
+   },
+   "n_successes": 296,
+   "success_forwards_median": 7.0,
+   "failure_forwards_values": [
+    18
+   ]
+  }
+ },
+ "A2_sensitivity_no_mag0": {
+  "joint_radius_rad": {
+   "f_c": 12,
+   "fpr_by_forward": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 0.8377,
+    "6": 0.5288,
+    "7": 0.3298,
+    "8": 0.1728,
+    "9": 0.1099,
+    "10": 0.0733,
+    "11": 0.0524,
+    "12": 0.0471,
+    "13": 0.0366,
+    "14": 0.0262,
+    "15": 0.0157,
+    "16": 0.0052,
+    "17": 0.0,
+    "18": 0.0
+   },
+   "n_successes": 191,
+   "success_forwards_median": 7.0,
+   "failure_forwards_values": [
+    18
+   ]
+  },
+  "camera_yaw_deg": {
+   "f_c": 13,
+   "fpr_by_forward": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 0.9228,
+    "6": 0.6795,
+    "7": 0.4208,
+    "8": 0.2201,
+    "9": 0.1544,
+    "10": 0.1004,
+    "11": 0.0811,
+    "12": 0.0541,
+    "13": 0.0309,
+    "14": 0.0154,
+    "15": 0.0116,
+    "16": 0.0039,
+    "17": 0.0039,
+    "18": 0.0
+   },
+   "n_successes": 259,
+   "success_forwards_median": 7.0,
+   "failure_forwards_values": [
+    18
+   ]
+  }
+ },
+ "A3": {
+  "normalised": {
+   "joint_radius_rad": {
+    "0": {
+     "auroc_fail_high": 0.198,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.113,
+      0.297
+     ],
+     "median_fail": 6.2997,
+     "median_succ": 6.8063
+    },
+    "1": {
+     "auroc_fail_high": 0.315,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.194,
+      0.435
+     ],
+     "median_fail": 5.6704,
+     "median_succ": 6.0723
+    },
+    "2": {
+     "auroc_fail_high": 0.394,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.279,
+      0.5
+     ],
+     "median_fail": 6.4959,
+     "median_succ": 6.6849
+    },
+    "3": {
+     "auroc_fail_high": 0.318,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.182,
+      0.467
+     ],
+     "median_fail": 6.55,
+     "median_succ": 6.8787
+    },
+    "4": {
+     "auroc_fail_high": 0.382,
+     "n_fail": 112,
+     "n_succ": 211,
+     "ci95_scene_bootstrap": [
+      0.249,
+      0.507
+     ],
+     "median_fail": 6.2104,
+     "median_succ": 6.6177
+    }
+   },
+   "camera_yaw_deg": {
+    "0": {
+     "auroc_fail_high": 0.425,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.329,
+      0.512
+     ],
+     "median_fail": 6.6201,
+     "median_succ": 6.7553
+    },
+    "1": {
+     "auroc_fail_high": 0.465,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.384,
+      0.536
+     ],
+     "median_fail": 6.2866,
+     "median_succ": 6.4358
+    },
+    "2": {
+     "auroc_fail_high": 0.438,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.335,
+      0.54
+     ],
+     "median_fail": 6.4392,
+     "median_succ": 6.5335
+    },
+    "3": {
+     "auroc_fail_high": 0.499,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.414,
+      0.582
+     ],
+     "median_fail": 6.8471,
+     "median_succ": 6.8224
+    },
+    "4": {
+     "auroc_fail_high": 0.521,
+     "n_fail": 64,
+     "n_succ": 272,
+     "ci95_scene_bootstrap": [
+      0.408,
+      0.627
+     ],
+     "median_fail": 6.6617,
+     "median_succ": 6.6496
+    }
+   },
+   "pooled": {
+    "0": {
+     "auroc_fail_high": 0.285,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.223,
+      0.35
+     ],
+     "median_fail": 6.3849,
+     "median_succ": 6.7779
+    },
+    "1": {
+     "auroc_fail_high": 0.36,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.284,
+      0.452
+     ],
+     "median_fail": 5.8332,
+     "median_succ": 6.1896
+    },
+    "2": {
+     "auroc_fail_high": 0.421,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.337,
+      0.512
+     ],
+     "median_fail": 6.4688,
+     "median_succ": 6.622
+    },
+    "3": {
+     "auroc_fail_high": 0.39,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.279,
+      0.509
+     ],
+     "median_fail": 6.6807,
+     "median_succ": 6.841
+    },
+    "4": {
+     "auroc_fail_high": 0.434,
+     "n_fail": 176,
+     "n_succ": 483,
+     "ci95_scene_bootstrap": [
+      0.322,
+      0.545
+     ],
+     "median_fail": 6.4152,
+     "median_succ": 6.6364
+    }
+   }
+  },
+  "env": {
+   "joint_radius_rad": {
+    "0": {
+     "auroc_fail_high": 0.222,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.113,
+      0.347
+     ],
+     "median_fail": 4.5989,
+     "median_succ": 5.1982
+    },
+    "1": {
+     "auroc_fail_high": 0.367,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.238,
+      0.48
+     ],
+     "median_fail": 4.3169,
+     "median_succ": 4.6419
+    },
+    "2": {
+     "auroc_fail_high": 0.453,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.355,
+      0.545
+     ],
+     "median_fail": 4.8063,
+     "median_succ": 4.9042
+    },
+    "3": {
+     "auroc_fail_high": 0.317,
+     "n_fail": 112,
+     "n_succ": 248,
+     "ci95_scene_bootstrap": [
+      0.17,
+      0.488
+     ],
+     "median_fail": 5.0057,
+     "median_succ": 5.288
+    },
+    "4": {
+     "auroc_fail_high": 0.408,
+     "n_fail": 112,
+     "n_succ": 211,
+     "ci95_scene_bootstrap": [
+      0.27,
+      0.533
+     ],
+     "median_fail": 4.7698,
+     "median_succ": 5.1605
+    }
+   },
+   "camera_yaw_deg": {
+    "0": {
+     "auroc_fail_high": 0.414,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.308,
+      0.51
+     ],
+     "median_fail": 4.8806,
+     "median_succ": 5.0481
+    },
+    "1": {
+     "auroc_fail_high": 0.475,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.376,
+      0.561
+     ],
+     "median_fail": 4.8017,
+     "median_succ": 4.8098
+    },
+    "2": {
+     "auroc_fail_high": 0.429,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.328,
+      0.519
+     ],
+     "median_fail": 4.6766,
+     "median_succ": 4.7542
+    },
+    "3": {
+     "auroc_fail_high": 0.485,
+     "n_fail": 64,
+     "n_succ": 296,
+     "ci95_scene_bootstrap": [
+      0.399,
+      0.567
+     ],
+     "median_fail": 5.1465,
+     "median_succ": 5.1641
+    },
+    "4": {
+     "auroc_fail_high": 0.496,
+     "n_fail": 64,
+     "n_succ": 272,
+     "ci95_scene_bootstrap": [
+      0.368,
+      0.612
+     ],
+     "median_fail": 5.0641,
+     "median_succ": 5.0705
+    }
+   },
+   "pooled": {
+    "0": {
+     "auroc_fail_high": 0.294,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.214,
+      0.378
+     ],
+     "median_fail": 4.7167,
+     "median_succ": 5.1132
+    },
+    "1": {
+     "auroc_fail_high": 0.397,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.312,
+      0.485
+     ],
+     "median_fail": 4.4626,
+     "median_succ": 4.7374
+    },
+    "2": {
+     "auroc_fail_high": 0.452,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.381,
+      0.529
+     ],
+     "median_fail": 4.6955,
+     "median_succ": 4.8319
+    },
+    "3": {
+     "auroc_fail_high": 0.388,
+     "n_fail": 176,
+     "n_succ": 544,
+     "ci95_scene_bootstrap": [
+      0.271,
+      0.508
+     ],
+     "median_fail": 5.0699,
+     "median_succ": 5.2128
+    },
+    "4": {
+     "auroc_fail_high": 0.444,
+     "n_fail": 176,
+     "n_succ": 483,
+     "ci95_scene_bootstrap": [
+      0.32,
+      0.553
+     ],
+     "median_fail": 4.9596,
+     "median_succ": 5.096
+    }
+   }
+  }
+ },
+ "A3_extra_within_magnitude_NOT_PREREGISTERED": {
+  "joint_radius_rad": {
+   "0": {
+    "pooled_within_stratum_auroc": 0.242,
+    "strata": {
+     "0.0": {
+      "auroc": 0.579,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.1": {
+      "auroc": 0.754,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.2": {
+      "auroc": 0.26,
+      "n_fail": 16,
+      "n_succ": 44
+     },
+     "0.3": {
+      "auroc": 0.132,
+      "n_fail": 26,
+      "n_succ": 34
+     },
+     "0.4": {
+      "auroc": 0.193,
+      "n_fail": 27,
+      "n_succ": 33
+     },
+     "0.5": {
+      "auroc": 0.221,
+      "n_fail": 37,
+      "n_succ": 23
+     }
+    }
+   },
+   "1": {
+    "pooled_within_stratum_auroc": 0.343,
+    "strata": {
+     "0.0": {
+      "auroc": 0.0,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.1": {
+      "auroc": 0.795,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.2": {
+      "auroc": 0.42,
+      "n_fail": 16,
+      "n_succ": 44
+     },
+     "0.3": {
+      "auroc": 0.335,
+      "n_fail": 26,
+      "n_succ": 34
+     },
+     "0.4": {
+      "auroc": 0.342,
+      "n_fail": 27,
+      "n_succ": 33
+     },
+     "0.5": {
+      "auroc": 0.266,
+      "n_fail": 37,
+      "n_succ": 23
+     }
+    }
+   },
+   "2": {
+    "pooled_within_stratum_auroc": 0.361,
+    "strata": {
+     "0.0": {
+      "auroc": 0.158,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.1": {
+      "auroc": 0.561,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.2": {
+      "auroc": 0.402,
+      "n_fail": 16,
+      "n_succ": 44
+     },
+     "0.3": {
+      "auroc": 0.379,
+      "n_fail": 26,
+      "n_succ": 34
+     },
+     "0.4": {
+      "auroc": 0.328,
+      "n_fail": 27,
+      "n_succ": 33
+     },
+     "0.5": {
+      "auroc": 0.342,
+      "n_fail": 37,
+      "n_succ": 23
+     }
+    }
+   },
+   "3": {
+    "pooled_within_stratum_auroc": 0.342,
+    "strata": {
+     "0.0": {
+      "auroc": 0.105,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.1": {
+      "auroc": 0.193,
+      "n_fail": 3,
+      "n_succ": 57
+     },
+     "0.2": {
+      "auroc": 0.344,
+      "n_fail": 16,
+      "n_succ": 44
+     },
+     "0.3": {
+      "auroc": 0.508,
+      "n_fail": 26,
+      "n_succ": 34
+     },
+     "0.4": {
+      "auroc": 0.268,
+      "n_fail": 27,
+      "n_succ": 33
+     },
+     "0.5": {
+      "auroc": 0.322,
+      "n_fail": 37,
+      "n_succ": 23
+     }
+    }
+   },
+   "4": {
+    "pooled_within_stratum_auroc": 0.433,
+    "strata": {
+     "0.0": {
+      "auroc": 0.725,
+      "n_fail": 3,
+      "n_succ": 51
+     },
+     "0.1": {
+      "auroc": 0.854,
+      "n_fail": 3,
+      "n_succ": 48
+     },
+     "0.2": {
+      "auroc": 0.536,
+      "n_fail": 16,
+      "n_succ": 38
+     },
+     "0.3": {
+      "auroc": 0.306,
+      "n_fail": 26,
+      "n_succ": 27
+     },
+     "0.4": {
+      "auroc": 0.396,
+      "n_fail": 27,
+      "n_succ": 28
+     },
+     "0.5": {
+      "auroc": 0.363,
+      "n_fail": 37,
+      "n_succ": 19
+     }
+    }
+   }
+  },
+  "camera_yaw_deg": {
+   "0": {
+    "pooled_within_stratum_auroc": 0.461,
+    "strata": {
+     "0.0": {
+      "auroc": 0.351,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "10.0": {
+      "auroc": 0.538,
+      "n_fail": 1,
+      "n_succ": 39
+     },
+     "20.0": {
+      "auroc": 0.414,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "30.0": {
+      "auroc": 0.52,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "40.0": {
+      "auroc": 0.395,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "50.0": {
+      "auroc": 0.442,
+      "n_fail": 17,
+      "n_succ": 23
+     },
+     "60.0": {
+      "auroc": 0.484,
+      "n_fail": 13,
+      "n_succ": 27
+     },
+     "75.0": {
+      "auroc": 0.511,
+      "n_fail": 11,
+      "n_succ": 29
+     }
+    }
+   },
+   "1": {
+    "pooled_within_stratum_auroc": 0.486,
+    "strata": {
+     "0.0": {
+      "auroc": 0.27,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "10.0": {
+      "auroc": 0.436,
+      "n_fail": 1,
+      "n_succ": 39
+     },
+     "20.0": {
+      "auroc": 0.649,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "30.0": {
+      "auroc": 0.547,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "40.0": {
+      "auroc": 0.445,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "50.0": {
+      "auroc": 0.425,
+      "n_fail": 17,
+      "n_succ": 23
+     },
+     "60.0": {
+      "auroc": 0.541,
+      "n_fail": 13,
+      "n_succ": 27
+     },
+     "75.0": {
+      "auroc": 0.511,
+      "n_fail": 11,
+      "n_succ": 29
+     }
+    }
+   },
+   "2": {
+    "pooled_within_stratum_auroc": 0.498,
+    "strata": {
+     "0.0": {
+      "auroc": 0.189,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "10.0": {
+      "auroc": 0.103,
+      "n_fail": 1,
+      "n_succ": 39
+     },
+     "20.0": {
+      "auroc": 0.523,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "30.0": {
+      "auroc": 0.551,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "40.0": {
+      "auroc": 0.555,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "50.0": {
+      "auroc": 0.407,
+      "n_fail": 17,
+      "n_succ": 23
+     },
+     "60.0": {
+      "auroc": 0.479,
+      "n_fail": 13,
+      "n_succ": 27
+     },
+     "75.0": {
+      "auroc": 0.69,
+      "n_fail": 11,
+      "n_succ": 29
+     }
+    }
+   },
+   "3": {
+    "pooled_within_stratum_auroc": 0.631,
+    "strata": {
+     "0.0": {
+      "auroc": 0.279,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "10.0": {
+      "auroc": 0.641,
+      "n_fail": 1,
+      "n_succ": 39
+     },
+     "20.0": {
+      "auroc": 0.577,
+      "n_fail": 3,
+      "n_succ": 37
+     },
+     "30.0": {
+      "auroc": 0.625,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "40.0": {
+      "auroc": 0.613,
+      "n_fail": 8,
+      "n_succ": 32
+     },
+     "50.0": {
+      "auroc": 0.795,
+      "n_fail": 17,
+      "n_succ": 23
+     },
+     "60.0": {
+      "auroc": 0.456,
+      "n_fail": 13,
+      "n_succ": 27
+     },
+     "75.0": {
+      "auroc": 0.784,
+      "n_fail": 11,
+      "n_succ": 29
+     }
+    }
+   },
+   "4": {
+    "pooled_within_stratum_auroc": 0.564,
+    "strata": {
+     "0.0": {
+      "auroc": 0.566,
+      "n_fail": 3,
+      "n_succ": 33
+     },
+     "10.0": {
+      "auroc": 1.0,
+      "n_fail": 1,
+      "n_succ": 35
+     },
+     "20.0": {
+      "auroc": 0.902,
+      "n_fail": 3,
+      "n_succ": 34
+     },
+     "30.0": {
+      "auroc": 0.455,
+      "n_fail": 8,
+      "n_succ": 28
+     },
+     "40.0": {
+      "auroc": 0.513,
+      "n_fail": 8,
+      "n_succ": 28
+     },
+     "50.0": {
+      "auroc": 0.496,
+      "n_fail": 17,
+      "n_succ": 23
+     },
+     "60.0": {
+      "auroc": 0.655,
+      "n_fail": 13,
+      "n_succ": 27
+     },
+     "75.0": {
+      "auroc": 0.5,
+      "n_fail": 11,
+      "n_succ": 28
+     }
+    }
+   }
+  }
+ },
+ "expectations": {
+  "E1_start_pose_erratic_le_40pct": {
+   "value": 0.402,
+   "holds": false
+  },
+  "E2_A3_auroc_f_le_2_in_0.40_0.60": {
+   "joint_radius_rad": {
+    "0": {
+     "auroc": 0.198,
+     "holds": false
+    },
+    "1": {
+     "auroc": 0.315,
+     "holds": false
+    },
+    "2": {
+     "auroc": 0.394,
+     "holds": false
+    }
+   },
+   "camera_yaw_deg": {
+    "0": {
+     "auroc": 0.425,
+     "holds": true
+    },
+    "1": {
+     "auroc": 0.465,
+     "holds": true
+    },
+    "2": {
+     "auroc": 0.438,
+     "holds": true
+    }
+   }
+  },
+  "E3_f_c_ge_9_both_axes": {
+   "joint_radius_rad": {
+    "f_c": 12,
+    "holds": true
+   },
+   "camera_yaw_deg": {
+    "f_c": 12,
+    "holds": true
+   }
+  }
+ },
+ "checks_for_val": {
+  "known_answer": {
+   "rows": 720,
+   "successes": 544,
+   "expect_rows_successes": [
+    720,
+    544
+   ],
+   "f_c_expect_12_both_axes (D26 draft, measured 10-07)": {
+    "joint_radius_rad": 12,
+    "camera_yaw_deg": 12
+   },
+   "every_failure_18_forwards": {
+    "joint_radius_rad": [
+     18
+    ],
+    "camera_yaw_deg": [
+     18
+    ]
+   }
+  },
+  "invariants": {
+   "npz_forwards_equal_manifest": true,
+   "executed_equals_act_P_first16_after_affine_max_residual_dims0_5": 0.05829273329999163
+  },
+  "null": "overlap of a chunk with itself is 0 by construction; see check script (val)"
+ }
+}
