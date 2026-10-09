@@ -90,6 +90,10 @@ A check that genuinely doesn't apply is marked **N/A with a reason**; it is neve
 | R-059 multi-draw runner (E1b) | impl | worktree | R-059 |
 | E7 VLM closed questions + bisection | impl | worktree | ROOT_SIGNAL_EXPERIMENTS |
 
+## Exemptions (user decisions)
+
+- **PoC toy pipeline** (`experiments/poc_toy_{common,instance,search,render,page}.py` → `runs/poc_toy/`, `docs/MINING_SPEC_TOY.html`): **no val check for now** (user, 10-09). It predates the rule. Its numbers are illustrative toy evidence, not RESULTS. Any change to it, or reuse of it for a real PoC result, ends the exemption.
+
 ## Entries
 
 _None yet._
