@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Experiments, 9 October</title>
+<title>Day Summary, 9 October</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -66,39 +66,97 @@
 </head>
 <body>
 <main>
-<h1>Experiments, 9 October</h1>
-<p class="sub">One page for every experiment planned or run on 2026-10-09: code status, run status, resources and time. Written by prim at 16:15 from the worktree, the GPU queue log and the sessions' reports. <b>All results here are exploratory and not val-checked</b> (the user exempted this round, 10-09). Plans: <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, RESULTS.md R-059. Code lives in worktree <code>/home/imerit/Documents/Code/VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>.</p>
+<h1>Day Summary, 9 October</h1>
+<p class="sub"><b>The one page to read for 9 October.</b> §0 lists every decision and approval waiting on you; §5 summarises everything discussed today. The rest covers every experiment planned or run:  code status, run status, resources and time. Written by prim at 16:15, updated 16:40, from the worktree, the GPU queue log and the sessions' reports. <b>All results here are exploratory and not val-checked</b> (the user exempted this round, 10-09). Plans: <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, RESULTS.md R-059. Code lives in worktree <code>/home/imerit/Documents/Code/VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>.</p>
 
 <div class="card top">
 <h3>At a glance (16:15)</h3>
 <ul>
 <li><b>In flight:</b> only <b>impl</b>, writing <code>e4_anchor_firstenv.py</code> (the E4 known-answer check). Nothing on the GPU: lock free, 106 MiB used. MemAvailable 14.6 GiB, just above the 14 GiB launch floor.</li>
 <li><b>Done:</b> four CPU analyses (my prim): R-059 part A (E1), E2, E3, E6. Committed on <code>exp/root-signals</code> (9f6c828). GPU: E4 invariants and a one-demo smoke.</li>
-<li><b>On hold:</b> R-059 part B and C (E1b), until impl rules out a tensor-duplication risk in the multi-draw wrapper.</li>
+<li><b>Unblocked 16:35:</b> my prim OK'd E4-2 (full), the R-059 B0 anchor and B smoke, and the E7-1 render smoke. C1 waits for my prim's review of B.</li>
+<li><b>New caveat:</b> R-047 nominal forward 0 isn't fully deterministic (984/n0, 1062/n0 differ between its own axes); bitwise anchors avoid those cells.</li>
 <li><b>Pattern so far:</b> every cheap timing signal (E1, E2, E3, E6) either tracks the grasp event, which the gripper rules already find, or reflects perturbation size. None marks where a failure was decided.</li>
 </ul>
 </div>
+
+<h2>0 · Decide / approve (everything waiting on you)</h2>
+<p class="muted">Checklist ids refer to docs/PRIORITIES_7Oct.html (serve it with experiments/serve_priorities.py). [prim: …] is my recommendation.</p>
+<div class="tw"><table>
+<tr><th>Area</th><th>Id</th><th>Decision</th><th>[prim]</th></tr>
+<tr><td rowspan="5">Experiments (today)</td><td>—</td><td>GPU priority: which of E4-2 (full, ~20–50 min), E7 (render ~1–1.5 h + VLM pass on NIM) and R-059 B smoke → C1 (~1.5 h + ~4 h) to run, and in what order. All three are OK'd by my prim and ready.</td><td>Run E4-2 and E7 (cheap, new signal types); R-059 B smoke yes; C1 only if B shows STAC ≥ 3× the noise floor</td></tr>
+<tr><td>—</td><td>E1-phase: re-run A3 aligned by distance-to-target (CPU ~1 h)</td><td>Yes: cheap, settles whether E1's reversal is real</td></tr>
+<tr><td>rs9</td><td>R-059 deviations into RESULTS.md (per-draw seeds, no splice arms, runtime wrapper, V-statistic gate on the f=0 null with pooled secondary, B0 anchor at 984/n1). Unchecked by you.</td><td>Approve; SFT pastes</td></tr>
+<tr><td>t10c</td><td>UQ1: split the root into anchor.symptom (gripper events) + anchor.decision (interventions). This unblocks E5.</td><td>Yes</td></tr>
+<tr><td>—</td><td>IDM tests: T0/T1 (IDM gate, ≤ 6 GPU-h, 3–4 days) and K1 (E4 in loss form, ~1–2 GPU-h)</td><td>K1 after E4-2 reads; T0/T1 later, if v1 needs video data</td></tr>
+<tr><td rowspan="6">Mining spec v1</td><td>ms8</td><td>Review PoC's v1 design doc (docs/MINING_SPEC_V1_DESIGN.html), including its §0 list of 11 decisions: root option, "recovered" definition, recovery type, labeller, acceptance bars, layout mode, tolerances, P7b, toy correction N9, GPU render for labelling, effort 12.5–15.5 d</td><td>Read §0 and §3 first</td></tr>
+<tr><td>t10a</td><td>v1 root rules: multi-label time-ordered events, root = first UNRECOVERED event, a "recovery" instance type, fixed drop/place and wrong_object rules, goal threshold near 3 cm (not 6)</td><td>Adopt</td></tr>
+<tr><td>t10b</td><td>Who hand-labels ~30 R-047 episodes</td><td>A session labels, you check a sample</td></tr>
+<tr><td>t10d / N9</td><td>Toy-doc corrections: row 14's 6th attempt was an off-target placement, not a drop; plus PoC's three wording edits</td><td>Approve</td></tr>
+<tr><td>ms1–ms7</td><td>P1–P7 choices (PoC leans P1a/P2a/P3a/P4b/P5b/P6a/P7a, P7b as a stretch)</td><td>Settle via the v1 doc</td></tr>
+<tr><td>—</td><td>Worktree for v1: feat/mining-spec-v1 (prim creates it after the doc is approved)</td><td>Yes</td></tr>
+<tr><td rowspan="3">val / process</td><td>t10e</td><td>val next round: tiered checks + authors supply controls + time limits + reset between checks (est. ~6–7M vs ~15–18M input tokens for 7 pipelines)</td><td>A + B + D</td></tr>
+<tr><td>t10f</td><td>May val run EGL render-only GPU steps itself?</td><td>No</td></tr>
+<tr><td>t10g / t10h</td><td>Token cost: reset impl and my prim after today's runs; cheaper models for routine roles; close idle sessions (res, res22); a read-only per-agent context report from transcripts</td><td>Reset impl and my prim tonight; report yes</td></tr>
+<tr><td rowspan="4">G0c / R-060</td><td>g0c1</td><td>Send impl's gate amendment draft (A1–A4 + my prim's points) to SFT and my prim for review</td><td>Yes</td></tr>
+<tr><td>g0c2</td><td>Fix nominal_frames' camera pose (code change, impl)</td><td>Yes</td></tr>
+<tr><td>g0c3 / t10i</td><td>Who checks G0c's effect on past runs (R-039/R-042/R-048 camera N, frame phase, env-deletion corruption), and in what form</td><td>res21, CPU, pm1 addendum</td></tr>
+<tr><td>g0c4 / r60b</td><td>Fold the G0c fix into the R-060 amendment (camera per LIBERO-Plus family, Adapt3R arm, noise row)</td><td>Yes</td></tr>
+<tr><td rowspan="3">res21 / res</td><td>pm2, c9b, c9c</td><td>The map's lineage paragraph; the 0.45 → 0.85 correction; wording fixes</td><td>Approve</td></tr>
+<tr><td>c9a</td><td>GPU null check of the paired-N re-render (~10 forwards)</td><td>Yes, after today's runs</td></tr>
+<tr><td>c9d</td><td>Pre-register the VLA-Corrector 6-arm runtime-correction test (~3.3 GPU-h)</td><td>Later</td></tr>
+<tr><td rowspan="2">res22</td><td>c9e, c9f, c9g</td><td>Apply DATA_AND_BENCHMARKS corrections; LIBERO-MAX Lite (2–3 d + 5–8 GPU-h); ask the authors about the licence</td><td>c9e yes; c9f/c9g later</td></tr>
+<tr><td>c9h, c9i</td><td>Parked: sim generation from the root; per-step sim-state snapshots</td><td>Keep parked until v1</td></tr>
+<tr><td rowspan="2">10-08 handoff Qs</td><td>o8b, o8c, o8d, o8f</td><td>r60b also decides G0c's resolution; G0b before the r60c OK; my prim validates G0a/G0c; bootstrap CI on 30% vs 12%</td><td>Yes to all</td></tr>
+<tr><td>o8h, o8i, o8j</td><td>D22 replay + t2f before D23; "the pilot as run" in FINE_TUNING_101; SFT's stale memory lines</td><td>Wait for t2b; your call; yes</td></tr>
+<tr><td rowspan="2">Older</td><td>r60b, t2b, t2d, t4d/t4e, pm2, d2, t5b, t5d</td><td>The R-060 amendment; next demo source (D21); directions-review calls; D26; map lineage; architecture analysis; the rollout_id fix; README MuJoCo pin</td><td>Unchanged from the checklist</td></tr>
+<tr><td>t5c</td><td><b>Push: 89 local commits unpushed.</b> Run <code>! git -C /home/imerit/Documents/Code/VLA push origin main</code></td><td>Push</td></tr>
+</table></div>
 
 <h2>1 · Status board</h2>
 <div class="tw"><table>
 <tr><th>#</th><th>What</th><th>Owner</th><th>Code</th><th>Run</th><th>Resources</th><th>Time</th><th>First reading (exploratory)</th></tr>
 <tr><td class="id">E1</td><td>R-059 part A: A1 failure type, A2 clock baseline, A3 single-draw chunk self-consistency (STAC-like)</td><td>my prim</td><td><span class="tag agreed">done</span> <code>r059_partA.py</code>, <code>root_signals_common.py</code></td><td><span class="tag agreed">done</span> <code>runs/r059/partA/</code></td><td>CPU</td><td>~1.5 h incl. code</td><td>Clock f_c = 12 on both axes (reproduces D26). Start pose: failures MORE self-consistent (AUROC 0.20 at f0, CI 0.11–0.30; 0.13–0.26 within radius); a real effect or a phase artefact (not run: phase-matched check). Camera 0.40–0.60. Expectation 1 borderline: 40.2% vs ≤ 40%, holds (37.6%) without the magnitude-0 rows.</td></tr>
-<tr><td class="id">E1b</td><td>R-059 parts B/C: 32 seeded draws per forward, MMD² STAC vs noise floor; C1 = 240 start-pose rollouts</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>r059_multidraw.py</code>, <code>r059_score_b.py</code>, <code>r059_unit_check.py</code>, flags in <code>r047_run.py</code>; CPU self-check passes (fake head)</td><td><span class="tag prop">on hold</span>: B0 bitwise anchor, B smoke, C1 not run</td><td>GPU ~7.5 GB, one model; RAM ~12–15 GiB</td><td>B0 ~10 min; B smoke 1–1.5 h; C1 ~4 h</td><td>—. Hold reason: val's note #5 (the wrapper repeats every size-1-leading tensor; B&gt;1 could be silently wrong). Deviations to record: rs9 (unchecked by user).</td></tr>
+<tr><td class="id">E1b</td><td>R-059 parts B/C: 32 seeded draws per forward, MMD² STAC vs noise floor; C1 = 240 start-pose rollouts</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>r059_multidraw.py</code>, <code>r059_score_b.py</code>, <code>r059_unit_check.py</code>, flags in <code>r047_run.py</code>; CPU self-check passes (fake head)</td><td><span class="tag agreed">re-OK'd 16:35</span> by my prim: B0 bitwise anchor (moved to stable cell 984/n1) → B smoke; C1 waits for my prim's review of B</td><td>GPU ~7.5 GB, one model; RAM ~12–15 GiB</td><td>B0 ~10 min; B smoke 1–1.5 h; C1 ~4 h</td><td>—. Hold lifted: impl whitelisted the 3 real batch tensors with asserts (unit check 6 PASS). Gate: V-statistic MMD², f=0 null, ratio ≥ 3 (pooled null secondary). Deviations: rs9 (unchecked by user).</td></tr>
 <tr><td class="id">E2</td><td>Perturbed-vs-nominal chunk gap (d_pn) as a failure/root signal</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e2_dpn.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e2/</code></td><td>CPU</td><td>~1 h</td><td>AUROC f0 0.77 start pose / 0.70 camera overall, but 0.64 / 0.60 within magnitude (best 0.70; bar 0.75). Timing aligns with the grasp only via the gripper dim (57% within 1 forward; 27% arm-only), so it detects the grasp event. Caveat: start-pose N is a recorded run aligned by forward index.</td></tr>
 <tr><td class="id">E3</td><td>Commanded vs achieved end-effector motion</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e3_cmd_vs_achieved.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e3/</code></td><td>CPU</td><td>~2 h</td><td>Controller: action[:3]×0.05 m, world-aligned, gain 0.23–0.26 spread over ~2 steps; kernel R² 0.95 on held-out successes. Residual spikes ~3 steps after every grasp onset, failed or not (AUROC 0.52). Miss vs slip weak (best 0.66). Failure vs success ≈ chance. Reading: "smooth and wrong" failures.</td></tr>
-<tr><td class="id">E4</td><td>Imitation disagreement: GR00T open-loop on the toy task's 50 human demos vs demo actions</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e4_demo_disagreement.py</code>; <span class="tag prop">in progress</span> <code>e4_anchor_firstenv.py</code></td><td>E4-0 invariants <span class="tag agreed">done</span> (16:00, rc 0); E4-1 one-demo smoke <span class="tag agreed">done</span> (16:03, rc 0); full run <span class="tag prop">pending</span></td><td>GPU 7.16 GB peak, RAM 12.1 GiB peak (smoke)</td><td>Full: ~20–50 min</td><td>Invariants pass (orientation, lag t−1, normalisation round trip; my prim checked). Before full scoring: fix the gripper-label sign inversion (my prim) and answer val's notes 1–3 (planted control strength, obs layout, anchor key).</td></tr>
+<tr><td class="id">E4</td><td>Imitation disagreement: GR00T open-loop on the toy task's 50 human demos vs demo actions</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e4_demo_disagreement.py</code>; <span class="tag prop">in progress</span> <code>e4_anchor_firstenv.py</code></td><td>E4-0 invariants <span class="tag agreed">done</span> (16:00, rc 0); E4-1 one-demo smoke <span class="tag agreed">done</span> (16:03, rc 0); full run (E4-2) <span class="tag agreed">OK'd 16:35</span>, not yet launched</td><td>GPU 7.16 GB peak, RAM 12.1 GiB peak (smoke)</td><td>Full: ~20–50 min</td><td>Invariants pass. Smoke: null bitwise, seed floor L2 7.0; known answer 5/6 R-047 anchors fp16-bitwise (the 6th, 984/n0, is unstable within R-047 itself). Gripper-label sign fixed (18/18). Planted control now a known +0.5 offset with margin. Obs layout confirmed (xyzw).</td></tr>
 <tr><td class="id">E5</td><td>Combined root: time from the best signal + phase from gripper rules, validated against ground truth</td><td>—</td><td><span class="tag open">not started</span></td><td>—</td><td>CPU</td><td>~1 day incl. ground truth</td><td>Waits on the user's UQ1 decision (t10c): ground truth = R-044/R-057 interventions, or hand labels.</td></tr>
 <tr><td class="id">E6</td><td>FAST action tokens as an action feature dictionary (sliding windows)</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e6_fast.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e6/</code></td><td>CPU</td><td>~2 h</td><td>No phase boundaries (change-score AUROC 0.47–0.51; a planted step isn't localised). Some phase information (bag-of-tokens → phase 0.61 vs 0.41 majority). 10–39 tokens separate failures (|AUROC−0.5| ≤ 0.21) but decode to steady-heading motions.</td></tr>
-<tr><td class="id">E7</td><td>VLM closed questions at telemetry event frames + bisection, scored vs sim truth</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e7_render.py</code>, <code>e7_vlm.py</code>, <code>vlm_label.py</code> (closed mode)</td><td>Episode selection <span class="tag agreed">done</span> (<code>e7/episodes.json</code>, ~220 episodes); render smoke, render, VLM pass <span class="tag prop">pending</span></td><td>GPU for EGL render (no model); NIM API (Nemotron-Omni) for ~1,000 calls; local Qwen3-VL fallback</td><td>Render ~1–1.5 h; VLM on NIM a few hours</td><td>—. Novelty note: ProTracer (2609.21369) published "telemetry says when, VLM says what"; E7 is still worth running as validation.</td></tr>
+<tr><td class="id">E7</td><td>VLM closed questions at telemetry event frames + bisection, scored vs sim truth</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e7_render.py</code>, <code>e7_vlm.py</code>, <code>vlm_label.py</code> (closed mode)</td><td>Episode selection <span class="tag agreed">done</span> (~220 episodes); render smoke (E7-1) <span class="tag agreed">OK'd 16:35</span>; full render and VLM pass pending</td><td>GPU for EGL render (no model); NIM API (Nemotron-Omni) for ~1,000 calls; local Qwen3-VL fallback</td><td>Render ~1–1.5 h; VLM on NIM a few hours</td><td>—. Novelty note: ProTracer (2609.21369) published "telemetry says when, VLM says what"; E7 is still worth running as validation.</td></tr>
 <tr><td class="id">E1-phase</td><td>Phase-matched re-run of A3 (align by distance-to-target, not forward index) to test whether E1's reversal is real</td><td>my prim (if approved)</td><td><span class="tag open">not written</span></td><td>—</td><td>CPU</td><td>~1 h</td><td>Proposed by my prim; separates "confidently wrong" from a phase artefact.</td></tr>
 </table></div>
+
+<h2>1b · Planned, not yet scheduled</h2>
+<div class="tw"><table>
+<tr><th>Experiment</th><th>From</th><th>What it would answer</th><th>Resources / time</th><th>Waits on</th></tr>
+<tr><td><b>E1-phase</b>: A3 re-run aligned by distance-to-target</td><td>my prim</td><td>Is E1's reversal (failures more self-consistent) real, or a phase artefact?</td><td>CPU ~1 h</td><td>The user's go</td></tr>
+<tr><td><b>E5</b>: combined root vs ground truth</td><td>ROOT_SIGNAL_EXPERIMENTS</td><td>Do policy signals predict the decision point better than gripper rules?</td><td>CPU ~1 day</td><td>t10c (UQ1 anchor split)</td></tr>
+<tr><td><b>R-059 C1</b>: 240 start-pose rollouts with 32 draws</td><td>R-059 pre-registration</td><td>Does multi-draw STAC beat the clock before f_c?</td><td>GPU ~4 h</td><td>B smoke + my prim's review</td></tr>
+<tr><td><b>T0 / T1 / E3b</b>: IDM gate package</td><td>res22, IDM_VLA_HORIZONS §4</td><td>T0 replays the demos' own actions; T1 trains a small IDM and scores it by replay; E3b is E3 without proprio</td><td>≤ 6 GPU-h, 3–4 engineer-days; r047 needs a render-only replay first</td><td>The user's go (not yet asked)</td></tr>
+<tr><td><b>K1 / K2 / K3</b>: VLA vs IDM / demo disagreement</td><td>res22, IDM_VLA_HORIZONS §8</td><td>K1 = E4 in loss form (AUROC ≥ 0.7 opens); K2 = K1 with IDM labels; K3 = label QA</td><td>K1 ~1–2 GPU-h; K2/K3 after T1</td><td>The user's go; K2/K3 wait for T1</td></tr>
+<tr><td><b>c9a</b>: GPU null check of the paired-N re-render</td><td>res21, PERTURBATION_MAP_VALIDITY</td><td>Does a re-rendered N change actions vs the step frame?</td><td>~10 forwards</td><td>The user's decision (checklist c9a)</td></tr>
+<tr><td><b>g0c3</b>: effect of G0c findings on past runs' stored N</td><td>impl's G0c diagnosis</td><td>Are R-039/R-042/R-048 camera N, frame phase and env-deletion effects material?</td><td>CPU</td><td>The user's decision (g0c3, t10i)</td></tr>
+<tr><td><b>R-060 G0b, then the GPU parts</b> (FTM recalibration vs DiT-only LoRA)</td><td>R-060 pre-registration</td><td>—</td><td>G0b CPU (~7 GB RAM); GPU parts ~9 h + ~2 h training</td><td>r60b amendment + g0c1/g0c2 (on hold)</td></tr>
+<tr><td><b>Mining spec v1 build</b></td><td>PoC, MINING_SPEC_V1_DESIGN</td><td>Rule-based roots, schema, dataset search on LIBERO-Spatial</td><td>Mostly CPU; 12.5–15.5 working days (PoC's estimate)</td><td>The user's approval of the v1 doc (§0, 11 items)</td></tr>
+</table></div>
+
+<h2>1c · Open questions</h2>
+<ul>
+<li><b>GPU priority:</b> given the pattern (cheap signals only find the grasp event), which of E4-2, E7 and R-059 B/C1 deserve GPU time, and in what order?</li>
+<li><b>E1's reversal:</b> real "confidently wrong" behaviour or a phase artefact? (E1-phase settles it.)</li>
+<li><b>Ground truth for roots:</b> interventions (R-044/R-057) vs hand labels (t10c, t10b).</li>
+<li><b>R-059 deviations into RESULTS.md</b> (rs9, unchecked by user).</li>
+<li><b>Which IDM tests, if any,</b> are worth starting (T0/T1, K1)?</li>
+<li><b>Row 14's root:</b> place × off-target at t=242 under "first unrecovered event" vs grasp × slip at t=31 under "first event"; the toy-doc correction is N9.</li>
+</ul>
 
 <h2>2 · Side work today</h2>
 <div class="tw"><table>
 <tr><th>What</th><th>Owner</th><th>Status</th><th>Where</th></tr>
 <tr><td>Rule-order / uniqueness probe for v1 root rules (UNVERIFIED)</td><td>prim</td><td>done; recorded as MINING_SPEC_DESIGN §6d UQ10</td><td>scratchpad <code>root_rules_probe_v2.py</code></td></tr>
 <tr><td>IDM + VLA horizons research (c9j, c9k)</td><td>res22</td><td>done</td><td><code>docs/IDM_VLA_HORIZONS.html</code></td></tr>
-<tr><td>v1 design doc (ms8)</td><td>PoC</td><td>outline waiting for the user's OK</td><td><code>docs/MINING_SPEC_V1_DESIGN.html</code> (to come)</td></tr>
+<tr><td>v1 design doc (ms8)</td><td>PoC</td><td>written 16:12; waiting for the user's review (§0: 11 items); uncommitted until approved</td><td><code>docs/MINING_SPEC_V1_DESIGN.html</code></td></tr>
 <tr><td>val queue</td><td>val</td><td>stood down for this round; 9 plain notes forwarded to impl and my prim</td><td>PIPELINE_CHECKS.md (Exemptions)</td></tr>
 </table></div>
 
@@ -119,6 +177,92 @@
 <li>rs9: R-059 deviations into RESULTS.md (unchecked by user).</li>
 <li>t10c: the UQ1 anchor split, which unblocks E5.</li>
 </ul>
+
+<h2>5 · What we discussed today (10-09), by topic</h2>
+
+<h3>Mining spec design (MINING_SPEC_DESIGN.html)</h3>
+<ul>
+<li><b>v0 instance schema</b> (§6): spec → instance with root, situation (fields with source/uncertainty), success, terminal, evidence, mechanism and optional blocks. Filled toy example; screenshot at <code>mining_spec_v0_schema.png</code> (repo root, untracked).</li>
+<li><b>D14:</b> success search matches a snapshot at the root over the policy's observation window (GR00T: 1 frame). The prefix is used only to reach the situation.</li>
+<li><b>D15</b> (proposed, unread): every situation field records source (exact / estimated ±σ / unavailable); §6c covers external-data tiers (sim, real-robot logs, video), the IDM role and phase segmentation without labels.</li>
+<li><b>D16</b> (agreed): spec labels come from outside the model (actions, telemetry, sim state, VLM, action tokenizers); looking inside the model is for mechanism localisation only.</li>
+<li><b>§6d user questions UQ1–UQ10</b> (not decided):
+  <ul>
+  <li>UQ1: the symptom vs decision anchor;</li>
+  <li>UQ2: prefix replay then correct;</li>
+  <li>UQ3: root frame + goal frame → IDM is a planning problem, so world model + IDM + sim filter instead;</li>
+  <li>UQ4: rule blind spots (wrong object, wrong place, knock-over…);</li>
+  <li>UQ5: rules break on cloth, pouring, drawers;</li>
+  <li>UQ6: tokenizers as labels;</li>
+  <li>UQ7: grasp onset, the root rule's gaps, and <code>source</code>;</li>
+  <li>UQ8: VLM + telemetry + instruction;</li>
+  <li>UQ9: narrowing what the VLM sees (5 levels);</li>
+  <li>UQ10: the rule-order probe (125/176 failures fire 2+ modes; order changes 83/176 labels) + the row-14 correction.</li>
+  </ul></li>
+<li><b>§7b</b> branches each pending decision P1–P7; <b>§7c</b> links all related docs.</li>
+</ul>
+
+<h3>PoC</h3>
+<ul>
+<li>Stakeholder toy (MINING_SPEC_TOY) and internal doc built; <b>the PoC is green-lit</b>. Toy pipeline exempt from val (your call).</li>
+<li>Port answer: common/search generalise, instance rewrite, render light, page drop; saves ~2.5–3.5 days.</li>
+<li><b>v1 design doc written</b> (MINING_SPEC_V1_DESIGN), awaiting your review. v1 = rule-based symptom roots on LIBERO-Spatial; robust or other-task roots stay as experiments.</li>
+<li>PoC's handoff section is in HANDOFF_8Oct.</li>
+</ul>
+
+<h3>Root-signal experiments (ROOT_SIGNAL_EXPERIMENTS.html)</h3>
+<ul>
+<li>Signals:
+  <ul>
+  <li>(a) chunk self-consistency;</li>
+  <li>(b) gap to nominal;</li>
+  <li>(c) commanded vs achieved;</li>
+  <li>(d) imitation disagreement;</li>
+  <li>plus FAST tokens (E6) and VLM closed questions (E7).</li>
+  </ul></li>
+<li>Run in worktree <code>VLA-exp-rootsignals</code> (branch <code>exp/root-signals</code>; never merged without your go). my prim owns CPU, impl GPU through my prim's gate.</li>
+<li>Results so far in §1. VLA vs IDM chunks on the same observations: on our rollouts it equals (c) plus IDM error; on successful demos it equals (d).</li>
+</ul>
+
+<h3>IDM + VLA research (res22, IDM_VLA_HORIZONS.html)</h3>
+<ul>
+<li>Too optimistic for raising GR00T's success rate soon; realistic as an instrument (an IDM fits 8 GB).</li>
+<li>GR00T N1 did use IDM / latent-action pseudo-labels [V]; whether N1.7 does is unverified.</li>
+<li>Gate tests T0/T1/E3b; K1–K3.</li>
+<li>Ranked horizons H1–H5.</li>
+<li>ProTracer (2609.21369) already published "telemetry when, VLM what".</li>
+</ul>
+
+<h3>Code checks (PIPELINE_CHECKS.md, val)</h3>
+<ul>
+<li>New rule: <b>the gate is on code, not results</b>. Results may be reported tagged UNVERIFIED; RESULTS.md, run commits and GPU launches need val's PASS.</li>
+<li>7 checks; tiered strictness; sha256 pinning; val asks owners about known issues first; standing approval for its check scripts; one approval per entry; upstream caveats.</li>
+<li>Controls and smoke tests may run before a PASS.</li>
+<li><b>This round of root-signal experiments is exempt</b> (your call); val stood down and left 9 notes, all answered by impl.</li>
+<li>Token cost per full check ~2–2.5M input tokens; tiering proposed (t10e).</li>
+<li>A pipeline-check skill is planned after val's first real entries.</li>
+</ul>
+
+<h3>G0c (R-060 part 0)</h3>
+<ul>
+<li>The cause is the gate's reference frame (step frames sampled mid-step vs re-render) and env reuse, plus a real camera-pose bug in nominal_frames dating from R-039.</li>
+<li>my prim's check adds: deleting an env corrupts another's render; the re-reset difference isn't shown to come from qpos drift.</li>
+<li>R-047 nominal forward 0 isn't fully deterministic in two cells.</li>
+<li>Follow-ups g0c1–g0c4.</li>
+</ul>
+
+<h3>Process</h3>
+<ul>
+<li>Daily handoffs move to <code>docs/handoffs/</code>, one file per day, sections timestamped when filled; a busy agent finishes its work first. A 2:02 pm reminder (session-only, 7-day expiry, kept in memory) first asks you for decisions to record.</li>
+<li>prim is the workspace's orchestrator and housekeeper.</li>
+<li>SFT and res21 re-onboarded; PoC handoff done before its context reset.</li>
+<li>The read-only per-agent context report is offered (t10h).</li>
+<li>Token-cost levers listed (t10g); prim has cut broadcasts and pings.</li>
+<li>Where the mechanism-isolation method comes from: activation patching (Meng et al.; Heimersheim &amp; Nanda; Zhang &amp; Nanda). The SAE paper (2603.19233) motivated looking inside GR00T; none of our numbers depend on it.</li>
+</ul>
+
+<h2>6 · Documents touched today</h2>
+<p><a href="MINING_SPEC_DESIGN.html">MINING_SPEC_DESIGN</a> · <a href="MINING_SPEC_V1_DESIGN.html">MINING_SPEC_V1_DESIGN</a> (uncommitted until approved) · <a href="MINING_SPEC_TOY.html">MINING_SPEC_TOY</a> · <a href="MINING_SPEC_POC_INTERNAL.html">MINING_SPEC_POC_INTERNAL</a> · <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a> · <a href="IDM_VLA_HORIZONS.html">IDM_VLA_HORIZONS</a> · <a href="TASK_DIVERSITY_LANDSCAPE.html">TASK_DIVERSITY_LANDSCAPE</a> · <a href="PERTURBATION_MAP_VALIDITY.html">PERTURBATION_MAP_VALIDITY</a> · <a href="VLA_CORRECTOR_MATHS.html">VLA_CORRECTOR_MATHS</a> · <a href="HANDOFF_8Oct.html">HANDOFF_8Oct</a> · <a href="handoffs/index.html">handoffs/</a> · <a href="PRIORITIES_7Oct.html">PRIORITIES_7Oct</a> · <a href="../PIPELINE_CHECKS.md">PIPELINE_CHECKS.md</a></p>
 
 <footer>Snapshot written by prim, 2026-10-09 16:15. Sources: worktree experiments/ and runs/, worktree runs/overnight/queue.log, my prim's and impl's reports, val's notes. Numbers are as reported by the authors; not val-checked (exempt).</footer>
 </main>
