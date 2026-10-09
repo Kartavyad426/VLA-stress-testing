@@ -96,6 +96,8 @@ A check that genuinely doesn't apply is marked **N/A with a reason**; it is neve
 
 - **PoC toy pipeline** (`experiments/poc_toy_{common,instance,search,render,page}.py` → `runs/poc_toy/`, `docs/MINING_SPEC_TOY.html`): **no val check for now** (user, 10-09). It predates the rule. Its numbers are illustrative toy evidence, not RESULTS. Any change to it, or reuse of it for a real PoC result, ends the exemption.
 
+- **Root-signal experiments, current round** (R-059 part A and the multi-draw runner / parts B–C, E2, E3, E4, E6, E7 in worktree `VLA-exp-rootsignals`): **val check skipped this time** (user, 10-09). Full GPU runs proceed after my prim's plan OK without a PASS. Outputs and any RESULTS.md text are marked **"not val-checked (exempt 10-09)"**. The rule is otherwise unchanged and applies again from the next round.
+
 ## Entries
 
 _None yet._
