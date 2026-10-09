@@ -67,7 +67,7 @@
 <body>
 <main>
 <h1>Mining Spec Design</h1>
-<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 11 (D10–D16; §6 v0 schema; §6c external data; §6d user questions UQ1–UQ9, undecided; §7b branching; 10-09).
+<p class="sub">Design record, in progress · started 2026-10-08 · prim with the user · iteration 11 (D10–D16; §6 v0 schema; §6c external data; §6d user questions UQ1–UQ10, undecided; §7b branching; 10-09).
 Records what has been decided about the failure-scenario mining spec, why, and what is still open.
 Tags: <span class="tag agreed">agreed</span> decided with the user on 10-08;
 <span class="tag prop">proposed</span> prim's suggestion, not yet agreed;
@@ -485,6 +485,23 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
 </ul>
 <p><b>Rough cost</b> [I]: at level 1, R-047's 170 failures × ~6 frames ≈ 1,000 VLM calls, plus a success sample. Overnight-scale at most locally on the 8 GB card; faster via NIM. Full narration of the same episodes would be 50–100× more frames, and harder to score.</p>
 <p><b>Design consequence</b> (not decided): telemetry says <em>when</em>, the VLM answers a specific question at that moment, and open narration is the fallback, not the main tool. E7's validation then becomes concrete: score each closed question type against sim truth (e.g. "which object is held" against <code>_gt_scene_object_pos</code>).</p>
+
+<h3>UQ10 · Do the v1 event rules give a unique failure mode per episode, or does the answer depend on rule order? Have we hit this before?</h3>
+<p>prim's one-off CPU probe (10-09, <b>UNVERIFIED</b>: scratchpad <code>root_rules_probe_v2.py</code>, not val-checked). It applied draft event rules to all 720 R-047 rollouts and kept every event, not just the first. Draft rules: stall (no grasp command before timeout); miss (target rise &lt; 1.5 cm in 40 steps after onset); slip (1.5–5 cm, then falls); wrong_object (a non-target object rises &gt; 1.5 cm); drop (held ≥ 5 cm, then back near rest away from the goal); wrong_location (released, goal relation fails).</p>
+<div class="tw"><table>
+<tr><th>Finding</th><th>Numbers</th></tr>
+<tr><td><b>Not unique:</b> most failures trigger several rules (retry loops pile up events)</td><td>Distinct modes per failed episode: 1 → 61, 2 → 90, ≥ 3 → 25 (of 176). Common chains: miss + wrong_object 50; miss + drop 19; miss + slip 17.</td></tr>
+<tr><td><b>Order changes the label</b></td><td>Root = first event in time: miss 99, drop 30, slip 23, wrong_object 20, wrong_location 3, stall 1. Root = fixed rule order: miss 95, wrong_object 68, slip 10, drop 1. They disagree on <b>83 / 176</b>.</td></tr>
+<tr><td><b>Rules fire inside successes</b></td><td>163 / 544. Partly real recovered events (a missed grasp, then success). Partly rule bugs: the first drop rule fired on 330 / 544 successes because placing the bowl looks like dropping it; requiring the drop to be away from the goal cut that to 54, still too loose. wrong_object also fires when the gripper merely bumps an object.</td></tr>
+</table></div>
+<p><b>Precedents in this repo</b> [V]: <code>classify.py</code> returns a primary <code>family</code> plus a <code>families</code> list (one label wasn't enough). Its <code>_attempt_spread</code> comment records precedence masking (every failed-then-retried episode labelled "recovery", hiding the manipulation fault). O4: an OR hid two broken branches. UQ7: "first failing grasp" skipped grasp-then-drop.</p>
+<p><b>Proposed v1 changes</b> (not decided):</p>
+<ol>
+<li><b>Multi-label, time-ordered events:</b> every instance stores all events with their time and a recovered/unrecovered flag. This reinstates D13's parked "sequence" as plain evidence, without any pattern grammar.</li>
+<li><b>Root = the first <em>unrecovered</em> event:</b> the first one after which the episode never returns to the success path. Not simply the first event, and never a fixed precedence. Precedence (which failure is worst) belongs to Phase 1 severity.</li>
+<li><b>A "recovery" instance type</b> for recovered events in successes: natural mining targets (the situation went wrong and the policy got past it).</li>
+<li><b>Fix the loose rules</b> (drop vs place; wrong_object needs an in-gripper check, not just a rise), then measure every rule against ~30 hand-labelled R-047 episodes (P4b) before v1 relies on them.</li>
+</ol>
 
 <h2>7 · Pending for a working PoC design</h2>
 <p class="muted">Updated at iteration 5. "Must" items block a PoC; "later" items don't.</p>
