@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiments, 9 October</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code,pre{font:13px var(--mono);background:var(--surface-2);border-radius:3px}
+  code{padding:1px 4px}
+  pre{padding:12px 14px;overflow-x:auto;border:1px solid var(--rule)}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);vertical-align:1px;white-space:nowrap}
+  .tag.agreed{background:var(--ok);color:var(--surface)}
+  .tag.prop{background:var(--warn);color:var(--surface)}
+  .tag.open{background:var(--accent);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+  .piece{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;font-size:14px}
+  .piece b{display:block;font-size:15px;margin-bottom:2px}
+  .piece .n{font:500 12px var(--mono);color:var(--accent)}
+  .piece.core{border-top:3px solid var(--accent)}
+  .piece.prod{border-top:3px solid var(--ok)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Experiments, 9 October</h1>
+<p class="sub">One page for every experiment planned or run on 2026-10-09: code status, run status, resources and time. Written by prim at 16:15 from the worktree, the GPU queue log and the sessions' reports. <b>All results here are exploratory and not val-checked</b> (the user exempted this round, 10-09). Plans: <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, RESULTS.md R-059. Code lives in worktree <code>/home/imerit/Documents/Code/VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>.</p>
+
+<div class="card top">
+<h3>At a glance (16:15)</h3>
+<ul>
+<li><b>In flight:</b> only <b>impl</b>, writing <code>e4_anchor_firstenv.py</code> (the E4 known-answer check). Nothing on the GPU: lock free, 106 MiB used. MemAvailable 14.6 GiB, just above the 14 GiB launch floor.</li>
+<li><b>Done:</b> four CPU analyses (my prim): R-059 part A (E1), E2, E3, E6. Committed on <code>exp/root-signals</code> (9f6c828). GPU: E4 invariants and a one-demo smoke.</li>
+<li><b>On hold:</b> R-059 part B and C (E1b), until impl rules out a tensor-duplication risk in the multi-draw wrapper.</li>
+<li><b>Pattern so far:</b> every cheap timing signal (E1, E2, E3, E6) either tracks the grasp event, which the gripper rules already find, or reflects perturbation size. None marks where a failure was decided.</li>
+</ul>
+</div>
+
+<h2>1 · Status board</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>What</th><th>Owner</th><th>Code</th><th>Run</th><th>Resources</th><th>Time</th><th>First reading (exploratory)</th></tr>
+<tr><td class="id">E1</td><td>R-059 part A: A1 failure type, A2 clock baseline, A3 single-draw chunk self-consistency (STAC-like)</td><td>my prim</td><td><span class="tag agreed">done</span> <code>r059_partA.py</code>, <code>root_signals_common.py</code></td><td><span class="tag agreed">done</span> <code>runs/r059/partA/</code></td><td>CPU</td><td>~1.5 h incl. code</td><td>Clock f_c = 12 on both axes (reproduces D26). Start pose: failures MORE self-consistent (AUROC 0.20 at f0, CI 0.11–0.30; 0.13–0.26 within radius); a real effect or a phase artefact (not run: phase-matched check). Camera 0.40–0.60. Expectation 1 borderline: 40.2% vs ≤ 40%, holds (37.6%) without the magnitude-0 rows.</td></tr>
+<tr><td class="id">E1b</td><td>R-059 parts B/C: 32 seeded draws per forward, MMD² STAC vs noise floor; C1 = 240 start-pose rollouts</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>r059_multidraw.py</code>, <code>r059_score_b.py</code>, <code>r059_unit_check.py</code>, flags in <code>r047_run.py</code>; CPU self-check passes (fake head)</td><td><span class="tag prop">on hold</span>: B0 bitwise anchor, B smoke, C1 not run</td><td>GPU ~7.5 GB, one model; RAM ~12–15 GiB</td><td>B0 ~10 min; B smoke 1–1.5 h; C1 ~4 h</td><td>—. Hold reason: val's note #5 (the wrapper repeats every size-1-leading tensor; B&gt;1 could be silently wrong). Deviations to record: rs9 (unchecked by user).</td></tr>
+<tr><td class="id">E2</td><td>Perturbed-vs-nominal chunk gap (d_pn) as a failure/root signal</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e2_dpn.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e2/</code></td><td>CPU</td><td>~1 h</td><td>AUROC f0 0.77 start pose / 0.70 camera overall, but 0.64 / 0.60 within magnitude (best 0.70; bar 0.75). Timing aligns with the grasp only via the gripper dim (57% within 1 forward; 27% arm-only), so it detects the grasp event. Caveat: start-pose N is a recorded run aligned by forward index.</td></tr>
+<tr><td class="id">E3</td><td>Commanded vs achieved end-effector motion</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e3_cmd_vs_achieved.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e3/</code></td><td>CPU</td><td>~2 h</td><td>Controller: action[:3]×0.05 m, world-aligned, gain 0.23–0.26 spread over ~2 steps; kernel R² 0.95 on held-out successes. Residual spikes ~3 steps after every grasp onset, failed or not (AUROC 0.52). Miss vs slip weak (best 0.66). Failure vs success ≈ chance. Reading: "smooth and wrong" failures.</td></tr>
+<tr><td class="id">E4</td><td>Imitation disagreement: GR00T open-loop on the toy task's 50 human demos vs demo actions</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e4_demo_disagreement.py</code>; <span class="tag prop">in progress</span> <code>e4_anchor_firstenv.py</code></td><td>E4-0 invariants <span class="tag agreed">done</span> (16:00, rc 0); E4-1 one-demo smoke <span class="tag agreed">done</span> (16:03, rc 0); full run <span class="tag prop">pending</span></td><td>GPU 7.16 GB peak, RAM 12.1 GiB peak (smoke)</td><td>Full: ~20–50 min</td><td>Invariants pass (orientation, lag t−1, normalisation round trip; my prim checked). Before full scoring: fix the gripper-label sign inversion (my prim) and answer val's notes 1–3 (planted control strength, obs layout, anchor key).</td></tr>
+<tr><td class="id">E5</td><td>Combined root: time from the best signal + phase from gripper rules, validated against ground truth</td><td>—</td><td><span class="tag open">not started</span></td><td>—</td><td>CPU</td><td>~1 day incl. ground truth</td><td>Waits on the user's UQ1 decision (t10c): ground truth = R-044/R-057 interventions, or hand labels.</td></tr>
+<tr><td class="id">E6</td><td>FAST action tokens as an action feature dictionary (sliding windows)</td><td>my prim</td><td><span class="tag agreed">done</span> <code>root_signals_e6_fast.py</code></td><td><span class="tag agreed">done</span> <code>runs/root_signals/e6/</code></td><td>CPU</td><td>~2 h</td><td>No phase boundaries (change-score AUROC 0.47–0.51; a planted step isn't localised). Some phase information (bag-of-tokens → phase 0.61 vs 0.41 majority). 10–39 tokens separate failures (|AUROC−0.5| ≤ 0.21) but decode to steady-heading motions.</td></tr>
+<tr><td class="id">E7</td><td>VLM closed questions at telemetry event frames + bisection, scored vs sim truth</td><td>impl (runs), my prim (gate)</td><td><span class="tag agreed">written</span> <code>e7_render.py</code>, <code>e7_vlm.py</code>, <code>vlm_label.py</code> (closed mode)</td><td>Episode selection <span class="tag agreed">done</span> (<code>e7/episodes.json</code>, ~220 episodes); render smoke, render, VLM pass <span class="tag prop">pending</span></td><td>GPU for EGL render (no model); NIM API (Nemotron-Omni) for ~1,000 calls; local Qwen3-VL fallback</td><td>Render ~1–1.5 h; VLM on NIM a few hours</td><td>—. Novelty note: ProTracer (2609.21369) published "telemetry says when, VLM says what"; E7 is still worth running as validation.</td></tr>
+<tr><td class="id">E1-phase</td><td>Phase-matched re-run of A3 (align by distance-to-target, not forward index) to test whether E1's reversal is real</td><td>my prim (if approved)</td><td><span class="tag open">not written</span></td><td>—</td><td>CPU</td><td>~1 h</td><td>Proposed by my prim; separates "confidently wrong" from a phase artefact.</td></tr>
+</table></div>
+
+<h2>2 · Side work today</h2>
+<div class="tw"><table>
+<tr><th>What</th><th>Owner</th><th>Status</th><th>Where</th></tr>
+<tr><td>Rule-order / uniqueness probe for v1 root rules (UNVERIFIED)</td><td>prim</td><td>done; recorded as MINING_SPEC_DESIGN §6d UQ10</td><td>scratchpad <code>root_rules_probe_v2.py</code></td></tr>
+<tr><td>IDM + VLA horizons research (c9j, c9k)</td><td>res22</td><td>done</td><td><code>docs/IDM_VLA_HORIZONS.html</code></td></tr>
+<tr><td>v1 design doc (ms8)</td><td>PoC</td><td>outline waiting for the user's OK</td><td><code>docs/MINING_SPEC_V1_DESIGN.html</code> (to come)</td></tr>
+<tr><td>val queue</td><td>val</td><td>stood down for this round; 9 plain notes forwarded to impl and my prim</td><td>PIPELINE_CHECKS.md (Exemptions)</td></tr>
+</table></div>
+
+<h2>3 · Remaining GPU time, if everything goes ahead</h2>
+<div class="tw"><table>
+<tr><th>Step</th><th>Needs first</th><th>GPU</th><th>Wall time</th></tr>
+<tr><td>E4 full</td><td>Sign fix + answers to val notes 1–3; my prim's OK</td><td>~7.2 GB</td><td>~20–50 min</td></tr>
+<tr><td>E7-1 render smoke → full render</td><td>my prim's OK</td><td>EGL only</td><td>~10–15 min, then ~1–1.5 h</td></tr>
+<tr><td>E7 VLM pass</td><td>Render done</td><td>none (NIM)</td><td>a few hours</td></tr>
+<tr><td>R-059 B0 → B smoke → C1</td><td>impl confirms note #5; my prim's OK</td><td>~7.5 GB</td><td>~10 min → 1–1.5 h → ~4 h</td></tr>
+<tr><td><b>Total, serial</b></td><td colspan="2">one model at a time (lock)</td><td><b>~7–9 h</b> (E7's VLM pass can overlap GPU work, since it runs on NIM)</td></tr>
+</table></div>
+<p class="muted">Risk: MemAvailable has been 14.3–14.6 GiB against d_step.sh's 14 GiB floor; a dip refuses launches.</p>
+
+<h2>4 · Waiting on the user</h2>
+<ul>
+<li>Which of E1b, E4 and E7 still deserve GPU time given the pattern; whether to run E1-phase.</li>
+<li>rs9: R-059 deviations into RESULTS.md (unchecked by user).</li>
+<li>t10c: the UQ1 anchor split, which unblocks E5.</li>
+</ul>
+
+<footer>Snapshot written by prim, 2026-10-09 16:15. Sources: worktree experiments/ and runs/, worktree runs/overnight/queue.log, my prim's and impl's reports, val's notes. Numbers are as reported by the authors; not val-checked (exempt).</footer>
+</main>
+</body>
+</html>
