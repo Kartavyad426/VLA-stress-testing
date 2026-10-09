@@ -67,10 +67,11 @@
 <body>
 <main>
 <h1>Day Summary, 9 October</h1>
-<p class="sub"><b>The one page to read for 9 October.</b> §0 lists every decision and approval waiting on you; §5 summarises everything discussed today. The rest covers every experiment planned or run:  code status, run status, resources and time. Written by prim at 16:15, updated 16:40, from the worktree, the GPU queue log and the sessions' reports. <b>All results here are exploratory and not val-checked</b> (the user exempted this round, 10-09). Plans: <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, RESULTS.md R-059. Code lives in worktree <code>/home/imerit/Documents/Code/VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>.</p>
+<p class="sub"><b>The one page to read for 9 October.</b> §1 lists every decision and approval waiting on you; §7 summarises everything discussed today. The rest covers every experiment planned or run:  code status, run status, resources and time. Written by prim at 16:15, updated 16:40, from the worktree, the GPU queue log and the sessions' reports. <b>All results here are exploratory and not val-checked</b> (the user exempted this round, 10-09). Plans: <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, RESULTS.md R-059. Code lives in worktree <code>/home/imerit/Documents/Code/VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>.</p>
 
-<div class="card top">
-<h3>At a glance (16:15)</h3>
+<nav class="card" style="font-size:14px"><b>Contents:</b> <a href="#glance">At a glance</a> · <a href="#decide">1 Decide / approve</a> · <a href="#status">2 Status board</a> · <a href="#planned">3 Planned</a> · <a href="#questions">4 Open questions</a> · <a href="#gpu">5 GPU time</a> · <a href="#side">6 Side work</a> · <a href="#discussed">7 Discussed today</a> · <a href="#docs">8 Documents</a></nav>
+<div class="card top" id="glance">
+<h3>At a glance (16:40)</h3>
 <ul>
 <li><b>In flight:</b> only <b>impl</b>, writing <code>e4_anchor_firstenv.py</code> (the E4 known-answer check). Nothing on the GPU: lock free, 106 MiB used. MemAvailable 14.6 GiB, just above the 14 GiB launch floor.</li>
 <li><b>Done:</b> four CPU analyses (my prim): R-059 part A (E1), E2, E3, E6. Committed on <code>exp/root-signals</code> (9f6c828). GPU: E4 invariants and a one-demo smoke.</li>
@@ -80,7 +81,7 @@
 </ul>
 </div>
 
-<h2>0 · Decide / approve (everything waiting on you)</h2>
+<h2 id="decide">1 · Decide / approve: everything waiting on you</h2>
 <p class="muted">Checklist ids refer to docs/PRIORITIES_7Oct.html (serve it with experiments/serve_priorities.py). [prim: …] is my recommendation.</p>
 <div class="tw"><table>
 <tr><th>Area</th><th>Id</th><th>Decision</th><th>[prim]</th></tr>
@@ -113,7 +114,7 @@
 <tr><td>t5c</td><td><b>Push: 89 local commits unpushed.</b> Run <code>! git -C /home/imerit/Documents/Code/VLA push origin main</code></td><td>Push</td></tr>
 </table></div>
 
-<h2>1 · Status board</h2>
+<h2 id="status">2 · Experiments: status board</h2>
 <div class="tw"><table>
 <tr><th>#</th><th>What</th><th>Owner</th><th>Code</th><th>Run</th><th>Resources</th><th>Time</th><th>First reading (exploratory)</th></tr>
 <tr><td class="id">E1</td><td>R-059 part A: A1 failure type, A2 clock baseline, A3 single-draw chunk self-consistency (STAC-like)</td><td>my prim</td><td><span class="tag agreed">done</span> <code>r059_partA.py</code>, <code>root_signals_common.py</code></td><td><span class="tag agreed">done</span> <code>runs/r059/partA/</code></td><td>CPU</td><td>~1.5 h incl. code</td><td>Clock f_c = 12 on both axes (reproduces D26). Start pose: failures MORE self-consistent (AUROC 0.20 at f0, CI 0.11–0.30; 0.13–0.26 within radius); a real effect or a phase artefact (not run: phase-matched check). Camera 0.40–0.60. Expectation 1 borderline: 40.2% vs ≤ 40%, holds (37.6%) without the magnitude-0 rows.</td></tr>
@@ -127,7 +128,7 @@
 <tr><td class="id">E1-phase</td><td>Phase-matched re-run of A3 (align by distance-to-target, not forward index) to test whether E1's reversal is real</td><td>my prim (if approved)</td><td><span class="tag open">not written</span></td><td>—</td><td>CPU</td><td>~1 h</td><td>Proposed by my prim; separates "confidently wrong" from a phase artefact.</td></tr>
 </table></div>
 
-<h2>1b · Planned, not yet scheduled</h2>
+<h2 id="planned">3 · Experiments: planned, not yet scheduled</h2>
 <div class="tw"><table>
 <tr><th>Experiment</th><th>From</th><th>What it would answer</th><th>Resources / time</th><th>Waits on</th></tr>
 <tr><td><b>E1-phase</b>: A3 re-run aligned by distance-to-target</td><td>my prim</td><td>Is E1's reversal (failures more self-consistent) real, or a phase artefact?</td><td>CPU ~1 h</td><td>The user's go</td></tr>
@@ -141,7 +142,7 @@
 <tr><td><b>Mining spec v1 build</b></td><td>PoC, MINING_SPEC_V1_DESIGN</td><td>Rule-based roots, schema, dataset search on LIBERO-Spatial</td><td>Mostly CPU; 12.5–15.5 working days (PoC's estimate)</td><td>The user's approval of the v1 doc (§0, 11 items)</td></tr>
 </table></div>
 
-<h2>1c · Open questions</h2>
+<h2 id="questions">4 · Open questions</h2>
 <ul>
 <li><b>GPU priority:</b> given the pattern (cheap signals only find the grasp event), which of E4-2, E7 and R-059 B/C1 deserve GPU time, and in what order?</li>
 <li><b>E1's reversal:</b> real "confidently wrong" behaviour or a phase artefact? (E1-phase settles it.)</li>
@@ -151,16 +152,7 @@
 <li><b>Row 14's root:</b> place × off-target at t=242 under "first unrecovered event" vs grasp × slip at t=31 under "first event"; the toy-doc correction is N9.</li>
 </ul>
 
-<h2>2 · Side work today</h2>
-<div class="tw"><table>
-<tr><th>What</th><th>Owner</th><th>Status</th><th>Where</th></tr>
-<tr><td>Rule-order / uniqueness probe for v1 root rules (UNVERIFIED)</td><td>prim</td><td>done; recorded as MINING_SPEC_DESIGN §6d UQ10</td><td>scratchpad <code>root_rules_probe_v2.py</code></td></tr>
-<tr><td>IDM + VLA horizons research (c9j, c9k)</td><td>res22</td><td>done</td><td><code>docs/IDM_VLA_HORIZONS.html</code></td></tr>
-<tr><td>v1 design doc (ms8)</td><td>PoC</td><td>written 16:12; waiting for the user's review (§0: 11 items); uncommitted until approved</td><td><code>docs/MINING_SPEC_V1_DESIGN.html</code></td></tr>
-<tr><td>val queue</td><td>val</td><td>stood down for this round; 9 plain notes forwarded to impl and my prim</td><td>PIPELINE_CHECKS.md (Exemptions)</td></tr>
-</table></div>
-
-<h2>3 · Remaining GPU time, if everything goes ahead</h2>
+<h2 id="gpu">5 · Remaining GPU time, if everything goes ahead</h2>
 <div class="tw"><table>
 <tr><th>Step</th><th>Needs first</th><th>GPU</th><th>Wall time</th></tr>
 <tr><td>E4 full</td><td>Sign fix + answers to val notes 1–3; my prim's OK</td><td>~7.2 GB</td><td>~20–50 min</td></tr>
@@ -171,14 +163,16 @@
 </table></div>
 <p class="muted">Risk: MemAvailable has been 14.3–14.6 GiB against d_step.sh's 14 GiB floor; a dip refuses launches.</p>
 
-<h2>4 · Waiting on the user</h2>
-<ul>
-<li>Which of E1b, E4 and E7 still deserve GPU time given the pattern; whether to run E1-phase.</li>
-<li>rs9: R-059 deviations into RESULTS.md (unchecked by user).</li>
-<li>t10c: the UQ1 anchor split, which unblocks E5.</li>
-</ul>
+<h2 id="side">6 · Side work today</h2>
+<div class="tw"><table>
+<tr><th>What</th><th>Owner</th><th>Status</th><th>Where</th></tr>
+<tr><td>Rule-order / uniqueness probe for v1 root rules (UNVERIFIED)</td><td>prim</td><td>done; recorded as MINING_SPEC_DESIGN §6d UQ10</td><td>scratchpad <code>root_rules_probe_v2.py</code></td></tr>
+<tr><td>IDM + VLA horizons research (c9j, c9k)</td><td>res22</td><td>done</td><td><code>docs/IDM_VLA_HORIZONS.html</code></td></tr>
+<tr><td>v1 design doc (ms8)</td><td>PoC</td><td>written 16:12; waiting for the user's review (§0: 11 items); uncommitted until approved</td><td><code>docs/MINING_SPEC_V1_DESIGN.html</code></td></tr>
+<tr><td>val queue</td><td>val</td><td>stood down for this round; 9 plain notes forwarded to impl and my prim</td><td>PIPELINE_CHECKS.md (Exemptions)</td></tr>
+</table></div>
 
-<h2>5 · What we discussed today (10-09), by topic</h2>
+<h2 id="discussed">7 · What we discussed today, by topic</h2>
 
 <h3>Mining spec design (MINING_SPEC_DESIGN.html)</h3>
 <ul>
@@ -261,7 +255,7 @@
 <li>Where the mechanism-isolation method comes from: activation patching (Meng et al.; Heimersheim &amp; Nanda; Zhang &amp; Nanda). The SAE paper (2603.19233) motivated looking inside GR00T; none of our numbers depend on it.</li>
 </ul>
 
-<h2>6 · Documents touched today</h2>
+<h2 id="docs">8 · Documents touched today</h2>
 <p><a href="MINING_SPEC_DESIGN.html">MINING_SPEC_DESIGN</a> · <a href="MINING_SPEC_V1_DESIGN.html">MINING_SPEC_V1_DESIGN</a> (uncommitted until approved) · <a href="MINING_SPEC_TOY.html">MINING_SPEC_TOY</a> · <a href="MINING_SPEC_POC_INTERNAL.html">MINING_SPEC_POC_INTERNAL</a> · <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a> · <a href="IDM_VLA_HORIZONS.html">IDM_VLA_HORIZONS</a> · <a href="TASK_DIVERSITY_LANDSCAPE.html">TASK_DIVERSITY_LANDSCAPE</a> · <a href="PERTURBATION_MAP_VALIDITY.html">PERTURBATION_MAP_VALIDITY</a> · <a href="VLA_CORRECTOR_MATHS.html">VLA_CORRECTOR_MATHS</a> · <a href="HANDOFF_8Oct.html">HANDOFF_8Oct</a> · <a href="handoffs/index.html">handoffs/</a> · <a href="PRIORITIES_7Oct.html">PRIORITIES_7Oct</a> · <a href="../PIPELINE_CHECKS.md">PIPELINE_CHECKS.md</a></p>
 
 <footer>Snapshot written by prim, 2026-10-09 16:15. Sources: worktree experiments/ and runs/, worktree runs/overnight/queue.log, my prim's and impl's reports, val's notes. Numbers are as reported by the authors; not val-checked (exempt).</footer>
