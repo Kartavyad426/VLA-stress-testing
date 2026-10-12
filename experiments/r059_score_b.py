@@ -75,7 +75,7 @@ def key(r):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--runs", required=True)
+    ap.add_argument("--runs", default=None, help="required unless --b0")
     ap.add_argument("--axis", default="joint_radius_rad")
     ap.add_argument("--rep", default=None, help="a,b: two same-seed runs for the bit-identity check")
     ap.add_argument("--b1", default=None, help="run id of the B=1 seeded run for the B-invariance check")
@@ -99,6 +99,8 @@ def main():
         if not all(v["bitwise"] for v in res.values()):
             raise SystemExit(3)
         return
+    if not a.runs:
+        ap.error("--runs is required unless --b0 is given")
     runs = {r: load(r, a.axis) for r in a.runs.split(",")}
     bw_p = "runs/r059/bandwidth.json"
     if os.path.exists(bw_p):

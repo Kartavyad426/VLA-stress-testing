@@ -1,0 +1,113 @@
+[e6] loaded 720 rollouts, 50 demos (10s)
+[e6] W10_s2_all done (111s)
+[e6] W10_s2_arm done (201s)
+{
+ "1_known_answer": {
+  "r047_rows": 720,
+  "r047_successes": 544,
+  "expect": [
+   720,
+   544
+  ],
+  "pass_counts": true,
+  "row14_onsets": [
+   31,
+   80,
+   103,
+   128,
+   176,
+   201,
+   263,
+   272
+  ],
+  "toy_onsets": [
+   31,
+   80,
+   103,
+   128,
+   176,
+   201,
+   263,
+   272
+  ],
+  "pass_onsets": true,
+  "row14_first_failing_onset": 31,
+  "pass_root_t31": true,
+  "row14_phases_equal_toy": true
+ },
+ "4_invariants": {
+  "batched_encode_equals_proc": true,
+  "roundtrip_max_abs_norm_units": 0.06911122921620794,
+  "roundtrip_bound": 0.158113883008419,
+  "pass_roundtrip": true,
+  "unique_join_keys": true,
+  "n_keys": 720,
+  "demos": 50,
+  "actions_shape_ok": true,
+  "offsets_cover_all_70_coeffs_contiguously": true
+ },
+ "2_null": {
+  "same_input_same_tokens": true,
+  "success_split": {
+   "n": 544,
+   "max_abs_auroc_minus_half": 0.086,
+   "fwer95": 0.095,
+   "n_passing": 0,
+   "pass": true
+  }
+ },
+ "3_planted": {
+  "n_planted": 82,
+  "n_clean": 82,
+  "best_auroc": 0.961,
+  "fwer95": 0.155000743604997,
+  "found": true,
+  "best_feature": {
+   "feature": "u550",
+   "occurrences": 198,
+   "decoded_chars": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "footprint_top": [
+    "k9:dz",
+    "k9:droll",
+    "k9:dpitch",
+    "k9:dyaw",
+    "k9:gripper",
+    "k3:droll"
+   ],
+   "contribution_energy_share": {},
+   "dominant_frequency_k": 9,
+   "mean_action_shift_vs_all_windows": {
+    "dx": -0.045,
+    "dy": -0.062,
+    "dz": 0.042,
+    "droll": -0.003,
+    "dpitch": 0.015,
+    "dyaw": -0.005,
+    "gripper": 0.179
+   },
+   "describable": true,
+   "description": "all footprint coefficients quantise to 0: marks the ABSENCE of motion at frequency k~9 (smoothness), not a motion"
+  },
+  "boundary_at_40_56": {
+   "boundaries": "phase",
+   "n_episodes": 82,
+   "mean_episode_auroc": 0.412,
+   "null_mean": 0.504,
+   "null_p95": 0.534,
+   "p_value": 1.0
+  },
+  "pass": false
+ },
+ "6_provenance": {
+  "code_state": true,
+  "inputs_sha256": true
+ },
+ "7_plan": "ROOT_SIGNAL_EXPERIMENTS E6 + prim's widened scope 10-09 (1 sliding windows, 2 a/b/c, 3 decode, 4 boundary, 5 executed actions). Not done: act_P comparison (optional; act_P normalisation not established), lerobot/fast-action-tokenizer second run (its normalisation is unknown and it has no horizon; see summary)."
+}
+[e6] done in 201s -> /home/imerit/Documents/Code/VLA-exp-rootsignals/runs/root_signals/e6

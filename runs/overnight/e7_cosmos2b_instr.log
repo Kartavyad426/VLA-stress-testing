@@ -1,0 +1,19 @@
+0 answered, 150 to ask, backend local
+Loading weights:   0%|          | 0/626 [00:00<?, ?it/s]Loading weights:   0%|          | 1/626 [00:00<02:39,  3.93it/s]Loading weights:   0%|          | 2/626 [00:00<02:55,  3.56it/s]Loading weights:   4%|▍         | 28/626 [00:00<00:09, 61.38it/s]Loading weights:   9%|▉         | 57/626 [00:00<00:04, 117.09it/s]Loading weights:  12%|█▏        | 78/626 [00:00<00:03, 141.08it/s]Loading weights:  16%|█▋        | 102/626 [00:00<00:03, 166.55it/s]Loading weights:  20%|█▉        | 123/626 [00:01<00:02, 173.92it/s]Loading weights:  23%|██▎       | 144/626 [00:01<00:03, 156.67it/s]Loading weights:  26%|██▌       | 162/626 [00:01<00:02, 159.36it/s]Loading weights:  29%|██▉       | 180/626 [00:01<00:02, 155.01it/s]Loading weights:  32%|███▏      | 200/626 [00:01<00:02, 166.38it/s]Loading weights:  35%|███▍      | 219/626 [00:01<00:02, 171.00it/s]Loading weights:  39%|███▉      | 245/626 [00:01<00:02, 190.39it/s]Loading weights:  43%|████▎     | 269/626 [00:01<00:01, 200.40it/s]Loading weights:  47%|████▋     | 292/626 [00:02<00:01, 199.50it/s]Loading weights:  54%|█████▍    | 337/626 [00:02<00:01, 268.74it/s]Loading weights:  68%|██████▊   | 427/626 [00:02<00:00, 445.54it/s]Loading weights:  83%|████████▎ | 521/626 [00:02<00:00, 583.91it/s]Loading weights:  96%|█████████▌| 601/626 [00:02<00:00, 644.54it/s]Loading weights: 100%|██████████| 626/626 [00:02<00:00, 252.59it/s]
+The tied weights mapping and config for this model specifies to tie model.language_model.embed_tokens.weight to lm_head.weight, but both are present in the checkpoints with different values, so we will NOT tie them. You should update the config with `tie_word_embeddings=False` to silence this warning.
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[     5s] 10/150 L085|onset_plus_10|43|held -> the black bowl between the plate and the ramekin 
+[    11s] 20/150 L222|final|280|done -> no 
+[    17s] 30/150 L368|onset_plus_10|20|held -> no object 
+[    20s] 40/150 L450|onset_plus_10|169|held -> the black bowl on the wooden cabinet 
+[    24s] 50/150 L587|grasp_onset|56|approach -> the black bowl next to the cookie box 
+[    28s] 60/150 L708|onset_plus_10|138|held -> the black bowl on the wooden cabinet 
+[    32s] 70/150 L444|final|280|on_plate|ctl_repeat -> no 
+[    35s] 80/150 L314|final|280|on_plate|ctl_repeat -> no 
+[    40s] 90/150 L629|release|115|on_plate|ctl_repeat -> no 
+[    43s] 100/150 L450|onset_plus_10|169|held|ctl_order -> no object 
+[    46s] 110/150 L331|grasp_onset|54|approach|ctl_order -> the black bowl next to the cookie box 
+[    49s] 120/150 L392|grasp_onset|43|approach|ctl_order -> the black bowl next to the plate 
+[    52s] 130/150 L385|reset|0|held|ctl_known -> no object 
+[    56s] 140/150 L015|reset|0|held|ctl_known -> no object 
+[    59s] 150/150 L095|reset|0|held|ctl_known -> no object 

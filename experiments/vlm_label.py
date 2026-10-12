@@ -174,8 +174,7 @@ def run_nim(video: str, text: str, model_id: str, max_new_tokens: int,
 
 CLOSED_PROMPT = """{preamble}
 Left half of each image: a fixed third-person camera. Right half: a camera mounted on the robot's wrist.
-The robot was asked to: "{instruction}".
-
+{task_line}
 Question: {question}
 Options:
 {options}
@@ -190,7 +189,10 @@ def closed_prompt(instruction: str, question: str, options: list[str], n_images:
     pre = ("The image shows a robot workspace at one moment of an attempt." if n_images == 1 else
            f"The {n_images} images are frames from one attempt, in time order.")
     opts = "\n".join(f"{LETTERS[i]}. {o}" for i, o in enumerate(options))
-    return CLOSED_PROMPT.format(preamble=pre, instruction=instruction, question=question, options=opts)
+    # instruction=None leaves the task out of the prompt (E7 object questions: the 10-12 controls showed the model
+    # naming the instruction's target as "held" on empty-gripper reset frames, 24/29)
+    task_line = f'The robot was asked to: "{instruction}".\n' if instruction else ""
+    return CLOSED_PROMPT.format(preamble=pre, task_line=task_line, question=question, options=opts)
 
 
 def parse_choice_rule(text: str, n_options: int):

@@ -1,0 +1,87 @@
+{
+ "what": "E4 open-loop disagreement on 50 demos (exploratory; PIPELINE_CHECKS pending)",
+ "n_cells_seed0_raw128": 334,
+ "d16": {
+  "median": 0.27102076191539076,
+  "p90": 0.9631307590488773,
+  "n": 334
+ },
+ "floor_d16": {
+  "median": 0.05286841094493866,
+  "p90": 0.14169728457927702,
+  "n": 334
+ },
+ "d1": {
+  "median": 0.2309464107661015,
+  "p90": 1.5406718184133072,
+  "n": 334
+ },
+ "floor_d1": {
+  "median": 0.0536710973829031,
+  "p90": 0.14632391333580008,
+  "n": 334
+ },
+ "disp_err_env": {
+  "median": 1.291052802373845,
+  "p90": 3.4752263690639484,
+  "n": 287
+ },
+ "by_gripper_closed": {
+  "False": {
+   "median": 0.21845767660518853,
+   "p90": 0.5827870905306237,
+   "n": 163
+  },
+  "True": {
+   "median": 0.36380548268888135,
+   "p90": 1.3397877265406881,
+   "n": 171
+  }
+ },
+ "up256_vs_raw128_d16": {
+  "n": 32,
+  "median_raw": 0.28706217080971347,
+  "median_up256": 0.278388897347562,
+  "median_abs_change": 0.018624991008206387,
+  "per_demo": {
+   "demo_0": {
+    "median_raw128": 0.36380548268888135,
+    "median_up256": 0.2966312256612576,
+    "median_floor": 0.05136122182011604
+   },
+   "demo_1": {
+    "median_raw128": 0.42265196332846694,
+    "median_up256": 0.43328556404130014,
+    "median_floor": 0.04558182880282402
+   },
+   "demo_2": {
+    "median_raw128": 0.26708605284511366,
+    "median_up256": 0.2400792269647724,
+    "median_floor": 0.05155196040868759
+   },
+   "demo_3": {
+    "median_raw128": 0.23517021722763037,
+    "median_up256": 0.18176248173944537,
+    "median_floor": 0.05068266578018665
+   },
+   "demo_4": {
+    "median_raw128": 0.2403333796125674,
+    "median_up256": 0.23931598288140873,
+    "median_floor": 0.04445285350084305
+   }
+  }
+ },
+ "plant": {
+  "demo": "demo_0",
+  "forward": 2,
+  "offset_dims_0_2": 0.5,
+  "unplanted_d16": 0.15718028892585684,
+  "top_forward": 2,
+  "found": true,
+  "planted_d16": 0.8794021781118695,
+  "rise_vs_unplanted": 0.7222218891860126,
+  "max_other_d16": 0.7804836155061915,
+  "margin_vs_max_other": 0.098918562605678,
+  "note": "rise_vs_unplanted is the effect the metric registers for a known +0.5 offset on 3 dims"
+ }
+}

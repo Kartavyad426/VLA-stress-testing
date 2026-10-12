@@ -1,0 +1,15 @@
+150 answered, 118 to ask, backend local
+Loading weights:   0%|          | 0/626 [00:00<?, ?it/s]Loading weights:   0%|          | 1/626 [00:00<03:37,  2.87it/s]Loading weights:   4%|▍         | 26/626 [00:00<00:08, 74.39it/s]Loading weights:   8%|▊         | 49/626 [00:00<00:04, 118.87it/s]Loading weights:  12%|█▏        | 72/626 [00:00<00:03, 148.72it/s]Loading weights:  24%|██▎       | 148/626 [00:00<00:01, 324.63it/s]Loading weights:  36%|███▌      | 225/626 [00:00<00:00, 453.57it/s]Loading weights:  52%|█████▏    | 325/626 [00:00<00:00, 613.93it/s]Loading weights:  98%|█████████▊| 613/626 [00:01<00:00, 1263.85it/s]Loading weights: 100%|██████████| 626/626 [00:01<00:00, 581.85it/s] 
+The tied weights mapping and config for this model specifies to tie model.language_model.embed_tokens.weight to lm_head.weight, but both are present in the checkpoints with different values, so we will NOT tie them. You should update the config with `tie_word_embeddings=False` to silence this warning.
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[     7s] 10/118 L095|onset_plus_10|86|held|noinstr -> no object 
+[    15s] 20/118 L312|onset_plus_10|106|held|noinstr -> the black bowl on the ramekin 
+[    18s] 30/118 L442|grasp_onset|32|approach|noinstr -> the black bowl on the wooden cabinet 
+[    25s] 40/118 L629|onset_plus_10|122|held|noinstr -> the ramekin 
+[    31s] 50/118 L679|grasp_onset|51|approach|ctl_repeat|noinstr -> the black bowl next to the plate 
+[    34s] 60/118 L296|onset_plus_10|19|held|ctl_order|noinstr -> no object 
+[    37s] 70/118 L053|grasp_onset|12|approach|ctl_order|noinstr -> the ramekin 
+[    39s] 80/118 L410|grasp_onset|39|approach|ctl_order|noinstr -> no object 
+[    42s] 90/118 L707|reset|0|held|ctl_known|noinstr -> no object 
+[    45s] 100/118 L449|reset|0|held|ctl_known|noinstr -> no object 
+[    51s] 110/118 L360|reset|0|held|ctl_known|noinstr -> no object 
