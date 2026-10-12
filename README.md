@@ -9,13 +9,15 @@ The output is not a leaderboard score. It is a repeatable method for turning mod
 behaviour into a data strategy: what failed, under what conditions, how often, what it
 would cost, and whether more data would fix it at all.
 
-> **Status (2026-10-06): research prototype.** The harness reproduces published LIBERO
-> numbers and runs GR00T N1.7 on LIBERO-Plus. A perturbation → correction map now covers
-> all seven LIBERO-Plus perturbation types. The first retraining pilot, a LoRA fine-tune
-> on start-pose demos (R-053 to R-058), did not close the gap, and its diagnosis is
-> under way. Nothing here is client-facing yet. New readers: start with
-> [Reading order](#reading-order). For what is running and open right now, see
-> [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html).
+> **Status (2026-10-12): research prototype.** The harness reproduces published LIBERO
+> numbers and runs GR00T N1.7 on LIBERO-Plus. A perturbation → correction map covers
+> all seven LIBERO-Plus perturbation types. The first retraining pilot (R-053 to R-058)
+> did not close the gap. Since 10-06 the work has moved to **finding the root of each
+> failure** (the first event the policy never recovers from) and to a **mining spec**:
+> the format in which failures, their roots and matching data are delivered. Nothing
+> here is client-facing yet. New readers: start with [Reading order](#reading-order).
+> For what is running and open right now, see
+> [`docs/handoffs/HANDOFF_2026-10-12.html`](docs/handoffs/HANDOFF_2026-10-12.html).
 
 ---
 
@@ -176,6 +178,30 @@ section and its **Index** of every experiment (R-001 onward). The headlines:
   ([`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html),
   [`docs/DATA_SOURCING_RESEARCH.html`](docs/DATA_SOURCING_RESEARCH.html)).
 
+Since 10-06 (all exploratory: produced by new code that the pipeline checker,
+[`PIPELINE_CHECKS.md`](PIPELINE_CHECKS.md), has not yet passed):
+
+- **Mining spec.** Design decisions D1–D15 are agreed
+  ([`docs/MINING_SPEC_DESIGN.html`](docs/MINING_SPEC_DESIGN.html)) and a toy end-to-end
+  example exists ([`docs/MINING_SPEC_TOY.html`](docs/MINING_SPEC_TOY.html)). The v1
+  design is written and awaits approval; nothing of v1 is coded.
+- **Root identification** ([`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html)).
+  Root-signal experiments E1–E7 and R-059 run in the worktree branch `exp/root-signals`.
+  R-059 tests whether STAC-style sampling disagreement (Sentinel, Agia et al., CoRL 2024)
+  rises before failure: in the smoke run it sits about 11× above its noise floor, and
+  the full 240-rollout run (C1) is in progress. E7, VLM answers at event frames, is not
+  usable yet: Nemotron names objects the gripper does not hold, Cosmos-Reason2-2B gives
+  near-constant answers, and an on-plate truth bug was found and is being fixed. A
+  40-frame hand-labelled set is being built first.
+- **R-060 (feature-level perturbation pairs):** the camera-pose bug in the paired clean
+  frame is fixed (LIBERO-Plus's own camera), and the amended exactness gate G0c passes
+  at an 8-pixel tolerance. Whether the fix changes past camera rows (R-039, R-047,
+  R-048) is being checked.
+- **Corrective demos from the root** (proposal, nothing run):
+  [`docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html`](docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html).
+  Papers adopted or rejected since 24 Sep:
+  [`docs/PAPERS_SINCE_24SEP.html`](docs/PAPERS_SINCE_24SEP.html).
+
 Early findings that still stand: MuJoCo is pinned to 3.3.7, because ≥ 3.4.0 silently
 changes a LIBERO task; the fine-tuning data contains no camera-pose variation (Phase
 0); published LIBERO numbers can reflect memorisation (LIBERO-PRO). Details are in
@@ -187,7 +213,9 @@ changes a LIBERO task; the fine-tuning data contains no camera-pose variation (P
 
 | | Risk |
 |---|---|
-| Failure labels | Failure-family labels are unvalidated, and the human adjudication sheet is at 0 of 80 verdicts. VLM labels are unvalidated too: the first test named the wrong grasped object. |
+| Failure labels | Failure-family labels are unvalidated, and the human adjudication sheet is at 0 of 80 verdicts. No VLM tested so far labels event frames reliably (E7, 10-12); a hand-labelled set comes first. |
+| Unchecked numbers | Results from code written since 10-09 are exploratory until the pipeline checker passes them ([`PIPELINE_CHECKS.md`](PIPELINE_CHECKS.md)). |
+| Render nondeterminism | Some reset frames render differently between processes (e.g. scene 984), so bitwise repeat checks fail on those cells; see R-047, E4 and R-059. |
 | Correlation, not cause | The "signal vanishes in the adapter" localisation is correlational. The pathway result (R-039) is an intervention, but on 40 instances. |
 | Compute | One 8 GB GPU and 30 GB RAM are shared by several sessions. A GR00T load peaks around 16–18 GB of RAM; the R-058 rank-64 run was OOM-killed. The π0 family does not fit, so a second modern policy needs a rented GPU (PENDING #25). |
 | Retraining data | Rescue-minted demos cover start-pose offsets of 8 cm or less, but failures sit beyond 12 cm. Minting with the current method yields about 20% beyond 16 cm. A new source (bridge-and-join or a scripted expert) is undecided (D21). |
@@ -207,11 +235,13 @@ and what is happening now. About an hour, in this order:
 | 2 | This README | What the project is for and what it has found |
 | 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
 | 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
-| 5 | [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
+| 5 | [`docs/handoffs/HANDOFF_2026-10-12.html`](docs/handoffs/HANDOFF_2026-10-12.html), [`docs/EXPERIMENTS_2026-10-09.html`](docs/EXPERIMENTS_2026-10-09.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
 | 6 | [`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html) | Which input carries each perturbation to the action, and what corrects it |
 | 7 | [`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html) | The first retraining pilot and why it did not help |
+| 8 | [`docs/MINING_SPEC_DESIGN.html`](docs/MINING_SPEC_DESIGN.html) and [`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html) | The deliverable format, and how the root of a failure is found |
 
-Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md).
+Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md) and
+[`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html).
 
 ### Extended reading
 
@@ -241,7 +271,9 @@ original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.m
 [`docs/TAXONOMY_FAMILY_GUIDELINES.md`](docs/TAXONOMY_FAMILY_GUIDELINES.md) ·
 [`docs/FAILURE_FAMILY_AUDIT.md`](docs/FAILURE_FAMILY_AUDIT.md) ·
 [`docs/RETRAINING_DEFAULT_TAXONOMY.md`](docs/RETRAINING_DEFAULT_TAXONOMY.md) ·
-[`docs/COVERAGE_GAP_METHOD.md`](docs/COVERAGE_GAP_METHOD.md)
+[`docs/COVERAGE_GAP_METHOD.md`](docs/COVERAGE_GAP_METHOD.md) ·
+[`docs/FAILURE_LABEL_DATASETS.html`](docs/FAILURE_LABEL_DATASETS.html) ·
+[`docs/IDM_VLA_HORIZONS.html`](docs/IDM_VLA_HORIZONS.html)
 
 **Inside the policy (advanced):** [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) ·
 [`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
