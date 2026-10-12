@@ -1,0 +1,234 @@
+[r056_train] schedule guard (cached_features, build_scheduler, accum 8): pass=True max|lr - registered|=1.355e-20 over 2000 updates
+[r056_train]   opt step     0: applied 0.000000e+00 registered 0.000000e+00 |err| 0.0e+00
+[r056_train]   opt step   100: applied 1.000000e-04 registered 1.000000e-04 |err| 0.0e+00
+[r056_train]   opt step   500: applied 8.945703e-05 registered 8.945703e-05 |err| 0.0e+00
+[r056_train]   opt step  1000: applied 5.412897e-05 registered 5.412897e-05 |err| 0.0e+00
+[r056_train]   opt step  1500: applied 1.613592e-05 registered 1.613592e-05 |err| 0.0e+00
+[r056_train]   opt step  1999: applied 6.834905e-11 registered 6.834905e-11 |err| 0.0e+00
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 741.98it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  23%|██▎       | 237/1031 [00:00<00:00, 2369.56it/s]Loading weights:  52%|█████▏    | 538/1031 [00:00<00:00, 1079.67it/s]Loading weights:  66%|██████▋   | 685/1031 [00:00<00:00, 1101.97it/s]Loading weights:  81%|████████  | 832/1031 [00:00<00:00, 1192.06it/s]Loading weights:  98%|█████████▊| 1006/1031 [00:00<00:00, 1299.85it/s]Loading weights: 100%|██████████| 1031/1031 [00:00<00:00, 1258.26it/s]
+[feature_cache] local/r054_train48: 2000/4800 frames (270s)
+[feature_cache] local/r054_train48: 4000/4800 frames (536s)
+[feature_cache] local/r054_train48: 4800/4800 frames (643s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 2000/52970 frames (916s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 4000/52970 frames (1187s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 6000/52970 frames (1462s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 8000/52970 frames (1736s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 10000/52970 frames (2008s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 12000/52970 frames (2279s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 14000/52970 frames (2551s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 16000/52970 frames (2828s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 18000/52970 frames (3106s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 20000/52970 frames (3381s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 22000/52970 frames (3656s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 24000/52970 frames (3933s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 26000/52970 frames (4206s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 28000/52970 frames (4482s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 30000/52970 frames (4757s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 32000/52970 frames (5031s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 34000/52970 frames (5302s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 36000/52970 frames (5576s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 38000/52970 frames (5849s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 40000/52970 frames (6124s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 42000/52970 frames (6399s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 44000/52970 frames (6672s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 46000/52970 frames (6944s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 48000/52970 frames (7219s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 50000/52970 frames (7493s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 52000/52970 frames (7768s)
+[feature_cache] IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot: 52970/52970 frames (7901s)
+[groot_lora] trainable parameters: 76,546,048 of 3,220,562,048 (496 tensors); non-LoRA trainable: 0
+/home/imerit/Documents/Code/VLA/experiments/r056_train.py:472: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  losses.append(float(out["loss"]))
+[cached] opt step 10 loss 0.1423 lr 1.00e-05 117s
+[cached] opt step 20 loss 0.0509 lr 2.00e-05 235s
+[cached] opt step 30 loss 0.0747 lr 3.00e-05 335s
+[cached] opt step 40 loss 0.0664 lr 4.00e-05 430s
+[cached] opt step 50 loss 0.0930 lr 5.00e-05 548s
+[cached] opt step 60 loss 0.0503 lr 6.00e-05 646s
+[cached] opt step 70 loss 0.0394 lr 7.00e-05 747s
+[cached] opt step 80 loss 0.0751 lr 8.00e-05 849s
+[cached] opt step 90 loss 0.0413 lr 9.00e-05 962s
+[cached] opt step 100 loss 0.1044 lr 1.00e-04 1076s
+[cached] opt step 110 loss 0.0457 lr 1.00e-04 1180s
+[cached] opt step 120 loss 0.0750 lr 1.00e-04 1293s
+[cached] opt step 130 loss 0.0524 lr 9.99e-05 1396s
+[cached] opt step 140 loss 0.0966 lr 9.99e-05 1518s
+[cached] opt step 150 loss 0.0356 lr 9.98e-05 1629s
+[cached] opt step 160 loss 0.0481 lr 9.98e-05 1738s
+[cached] opt step 170 loss 0.0448 lr 9.97e-05 1850s
+[cached] opt step 180 loss 0.0424 lr 9.96e-05 1971s
+[cached] opt step 190 loss 0.0583 lr 9.94e-05 2097s
+[cached] opt step 200 loss 0.0475 lr 9.93e-05 2220s
+[cached] opt step 210 loss 0.0663 lr 9.92e-05 2322s
+[cached] opt step 220 loss 0.0380 lr 9.90e-05 2428s
+[cached] opt step 230 loss 0.0437 lr 9.88e-05 2533s
+[cached] opt step 240 loss 0.0693 lr 9.87e-05 2635s
+[cached] opt step 250 loss 0.0504 lr 9.85e-05 2748s
+[cached] opt step 260 loss 0.0370 lr 9.83e-05 2850s
+[cached] opt step 270 loss 0.0385 lr 9.80e-05 2982s
+[cached] opt step 280 loss 0.0713 lr 9.78e-05 3084s
+[cached] opt step 290 loss 0.0412 lr 9.76e-05 3191s
+[cached] opt step 300 loss 0.0333 lr 9.73e-05 3296s
+[cached] opt step 310 loss 0.0519 lr 9.70e-05 3414s
+[cached] opt step 320 loss 0.0386 lr 9.67e-05 3517s
+[cached] opt step 330 loss 0.0541 lr 9.64e-05 3631s
+[cached] opt step 340 loss 0.0276 lr 9.61e-05 3724s
+[cached] opt step 350 loss 0.0451 lr 9.58e-05 3808s
+[cached] opt step 360 loss 0.0527 lr 9.55e-05 3909s
+[cached] opt step 370 loss 0.0390 lr 9.51e-05 4016s
+[cached] opt step 380 loss 0.0400 lr 9.47e-05 4123s
+[cached] opt step 390 loss 0.0399 lr 9.44e-05 4236s
+[cached] opt step 400 loss 0.0520 lr 9.40e-05 4347s
+[cached] opt step 410 loss 0.0422 lr 9.36e-05 4458s
+[cached] opt step 420 loss 0.0474 lr 9.32e-05 4552s
+[cached] opt step 430 loss 0.0385 lr 9.27e-05 4665s
+[cached] opt step 440 loss 0.0381 lr 9.23e-05 4783s
+[cached] opt step 450 loss 0.0300 lr 9.19e-05 4900s
+[cached] opt step 460 loss 0.0318 lr 9.14e-05 5005s
+[cached] opt step 470 loss 0.0335 lr 9.09e-05 5107s
+[cached] opt step 480 loss 0.0450 lr 9.05e-05 5219s
+[cached] opt step 490 loss 0.0482 lr 9.00e-05 5351s
+[cached] opt step 500 loss 0.0358 lr 8.95e-05 5470s
+[cached] opt step 510 loss 0.0333 lr 8.89e-05 5591s
+[cached] opt step 520 loss 0.0418 lr 8.84e-05 5702s
+[cached] opt step 530 loss 0.0256 lr 8.79e-05 5823s
+[cached] opt step 540 loss 0.0495 lr 8.73e-05 5926s
+[cached] opt step 550 loss 0.0453 lr 8.68e-05 6036s
+[cached] opt step 560 loss 0.0370 lr 8.62e-05 6156s
+[cached] opt step 570 loss 0.0377 lr 8.56e-05 6266s
+[cached] opt step 580 loss 0.0353 lr 8.51e-05 6383s
+[cached] opt step 590 loss 0.0317 lr 8.45e-05 6499s
+[cached] opt step 600 loss 0.0390 lr 8.39e-05 6616s
+[cached] opt step 610 loss 0.0409 lr 8.33e-05 6726s
+[cached] opt step 620 loss 0.0410 lr 8.26e-05 6815s
+[cached] opt step 630 loss 0.0401 lr 8.20e-05 6922s
+[cached] opt step 640 loss 0.0392 lr 8.14e-05 7040s
+[cached] opt step 650 loss 0.0367 lr 8.07e-05 7162s
+[cached] opt step 660 loss 0.0340 lr 8.01e-05 7279s
+[cached] opt step 670 loss 0.0482 lr 7.94e-05 7402s
+[cached] opt step 680 loss 0.0581 lr 7.87e-05 7518s
+[cached] opt step 690 loss 0.0637 lr 7.80e-05 7644s
+[cached] opt step 700 loss 0.0583 lr 7.73e-05 7772s
+[cached] opt step 710 loss 0.0396 lr 7.67e-05 7867s
+[cached] opt step 720 loss 0.0489 lr 7.59e-05 7990s
+[cached] opt step 730 loss 0.0214 lr 7.52e-05 8096s
+[cached] opt step 740 loss 0.0419 lr 7.45e-05 8210s
+[cached] opt step 750 loss 0.0450 lr 7.38e-05 8329s
+[cached] opt step 760 loss 0.0412 lr 7.31e-05 8448s
+[cached] opt step 770 loss 0.0476 lr 7.23e-05 8546s
+[cached] opt step 780 loss 0.0326 lr 7.16e-05 8667s
+[cached] opt step 790 loss 0.0334 lr 7.08e-05 8785s
+[cached] opt step 800 loss 0.0462 lr 7.01e-05 8887s
+[cached] opt step 810 loss 0.0452 lr 6.93e-05 9021s
+[cached] opt step 820 loss 0.0479 lr 6.86e-05 9142s
+[cached] opt step 830 loss 0.0659 lr 6.78e-05 9241s
+[cached] opt step 840 loss 0.0469 lr 6.70e-05 9342s
+[cached] opt step 850 loss 0.0438 lr 6.62e-05 9442s
+[cached] opt step 860 loss 0.0663 lr 6.55e-05 9555s
+[cached] opt step 870 loss 0.0464 lr 6.47e-05 9678s
+[cached] opt step 880 loss 0.0608 lr 6.39e-05 9777s
+[cached] opt step 890 loss 0.0387 lr 6.31e-05 9886s
+[cached] opt step 900 loss 0.0492 lr 6.23e-05 10006s
+[cached] opt step 910 loss 0.0275 lr 6.15e-05 10122s
+[cached] opt step 920 loss 0.0452 lr 6.07e-05 10230s
+[cached] opt step 930 loss 0.0198 lr 5.99e-05 10340s
+[cached] opt step 940 loss 0.0231 lr 5.90e-05 10441s
+[cached] opt step 950 loss 0.0294 lr 5.82e-05 10569s
+[cached] opt step 960 loss 0.0302 lr 5.74e-05 10664s
+[cached] opt step 970 loss 0.0507 lr 5.66e-05 10761s
+[cached] opt step 980 loss 0.0381 lr 5.58e-05 10866s
+[cached] opt step 990 loss 0.0393 lr 5.50e-05 10993s
+[cached] opt step 1000 loss 0.0219 lr 5.41e-05 11108s
+[cached] opt step 1010 loss 0.0530 lr 5.33e-05 11241s
+[cached] opt step 1020 loss 0.0431 lr 5.25e-05 11354s
+[cached] opt step 1030 loss 0.0250 lr 5.17e-05 11468s
+[cached] opt step 1040 loss 0.0273 lr 5.08e-05 11588s
+[cached] opt step 1050 loss 0.0273 lr 5.00e-05 11697s
+[cached] opt step 1060 loss 0.0248 lr 4.92e-05 11819s
+[cached] opt step 1070 loss 0.0404 lr 4.83e-05 11937s
+[cached] opt step 1080 loss 0.0382 lr 4.75e-05 12055s
+[cached] opt step 1090 loss 0.0311 lr 4.67e-05 12172s
+[cached] opt step 1100 loss 0.0337 lr 4.59e-05 12288s
+[cached] opt step 1110 loss 0.0299 lr 4.50e-05 12409s
+[cached] opt step 1120 loss 0.0378 lr 4.42e-05 12513s
+[cached] opt step 1130 loss 0.0309 lr 4.34e-05 12613s
+[cached] opt step 1140 loss 0.0297 lr 4.26e-05 12720s
+[cached] opt step 1150 loss 0.0435 lr 4.18e-05 12827s
+[cached] opt step 1160 loss 0.0311 lr 4.10e-05 12945s
+[cached] opt step 1170 loss 0.0463 lr 4.01e-05 13053s
+[cached] opt step 1180 loss 0.0338 lr 3.93e-05 13171s
+[cached] opt step 1190 loss 0.0497 lr 3.85e-05 13296s
+[cached] opt step 1200 loss 0.0472 lr 3.77e-05 13395s
+[cached] opt step 1210 loss 0.0311 lr 3.69e-05 13515s
+[cached] opt step 1220 loss 0.0328 lr 3.61e-05 13622s
+[cached] opt step 1230 loss 0.0349 lr 3.53e-05 13753s
+[cached] opt step 1240 loss 0.0496 lr 3.45e-05 13845s
+[cached] opt step 1250 loss 0.0299 lr 3.38e-05 13972s
+[cached] opt step 1260 loss 0.0316 lr 3.30e-05 14073s
+[cached] opt step 1270 loss 0.0233 lr 3.22e-05 14197s
+[cached] opt step 1280 loss 0.0489 lr 3.14e-05 14320s
+[cached] opt step 1290 loss 0.0263 lr 3.07e-05 14437s
+[cached] opt step 1300 loss 0.0300 lr 2.99e-05 14547s
+[cached] opt step 1310 loss 0.0254 lr 2.92e-05 14671s
+[cached] opt step 1320 loss 0.0232 lr 2.84e-05 14763s
+[cached] opt step 1330 loss 0.0190 lr 2.77e-05 14894s
+[cached] opt step 1340 loss 0.0205 lr 2.69e-05 15004s
+[cached] opt step 1350 loss 0.0194 lr 2.62e-05 15124s
+[cached] opt step 1360 loss 0.0494 lr 2.55e-05 15246s
+[cached] opt step 1370 loss 0.0317 lr 2.48e-05 15340s
+[cached] opt step 1380 loss 0.0568 lr 2.41e-05 15454s
+[cached] opt step 1390 loss 0.0252 lr 2.33e-05 15566s
+[cached] opt step 1400 loss 0.0463 lr 2.27e-05 15684s
+[cached] opt step 1410 loss 0.0278 lr 2.20e-05 15797s
+[cached] opt step 1420 loss 0.0265 lr 2.13e-05 15916s
+[cached] opt step 1430 loss 0.0346 lr 2.06e-05 16026s
+[cached] opt step 1440 loss 0.0202 lr 1.99e-05 16160s
+[cached] opt step 1450 loss 0.0173 lr 1.93e-05 16288s
+[cached] opt step 1460 loss 0.0323 lr 1.86e-05 16387s
+[cached] opt step 1470 loss 0.0270 lr 1.80e-05 16490s
+[cached] opt step 1480 loss 0.0273 lr 1.74e-05 16587s
+[cached] opt step 1490 loss 0.0386 lr 1.67e-05 16718s
+[cached] opt step 1500 loss 0.0413 lr 1.61e-05 16831s
+[cached] opt step 1510 loss 0.0411 lr 1.55e-05 16964s
+[cached] opt step 1520 loss 0.0334 lr 1.49e-05 17066s
+[cached] opt step 1530 loss 0.0205 lr 1.44e-05 17208s
+[cached] opt step 1540 loss 0.0226 lr 1.38e-05 17336s
+[cached] opt step 1550 loss 0.0259 lr 1.32e-05 17460s
+[cached] opt step 1560 loss 0.0371 lr 1.27e-05 17553s
+[cached] opt step 1570 loss 0.0367 lr 1.21e-05 17685s
+[cached] opt step 1580 loss 0.0367 lr 1.16e-05 17798s
+[cached] opt step 1590 loss 0.0337 lr 1.11e-05 17918s
+[cached] opt step 1600 loss 0.0181 lr 1.05e-05 18041s
+[cached] opt step 1610 loss 0.0347 lr 1.00e-05 18162s
+[cached] opt step 1620 loss 0.0402 lr 9.55e-06 18274s
+[cached] opt step 1630 loss 0.0214 lr 9.07e-06 18398s
+[cached] opt step 1640 loss 0.0347 lr 8.60e-06 18528s
+[cached] opt step 1650 loss 0.0280 lr 8.14e-06 18639s
+[cached] opt step 1660 loss 0.0349 lr 7.70e-06 18748s
+[cached] opt step 1670 loss 0.0245 lr 7.26e-06 18873s
+[cached] opt step 1680 loss 0.0263 lr 6.84e-06 18995s
+[cached] opt step 1690 loss 0.0188 lr 6.43e-06 19103s
+[cached] opt step 1700 loss 0.0307 lr 6.03e-06 19218s
+[cached] opt step 1710 loss 0.0271 lr 5.64e-06 19319s
+[cached] opt step 1720 loss 0.0276 lr 5.26e-06 19455s
+[cached] opt step 1730 loss 0.0300 lr 4.90e-06 19564s
+[cached] opt step 1740 loss 0.0347 lr 4.55e-06 19673s
+[cached] opt step 1750 loss 0.0343 lr 4.21e-06 19799s
+[cached] opt step 1760 loss 0.0250 lr 3.89e-06 19904s
+[cached] opt step 1770 loss 0.0372 lr 3.57e-06 20008s
+[cached] opt step 1780 loss 0.0436 lr 3.27e-06 20138s
+[cached] opt step 1790 loss 0.0237 lr 2.98e-06 20256s
+[cached] opt step 1800 loss 0.0295 lr 2.71e-06 20374s
+[cached] opt step 1810 loss 0.0231 lr 2.45e-06 20493s
+[cached] opt step 1820 loss 0.0340 lr 2.20e-06 20602s
+[cached] opt step 1830 loss 0.0260 lr 1.96e-06 20713s
+[cached] opt step 1840 loss 0.0452 lr 1.74e-06 20840s
+[cached] opt step 1850 loss 0.0443 lr 1.53e-06 20966s
+[cached] opt step 1860 loss 0.0288 lr 1.33e-06 21115s
+[cached] opt step 1870 loss 0.0231 lr 1.15e-06 21319s
+[cached] opt step 1880 loss 0.0443 lr 9.81e-07 21551s
+[cached] opt step 1890 loss 0.0241 lr 8.25e-07 21781s
+[cached] opt step 1900 loss 0.0248 lr 6.82e-07 22019s

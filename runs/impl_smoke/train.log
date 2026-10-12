@@ -1,0 +1,383 @@
+WARNING:lerobot.utils.import_utils:Could not load libtorchcodec. Likely causes:
+          1. FFmpeg is not properly installed in your environment. We support
+             versions 4, 5, 6, 7, and 8, and we attempt to load libtorchcodec
+             for each of those versions. Errors for versions not installed on
+             your system are expected; only the error for your installed FFmpeg
+             version is relevant. On Windows, ensure you've installed the
+             "full-shared" version which ships DLLs.
+          2. The PyTorch version (2.11.0+cu128) is not compatible with
+             this version of TorchCodec. Refer to the version compatibility
+             table:
+             https://github.com/pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
+          3. Another runtime dependency; see exceptions below.
+
+        The following exceptions were raised as we tried to load libtorchcodec:
+        
+[start of libtorchcodec loading traceback]
+FFmpeg version 8:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core8.so
+
+FFmpeg version 7:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core7.so
+
+FFmpeg version 6:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core6.so
+
+FFmpeg version 5:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core5.so
+
+FFmpeg version 4:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core4.so
+[end of libtorchcodec loading traceback].
+'torchcodec' is installed but cannot be loaded (see the error above). Falling back to 'pyav' as a default decoder.
+INFO 2026-09-28 18:58:16 ot_train.py:421 {'accelerator': {'activation_checkpointing': {'mode': <ActivationCheckpointingMode.NONE: 'none'>},
+                 'compile': {'backend': 'inductor',
+                             'enabled': False,
+                             'mode': None,
+                             'regional': True},
+                 'ddp': {'find_unused_parameters': True,
+                         'gradient_as_bucket_view': False,
+                         'static_graph': False},
+                 'fsdp': {'cpu_offload': False,
+                          'ignored_modules': None,
+                          'min_num_params': None,
+                          'reshard_after_forward': True,
+                          'wrap_modules': None},
+                 'gradient_accumulation': {'steps': 2},
+                 'mixed_precision': 'no'},
+ 'batch_size': 1,
+ 'checkpoint_format': <CheckpointFormat.SAFETENSORS: 'safetensors'>,
+ 'checkpoint_path': None,
+ 'cudnn_deterministic': False,
+ 'dataloader_multiprocessing_context': 'spawn',
+ 'dataset': {'depth_output_unit': 'mm',
+             'episodes': None,
+             'eval_split': 0.0,
+             'exclude_episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/r054_smoke48',
+             'repo_type': 'dataset',
+             'return_uint8': False,
+             'revision': None,
+             'root': 'data/r054_smoke48',
+             'streaming': False,
+             'use_imagenet_stats': True,
+             'video_backend': 'pyav'},
+ 'ema': {'decay': None,
+         'enable': False,
+         'inv_gamma': 1.0,
+         'max_decay': 0.9999,
+         'min_decay': 0.0,
+         'power': 0.75,
+         'update_after_step': 0,
+         'use_for_eval': True},
+ 'env': None,
+ 'env_eval_freq': 20000,
+ 'eval': {'batch_size': 11,
+          'n_episodes': 50,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'eval_steps': 0,
+ 'job': {'detach': False,
+         'image': 'huggingface/lerobot-gpu:latest',
+         'tags': [],
+         'target': None,
+         'timeout': '2d'},
+ 'job_name': 'r056_smoke_train',
+ 'log_freq': 10,
+ 'max_eval_samples': 0,
+ 'num_workers': 2,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 1.0,
+               'lr': 0.0001,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': 'runs/r056_smoke_train',
+ 'parallelism': {'cfg_parallel': 1,
+                 'context_parallel': {'ring_degree': 1, 'ulysses_degree': 1},
+                 'dp_replicate': 1,
+                 'dp_shard': 1},
+ 'peft': {'full_training_modules': [],
+          'init_type': None,
+          'lora_alpha': 16,
+          'method_type': 'LORA',
+          'r': 16,
+          'target_modules': None},
+ 'persistent_workers': True,
+ 'policy': {'action_decode_transform': 'libero',
+            'balance_dataset_weights': True,
+            'balance_trajectory_weights': True,
+            'base_model_path': 'nvidia/GR00T-N1.7-3B',
+            'batch_size': 32,
+            'chunk_size': 16,
+            'dataloader_num_workers': 8,
+            'dataset_paths': None,
+            'device': 'cuda',
+            'embodiment_tag': 'libero_sim',
+            'image_size': [256, 256],
+            'input_features': {'observation.images.image': {'shape': [256,
+                                                                      256,
+                                                                      3],
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.wrist_image': {'shape': [256,
+                                                                            256,
+                                                                            3],
+                                                                  'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': [8],
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'lora_alpha': 16,
+            'lora_dropout': 0.1,
+            'lora_full_model': False,
+            'lora_rank': 0,
+            'max_action_dim': 132,
+            'max_state_dim': 132,
+            'max_steps': 20000,
+            'model_params_fp32': False,
+            'n_action_steps': 16,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'STATE': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_inference_timesteps': 4,
+            'optimizer_betas': [0.9, 0.999],
+            'optimizer_eps': 1e-08,
+            'optimizer_lr': 0.0001,
+            'optimizer_weight_decay': 1e-05,
+            'output_dir': './tmp/gr00t',
+            'output_features': {'action': {'shape': [7],
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'pretrained_path': 'nvidia/gr00t17-lerobot-libero_spatial-640',
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': False,
+            'relative_exclude_joints': [],
+            'repo_id': None,
+            'report_to': 'wandb',
+            'resume': False,
+            'rtc_ramp_rate': 6.0,
+            'save_steps': 1000,
+            'tags': None,
+            'tokenizer_assets_repo': None,
+            'tune_diffusion_model': True,
+            'tune_llm': False,
+            'tune_projector': False,
+            'tune_top_llm_layers': 0,
+            'tune_visual': False,
+            'tune_vlln': True,
+            'type': 'groot',
+            'use_amp': False,
+            'use_bf16': True,
+            'use_flash_attention': False,
+            'use_peft': False,
+            'use_relative_actions': False,
+            'video_backend': 'decord',
+            'warmup_ratio': 0.05},
+ 'prefetch_factor': 4,
+ 'rename_map': {},
+ 'resume': False,
+ 'reward_model': None,
+ 'sample_weighting': None,
+ 'save_checkpoint': True,
+ 'save_checkpoint_to_hub': False,
+ 'save_freq': 8,
+ 'scheduler': {'name': 'cosine', 'num_warmup_steps': 1, 'type': 'diffuser'},
+ 'seed': 1000,
+ 'steps': 8,
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': False,
+ 'wandb': {'add_tags': True,
+           'console': 'wrap',
+           'console_chunk_max_seconds': 0,
+           'console_multipart': False,
+           'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'resume': None,
+           'run_id': None}}
+INFO 2026-09-28 18:58:16 ot_train.py:428 Logs will be saved locally.
+INFO 2026-09-28 18:58:16 ot_train.py:443 Creating dataset
+INFO 2026-09-28 18:58:16 ot_train.py:471 Creating policy
+INFO 2026-09-28 18:58:16 ng_groot.py:194 The Groot policy wraps NVIDIA's GR00T n1.7 model. Loading pretrained model from: nvidia/gr00t17-lerobot-libero_spatial-640
+INFO 2026-09-28 18:58:16 ng_groot.py:228 Detected fine-tuned LeRobot checkpoint, loading with state dict...
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 906.01it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  17%|█▋        | 176/1031 [00:00<00:00, 1751.70it/s]Loading weights:  37%|███▋      | 379/1031 [00:00<00:00, 1905.21it/s]Loading weights:  55%|█████▌    | 570/1031 [00:00<00:00, 732.96it/s] Loading weights:  67%|██████▋   | 693/1031 [00:00<00:00, 755.30it/s]Loading weights:  79%|███████▉  | 816/1031 [00:00<00:00, 852.26it/s]Loading weights:  95%|█████████▍| 976/1031 [00:01<00:00, 1021.54it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 970.61it/s]
+INFO 2026-09-28 18:58:28 ot_train.py:488 Using PEFT! Wrapping model.
+INFO 2026-09-28 18:58:28 etrained.py:386 Wrapped groot with PEFT (LoraConfig)
+INFO 2026-09-28 18:58:29 ot_train.py:562 Creating optimizer and scheduler
+[groot_lora] trainable parameters: 19,136,512 of 3,163,152,512 (496 tensors); non-LoRA trainable: 0
+[r056_train] fixed-seed loss, step 0: 0.03684
+INFO 2026-09-28 18:58:44 ot_train.py:613 Output dir: runs/r056_smoke_train
+INFO 2026-09-28 18:58:44 ot_train.py:620 cfg.steps=8 (8)
+INFO 2026-09-28 18:58:44 ot_train.py:621 dataset.num_frames=53066 (53K)
+INFO 2026-09-28 18:58:44 ot_train.py:622 dataset.num_episodes=434
+INFO 2026-09-28 18:58:44 ot_train.py:623 Effective batch size: 1 x 1 dp workers x 2 grad accum = 2 (topology: dp_replicate=1, dp_shard=1)
+INFO 2026-09-28 18:58:44 ot_train.py:628 num_learnable_params=19136512 (19M)
+INFO 2026-09-28 18:58:44 ot_train.py:629 num_total_params=3163152512 (3B)
+Training:   0%|          | 0/8 [00:00<?, ?step/s]INFO 2026-09-28 18:58:44 ot_train.py:731 Start offline training on a fixed dataset, with effective batch size: 2
+/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/accelerate/scheduler.py:57: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  self.scheduler.step(*args, **kwargs)
+Training:  12%|█▎        | 1/8 [00:00<00:06,  1.01step/s]Training:  25%|██▌       | 2/8 [00:01<00:04,  1.28step/s]Training:  38%|███▊      | 3/8 [00:02<00:03,  1.55step/s]Training:  50%|█████     | 4/8 [00:02<00:02,  1.90step/s]Training:  62%|██████▎   | 5/8 [00:02<00:01,  2.27step/s]Training:  75%|███████▌  | 6/8 [00:03<00:00,  2.46step/s]Training:  88%|████████▊ | 7/8 [00:03<00:00,  2.13step/s]Training: 100%|██████████| 8/8 [00:04<00:00,  2.08step/s]INFO 2026-09-28 18:58:49 ot_train.py:820 Checkpoint policy after step 8
+Training: 100%|██████████| 8/8 [00:04<00:00,  1.63step/s]
+INFO 2026-09-28 18:58:49 ot_train.py:915 End of training
+[r056_train] fixed-seed loss, final: 0.03665
+{
+ "mode": "lerobot_train",
+ "batch_size": 1,
+ "accumulation": 2,
+ "effective_batch": 2,
+ "opt_steps": 4,
+ "parts": [
+  {
+   "name": "local/r054_smoke48",
+   "frames": 96,
+   "episodes": 2
+  },
+  {
+   "name": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+   "frames": 52970,
+   "episodes": 432
+  }
+ ],
+ "shares": [
+  0.5,
+  0.5
+ ],
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "checkpointed_blocks": 36,
+ "trainable": {
+  "trainable": 19136512,
+  "total": 3163152512,
+  "n_tensors": 496,
+  "non_lora_trainable": [],
+  "n_non_lora": 0
+ },
+ "scheduler_steps": 4,
+ "eval_loss_indices": 48,
+ "eval_loss_step0": 0.0368404712814178,
+ "torch_max_memory_allocated_gib": 6.3003387451171875,
+ "torch_max_memory_reserved_gib": 6.44921875,
+ "nvidia_smi_peak_gib": 6.3984375,
+ "eval_loss_final": 0.03665269295015605
+}

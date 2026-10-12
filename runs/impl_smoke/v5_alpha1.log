@@ -1,0 +1,20 @@
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 750.67it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  21%|██        | 219/1031 [00:00<00:00, 1963.79it/s]Loading weights:  40%|████      | 416/1031 [00:00<00:00, 1432.34it/s]Loading weights:  55%|█████▍    | 567/1031 [00:01<00:01, 387.47it/s] Loading weights:  64%|██████▎   | 657/1031 [00:01<00:00, 415.76it/s]Loading weights:  71%|███████   | 733/1031 [00:01<00:00, 421.89it/s]Loading weights:  83%|████████▎ | 856/1031 [00:01<00:00, 541.37it/s]Loading weights:  96%|█████████▌| 988/1031 [00:01<00:00, 678.04it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 591.88it/s]
+[fwd0] load=new adapter=runs/r056_r16_cyclic_train/checkpoints/008000/pretrained_model alpha=1.0: RSS before 0.49 GiB, after load 2.09 GiB, PEAK during load 17.23 GiB, 35s; cuda alloc 5.95 GiB
+[fwd0] params+buffers: 1530 tensors, combined sha1 5bb6ee3743dd9c4a769a2e668c1ac204324033bd
+[fwd0] done runs/impl_smoke/v5_alpha1 (10, 1, 16, 7) ['torch.bfloat16', 'torch.float32']
+[V5] base = v3f_new.npz; adapter = cyclic 008000; same frozen obs: True
+[V5] alpha=0 vs base: max|d| = 0.0 (bitwise equal: True )
+[V5] alpha=1 vs base, chunks (10, 1, 16, 7): max|d| = 1.99103  mean|d| = 0.075778
+[V5] alpha=1 vs base, post-processed first action: max|d| = 0.395508  mean|d| = 0.0465181
+[V5]   task  468: max|d| 0.451019  mean|d| 0.0676741
+[V5]   task  484: max|d| 0.585754  mean|d| 0.0724053
+[V5]   task  548: max|d| 0.119141  mean|d| 0.028866
+[V5]   task  485: max|d| 0.490601  mean|d| 0.0591408
+[V5]   task  491: max|d| 0.441406  mean|d| 0.0908765
+[V5]   task  524: max|d| 0.267578  mean|d| 0.0364376
+[V5]   task  313: max|d| 0.728516  mean|d| 0.107774
+[V5]   task  416: max|d| 0.930664  mean|d| 0.142575
+[V5]   task  281: max|d| 1.99103  mean|d| 0.128846
+[V5]   task  430: max|d| 0.0869141  mean|d| 0.0231854

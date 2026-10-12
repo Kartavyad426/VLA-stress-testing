@@ -1,0 +1,19 @@
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 1020.77it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  17%|█▋        | 176/1031 [00:00<00:00, 1758.14it/s]Loading weights:  34%|███▍      | 355/1031 [00:00<00:00, 1748.46it/s]Loading weights:  52%|█████▏    | 538/1031 [00:00<00:00, 690.15it/s] Loading weights:  64%|██████▍   | 659/1031 [00:00<00:00, 792.45it/s]Loading weights:  75%|███████▌  | 776/1031 [00:00<00:00, 803.54it/s]Loading weights:  93%|█████████▎| 960/1031 [00:00<00:00, 1035.53it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 966.99it/s]
+/home/imerit/Documents/Code/VLA/experiments/r055_gates.py:191: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  return float(loss), {n: p.grad.detach().float().clone() for n, p in params.items()}
+{
+ "loss_plain": 0.2359428107738495,
+ "loss_ckpt": 0.2359428107738495,
+ "loss_rel": 0.0,
+ "grad_worst_rel": 0.008337181992828846,
+ "grad_worst_tensor": "base_model.model._groot_model.action_head.model.transformer_blocks.8.attn1.to_out.0.lora_A.default.weight",
+ "n_tensors": 496,
+ "n_zero_grad": 0,
+ "checkpointed_blocks": 36,
+ "tol_rel": 0.01,
+ "lora_r": 16,
+ "pass": true
+}

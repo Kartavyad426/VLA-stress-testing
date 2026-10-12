@@ -1,0 +1,1299 @@
+/home/imerit/Documents/Code/VLA/.venvs/libero-plus/bin/python experiments/r056_train.py --minted-root data/r054_train48 --minted-repo local/r054_train48 --shares  --episodes 0 --opt-steps 1500 --batch-size 1 --effective-batch 1 --lr 1e-4 --lr-schedule constant --out runs/r055/overfit_diag --no-save --eval-loss-episode 0 --eval-every 100 --curve runs/r055/overfit_diag_1500.json --report runs/r055/overfit_diag_1500_report.json
+WARNING:lerobot.utils.import_utils:Could not load libtorchcodec. Likely causes:
+          1. FFmpeg is not properly installed in your environment. We support
+             versions 4, 5, 6, 7, and 8, and we attempt to load libtorchcodec
+             for each of those versions. Errors for versions not installed on
+             your system are expected; only the error for your installed FFmpeg
+             version is relevant. On Windows, ensure you've installed the
+             "full-shared" version which ships DLLs.
+          2. The PyTorch version (2.11.0+cu128) is not compatible with
+             this version of TorchCodec. Refer to the version compatibility
+             table:
+             https://github.com/pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
+          3. Another runtime dependency; see exceptions below.
+
+        The following exceptions were raised as we tried to load libtorchcodec:
+        
+[start of libtorchcodec loading traceback]
+FFmpeg version 8:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core8.so
+
+FFmpeg version 7:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core7.so
+
+FFmpeg version 6:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core6.so
+
+FFmpeg version 5:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core5.so
+
+FFmpeg version 4:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core4.so
+[end of libtorchcodec loading traceback].
+'torchcodec' is installed but cannot be loaded (see the error above). Falling back to 'pyav' as a default decoder.
+INFO 2026-09-29 12:24:44 ot_train.py:421 {'accelerator': {'activation_checkpointing': {'mode': <ActivationCheckpointingMode.NONE: 'none'>},
+                 'compile': {'backend': 'inductor',
+                             'enabled': False,
+                             'mode': None,
+                             'regional': True},
+                 'ddp': {'find_unused_parameters': True,
+                         'gradient_as_bucket_view': False,
+                         'static_graph': False},
+                 'fsdp': {'cpu_offload': False,
+                          'ignored_modules': None,
+                          'min_num_params': None,
+                          'reshard_after_forward': True,
+                          'wrap_modules': None},
+                 'gradient_accumulation': {'steps': 1},
+                 'mixed_precision': 'no'},
+ 'batch_size': 1,
+ 'checkpoint_format': <CheckpointFormat.SAFETENSORS: 'safetensors'>,
+ 'checkpoint_path': None,
+ 'cudnn_deterministic': False,
+ 'dataloader_multiprocessing_context': 'spawn',
+ 'dataset': {'depth_output_unit': 'mm',
+             'episodes': None,
+             'eval_split': 0.0,
+             'exclude_episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/r054_train48',
+             'repo_type': 'dataset',
+             'return_uint8': False,
+             'revision': None,
+             'root': 'data/r054_train48',
+             'streaming': False,
+             'use_imagenet_stats': True,
+             'video_backend': 'pyav'},
+ 'ema': {'decay': None,
+         'enable': False,
+         'inv_gamma': 1.0,
+         'max_decay': 0.9999,
+         'min_decay': 0.0,
+         'power': 0.75,
+         'update_after_step': 0,
+         'use_for_eval': True},
+ 'env': None,
+ 'env_eval_freq': 20000,
+ 'eval': {'batch_size': 11,
+          'n_episodes': 50,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'eval_steps': 0,
+ 'job': {'detach': False,
+         'image': 'huggingface/lerobot-gpu:latest',
+         'tags': [],
+         'target': None,
+         'timeout': '2d'},
+ 'job_name': 'overfit_diag',
+ 'log_freq': 10,
+ 'max_eval_samples': 0,
+ 'num_workers': 2,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 1.0,
+               'lr': 0.0001,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': 'runs/r055/overfit_diag',
+ 'parallelism': {'cfg_parallel': 1,
+                 'context_parallel': {'ring_degree': 1, 'ulysses_degree': 1},
+                 'dp_replicate': 1,
+                 'dp_shard': 1},
+ 'peft': {'full_training_modules': [],
+          'init_type': None,
+          'lora_alpha': 16,
+          'method_type': 'LORA',
+          'r': 16,
+          'target_modules': None},
+ 'persistent_workers': True,
+ 'policy': {'action_decode_transform': 'libero',
+            'balance_dataset_weights': True,
+            'balance_trajectory_weights': True,
+            'base_model_path': 'nvidia/GR00T-N1.7-3B',
+            'batch_size': 32,
+            'chunk_size': 16,
+            'dataloader_num_workers': 8,
+            'dataset_paths': None,
+            'device': 'cuda',
+            'embodiment_tag': 'libero_sim',
+            'image_size': [256, 256],
+            'input_features': {'observation.images.image': {'shape': [256,
+                                                                      256,
+                                                                      3],
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.wrist_image': {'shape': [256,
+                                                                            256,
+                                                                            3],
+                                                                  'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': [8],
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'lora_alpha': 16,
+            'lora_dropout': 0.1,
+            'lora_full_model': False,
+            'lora_rank': 0,
+            'max_action_dim': 132,
+            'max_state_dim': 132,
+            'max_steps': 20000,
+            'model_params_fp32': False,
+            'n_action_steps': 16,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'STATE': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_inference_timesteps': 4,
+            'optimizer_betas': [0.9, 0.999],
+            'optimizer_eps': 1e-08,
+            'optimizer_lr': 0.0001,
+            'optimizer_weight_decay': 1e-05,
+            'output_dir': './tmp/gr00t',
+            'output_features': {'action': {'shape': [7],
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'pretrained_path': 'nvidia/gr00t17-lerobot-libero_spatial-640',
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': False,
+            'relative_exclude_joints': [],
+            'repo_id': None,
+            'report_to': 'wandb',
+            'resume': False,
+            'rtc_ramp_rate': 6.0,
+            'save_steps': 1000,
+            'tags': None,
+            'tokenizer_assets_repo': None,
+            'tune_diffusion_model': True,
+            'tune_llm': False,
+            'tune_projector': False,
+            'tune_top_llm_layers': 0,
+            'tune_visual': False,
+            'tune_vlln': True,
+            'type': 'groot',
+            'use_amp': False,
+            'use_bf16': True,
+            'use_flash_attention': False,
+            'use_peft': False,
+            'use_relative_actions': False,
+            'video_backend': 'decord',
+            'warmup_ratio': 0.05},
+ 'prefetch_factor': 4,
+ 'rename_map': {},
+ 'resume': False,
+ 'reward_model': None,
+ 'sample_weighting': None,
+ 'save_checkpoint': False,
+ 'save_checkpoint_to_hub': False,
+ 'save_freq': 500,
+ 'scheduler': {'name': 'constant', 'num_warmup_steps': 0, 'type': 'diffuser'},
+ 'seed': 1000,
+ 'steps': 1500,
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': False,
+ 'wandb': {'add_tags': True,
+           'console': 'wrap',
+           'console_chunk_max_seconds': 0,
+           'console_multipart': False,
+           'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'resume': None,
+           'run_id': None}}
+INFO 2026-09-29 12:24:44 ot_train.py:428 Logs will be saved locally.
+INFO 2026-09-29 12:24:44 ot_train.py:443 Creating dataset
+INFO 2026-09-29 12:24:44 ot_train.py:471 Creating policy
+INFO 2026-09-29 12:24:44 ng_groot.py:194 The Groot policy wraps NVIDIA's GR00T n1.7 model. Loading pretrained model from: nvidia/gr00t17-lerobot-libero_spatial-640
+INFO 2026-09-29 12:24:44 ng_groot.py:228 Detected fine-tuned LeRobot checkpoint, loading with state dict...
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 803.95it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  20%|██        | 209/1031 [00:00<00:00, 2081.06it/s]Loading weights:  41%|████      | 418/1031 [00:00<00:00, 1705.80it/s]Loading weights:  58%|█████▊    | 593/1031 [00:00<00:00, 681.86it/s] Loading weights:  68%|██████▊   | 705/1031 [00:00<00:00, 626.71it/s]Loading weights:  83%|████████▎ | 856/1031 [00:01<00:00, 783.52it/s]Loading weights:  97%|█████████▋| 1000/1031 [00:01<00:00, 904.11it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 874.36it/s]
+INFO 2026-09-29 12:24:57 ot_train.py:488 Using PEFT! Wrapping model.
+INFO 2026-09-29 12:24:57 etrained.py:386 Wrapped groot with PEFT (LoraConfig)
+INFO 2026-09-29 12:24:59 ot_train.py:562 Creating optimizer and scheduler
+[groot_lora] trainable parameters: 19,136,512 of 3,163,152,512 (496 tensors); non-LoRA trainable: 0
+[r056_train] fixed-seed loss, step 0: 0.05227
+INFO 2026-09-29 12:25:15 ot_train.py:613 Output dir: runs/r055/overfit_diag
+INFO 2026-09-29 12:25:15 ot_train.py:620 cfg.steps=1500 (2K)
+INFO 2026-09-29 12:25:15 ot_train.py:621 dataset.num_frames=48 (48)
+INFO 2026-09-29 12:25:15 ot_train.py:622 dataset.num_episodes=1
+INFO 2026-09-29 12:25:15 ot_train.py:623 Effective batch size: 1 x 1 dp workers x 1 grad accum = 1 (topology: dp_replicate=1, dp_shard=1)
+INFO 2026-09-29 12:25:15 ot_train.py:628 num_learnable_params=19136512 (19M)
+INFO 2026-09-29 12:25:15 ot_train.py:629 num_total_params=3163152512 (3B)
+Training:   0%|          | 0/1500 [00:00<?, ?step/s]INFO 2026-09-29 12:25:15 ot_train.py:731 Start offline training on a fixed dataset, with effective batch size: 1
+Training:   0%|          | 1/1500 [00:01<29:57,  1.20s/step]Training:   0%|          | 2/1500 [00:01<18:46,  1.33step/s]Training:   0%|          | 3/1500 [00:02<14:45,  1.69step/s]Training:   0%|          | 4/1500 [00:02<12:31,  1.99step/s]Training:   0%|          | 5/1500 [00:02<11:54,  2.09step/s]Training:   0%|          | 6/1500 [00:03<11:23,  2.18step/s]Training:   0%|          | 7/1500 [00:03<11:39,  2.13step/s]Training:   1%|          | 8/1500 [00:04<11:26,  2.17step/s]Training:   1%|          | 9/1500 [00:04<11:14,  2.21step/s]Training:   1%|          | 10/1500 [00:05<11:00,  2.25step/s]INFO 2026-09-29 12:25:20 ot_train.py:778 step:10 smpl:10 ep:0 epch:0.21 loss:0.074 grdn:0.171 lr:1.0e-04 data_s:0.035 prep_s:0.101 updt_s:0.365 step_s:0.505 smp/s:2 mem_gb:6.30
+Training:   1%|          | 11/1500 [00:05<10:47,  2.30step/s]Training:   1%|          | 12/1500 [00:05<11:01,  2.25step/s]Training:   1%|          | 13/1500 [00:06<10:59,  2.26step/s]Training:   1%|          | 14/1500 [00:06<11:39,  2.12step/s]Training:   1%|          | 15/1500 [00:07<11:24,  2.17step/s]Training:   1%|          | 16/1500 [00:08<13:41,  1.81step/s]Training:   1%|          | 17/1500 [00:08<12:47,  1.93step/s]Training:   1%|          | 18/1500 [00:09<12:33,  1.97step/s]Training:   1%|▏         | 19/1500 [00:09<12:03,  2.05step/s]Training:   1%|▏         | 20/1500 [00:09<11:41,  2.11step/s]INFO 2026-09-29 12:25:24 ot_train.py:778 step:20 smpl:20 ep:0 epch:0.42 loss:0.065 grdn:0.171 lr:1.0e-04 data_s:0.001 prep_s:0.124 updt_s:0.359 step_s:0.486 smp/s:2 mem_gb:6.30
+Training:   1%|▏         | 21/1500 [00:10<11:07,  2.21step/s]Training:   1%|▏         | 22/1500 [00:10<10:57,  2.25step/s]Training:   2%|▏         | 23/1500 [00:11<10:49,  2.27step/s]Training:   2%|▏         | 24/1500 [00:11<10:39,  2.31step/s]Training:   2%|▏         | 25/1500 [00:12<10:39,  2.31step/s]Training:   2%|▏         | 26/1500 [00:12<10:47,  2.28step/s]Training:   2%|▏         | 27/1500 [00:12<10:44,  2.29step/s]Training:   2%|▏         | 28/1500 [00:13<10:47,  2.27step/s]Training:   2%|▏         | 29/1500 [00:13<10:49,  2.27step/s]Training:   2%|▏         | 30/1500 [00:14<10:50,  2.26step/s]INFO 2026-09-29 12:25:29 ot_train.py:778 step:30 smpl:30 ep:1 epch:0.62 loss:0.066 grdn:0.245 lr:1.0e-04 data_s:0.001 prep_s:0.106 updt_s:0.323 step_s:0.432 smp/s:2 mem_gb:6.30
+Training:   2%|▏         | 31/1500 [00:14<11:29,  2.13step/s]Training:   2%|▏         | 32/1500 [00:15<12:00,  2.04step/s]Training:   2%|▏         | 33/1500 [00:15<11:33,  2.12step/s]Training:   2%|▏         | 34/1500 [00:16<11:27,  2.13step/s]Training:   2%|▏         | 35/1500 [00:16<11:09,  2.19step/s]Training:   2%|▏         | 36/1500 [00:17<11:06,  2.20step/s]Training:   2%|▏         | 37/1500 [00:17<10:43,  2.27step/s]Training:   3%|▎         | 38/1500 [00:18<12:50,  1.90step/s]Training:   3%|▎         | 39/1500 [00:18<13:03,  1.87step/s]Training:   3%|▎         | 40/1500 [00:19<12:32,  1.94step/s]INFO 2026-09-29 12:25:34 ot_train.py:778 step:40 smpl:40 ep:1 epch:0.83 loss:0.164 grdn:0.350 lr:1.0e-04 data_s:0.001 prep_s:0.138 updt_s:0.358 step_s:0.500 smp/s:2 mem_gb:6.30
+Training:   3%|▎         | 41/1500 [00:19<11:55,  2.04step/s]Training:   3%|▎         | 42/1500 [00:20<11:29,  2.11step/s]Training:   3%|▎         | 43/1500 [00:20<11:12,  2.17step/s]Training:   3%|▎         | 44/1500 [00:20<11:07,  2.18step/s]Training:   3%|▎         | 45/1500 [00:21<10:53,  2.23step/s]Training:   3%|▎         | 46/1500 [00:21<10:41,  2.27step/s]Training:   3%|▎         | 47/1500 [00:22<10:47,  2.24step/s]Training:   3%|▎         | 48/1500 [00:22<10:44,  2.25step/s]Training:   3%|▎         | 49/1500 [00:23<10:50,  2.23step/s]Training:   3%|▎         | 50/1500 [00:23<11:46,  2.05step/s]INFO 2026-09-29 12:25:38 ot_train.py:778 step:50 smpl:50 ep:1 epch:1.04 loss:0.042 grdn:0.141 lr:1.0e-04 data_s:0.001 prep_s:0.121 updt_s:0.329 step_s:0.453 smp/s:2 mem_gb:6.30
+Training:   3%|▎         | 51/1500 [00:24<11:25,  2.11step/s]Training:   3%|▎         | 52/1500 [00:24<11:20,  2.13step/s]Training:   4%|▎         | 53/1500 [00:25<11:19,  2.13step/s]Training:   4%|▎         | 54/1500 [00:25<10:55,  2.21step/s]Training:   4%|▎         | 55/1500 [00:26<10:50,  2.22step/s]Training:   4%|▎         | 56/1500 [00:26<10:45,  2.24step/s]Training:   4%|▍         | 57/1500 [00:26<10:40,  2.25step/s]Training:   4%|▍         | 58/1500 [00:27<11:10,  2.15step/s]Training:   4%|▍         | 59/1500 [00:28<14:00,  1.71step/s]Training:   4%|▍         | 60/1500 [00:28<12:35,  1.91step/s]INFO 2026-09-29 12:25:43 ot_train.py:778 step:60 smpl:60 ep:1 epch:1.25 loss:0.025 grdn:0.111 lr:1.0e-04 data_s:0.001 prep_s:0.114 updt_s:0.369 step_s:0.486 smp/s:2 mem_gb:6.30
+Training:   4%|▍         | 61/1500 [00:29<12:00,  2.00step/s]Training:   4%|▍         | 62/1500 [00:29<11:27,  2.09step/s]Training:   4%|▍         | 63/1500 [00:29<10:51,  2.20step/s]Training:   4%|▍         | 64/1500 [00:30<10:27,  2.29step/s]Training:   4%|▍         | 65/1500 [00:30<10:07,  2.36step/s]Training:   4%|▍         | 66/1500 [00:31<10:12,  2.34step/s]Training:   4%|▍         | 67/1500 [00:31<09:50,  2.43step/s]Training:   5%|▍         | 68/1500 [00:31<09:59,  2.39step/s]Training:   5%|▍         | 69/1500 [00:32<10:06,  2.36step/s]Training:   5%|▍         | 70/1500 [00:32<09:41,  2.46step/s]INFO 2026-09-29 12:25:47 ot_train.py:778 step:70 smpl:70 ep:1 epch:1.46 loss:0.032 grdn:0.183 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.324 step_s:0.410 smp/s:2 mem_gb:6.30
+Training:   5%|▍         | 71/1500 [00:33<09:26,  2.52step/s]Training:   5%|▍         | 72/1500 [00:33<09:28,  2.51step/s]Training:   5%|▍         | 73/1500 [00:33<09:26,  2.52step/s]Training:   5%|▍         | 74/1500 [00:34<09:31,  2.49step/s]Training:   5%|▌         | 75/1500 [00:34<09:28,  2.51step/s]Training:   5%|▌         | 76/1500 [00:35<09:29,  2.50step/s]Training:   5%|▌         | 77/1500 [00:35<09:33,  2.48step/s]Training:   5%|▌         | 78/1500 [00:36<09:58,  2.38step/s]Training:   5%|▌         | 79/1500 [00:36<10:05,  2.35step/s]Training:   5%|▌         | 80/1500 [00:37<12:22,  1.91step/s]INFO 2026-09-29 12:25:52 ot_train.py:778 step:80 smpl:80 ep:2 epch:1.67 loss:0.011 grdn:0.050 lr:1.0e-04 data_s:0.001 prep_s:0.079 updt_s:0.361 step_s:0.443 smp/s:2 mem_gb:6.30
+Training:   5%|▌         | 81/1500 [00:37<11:42,  2.02step/s]Training:   5%|▌         | 82/1500 [00:38<11:11,  2.11step/s]Training:   6%|▌         | 83/1500 [00:38<11:06,  2.13step/s]Training:   6%|▌         | 84/1500 [00:38<10:53,  2.17step/s]Training:   6%|▌         | 85/1500 [00:39<10:47,  2.18step/s]Training:   6%|▌         | 86/1500 [00:39<11:31,  2.04step/s]Training:   6%|▌         | 87/1500 [00:40<11:33,  2.04step/s]Training:   6%|▌         | 88/1500 [00:40<11:04,  2.12step/s]Training:   6%|▌         | 89/1500 [00:41<10:27,  2.25step/s]Training:   6%|▌         | 90/1500 [00:41<10:04,  2.33step/s]INFO 2026-09-29 12:25:56 ot_train.py:778 step:90 smpl:90 ep:2 epch:1.88 loss:0.005 grdn:0.030 lr:1.0e-04 data_s:0.001 prep_s:0.116 updt_s:0.327 step_s:0.446 smp/s:2 mem_gb:6.30
+Training:   6%|▌         | 91/1500 [00:42<09:48,  2.40step/s]Training:   6%|▌         | 92/1500 [00:42<09:29,  2.47step/s]Training:   6%|▌         | 93/1500 [00:42<09:42,  2.41step/s]Training:   6%|▋         | 94/1500 [00:43<09:26,  2.48step/s]Training:   6%|▋         | 95/1500 [00:43<09:36,  2.44step/s]Training:   6%|▋         | 96/1500 [00:44<09:34,  2.44step/s]Training:   6%|▋         | 97/1500 [00:44<09:22,  2.49step/s]Training:   7%|▋         | 98/1500 [00:44<09:32,  2.45step/s]Training:   7%|▋         | 99/1500 [00:45<09:36,  2.43step/s][r056_train] opt step 100: fixed-seed loss 0.00776
+Training:   7%|▋         | 100/1500 [00:55<1:17:31,  3.32s/step]INFO 2026-09-29 12:26:10 ot_train.py:778 step:100 smpl:100 ep:2 epch:2.08 loss:0.017 grdn:0.077 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.326 step_s:1.375 smp/s:1 mem_gb:6.30
+Training:   7%|▋         | 101/1500 [00:55<57:07,  2.45s/step]  Training:   7%|▋         | 102/1500 [00:56<42:39,  1.83s/step]Training:   7%|▋         | 103/1500 [00:56<32:31,  1.40s/step]Training:   7%|▋         | 104/1500 [00:57<25:51,  1.11s/step]Training:   7%|▋         | 105/1500 [00:57<20:44,  1.12step/s]Training:   7%|▋         | 106/1500 [00:57<17:35,  1.32step/s]Training:   7%|▋         | 107/1500 [00:58<15:23,  1.51step/s]Training:   7%|▋         | 108/1500 [00:58<13:25,  1.73step/s]Training:   7%|▋         | 109/1500 [00:59<12:23,  1.87step/s]Training:   7%|▋         | 110/1500 [00:59<11:25,  2.03step/s]INFO 2026-09-29 12:26:14 ot_train.py:778 step:110 smpl:110 ep:2 epch:2.29 loss:0.008 grdn:0.057 lr:1.0e-04 data_s:0.001 prep_s:0.080 updt_s:0.327 step_s:0.410 smp/s:2 mem_gb:6.30
+Training:   7%|▋         | 111/1500 [01:00<11:26,  2.02step/s]Training:   7%|▋         | 112/1500 [01:00<10:45,  2.15step/s]Training:   8%|▊         | 113/1500 [01:00<10:04,  2.29step/s]Training:   8%|▊         | 114/1500 [01:01<09:44,  2.37step/s]Training:   8%|▊         | 115/1500 [01:01<09:14,  2.50step/s]Training:   8%|▊         | 116/1500 [01:01<09:26,  2.44step/s]Training:   8%|▊         | 117/1500 [01:02<09:33,  2.41step/s]Training:   8%|▊         | 118/1500 [01:02<09:36,  2.40step/s]Training:   8%|▊         | 119/1500 [01:03<09:15,  2.48step/s]Training:   8%|▊         | 120/1500 [01:03<09:23,  2.45step/s]INFO 2026-09-29 12:26:18 ot_train.py:778 step:120 smpl:120 ep:2 epch:2.50 loss:0.049 grdn:0.092 lr:1.0e-04 data_s:0.001 prep_s:0.075 updt_s:0.328 step_s:0.407 smp/s:2 mem_gb:6.30
+Training:   8%|▊         | 121/1500 [01:03<09:00,  2.55step/s]Training:   8%|▊         | 122/1500 [01:04<12:03,  1.91step/s]Training:   8%|▊         | 123/1500 [01:05<11:26,  2.01step/s]Training:   8%|▊         | 124/1500 [01:05<10:37,  2.16step/s]Training:   8%|▊         | 125/1500 [01:05<10:04,  2.27step/s]Training:   8%|▊         | 126/1500 [01:06<09:45,  2.35step/s]Training:   8%|▊         | 127/1500 [01:06<09:39,  2.37step/s]Training:   9%|▊         | 128/1500 [01:07<09:29,  2.41step/s]Training:   9%|▊         | 129/1500 [01:07<09:34,  2.39step/s]Training:   9%|▊         | 130/1500 [01:08<09:27,  2.41step/s]INFO 2026-09-29 12:26:23 ot_train.py:778 step:130 smpl:130 ep:3 epch:2.71 loss:0.017 grdn:0.209 lr:1.0e-04 data_s:0.001 prep_s:0.076 updt_s:0.363 step_s:0.443 smp/s:2 mem_gb:6.30
+Training:   9%|▊         | 131/1500 [01:08<09:25,  2.42step/s]Training:   9%|▉         | 132/1500 [01:08<09:06,  2.50step/s]Training:   9%|▉         | 133/1500 [01:09<08:52,  2.57step/s]Training:   9%|▉         | 134/1500 [01:09<09:03,  2.51step/s]Training:   9%|▉         | 135/1500 [01:09<08:53,  2.56step/s]Training:   9%|▉         | 136/1500 [01:10<09:10,  2.48step/s]Training:   9%|▉         | 137/1500 [01:10<09:02,  2.51step/s]Training:   9%|▉         | 138/1500 [01:11<09:20,  2.43step/s]Training:   9%|▉         | 139/1500 [01:11<09:16,  2.45step/s]Training:   9%|▉         | 140/1500 [01:12<09:33,  2.37step/s]INFO 2026-09-29 12:26:27 ot_train.py:778 step:140 smpl:140 ep:3 epch:2.92 loss:0.005 grdn:0.047 lr:1.0e-04 data_s:0.001 prep_s:0.076 updt_s:0.325 step_s:0.405 smp/s:2 mem_gb:6.30
+Training:   9%|▉         | 141/1500 [01:12<09:23,  2.41step/s]Training:   9%|▉         | 142/1500 [01:12<09:09,  2.47step/s]Training:  10%|▉         | 143/1500 [01:13<09:11,  2.46step/s]Training:  10%|▉         | 144/1500 [01:14<11:39,  1.94step/s]Training:  10%|▉         | 145/1500 [01:14<11:00,  2.05step/s]Training:  10%|▉         | 146/1500 [01:14<10:23,  2.17step/s]Training:  10%|▉         | 147/1500 [01:15<09:53,  2.28step/s]Training:  10%|▉         | 148/1500 [01:15<09:22,  2.40step/s]Training:  10%|▉         | 149/1500 [01:16<09:30,  2.37step/s]Training:  10%|█         | 150/1500 [01:16<09:22,  2.40step/s]INFO 2026-09-29 12:26:31 ot_train.py:778 step:150 smpl:150 ep:3 epch:3.12 loss:0.018 grdn:0.119 lr:1.0e-04 data_s:0.001 prep_s:0.072 updt_s:0.361 step_s:0.437 smp/s:2 mem_gb:6.30
+Training:  10%|█         | 151/1500 [01:16<09:17,  2.42step/s]Training:  10%|█         | 152/1500 [01:17<09:18,  2.41step/s]Training:  10%|█         | 153/1500 [01:17<09:35,  2.34step/s]Training:  10%|█         | 154/1500 [01:18<09:35,  2.34step/s]Training:  10%|█         | 155/1500 [01:18<09:46,  2.29step/s]Training:  10%|█         | 156/1500 [01:19<09:52,  2.27step/s]Training:  10%|█         | 157/1500 [01:19<09:44,  2.30step/s]Training:  11%|█         | 158/1500 [01:19<09:17,  2.41step/s]Training:  11%|█         | 159/1500 [01:20<09:06,  2.45step/s]Training:  11%|█         | 160/1500 [01:20<08:54,  2.51step/s]INFO 2026-09-29 12:26:35 ot_train.py:778 step:160 smpl:160 ep:3 epch:3.33 loss:0.014 grdn:0.089 lr:1.0e-04 data_s:0.001 prep_s:0.085 updt_s:0.329 step_s:0.417 smp/s:2 mem_gb:6.30
+Training:  11%|█         | 161/1500 [01:21<09:00,  2.48step/s]Training:  11%|█         | 162/1500 [01:21<08:46,  2.54step/s]Training:  11%|█         | 163/1500 [01:21<08:33,  2.60step/s]Training:  11%|█         | 164/1500 [01:22<08:32,  2.61step/s]Training:  11%|█         | 165/1500 [01:22<11:33,  1.92step/s]Training:  11%|█         | 166/1500 [01:23<10:52,  2.05step/s]Training:  11%|█         | 167/1500 [01:23<10:06,  2.20step/s]Training:  11%|█         | 168/1500 [01:24<09:54,  2.24step/s]Training:  11%|█▏        | 169/1500 [01:24<09:53,  2.24step/s]Training:  11%|█▏        | 170/1500 [01:25<09:26,  2.35step/s]INFO 2026-09-29 12:26:40 ot_train.py:778 step:170 smpl:170 ep:4 epch:3.54 loss:0.023 grdn:0.103 lr:1.0e-04 data_s:0.001 prep_s:0.069 updt_s:0.368 step_s:0.441 smp/s:2 mem_gb:6.30
+Training:  11%|█▏        | 171/1500 [01:25<09:29,  2.34step/s]Training:  11%|█▏        | 172/1500 [01:25<09:29,  2.33step/s]Training:  12%|█▏        | 173/1500 [01:26<09:29,  2.33step/s]Training:  12%|█▏        | 174/1500 [01:26<09:36,  2.30step/s]Training:  12%|█▏        | 175/1500 [01:27<09:24,  2.35step/s]Training:  12%|█▏        | 176/1500 [01:27<09:34,  2.30step/s]Training:  12%|█▏        | 177/1500 [01:28<09:40,  2.28step/s]Training:  12%|█▏        | 178/1500 [01:28<09:41,  2.27step/s]Training:  12%|█▏        | 179/1500 [01:29<10:04,  2.19step/s]Training:  12%|█▏        | 180/1500 [01:29<09:50,  2.23step/s]INFO 2026-09-29 12:26:44 ot_train.py:778 step:180 smpl:180 ep:4 epch:3.75 loss:0.007 grdn:0.072 lr:1.0e-04 data_s:0.001 prep_s:0.107 updt_s:0.331 step_s:0.441 smp/s:2 mem_gb:6.30
+Training:  12%|█▏        | 181/1500 [01:29<09:49,  2.24step/s]Training:  12%|█▏        | 182/1500 [01:30<09:18,  2.36step/s]Training:  12%|█▏        | 183/1500 [01:30<09:10,  2.39step/s]Training:  12%|█▏        | 184/1500 [01:31<09:16,  2.37step/s]Training:  12%|█▏        | 185/1500 [01:31<09:34,  2.29step/s]Training:  12%|█▏        | 186/1500 [01:31<09:23,  2.33step/s]Training:  12%|█▏        | 187/1500 [01:32<11:20,  1.93step/s]Training:  13%|█▎        | 188/1500 [01:33<10:50,  2.02step/s]Training:  13%|█▎        | 189/1500 [01:33<10:25,  2.09step/s]Training:  13%|█▎        | 190/1500 [01:33<09:46,  2.23step/s]INFO 2026-09-29 12:26:48 ot_train.py:778 step:190 smpl:190 ep:4 epch:3.96 loss:0.019 grdn:0.077 lr:1.0e-04 data_s:0.001 prep_s:0.092 updt_s:0.356 step_s:0.451 smp/s:2 mem_gb:6.30
+Training:  13%|█▎        | 191/1500 [01:34<09:32,  2.29step/s]Training:  13%|█▎        | 192/1500 [01:34<09:25,  2.31step/s]Training:  13%|█▎        | 193/1500 [01:35<09:25,  2.31step/s]Training:  13%|█▎        | 194/1500 [01:35<09:32,  2.28step/s]Training:  13%|█▎        | 195/1500 [01:36<09:34,  2.27step/s]Training:  13%|█▎        | 196/1500 [01:36<09:03,  2.40step/s]Training:  13%|█▎        | 197/1500 [01:36<09:14,  2.35step/s]Training:  13%|█▎        | 198/1500 [01:37<09:00,  2.41step/s]Training:  13%|█▎        | 199/1500 [01:37<08:54,  2.43step/s][r056_train] opt step 200: fixed-seed loss 0.00965
+Training:  13%|█▎        | 200/1500 [01:48<1:15:56,  3.50s/step]INFO 2026-09-29 12:27:03 ot_train.py:778 step:200 smpl:200 ep:4 epch:4.17 loss:0.008 grdn:0.044 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.330 step_s:1.448 smp/s:1 mem_gb:6.30
+Training:  13%|█▎        | 201/1500 [01:48<55:26,  2.56s/step]  Training:  13%|█▎        | 202/1500 [01:49<41:31,  1.92s/step]Training:  14%|█▎        | 203/1500 [01:49<31:26,  1.45s/step]Training:  14%|█▎        | 204/1500 [01:49<24:25,  1.13s/step]Training:  14%|█▎        | 205/1500 [01:50<20:29,  1.05step/s]Training:  14%|█▎        | 206/1500 [01:51<19:29,  1.11step/s]Training:  14%|█▍        | 207/1500 [01:51<16:15,  1.33step/s]Training:  14%|█▍        | 208/1500 [01:52<14:02,  1.53step/s]Training:  14%|█▍        | 209/1500 [01:52<12:29,  1.72step/s]Training:  14%|█▍        | 210/1500 [01:53<12:10,  1.77step/s]INFO 2026-09-29 12:27:08 ot_train.py:778 step:210 smpl:210 ep:4 epch:4.38 loss:0.021 grdn:0.139 lr:1.0e-04 data_s:0.001 prep_s:0.093 updt_s:0.364 step_s:0.461 smp/s:2 mem_gb:6.30
+Training:  14%|█▍        | 211/1500 [01:53<11:26,  1.88step/s]Training:  14%|█▍        | 212/1500 [01:53<10:46,  1.99step/s]Training:  14%|█▍        | 213/1500 [01:54<10:02,  2.13step/s]Training:  14%|█▍        | 214/1500 [01:54<09:49,  2.18step/s]Training:  14%|█▍        | 215/1500 [01:55<09:31,  2.25step/s]Training:  14%|█▍        | 216/1500 [01:55<09:28,  2.26step/s]Training:  14%|█▍        | 217/1500 [01:56<09:12,  2.32step/s]Training:  15%|█▍        | 218/1500 [01:56<08:55,  2.39step/s]Training:  15%|█▍        | 219/1500 [01:56<08:54,  2.40step/s]Training:  15%|█▍        | 220/1500 [01:57<09:04,  2.35step/s]INFO 2026-09-29 12:27:12 ot_train.py:778 step:220 smpl:220 ep:5 epch:4.58 loss:0.027 grdn:0.074 lr:1.0e-04 data_s:0.001 prep_s:0.086 updt_s:0.332 step_s:0.421 smp/s:2 mem_gb:6.30
+Training:  15%|█▍        | 221/1500 [01:57<08:41,  2.45step/s]Training:  15%|█▍        | 222/1500 [01:57<08:23,  2.54step/s]Training:  15%|█▍        | 223/1500 [01:58<08:35,  2.48step/s]Training:  15%|█▍        | 224/1500 [01:58<08:45,  2.43step/s]Training:  15%|█▌        | 225/1500 [01:59<08:59,  2.36step/s]Training:  15%|█▌        | 226/1500 [02:00<11:33,  1.84step/s]Training:  15%|█▌        | 227/1500 [02:00<10:31,  2.02step/s]Training:  15%|█▌        | 228/1500 [02:00<09:56,  2.13step/s]Training:  15%|█▌        | 229/1500 [02:01<09:29,  2.23step/s]Training:  15%|█▌        | 230/1500 [02:01<09:09,  2.31step/s]INFO 2026-09-29 12:27:16 ot_train.py:778 step:230 smpl:230 ep:5 epch:4.79 loss:0.006 grdn:0.059 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.368 step_s:0.444 smp/s:2 mem_gb:6.30
+Training:  15%|█▌        | 231/1500 [02:02<08:42,  2.43step/s]Training:  15%|█▌        | 232/1500 [02:02<08:37,  2.45step/s]Training:  16%|█▌        | 233/1500 [02:02<08:35,  2.46step/s]Training:  16%|█▌        | 234/1500 [02:03<08:15,  2.56step/s]Training:  16%|█▌        | 235/1500 [02:03<08:30,  2.48step/s]Training:  16%|█▌        | 236/1500 [02:04<08:22,  2.52step/s]Training:  16%|█▌        | 237/1500 [02:04<08:21,  2.52step/s]Training:  16%|█▌        | 238/1500 [02:04<08:07,  2.59step/s]Training:  16%|█▌        | 239/1500 [02:05<08:23,  2.50step/s]Training:  16%|█▌        | 240/1500 [02:05<08:12,  2.56step/s]INFO 2026-09-29 12:27:20 ot_train.py:778 step:240 smpl:240 ep:5 epch:5.00 loss:0.008 grdn:0.056 lr:1.0e-04 data_s:0.001 prep_s:0.060 updt_s:0.326 step_s:0.389 smp/s:3 mem_gb:6.30
+Training:  16%|█▌        | 241/1500 [02:05<08:08,  2.58step/s]Training:  16%|█▌        | 242/1500 [02:06<07:59,  2.62step/s]Training:  16%|█▌        | 243/1500 [02:06<07:52,  2.66step/s]Training:  16%|█▋        | 244/1500 [02:07<08:10,  2.56step/s]Training:  16%|█▋        | 245/1500 [02:07<08:07,  2.58step/s]Training:  16%|█▋        | 246/1500 [02:07<08:10,  2.56step/s]Training:  16%|█▋        | 247/1500 [02:08<08:04,  2.59step/s]Training:  17%|█▋        | 248/1500 [02:09<10:41,  1.95step/s]Training:  17%|█▋        | 249/1500 [02:09<10:08,  2.06step/s]Training:  17%|█▋        | 250/1500 [02:09<09:25,  2.21step/s]INFO 2026-09-29 12:27:24 ot_train.py:778 step:250 smpl:250 ep:5 epch:5.21 loss:0.006 grdn:0.040 lr:1.0e-04 data_s:0.001 prep_s:0.060 updt_s:0.366 step_s:0.429 smp/s:2 mem_gb:6.30
+Training:  17%|█▋        | 251/1500 [02:10<09:19,  2.23step/s]Training:  17%|█▋        | 252/1500 [02:10<09:04,  2.29step/s]Training:  17%|█▋        | 253/1500 [02:11<08:57,  2.32step/s]Training:  17%|█▋        | 254/1500 [02:11<08:34,  2.42step/s]Training:  17%|█▋        | 255/1500 [02:11<08:20,  2.49step/s]Training:  17%|█▋        | 256/1500 [02:12<08:40,  2.39step/s]Training:  17%|█▋        | 257/1500 [02:12<08:24,  2.46step/s]Training:  17%|█▋        | 258/1500 [02:13<08:08,  2.54step/s]Training:  17%|█▋        | 259/1500 [02:13<08:12,  2.52step/s]Training:  17%|█▋        | 260/1500 [02:13<08:33,  2.41step/s]INFO 2026-09-29 12:27:28 ot_train.py:778 step:260 smpl:260 ep:5 epch:5.42 loss:0.012 grdn:0.060 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.330 step_s:0.406 smp/s:2 mem_gb:6.30
+Training:  17%|█▋        | 261/1500 [02:14<08:42,  2.37step/s]Training:  17%|█▋        | 262/1500 [02:14<08:21,  2.47step/s]Training:  18%|█▊        | 263/1500 [02:15<08:26,  2.44step/s]Training:  18%|█▊        | 264/1500 [02:15<08:29,  2.43step/s]Training:  18%|█▊        | 265/1500 [02:16<08:33,  2.41step/s]Training:  18%|█▊        | 266/1500 [02:16<08:57,  2.30step/s]Training:  18%|█▊        | 267/1500 [02:16<08:53,  2.31step/s]Training:  18%|█▊        | 268/1500 [02:17<08:45,  2.35step/s]Training:  18%|█▊        | 269/1500 [02:18<10:36,  1.93step/s]Training:  18%|█▊        | 270/1500 [02:18<10:10,  2.01step/s]INFO 2026-09-29 12:27:33 ot_train.py:778 step:270 smpl:270 ep:6 epch:5.62 loss:0.028 grdn:0.156 lr:1.0e-04 data_s:0.001 prep_s:0.087 updt_s:0.365 step_s:0.456 smp/s:2 mem_gb:6.30
+Training:  18%|█▊        | 271/1500 [02:18<09:49,  2.09step/s]Training:  18%|█▊        | 272/1500 [02:19<09:30,  2.15step/s]Training:  18%|█▊        | 273/1500 [02:19<09:19,  2.19step/s]Training:  18%|█▊        | 274/1500 [02:20<10:01,  2.04step/s]Training:  18%|█▊        | 275/1500 [02:20<09:21,  2.18step/s]Training:  18%|█▊        | 276/1500 [02:21<09:01,  2.26step/s]Training:  18%|█▊        | 277/1500 [02:21<08:47,  2.32step/s]Training:  19%|█▊        | 278/1500 [02:22<08:41,  2.35step/s]Training:  19%|█▊        | 279/1500 [02:22<09:13,  2.21step/s]Training:  19%|█▊        | 280/1500 [02:23<09:16,  2.19step/s]INFO 2026-09-29 12:27:38 ot_train.py:778 step:280 smpl:280 ep:6 epch:5.83 loss:0.008 grdn:0.079 lr:1.0e-04 data_s:0.001 prep_s:0.110 updt_s:0.333 step_s:0.446 smp/s:2 mem_gb:6.30
+Training:  19%|█▊        | 281/1500 [02:23<09:13,  2.20step/s]Training:  19%|█▉        | 282/1500 [02:23<08:49,  2.30step/s]Training:  19%|█▉        | 283/1500 [02:24<08:49,  2.30step/s]Training:  19%|█▉        | 284/1500 [02:24<08:46,  2.31step/s]Training:  19%|█▉        | 285/1500 [02:25<08:34,  2.36step/s]Training:  19%|█▉        | 286/1500 [02:25<08:09,  2.48step/s]Training:  19%|█▉        | 287/1500 [02:25<08:24,  2.40step/s]Training:  19%|█▉        | 288/1500 [02:26<08:10,  2.47step/s]Training:  19%|█▉        | 289/1500 [02:26<08:06,  2.49step/s]Training:  19%|█▉        | 290/1500 [02:27<08:13,  2.45step/s]INFO 2026-09-29 12:27:42 ot_train.py:778 step:290 smpl:290 ep:6 epch:6.04 loss:0.012 grdn:0.114 lr:1.0e-04 data_s:0.001 prep_s:0.085 updt_s:0.322 step_s:0.410 smp/s:2 mem_gb:6.30
+Training:  19%|█▉        | 291/1500 [02:27<10:50,  1.86step/s]Training:  19%|█▉        | 292/1500 [02:28<10:16,  1.96step/s]Training:  20%|█▉        | 293/1500 [02:28<09:41,  2.07step/s]Training:  20%|█▉        | 294/1500 [02:29<09:19,  2.15step/s]Training:  20%|█▉        | 295/1500 [02:29<09:13,  2.18step/s]Training:  20%|█▉        | 296/1500 [02:30<08:59,  2.23step/s]Training:  20%|█▉        | 297/1500 [02:30<08:30,  2.36step/s]Training:  20%|█▉        | 298/1500 [02:30<08:20,  2.40step/s]Training:  20%|█▉        | 299/1500 [02:31<08:22,  2.39step/s][r056_train] opt step 300: fixed-seed loss 0.00607
+Training:  20%|██        | 300/1500 [02:41<1:05:12,  3.26s/step]INFO 2026-09-29 12:27:56 ot_train.py:778 step:300 smpl:300 ep:6 epch:6.25 loss:0.007 grdn:0.043 lr:1.0e-04 data_s:0.001 prep_s:0.089 updt_s:0.368 step_s:1.407 smp/s:1 mem_gb:6.30
+Training:  20%|██        | 301/1500 [02:41<47:48,  2.39s/step]  Training:  20%|██        | 302/1500 [02:42<36:07,  1.81s/step]Training:  20%|██        | 303/1500 [02:42<27:30,  1.38s/step]Training:  20%|██        | 304/1500 [02:42<21:51,  1.10s/step]Training:  20%|██        | 305/1500 [02:43<17:52,  1.11step/s]Training:  20%|██        | 306/1500 [02:43<14:35,  1.36step/s]Training:  20%|██        | 307/1500 [02:43<12:33,  1.58step/s]Training:  21%|██        | 308/1500 [02:44<11:18,  1.76step/s]Training:  21%|██        | 309/1500 [02:45<13:06,  1.51step/s]Training:  21%|██        | 310/1500 [02:45<11:40,  1.70step/s]INFO 2026-09-29 12:28:00 ot_train.py:778 step:310 smpl:310 ep:6 epch:6.46 loss:0.008 grdn:0.064 lr:1.0e-04 data_s:0.001 prep_s:0.082 updt_s:0.366 step_s:0.452 smp/s:2 mem_gb:6.30
+Training:  21%|██        | 311/1500 [02:46<10:31,  1.88step/s]Training:  21%|██        | 312/1500 [02:46<09:47,  2.02step/s]Training:  21%|██        | 313/1500 [02:46<09:22,  2.11step/s]Training:  21%|██        | 314/1500 [02:47<08:41,  2.27step/s]Training:  21%|██        | 315/1500 [02:47<08:54,  2.22step/s]Training:  21%|██        | 316/1500 [02:48<08:48,  2.24step/s]Training:  21%|██        | 317/1500 [02:48<08:36,  2.29step/s]Training:  21%|██        | 318/1500 [02:49<08:48,  2.24step/s]Training:  21%|██▏       | 319/1500 [02:49<08:41,  2.27step/s]Training:  21%|██▏       | 320/1500 [02:49<08:42,  2.26step/s]INFO 2026-09-29 12:28:04 ot_train.py:778 step:320 smpl:320 ep:7 epch:6.67 loss:0.032 grdn:0.085 lr:1.0e-04 data_s:0.001 prep_s:0.092 updt_s:0.331 step_s:0.426 smp/s:2 mem_gb:6.30
+Training:  21%|██▏       | 321/1500 [02:50<09:31,  2.06step/s]Training:  21%|██▏       | 322/1500 [02:50<08:52,  2.21step/s]Training:  22%|██▏       | 323/1500 [02:51<08:26,  2.32step/s]Training:  22%|██▏       | 324/1500 [02:51<08:27,  2.32step/s]Training:  22%|██▏       | 325/1500 [02:52<08:01,  2.44step/s]Training:  22%|██▏       | 326/1500 [02:52<07:52,  2.48step/s]Training:  22%|██▏       | 327/1500 [02:52<08:03,  2.43step/s]Training:  22%|██▏       | 328/1500 [02:53<08:03,  2.43step/s]Training:  22%|██▏       | 329/1500 [02:53<07:53,  2.48step/s]Training:  22%|██▏       | 330/1500 [02:54<08:30,  2.29step/s]INFO 2026-09-29 12:28:09 ot_train.py:778 step:330 smpl:330 ep:7 epch:6.88 loss:0.005 grdn:0.045 lr:1.0e-04 data_s:0.001 prep_s:0.086 updt_s:0.336 step_s:0.426 smp/s:2 mem_gb:6.30
+Training:  22%|██▏       | 331/1500 [02:55<10:26,  1.87step/s]Training:  22%|██▏       | 332/1500 [02:55<10:16,  1.89step/s]Training:  22%|██▏       | 333/1500 [02:56<10:04,  1.93step/s]Training:  22%|██▏       | 334/1500 [02:56<09:36,  2.02step/s]Training:  22%|██▏       | 335/1500 [02:56<09:21,  2.07step/s]Training:  22%|██▏       | 336/1500 [02:57<09:01,  2.15step/s]Training:  22%|██▏       | 337/1500 [02:57<09:18,  2.08step/s]Training:  23%|██▎       | 338/1500 [02:58<09:59,  1.94step/s]Training:  23%|██▎       | 339/1500 [02:58<09:44,  1.99step/s]Training:  23%|██▎       | 340/1500 [02:59<09:13,  2.10step/s]INFO 2026-09-29 12:28:14 ot_train.py:778 step:340 smpl:340 ep:7 epch:7.08 loss:0.004 grdn:0.030 lr:1.0e-04 data_s:0.001 prep_s:0.137 updt_s:0.369 step_s:0.509 smp/s:2 mem_gb:6.30
+Training:  23%|██▎       | 341/1500 [02:59<08:52,  2.18step/s]Training:  23%|██▎       | 342/1500 [03:00<08:52,  2.18step/s]Training:  23%|██▎       | 343/1500 [03:00<08:43,  2.21step/s]Training:  23%|██▎       | 344/1500 [03:01<08:17,  2.32step/s]Training:  23%|██▎       | 345/1500 [03:01<08:20,  2.31step/s]Training:  23%|██▎       | 346/1500 [03:01<08:05,  2.38step/s]Training:  23%|██▎       | 347/1500 [03:02<08:11,  2.34step/s]Training:  23%|██▎       | 348/1500 [03:02<08:15,  2.32step/s]Training:  23%|██▎       | 349/1500 [03:03<08:28,  2.26step/s]Training:  23%|██▎       | 350/1500 [03:03<08:04,  2.37step/s]INFO 2026-09-29 12:28:18 ot_train.py:778 step:350 smpl:350 ep:7 epch:7.29 loss:0.019 grdn:0.233 lr:1.0e-04 data_s:0.001 prep_s:0.095 updt_s:0.326 step_s:0.424 smp/s:2 mem_gb:6.30
+Training:  23%|██▎       | 351/1500 [03:03<08:01,  2.39step/s]Training:  23%|██▎       | 352/1500 [03:04<09:59,  1.92step/s]Training:  24%|██▎       | 353/1500 [03:05<09:33,  2.00step/s]Training:  24%|██▎       | 354/1500 [03:05<09:02,  2.11step/s]Training:  24%|██▎       | 355/1500 [03:06<08:56,  2.13step/s]Training:  24%|██▎       | 356/1500 [03:06<08:30,  2.24step/s]Training:  24%|██▍       | 357/1500 [03:06<08:28,  2.25step/s]Training:  24%|██▍       | 358/1500 [03:07<08:13,  2.31step/s]Training:  24%|██▍       | 359/1500 [03:07<08:07,  2.34step/s]Training:  24%|██▍       | 360/1500 [03:08<08:34,  2.21step/s]INFO 2026-09-29 12:28:23 ot_train.py:778 step:360 smpl:360 ep:8 epch:7.50 loss:0.007 grdn:0.059 lr:1.0e-04 data_s:0.001 prep_s:0.105 updt_s:0.357 step_s:0.465 smp/s:2 mem_gb:6.30
+Training:  24%|██▍       | 361/1500 [03:08<08:48,  2.15step/s]Training:  24%|██▍       | 362/1500 [03:09<08:39,  2.19step/s]Training:  24%|██▍       | 363/1500 [03:09<08:33,  2.22step/s]Training:  24%|██▍       | 364/1500 [03:10<08:18,  2.28step/s]Training:  24%|██▍       | 365/1500 [03:10<08:24,  2.25step/s]Training:  24%|██▍       | 366/1500 [03:11<09:07,  2.07step/s]Training:  24%|██▍       | 367/1500 [03:11<08:49,  2.14step/s]Training:  25%|██▍       | 368/1500 [03:11<08:35,  2.20step/s]Training:  25%|██▍       | 369/1500 [03:12<08:22,  2.25step/s]Training:  25%|██▍       | 370/1500 [03:12<08:17,  2.27step/s]INFO 2026-09-29 12:28:27 ot_train.py:778 step:370 smpl:370 ep:8 epch:7.71 loss:0.024 grdn:0.116 lr:1.0e-04 data_s:0.001 prep_s:0.122 updt_s:0.326 step_s:0.452 smp/s:2 mem_gb:6.30
+Training:  25%|██▍       | 371/1500 [03:13<07:55,  2.38step/s]Training:  25%|██▍       | 372/1500 [03:13<07:54,  2.38step/s]Training:  25%|██▍       | 373/1500 [03:13<07:36,  2.47step/s]Training:  25%|██▍       | 374/1500 [03:14<10:00,  1.87step/s]Training:  25%|██▌       | 375/1500 [03:15<09:20,  2.01step/s]Training:  25%|██▌       | 376/1500 [03:15<08:54,  2.10step/s]Training:  25%|██▌       | 377/1500 [03:16<08:41,  2.15step/s]Training:  25%|██▌       | 378/1500 [03:16<08:36,  2.17step/s]Training:  25%|██▌       | 379/1500 [03:16<08:06,  2.30step/s]Training:  25%|██▌       | 380/1500 [03:17<08:04,  2.31step/s]INFO 2026-09-29 12:28:32 ot_train.py:778 step:380 smpl:380 ep:8 epch:7.92 loss:0.007 grdn:0.084 lr:1.0e-04 data_s:0.001 prep_s:0.082 updt_s:0.367 step_s:0.452 smp/s:2 mem_gb:6.30
+Training:  25%|██▌       | 381/1500 [03:17<07:56,  2.35step/s]Training:  25%|██▌       | 382/1500 [03:18<07:47,  2.39step/s]Training:  26%|██▌       | 383/1500 [03:18<07:53,  2.36step/s]Training:  26%|██▌       | 384/1500 [03:18<07:43,  2.41step/s]Training:  26%|██▌       | 385/1500 [03:19<07:41,  2.41step/s]Training:  26%|██▌       | 386/1500 [03:19<07:33,  2.46step/s]Training:  26%|██▌       | 387/1500 [03:20<07:13,  2.57step/s]Training:  26%|██▌       | 388/1500 [03:20<07:23,  2.51step/s]Training:  26%|██▌       | 389/1500 [03:20<07:32,  2.46step/s]Training:  26%|██▌       | 390/1500 [03:21<07:27,  2.48step/s]INFO 2026-09-29 12:28:36 ot_train.py:778 step:390 smpl:390 ep:8 epch:8.12 loss:0.007 grdn:0.051 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.327 step_s:0.403 smp/s:2 mem_gb:6.30
+Training:  26%|██▌       | 391/1500 [03:21<07:34,  2.44step/s]Training:  26%|██▌       | 392/1500 [03:22<07:53,  2.34step/s]Training:  26%|██▌       | 393/1500 [03:22<07:56,  2.32step/s]Training:  26%|██▋       | 394/1500 [03:23<07:55,  2.32step/s]Training:  26%|██▋       | 395/1500 [03:23<07:57,  2.31step/s]Training:  26%|██▋       | 396/1500 [03:23<08:03,  2.28step/s]Training:  26%|██▋       | 397/1500 [03:24<09:51,  1.86step/s]Training:  27%|██▋       | 398/1500 [03:25<09:18,  1.97step/s]Training:  27%|██▋       | 399/1500 [03:25<08:55,  2.05step/s][r056_train] opt step 400: fixed-seed loss 0.00776
+Training:  27%|██▋       | 400/1500 [03:37<1:09:24,  3.79s/step]INFO 2026-09-29 12:28:52 ot_train.py:778 step:400 smpl:400 ep:8 epch:8.33 loss:0.010 grdn:0.083 lr:1.0e-04 data_s:0.001 prep_s:0.111 updt_s:0.357 step_s:1.577 smp/s:1 mem_gb:6.30
+Training:  27%|██▋       | 401/1500 [03:37<51:48,  2.83s/step]  Training:  27%|██▋       | 402/1500 [03:38<38:40,  2.11s/step]Training:  27%|██▋       | 403/1500 [03:38<29:16,  1.60s/step]Training:  27%|██▋       | 404/1500 [03:38<22:56,  1.26s/step]Training:  27%|██▋       | 405/1500 [03:39<18:19,  1.00s/step]Training:  27%|██▋       | 406/1500 [03:39<15:03,  1.21step/s]Training:  27%|██▋       | 407/1500 [03:40<12:53,  1.41step/s]Training:  27%|██▋       | 408/1500 [03:40<11:23,  1.60step/s]Training:  27%|██▋       | 409/1500 [03:41<10:13,  1.78step/s]Training:  27%|██▋       | 410/1500 [03:41<09:20,  1.95step/s]INFO 2026-09-29 12:28:56 ot_train.py:778 step:410 smpl:410 ep:9 epch:8.54 loss:0.007 grdn:0.081 lr:1.0e-04 data_s:0.001 prep_s:0.108 updt_s:0.329 step_s:0.440 smp/s:2 mem_gb:6.30
+Training:  27%|██▋       | 411/1500 [03:41<08:54,  2.04step/s]Training:  27%|██▋       | 412/1500 [03:42<08:36,  2.11step/s]Training:  28%|██▊       | 413/1500 [03:42<08:27,  2.14step/s]Training:  28%|██▊       | 414/1500 [03:43<08:23,  2.16step/s]Training:  28%|██▊       | 415/1500 [03:43<08:08,  2.22step/s]Training:  28%|██▊       | 416/1500 [03:44<10:00,  1.80step/s]Training:  28%|██▊       | 417/1500 [03:44<09:05,  1.98step/s]Training:  28%|██▊       | 418/1500 [03:45<08:53,  2.03step/s]Training:  28%|██▊       | 419/1500 [03:45<08:36,  2.09step/s]Training:  28%|██▊       | 420/1500 [03:46<08:22,  2.15step/s]INFO 2026-09-29 12:29:01 ot_train.py:778 step:420 smpl:420 ep:9 epch:8.75 loss:0.056 grdn:0.207 lr:1.0e-04 data_s:0.001 prep_s:0.104 updt_s:0.365 step_s:0.472 smp/s:2 mem_gb:6.30
+Training:  28%|██▊       | 421/1500 [03:46<08:11,  2.20step/s]Training:  28%|██▊       | 422/1500 [03:47<07:52,  2.28step/s]Training:  28%|██▊       | 423/1500 [03:47<07:50,  2.29step/s]Training:  28%|██▊       | 424/1500 [03:47<07:32,  2.38step/s]Training:  28%|██▊       | 425/1500 [03:48<07:35,  2.36step/s]Training:  28%|██▊       | 426/1500 [03:48<07:35,  2.36step/s]Training:  28%|██▊       | 427/1500 [03:49<07:45,  2.30step/s]Training:  29%|██▊       | 428/1500 [03:49<07:44,  2.31step/s]Training:  29%|██▊       | 429/1500 [03:50<07:39,  2.33step/s]Training:  29%|██▊       | 430/1500 [03:50<07:49,  2.28step/s]INFO 2026-09-29 12:29:05 ot_train.py:778 step:430 smpl:430 ep:9 epch:8.96 loss:0.006 grdn:0.047 lr:1.0e-04 data_s:0.001 prep_s:0.094 updt_s:0.329 step_s:0.427 smp/s:2 mem_gb:6.30
+Training:  29%|██▊       | 431/1500 [03:50<08:07,  2.19step/s]Training:  29%|██▉       | 432/1500 [03:51<07:55,  2.25step/s]Training:  29%|██▉       | 433/1500 [03:51<07:49,  2.27step/s]Training:  29%|██▉       | 434/1500 [03:52<07:36,  2.33step/s]Training:  29%|██▉       | 435/1500 [03:52<07:36,  2.33step/s]Training:  29%|██▉       | 436/1500 [03:53<07:34,  2.34step/s]Training:  29%|██▉       | 437/1500 [03:53<09:18,  1.90step/s]Training:  29%|██▉       | 438/1500 [03:54<08:47,  2.01step/s]Training:  29%|██▉       | 439/1500 [03:54<08:28,  2.09step/s]Training:  29%|██▉       | 440/1500 [03:55<08:14,  2.14step/s]INFO 2026-09-29 12:29:10 ot_train.py:778 step:440 smpl:440 ep:9 epch:9.17 loss:0.014 grdn:0.076 lr:1.0e-04 data_s:0.001 prep_s:0.103 updt_s:0.359 step_s:0.465 smp/s:2 mem_gb:6.30
+Training:  29%|██▉       | 441/1500 [03:55<07:51,  2.25step/s]Training:  29%|██▉       | 442/1500 [03:55<07:45,  2.27step/s]Training:  30%|██▉       | 443/1500 [03:56<07:39,  2.30step/s]Training:  30%|██▉       | 444/1500 [03:56<07:38,  2.30step/s]Training:  30%|██▉       | 445/1500 [03:57<07:26,  2.36step/s]Training:  30%|██▉       | 446/1500 [03:57<07:24,  2.37step/s]Training:  30%|██▉       | 447/1500 [03:58<07:13,  2.43step/s]Training:  30%|██▉       | 448/1500 [03:58<07:16,  2.41step/s]Training:  30%|██▉       | 449/1500 [03:58<07:17,  2.40step/s]Training:  30%|███       | 450/1500 [03:59<07:04,  2.47step/s]INFO 2026-09-29 12:29:14 ot_train.py:778 step:450 smpl:450 ep:9 epch:9.38 loss:0.005 grdn:0.033 lr:1.0e-04 data_s:0.001 prep_s:0.081 updt_s:0.326 step_s:0.410 smp/s:2 mem_gb:6.30
+Training:  30%|███       | 451/1500 [03:59<07:07,  2.45step/s]Training:  30%|███       | 452/1500 [04:00<07:20,  2.38step/s]Training:  30%|███       | 453/1500 [04:00<07:23,  2.36step/s]Training:  30%|███       | 454/1500 [04:01<07:33,  2.31step/s]Training:  30%|███       | 455/1500 [04:01<07:27,  2.33step/s]Training:  30%|███       | 456/1500 [04:01<08:05,  2.15step/s]Training:  30%|███       | 457/1500 [04:02<09:42,  1.79step/s]Training:  31%|███       | 458/1500 [04:03<09:01,  1.92step/s]Training:  31%|███       | 459/1500 [04:03<08:24,  2.06step/s]Training:  31%|███       | 460/1500 [04:03<07:53,  2.19step/s]INFO 2026-09-29 12:29:18 ot_train.py:778 step:460 smpl:460 ep:10 epch:9.58 loss:0.012 grdn:0.074 lr:1.0e-04 data_s:0.001 prep_s:0.110 updt_s:0.358 step_s:0.471 smp/s:2 mem_gb:6.30
+Training:  31%|███       | 461/1500 [04:04<07:32,  2.29step/s]Training:  31%|███       | 462/1500 [04:04<07:34,  2.29step/s]Training:  31%|███       | 463/1500 [04:05<07:34,  2.28step/s]Training:  31%|███       | 464/1500 [04:05<07:35,  2.27step/s]Training:  31%|███       | 465/1500 [04:06<07:41,  2.24step/s]Training:  31%|███       | 466/1500 [04:06<08:10,  2.11step/s]Training:  31%|███       | 467/1500 [04:07<07:52,  2.19step/s]Training:  31%|███       | 468/1500 [04:07<07:33,  2.28step/s]Training:  31%|███▏      | 469/1500 [04:07<07:26,  2.31step/s]Training:  31%|███▏      | 470/1500 [04:08<07:23,  2.32step/s]INFO 2026-09-29 12:29:23 ot_train.py:778 step:470 smpl:470 ep:10 epch:9.79 loss:0.015 grdn:0.070 lr:1.0e-04 data_s:0.001 prep_s:0.106 updt_s:0.328 step_s:0.437 smp/s:2 mem_gb:6.30
+Training:  31%|███▏      | 471/1500 [04:08<07:21,  2.33step/s]Training:  31%|███▏      | 472/1500 [04:09<07:18,  2.34step/s]Training:  32%|███▏      | 473/1500 [04:09<07:15,  2.36step/s]Training:  32%|███▏      | 474/1500 [04:09<06:59,  2.45step/s]Training:  32%|███▏      | 475/1500 [04:10<07:04,  2.42step/s]Training:  32%|███▏      | 476/1500 [04:10<07:10,  2.38step/s]Training:  32%|███▏      | 477/1500 [04:11<07:10,  2.37step/s]Training:  32%|███▏      | 478/1500 [04:12<08:52,  1.92step/s]Training:  32%|███▏      | 479/1500 [04:12<08:27,  2.01step/s]Training:  32%|███▏      | 480/1500 [04:12<08:04,  2.11step/s]INFO 2026-09-29 12:29:27 ot_train.py:778 step:480 smpl:480 ep:10 epch:10.00 loss:0.010 grdn:0.131 lr:1.0e-04 data_s:0.001 prep_s:0.089 updt_s:0.361 step_s:0.453 smp/s:2 mem_gb:6.30
+Training:  32%|███▏      | 481/1500 [04:13<07:32,  2.25step/s]Training:  32%|███▏      | 482/1500 [04:13<07:33,  2.25step/s]Training:  32%|███▏      | 483/1500 [04:14<07:27,  2.27step/s]Training:  32%|███▏      | 484/1500 [04:14<07:27,  2.27step/s]Training:  32%|███▏      | 485/1500 [04:15<07:29,  2.26step/s]Training:  32%|███▏      | 486/1500 [04:15<07:27,  2.27step/s]Training:  32%|███▏      | 487/1500 [04:15<07:27,  2.26step/s]Training:  33%|███▎      | 488/1500 [04:16<07:23,  2.28step/s]Training:  33%|███▎      | 489/1500 [04:16<07:23,  2.28step/s]Training:  33%|███▎      | 490/1500 [04:17<07:20,  2.29step/s]INFO 2026-09-29 12:29:32 ot_train.py:778 step:490 smpl:490 ep:10 epch:10.21 loss:0.004 grdn:0.028 lr:1.0e-04 data_s:0.001 prep_s:0.099 updt_s:0.330 step_s:0.432 smp/s:2 mem_gb:6.30
+Training:  33%|███▎      | 491/1500 [04:17<07:45,  2.17step/s]Training:  33%|███▎      | 492/1500 [04:18<07:27,  2.25step/s]Training:  33%|███▎      | 493/1500 [04:18<07:27,  2.25step/s]Training:  33%|███▎      | 494/1500 [04:19<07:29,  2.24step/s]Training:  33%|███▎      | 495/1500 [04:19<07:27,  2.25step/s]Training:  33%|███▎      | 496/1500 [04:19<07:18,  2.29step/s]Training:  33%|███▎      | 497/1500 [04:20<07:17,  2.29step/s]Training:  33%|███▎      | 498/1500 [04:20<07:23,  2.26step/s]Training:  33%|███▎      | 499/1500 [04:21<09:49,  1.70step/s][r056_train] opt step 500: fixed-seed loss 0.00449
+Training:  33%|███▎      | 500/1500 [04:33<1:07:04,  4.02s/step]INFO 2026-09-29 12:29:48 ot_train.py:778 step:500 smpl:500 ep:10 epch:10.42 loss:0.006 grdn:0.042 lr:1.0e-04 data_s:0.001 prep_s:0.118 updt_s:0.371 step_s:1.654 smp/s:1 mem_gb:6.30
+Training:  33%|███▎      | 501/1500 [04:34<49:20,  2.96s/step]  Training:  33%|███▎      | 502/1500 [04:34<36:46,  2.21s/step]Training:  34%|███▎      | 503/1500 [04:35<27:49,  1.67s/step]Training:  34%|███▎      | 504/1500 [04:35<21:57,  1.32s/step]Training:  34%|███▎      | 505/1500 [04:35<17:14,  1.04s/step]Training:  34%|███▎      | 506/1500 [04:36<14:04,  1.18step/s]Training:  34%|███▍      | 507/1500 [04:36<11:55,  1.39step/s]Training:  34%|███▍      | 508/1500 [04:37<10:13,  1.62step/s]Training:  34%|███▍      | 509/1500 [04:37<09:02,  1.83step/s]Training:  34%|███▍      | 510/1500 [04:37<08:20,  1.98step/s]INFO 2026-09-29 12:29:53 ot_train.py:778 step:510 smpl:510 ep:11 epch:10.62 loss:0.007 grdn:0.063 lr:1.0e-04 data_s:0.001 prep_s:0.093 updt_s:0.328 step_s:0.424 smp/s:2 mem_gb:6.30
+Training:  34%|███▍      | 511/1500 [04:38<08:01,  2.06step/s]Training:  34%|███▍      | 512/1500 [04:38<07:31,  2.19step/s]Training:  34%|███▍      | 513/1500 [04:39<07:13,  2.28step/s]Training:  34%|███▍      | 514/1500 [04:39<06:56,  2.37step/s]Training:  34%|███▍      | 515/1500 [04:40<07:11,  2.28step/s]Training:  34%|███▍      | 516/1500 [04:40<07:11,  2.28step/s]Training:  34%|███▍      | 517/1500 [04:40<07:11,  2.28step/s]Training:  35%|███▍      | 518/1500 [04:41<07:11,  2.28step/s]Training:  35%|███▍      | 519/1500 [04:42<08:48,  1.86step/s]Training:  35%|███▍      | 520/1500 [04:42<08:11,  1.99step/s]INFO 2026-09-29 12:29:57 ot_train.py:778 step:520 smpl:520 ep:11 epch:10.83 loss:0.047 grdn:0.088 lr:1.0e-04 data_s:0.001 prep_s:0.096 updt_s:0.360 step_s:0.459 smp/s:2 mem_gb:6.30
+Training:  35%|███▍      | 521/1500 [04:43<08:11,  1.99step/s]Training:  35%|███▍      | 522/1500 [04:43<07:36,  2.14step/s]Training:  35%|███▍      | 523/1500 [04:43<07:19,  2.22step/s]Training:  35%|███▍      | 524/1500 [04:44<06:54,  2.35step/s]Training:  35%|███▌      | 525/1500 [04:44<06:59,  2.33step/s]Training:  35%|███▌      | 526/1500 [04:45<06:47,  2.39step/s]Training:  35%|███▌      | 527/1500 [04:45<06:37,  2.45step/s]Training:  35%|███▌      | 528/1500 [04:45<06:33,  2.47step/s]Training:  35%|███▌      | 529/1500 [04:46<06:26,  2.51step/s]Training:  35%|███▌      | 530/1500 [04:46<06:37,  2.44step/s]INFO 2026-09-29 12:30:01 ot_train.py:778 step:530 smpl:530 ep:11 epch:11.04 loss:0.014 grdn:0.404 lr:1.0e-04 data_s:0.001 prep_s:0.078 updt_s:0.328 step_s:0.410 smp/s:2 mem_gb:6.30
+Training:  35%|███▌      | 531/1500 [04:47<06:31,  2.48step/s]Training:  35%|███▌      | 532/1500 [04:47<07:07,  2.26step/s]Training:  36%|███▌      | 533/1500 [04:48<07:08,  2.26step/s]Training:  36%|███▌      | 534/1500 [04:48<07:15,  2.22step/s]Training:  36%|███▌      | 535/1500 [04:48<07:02,  2.28step/s]Training:  36%|███▌      | 536/1500 [04:49<07:04,  2.27step/s]Training:  36%|███▌      | 537/1500 [04:49<06:57,  2.31step/s]Training:  36%|███▌      | 538/1500 [04:50<07:04,  2.27step/s]Training:  36%|███▌      | 539/1500 [04:50<07:01,  2.28step/s]Training:  36%|███▌      | 540/1500 [04:51<07:04,  2.26step/s]INFO 2026-09-29 12:30:06 ot_train.py:778 step:540 smpl:540 ep:11 epch:11.25 loss:0.003 grdn:0.022 lr:1.0e-04 data_s:0.001 prep_s:0.095 updt_s:0.346 step_s:0.444 smp/s:2 mem_gb:6.30
+Training:  36%|███▌      | 541/1500 [04:52<09:18,  1.72step/s]Training:  36%|███▌      | 542/1500 [04:52<08:27,  1.89step/s]Training:  36%|███▌      | 543/1500 [04:52<07:44,  2.06step/s]Training:  36%|███▋      | 544/1500 [04:53<07:29,  2.13step/s]Training:  36%|███▋      | 545/1500 [04:53<07:22,  2.16step/s]Training:  36%|███▋      | 546/1500 [04:54<07:08,  2.23step/s]Training:  36%|███▋      | 547/1500 [04:54<07:09,  2.22step/s]Training:  37%|███▋      | 548/1500 [04:55<07:32,  2.11step/s]Training:  37%|███▋      | 549/1500 [04:55<07:12,  2.20step/s]Training:  37%|███▋      | 550/1500 [04:55<07:00,  2.26step/s]INFO 2026-09-29 12:30:10 ot_train.py:778 step:550 smpl:550 ep:11 epch:11.46 loss:0.009 grdn:0.052 lr:1.0e-04 data_s:0.001 prep_s:0.110 updt_s:0.367 step_s:0.480 smp/s:2 mem_gb:6.30
+Training:  37%|███▋      | 551/1500 [04:56<06:52,  2.30step/s]Training:  37%|███▋      | 552/1500 [04:56<07:01,  2.25step/s]Training:  37%|███▋      | 553/1500 [04:57<06:44,  2.34step/s]Training:  37%|███▋      | 554/1500 [04:57<06:40,  2.36step/s]Training:  37%|███▋      | 555/1500 [04:58<06:41,  2.36step/s]Training:  37%|███▋      | 556/1500 [04:58<06:42,  2.34step/s]Training:  37%|███▋      | 557/1500 [04:58<06:55,  2.27step/s]Training:  37%|███▋      | 558/1500 [04:59<07:35,  2.07step/s]Training:  37%|███▋      | 559/1500 [05:00<07:46,  2.02step/s]Training:  37%|███▋      | 560/1500 [05:00<07:46,  2.01step/s]INFO 2026-09-29 12:30:15 ot_train.py:778 step:560 smpl:560 ep:12 epch:11.67 loss:0.010 grdn:0.053 lr:1.0e-04 data_s:0.001 prep_s:0.125 updt_s:0.333 step_s:0.462 smp/s:2 mem_gb:6.30
+Training:  37%|███▋      | 561/1500 [05:01<07:33,  2.07step/s]Training:  37%|███▋      | 562/1500 [05:01<07:38,  2.05step/s]Training:  38%|███▊      | 563/1500 [05:02<09:08,  1.71step/s]Training:  38%|███▊      | 564/1500 [05:02<08:26,  1.85step/s]Training:  38%|███▊      | 565/1500 [05:03<07:44,  2.01step/s]Training:  38%|███▊      | 566/1500 [05:03<07:32,  2.06step/s]Training:  38%|███▊      | 567/1500 [05:04<07:24,  2.10step/s]Training:  38%|███▊      | 568/1500 [05:04<07:11,  2.16step/s]Training:  38%|███▊      | 569/1500 [05:04<07:00,  2.21step/s]Training:  38%|███▊      | 570/1500 [05:05<06:44,  2.30step/s]INFO 2026-09-29 12:30:20 ot_train.py:778 step:570 smpl:570 ep:12 epch:11.88 loss:0.021 grdn:0.087 lr:1.0e-04 data_s:0.001 prep_s:0.102 updt_s:0.370 step_s:0.476 smp/s:2 mem_gb:6.30
+Training:  38%|███▊      | 571/1500 [05:05<06:52,  2.25step/s]Training:  38%|███▊      | 572/1500 [05:06<06:53,  2.25step/s]Training:  38%|███▊      | 573/1500 [05:06<06:48,  2.27step/s]Training:  38%|███▊      | 574/1500 [05:07<06:27,  2.39step/s]Training:  38%|███▊      | 575/1500 [05:07<06:31,  2.36step/s]Training:  38%|███▊      | 576/1500 [05:07<06:29,  2.37step/s]Training:  38%|███▊      | 577/1500 [05:08<06:31,  2.36step/s]Training:  39%|███▊      | 578/1500 [05:08<06:35,  2.33step/s]Training:  39%|███▊      | 579/1500 [05:09<06:35,  2.33step/s]Training:  39%|███▊      | 580/1500 [05:09<07:09,  2.14step/s]INFO 2026-09-29 12:30:24 ot_train.py:778 step:580 smpl:580 ep:12 epch:12.08 loss:0.006 grdn:0.042 lr:1.0e-04 data_s:0.001 prep_s:0.098 updt_s:0.340 step_s:0.441 smp/s:2 mem_gb:6.30
+Training:  39%|███▊      | 581/1500 [05:10<07:00,  2.19step/s]Training:  39%|███▉      | 582/1500 [05:10<06:51,  2.23step/s]Training:  39%|███▉      | 583/1500 [05:10<06:36,  2.31step/s]Training:  39%|███▉      | 584/1500 [05:11<08:22,  1.82step/s]Training:  39%|███▉      | 585/1500 [05:12<07:56,  1.92step/s]Training:  39%|███▉      | 586/1500 [05:12<07:31,  2.02step/s]Training:  39%|███▉      | 587/1500 [05:13<06:57,  2.19step/s]Training:  39%|███▉      | 588/1500 [05:13<06:48,  2.23step/s]Training:  39%|███▉      | 589/1500 [05:13<06:30,  2.33step/s]Training:  39%|███▉      | 590/1500 [05:14<06:17,  2.41step/s]INFO 2026-09-29 12:30:29 ot_train.py:778 step:590 smpl:590 ep:12 epch:12.29 loss:0.004 grdn:0.022 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.366 step_s:0.452 smp/s:2 mem_gb:6.30
+Training:  39%|███▉      | 591/1500 [05:14<06:28,  2.34step/s]Training:  39%|███▉      | 592/1500 [05:15<06:36,  2.29step/s]Training:  40%|███▉      | 593/1500 [05:15<06:29,  2.33step/s]Training:  40%|███▉      | 594/1500 [05:15<06:16,  2.41step/s]Training:  40%|███▉      | 595/1500 [05:16<06:05,  2.48step/s]Training:  40%|███▉      | 596/1500 [05:16<06:12,  2.43step/s]Training:  40%|███▉      | 597/1500 [05:17<06:16,  2.40step/s]Training:  40%|███▉      | 598/1500 [05:17<06:18,  2.38step/s]Training:  40%|███▉      | 599/1500 [05:18<06:15,  2.40step/s][r056_train] opt step 600: fixed-seed loss 0.00392
+Training:  40%|████      | 600/1500 [05:30<1:00:50,  4.06s/step]INFO 2026-09-29 12:30:45 ot_train.py:778 step:600 smpl:600 ep:12 epch:12.50 loss:0.005 grdn:0.026 lr:1.0e-04 data_s:0.001 prep_s:0.087 updt_s:0.329 step_s:1.633 smp/s:1 mem_gb:6.30
+Training:  40%|████      | 601/1500 [05:31<44:26,  2.97s/step]  Training:  40%|████      | 602/1500 [05:31<33:03,  2.21s/step]Training:  40%|████      | 603/1500 [05:31<24:57,  1.67s/step]Training:  40%|████      | 604/1500 [05:32<20:59,  1.41s/step]Training:  40%|████      | 605/1500 [05:33<17:02,  1.14s/step]Training:  40%|████      | 606/1500 [05:33<13:50,  1.08step/s]Training:  40%|████      | 607/1500 [05:34<11:32,  1.29step/s]Training:  41%|████      | 608/1500 [05:34<10:01,  1.48step/s]Training:  41%|████      | 609/1500 [05:34<09:09,  1.62step/s]Training:  41%|████      | 610/1500 [05:35<08:44,  1.70step/s]INFO 2026-09-29 12:30:50 ot_train.py:778 step:610 smpl:610 ep:13 epch:12.71 loss:0.004 grdn:0.035 lr:1.0e-04 data_s:0.001 prep_s:0.116 updt_s:0.369 step_s:0.489 smp/s:2 mem_gb:6.30
+Training:  41%|████      | 611/1500 [05:35<07:49,  1.89step/s]Training:  41%|████      | 612/1500 [05:36<07:18,  2.03step/s]Training:  41%|████      | 613/1500 [05:36<07:05,  2.09step/s]Training:  41%|████      | 614/1500 [05:37<06:37,  2.23step/s]Training:  41%|████      | 615/1500 [05:37<07:05,  2.08step/s]Training:  41%|████      | 616/1500 [05:38<07:25,  1.98step/s]Training:  41%|████      | 617/1500 [05:38<07:03,  2.09step/s]Training:  41%|████      | 618/1500 [05:39<06:42,  2.19step/s]Training:  41%|████▏     | 619/1500 [05:39<06:37,  2.21step/s]Training:  41%|████▏     | 620/1500 [05:39<06:19,  2.32step/s]INFO 2026-09-29 12:30:54 ot_train.py:778 step:620 smpl:620 ep:13 epch:12.92 loss:0.030 grdn:0.075 lr:1.0e-04 data_s:0.001 prep_s:0.106 updt_s:0.329 step_s:0.438 smp/s:2 mem_gb:6.30
+Training:  41%|████▏     | 621/1500 [05:40<06:19,  2.32step/s]Training:  41%|████▏     | 622/1500 [05:40<06:20,  2.31step/s]Training:  42%|████▏     | 623/1500 [05:41<06:18,  2.32step/s]Training:  42%|████▏     | 624/1500 [05:41<07:52,  1.85step/s]Training:  42%|████▏     | 625/1500 [05:42<07:26,  1.96step/s]Training:  42%|████▏     | 626/1500 [05:42<07:06,  2.05step/s]Training:  42%|████▏     | 627/1500 [05:43<06:43,  2.16step/s]Training:  42%|████▏     | 628/1500 [05:43<06:34,  2.21step/s]Training:  42%|████▏     | 629/1500 [05:44<06:30,  2.23step/s]Training:  42%|████▏     | 630/1500 [05:44<06:19,  2.29step/s]INFO 2026-09-29 12:30:59 ot_train.py:778 step:630 smpl:630 ep:13 epch:13.12 loss:0.004 grdn:0.055 lr:1.0e-04 data_s:0.001 prep_s:0.096 updt_s:0.365 step_s:0.464 smp/s:2 mem_gb:6.30
+Training:  42%|████▏     | 631/1500 [05:44<06:21,  2.28step/s]Training:  42%|████▏     | 632/1500 [05:45<06:13,  2.32step/s]Training:  42%|████▏     | 633/1500 [05:45<06:16,  2.30step/s]Training:  42%|████▏     | 634/1500 [05:46<06:06,  2.36step/s]Training:  42%|████▏     | 635/1500 [05:46<06:05,  2.37step/s]Training:  42%|████▏     | 636/1500 [05:47<05:54,  2.43step/s]Training:  42%|████▏     | 637/1500 [05:47<06:02,  2.38step/s]Training:  43%|████▎     | 638/1500 [05:47<06:06,  2.35step/s]Training:  43%|████▎     | 639/1500 [05:48<06:03,  2.37step/s]Training:  43%|████▎     | 640/1500 [05:48<06:02,  2.38step/s]INFO 2026-09-29 12:31:03 ot_train.py:778 step:640 smpl:640 ep:13 epch:13.33 loss:0.003 grdn:0.018 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.327 step_s:0.421 smp/s:2 mem_gb:6.30
+Training:  43%|████▎     | 641/1500 [05:49<06:05,  2.35step/s]Training:  43%|████▎     | 642/1500 [05:49<06:04,  2.35step/s]Training:  43%|████▎     | 643/1500 [05:49<05:58,  2.39step/s]Training:  43%|████▎     | 644/1500 [05:50<06:09,  2.32step/s]Training:  43%|████▎     | 645/1500 [05:50<06:04,  2.34step/s]Training:  43%|████▎     | 646/1500 [05:51<07:32,  1.89step/s]Training:  43%|████▎     | 647/1500 [05:52<07:00,  2.03step/s]Training:  43%|████▎     | 648/1500 [05:52<06:36,  2.15step/s]Training:  43%|████▎     | 649/1500 [05:52<06:31,  2.17step/s]Training:  43%|████▎     | 650/1500 [05:53<06:26,  2.20step/s]INFO 2026-09-29 12:31:08 ot_train.py:778 step:650 smpl:650 ep:14 epch:13.54 loss:0.003 grdn:0.022 lr:1.0e-04 data_s:0.001 prep_s:0.098 updt_s:0.359 step_s:0.460 smp/s:2 mem_gb:6.30
+Training:  43%|████▎     | 651/1500 [05:53<06:16,  2.26step/s]Training:  43%|████▎     | 652/1500 [05:54<06:15,  2.26step/s]Training:  44%|████▎     | 653/1500 [05:54<06:34,  2.15step/s]Training:  44%|████▎     | 654/1500 [05:55<06:29,  2.17step/s]Training:  44%|████▎     | 655/1500 [05:55<06:35,  2.14step/s]Training:  44%|████▎     | 656/1500 [05:56<06:51,  2.05step/s]Training:  44%|████▍     | 657/1500 [05:56<06:39,  2.11step/s]Training:  44%|████▍     | 658/1500 [05:57<06:39,  2.11step/s]Training:  44%|████▍     | 659/1500 [05:57<06:11,  2.26step/s]Training:  44%|████▍     | 660/1500 [05:57<05:51,  2.39step/s]INFO 2026-09-29 12:31:12 ot_train.py:778 step:660 smpl:660 ep:14 epch:13.75 loss:0.008 grdn:0.039 lr:1.0e-04 data_s:0.001 prep_s:0.116 updt_s:0.330 step_s:0.449 smp/s:2 mem_gb:6.30
+Training:  44%|████▍     | 661/1500 [05:58<05:53,  2.38step/s]Training:  44%|████▍     | 662/1500 [05:58<05:43,  2.44step/s]Training:  44%|████▍     | 663/1500 [05:59<05:49,  2.39step/s]Training:  44%|████▍     | 664/1500 [05:59<05:37,  2.48step/s]Training:  44%|████▍     | 665/1500 [05:59<05:29,  2.53step/s]Training:  44%|████▍     | 666/1500 [06:00<06:08,  2.27step/s]Training:  44%|████▍     | 667/1500 [06:00<05:56,  2.34step/s]Training:  45%|████▍     | 668/1500 [06:01<07:24,  1.87step/s]Training:  45%|████▍     | 669/1500 [06:01<06:54,  2.01step/s]Training:  45%|████▍     | 670/1500 [06:02<06:36,  2.09step/s]INFO 2026-09-29 12:31:17 ot_train.py:778 step:670 smpl:670 ep:14 epch:13.96 loss:0.021 grdn:0.107 lr:1.0e-04 data_s:0.001 prep_s:0.089 updt_s:0.364 step_s:0.456 smp/s:2 mem_gb:6.30
+Training:  45%|████▍     | 671/1500 [06:02<06:21,  2.17step/s]Training:  45%|████▍     | 672/1500 [06:03<06:01,  2.29step/s]Training:  45%|████▍     | 673/1500 [06:03<05:56,  2.32step/s]Training:  45%|████▍     | 674/1500 [06:04<05:45,  2.39step/s]Training:  45%|████▌     | 675/1500 [06:04<05:53,  2.33step/s]Training:  45%|████▌     | 676/1500 [06:04<05:58,  2.30step/s]Training:  45%|████▌     | 677/1500 [06:05<05:59,  2.29step/s]Training:  45%|████▌     | 678/1500 [06:05<06:02,  2.26step/s]Training:  45%|████▌     | 679/1500 [06:06<06:01,  2.27step/s]Training:  45%|████▌     | 680/1500 [06:06<05:51,  2.33step/s]INFO 2026-09-29 12:31:21 ot_train.py:778 step:680 smpl:680 ep:14 epch:14.17 loss:0.005 grdn:0.045 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.329 step_s:0.424 smp/s:2 mem_gb:6.30
+Training:  45%|████▌     | 681/1500 [06:07<05:54,  2.31step/s]Training:  45%|████▌     | 682/1500 [06:07<05:48,  2.35step/s]Training:  46%|████▌     | 683/1500 [06:07<05:53,  2.31step/s]Training:  46%|████▌     | 684/1500 [06:08<05:52,  2.32step/s]Training:  46%|████▌     | 685/1500 [06:08<05:54,  2.30step/s]Training:  46%|████▌     | 686/1500 [06:09<05:53,  2.30step/s]Training:  46%|████▌     | 687/1500 [06:09<06:07,  2.21step/s]Training:  46%|████▌     | 688/1500 [06:10<06:07,  2.21step/s]Training:  46%|████▌     | 689/1500 [06:10<07:15,  1.86step/s]Training:  46%|████▌     | 690/1500 [06:11<06:52,  1.96step/s]INFO 2026-09-29 12:31:26 ot_train.py:778 step:690 smpl:690 ep:14 epch:14.38 loss:0.006 grdn:0.072 lr:1.0e-04 data_s:0.001 prep_s:0.110 updt_s:0.359 step_s:0.473 smp/s:2 mem_gb:6.30
+Training:  46%|████▌     | 691/1500 [06:11<06:25,  2.10step/s]Training:  46%|████▌     | 692/1500 [06:12<06:13,  2.17step/s]Training:  46%|████▌     | 693/1500 [06:12<06:00,  2.24step/s]Training:  46%|████▋     | 694/1500 [06:13<05:58,  2.25step/s]Training:  46%|████▋     | 695/1500 [06:13<06:03,  2.22step/s]Training:  46%|████▋     | 696/1500 [06:13<06:01,  2.22step/s]Training:  46%|████▋     | 697/1500 [06:14<06:00,  2.23step/s]Training:  47%|████▋     | 698/1500 [06:14<06:03,  2.21step/s]Training:  47%|████▋     | 699/1500 [06:15<06:01,  2.21step/s][r056_train] opt step 700: fixed-seed loss 0.00433
+Training:  47%|████▋     | 700/1500 [06:26<47:00,  3.53s/step]INFO 2026-09-29 12:31:41 ot_train.py:778 step:700 smpl:700 ep:15 epch:14.58 loss:0.005 grdn:0.024 lr:1.0e-04 data_s:0.001 prep_s:0.103 updt_s:0.330 step_s:1.465 smp/s:1 mem_gb:6.30
+Training:  47%|████▋     | 701/1500 [06:26<34:32,  2.59s/step]Training:  47%|████▋     | 702/1500 [06:26<25:43,  1.93s/step]Training:  47%|████▋     | 703/1500 [06:27<19:35,  1.47s/step]Training:  47%|████▋     | 704/1500 [06:27<15:31,  1.17s/step]Training:  47%|████▋     | 705/1500 [06:28<12:38,  1.05step/s]Training:  47%|████▋     | 706/1500 [06:28<10:29,  1.26step/s]Training:  47%|████▋     | 707/1500 [06:28<08:53,  1.49step/s]Training:  47%|████▋     | 708/1500 [06:29<09:20,  1.41step/s]Training:  47%|████▋     | 709/1500 [06:30<08:18,  1.59step/s]Training:  47%|████▋     | 710/1500 [06:30<07:37,  1.73step/s]INFO 2026-09-29 12:31:45 ot_train.py:778 step:710 smpl:710 ep:15 epch:14.79 loss:0.005 grdn:0.041 lr:1.0e-04 data_s:0.001 prep_s:0.094 updt_s:0.366 step_s:0.463 smp/s:2 mem_gb:6.30
+Training:  47%|████▋     | 711/1500 [06:31<07:00,  1.88step/s]Training:  47%|████▋     | 712/1500 [06:31<06:32,  2.01step/s]Training:  48%|████▊     | 713/1500 [06:31<06:05,  2.15step/s]Training:  48%|████▊     | 714/1500 [06:32<05:51,  2.24step/s]Training:  48%|████▊     | 715/1500 [06:32<05:36,  2.33step/s]Training:  48%|████▊     | 716/1500 [06:33<05:36,  2.33step/s]Training:  48%|████▊     | 717/1500 [06:33<05:16,  2.47step/s]Training:  48%|████▊     | 718/1500 [06:33<05:14,  2.49step/s]Training:  48%|████▊     | 719/1500 [06:34<05:21,  2.43step/s]Training:  48%|████▊     | 720/1500 [06:34<05:21,  2.42step/s]INFO 2026-09-29 12:31:49 ot_train.py:778 step:720 smpl:720 ep:15 epch:15.00 loss:0.046 grdn:0.135 lr:1.0e-04 data_s:0.001 prep_s:0.078 updt_s:0.323 step_s:0.404 smp/s:2 mem_gb:6.30
+Training:  48%|████▊     | 721/1500 [06:35<05:21,  2.42step/s]Training:  48%|████▊     | 722/1500 [06:35<05:28,  2.37step/s]Training:  48%|████▊     | 723/1500 [06:36<05:39,  2.29step/s]Training:  48%|████▊     | 724/1500 [06:36<05:36,  2.31step/s]Training:  48%|████▊     | 725/1500 [06:36<05:37,  2.29step/s]Training:  48%|████▊     | 726/1500 [06:37<05:36,  2.30step/s]Training:  48%|████▊     | 727/1500 [06:37<05:37,  2.29step/s]Training:  49%|████▊     | 728/1500 [06:38<05:22,  2.40step/s]Training:  49%|████▊     | 729/1500 [06:38<05:15,  2.44step/s]Training:  49%|████▊     | 730/1500 [06:39<06:43,  1.91step/s]INFO 2026-09-29 12:31:54 ot_train.py:778 step:730 smpl:730 ep:15 epch:15.21 loss:0.006 grdn:0.043 lr:1.0e-04 data_s:0.001 prep_s:0.089 updt_s:0.370 step_s:0.462 smp/s:2 mem_gb:6.30
+Training:  49%|████▊     | 731/1500 [06:39<06:12,  2.06step/s]Training:  49%|████▉     | 732/1500 [06:40<06:02,  2.12step/s]Training:  49%|████▉     | 733/1500 [06:40<05:43,  2.23step/s]Training:  49%|████▉     | 734/1500 [06:41<05:42,  2.23step/s]Training:  49%|████▉     | 735/1500 [06:41<05:45,  2.21step/s]Training:  49%|████▉     | 736/1500 [06:41<05:40,  2.25step/s]Training:  49%|████▉     | 737/1500 [06:42<05:41,  2.24step/s]Training:  49%|████▉     | 738/1500 [06:42<05:43,  2.22step/s]Training:  49%|████▉     | 739/1500 [06:43<05:33,  2.28step/s]Training:  49%|████▉     | 740/1500 [06:43<05:39,  2.24step/s]INFO 2026-09-29 12:31:58 ot_train.py:778 step:740 smpl:740 ep:15 epch:15.42 loss:0.005 grdn:0.033 lr:1.0e-04 data_s:0.001 prep_s:0.097 updt_s:0.334 step_s:0.434 smp/s:2 mem_gb:6.30
+Training:  49%|████▉     | 741/1500 [06:44<05:27,  2.31step/s]Training:  49%|████▉     | 742/1500 [06:44<05:23,  2.35step/s]Training:  50%|████▉     | 743/1500 [06:44<05:06,  2.47step/s]Training:  50%|████▉     | 744/1500 [06:45<05:06,  2.46step/s]Training:  50%|████▉     | 745/1500 [06:45<05:24,  2.33step/s]Training:  50%|████▉     | 746/1500 [06:46<05:23,  2.33step/s]Training:  50%|████▉     | 747/1500 [06:46<05:09,  2.44step/s]Training:  50%|████▉     | 748/1500 [06:46<05:14,  2.39step/s]Training:  50%|████▉     | 749/1500 [06:47<05:16,  2.37step/s]Training:  50%|█████     | 750/1500 [06:47<05:19,  2.35step/s]INFO 2026-09-29 12:32:02 ot_train.py:778 step:750 smpl:750 ep:16 epch:15.62 loss:0.004 grdn:0.024 lr:1.0e-04 data_s:0.001 prep_s:0.081 updt_s:0.331 step_s:0.415 smp/s:2 mem_gb:6.30
+Training:  50%|█████     | 751/1500 [06:48<05:17,  2.36step/s]Training:  50%|█████     | 752/1500 [06:48<06:23,  1.95step/s]Training:  50%|█████     | 753/1500 [06:49<06:01,  2.06step/s]Training:  50%|█████     | 754/1500 [06:49<06:20,  1.96step/s]Training:  50%|█████     | 755/1500 [06:50<06:02,  2.05step/s]Training:  50%|█████     | 756/1500 [06:50<06:11,  2.00step/s]Training:  50%|█████     | 757/1500 [06:51<05:55,  2.09step/s]Training:  51%|█████     | 758/1500 [06:51<05:42,  2.17step/s]Training:  51%|█████     | 759/1500 [06:52<05:36,  2.20step/s]Training:  51%|█████     | 760/1500 [06:52<05:32,  2.23step/s]INFO 2026-09-29 12:32:07 ot_train.py:778 step:760 smpl:760 ep:16 epch:15.83 loss:0.006 grdn:0.032 lr:1.0e-04 data_s:0.001 prep_s:0.119 updt_s:0.358 step_s:0.481 smp/s:2 mem_gb:6.30
+Training:  51%|█████     | 761/1500 [06:53<05:27,  2.26step/s]Training:  51%|█████     | 762/1500 [06:53<05:38,  2.18step/s]Training:  51%|█████     | 763/1500 [06:53<05:30,  2.23step/s]Training:  51%|█████     | 764/1500 [06:54<05:25,  2.26step/s]Training:  51%|█████     | 765/1500 [06:54<05:40,  2.16step/s]Training:  51%|█████     | 766/1500 [06:55<05:36,  2.18step/s]Training:  51%|█████     | 767/1500 [06:55<05:33,  2.20step/s]Training:  51%|█████     | 768/1500 [06:56<05:30,  2.22step/s]Training:  51%|█████▏    | 769/1500 [06:56<05:29,  2.22step/s]Training:  51%|█████▏    | 770/1500 [06:57<05:38,  2.16step/s]INFO 2026-09-29 12:32:12 ot_train.py:778 step:770 smpl:770 ep:16 epch:16.04 loss:0.024 grdn:0.096 lr:1.0e-04 data_s:0.001 prep_s:0.123 updt_s:0.330 step_s:0.456 smp/s:2 mem_gb:6.30
+Training:  51%|█████▏    | 771/1500 [06:57<05:28,  2.22step/s]Training:  51%|█████▏    | 772/1500 [06:58<05:23,  2.25step/s]Training:  52%|█████▏    | 773/1500 [06:58<05:24,  2.24step/s]Training:  52%|█████▏    | 774/1500 [06:59<06:32,  1.85step/s]Training:  52%|█████▏    | 775/1500 [06:59<06:05,  1.98step/s]Training:  52%|█████▏    | 776/1500 [07:00<05:34,  2.16step/s]Training:  52%|█████▏    | 777/1500 [07:00<05:28,  2.20step/s]Training:  52%|█████▏    | 778/1500 [07:00<05:19,  2.26step/s]Training:  52%|█████▏    | 779/1500 [07:01<05:22,  2.24step/s]Training:  52%|█████▏    | 780/1500 [07:01<05:20,  2.25step/s]INFO 2026-09-29 12:32:16 ot_train.py:778 step:780 smpl:780 ep:16 epch:16.25 loss:0.004 grdn:0.028 lr:1.0e-04 data_s:0.001 prep_s:0.094 updt_s:0.361 step_s:0.459 smp/s:2 mem_gb:6.30
+Training:  52%|█████▏    | 781/1500 [07:02<05:12,  2.30step/s]Training:  52%|█████▏    | 782/1500 [07:02<05:07,  2.34step/s]Training:  52%|█████▏    | 783/1500 [07:03<04:56,  2.42step/s]Training:  52%|█████▏    | 784/1500 [07:03<04:56,  2.42step/s]Training:  52%|█████▏    | 785/1500 [07:03<04:46,  2.49step/s]Training:  52%|█████▏    | 786/1500 [07:04<04:53,  2.43step/s]Training:  52%|█████▏    | 787/1500 [07:04<05:04,  2.34step/s]Training:  53%|█████▎    | 788/1500 [07:05<05:07,  2.31step/s]Training:  53%|█████▎    | 789/1500 [07:05<05:06,  2.32step/s]Training:  53%|█████▎    | 790/1500 [07:06<05:11,  2.28step/s]INFO 2026-09-29 12:32:21 ot_train.py:778 step:790 smpl:790 ep:16 epch:16.46 loss:0.004 grdn:0.032 lr:1.0e-04 data_s:0.001 prep_s:0.089 updt_s:0.328 step_s:0.421 smp/s:2 mem_gb:6.30
+Training:  53%|█████▎    | 791/1500 [07:06<05:05,  2.32step/s]Training:  53%|█████▎    | 792/1500 [07:06<05:00,  2.36step/s]Training:  53%|█████▎    | 793/1500 [07:07<04:59,  2.36step/s]Training:  53%|█████▎    | 794/1500 [07:07<05:04,  2.32step/s]Training:  53%|█████▎    | 795/1500 [07:08<05:02,  2.33step/s]Training:  53%|█████▎    | 796/1500 [07:08<06:10,  1.90step/s]Training:  53%|█████▎    | 797/1500 [07:09<05:49,  2.01step/s]Training:  53%|█████▎    | 798/1500 [07:09<05:35,  2.09step/s]Training:  53%|█████▎    | 799/1500 [07:10<05:19,  2.19step/s][r056_train] opt step 800: fixed-seed loss 0.00317
+Training:  53%|█████▎    | 800/1500 [07:20<40:57,  3.51s/step]INFO 2026-09-29 12:32:35 ot_train.py:778 step:800 smpl:800 ep:17 epch:16.67 loss:0.005 grdn:0.035 lr:1.0e-04 data_s:0.001 prep_s:0.095 updt_s:0.357 step_s:1.477 smp/s:1 mem_gb:6.30
+Training:  53%|█████▎    | 801/1500 [07:21<30:05,  2.58s/step]Training:  53%|█████▎    | 802/1500 [07:21<22:32,  1.94s/step]Training:  54%|█████▎    | 803/1500 [07:22<17:15,  1.49s/step]Training:  54%|█████▎    | 804/1500 [07:22<13:37,  1.18s/step]Training:  54%|█████▎    | 805/1500 [07:22<11:00,  1.05step/s]Training:  54%|█████▎    | 806/1500 [07:23<09:09,  1.26step/s]Training:  54%|█████▍    | 807/1500 [07:23<08:07,  1.42step/s]Training:  54%|█████▍    | 808/1500 [07:24<07:09,  1.61step/s]Training:  54%|█████▍    | 809/1500 [07:24<06:20,  1.82step/s]Training:  54%|█████▍    | 810/1500 [07:25<05:57,  1.93step/s]INFO 2026-09-29 12:32:40 ot_train.py:778 step:810 smpl:810 ep:17 epch:16.88 loss:0.005 grdn:0.039 lr:1.0e-04 data_s:0.001 prep_s:0.105 updt_s:0.325 step_s:0.433 smp/s:2 mem_gb:6.30
+Training:  54%|█████▍    | 811/1500 [07:25<05:27,  2.11step/s]Training:  54%|█████▍    | 812/1500 [07:25<05:04,  2.26step/s]Training:  54%|█████▍    | 813/1500 [07:26<04:55,  2.32step/s]Training:  54%|█████▍    | 814/1500 [07:26<05:37,  2.03step/s]Training:  54%|█████▍    | 815/1500 [07:27<06:35,  1.73step/s]Training:  54%|█████▍    | 816/1500 [07:28<06:10,  1.85step/s]Training:  54%|█████▍    | 817/1500 [07:28<05:31,  2.06step/s]Training:  55%|█████▍    | 818/1500 [07:28<05:06,  2.23step/s]Training:  55%|█████▍    | 819/1500 [07:29<04:55,  2.31step/s]Training:  55%|█████▍    | 820/1500 [07:29<04:55,  2.30step/s]INFO 2026-09-29 12:32:44 ot_train.py:778 step:820 smpl:820 ep:17 epch:17.08 loss:0.035 grdn:0.077 lr:1.0e-04 data_s:0.001 prep_s:0.071 updt_s:0.382 step_s:0.456 smp/s:2 mem_gb:6.30
+Training:  55%|█████▍    | 821/1500 [07:30<04:48,  2.36step/s]Training:  55%|█████▍    | 822/1500 [07:30<04:34,  2.47step/s]Training:  55%|█████▍    | 823/1500 [07:30<04:38,  2.43step/s]Training:  55%|█████▍    | 824/1500 [07:31<04:26,  2.54step/s]Training:  55%|█████▌    | 825/1500 [07:31<04:32,  2.48step/s]Training:  55%|█████▌    | 826/1500 [07:32<04:26,  2.53step/s]Training:  55%|█████▌    | 827/1500 [07:32<05:17,  2.12step/s]Training:  55%|█████▌    | 828/1500 [07:33<05:02,  2.22step/s]Training:  55%|█████▌    | 829/1500 [07:33<04:48,  2.33step/s]Training:  55%|█████▌    | 830/1500 [07:33<04:36,  2.43step/s]INFO 2026-09-29 12:32:48 ot_train.py:778 step:830 smpl:830 ep:17 epch:17.29 loss:0.003 grdn:0.029 lr:1.0e-04 data_s:0.001 prep_s:0.065 updt_s:0.346 step_s:0.414 smp/s:2 mem_gb:6.30
+Training:  55%|█████▌    | 831/1500 [07:34<04:28,  2.49step/s]Training:  55%|█████▌    | 832/1500 [07:34<04:55,  2.26step/s]Training:  56%|█████▌    | 833/1500 [07:35<04:52,  2.28step/s]Training:  56%|█████▌    | 834/1500 [07:35<04:50,  2.30step/s]Training:  56%|█████▌    | 835/1500 [07:36<04:51,  2.28step/s]Training:  56%|█████▌    | 836/1500 [07:36<04:53,  2.26step/s]Training:  56%|█████▌    | 837/1500 [07:37<05:47,  1.91step/s]Training:  56%|█████▌    | 838/1500 [07:37<05:26,  2.03step/s]Training:  56%|█████▌    | 839/1500 [07:38<05:15,  2.09step/s]Training:  56%|█████▌    | 840/1500 [07:38<05:09,  2.14step/s]INFO 2026-09-29 12:32:53 ot_train.py:778 step:840 smpl:840 ep:18 epch:17.50 loss:0.003 grdn:0.018 lr:1.0e-04 data_s:0.001 prep_s:0.108 updt_s:0.358 step_s:0.469 smp/s:2 mem_gb:6.30
+Training:  56%|█████▌    | 841/1500 [07:38<04:57,  2.21step/s]Training:  56%|█████▌    | 842/1500 [07:39<04:48,  2.28step/s]Training:  56%|█████▌    | 843/1500 [07:39<04:45,  2.30step/s]Training:  56%|█████▋    | 844/1500 [07:40<04:31,  2.41step/s]Training:  56%|█████▋    | 845/1500 [07:40<04:57,  2.20step/s]Training:  56%|█████▋    | 846/1500 [07:41<04:49,  2.26step/s]Training:  56%|█████▋    | 847/1500 [07:41<04:41,  2.32step/s]Training:  57%|█████▋    | 848/1500 [07:41<04:39,  2.33step/s]Training:  57%|█████▋    | 849/1500 [07:42<04:40,  2.32step/s]Training:  57%|█████▋    | 850/1500 [07:42<04:42,  2.30step/s]INFO 2026-09-29 12:32:57 ot_train.py:778 step:850 smpl:850 ep:18 epch:17.71 loss:0.003 grdn:0.025 lr:1.0e-04 data_s:0.001 prep_s:0.105 updt_s:0.320 step_s:0.428 smp/s:2 mem_gb:6.30
+Training:  57%|█████▋    | 851/1500 [07:43<04:47,  2.26step/s]Training:  57%|█████▋    | 852/1500 [07:43<04:46,  2.26step/s]Training:  57%|█████▋    | 853/1500 [07:44<04:45,  2.27step/s]Training:  57%|█████▋    | 854/1500 [07:44<04:49,  2.23step/s]Training:  57%|█████▋    | 855/1500 [07:45<04:47,  2.24step/s]Training:  57%|█████▋    | 856/1500 [07:45<04:44,  2.26step/s]Training:  57%|█████▋    | 857/1500 [07:46<05:03,  2.12step/s]Training:  57%|█████▋    | 858/1500 [07:46<05:56,  1.80step/s]Training:  57%|█████▋    | 859/1500 [07:47<05:35,  1.91step/s]Training:  57%|█████▋    | 860/1500 [07:47<05:19,  2.00step/s]INFO 2026-09-29 12:33:02 ot_train.py:778 step:860 smpl:860 ep:18 epch:17.92 loss:0.009 grdn:0.065 lr:1.0e-04 data_s:0.001 prep_s:0.117 updt_s:0.366 step_s:0.486 smp/s:2 mem_gb:6.30
+Training:  57%|█████▋    | 861/1500 [07:48<04:53,  2.17step/s]Training:  57%|█████▋    | 862/1500 [07:48<04:50,  2.20step/s]Training:  58%|█████▊    | 863/1500 [07:48<04:54,  2.16step/s]Training:  58%|█████▊    | 864/1500 [07:49<04:49,  2.20step/s]Training:  58%|█████▊    | 865/1500 [07:49<04:50,  2.19step/s]Training:  58%|█████▊    | 866/1500 [07:50<04:45,  2.22step/s]Training:  58%|█████▊    | 867/1500 [07:50<04:44,  2.22step/s]Training:  58%|█████▊    | 868/1500 [07:51<04:47,  2.20step/s]Training:  58%|█████▊    | 869/1500 [07:51<04:48,  2.18step/s]Training:  58%|█████▊    | 870/1500 [07:52<04:37,  2.27step/s]INFO 2026-09-29 12:33:07 ot_train.py:778 step:870 smpl:870 ep:18 epch:18.12 loss:0.009 grdn:0.048 lr:1.0e-04 data_s:0.001 prep_s:0.101 updt_s:0.336 step_s:0.440 smp/s:2 mem_gb:6.30
+Training:  58%|█████▊    | 871/1500 [07:52<04:33,  2.30step/s]Training:  58%|█████▊    | 872/1500 [07:52<04:35,  2.28step/s]Training:  58%|█████▊    | 873/1500 [07:53<04:25,  2.36step/s]Training:  58%|█████▊    | 874/1500 [07:53<04:23,  2.38step/s]Training:  58%|█████▊    | 875/1500 [07:54<04:13,  2.46step/s]Training:  58%|█████▊    | 876/1500 [07:54<04:18,  2.42step/s]Training:  58%|█████▊    | 877/1500 [07:54<04:07,  2.52step/s]Training:  59%|█████▊    | 878/1500 [07:55<03:59,  2.60step/s]Training:  59%|█████▊    | 879/1500 [07:55<04:07,  2.51step/s]Training:  59%|█████▊    | 880/1500 [07:56<05:05,  2.03step/s]INFO 2026-09-29 12:33:11 ot_train.py:778 step:880 smpl:880 ep:18 epch:18.33 loss:0.003 grdn:0.026 lr:1.0e-04 data_s:0.001 prep_s:0.076 updt_s:0.353 step_s:0.433 smp/s:2 mem_gb:6.30
+Training:  59%|█████▊    | 881/1500 [07:56<04:52,  2.12step/s]Training:  59%|█████▉    | 882/1500 [07:57<04:58,  2.07step/s]Training:  59%|█████▉    | 883/1500 [07:57<04:49,  2.13step/s]Training:  59%|█████▉    | 884/1500 [07:58<04:41,  2.19step/s]Training:  59%|█████▉    | 885/1500 [07:58<04:33,  2.25step/s]Training:  59%|█████▉    | 886/1500 [07:59<04:31,  2.26step/s]Training:  59%|█████▉    | 887/1500 [07:59<04:27,  2.29step/s]Training:  59%|█████▉    | 888/1500 [07:59<04:35,  2.22step/s]Training:  59%|█████▉    | 889/1500 [08:00<04:29,  2.27step/s]Training:  59%|█████▉    | 890/1500 [08:00<04:21,  2.33step/s]INFO 2026-09-29 12:33:15 ot_train.py:778 step:890 smpl:890 ep:19 epch:18.54 loss:0.004 grdn:0.028 lr:1.0e-04 data_s:0.001 prep_s:0.106 updt_s:0.327 step_s:0.437 smp/s:2 mem_gb:6.30
+Training:  59%|█████▉    | 891/1500 [08:01<04:13,  2.40step/s]Training:  59%|█████▉    | 892/1500 [08:01<04:15,  2.38step/s]Training:  60%|█████▉    | 893/1500 [08:02<04:16,  2.37step/s]Training:  60%|█████▉    | 894/1500 [08:02<04:15,  2.37step/s]Training:  60%|█████▉    | 895/1500 [08:02<04:15,  2.37step/s]Training:  60%|█████▉    | 896/1500 [08:03<04:18,  2.34step/s]Training:  60%|█████▉    | 897/1500 [08:03<04:14,  2.36step/s]Training:  60%|█████▉    | 898/1500 [08:04<04:20,  2.31step/s]Training:  60%|█████▉    | 899/1500 [08:04<04:07,  2.43step/s][r056_train] opt step 900: fixed-seed loss 0.00349
+Training:  60%|██████    | 900/1500 [08:14<31:49,  3.18s/step]INFO 2026-09-29 12:33:29 ot_train.py:778 step:900 smpl:900 ep:19 epch:18.75 loss:0.005 grdn:0.036 lr:1.0e-04 data_s:0.001 prep_s:0.080 updt_s:0.328 step_s:1.340 smp/s:1 mem_gb:6.30
+Training:  60%|██████    | 901/1500 [08:14<23:30,  2.36s/step]Training:  60%|██████    | 902/1500 [08:15<17:35,  1.76s/step]Training:  60%|██████    | 903/1500 [08:15<13:30,  1.36s/step]Training:  60%|██████    | 904/1500 [08:15<10:53,  1.10s/step]Training:  60%|██████    | 905/1500 [08:16<08:54,  1.11step/s]Training:  60%|██████    | 906/1500 [08:16<07:25,  1.33step/s]Training:  60%|██████    | 907/1500 [08:17<06:16,  1.57step/s]Training:  61%|██████    | 908/1500 [08:17<05:29,  1.79step/s]Training:  61%|██████    | 909/1500 [08:17<05:08,  1.92step/s]Training:  61%|██████    | 910/1500 [08:18<04:44,  2.07step/s]INFO 2026-09-29 12:33:33 ot_train.py:778 step:910 smpl:910 ep:19 epch:18.96 loss:0.003 grdn:0.034 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.325 step_s:0.412 smp/s:2 mem_gb:6.30
+Training:  61%|██████    | 911/1500 [08:18<04:33,  2.15step/s]Training:  61%|██████    | 912/1500 [08:19<04:22,  2.24step/s]Training:  61%|██████    | 913/1500 [08:19<04:12,  2.32step/s]Training:  61%|██████    | 914/1500 [08:19<04:01,  2.43step/s]Training:  61%|██████    | 915/1500 [08:20<03:54,  2.50step/s]Training:  61%|██████    | 916/1500 [08:20<03:51,  2.52step/s]Training:  61%|██████    | 917/1500 [08:21<03:49,  2.54step/s]Training:  61%|██████    | 918/1500 [08:21<03:48,  2.55step/s]Training:  61%|██████▏   | 919/1500 [08:21<03:53,  2.49step/s]Training:  61%|██████▏   | 920/1500 [08:22<05:06,  1.89step/s]INFO 2026-09-29 12:33:37 ot_train.py:778 step:920 smpl:920 ep:19 epch:19.17 loss:0.019 grdn:0.056 lr:1.0e-04 data_s:0.001 prep_s:0.061 updt_s:0.372 step_s:0.437 smp/s:2 mem_gb:6.30
+Training:  61%|██████▏   | 921/1500 [08:23<04:43,  2.04step/s]Training:  61%|██████▏   | 922/1500 [08:23<04:23,  2.20step/s]Training:  62%|██████▏   | 923/1500 [08:23<04:11,  2.30step/s]Training:  62%|██████▏   | 924/1500 [08:24<04:07,  2.33step/s]Training:  62%|██████▏   | 925/1500 [08:24<04:10,  2.30step/s]Training:  62%|██████▏   | 926/1500 [08:25<04:10,  2.29step/s]Training:  62%|██████▏   | 927/1500 [08:25<04:08,  2.31step/s]Training:  62%|██████▏   | 928/1500 [08:26<04:03,  2.35step/s]Training:  62%|██████▏   | 929/1500 [08:26<03:56,  2.41step/s]Training:  62%|██████▏   | 930/1500 [08:26<03:51,  2.46step/s]INFO 2026-09-29 12:33:41 ot_train.py:778 step:930 smpl:930 ep:19 epch:19.38 loss:0.002 grdn:0.017 lr:1.0e-04 data_s:0.001 prep_s:0.076 updt_s:0.328 step_s:0.407 smp/s:2 mem_gb:6.30
+Training:  62%|██████▏   | 931/1500 [08:27<04:15,  2.23step/s]Training:  62%|██████▏   | 932/1500 [08:27<04:13,  2.24step/s]Training:  62%|██████▏   | 933/1500 [08:28<04:14,  2.23step/s]Training:  62%|██████▏   | 934/1500 [08:28<04:35,  2.06step/s]Training:  62%|██████▏   | 935/1500 [08:29<04:17,  2.19step/s]Training:  62%|██████▏   | 936/1500 [08:29<04:12,  2.23step/s]Training:  62%|██████▏   | 937/1500 [08:30<04:13,  2.22step/s]Training:  63%|██████▎   | 938/1500 [08:30<04:09,  2.25step/s]Training:  63%|██████▎   | 939/1500 [08:30<04:02,  2.32step/s]Training:  63%|██████▎   | 940/1500 [08:31<04:02,  2.31step/s]INFO 2026-09-29 12:33:46 ot_train.py:778 step:940 smpl:940 ep:20 epch:19.58 loss:0.003 grdn:0.025 lr:1.0e-04 data_s:0.001 prep_s:0.118 updt_s:0.333 step_s:0.455 smp/s:2 mem_gb:6.30
+Training:  63%|██████▎   | 941/1500 [08:31<03:55,  2.37step/s]Training:  63%|██████▎   | 942/1500 [08:32<05:06,  1.82step/s]Training:  63%|██████▎   | 943/1500 [08:32<04:35,  2.03step/s]Training:  63%|██████▎   | 944/1500 [08:33<04:15,  2.18step/s]Training:  63%|██████▎   | 945/1500 [08:33<03:59,  2.32step/s]Training:  63%|██████▎   | 946/1500 [08:34<03:52,  2.38step/s]Training:  63%|██████▎   | 947/1500 [08:34<03:54,  2.36step/s]Training:  63%|██████▎   | 948/1500 [08:34<04:02,  2.28step/s]Training:  63%|██████▎   | 949/1500 [08:35<04:17,  2.14step/s]Training:  63%|██████▎   | 950/1500 [08:35<04:14,  2.17step/s]INFO 2026-09-29 12:33:50 ot_train.py:778 step:950 smpl:950 ep:20 epch:19.79 loss:0.005 grdn:0.040 lr:1.0e-04 data_s:0.001 prep_s:0.090 updt_s:0.370 step_s:0.463 smp/s:2 mem_gb:6.30
+Training:  63%|██████▎   | 951/1500 [08:36<04:09,  2.20step/s]Training:  63%|██████▎   | 952/1500 [08:36<04:05,  2.23step/s]Training:  64%|██████▎   | 953/1500 [08:37<04:04,  2.24step/s]Training:  64%|██████▎   | 954/1500 [08:37<04:01,  2.26step/s]Training:  64%|██████▎   | 955/1500 [08:38<04:02,  2.25step/s]Training:  64%|██████▎   | 956/1500 [08:38<03:55,  2.31step/s]Training:  64%|██████▍   | 957/1500 [08:38<03:44,  2.42step/s]Training:  64%|██████▍   | 958/1500 [08:39<03:44,  2.41step/s]Training:  64%|██████▍   | 959/1500 [08:39<03:54,  2.31step/s]Training:  64%|██████▍   | 960/1500 [08:40<03:56,  2.28step/s]INFO 2026-09-29 12:33:55 ot_train.py:778 step:960 smpl:960 ep:20 epch:20.00 loss:0.007 grdn:0.041 lr:1.0e-04 data_s:0.001 prep_s:0.098 updt_s:0.330 step_s:0.431 smp/s:2 mem_gb:6.30
+Training:  64%|██████▍   | 961/1500 [08:40<04:10,  2.15step/s]Training:  64%|██████▍   | 962/1500 [08:41<04:10,  2.15step/s]Training:  64%|██████▍   | 963/1500 [08:41<04:04,  2.19step/s]Training:  64%|██████▍   | 964/1500 [08:42<04:49,  1.85step/s]Training:  64%|██████▍   | 965/1500 [08:42<04:29,  1.99step/s]Training:  64%|██████▍   | 966/1500 [08:43<04:24,  2.02step/s]Training:  64%|██████▍   | 967/1500 [08:43<04:12,  2.11step/s]Training:  65%|██████▍   | 968/1500 [08:44<04:08,  2.14step/s]Training:  65%|██████▍   | 969/1500 [08:44<04:04,  2.17step/s]Training:  65%|██████▍   | 970/1500 [08:45<04:00,  2.21step/s]INFO 2026-09-29 12:34:00 ot_train.py:778 step:970 smpl:970 ep:20 epch:20.21 loss:0.017 grdn:0.099 lr:1.0e-04 data_s:0.001 prep_s:0.119 updt_s:0.358 step_s:0.481 smp/s:2 mem_gb:6.30
+Training:  65%|██████▍   | 971/1500 [08:45<03:46,  2.33step/s]Training:  65%|██████▍   | 972/1500 [08:45<03:43,  2.37step/s]Training:  65%|██████▍   | 973/1500 [08:46<03:42,  2.37step/s]Training:  65%|██████▍   | 974/1500 [08:46<03:47,  2.32step/s]Training:  65%|██████▌   | 975/1500 [08:47<03:44,  2.34step/s]Training:  65%|██████▌   | 976/1500 [08:47<03:38,  2.40step/s]Training:  65%|██████▌   | 977/1500 [08:47<03:33,  2.45step/s]Training:  65%|██████▌   | 978/1500 [08:48<03:35,  2.42step/s]Training:  65%|██████▌   | 979/1500 [08:48<03:38,  2.38step/s]Training:  65%|██████▌   | 980/1500 [08:49<03:38,  2.38step/s]INFO 2026-09-29 12:34:04 ot_train.py:778 step:980 smpl:980 ep:20 epch:20.42 loss:0.005 grdn:0.061 lr:1.0e-04 data_s:0.001 prep_s:0.080 updt_s:0.329 step_s:0.413 smp/s:2 mem_gb:6.30
+Training:  65%|██████▌   | 981/1500 [08:49<03:40,  2.35step/s]Training:  65%|██████▌   | 982/1500 [08:50<03:41,  2.34step/s]Training:  66%|██████▌   | 983/1500 [08:50<03:37,  2.38step/s]Training:  66%|██████▌   | 984/1500 [08:50<03:40,  2.34step/s]Training:  66%|██████▌   | 985/1500 [08:51<04:40,  1.84step/s]Training:  66%|██████▌   | 986/1500 [08:52<04:26,  1.93step/s]Training:  66%|██████▌   | 987/1500 [08:52<04:11,  2.04step/s]Training:  66%|██████▌   | 988/1500 [08:53<03:58,  2.15step/s]Training:  66%|██████▌   | 989/1500 [08:53<03:56,  2.16step/s]Training:  66%|██████▌   | 990/1500 [08:53<03:51,  2.20step/s]INFO 2026-09-29 12:34:08 ot_train.py:778 step:990 smpl:990 ep:21 epch:20.62 loss:0.003 grdn:0.026 lr:1.0e-04 data_s:0.001 prep_s:0.107 updt_s:0.360 step_s:0.471 smp/s:2 mem_gb:6.30
+Training:  66%|██████▌   | 991/1500 [08:54<03:42,  2.29step/s]Training:  66%|██████▌   | 992/1500 [08:54<03:32,  2.39step/s]Training:  66%|██████▌   | 993/1500 [08:55<03:25,  2.46step/s]Training:  66%|██████▋   | 994/1500 [08:55<03:23,  2.49step/s]Training:  66%|██████▋   | 995/1500 [08:56<03:47,  2.22step/s]Training:  66%|██████▋   | 996/1500 [08:56<04:04,  2.06step/s]Training:  66%|██████▋   | 997/1500 [08:57<03:58,  2.11step/s]Training:  67%|██████▋   | 998/1500 [08:57<03:51,  2.17step/s]Training:  67%|██████▋   | 999/1500 [08:57<03:56,  2.12step/s][r056_train] opt step 1000: fixed-seed loss 0.00607
+Training:  67%|██████▋   | 1000/1500 [09:09<31:40,  3.80s/step]INFO 2026-09-29 12:34:24 ot_train.py:778 step:1K smpl:1K ep:21 epch:20.83 loss:0.003 grdn:0.022 lr:1.0e-04 data_s:0.001 prep_s:0.096 updt_s:0.346 step_s:1.561 smp/s:1 mem_gb:6.30
+Training:  67%|██████▋   | 1001/1500 [09:09<23:03,  2.77s/step]Training:  67%|██████▋   | 1002/1500 [09:10<17:09,  2.07s/step]Training:  67%|██████▋   | 1003/1500 [09:10<12:58,  1.57s/step]Training:  67%|██████▋   | 1004/1500 [09:11<11:13,  1.36s/step]Training:  67%|██████▋   | 1005/1500 [09:12<08:58,  1.09s/step]Training:  67%|██████▋   | 1006/1500 [09:12<07:17,  1.13step/s]Training:  67%|██████▋   | 1007/1500 [09:12<06:07,  1.34step/s]Training:  67%|██████▋   | 1008/1500 [09:13<05:17,  1.55step/s]Training:  67%|██████▋   | 1009/1500 [09:13<04:51,  1.68step/s]Training:  67%|██████▋   | 1010/1500 [09:14<04:28,  1.83step/s]INFO 2026-09-29 12:34:29 ot_train.py:778 step:1K smpl:1K ep:21 epch:21.04 loss:0.011 grdn:0.097 lr:1.0e-04 data_s:0.001 prep_s:0.092 updt_s:0.372 step_s:0.467 smp/s:2 mem_gb:6.30
+Training:  67%|██████▋   | 1011/1500 [09:14<04:12,  1.94step/s]Training:  67%|██████▋   | 1012/1500 [09:15<04:00,  2.03step/s]Training:  68%|██████▊   | 1013/1500 [09:15<03:50,  2.11step/s]Training:  68%|██████▊   | 1014/1500 [09:15<03:44,  2.16step/s]Training:  68%|██████▊   | 1015/1500 [09:16<03:33,  2.27step/s]Training:  68%|██████▊   | 1016/1500 [09:16<03:30,  2.30step/s]Training:  68%|██████▊   | 1017/1500 [09:17<03:28,  2.31step/s]Training:  68%|██████▊   | 1018/1500 [09:17<03:24,  2.35step/s]Training:  68%|██████▊   | 1019/1500 [09:18<03:31,  2.27step/s]Training:  68%|██████▊   | 1020/1500 [09:18<03:24,  2.35step/s]INFO 2026-09-29 12:34:33 ot_train.py:778 step:1K smpl:1K ep:21 epch:21.25 loss:0.013 grdn:0.058 lr:1.0e-04 data_s:0.001 prep_s:0.094 updt_s:0.328 step_s:0.426 smp/s:2 mem_gb:6.30
+Training:  68%|██████▊   | 1021/1500 [09:19<03:35,  2.23step/s]Training:  68%|██████▊   | 1022/1500 [09:19<03:24,  2.34step/s]Training:  68%|██████▊   | 1023/1500 [09:19<03:24,  2.33step/s]Training:  68%|██████▊   | 1024/1500 [09:20<03:25,  2.31step/s]Training:  68%|██████▊   | 1025/1500 [09:21<04:10,  1.90step/s]Training:  68%|██████▊   | 1026/1500 [09:21<03:58,  1.99step/s]Training:  68%|██████▊   | 1027/1500 [09:21<03:45,  2.10step/s]Training:  69%|██████▊   | 1028/1500 [09:22<03:38,  2.16step/s]Training:  69%|██████▊   | 1029/1500 [09:22<03:33,  2.20step/s]Training:  69%|██████▊   | 1030/1500 [09:23<03:23,  2.31step/s]INFO 2026-09-29 12:34:38 ot_train.py:778 step:1K smpl:1K ep:21 epch:21.46 loss:0.005 grdn:0.052 lr:1.0e-04 data_s:0.001 prep_s:0.095 updt_s:0.363 step_s:0.461 smp/s:2 mem_gb:6.30
+Training:  69%|██████▊   | 1031/1500 [09:23<03:39,  2.14step/s]Training:  69%|██████▉   | 1032/1500 [09:24<03:49,  2.04step/s]Training:  69%|██████▉   | 1033/1500 [09:24<03:40,  2.12step/s]Training:  69%|██████▉   | 1034/1500 [09:25<03:29,  2.22step/s]Training:  69%|██████▉   | 1035/1500 [09:25<03:21,  2.31step/s]Training:  69%|██████▉   | 1036/1500 [09:25<03:10,  2.43step/s]Training:  69%|██████▉   | 1037/1500 [09:26<03:06,  2.48step/s]Training:  69%|██████▉   | 1038/1500 [09:26<03:09,  2.43step/s]Training:  69%|██████▉   | 1039/1500 [09:27<03:09,  2.44step/s]Training:  69%|██████▉   | 1040/1500 [09:27<03:00,  2.54step/s]INFO 2026-09-29 12:34:42 ot_train.py:778 step:1K smpl:1K ep:22 epch:21.67 loss:0.003 grdn:0.031 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.331 step_s:0.424 smp/s:2 mem_gb:6.30
+Training:  69%|██████▉   | 1041/1500 [09:27<02:56,  2.60step/s]Training:  69%|██████▉   | 1042/1500 [09:28<02:57,  2.57step/s]Training:  70%|██████▉   | 1043/1500 [09:28<03:03,  2.48step/s]Training:  70%|██████▉   | 1044/1500 [09:28<03:06,  2.45step/s]Training:  70%|██████▉   | 1045/1500 [09:29<03:11,  2.37step/s]Training:  70%|██████▉   | 1046/1500 [09:29<03:14,  2.33step/s]Training:  70%|██████▉   | 1047/1500 [09:30<04:01,  1.88step/s]Training:  70%|██████▉   | 1048/1500 [09:31<03:48,  1.98step/s]Training:  70%|██████▉   | 1049/1500 [09:31<03:42,  2.03step/s]Training:  70%|███████   | 1050/1500 [09:31<03:33,  2.11step/s]INFO 2026-09-29 12:34:47 ot_train.py:778 step:1K smpl:1K ep:22 epch:21.88 loss:0.004 grdn:0.031 lr:1.0e-04 data_s:0.001 prep_s:0.090 updt_s:0.369 step_s:0.463 smp/s:2 mem_gb:6.30
+Training:  70%|███████   | 1051/1500 [09:32<03:28,  2.16step/s]Training:  70%|███████   | 1052/1500 [09:32<03:27,  2.16step/s]Training:  70%|███████   | 1053/1500 [09:33<03:23,  2.19step/s]Training:  70%|███████   | 1054/1500 [09:33<03:19,  2.24step/s]Training:  70%|███████   | 1055/1500 [09:34<03:16,  2.27step/s]Training:  70%|███████   | 1056/1500 [09:34<03:12,  2.31step/s]Training:  70%|███████   | 1057/1500 [09:35<03:10,  2.32step/s]Training:  71%|███████   | 1058/1500 [09:35<03:07,  2.35step/s]Training:  71%|███████   | 1059/1500 [09:35<03:10,  2.31step/s]Training:  71%|███████   | 1060/1500 [09:36<03:08,  2.33step/s]INFO 2026-09-29 12:34:51 ot_train.py:778 step:1K smpl:1K ep:22 epch:22.08 loss:0.008 grdn:0.066 lr:1.0e-04 data_s:0.001 prep_s:0.098 updt_s:0.329 step_s:0.431 smp/s:2 mem_gb:6.30
+Training:  71%|███████   | 1061/1500 [09:36<03:09,  2.31step/s]Training:  71%|███████   | 1062/1500 [09:37<03:07,  2.33step/s]Training:  71%|███████   | 1063/1500 [09:37<03:08,  2.32step/s]Training:  71%|███████   | 1064/1500 [09:38<03:10,  2.29step/s]Training:  71%|███████   | 1065/1500 [09:38<03:05,  2.34step/s]Training:  71%|███████   | 1066/1500 [09:38<03:01,  2.39step/s]Training:  71%|███████   | 1067/1500 [09:39<03:01,  2.39step/s]Training:  71%|███████   | 1068/1500 [09:40<03:46,  1.90step/s]Training:  71%|███████▏  | 1069/1500 [09:40<03:36,  1.99step/s]Training:  71%|███████▏  | 1070/1500 [09:40<03:26,  2.08step/s]INFO 2026-09-29 12:34:55 ot_train.py:778 step:1K smpl:1K ep:22 epch:22.29 loss:0.014 grdn:0.088 lr:1.0e-04 data_s:0.001 prep_s:0.088 updt_s:0.370 step_s:0.462 smp/s:2 mem_gb:6.30
+Training:  71%|███████▏  | 1071/1500 [09:41<03:21,  2.13step/s]Training:  71%|███████▏  | 1072/1500 [09:41<03:15,  2.19step/s]Training:  72%|███████▏  | 1073/1500 [09:42<03:10,  2.24step/s]Training:  72%|███████▏  | 1074/1500 [09:42<03:02,  2.33step/s]Training:  72%|███████▏  | 1075/1500 [09:43<02:57,  2.39step/s]Training:  72%|███████▏  | 1076/1500 [09:43<02:54,  2.43step/s]Training:  72%|███████▏  | 1077/1500 [09:43<02:51,  2.47step/s]Training:  72%|███████▏  | 1078/1500 [09:44<02:47,  2.52step/s]Training:  72%|███████▏  | 1079/1500 [09:44<02:44,  2.56step/s]Training:  72%|███████▏  | 1080/1500 [09:44<02:47,  2.51step/s]INFO 2026-09-29 12:34:59 ot_train.py:778 step:1K smpl:1K ep:22 epch:22.50 loss:0.006 grdn:0.062 lr:1.0e-04 data_s:0.001 prep_s:0.074 updt_s:0.325 step_s:0.403 smp/s:2 mem_gb:6.30
+Training:  72%|███████▏  | 1081/1500 [09:45<03:02,  2.29step/s]Training:  72%|███████▏  | 1082/1500 [09:45<03:02,  2.29step/s]Training:  72%|███████▏  | 1083/1500 [09:46<02:54,  2.38step/s]Training:  72%|███████▏  | 1084/1500 [09:46<02:56,  2.35step/s]Training:  72%|███████▏  | 1085/1500 [09:47<03:06,  2.22step/s]Training:  72%|███████▏  | 1086/1500 [09:47<02:54,  2.37step/s]Training:  72%|███████▏  | 1087/1500 [09:48<03:07,  2.20step/s]Training:  73%|███████▎  | 1088/1500 [09:48<02:55,  2.35step/s]Training:  73%|███████▎  | 1089/1500 [09:48<02:49,  2.43step/s]Training:  73%|███████▎  | 1090/1500 [09:49<03:04,  2.22step/s]INFO 2026-09-29 12:35:04 ot_train.py:778 step:1K smpl:1K ep:23 epch:22.71 loss:0.004 grdn:0.075 lr:1.0e-04 data_s:0.001 prep_s:0.104 updt_s:0.338 step_s:0.445 smp/s:2 mem_gb:6.30
+Training:  73%|███████▎  | 1091/1500 [09:50<03:41,  1.85step/s]Training:  73%|███████▎  | 1092/1500 [09:50<03:24,  1.99step/s]Training:  73%|███████▎  | 1093/1500 [09:51<03:15,  2.09step/s]Training:  73%|███████▎  | 1094/1500 [09:51<03:17,  2.05step/s]Training:  73%|███████▎  | 1095/1500 [09:51<03:07,  2.16step/s]Training:  73%|███████▎  | 1096/1500 [09:52<03:03,  2.20step/s]Training:  73%|███████▎  | 1097/1500 [09:52<02:53,  2.33step/s]Training:  73%|███████▎  | 1098/1500 [09:53<02:48,  2.38step/s]Training:  73%|███████▎  | 1099/1500 [09:53<03:01,  2.21step/s][r056_train] opt step 1100: fixed-seed loss 0.00314
+Training:  73%|███████▎  | 1100/1500 [10:03<21:37,  3.24s/step]INFO 2026-09-29 12:35:18 ot_train.py:778 step:1K smpl:1K ep:23 epch:22.92 loss:0.004 grdn:0.029 lr:1.0e-04 data_s:0.001 prep_s:0.095 updt_s:0.366 step_s:1.399 smp/s:1 mem_gb:6.30
+Training:  73%|███████▎  | 1101/1500 [10:03<15:54,  2.39s/step]Training:  73%|███████▎  | 1102/1500 [10:04<12:25,  1.87s/step]Training:  74%|███████▎  | 1103/1500 [10:04<09:35,  1.45s/step]Training:  74%|███████▎  | 1104/1500 [10:05<07:38,  1.16s/step]Training:  74%|███████▎  | 1105/1500 [10:05<06:04,  1.08step/s]Training:  74%|███████▎  | 1106/1500 [10:06<04:59,  1.31step/s]Training:  74%|███████▍  | 1107/1500 [10:06<04:14,  1.54step/s]Training:  74%|███████▍  | 1108/1500 [10:06<03:41,  1.77step/s]Training:  74%|███████▍  | 1109/1500 [10:07<03:22,  1.93step/s]Training:  74%|███████▍  | 1110/1500 [10:08<03:56,  1.65step/s]INFO 2026-09-29 12:35:23 ot_train.py:778 step:1K smpl:1K ep:23 epch:23.12 loss:0.005 grdn:0.035 lr:1.0e-04 data_s:0.001 prep_s:0.082 updt_s:0.389 step_s:0.474 smp/s:2 mem_gb:6.30
+Training:  74%|███████▍  | 1111/1500 [10:08<03:32,  1.83step/s]Training:  74%|███████▍  | 1112/1500 [10:08<03:15,  1.99step/s]Training:  74%|███████▍  | 1113/1500 [10:09<03:00,  2.14step/s]Training:  74%|███████▍  | 1114/1500 [10:09<02:49,  2.28step/s]Training:  74%|███████▍  | 1115/1500 [10:10<02:47,  2.31step/s]Training:  74%|███████▍  | 1116/1500 [10:10<02:40,  2.39step/s]Training:  74%|███████▍  | 1117/1500 [10:10<02:37,  2.43step/s]Training:  75%|███████▍  | 1118/1500 [10:11<02:31,  2.53step/s]Training:  75%|███████▍  | 1119/1500 [10:11<02:35,  2.44step/s]Training:  75%|███████▍  | 1120/1500 [10:12<02:30,  2.52step/s]INFO 2026-09-29 12:35:27 ot_train.py:778 step:1K smpl:1K ep:23 epch:23.33 loss:0.025 grdn:0.086 lr:1.0e-04 data_s:0.001 prep_s:0.063 updt_s:0.326 step_s:0.393 smp/s:3 mem_gb:6.30
+Training:  75%|███████▍  | 1121/1500 [10:12<02:31,  2.51step/s]Training:  75%|███████▍  | 1122/1500 [10:12<02:27,  2.56step/s]Training:  75%|███████▍  | 1123/1500 [10:13<02:25,  2.59step/s]Training:  75%|███████▍  | 1124/1500 [10:13<02:23,  2.62step/s]Training:  75%|███████▌  | 1125/1500 [10:14<02:26,  2.56step/s]Training:  75%|███████▌  | 1126/1500 [10:14<02:20,  2.65step/s]Training:  75%|███████▌  | 1127/1500 [10:14<02:19,  2.68step/s]Training:  75%|███████▌  | 1128/1500 [10:15<02:20,  2.65step/s]Training:  75%|███████▌  | 1129/1500 [10:15<02:25,  2.56step/s]Training:  75%|███████▌  | 1130/1500 [10:15<02:31,  2.45step/s]INFO 2026-09-29 12:35:30 ot_train.py:778 step:1K smpl:1K ep:24 epch:23.54 loss:0.005 grdn:0.065 lr:1.0e-04 data_s:0.001 prep_s:0.061 updt_s:0.326 step_s:0.390 smp/s:3 mem_gb:6.30
+Training:  75%|███████▌  | 1131/1500 [10:16<03:11,  1.93step/s]Training:  75%|███████▌  | 1132/1500 [10:17<02:58,  2.06step/s]Training:  76%|███████▌  | 1133/1500 [10:17<02:50,  2.15step/s]Training:  76%|███████▌  | 1134/1500 [10:17<02:38,  2.30step/s]Training:  76%|███████▌  | 1135/1500 [10:18<02:36,  2.33step/s]Training:  76%|███████▌  | 1136/1500 [10:18<02:48,  2.16step/s]Training:  76%|███████▌  | 1137/1500 [10:19<02:41,  2.25step/s]Training:  76%|███████▌  | 1138/1500 [10:19<02:35,  2.33step/s]Training:  76%|███████▌  | 1139/1500 [10:20<02:27,  2.45step/s]Training:  76%|███████▌  | 1140/1500 [10:20<02:31,  2.37step/s]INFO 2026-09-29 12:35:35 ot_train.py:778 step:1K smpl:1K ep:24 epch:23.75 loss:0.002 grdn:0.018 lr:1.0e-04 data_s:0.001 prep_s:0.090 updt_s:0.359 step_s:0.453 smp/s:2 mem_gb:6.30
+Training:  76%|███████▌  | 1141/1500 [10:20<02:32,  2.35step/s]Training:  76%|███████▌  | 1142/1500 [10:21<02:28,  2.41step/s]Training:  76%|███████▌  | 1143/1500 [10:21<02:25,  2.45step/s]Training:  76%|███████▋  | 1144/1500 [10:22<02:21,  2.51step/s]Training:  76%|███████▋  | 1145/1500 [10:22<02:15,  2.62step/s]Training:  76%|███████▋  | 1146/1500 [10:22<02:16,  2.59step/s]Training:  76%|███████▋  | 1147/1500 [10:23<02:14,  2.63step/s]Training:  77%|███████▋  | 1148/1500 [10:23<02:12,  2.65step/s]Training:  77%|███████▋  | 1149/1500 [10:23<02:11,  2.66step/s]Training:  77%|███████▋  | 1150/1500 [10:24<02:15,  2.59step/s]INFO 2026-09-29 12:35:39 ot_train.py:778 step:1K smpl:1K ep:24 epch:23.96 loss:0.003 grdn:0.030 lr:1.0e-04 data_s:0.001 prep_s:0.055 updt_s:0.326 step_s:0.385 smp/s:3 mem_gb:6.30
+Training:  77%|███████▋  | 1151/1500 [10:24<02:11,  2.65step/s]Training:  77%|███████▋  | 1152/1500 [10:25<02:19,  2.49step/s]Training:  77%|███████▋  | 1153/1500 [10:26<03:03,  1.90step/s]Training:  77%|███████▋  | 1154/1500 [10:26<02:43,  2.11step/s]Training:  77%|███████▋  | 1155/1500 [10:26<02:31,  2.28step/s]Training:  77%|███████▋  | 1156/1500 [10:27<02:27,  2.32step/s]Training:  77%|███████▋  | 1157/1500 [10:27<02:35,  2.20step/s]Training:  77%|███████▋  | 1158/1500 [10:28<02:27,  2.32step/s]Training:  77%|███████▋  | 1159/1500 [10:28<02:21,  2.41step/s]Training:  77%|███████▋  | 1160/1500 [10:28<02:23,  2.37step/s]INFO 2026-09-29 12:35:43 ot_train.py:778 step:1K smpl:1K ep:24 epch:24.17 loss:0.008 grdn:0.049 lr:1.0e-04 data_s:0.001 prep_s:0.066 updt_s:0.375 step_s:0.445 smp/s:2 mem_gb:6.30
+Training:  77%|███████▋  | 1161/1500 [10:29<02:28,  2.28step/s]Training:  77%|███████▋  | 1162/1500 [10:29<02:23,  2.36step/s]Training:  78%|███████▊  | 1163/1500 [10:30<02:23,  2.35step/s]Training:  78%|███████▊  | 1164/1500 [10:30<02:22,  2.36step/s]Training:  78%|███████▊  | 1165/1500 [10:30<02:19,  2.40step/s]Training:  78%|███████▊  | 1166/1500 [10:31<02:22,  2.35step/s]Training:  78%|███████▊  | 1167/1500 [10:31<02:18,  2.41step/s]Training:  78%|███████▊  | 1168/1500 [10:32<02:17,  2.41step/s]Training:  78%|███████▊  | 1169/1500 [10:32<02:16,  2.43step/s]Training:  78%|███████▊  | 1170/1500 [10:32<02:11,  2.50step/s]INFO 2026-09-29 12:35:47 ot_train.py:778 step:1K smpl:1K ep:24 epch:24.38 loss:0.014 grdn:0.078 lr:1.0e-04 data_s:0.001 prep_s:0.080 updt_s:0.330 step_s:0.414 smp/s:2 mem_gb:6.30
+Training:  78%|███████▊  | 1171/1500 [10:33<02:10,  2.53step/s]Training:  78%|███████▊  | 1172/1500 [10:33<02:08,  2.55step/s]Training:  78%|███████▊  | 1173/1500 [10:34<02:07,  2.56step/s]Training:  78%|███████▊  | 1174/1500 [10:35<02:58,  1.82step/s]Training:  78%|███████▊  | 1175/1500 [10:35<02:45,  1.96step/s]Training:  78%|███████▊  | 1176/1500 [10:35<02:36,  2.07step/s]Training:  78%|███████▊  | 1177/1500 [10:36<02:26,  2.21step/s]Training:  79%|███████▊  | 1178/1500 [10:36<02:23,  2.24step/s]Training:  79%|███████▊  | 1179/1500 [10:37<02:16,  2.36step/s]Training:  79%|███████▊  | 1180/1500 [10:37<02:15,  2.37step/s]INFO 2026-09-29 12:35:52 ot_train.py:778 step:1K smpl:1K ep:25 epch:24.58 loss:0.006 grdn:0.057 lr:1.0e-04 data_s:0.001 prep_s:0.082 updt_s:0.366 step_s:0.451 smp/s:2 mem_gb:6.30
+Training:  79%|███████▊  | 1181/1500 [10:38<02:30,  2.13step/s]Training:  79%|███████▉  | 1182/1500 [10:38<02:22,  2.24step/s]Training:  79%|███████▉  | 1183/1500 [10:38<02:30,  2.11step/s]Training:  79%|███████▉  | 1184/1500 [10:39<02:38,  1.99step/s]Training:  79%|███████▉  | 1185/1500 [10:40<02:39,  1.98step/s]Training:  79%|███████▉  | 1186/1500 [10:40<02:30,  2.08step/s]Training:  79%|███████▉  | 1187/1500 [10:40<02:24,  2.16step/s]Training:  79%|███████▉  | 1188/1500 [10:41<02:20,  2.22step/s]Training:  79%|███████▉  | 1189/1500 [10:41<02:14,  2.31step/s]Training:  79%|███████▉  | 1190/1500 [10:42<02:14,  2.31step/s]INFO 2026-09-29 12:35:57 ot_train.py:778 step:1K smpl:1K ep:25 epch:24.79 loss:0.004 grdn:0.032 lr:1.0e-04 data_s:0.001 prep_s:0.112 updt_s:0.353 step_s:0.468 smp/s:2 mem_gb:6.30
+Training:  79%|███████▉  | 1191/1500 [10:42<02:09,  2.38step/s]Training:  79%|███████▉  | 1192/1500 [10:42<02:06,  2.43step/s]Training:  80%|███████▉  | 1193/1500 [10:43<02:03,  2.50step/s]Training:  80%|███████▉  | 1194/1500 [10:43<02:04,  2.46step/s]Training:  80%|███████▉  | 1195/1500 [10:44<02:05,  2.44step/s]Training:  80%|███████▉  | 1196/1500 [10:44<02:34,  1.97step/s]Training:  80%|███████▉  | 1197/1500 [10:45<02:23,  2.11step/s]Training:  80%|███████▉  | 1198/1500 [10:45<02:19,  2.17step/s]Training:  80%|███████▉  | 1199/1500 [10:46<02:14,  2.24step/s][r056_train] opt step 1200: fixed-seed loss 0.00371
+Training:  80%|████████  | 1200/1500 [10:55<16:00,  3.20s/step]INFO 2026-09-29 12:36:10 ot_train.py:778 step:1K smpl:1K ep:25 epch:25.00 loss:0.004 grdn:0.041 lr:1.0e-04 data_s:0.001 prep_s:0.070 updt_s:0.366 step_s:1.360 smp/s:1 mem_gb:6.30
+Training:  80%|████████  | 1201/1500 [10:56<11:49,  2.37s/step]Training:  80%|████████  | 1202/1500 [10:56<08:58,  1.81s/step]Training:  80%|████████  | 1203/1500 [10:57<06:50,  1.38s/step]Training:  80%|████████  | 1204/1500 [10:57<05:23,  1.09s/step]Training:  80%|████████  | 1205/1500 [10:57<04:21,  1.13step/s]Training:  80%|████████  | 1206/1500 [10:58<03:34,  1.37step/s]Training:  80%|████████  | 1207/1500 [10:58<03:09,  1.54step/s]Training:  81%|████████  | 1208/1500 [10:59<02:46,  1.75step/s]Training:  81%|████████  | 1209/1500 [10:59<02:33,  1.89step/s]Training:  81%|████████  | 1210/1500 [10:59<02:19,  2.08step/s]INFO 2026-09-29 12:36:14 ot_train.py:778 step:1K smpl:1K ep:25 epch:25.21 loss:0.006 grdn:0.044 lr:1.0e-04 data_s:0.001 prep_s:0.085 updt_s:0.327 step_s:0.415 smp/s:2 mem_gb:6.30
+Training:  81%|████████  | 1211/1500 [11:00<02:12,  2.18step/s]Training:  81%|████████  | 1212/1500 [11:00<02:06,  2.28step/s]Training:  81%|████████  | 1213/1500 [11:01<02:04,  2.30step/s]Training:  81%|████████  | 1214/1500 [11:01<02:04,  2.29step/s]Training:  81%|████████  | 1215/1500 [11:02<02:33,  1.86step/s]Training:  81%|████████  | 1216/1500 [11:02<02:19,  2.04step/s]Training:  81%|████████  | 1217/1500 [11:03<02:13,  2.13step/s]Training:  81%|████████  | 1218/1500 [11:03<02:04,  2.26step/s]Training:  81%|████████▏ | 1219/1500 [11:03<02:04,  2.25step/s]Training:  81%|████████▏ | 1220/1500 [11:04<01:57,  2.38step/s]INFO 2026-09-29 12:36:19 ot_train.py:778 step:1K smpl:1K ep:25 epch:25.42 loss:0.024 grdn:0.069 lr:1.0e-04 data_s:0.001 prep_s:0.072 updt_s:0.368 step_s:0.443 smp/s:2 mem_gb:6.30
+Training:  81%|████████▏ | 1221/1500 [11:04<01:58,  2.36step/s]Training:  81%|████████▏ | 1222/1500 [11:05<01:55,  2.41step/s]Training:  82%|████████▏ | 1223/1500 [11:05<01:54,  2.42step/s]Training:  82%|████████▏ | 1224/1500 [11:06<01:53,  2.43step/s]Training:  82%|████████▏ | 1225/1500 [11:06<01:50,  2.48step/s]Training:  82%|████████▏ | 1226/1500 [11:06<01:48,  2.53step/s]Training:  82%|████████▏ | 1227/1500 [11:07<01:44,  2.61step/s]Training:  82%|████████▏ | 1228/1500 [11:07<01:47,  2.54step/s]Training:  82%|████████▏ | 1229/1500 [11:08<02:01,  2.23step/s]Training:  82%|████████▏ | 1230/1500 [11:08<01:58,  2.28step/s]INFO 2026-09-29 12:36:23 ot_train.py:778 step:1K smpl:1K ep:26 epch:25.62 loss:0.003 grdn:0.019 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.330 step_s:0.417 smp/s:2 mem_gb:6.30
+Training:  82%|████████▏ | 1231/1500 [11:08<01:55,  2.33step/s]Training:  82%|████████▏ | 1232/1500 [11:09<01:50,  2.43step/s]Training:  82%|████████▏ | 1233/1500 [11:09<01:50,  2.41step/s]Training:  82%|████████▏ | 1234/1500 [11:10<01:46,  2.49step/s]Training:  82%|████████▏ | 1235/1500 [11:10<01:55,  2.30step/s]Training:  82%|████████▏ | 1236/1500 [11:11<01:53,  2.32step/s]Training:  82%|████████▏ | 1237/1500 [11:11<02:28,  1.77step/s]Training:  83%|████████▎ | 1238/1500 [11:12<02:11,  1.99step/s]Training:  83%|████████▎ | 1239/1500 [11:12<02:01,  2.15step/s]Training:  83%|████████▎ | 1240/1500 [11:13<01:52,  2.31step/s]INFO 2026-09-29 12:36:28 ot_train.py:778 step:1K smpl:1K ep:26 epch:25.83 loss:0.004 grdn:0.031 lr:1.0e-04 data_s:0.001 prep_s:0.069 updt_s:0.375 step_s:0.448 smp/s:2 mem_gb:6.30
+Training:  83%|████████▎ | 1241/1500 [11:13<01:50,  2.34step/s]Training:  83%|████████▎ | 1242/1500 [11:13<01:49,  2.36step/s]Training:  83%|████████▎ | 1243/1500 [11:14<01:50,  2.33step/s]Training:  83%|████████▎ | 1244/1500 [11:14<02:00,  2.12step/s]Training:  83%|████████▎ | 1245/1500 [11:15<01:53,  2.25step/s]Training:  83%|████████▎ | 1246/1500 [11:15<01:49,  2.33step/s]Training:  83%|████████▎ | 1247/1500 [11:16<01:47,  2.35step/s]Training:  83%|████████▎ | 1248/1500 [11:16<01:47,  2.34step/s]Training:  83%|████████▎ | 1249/1500 [11:16<01:46,  2.36step/s]Training:  83%|████████▎ | 1250/1500 [11:17<01:45,  2.37step/s]INFO 2026-09-29 12:36:32 ot_train.py:778 step:1K smpl:1K ep:26 epch:26.04 loss:0.004 grdn:0.031 lr:1.0e-04 data_s:0.001 prep_s:0.099 updt_s:0.327 step_s:0.429 smp/s:2 mem_gb:6.30
+Training:  83%|████████▎ | 1251/1500 [11:17<01:42,  2.44step/s]Training:  83%|████████▎ | 1252/1500 [11:18<01:41,  2.44step/s]Training:  84%|████████▎ | 1253/1500 [11:18<01:39,  2.47step/s]Training:  84%|████████▎ | 1254/1500 [11:18<01:37,  2.53step/s]Training:  84%|████████▎ | 1255/1500 [11:19<01:37,  2.51step/s]Training:  84%|████████▎ | 1256/1500 [11:19<01:38,  2.47step/s]Training:  84%|████████▍ | 1257/1500 [11:20<01:37,  2.50step/s]Training:  84%|████████▍ | 1258/1500 [11:20<02:03,  1.95step/s]Training:  84%|████████▍ | 1259/1500 [11:21<01:55,  2.08step/s]Training:  84%|████████▍ | 1260/1500 [11:21<01:52,  2.14step/s]INFO 2026-09-29 12:36:36 ot_train.py:778 step:1K smpl:1K ep:26 epch:26.25 loss:0.009 grdn:0.045 lr:1.0e-04 data_s:0.001 prep_s:0.068 updt_s:0.367 step_s:0.438 smp/s:2 mem_gb:6.30
+Training:  84%|████████▍ | 1261/1500 [11:22<01:47,  2.21step/s]Training:  84%|████████▍ | 1262/1500 [11:22<01:41,  2.36step/s]Training:  84%|████████▍ | 1263/1500 [11:22<01:37,  2.43step/s]Training:  84%|████████▍ | 1264/1500 [11:23<01:38,  2.40step/s]Training:  84%|████████▍ | 1265/1500 [11:23<01:43,  2.28step/s]Training:  84%|████████▍ | 1266/1500 [11:24<01:42,  2.28step/s]Training:  84%|████████▍ | 1267/1500 [11:24<01:37,  2.38step/s]Training:  85%|████████▍ | 1268/1500 [11:24<01:34,  2.45step/s]Training:  85%|████████▍ | 1269/1500 [11:25<01:32,  2.50step/s]Training:  85%|████████▍ | 1270/1500 [11:25<01:29,  2.58step/s]INFO 2026-09-29 12:36:40 ot_train.py:778 step:1K smpl:1K ep:26 epch:26.46 loss:0.009 grdn:0.086 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.325 step_s:0.401 smp/s:2 mem_gb:6.30
+Training:  85%|████████▍ | 1271/1500 [11:26<01:31,  2.49step/s]Training:  85%|████████▍ | 1272/1500 [11:26<01:31,  2.49step/s]Training:  85%|████████▍ | 1273/1500 [11:26<01:30,  2.50step/s]Training:  85%|████████▍ | 1274/1500 [11:27<01:32,  2.44step/s]Training:  85%|████████▌ | 1275/1500 [11:27<01:31,  2.47step/s]Training:  85%|████████▌ | 1276/1500 [11:28<01:30,  2.46step/s]Training:  85%|████████▌ | 1277/1500 [11:28<01:29,  2.50step/s]Training:  85%|████████▌ | 1278/1500 [11:29<01:40,  2.20step/s]Training:  85%|████████▌ | 1279/1500 [11:29<01:38,  2.25step/s]Training:  85%|████████▌ | 1280/1500 [11:30<01:58,  1.85step/s]INFO 2026-09-29 12:36:45 ot_train.py:778 step:1K smpl:1K ep:27 epch:26.67 loss:0.004 grdn:0.040 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.367 step_s:0.461 smp/s:2 mem_gb:6.30
+Training:  85%|████████▌ | 1281/1500 [11:30<01:47,  2.05step/s]Training:  85%|████████▌ | 1282/1500 [11:31<01:40,  2.17step/s]Training:  86%|████████▌ | 1283/1500 [11:31<01:38,  2.20step/s]Training:  86%|████████▌ | 1284/1500 [11:31<01:32,  2.32step/s]Training:  86%|████████▌ | 1285/1500 [11:32<01:29,  2.40step/s]Training:  86%|████████▌ | 1286/1500 [11:32<01:29,  2.40step/s]Training:  86%|████████▌ | 1287/1500 [11:33<01:29,  2.37step/s]Training:  86%|████████▌ | 1288/1500 [11:33<01:42,  2.08step/s]Training:  86%|████████▌ | 1289/1500 [11:34<01:38,  2.14step/s]Training:  86%|████████▌ | 1290/1500 [11:34<01:33,  2.25step/s]INFO 2026-09-29 12:36:49 ot_train.py:778 step:1K smpl:1K ep:27 epch:26.88 loss:0.010 grdn:0.051 lr:1.0e-04 data_s:0.001 prep_s:0.078 updt_s:0.343 step_s:0.425 smp/s:2 mem_gb:6.30
+Training:  86%|████████▌ | 1291/1500 [11:34<01:29,  2.33step/s]Training:  86%|████████▌ | 1292/1500 [11:35<01:25,  2.45step/s]Training:  86%|████████▌ | 1293/1500 [11:35<01:25,  2.42step/s]Training:  86%|████████▋ | 1294/1500 [11:36<01:25,  2.42step/s]Training:  86%|████████▋ | 1295/1500 [11:36<01:25,  2.38step/s]Training:  86%|████████▋ | 1296/1500 [11:37<01:23,  2.43step/s]Training:  86%|████████▋ | 1297/1500 [11:37<01:21,  2.48step/s]Training:  87%|████████▋ | 1298/1500 [11:37<01:19,  2.53step/s]Training:  87%|████████▋ | 1299/1500 [11:38<01:19,  2.53step/s][r056_train] opt step 1300: fixed-seed loss 0.00719
+Training:  87%|████████▋ | 1300/1500 [11:48<11:25,  3.43s/step]INFO 2026-09-29 12:37:03 ot_train.py:778 step:1K smpl:1K ep:27 epch:27.08 loss:0.006 grdn:0.041 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.323 step_s:1.407 smp/s:1 mem_gb:6.30
+Training:  87%|████████▋ | 1301/1500 [11:49<08:32,  2.58s/step]Training:  87%|████████▋ | 1302/1500 [11:49<06:27,  1.96s/step]Training:  87%|████████▋ | 1303/1500 [11:50<04:54,  1.49s/step]Training:  87%|████████▋ | 1304/1500 [11:50<03:47,  1.16s/step]Training:  87%|████████▋ | 1305/1500 [11:50<03:02,  1.07step/s]Training:  87%|████████▋ | 1306/1500 [11:51<02:28,  1.31step/s]Training:  87%|████████▋ | 1307/1500 [11:51<02:05,  1.54step/s]Training:  87%|████████▋ | 1308/1500 [11:52<01:49,  1.75step/s]Training:  87%|████████▋ | 1309/1500 [11:52<01:40,  1.90step/s]Training:  87%|████████▋ | 1310/1500 [11:52<01:31,  2.07step/s]INFO 2026-09-29 12:37:07 ot_train.py:778 step:1K smpl:1K ep:27 epch:27.29 loss:0.004 grdn:0.026 lr:1.0e-04 data_s:0.001 prep_s:0.083 updt_s:0.338 step_s:0.425 smp/s:2 mem_gb:6.30
+Training:  87%|████████▋ | 1311/1500 [11:53<01:26,  2.19step/s]Training:  87%|████████▋ | 1312/1500 [11:53<01:23,  2.25step/s]Training:  88%|████████▊ | 1313/1500 [11:54<01:19,  2.35step/s]Training:  88%|████████▊ | 1314/1500 [11:54<01:27,  2.13step/s]Training:  88%|████████▊ | 1315/1500 [11:55<01:24,  2.18step/s]Training:  88%|████████▊ | 1316/1500 [11:55<01:28,  2.08step/s]Training:  88%|████████▊ | 1317/1500 [11:56<01:24,  2.16step/s]Training:  88%|████████▊ | 1318/1500 [11:56<01:22,  2.20step/s]Training:  88%|████████▊ | 1319/1500 [11:56<01:18,  2.31step/s]Training:  88%|████████▊ | 1320/1500 [11:57<01:18,  2.30step/s]INFO 2026-09-29 12:37:12 ot_train.py:778 step:1K smpl:1K ep:28 epch:27.50 loss:0.023 grdn:0.099 lr:1.0e-04 data_s:0.001 prep_s:0.111 updt_s:0.326 step_s:0.440 smp/s:2 mem_gb:6.30
+Training:  88%|████████▊ | 1321/1500 [11:58<01:37,  1.84step/s]Training:  88%|████████▊ | 1322/1500 [11:58<01:28,  2.02step/s]Training:  88%|████████▊ | 1323/1500 [11:58<01:20,  2.21step/s]Training:  88%|████████▊ | 1324/1500 [11:59<01:18,  2.23step/s]Training:  88%|████████▊ | 1325/1500 [11:59<01:25,  2.04step/s]Training:  88%|████████▊ | 1326/1500 [12:00<01:19,  2.19step/s]Training:  88%|████████▊ | 1327/1500 [12:00<01:22,  2.10step/s]Training:  89%|████████▊ | 1328/1500 [12:01<01:18,  2.20step/s]Training:  89%|████████▊ | 1329/1500 [12:01<01:21,  2.11step/s]Training:  89%|████████▊ | 1330/1500 [12:02<01:16,  2.23step/s]INFO 2026-09-29 12:37:17 ot_train.py:778 step:1K smpl:1K ep:28 epch:27.71 loss:0.003 grdn:0.033 lr:1.0e-04 data_s:0.001 prep_s:0.087 updt_s:0.386 step_s:0.477 smp/s:2 mem_gb:6.30
+Training:  89%|████████▊ | 1331/1500 [12:02<01:10,  2.39step/s]Training:  89%|████████▉ | 1332/1500 [12:02<01:10,  2.40step/s]Training:  89%|████████▉ | 1333/1500 [12:03<01:07,  2.48step/s]Training:  89%|████████▉ | 1334/1500 [12:03<01:08,  2.42step/s]Training:  89%|████████▉ | 1335/1500 [12:04<01:08,  2.40step/s]Training:  89%|████████▉ | 1336/1500 [12:04<01:18,  2.08step/s]Training:  89%|████████▉ | 1337/1500 [12:05<01:19,  2.06step/s]Training:  89%|████████▉ | 1338/1500 [12:05<01:15,  2.15step/s]Training:  89%|████████▉ | 1339/1500 [12:06<01:11,  2.26step/s]Training:  89%|████████▉ | 1340/1500 [12:06<01:07,  2.38step/s]INFO 2026-09-29 12:37:21 ot_train.py:778 step:1K smpl:1K ep:28 epch:27.92 loss:0.004 grdn:0.024 lr:1.0e-04 data_s:0.001 prep_s:0.092 updt_s:0.335 step_s:0.429 smp/s:2 mem_gb:6.30
+Training:  89%|████████▉ | 1341/1500 [12:06<01:05,  2.42step/s]Training:  89%|████████▉ | 1342/1500 [12:07<01:03,  2.49step/s]Training:  90%|████████▉ | 1343/1500 [12:07<01:23,  1.88step/s]Training:  90%|████████▉ | 1344/1500 [12:08<01:17,  2.00step/s]Training:  90%|████████▉ | 1345/1500 [12:08<01:10,  2.19step/s]Training:  90%|████████▉ | 1346/1500 [12:09<01:09,  2.23step/s]Training:  90%|████████▉ | 1347/1500 [12:09<01:06,  2.31step/s]Training:  90%|████████▉ | 1348/1500 [12:09<01:03,  2.41step/s]Training:  90%|████████▉ | 1349/1500 [12:10<01:02,  2.41step/s]Training:  90%|█████████ | 1350/1500 [12:10<01:00,  2.46step/s]INFO 2026-09-29 12:37:25 ot_train.py:778 step:1K smpl:1K ep:28 epch:28.12 loss:0.004 grdn:0.028 lr:1.0e-04 data_s:0.001 prep_s:0.073 updt_s:0.362 step_s:0.438 smp/s:2 mem_gb:6.30
+Training:  90%|█████████ | 1351/1500 [12:11<00:58,  2.53step/s]Training:  90%|█████████ | 1352/1500 [12:11<00:59,  2.51step/s]Training:  90%|█████████ | 1353/1500 [12:11<01:00,  2.43step/s]Training:  90%|█████████ | 1354/1500 [12:12<00:59,  2.44step/s]Training:  90%|█████████ | 1355/1500 [12:12<00:58,  2.50step/s]Training:  90%|█████████ | 1356/1500 [12:13<00:58,  2.45step/s]Training:  90%|█████████ | 1357/1500 [12:13<00:58,  2.46step/s]Training:  91%|█████████ | 1358/1500 [12:14<00:59,  2.38step/s]Training:  91%|█████████ | 1359/1500 [12:14<01:03,  2.21step/s]Training:  91%|█████████ | 1360/1500 [12:14<00:59,  2.34step/s]INFO 2026-09-29 12:37:29 ot_train.py:778 step:1K smpl:1K ep:28 epch:28.33 loss:0.005 grdn:0.046 lr:1.0e-04 data_s:0.001 prep_s:0.084 updt_s:0.330 step_s:0.417 smp/s:2 mem_gb:6.30
+Training:  91%|█████████ | 1361/1500 [12:15<00:57,  2.43step/s]Training:  91%|█████████ | 1362/1500 [12:15<00:55,  2.49step/s]Training:  91%|█████████ | 1363/1500 [12:16<00:56,  2.41step/s]Training:  91%|█████████ | 1364/1500 [12:16<00:56,  2.42step/s]Training:  91%|█████████ | 1365/1500 [12:17<01:10,  1.92step/s]Training:  91%|█████████ | 1366/1500 [12:17<01:04,  2.09step/s]Training:  91%|█████████ | 1367/1500 [12:18<00:59,  2.25step/s]Training:  91%|█████████ | 1368/1500 [12:18<00:56,  2.35step/s]Training:  91%|█████████▏| 1369/1500 [12:18<00:56,  2.33step/s]Training:  91%|█████████▏| 1370/1500 [12:19<00:54,  2.40step/s]INFO 2026-09-29 12:37:34 ot_train.py:778 step:1K smpl:1K ep:29 epch:28.54 loss:0.011 grdn:0.059 lr:1.0e-04 data_s:0.001 prep_s:0.069 updt_s:0.361 step_s:0.433 smp/s:2 mem_gb:6.30
+Training:  91%|█████████▏| 1371/1500 [12:19<00:52,  2.44step/s]Training:  91%|█████████▏| 1372/1500 [12:20<00:53,  2.38step/s]Training:  92%|█████████▏| 1373/1500 [12:20<00:55,  2.27step/s]Training:  92%|█████████▏| 1374/1500 [12:21<00:54,  2.31step/s]Training:  92%|█████████▏| 1375/1500 [12:21<00:51,  2.40step/s]Training:  92%|█████████▏| 1376/1500 [12:21<00:51,  2.40step/s]Training:  92%|█████████▏| 1377/1500 [12:22<00:52,  2.36step/s]Training:  92%|█████████▏| 1378/1500 [12:22<00:50,  2.40step/s]Training:  92%|█████████▏| 1379/1500 [12:23<00:50,  2.40step/s]Training:  92%|█████████▏| 1380/1500 [12:23<00:51,  2.33step/s]INFO 2026-09-29 12:37:38 ot_train.py:778 step:1K smpl:1K ep:29 epch:28.75 loss:0.004 grdn:0.040 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.331 step_s:0.425 smp/s:2 mem_gb:6.30
+Training:  92%|█████████▏| 1381/1500 [12:24<00:53,  2.21step/s]Training:  92%|█████████▏| 1382/1500 [12:24<00:53,  2.20step/s]Training:  92%|█████████▏| 1383/1500 [12:24<00:50,  2.30step/s]Training:  92%|█████████▏| 1384/1500 [12:25<00:48,  2.37step/s]Training:  92%|█████████▏| 1385/1500 [12:25<00:48,  2.38step/s]Training:  92%|█████████▏| 1386/1500 [12:26<00:45,  2.51step/s]Training:  92%|█████████▏| 1387/1500 [12:26<00:58,  1.94step/s]Training:  93%|█████████▎| 1388/1500 [12:27<00:54,  2.05step/s]Training:  93%|█████████▎| 1389/1500 [12:27<00:50,  2.19step/s]Training:  93%|█████████▎| 1390/1500 [12:28<00:51,  2.13step/s]INFO 2026-09-29 12:37:43 ot_train.py:778 step:1K smpl:1K ep:29 epch:28.96 loss:0.003 grdn:0.027 lr:1.0e-04 data_s:0.001 prep_s:0.090 updt_s:0.367 step_s:0.460 smp/s:2 mem_gb:6.30
+Training:  93%|█████████▎| 1391/1500 [12:28<00:48,  2.25step/s]Training:  93%|█████████▎| 1392/1500 [12:28<00:46,  2.32step/s]Training:  93%|█████████▎| 1393/1500 [12:29<00:44,  2.41step/s]Training:  93%|█████████▎| 1394/1500 [12:29<00:42,  2.51step/s]Training:  93%|█████████▎| 1395/1500 [12:30<00:40,  2.60step/s]Training:  93%|█████████▎| 1396/1500 [12:30<00:44,  2.33step/s]Training:  93%|█████████▎| 1397/1500 [12:30<00:42,  2.40step/s]Training:  93%|█████████▎| 1398/1500 [12:31<00:42,  2.38step/s]Training:  93%|█████████▎| 1399/1500 [12:31<00:46,  2.19step/s][r056_train] opt step 1400: fixed-seed loss 0.00305
+Training:  93%|█████████▎| 1400/1500 [12:41<05:26,  3.26s/step]INFO 2026-09-29 12:37:56 ot_train.py:778 step:1K smpl:1K ep:29 epch:29.17 loss:0.004 grdn:0.024 lr:1.0e-04 data_s:0.001 prep_s:0.091 updt_s:0.331 step_s:1.356 smp/s:1 mem_gb:6.30
+Training:  93%|█████████▎| 1401/1500 [12:42<03:57,  2.40s/step]Training:  93%|█████████▎| 1402/1500 [12:42<02:57,  1.81s/step]Training:  94%|█████████▎| 1403/1500 [12:42<02:14,  1.39s/step]Training:  94%|█████████▎| 1404/1500 [12:43<01:44,  1.09s/step]Training:  94%|█████████▎| 1405/1500 [12:43<01:24,  1.12step/s]Training:  94%|█████████▎| 1406/1500 [12:44<01:20,  1.17step/s]Training:  94%|█████████▍| 1407/1500 [12:44<01:07,  1.38step/s]Training:  94%|█████████▍| 1408/1500 [12:45<00:57,  1.60step/s]Training:  94%|█████████▍| 1409/1500 [12:45<00:50,  1.81step/s]Training:  94%|█████████▍| 1410/1500 [12:46<00:45,  1.99step/s]INFO 2026-09-29 12:38:01 ot_train.py:778 step:1K smpl:1K ep:29 epch:29.38 loss:0.004 grdn:0.050 lr:1.0e-04 data_s:0.001 prep_s:0.071 updt_s:0.365 step_s:0.440 smp/s:2 mem_gb:6.30
+Training:  94%|█████████▍| 1411/1500 [12:46<00:43,  2.06step/s]Training:  94%|█████████▍| 1412/1500 [12:46<00:39,  2.22step/s]Training:  94%|█████████▍| 1413/1500 [12:47<00:38,  2.27step/s]Training:  94%|█████████▍| 1414/1500 [12:47<00:36,  2.37step/s]Training:  94%|█████████▍| 1415/1500 [12:48<00:35,  2.39step/s]Training:  94%|█████████▍| 1416/1500 [12:48<00:34,  2.41step/s]Training:  94%|█████████▍| 1417/1500 [12:48<00:34,  2.44step/s]Training:  95%|█████████▍| 1418/1500 [12:49<00:34,  2.40step/s]Training:  95%|█████████▍| 1419/1500 [12:49<00:32,  2.47step/s]Training:  95%|█████████▍| 1420/1500 [12:50<00:32,  2.45step/s]INFO 2026-09-29 12:38:05 ot_train.py:778 step:1K smpl:1K ep:30 epch:29.58 loss:0.021 grdn:0.060 lr:1.0e-04 data_s:0.001 prep_s:0.077 updt_s:0.324 step_s:0.404 smp/s:2 mem_gb:6.30
+Training:  95%|█████████▍| 1421/1500 [12:50<00:32,  2.43step/s]Training:  95%|█████████▍| 1422/1500 [12:50<00:31,  2.50step/s]Training:  95%|█████████▍| 1423/1500 [12:51<00:31,  2.42step/s]Training:  95%|█████████▍| 1424/1500 [12:51<00:30,  2.50step/s]Training:  95%|█████████▌| 1425/1500 [12:52<00:30,  2.43step/s]Training:  95%|█████████▌| 1426/1500 [12:52<00:30,  2.41step/s]Training:  95%|█████████▌| 1427/1500 [12:53<00:32,  2.25step/s]Training:  95%|█████████▌| 1428/1500 [12:53<00:39,  1.83step/s]Training:  95%|█████████▌| 1429/1500 [12:54<00:36,  1.95step/s]Training:  95%|█████████▌| 1430/1500 [12:54<00:33,  2.11step/s]INFO 2026-09-29 12:38:09 ot_train.py:778 step:1K smpl:1K ep:30 epch:29.79 loss:0.004 grdn:0.046 lr:1.0e-04 data_s:0.001 prep_s:0.093 updt_s:0.361 step_s:0.457 smp/s:2 mem_gb:6.30
+Training:  95%|█████████▌| 1431/1500 [12:55<00:30,  2.28step/s]Training:  95%|█████████▌| 1432/1500 [12:55<00:29,  2.28step/s]Training:  96%|█████████▌| 1433/1500 [12:55<00:28,  2.38step/s]Training:  96%|█████████▌| 1434/1500 [12:56<00:26,  2.46step/s]Training:  96%|█████████▌| 1435/1500 [12:56<00:26,  2.47step/s]Training:  96%|█████████▌| 1436/1500 [12:57<00:25,  2.48step/s]Training:  96%|█████████▌| 1437/1500 [12:57<00:25,  2.43step/s]Training:  96%|█████████▌| 1438/1500 [12:57<00:25,  2.47step/s]Training:  96%|█████████▌| 1439/1500 [12:58<00:24,  2.44step/s]Training:  96%|█████████▌| 1440/1500 [12:58<00:24,  2.48step/s]INFO 2026-09-29 12:38:13 ot_train.py:778 step:1K smpl:1K ep:30 epch:30.00 loss:0.003 grdn:0.020 lr:1.0e-04 data_s:0.001 prep_s:0.072 updt_s:0.322 step_s:0.397 smp/s:3 mem_gb:6.30
+Training:  96%|█████████▌| 1441/1500 [12:59<00:23,  2.56step/s]Training:  96%|█████████▌| 1442/1500 [12:59<00:22,  2.59step/s]Training:  96%|█████████▌| 1443/1500 [12:59<00:23,  2.45step/s]Training:  96%|█████████▋| 1444/1500 [13:00<00:23,  2.41step/s]Training:  96%|█████████▋| 1445/1500 [13:00<00:22,  2.43step/s]Training:  96%|█████████▋| 1446/1500 [13:01<00:22,  2.43step/s]Training:  96%|█████████▋| 1447/1500 [13:01<00:22,  2.40step/s]Training:  97%|█████████▋| 1448/1500 [13:01<00:20,  2.48step/s]Training:  97%|█████████▋| 1449/1500 [13:02<00:20,  2.46step/s]Training:  97%|█████████▋| 1450/1500 [13:03<00:27,  1.79step/s]INFO 2026-09-29 12:38:18 ot_train.py:778 step:1K smpl:1K ep:30 epch:30.21 loss:0.004 grdn:0.030 lr:1.0e-04 data_s:0.001 prep_s:0.085 updt_s:0.368 step_s:0.457 smp/s:2 mem_gb:6.30
+Training:  97%|█████████▋| 1451/1500 [13:03<00:25,  1.92step/s]Training:  97%|█████████▋| 1452/1500 [13:04<00:24,  1.97step/s]Training:  97%|█████████▋| 1453/1500 [13:04<00:22,  2.08step/s]Training:  97%|█████████▋| 1454/1500 [13:05<00:22,  2.06step/s]Training:  97%|█████████▋| 1455/1500 [13:05<00:20,  2.24step/s]Training:  97%|█████████▋| 1456/1500 [13:05<00:19,  2.28step/s]Training:  97%|█████████▋| 1457/1500 [13:06<00:18,  2.28step/s]Training:  97%|█████████▋| 1458/1500 [13:06<00:18,  2.32step/s]Training:  97%|█████████▋| 1459/1500 [13:07<00:17,  2.36step/s]Training:  97%|█████████▋| 1460/1500 [13:07<00:16,  2.41step/s]INFO 2026-09-29 12:38:22 ot_train.py:778 step:1K smpl:1K ep:30 epch:30.42 loss:0.007 grdn:0.039 lr:1.0e-04 data_s:0.001 prep_s:0.096 updt_s:0.325 step_s:0.425 smp/s:2 mem_gb:6.30
+Training:  97%|█████████▋| 1461/1500 [13:07<00:16,  2.43step/s]Training:  97%|█████████▋| 1462/1500 [13:08<00:15,  2.42step/s]Training:  98%|█████████▊| 1463/1500 [13:08<00:14,  2.49step/s]Training:  98%|█████████▊| 1464/1500 [13:09<00:14,  2.54step/s]Training:  98%|█████████▊| 1465/1500 [13:09<00:13,  2.52step/s]Training:  98%|█████████▊| 1466/1500 [13:09<00:13,  2.46step/s]Training:  98%|█████████▊| 1467/1500 [13:10<00:14,  2.30step/s]Training:  98%|█████████▊| 1468/1500 [13:10<00:13,  2.37step/s]Training:  98%|█████████▊| 1469/1500 [13:11<00:12,  2.45step/s]Training:  98%|█████████▊| 1470/1500 [13:11<00:12,  2.45step/s]INFO 2026-09-29 12:38:26 ot_train.py:778 step:1K smpl:1K ep:31 epch:30.62 loss:0.018 grdn:0.136 lr:1.0e-04 data_s:0.001 prep_s:0.069 updt_s:0.335 step_s:0.407 smp/s:2 mem_gb:6.30
+Training:  98%|█████████▊| 1471/1500 [13:12<00:12,  2.41step/s]Training:  98%|█████████▊| 1472/1500 [13:12<00:15,  1.86step/s]Training:  98%|█████████▊| 1473/1500 [13:13<00:13,  2.01step/s]Training:  98%|█████████▊| 1474/1500 [13:13<00:12,  2.12step/s]Training:  98%|█████████▊| 1475/1500 [13:14<00:11,  2.19step/s]Training:  98%|█████████▊| 1476/1500 [13:14<00:10,  2.26step/s]Training:  98%|█████████▊| 1477/1500 [13:14<00:09,  2.37step/s]Training:  99%|█████████▊| 1478/1500 [13:15<00:09,  2.43step/s]Training:  99%|█████████▊| 1479/1500 [13:15<00:08,  2.36step/s]Training:  99%|█████████▊| 1480/1500 [13:16<00:08,  2.47step/s]INFO 2026-09-29 12:38:31 ot_train.py:778 step:1K smpl:1K ep:31 epch:30.83 loss:0.003 grdn:0.034 lr:1.0e-04 data_s:0.001 prep_s:0.078 updt_s:0.366 step_s:0.447 smp/s:2 mem_gb:6.30
+Training:  99%|█████████▊| 1481/1500 [13:16<00:07,  2.51step/s]Training:  99%|█████████▉| 1482/1500 [13:16<00:07,  2.42step/s]Training:  99%|█████████▉| 1483/1500 [13:17<00:07,  2.37step/s]Training:  99%|█████████▉| 1484/1500 [13:17<00:06,  2.47step/s]Training:  99%|█████████▉| 1485/1500 [13:18<00:06,  2.48step/s]Training:  99%|█████████▉| 1486/1500 [13:18<00:05,  2.47step/s]Training:  99%|█████████▉| 1487/1500 [13:18<00:05,  2.45step/s]Training:  99%|█████████▉| 1488/1500 [13:19<00:04,  2.54step/s]Training:  99%|█████████▉| 1489/1500 [13:19<00:04,  2.52step/s]Training:  99%|█████████▉| 1490/1500 [13:20<00:04,  2.47step/s]INFO 2026-09-29 12:38:35 ot_train.py:778 step:1K smpl:1K ep:31 epch:31.04 loss:0.003 grdn:0.021 lr:1.0e-04 data_s:0.001 prep_s:0.076 updt_s:0.325 step_s:0.404 smp/s:2 mem_gb:6.30
+Training:  99%|█████████▉| 1491/1500 [13:20<00:03,  2.50step/s]Training:  99%|█████████▉| 1492/1500 [13:20<00:03,  2.49step/s]Training: 100%|█████████▉| 1493/1500 [13:21<00:02,  2.52step/s]Training: 100%|█████████▉| 1494/1500 [13:22<00:03,  1.92step/s]Training: 100%|█████████▉| 1495/1500 [13:22<00:02,  2.07step/s]Training: 100%|█████████▉| 1496/1500 [13:22<00:01,  2.28step/s]Training: 100%|█████████▉| 1497/1500 [13:23<00:01,  2.43step/s]Training: 100%|█████████▉| 1498/1500 [13:23<00:00,  2.56step/s]Training: 100%|█████████▉| 1499/1500 [13:24<00:00,  2.45step/s][r056_train] opt step 1500: fixed-seed loss 0.00276
+Training: 100%|██████████| 1500/1500 [13:34<00:00,  3.52s/step]INFO 2026-09-29 12:38:49 ot_train.py:778 step:2K smpl:2K ep:31 epch:31.25 loss:0.004 grdn:0.027 lr:1.0e-04 data_s:0.001 prep_s:0.056 updt_s:0.367 step_s:1.464 smp/s:1 mem_gb:6.30
+Training: 100%|██████████| 1500/1500 [13:34<00:00,  1.84step/s]
+INFO 2026-09-29 12:38:49 ot_train.py:915 End of training
+[r056_train] fixed-seed loss, final: 0.00276
+{
+ "mode": "lerobot_train",
+ "batch_size": 1,
+ "accumulation": 1,
+ "effective_batch": 1,
+ "opt_steps": 1500,
+ "lora": {
+  "r": 16,
+  "alpha": 16,
+  "dropout": 0.1
+ },
+ "curve": {
+  "eval": [
+   {
+    "opt_step": 0,
+    "fixed_seed_loss": 0.05226617420460874
+   },
+   {
+    "opt_step": 100,
+    "fixed_seed_loss": 0.007763313170774684
+   },
+   {
+    "opt_step": 200,
+    "fixed_seed_loss": 0.009650349697039928
+   },
+   {
+    "opt_step": 300,
+    "fixed_seed_loss": 0.006068187987693818
+   },
+   {
+    "opt_step": 400,
+    "fixed_seed_loss": 0.007764158506082215
+   },
+   {
+    "opt_step": 500,
+    "fixed_seed_loss": 0.004486330652677377
+   },
+   {
+    "opt_step": 600,
+    "fixed_seed_loss": 0.003923292037749586
+   },
+   {
+    "opt_step": 700,
+    "fixed_seed_loss": 0.004325502268329728
+   },
+   {
+    "opt_step": 800,
+    "fixed_seed_loss": 0.0031701062374243825
+   },
+   {
+    "opt_step": 900,
+    "fixed_seed_loss": 0.003491543836086445
+   },
+   {
+    "opt_step": 1000,
+    "fixed_seed_loss": 0.006074424926434101
+   },
+   {
+    "opt_step": 1100,
+    "fixed_seed_loss": 0.0031421065868926235
+   },
+   {
+    "opt_step": 1200,
+    "fixed_seed_loss": 0.003706223137366275
+   },
+   {
+    "opt_step": 1300,
+    "fixed_seed_loss": 0.007187118827763091
+   },
+   {
+    "opt_step": 1400,
+    "fixed_seed_loss": 0.003050112176424591
+   },
+   {
+    "opt_step": 1500,
+    "fixed_seed_loss": 0.002757354179872588
+   }
+  ],
+  "train": [
+   {
+    "opt_step": 10,
+    "loss_mean10": 0.07436155015602708
+   },
+   {
+    "opt_step": 20,
+    "loss_mean10": 0.06475545065477491
+   },
+   {
+    "opt_step": 30,
+    "loss_mean10": 0.06594373336993158
+   },
+   {
+    "opt_step": 40,
+    "loss_mean10": 0.16370197029318662
+   },
+   {
+    "opt_step": 50,
+    "loss_mean10": 0.0419860694790259
+   },
+   {
+    "opt_step": 60,
+    "loss_mean10": 0.02517415639013052
+   },
+   {
+    "opt_step": 70,
+    "loss_mean10": 0.032452476443722844
+   },
+   {
+    "opt_step": 80,
+    "loss_mean10": 0.010582732781767846
+   },
+   {
+    "opt_step": 90,
+    "loss_mean10": 0.005162506364285946
+   },
+   {
+    "opt_step": 100,
+    "loss_mean10": 0.017439870350062846
+   },
+   {
+    "opt_step": 110,
+    "loss_mean10": 0.00768362256931141
+   },
+   {
+    "opt_step": 120,
+    "loss_mean10": 0.04895657934248447
+   },
+   {
+    "opt_step": 130,
+    "loss_mean10": 0.016510768060106783
+   },
+   {
+    "opt_step": 140,
+    "loss_mean10": 0.005470070370938629
+   },
+   {
+    "opt_step": 150,
+    "loss_mean10": 0.01842854283750057
+   },
+   {
+    "opt_step": 160,
+    "loss_mean10": 0.01446702443063259
+   },
+   {
+    "opt_step": 170,
+    "loss_mean10": 0.023113153385929765
+   },
+   {
+    "opt_step": 180,
+    "loss_mean10": 0.007314950210275129
+   },
+   {
+    "opt_step": 190,
+    "loss_mean10": 0.0193519156659022
+   },
+   {
+    "opt_step": 200,
+    "loss_mean10": 0.007692393846809864
+   },
+   {
+    "opt_step": 210,
+    "loss_mean10": 0.02120811747154221
+   },
+   {
+    "opt_step": 220,
+    "loss_mean10": 0.026823267177678644
+   },
+   {
+    "opt_step": 230,
+    "loss_mean10": 0.006296286336146295
+   },
+   {
+    "opt_step": 240,
+    "loss_mean10": 0.008198240748606622
+   },
+   {
+    "opt_step": 250,
+    "loss_mean10": 0.005756750016007573
+   },
+   {
+    "opt_step": 260,
+    "loss_mean10": 0.011734453053213656
+   },
+   {
+    "opt_step": 270,
+    "loss_mean10": 0.028293273842427878
+   },
+   {
+    "opt_step": 280,
+    "loss_mean10": 0.008008804102428258
+   },
+   {
+    "opt_step": 290,
+    "loss_mean10": 0.011732291430234909
+   },
+   {
+    "opt_step": 300,
+    "loss_mean10": 0.00691327964887023
+   },
+   {
+    "opt_step": 310,
+    "loss_mean10": 0.008305228687822819
+   },
+   {
+    "opt_step": 320,
+    "loss_mean10": 0.03232490849914029
+   },
+   {
+    "opt_step": 330,
+    "loss_mean10": 0.004814949649153277
+   },
+   {
+    "opt_step": 340,
+    "loss_mean10": 0.003590458253165707
+   },
+   {
+    "opt_step": 350,
+    "loss_mean10": 0.01856918337289244
+   },
+   {
+    "opt_step": 360,
+    "loss_mean10": 0.0071639988920651375
+   },
+   {
+    "opt_step": 370,
+    "loss_mean10": 0.023603334953077138
+   },
+   {
+    "opt_step": 380,
+    "loss_mean10": 0.006876740383449942
+   },
+   {
+    "opt_step": 390,
+    "loss_mean10": 0.006796303373994306
+   },
+   {
+    "opt_step": 400,
+    "loss_mean10": 0.009532683907309547
+   },
+   {
+    "opt_step": 410,
+    "loss_mean10": 0.006790465686935932
+   },
+   {
+    "opt_step": 420,
+    "loss_mean10": 0.05603093330282718
+   },
+   {
+    "opt_step": 430,
+    "loss_mean10": 0.005702413839753717
+   },
+   {
+    "opt_step": 440,
+    "loss_mean10": 0.01426219679415226
+   },
+   {
+    "opt_step": 450,
+    "loss_mean10": 0.004655925463885069
+   },
+   {
+    "opt_step": 460,
+    "loss_mean10": 0.011854662548284978
+   },
+   {
+    "opt_step": 470,
+    "loss_mean10": 0.014760948088951408
+   },
+   {
+    "opt_step": 480,
+    "loss_mean10": 0.01044559598667547
+   },
+   {
+    "opt_step": 490,
+    "loss_mean10": 0.0038399653160013257
+   },
+   {
+    "opt_step": 500,
+    "loss_mean10": 0.005956827336922288
+   },
+   {
+    "opt_step": 510,
+    "loss_mean10": 0.006740144966170192
+   },
+   {
+    "opt_step": 520,
+    "loss_mean10": 0.04691898145247251
+   },
+   {
+    "opt_step": 530,
+    "loss_mean10": 0.013615471054799854
+   },
+   {
+    "opt_step": 540,
+    "loss_mean10": 0.0030846224864944814
+   },
+   {
+    "opt_step": 550,
+    "loss_mean10": 0.008596524025779217
+   },
+   {
+    "opt_step": 560,
+    "loss_mean10": 0.010400419950019568
+   },
+   {
+    "opt_step": 570,
+    "loss_mean10": 0.020966622803825885
+   },
+   {
+    "opt_step": 580,
+    "loss_mean10": 0.005544815026223659
+   },
+   {
+    "opt_step": 590,
+    "loss_mean10": 0.003553097503026947
+   },
+   {
+    "opt_step": 600,
+    "loss_mean10": 0.004986679367721081
+   },
+   {
+    "opt_step": 610,
+    "loss_mean10": 0.00371943069039844
+   },
+   {
+    "opt_step": 620,
+    "loss_mean10": 0.029933746589813383
+   },
+   {
+    "opt_step": 630,
+    "loss_mean10": 0.004361886589322239
+   },
+   {
+    "opt_step": 640,
+    "loss_mean10": 0.002789476019097492
+   },
+   {
+    "opt_step": 650,
+    "loss_mean10": 0.0033706248679663984
+   },
+   {
+    "opt_step": 660,
+    "loss_mean10": 0.008046114211902022
+   },
+   {
+    "opt_step": 670,
+    "loss_mean10": 0.020501944667194037
+   },
+   {
+    "opt_step": 680,
+    "loss_mean10": 0.005472527479287237
+   },
+   {
+    "opt_step": 690,
+    "loss_mean10": 0.005536145786754787
+   },
+   {
+    "opt_step": 700,
+    "loss_mean10": 0.004810091503895819
+   },
+   {
+    "opt_step": 710,
+    "loss_mean10": 0.005179602524731308
+   },
+   {
+    "opt_step": 720,
+    "loss_mean10": 0.04569545246195048
+   },
+   {
+    "opt_step": 730,
+    "loss_mean10": 0.0055836978368461136
+   },
+   {
+    "opt_step": 740,
+    "loss_mean10": 0.00463805838371627
+   },
+   {
+    "opt_step": 750,
+    "loss_mean10": 0.003581133275292814
+   },
+   {
+    "opt_step": 760,
+    "loss_mean10": 0.00607430626405403
+   },
+   {
+    "opt_step": 770,
+    "loss_mean10": 0.023633294412866233
+   },
+   {
+    "opt_step": 780,
+    "loss_mean10": 0.0043207852402701976
+   },
+   {
+    "opt_step": 790,
+    "loss_mean10": 0.0042708007676992565
+   },
+   {
+    "opt_step": 800,
+    "loss_mean10": 0.004958089924184605
+   },
+   {
+    "opt_step": 810,
+    "loss_mean10": 0.005438065278576687
+   },
+   {
+    "opt_step": 820,
+    "loss_mean10": 0.035161801450885835
+   },
+   {
+    "opt_step": 830,
+    "loss_mean10": 0.003295979293761775
+   },
+   {
+    "opt_step": 840,
+    "loss_mean10": 0.0025448991043958815
+   },
+   {
+    "opt_step": 850,
+    "loss_mean10": 0.0029953565972391516
+   },
+   {
+    "opt_step": 860,
+    "loss_mean10": 0.008677183964755386
+   },
+   {
+    "opt_step": 870,
+    "loss_mean10": 0.00901771653443575
+   },
+   {
+    "opt_step": 880,
+    "loss_mean10": 0.003165502625051886
+   },
+   {
+    "opt_step": 890,
+    "loss_mean10": 0.0035559197654947638
+   },
+   {
+    "opt_step": 900,
+    "loss_mean10": 0.004855416406644508
+   },
+   {
+    "opt_step": 910,
+    "loss_mean10": 0.003137128660455346
+   },
+   {
+    "opt_step": 920,
+    "loss_mean10": 0.019485030099167487
+   },
+   {
+    "opt_step": 930,
+    "loss_mean10": 0.002229359233751893
+   },
+   {
+    "opt_step": 940,
+    "loss_mean10": 0.002709504688391462
+   },
+   {
+    "opt_step": 950,
+    "loss_mean10": 0.004554850817658007
+   },
+   {
+    "opt_step": 960,
+    "loss_mean10": 0.007461355207487941
+   },
+   {
+    "opt_step": 970,
+    "loss_mean10": 0.016817897459259257
+   },
+   {
+    "opt_step": 980,
+    "loss_mean10": 0.005069447110872716
+   },
+   {
+    "opt_step": 990,
+    "loss_mean10": 0.00315984797780402
+   },
+   {
+    "opt_step": 1000,
+    "loss_mean10": 0.0030005614389665425
+   },
+   {
+    "opt_step": 1010,
+    "loss_mean10": 0.011495571106206626
+   },
+   {
+    "opt_step": 1020,
+    "loss_mean10": 0.012951104948297144
+   },
+   {
+    "opt_step": 1030,
+    "loss_mean10": 0.004599415377015248
+   },
+   {
+    "opt_step": 1040,
+    "loss_mean10": 0.0034966490347869694
+   },
+   {
+    "opt_step": 1050,
+    "loss_mean10": 0.004251469660084694
+   },
+   {
+    "opt_step": 1060,
+    "loss_mean10": 0.008118722081417219
+   },
+   {
+    "opt_step": 1070,
+    "loss_mean10": 0.013538802752736955
+   },
+   {
+    "opt_step": 1080,
+    "loss_mean10": 0.005970147380139679
+   },
+   {
+    "opt_step": 1090,
+    "loss_mean10": 0.004332255688495934
+   },
+   {
+    "opt_step": 1100,
+    "loss_mean10": 0.004208245052723214
+   },
+   {
+    "opt_step": 1110,
+    "loss_mean10": 0.004573516512755305
+   },
+   {
+    "opt_step": 1120,
+    "loss_mean10": 0.0247321923088748
+   },
+   {
+    "opt_step": 1130,
+    "loss_mean10": 0.005278072616783902
+   },
+   {
+    "opt_step": 1140,
+    "loss_mean10": 0.0020212609611917286
+   },
+   {
+    "opt_step": 1150,
+    "loss_mean10": 0.0032880032726097853
+   },
+   {
+    "opt_step": 1160,
+    "loss_mean10": 0.00826833727187477
+   },
+   {
+    "opt_step": 1170,
+    "loss_mean10": 0.013923082416295075
+   },
+   {
+    "opt_step": 1180,
+    "loss_mean10": 0.0061777258000802245
+   },
+   {
+    "opt_step": 1190,
+    "loss_mean10": 0.004124394711107015
+   },
+   {
+    "opt_step": 1200,
+    "loss_mean10": 0.003931092994753272
+   },
+   {
+    "opt_step": 1210,
+    "loss_mean10": 0.0057669541565701365
+   },
+   {
+    "opt_step": 1220,
+    "loss_mean10": 0.023606575408484785
+   },
+   {
+    "opt_step": 1230,
+    "loss_mean10": 0.002915858698543161
+   },
+   {
+    "opt_step": 1240,
+    "loss_mean10": 0.003614804125390947
+   },
+   {
+    "opt_step": 1250,
+    "loss_mean10": 0.004463047150056809
+   },
+   {
+    "opt_step": 1260,
+    "loss_mean10": 0.00884080104297027
+   },
+   {
+    "opt_step": 1270,
+    "loss_mean10": 0.008526053524110466
+   },
+   {
+    "opt_step": 1280,
+    "loss_mean10": 0.003940960892941802
+   },
+   {
+    "opt_step": 1290,
+    "loss_mean10": 0.010349611903075128
+   },
+   {
+    "opt_step": 1300,
+    "loss_mean10": 0.0061069512739777565
+   },
+   {
+    "opt_step": 1310,
+    "loss_mean10": 0.003950893442379311
+   },
+   {
+    "opt_step": 1320,
+    "loss_mean10": 0.02313362496206537
+   },
+   {
+    "opt_step": 1330,
+    "loss_mean10": 0.003423214232316241
+   },
+   {
+    "opt_step": 1340,
+    "loss_mean10": 0.0036028616945259274
+   },
+   {
+    "opt_step": 1350,
+    "loss_mean10": 0.003990862151840702
+   },
+   {
+    "opt_step": 1360,
+    "loss_mean10": 0.00477825558045879
+   },
+   {
+    "opt_step": 1370,
+    "loss_mean10": 0.01129648444475606
+   },
+   {
+    "opt_step": 1380,
+    "loss_mean10": 0.004498109052656218
+   },
+   {
+    "opt_step": 1390,
+    "loss_mean10": 0.003227108914870769
+   },
+   {
+    "opt_step": 1400,
+    "loss_mean10": 0.0037441696389578284
+   },
+   {
+    "opt_step": 1410,
+    "loss_mean10": 0.0037555101385805755
+   },
+   {
+    "opt_step": 1420,
+    "loss_mean10": 0.02051579946419224
+   },
+   {
+    "opt_step": 1430,
+    "loss_mean10": 0.0036122377961874006
+   },
+   {
+    "opt_step": 1440,
+    "loss_mean10": 0.0026686189346946778
+   },
+   {
+    "opt_step": 1450,
+    "loss_mean10": 0.0040751853142865
+   },
+   {
+    "opt_step": 1460,
+    "loss_mean10": 0.0067623531678691505
+   },
+   {
+    "opt_step": 1470,
+    "loss_mean10": 0.01751965971197933
+   },
+   {
+    "opt_step": 1480,
+    "loss_mean10": 0.003109876497182995
+   },
+   {
+    "opt_step": 1490,
+    "loss_mean10": 0.0028717527049593626
+   },
+   {
+    "opt_step": 1500,
+    "loss_mean10": 0.0037444276269525288
+   }
+  ],
+  "eval_every": 100,
+  "episode": 0,
+  "lr_schedule": "constant",
+  "lr": 0.0001,
+  "opt_steps": 1500,
+  "lora_r": 16,
+  "final_fixed_seed_loss": 0.002757354179872588
+ },
+ "parts": [
+  {
+   "name": "local/r054_train48",
+   "frames": 48,
+   "episodes": 1
+  }
+ ],
+ "shares": [
+  1.0
+ ],
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "checkpointed_blocks": 36,
+ "trainable": {
+  "trainable": 19136512,
+  "total": 3163152512,
+  "n_tensors": 496,
+  "non_lora_trainable": [],
+  "n_non_lora": 0
+ },
+ "scheduler_steps": 1500,
+ "eval_loss_indices": 48,
+ "eval_loss_step0": 0.05226617420460874,
+ "torch_max_memory_allocated_gib": 6.300339698791504,
+ "torch_max_memory_reserved_gib": 6.44921875,
+ "nvidia_smi_peak_gib": 6.732421875,
+ "eval_loss_final": 0.002757354179872588
+}
+{
+ "rc": 0,
+ "diagnostic": true,
+ "not_a_gate": true,
+ "episode": 0,
+ "steps": 1500,
+ "lr": 0.0001,
+ "lr_schedule": "constant",
+ "curve_file": "runs/r055/overfit_diag_1500.json",
+ "ratios": [
+  {
+   "opt_step": 0,
+   "ratio": 1.0
+  },
+  {
+   "opt_step": 100,
+   "ratio": 0.1485341770067825
+  },
+  {
+   "opt_step": 200,
+   "ratio": 0.184638532356726
+  },
+  {
+   "opt_step": 300,
+   "ratio": 0.11610162940065999
+  },
+  {
+   "opt_step": 400,
+   "ratio": 0.14855035066633182
+  },
+  {
+   "opt_step": 500,
+   "ratio": 0.08583621665351929
+  },
+  {
+   "opt_step": 600,
+   "ratio": 0.0750636926741739
+  },
+  {
+   "opt_step": 700,
+   "ratio": 0.08275911398061182
+  },
+  {
+   "opt_step": 800,
+   "ratio": 0.06065311428791832
+  },
+  {
+   "opt_step": 900,
+   "ratio": 0.06680312629001582
+  },
+  {
+   "opt_step": 1000,
+   "ratio": 0.1162209597100847
+  },
+  {
+   "opt_step": 1100,
+   "ratio": 0.060117401640917466
+  },
+  {
+   "opt_step": 1200,
+   "ratio": 0.0709105495814053
+  },
+  {
+   "opt_step": 1300,
+   "ratio": 0.13750994667463806
+  },
+  {
+   "opt_step": 1400,
+   "ratio": 0.05835728791788318
+  },
+  {
+   "opt_step": 1500,
+   "ratio": 0.05275599796300853
+  }
+ ],
+ "final_ratio": 0.05275599796300853
+}

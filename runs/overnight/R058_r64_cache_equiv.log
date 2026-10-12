@@ -1,0 +1,26 @@
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 747.46it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  15%|█▌        | 159/1031 [00:00<00:00, 1583.92it/s]Loading weights:  52%|█████▏    | 536/1031 [00:00<00:00, 2806.67it/s]Loading weights:  79%|███████▉  | 816/1031 [00:00<00:00, 793.28it/s] Loading weights:  97%|█████████▋| 998/1031 [00:00<00:00, 942.37it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 1023.80it/s]
+[feature_cache] local/r054_train48: 8/8 frames (5s)
+/home/imerit/Documents/Code/VLA/experiments/r055_gates.py:280: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  l_un = float(head(BatchFeature(data=dict(bo)), ai)["loss"])
+{
+ "worst_rel": 0.0,
+ "tol_rel": 0.01,
+ "pass": true,
+ "bytes_per_frame_measured": 639288.0,
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "lora_r": 64
+}

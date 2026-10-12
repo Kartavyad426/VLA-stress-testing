@@ -1,0 +1,76 @@
+{
+ "heldout": {
+  "base": {
+   "success": 67,
+   "n": 108,
+   "rate": 0.6203703703703703,
+   "wilson95": [
+    0.5261993725148564,
+    0.7062722659452514
+   ],
+   "median_ca": 0.05645550712958276
+  },
+  "retrained": {
+   "success": 59,
+   "n": 108,
+   "rate": 0.5462962962962963,
+   "wilson95": [
+    0.45242362376844814,
+    0.6369885448700549
+   ],
+   "median_ca": 0.05721164411771701
+  }
+ },
+ "nominal": {
+  "base": {
+   "success": 27,
+   "n": 27,
+   "rate": 1.0,
+   "wilson95": [
+    0.8754409628553641,
+    1.0
+   ],
+   "median_ca": 0.04967810311003434
+  },
+  "retrained": {
+   "success": 26,
+   "n": 27,
+   "rate": 0.9629629629629629,
+   "wilson95": [
+    0.8171614606584348,
+    0.9934320234669025
+   ],
+   "median_ca": 0.04961093363857511
+  }
+ },
+ "gap_closed": -0.19512195121951217,
+ "expectations": {
+  "E1_heldout_gain_ge_15pp": false,
+  "E2_gap_closed_ge_40pct": false,
+  "E3_nominal_regress_lt_5pp": true,
+  "E4_W_transfer_falls_ge_0.2": false,
+  "E5_low_band_gain_gt_high_band": true,
+  "E6_ca_improves_ge_60pct": false
+ },
+ "uninterpretable_checks": {
+  "base_heldout_vs_r047_curve": {
+   "r047_expected": 0.4597382107539078,
+   "base_wilson95": [
+    0.5261993725148564,
+    0.7062722659452514
+   ],
+   "consistent": false
+  },
+  "base_nominal_ge_26_of_27": true,
+  "g4_violations": [],
+  "r055_gates": {
+   "conformance": true,
+   "ckpt_equiv_r16": true,
+   "overfit": false,
+   "memory": null,
+   "overfit_cosine_20260929": false,
+   "overfit_diag_1500": null,
+   "cache_equiv_r64": true
+  }
+ }
+}

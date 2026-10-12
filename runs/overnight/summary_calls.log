@@ -1,0 +1,33 @@
+[2026-09-29 23:32:22] R056_train: SKIPPED (rc skip, - min) - already trained
+  schedule_verified=True lr max err=1.3552527156068805e-20 updates=2000 (from opt step 0); guard max err=1.3552527156068805e-20
+  torch peak alloc 6.30 GiB, nvidia-smi peak 6.73 GiB; trainable 19136512
+  last checkpoint opt 2000/2000 schedule_verified=True lr_last=6.834904537900144e-11 (runs/r056_r16_train/checkpoints/last/pretrained_model)
+[2026-09-29 23:32:30] R056_eval: OK (rc 0, 0 min) - phases: select=0 heldout=0 nominal=0 score=0
+  selected opt1000 (val 6/10)
+  HELD-OUT base 67/108 = 0.62 [0.53,0.71]  retrained 59/108 = 0.55 [0.45,0.64]  gap closed -0.20
+  nominal base 27/27 = 1.00 [0.88,1.00]  retrained 26/27 = 0.96 [0.82,0.99]
+  W transfer at forward 0: retrained median 0.8436753479468646 vs base 0.88
+  offset <=8cm: base 27/27 = 1.00 [0.88,1.00] retrained 21/27 = 0.78 [0.59,0.89]; >8cm: base 40/81 = 0.49 [0.39,0.60] retrained 38/81 = 0.47 [0.36,0.58] (exploratory)
+  expectations: E1=False, E2=False, E3=True, E4=False, E5=True, E6=False
+  checks: base vs R-047 curve consistent=False, base nominal>=26/27=True, G4 violations=0
+  on-ramekin (apart): base 3/3 = 1.00 [0.44,1.00] retrained 3/3 = 1.00 [0.44,1.00]
+[2026-09-30 01:25:35] R058_r4_train: OK (rc 0, 113 min)
+  schedule_verified=True lr max err=1.3552527156068805e-20 updates=2000 (from opt step 0); guard max err=1.3552527156068805e-20
+  torch peak alloc 6.08 GiB, nvidia-smi peak 6.46 GiB; trainable 4784128
+  last checkpoint opt 2000/2000 schedule_verified=True lr_last=6.834904537900144e-11 (runs/r058_r4_train/checkpoints/last/pretrained_model)
+  memory: RSS tree max 16.544 GiB (anon 8.766), largest process 16.542 GiB, GPU used max 6.465 GiB
+[2026-09-30 02:35:43] R058_r4_eval: OK (rc 0, 70 min) - phases: select=0 heldout=0 nominal=0 transfer=0 score=0
+  selected opt500 (val 5/10)
+  HELD-OUT base 67/108 = 0.62 [0.53,0.71]  retrained 65/108 = 0.60 [0.51,0.69]  gap closed -0.05
+  nominal base 27/27 = 1.00 [0.88,1.00]  retrained 25/27 = 0.93 [0.77,0.98]
+  W transfer at forward 0: retrained median 0.824303047491141 vs base 0.88
+  offset <=8cm: base 27/27 = 1.00 [0.88,1.00] retrained 20/27 = 0.74 [0.55,0.87]; >8cm: base 40/81 = 0.49 [0.39,0.60] retrained 45/81 = 0.56 [0.45,0.66] (exploratory)
+  expectations: E1=False, E2=False, E3=False, E4=False, E5=False, E6=False
+  checks: base vs R-047 curve consistent=False, base nominal>=26/27=True, G4 violations=0
+  on-ramekin (apart): base 3/3 = 1.00 [0.44,1.00] retrained n/a
+[2026-09-30 02:36:43] R058_r64_train: FAILED (rc 1, 0 min)
+  no report at runs/r058_r64_train_report.json
+  no checkpoints under runs/r058_r64_train
+  memory: RSS tree max 17.893 GiB (anon 9.056), largest process 17.891 GiB, GPU used max 7.521 GiB
+[2026-09-30 02:37:18] R058_r64_cache_equiv: OK (rc 0, 0 min) - signal: pass True worst_rel 0.0
+  memory: RSS tree max 17.787 GiB (anon 8.087), largest process 17.785 GiB, GPU used max 6.967 GiB

@@ -1,0 +1,306 @@
+[mem] start: RSS 0.87 GiB (anon 0.50, file 0.37; peak 0.87), cuda alloc 0.00 / reserved 0.00 GiB, nvidia-smi 0.103515625 GiB
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 887.68it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  16%|█▌        | 162/1031 [00:00<00:00, 1618.87it/s]Loading weights:  38%|███▊      | 394/1031 [00:00<00:00, 2028.83it/s]Loading weights:  58%|█████▊    | 597/1031 [00:00<00:00, 810.26it/s] Loading weights:  71%|███████   | 729/1031 [00:00<00:00, 730.18it/s]Loading weights:  88%|████████▊ | 907/1031 [00:00<00:00, 929.20it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 993.21it/s]
+[mem] base built (cpu): RSS 6.93 GiB (anon 6.37, file 0.56; peak 15.63), cuda alloc 0.00 / reserved 0.00 GiB, nvidia-smi 0.103515625 GiB
+[mem] adapters attached, on cuda: RSS 2.03 GiB (anon 1.81, file 0.21; peak 15.63), cuda alloc 6.11 / reserved 6.19 GiB, nvidia-smi 6.376953125 GiB
+[diag] 400 frames: minted_f0 100, minted_f1_15 100, minted_f16_47 100, ipec 100
+[mem] after first frame: RSS 2.25 GiB (anon 1.89, file 0.35; peak 15.63), cuda alloc 6.16 / reserved 6.93 GiB, nvidia-smi 7.1796875 GiB
+  [    31s] 1/400 minted_f0 base 0.1637 r16_opt500 0.1261 r16_opt1000 0.0922 r16_opt2000 0.0733 r4_opt500 0.1311
+  [    86s] 21/400 minted_f0 base 0.2918 r16_opt500 0.1017 r16_opt1000 0.0736 r16_opt2000 0.0743 r4_opt500 0.1216
+  [   142s] 41/400 minted_f0 base 0.0350 r16_opt500 0.0175 r16_opt1000 0.0135 r16_opt2000 0.0105 r4_opt500 0.0175
+  [   198s] 61/400 minted_f0 base 0.0693 r16_opt500 0.0344 r16_opt1000 0.0369 r16_opt2000 0.0361 r4_opt500 0.0245
+  [   252s] 81/400 minted_f0 base 0.0829 r16_opt500 0.0688 r16_opt1000 0.0572 r16_opt2000 0.0459 r4_opt500 0.0718
+  [   309s] 101/400 minted_f1_15 base 0.3453 r16_opt500 0.1902 r16_opt1000 0.0945 r16_opt2000 0.0627 r4_opt500 0.2305
+  [   364s] 121/400 minted_f1_15 base 0.0119 r16_opt500 0.0184 r16_opt1000 0.0234 r16_opt2000 0.0173 r4_opt500 0.0154
+  [   419s] 141/400 minted_f1_15 base 0.0370 r16_opt500 0.0210 r16_opt1000 0.0218 r16_opt2000 0.0252 r4_opt500 0.0261
+  [   474s] 161/400 minted_f1_15 base 0.0849 r16_opt500 0.0736 r16_opt1000 0.0669 r16_opt2000 0.0652 r4_opt500 0.0718
+  [   527s] 181/400 minted_f1_15 base 0.0024 r16_opt500 0.0051 r16_opt1000 0.0051 r16_opt2000 0.0047 r4_opt500 0.0057
+  [   581s] 201/400 minted_f16_47 base 0.0543 r16_opt500 0.0319 r16_opt1000 0.0281 r16_opt2000 0.0248 r4_opt500 0.0314
+  [   636s] 221/400 minted_f16_47 base 0.1060 r16_opt500 0.0858 r16_opt1000 0.0475 r16_opt2000 0.0499 r4_opt500 0.0918
+  [   691s] 241/400 minted_f16_47 base 0.0840 r16_opt500 0.0643 r16_opt1000 0.0565 r16_opt2000 0.0574 r4_opt500 0.0726
+  [   745s] 261/400 minted_f16_47 base 0.0698 r16_opt500 0.0441 r16_opt1000 0.0386 r16_opt2000 0.0298 r4_opt500 0.0548
+  [   801s] 281/400 minted_f16_47 base 0.0095 r16_opt500 0.0118 r16_opt1000 0.0196 r16_opt2000 0.0162 r4_opt500 0.0097
+  [   856s] 301/400 ipec base 0.0351 r16_opt500 0.0442 r16_opt1000 0.0417 r16_opt2000 0.0412 r4_opt500 0.0441
+  [   910s] 321/400 ipec base 0.3475 r16_opt500 0.1695 r16_opt1000 0.0805 r16_opt2000 0.0972 r4_opt500 0.1581
+  [   965s] 341/400 ipec base 0.0027 r16_opt500 0.0036 r16_opt1000 0.0029 r16_opt2000 0.0029 r4_opt500 0.0035
+  [  1019s] 361/400 ipec base 0.0093 r16_opt500 0.0071 r16_opt1000 0.0072 r16_opt2000 0.0056 r4_opt500 0.0077
+  [  1074s] 381/400 ipec base 0.0631 r16_opt500 0.0060 r16_opt1000 0.0055 r16_opt2000 0.0058 r4_opt500 0.0209
+[mem] end: RSS 2.64 GiB (anon 2.28, file 0.35; peak 15.63), cuda alloc 6.16 / reserved 6.93 GiB, nvidia-smi 7.1796875 GiB
+{
+ "checks": {
+  "adapters": {
+   "r16_opt500": {
+    "dir": "runs/r056_r16_train/checkpoints/004000/pretrained_model",
+    "r": 16,
+    "lora_alpha": 16,
+    "lora_modules": 248
+   },
+   "r16_opt1000": {
+    "dir": "runs/r056_r16_train/checkpoints/008000/pretrained_model",
+    "r": 16,
+    "lora_alpha": 16,
+    "lora_modules": 248
+   },
+   "r16_opt2000": {
+    "dir": "runs/r056_r16_train/checkpoints/016000/pretrained_model",
+    "r": 16,
+    "lora_alpha": 16,
+    "lora_modules": 248
+   },
+   "r4_opt500": {
+    "dir": "runs/r058_r4_train/checkpoints/004000/pretrained_model",
+    "r": 4,
+    "lora_alpha": 4,
+    "lora_modules": 248
+   }
+  },
+  "augmentation": {
+   "GrootN17PackInputsStep.training": false,
+   "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+   "GrootN17VLMEncodeStep.training": false,
+   "GrootN17VLMEncodeStep.image_crop_size": [
+    230,
+    230
+   ],
+   "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+   "GrootN17VLMEncodeStep.use_albumentations": true,
+   "random_crop_active": false
+  },
+  "base_repeat_bit_identical": true,
+  "after_switch_base_repeat_bit_identical": true,
+  "adapter_differs_from_base_frame0": {
+   "r16_opt500": true,
+   "r16_opt1000": true,
+   "r16_opt2000": true,
+   "r4_opt500": true
+  }
+ },
+ "subsets": {
+  "minted_f0": {
+   "n": 100,
+   "base": {
+    "mean": 0.15877116146963088,
+    "se": 0.017088644136465825,
+    "median": 0.10202106460928917
+   },
+   "r16_opt500": {
+    "mean": 0.07768245891667902,
+    "se": 0.006447801034368354,
+    "median": 0.060786452144384384,
+    "diff_vs_base_mean": -0.08108870255295188,
+    "diff_vs_base_ci95": [
+     -0.10667727703886973,
+     -0.05550012806703403
+    ],
+    "ratio_of_means_vs_base": 0.48927310348824155,
+    "share_frames_below_base": 0.91
+   },
+   "r16_opt1000": {
+    "mean": 0.059144660006277265,
+    "se": 0.0043834493852644395,
+    "median": 0.05046376958489418,
+    "diff_vs_base_mean": -0.09962650146335364,
+    "diff_vs_base_ci95": [
+     -0.12882212363088724,
+     -0.07043087929582004
+    ],
+    "ratio_of_means_vs_base": 0.3725151309521044,
+    "share_frames_below_base": 0.94
+   },
+   "r16_opt2000": {
+    "mean": 0.05455914357211441,
+    "se": 0.004044458252339983,
+    "median": 0.047260845080018044,
+    "diff_vs_base_mean": -0.1042120178975165,
+    "diff_vs_base_ci95": [
+     -0.1338040145627038,
+     -0.07462002123232919
+    ],
+    "ratio_of_means_vs_base": 0.34363383795331287,
+    "share_frames_below_base": 0.94
+   },
+   "r4_opt500": {
+    "mean": 0.08117326085921377,
+    "se": 0.006790226099965747,
+    "median": 0.06096460856497288,
+    "diff_vs_base_mean": -0.07759790061041713,
+    "diff_vs_base_ci95": [
+     -0.10233145129616283,
+     -0.05286434992467143
+    ],
+    "ratio_of_means_vs_base": 0.5112594762666661,
+    "share_frames_below_base": 0.96
+   }
+  },
+  "minted_f1_15": {
+   "n": 100,
+   "base": {
+    "mean": 0.1037726152734831,
+    "se": 0.016307757242846943,
+    "median": 0.047822149470448494
+   },
+   "r16_opt500": {
+    "mean": 0.04917964889667928,
+    "se": 0.005487139963587503,
+    "median": 0.03098320122808218,
+    "diff_vs_base_mean": -0.05459296637680382,
+    "diff_vs_base_ci95": [
+     -0.0791077257455762,
+     -0.03007820700803143
+    ],
+    "ratio_of_means_vs_base": 0.47391740843257035,
+    "share_frames_below_base": 0.76
+   },
+   "r16_opt1000": {
+    "mean": 0.03957252888474613,
+    "se": 0.003700903113921112,
+    "median": 0.029204401187598705,
+    "diff_vs_base_mean": -0.06420008638873696,
+    "diff_vs_base_ci95": [
+     -0.09184157585427821,
+     -0.03655859692319572
+    ],
+    "ratio_of_means_vs_base": 0.3813388414704246,
+    "share_frames_below_base": 0.76
+   },
+   "r16_opt2000": {
+    "mean": 0.037230048559140416,
+    "se": 0.0034513433582764865,
+    "median": 0.02672067005187273,
+    "diff_vs_base_mean": -0.06654256671434268,
+    "diff_vs_base_ci95": [
+     -0.09484153819971318,
+     -0.03824359522897218
+    ],
+    "ratio_of_means_vs_base": 0.3587656383239844,
+    "share_frames_below_base": 0.76
+   },
+   "r4_opt500": {
+    "mean": 0.053234571809880435,
+    "se": 0.005617281372292112,
+    "median": 0.03167177736759186,
+    "diff_vs_base_mean": -0.05053804346360266,
+    "diff_vs_base_ci95": [
+     -0.07546627575036718,
+     -0.025609811176838138
+    ],
+    "ratio_of_means_vs_base": 0.5129924852484989,
+    "share_frames_below_base": 0.78
+   }
+  },
+  "minted_f16_47": {
+   "n": 100,
+   "base": {
+    "mean": 0.07873331763315945,
+    "se": 0.012688023103930616,
+    "median": 0.03353470377624035
+   },
+   "r16_opt500": {
+    "mean": 0.05441682724514976,
+    "se": 0.007046805179318561,
+    "median": 0.03311005420982838,
+    "diff_vs_base_mean": -0.024316490388009697,
+    "diff_vs_base_ci95": [
+     -0.037441538302429425,
+     -0.011191442473589965
+    ],
+    "ratio_of_means_vs_base": 0.6911537438152039,
+    "share_frames_below_base": 0.66
+   },
+   "r16_opt1000": {
+    "mean": 0.04355237121228129,
+    "se": 0.004716465884133376,
+    "median": 0.026471322402358055,
+    "diff_vs_base_mean": -0.03518094642087817,
+    "diff_vs_base_ci95": [
+     -0.05587051558547451,
+     -0.014491377256281832
+    ],
+    "ratio_of_means_vs_base": 0.5531631655000742,
+    "share_frames_below_base": 0.69
+   },
+   "r16_opt2000": {
+    "mean": 0.04047847361885942,
+    "se": 0.0043027198708928596,
+    "median": 0.026135487481951714,
+    "diff_vs_base_mean": -0.038254844014300037,
+    "diff_vs_base_ci95": [
+     -0.05936708632319214,
+     -0.017142601705407937
+    ],
+    "ratio_of_means_vs_base": 0.5141212746484272,
+    "share_frames_below_base": 0.75
+   },
+   "r4_opt500": {
+    "mean": 0.0653560018260032,
+    "se": 0.011969942942112441,
+    "median": 0.03081662766635418,
+    "diff_vs_base_mean": -0.013377315807156264,
+    "diff_vs_base_ci95": [
+     -0.01981444176907231,
+     -0.006940189845240217
+    ],
+    "ratio_of_means_vs_base": 0.830093330126327,
+    "share_frames_below_base": 0.61
+   }
+  },
+  "ipec": {
+   "n": 100,
+   "base": {
+    "mean": 0.051236114422790704,
+    "se": 0.02067823497955366,
+    "median": 0.007697741501033306
+   },
+   "r16_opt500": {
+    "mean": 0.023237572346115485,
+    "se": 0.0041721702263204565,
+    "median": 0.009664745535701513,
+    "diff_vs_base_mean": -0.027998542076675223,
+    "diff_vs_base_ci95": [
+     -0.06247282751837177,
+     0.006475743365021325
+    ],
+    "ratio_of_means_vs_base": 0.4535389267492738,
+    "share_frames_below_base": 0.34
+   },
+   "r16_opt1000": {
+    "mean": 0.02222702679107897,
+    "se": 0.003352365735225911,
+    "median": 0.009286536369472742,
+    "diff_vs_base_mean": -0.029009087631711738,
+    "diff_vs_base_ci95": [
+     -0.06534889735806805,
+     0.007330722094644571
+    ],
+    "ratio_of_means_vs_base": 0.43381562090492964,
+    "share_frames_below_base": 0.34
+   },
+   "r16_opt2000": {
+    "mean": 0.019459396427264436,
+    "se": 0.0029885353088195486,
+    "median": 0.008549277670681477,
+    "diff_vs_base_mean": -0.03177671799552627,
+    "diff_vs_base_ci95": [
+     -0.06826263757130546,
+     0.004709201580252932
+    ],
+    "ratio_of_means_vs_base": 0.3797984419093373,
+    "share_frames_below_base": 0.42
+   },
+   "r4_opt500": {
+    "mean": 0.023561512713786214,
+    "se": 0.0037130471283218476,
+    "median": 0.008793613873422146,
+    "diff_vs_base_mean": -0.02767460170900449,
+    "diff_vs_base_ci95": [
+     -0.06398465691452962,
+     0.008635453496520642
+    ],
+    "ratio_of_means_vs_base": 0.4598614274174087,
+    "share_frames_below_base": 0.24
+   }
+  }
+ },
+ "wall_s": 1124.6
+}

@@ -1,0 +1,482 @@
+[r056_train] schedule guard (lerobot_train, build_scheduler, accum 8): pass=True max|lr - registered|=0.000e+00 over 40 updates
+[r056_train]   opt step     0: applied 0.000000e+00 registered 0.000000e+00 |err| 0.0e+00
+[r056_train]   opt step     2: applied 1.000000e-04 registered 1.000000e-04 |err| 0.0e+00
+[r056_train]   opt step    39: applied 1.707753e-07 registered 1.707753e-07 |err| 0.0e+00
+WARNING:lerobot.utils.import_utils:Could not load libtorchcodec. Likely causes:
+          1. FFmpeg is not properly installed in your environment. We support
+             versions 4, 5, 6, 7, and 8, and we attempt to load libtorchcodec
+             for each of those versions. Errors for versions not installed on
+             your system are expected; only the error for your installed FFmpeg
+             version is relevant. On Windows, ensure you've installed the
+             "full-shared" version which ships DLLs.
+          2. The PyTorch version (2.11.0+cu128) is not compatible with
+             this version of TorchCodec. Refer to the version compatibility
+             table:
+             https://github.com/pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
+          3. Another runtime dependency; see exceptions below.
+
+        The following exceptions were raised as we tried to load libtorchcodec:
+        
+[start of libtorchcodec loading traceback]
+FFmpeg version 8:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core8.so
+
+FFmpeg version 7:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core7.so
+
+FFmpeg version 6:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core6.so
+
+FFmpeg version 5:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core5.so
+
+FFmpeg version 4:
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1503, in load_library
+    ctypes.CDLL(path)
+  File "/usr/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libnppicc.so.12: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/_internally_replaced_utils.py", line 93, in load_torchcodec_shared_libraries
+    torch.ops.load_library(core_library_path)
+  File "/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torch/_ops.py", line 1505, in load_library
+    raise OSError(f"Could not load this library: {path}") from e
+OSError: Could not load this library: /home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/torchcodec/libtorchcodec_core4.so
+[end of libtorchcodec loading traceback].
+'torchcodec' is installed but cannot be loaded (see the error above). Falling back to 'pyav' as a default decoder.
+INFO 2026-09-29 17:47:47 ot_train.py:421 {'accelerator': {'activation_checkpointing': {'mode': <ActivationCheckpointingMode.NONE: 'none'>},
+                 'compile': {'backend': 'inductor',
+                             'enabled': False,
+                             'mode': None,
+                             'regional': True},
+                 'ddp': {'find_unused_parameters': True,
+                         'gradient_as_bucket_view': False,
+                         'static_graph': False},
+                 'fsdp': {'cpu_offload': False,
+                          'ignored_modules': None,
+                          'min_num_params': None,
+                          'reshard_after_forward': True,
+                          'wrap_modules': None},
+                 'gradient_accumulation': {'steps': 8},
+                 'mixed_precision': 'no'},
+ 'batch_size': 1,
+ 'checkpoint_format': <CheckpointFormat.SAFETENSORS: 'safetensors'>,
+ 'checkpoint_path': None,
+ 'cudnn_deterministic': False,
+ 'dataloader_multiprocessing_context': 'spawn',
+ 'dataset': {'depth_output_unit': 'mm',
+             'episodes': None,
+             'eval_split': 0.0,
+             'exclude_episodes': None,
+             'image_transforms': {'enable': False,
+                                  'max_num_transforms': 3,
+                                  'random_order': False,
+                                  'tfs': {'affine': {'kwargs': {'degrees': [-5.0,
+                                                                            5.0],
+                                                                'translate': [0.05,
+                                                                              0.05]},
+                                                     'type': 'RandomAffine',
+                                                     'weight': 1.0},
+                                          'brightness': {'kwargs': {'brightness': [0.8,
+                                                                                   1.2]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'contrast': {'kwargs': {'contrast': [0.8,
+                                                                               1.2]},
+                                                       'type': 'ColorJitter',
+                                                       'weight': 1.0},
+                                          'hue': {'kwargs': {'hue': [-0.05,
+                                                                     0.05]},
+                                                  'type': 'ColorJitter',
+                                                  'weight': 1.0},
+                                          'saturation': {'kwargs': {'saturation': [0.5,
+                                                                                   1.5]},
+                                                         'type': 'ColorJitter',
+                                                         'weight': 1.0},
+                                          'sharpness': {'kwargs': {'sharpness': [0.5,
+                                                                                 1.5]},
+                                                        'type': 'SharpnessJitter',
+                                                        'weight': 1.0}}},
+             'repo_id': 'local/r054_train48',
+             'repo_type': 'dataset',
+             'return_uint8': False,
+             'revision': None,
+             'root': 'data/r054_train48',
+             'streaming': False,
+             'use_imagenet_stats': True,
+             'video_backend': 'pyav'},
+ 'ema': {'decay': None,
+         'enable': False,
+         'inv_gamma': 1.0,
+         'max_decay': 0.9999,
+         'min_decay': 0.0,
+         'power': 0.75,
+         'update_after_step': 0,
+         'use_for_eval': True},
+ 'env': None,
+ 'env_eval_freq': 20000,
+ 'eval': {'batch_size': 11,
+          'n_episodes': 50,
+          'recording': False,
+          'recording_private': False,
+          'recording_repo_id': None,
+          'use_async_envs': True},
+ 'eval_steps': 0,
+ 'job': {'detach': False,
+         'image': 'huggingface/lerobot-gpu:latest',
+         'tags': [],
+         'target': None,
+         'timeout': '2d'},
+ 'job_name': 'r056fix_v1',
+ 'log_freq': 10,
+ 'max_eval_samples': 0,
+ 'num_workers': 2,
+ 'optimizer': {'betas': [0.9, 0.999],
+               'eps': 1e-08,
+               'grad_clip_norm': 1.0,
+               'lr': 0.0001,
+               'type': 'adamw',
+               'weight_decay': 1e-05},
+ 'output_dir': 'runs/impl_smoke/r056fix_v1',
+ 'parallelism': {'cfg_parallel': 1,
+                 'context_parallel': {'ring_degree': 1, 'ulysses_degree': 1},
+                 'dp_replicate': 1,
+                 'dp_shard': 1},
+ 'peft': {'full_training_modules': [],
+          'init_type': None,
+          'lora_alpha': 16,
+          'method_type': 'LORA',
+          'r': 16,
+          'target_modules': None},
+ 'persistent_workers': True,
+ 'policy': {'action_decode_transform': 'libero',
+            'balance_dataset_weights': True,
+            'balance_trajectory_weights': True,
+            'base_model_path': 'nvidia/GR00T-N1.7-3B',
+            'batch_size': 32,
+            'chunk_size': 16,
+            'dataloader_num_workers': 8,
+            'dataset_paths': None,
+            'device': 'cuda',
+            'embodiment_tag': 'libero_sim',
+            'image_size': [256, 256],
+            'input_features': {'observation.images.image': {'shape': [256,
+                                                                      256,
+                                                                      3],
+                                                            'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.images.wrist_image': {'shape': [256,
+                                                                            256,
+                                                                            3],
+                                                                  'type': <FeatureType.VISUAL: 'VISUAL'>},
+                               'observation.state': {'shape': [8],
+                                                     'type': <FeatureType.STATE: 'STATE'>}},
+            'license': None,
+            'lora_alpha': 16,
+            'lora_dropout': 0.1,
+            'lora_full_model': False,
+            'lora_rank': 0,
+            'max_action_dim': 132,
+            'max_state_dim': 132,
+            'max_steps': 20000,
+            'model_params_fp32': False,
+            'n_action_steps': 16,
+            'n_obs_steps': 1,
+            'normalization_mapping': {'ACTION': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'STATE': <NormalizationMode.IDENTITY: 'IDENTITY'>,
+                                      'VISUAL': <NormalizationMode.IDENTITY: 'IDENTITY'>},
+            'num_inference_timesteps': 4,
+            'optimizer_betas': [0.9, 0.999],
+            'optimizer_eps': 1e-08,
+            'optimizer_lr': 0.0001,
+            'optimizer_weight_decay': 1e-05,
+            'output_dir': './tmp/gr00t',
+            'output_features': {'action': {'shape': [7],
+                                           'type': <FeatureType.ACTION: 'ACTION'>}},
+            'pretrained_path': 'nvidia/gr00t17-lerobot-libero_spatial-640',
+            'pretrained_revision': None,
+            'private': None,
+            'push_to_hub': False,
+            'relative_exclude_joints': [],
+            'repo_id': None,
+            'report_to': 'wandb',
+            'resume': False,
+            'rtc_ramp_rate': 6.0,
+            'save_steps': 1000,
+            'tags': None,
+            'tokenizer_assets_repo': None,
+            'tune_diffusion_model': True,
+            'tune_llm': False,
+            'tune_projector': False,
+            'tune_top_llm_layers': 0,
+            'tune_visual': False,
+            'tune_vlln': True,
+            'type': 'groot',
+            'use_amp': False,
+            'use_bf16': True,
+            'use_flash_attention': False,
+            'use_peft': False,
+            'use_relative_actions': False,
+            'video_backend': 'decord',
+            'warmup_ratio': 0.05},
+ 'prefetch_factor': 4,
+ 'rename_map': {},
+ 'resume': False,
+ 'reward_model': None,
+ 'sample_weighting': None,
+ 'save_checkpoint': True,
+ 'save_checkpoint_to_hub': False,
+ 'save_freq': 160,
+ 'scheduler': {'name': 'cosine', 'num_warmup_steps': 2, 'type': 'diffuser'},
+ 'seed': 1000,
+ 'steps': 320,
+ 'tolerance_s': 0.0001,
+ 'use_policy_training_preset': False,
+ 'wandb': {'add_tags': True,
+           'console': 'wrap',
+           'console_chunk_max_seconds': 0,
+           'console_multipart': False,
+           'disable_artifact': False,
+           'enable': False,
+           'entity': None,
+           'mode': None,
+           'notes': None,
+           'project': 'lerobot',
+           'resume': None,
+           'run_id': None}}
+INFO 2026-09-29 17:47:47 ot_train.py:428 Logs will be saved locally.
+INFO 2026-09-29 17:47:47 ot_train.py:443 Creating dataset
+INFO 2026-09-29 17:47:47 ot_train.py:471 Creating policy
+INFO 2026-09-29 17:47:47 ng_groot.py:194 The Groot policy wraps NVIDIA's GR00T n1.7 model. Loading pretrained model from: nvidia/gr00t17-lerobot-libero_spatial-640
+INFO 2026-09-29 17:47:48 ng_groot.py:228 Detected fine-tuned LeRobot checkpoint, loading with state dict...
+Fetching 27 files:   0%|          | 0/27 [00:00<?, ?it/s]Fetching 27 files: 100%|██████████| 27/27 [00:00<00:00, 958.58it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  23%|██▎       | 233/1031 [00:00<00:00, 2318.83it/s]Loading weights:  45%|████▌     | 465/1031 [00:00<00:00, 2236.75it/s]Loading weights:  67%|██████▋   | 689/1031 [00:00<00:00, 723.66it/s] Loading weights:  80%|████████  | 829/1031 [00:00<00:00, 825.10it/s]Loading weights:  98%|█████████▊| 1006/1031 [00:01<00:00, 967.39it/s]Loading weights: 100%|██████████| 1031/1031 [00:01<00:00, 1002.84it/s]
+INFO 2026-09-29 17:48:00 ot_train.py:488 Using PEFT! Wrapping model.
+INFO 2026-09-29 17:48:01 etrained.py:386 Wrapped groot with PEFT (LoraConfig)
+INFO 2026-09-29 17:48:02 ot_train.py:562 Creating optimizer and scheduler
+[groot_lora] trainable parameters: 19,136,512 of 3,163,152,512 (496 tensors); non-LoRA trainable: 0
+INFO 2026-09-29 17:48:02 ot_train.py:613 Output dir: runs/impl_smoke/r056fix_v1
+INFO 2026-09-29 17:48:02 ot_train.py:620 cfg.steps=320 (320)
+INFO 2026-09-29 17:48:02 ot_train.py:621 dataset.num_frames=57770 (58K)
+INFO 2026-09-29 17:48:02 ot_train.py:622 dataset.num_episodes=532
+INFO 2026-09-29 17:48:02 ot_train.py:623 Effective batch size: 1 x 1 dp workers x 8 grad accum = 8 (topology: dp_replicate=1, dp_shard=1)
+INFO 2026-09-29 17:48:02 ot_train.py:628 num_learnable_params=19136512 (19M)
+INFO 2026-09-29 17:48:02 ot_train.py:629 num_total_params=3163152512 (3B)
+Training:   0%|          | 0/320 [00:00<?, ?step/s]INFO 2026-09-29 17:48:02 ot_train.py:731 Start offline training on a fixed dataset, with effective batch size: 8
+/home/imerit/Documents/Code/VLA/.venvs/libero-plus/lib/python3.12/site-packages/accelerate/scheduler.py:57: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  self.scheduler.step(*args, **kwargs)
+Training:   0%|          | 1/320 [00:06<35:40,  6.71s/step]Training:   1%|          | 2/320 [00:07<15:45,  2.97s/step]Training:   1%|          | 3/320 [00:07<09:27,  1.79s/step]Training:   1%|▏         | 4/320 [00:07<06:46,  1.29s/step]Training:   2%|▏         | 5/320 [00:08<05:03,  1.04step/s]Training:   2%|▏         | 6/320 [00:08<04:03,  1.29step/s]Training:   2%|▏         | 7/320 [00:09<03:22,  1.54step/s]Training:   2%|▎         | 8/320 [00:09<03:25,  1.52step/s]Training:   3%|▎         | 9/320 [00:10<03:07,  1.66step/s]Training:   3%|▎         | 10/320 [00:10<02:56,  1.76step/s]INFO 2026-09-29 17:48:13 ot_train.py:778 step:10 smpl:10 ep:0 epch:0.00 loss:0.077 grdn:0.025 lr:1.5e-05 data_s:0.086 prep_s:0.508 updt_s:0.482 step_s:1.080 smp/s:1 mem_gb:6.19
+Training:   3%|▎         | 11/320 [00:11<02:40,  1.92step/s]Training:   4%|▍         | 12/320 [00:11<02:36,  1.96step/s]Training:   4%|▍         | 13/320 [00:12<02:24,  2.13step/s]Training:   4%|▍         | 14/320 [00:12<02:13,  2.29step/s]Training:   5%|▍         | 15/320 [00:12<02:11,  2.32step/s]Training:   5%|▌         | 16/320 [00:13<02:08,  2.37step/s]Training:   5%|▌         | 17/320 [00:13<02:02,  2.48step/s]Training:   6%|▌         | 18/320 [00:14<02:08,  2.35step/s]Training:   6%|▌         | 19/320 [00:14<02:03,  2.44step/s]Training:   6%|▋         | 20/320 [00:14<01:58,  2.52step/s]INFO 2026-09-29 17:48:17 ot_train.py:778 step:20 smpl:20 ep:0 epch:0.00 loss:0.147 grdn:0.177 lr:7.5e-05 data_s:0.001 prep_s:0.104 updt_s:0.294 step_s:0.402 smp/s:2 mem_gb:6.29
+Training:   7%|▋         | 21/320 [00:15<02:37,  1.90step/s]Training:   7%|▋         | 22/320 [00:16<02:22,  2.09step/s]Training:   7%|▋         | 23/320 [00:16<02:17,  2.16step/s]Training:   8%|▊         | 24/320 [00:16<02:11,  2.26step/s]Training:   8%|▊         | 25/320 [00:17<02:04,  2.37step/s]Training:   8%|▊         | 26/320 [00:17<02:00,  2.44step/s]Training:   8%|▊         | 27/320 [00:18<01:59,  2.44step/s]Training:   9%|▉         | 28/320 [00:18<01:55,  2.53step/s]Training:   9%|▉         | 29/320 [00:18<01:58,  2.46step/s]Training:   9%|▉         | 30/320 [00:19<01:52,  2.57step/s]INFO 2026-09-29 17:48:21 ot_train.py:778 step:30 smpl:30 ep:0 epch:0.00 loss:0.050 grdn:0.071 lr:1.0e-04 data_s:0.001 prep_s:0.096 updt_s:0.332 step_s:0.432 smp/s:2 mem_gb:6.29
+Training:  10%|▉         | 31/320 [00:19<01:51,  2.59step/s]Training:  10%|█         | 32/320 [00:19<01:54,  2.51step/s]Training:  10%|█         | 33/320 [00:20<01:52,  2.55step/s]Training:  11%|█         | 34/320 [00:20<01:49,  2.61step/s]Training:  11%|█         | 35/320 [00:21<01:52,  2.54step/s]Training:  11%|█▏        | 36/320 [00:21<01:46,  2.68step/s]Training:  12%|█▏        | 37/320 [00:21<01:41,  2.77step/s]Training:  12%|█▏        | 38/320 [00:22<01:46,  2.64step/s]Training:  12%|█▏        | 39/320 [00:22<01:44,  2.69step/s]Training:  12%|█▎        | 40/320 [00:22<01:43,  2.70step/s]INFO 2026-09-29 17:48:25 ot_train.py:778 step:40 smpl:40 ep:0 epch:0.00 loss:0.073 grdn:0.069 lr:9.9e-05 data_s:0.001 prep_s:0.072 updt_s:0.300 step_s:0.376 smp/s:3 mem_gb:6.29
+Training:  13%|█▎        | 41/320 [00:23<01:44,  2.67step/s]Training:  13%|█▎        | 42/320 [00:23<01:43,  2.69step/s]Training:  13%|█▎        | 43/320 [00:24<01:45,  2.62step/s]Training:  14%|█▍        | 44/320 [00:24<01:45,  2.60step/s]Training:  14%|█▍        | 45/320 [00:25<02:12,  2.08step/s]Training:  14%|█▍        | 46/320 [00:25<02:00,  2.28step/s]Training:  15%|█▍        | 47/320 [00:25<01:55,  2.36step/s]Training:  15%|█▌        | 48/320 [00:26<01:55,  2.35step/s]Training:  15%|█▌        | 49/320 [00:26<01:51,  2.43step/s]Training:  16%|█▌        | 50/320 [00:27<01:47,  2.50step/s]INFO 2026-09-29 17:48:29 ot_train.py:778 step:50 smpl:50 ep:0 epch:0.00 loss:0.270 grdn:0.244 lr:9.8e-05 data_s:0.001 prep_s:0.084 updt_s:0.328 step_s:0.416 smp/s:2 mem_gb:6.29
+Training:  16%|█▌        | 51/320 [00:27<01:44,  2.58step/s]Training:  16%|█▋        | 52/320 [00:27<01:53,  2.36step/s]Training:  17%|█▋        | 53/320 [00:28<01:52,  2.37step/s]Training:  17%|█▋        | 54/320 [00:28<01:47,  2.48step/s]Training:  17%|█▋        | 55/320 [00:29<01:46,  2.50step/s]Training:  18%|█▊        | 56/320 [00:29<01:44,  2.52step/s]Training:  18%|█▊        | 57/320 [00:29<01:41,  2.58step/s]Training:  18%|█▊        | 58/320 [00:30<01:54,  2.28step/s]Training:  18%|█▊        | 59/320 [00:30<01:50,  2.37step/s]Training:  19%|█▉        | 60/320 [00:31<01:45,  2.46step/s]INFO 2026-09-29 17:48:33 ot_train.py:778 step:60 smpl:60 ep:1 epch:0.00 loss:0.301 grdn:0.188 lr:9.7e-05 data_s:0.001 prep_s:0.109 updt_s:0.296 step_s:0.410 smp/s:2 mem_gb:6.29
+Training:  19%|█▉        | 61/320 [00:31<01:43,  2.51step/s]Training:  19%|█▉        | 62/320 [00:31<01:43,  2.49step/s]Training:  20%|█▉        | 63/320 [00:32<01:38,  2.61step/s]Training:  20%|██        | 64/320 [00:32<01:37,  2.63step/s]Training:  20%|██        | 65/320 [00:33<01:36,  2.65step/s]Training:  21%|██        | 66/320 [00:33<02:16,  1.86step/s]Training:  21%|██        | 67/320 [00:34<02:15,  1.87step/s]Training:  21%|██▏       | 68/320 [00:34<02:01,  2.07step/s]Training:  22%|██▏       | 69/320 [00:35<01:54,  2.20step/s]Training:  22%|██▏       | 70/320 [00:35<01:44,  2.40step/s]INFO 2026-09-29 17:48:38 ot_train.py:778 step:70 smpl:70 ep:1 epch:0.00 loss:0.174 grdn:0.018 lr:9.5e-05 data_s:0.001 prep_s:0.099 updt_s:0.335 step_s:0.438 smp/s:2 mem_gb:6.29
+Training:  22%|██▏       | 71/320 [00:35<01:37,  2.56step/s]Training:  22%|██▎       | 72/320 [00:36<01:40,  2.46step/s]Training:  23%|██▎       | 73/320 [00:36<01:35,  2.60step/s]Training:  23%|██▎       | 74/320 [00:37<01:35,  2.58step/s]Training:  23%|██▎       | 75/320 [00:37<01:31,  2.67step/s]Training:  24%|██▍       | 76/320 [00:37<01:32,  2.62step/s]Training:  24%|██▍       | 77/320 [00:38<01:34,  2.56step/s]Training:  24%|██▍       | 78/320 [00:38<01:32,  2.60step/s]Training:  25%|██▍       | 79/320 [00:39<01:39,  2.41step/s]Training:  25%|██▌       | 80/320 [00:39<01:41,  2.36step/s]INFO 2026-09-29 17:48:42 ot_train.py:778 step:80 smpl:80 ep:1 epch:0.00 loss:0.083 grdn:0.205 lr:9.2e-05 data_s:0.001 prep_s:0.089 updt_s:0.301 step_s:0.395 smp/s:3 mem_gb:6.29
+Training:  25%|██▌       | 81/320 [00:39<01:40,  2.38step/s]Training:  26%|██▌       | 82/320 [00:40<01:44,  2.27step/s]Training:  26%|██▌       | 83/320 [00:40<01:41,  2.34step/s]Training:  26%|██▋       | 84/320 [00:41<01:48,  2.18step/s]Training:  27%|██▋       | 85/320 [00:41<01:51,  2.10step/s]Training:  27%|██▋       | 86/320 [00:42<01:51,  2.11step/s]Training:  27%|██▋       | 87/320 [00:43<02:12,  1.76step/s]Training:  28%|██▊       | 88/320 [00:43<01:57,  1.98step/s]Training:  28%|██▊       | 89/320 [00:43<01:44,  2.21step/s]Training:  28%|██▊       | 90/320 [00:44<01:42,  2.24step/s]INFO 2026-09-29 17:48:46 ot_train.py:778 step:90 smpl:90 ep:1 epch:0.00 loss:0.087 grdn:0.060 lr:8.9e-05 data_s:0.001 prep_s:0.133 updt_s:0.333 step_s:0.472 smp/s:2 mem_gb:6.29
+Training:  28%|██▊       | 91/320 [00:44<01:42,  2.23step/s]Training:  29%|██▉       | 92/320 [00:45<01:40,  2.26step/s]Training:  29%|██▉       | 93/320 [00:45<01:35,  2.38step/s]Training:  29%|██▉       | 94/320 [00:45<01:34,  2.38step/s]Training:  30%|██▉       | 95/320 [00:46<01:33,  2.40step/s]Training:  30%|███       | 96/320 [00:46<01:33,  2.40step/s]Training:  30%|███       | 97/320 [00:47<01:39,  2.23step/s]Training:  31%|███       | 98/320 [00:47<01:48,  2.05step/s]Training:  31%|███       | 99/320 [00:48<01:41,  2.18step/s]Training:  31%|███▏      | 100/320 [00:48<01:37,  2.27step/s]INFO 2026-09-29 17:48:51 ot_train.py:778 step:100 smpl:100 ep:1 epch:0.00 loss:0.075 grdn:0.060 lr:8.5e-05 data_s:0.001 prep_s:0.125 updt_s:0.309 step_s:0.438 smp/s:2 mem_gb:6.29
+Training:  32%|███▏      | 101/320 [00:49<01:38,  2.22step/s]Training:  32%|███▏      | 102/320 [00:49<01:32,  2.37step/s]Training:  32%|███▏      | 103/320 [00:49<01:30,  2.39step/s]Training:  32%|███▎      | 104/320 [00:50<01:31,  2.37step/s]Training:  33%|███▎      | 105/320 [00:50<01:25,  2.51step/s]Training:  33%|███▎      | 106/320 [00:51<01:27,  2.46step/s]Training:  33%|███▎      | 107/320 [00:51<01:26,  2.47step/s]Training:  34%|███▍      | 108/320 [00:52<01:54,  1.86step/s]Training:  34%|███▍      | 109/320 [00:52<01:49,  1.93step/s]Training:  34%|███▍      | 110/320 [00:53<01:53,  1.84step/s]INFO 2026-09-29 17:48:55 ot_train.py:778 step:110 smpl:110 ep:1 epch:0.00 loss:0.034 grdn:0.045 lr:8.2e-05 data_s:0.001 prep_s:0.122 updt_s:0.347 step_s:0.475 smp/s:2 mem_gb:6.29
+Training:  35%|███▍      | 111/320 [00:53<01:44,  2.00step/s]Training:  35%|███▌      | 112/320 [00:54<01:40,  2.07step/s]Training:  35%|███▌      | 113/320 [00:54<01:34,  2.20step/s]Training:  36%|███▌      | 114/320 [00:55<01:30,  2.29step/s]Training:  36%|███▌      | 115/320 [00:55<01:29,  2.29step/s]Training:  36%|███▋      | 116/320 [00:55<01:25,  2.39step/s]Training:  37%|███▋      | 117/320 [00:56<01:31,  2.21step/s]Training:  37%|███▋      | 118/320 [00:56<01:30,  2.23step/s]Training:  37%|███▋      | 119/320 [00:57<01:43,  1.95step/s]Training:  38%|███▊      | 120/320 [00:57<01:38,  2.03step/s]INFO 2026-09-29 17:49:00 ot_train.py:778 step:120 smpl:120 ep:1 epch:0.00 loss:0.019 grdn:0.009 lr:7.7e-05 data_s:0.002 prep_s:0.134 updt_s:0.312 step_s:0.451 smp/s:2 mem_gb:6.29
+Training:  38%|███▊      | 121/320 [00:58<01:31,  2.17step/s]Training:  38%|███▊      | 122/320 [00:58<01:27,  2.25step/s]Training:  38%|███▊      | 123/320 [00:59<01:26,  2.27step/s]Training:  39%|███▉      | 124/320 [00:59<01:31,  2.13step/s]Training:  39%|███▉      | 125/320 [01:00<01:35,  2.04step/s]Training:  39%|███▉      | 126/320 [01:00<01:32,  2.09step/s]Training:  40%|███▉      | 127/320 [01:01<01:24,  2.27step/s]Training:  40%|████      | 128/320 [01:01<01:25,  2.25step/s]Training:  40%|████      | 129/320 [01:01<01:22,  2.31step/s]Training:  41%|████      | 130/320 [01:02<01:43,  1.83step/s]INFO 2026-09-29 17:49:05 ot_train.py:778 step:130 smpl:130 ep:1 epch:0.00 loss:0.087 grdn:0.013 lr:7.3e-05 data_s:0.001 prep_s:0.127 updt_s:0.344 step_s:0.476 smp/s:2 mem_gb:6.29
+Training:  41%|████      | 131/320 [01:03<01:35,  1.99step/s]Training:  41%|████▏     | 132/320 [01:03<01:25,  2.19step/s]Training:  42%|████▏     | 133/320 [01:03<01:21,  2.30step/s]Training:  42%|████▏     | 134/320 [01:04<01:19,  2.33step/s]Training:  42%|████▏     | 135/320 [01:04<01:15,  2.45step/s]Training:  42%|████▎     | 136/320 [01:04<01:14,  2.48step/s]Training:  43%|████▎     | 137/320 [01:05<01:09,  2.65step/s]Training:  43%|████▎     | 138/320 [01:05<01:09,  2.63step/s]Training:  43%|████▎     | 139/320 [01:06<01:10,  2.58step/s]Training:  44%|████▍     | 140/320 [01:06<01:08,  2.63step/s]INFO 2026-09-29 17:49:09 ot_train.py:778 step:140 smpl:140 ep:1 epch:0.00 loss:0.032 grdn:0.305 lr:6.8e-05 data_s:0.001 prep_s:0.073 updt_s:0.299 step_s:0.377 smp/s:3 mem_gb:6.29
+Training:  44%|████▍     | 141/320 [01:06<01:08,  2.63step/s]Training:  44%|████▍     | 142/320 [01:07<01:06,  2.67step/s]Training:  45%|████▍     | 143/320 [01:07<01:04,  2.72step/s]Training:  45%|████▌     | 144/320 [01:07<01:05,  2.70step/s]Training:  45%|████▌     | 145/320 [01:08<01:11,  2.46step/s]Training:  46%|████▌     | 146/320 [01:08<01:16,  2.28step/s]Training:  46%|████▌     | 147/320 [01:09<01:14,  2.31step/s]Training:  46%|████▋     | 148/320 [01:09<01:13,  2.33step/s]Training:  47%|████▋     | 149/320 [01:10<01:12,  2.35step/s]Training:  47%|████▋     | 150/320 [01:10<01:11,  2.37step/s]INFO 2026-09-29 17:49:13 ot_train.py:778 step:150 smpl:150 ep:1 epch:0.00 loss:0.034 grdn:0.035 lr:6.3e-05 data_s:0.001 prep_s:0.108 updt_s:0.301 step_s:0.414 smp/s:2 mem_gb:6.29
+Training:  47%|████▋     | 151/320 [01:11<01:31,  1.85step/s]Training:  48%|████▊     | 152/320 [01:11<01:27,  1.93step/s]Training:  48%|████▊     | 153/320 [01:12<01:19,  2.09step/s]Training:  48%|████▊     | 154/320 [01:12<01:17,  2.14step/s]Training:  48%|████▊     | 155/320 [01:13<01:14,  2.23step/s]Training:  49%|████▉     | 156/320 [01:13<01:13,  2.23step/s]Training:  49%|████▉     | 157/320 [01:13<01:11,  2.29step/s]Training:  49%|████▉     | 158/320 [01:14<01:08,  2.37step/s]Training:  50%|████▉     | 159/320 [01:14<01:04,  2.50step/s]Training:  50%|█████     | 160/320 [01:15<01:07,  2.38step/s]INFO 2026-09-29 17:49:17 ot_train.py:778 step:160 smpl:160 ep:1 epch:0.00 loss:0.032 grdn:0.026 lr:5.8e-05 data_s:0.001 prep_s:0.101 updt_s:0.351 step_s:0.457 smp/s:2 mem_gb:6.29
+INFO 2026-09-29 17:49:17 ot_train.py:820 Checkpoint policy after step 160
+Training:  50%|█████     | 161/320 [01:16<01:40,  1.57step/s]Training:  51%|█████     | 162/320 [01:16<01:29,  1.77step/s]Training:  51%|█████     | 163/320 [01:17<01:22,  1.91step/s]Training:  51%|█████▏    | 164/320 [01:17<01:12,  2.15step/s]Training:  52%|█████▏    | 165/320 [01:17<01:11,  2.18step/s]Training:  52%|█████▏    | 166/320 [01:18<01:07,  2.29step/s]Training:  52%|█████▏    | 167/320 [01:18<01:15,  2.03step/s]Training:  52%|█████▎    | 168/320 [01:19<01:17,  1.96step/s]Training:  53%|█████▎    | 169/320 [01:19<01:13,  2.05step/s]Training:  53%|█████▎    | 170/320 [01:20<01:16,  1.95step/s]INFO 2026-09-29 17:49:23 ot_train.py:778 step:170 smpl:170 ep:2 epch:0.00 loss:0.058 grdn:0.036 lr:5.3e-05 data_s:0.001 prep_s:0.143 updt_s:0.309 step_s:0.456 smp/s:2 mem_gb:6.29
+Training:  53%|█████▎    | 171/320 [01:20<01:12,  2.07step/s]Training:  54%|█████▍    | 172/320 [01:21<01:33,  1.58step/s]Training:  54%|█████▍    | 173/320 [01:22<01:24,  1.74step/s]Training:  54%|█████▍    | 174/320 [01:22<01:17,  1.89step/s]Training:  55%|█████▍    | 175/320 [01:23<01:11,  2.03step/s]Training:  55%|█████▌    | 176/320 [01:23<01:07,  2.15step/s]Training:  55%|█████▌    | 177/320 [01:24<01:06,  2.16step/s]Training:  56%|█████▌    | 178/320 [01:24<01:05,  2.17step/s]Training:  56%|█████▌    | 179/320 [01:24<01:06,  2.12step/s]Training:  56%|█████▋    | 180/320 [01:25<01:05,  2.15step/s]INFO 2026-09-29 17:49:28 ot_train.py:778 step:180 smpl:180 ep:2 epch:0.00 loss:0.069 grdn:0.043 lr:4.8e-05 data_s:0.001 prep_s:0.147 updt_s:0.341 step_s:0.492 smp/s:2 mem_gb:6.29
+Training:  57%|█████▋    | 181/320 [01:25<01:03,  2.20step/s]Training:  57%|█████▋    | 182/320 [01:26<01:04,  2.12step/s]Training:  57%|█████▋    | 183/320 [01:26<01:00,  2.28step/s]Training:  57%|█████▊    | 184/320 [01:27<01:00,  2.26step/s]Training:  58%|█████▊    | 185/320 [01:27<00:57,  2.35step/s]Training:  58%|█████▊    | 186/320 [01:27<00:56,  2.39step/s]Training:  58%|█████▊    | 187/320 [01:28<00:56,  2.36step/s]Training:  59%|█████▉    | 188/320 [01:28<00:55,  2.40step/s]Training:  59%|█████▉    | 189/320 [01:29<00:56,  2.34step/s]Training:  59%|█████▉    | 190/320 [01:29<00:55,  2.34step/s]INFO 2026-09-29 17:49:32 ot_train.py:778 step:190 smpl:190 ep:2 epch:0.00 loss:0.008 grdn:0.120 lr:4.3e-05 data_s:0.001 prep_s:0.115 updt_s:0.306 step_s:0.426 smp/s:2 mem_gb:6.29
+Training:  60%|█████▉    | 191/320 [01:30<00:55,  2.31step/s]Training:  60%|██████    | 192/320 [01:31<01:12,  1.76step/s]Training:  60%|██████    | 193/320 [01:31<01:06,  1.90step/s]Training:  61%|██████    | 194/320 [01:31<01:02,  2.02step/s]Training:  61%|██████    | 195/320 [01:32<01:00,  2.08step/s]Training:  61%|██████▏   | 196/320 [01:32<00:56,  2.19step/s]Training:  62%|██████▏   | 197/320 [01:33<00:54,  2.25step/s]Training:  62%|██████▏   | 198/320 [01:33<00:52,  2.32step/s]Training:  62%|██████▏   | 199/320 [01:33<00:50,  2.38step/s]Training:  62%|██████▎   | 200/320 [01:34<00:51,  2.34step/s]INFO 2026-09-29 17:49:36 ot_train.py:778 step:200 smpl:200 ep:2 epch:0.00 loss:0.046 grdn:0.054 lr:3.8e-05 data_s:0.001 prep_s:0.111 updt_s:0.353 step_s:0.467 smp/s:2 mem_gb:6.29
+Training:  63%|██████▎   | 201/320 [01:34<00:50,  2.35step/s]Training:  63%|██████▎   | 202/320 [01:35<00:48,  2.42step/s]Training:  63%|██████▎   | 203/320 [01:35<00:47,  2.48step/s]Training:  64%|██████▍   | 204/320 [01:35<00:47,  2.47step/s]Training:  64%|██████▍   | 205/320 [01:36<00:47,  2.40step/s]Training:  64%|██████▍   | 206/320 [01:36<00:47,  2.39step/s]Training:  65%|██████▍   | 207/320 [01:37<00:48,  2.33step/s]Training:  65%|██████▌   | 208/320 [01:37<00:49,  2.29step/s]Training:  65%|██████▌   | 209/320 [01:38<00:46,  2.37step/s]Training:  66%|██████▌   | 210/320 [01:38<00:46,  2.37step/s]INFO 2026-09-29 17:49:41 ot_train.py:778 step:210 smpl:210 ep:2 epch:0.00 loss:0.050 grdn:0.050 lr:3.3e-05 data_s:0.001 prep_s:0.108 updt_s:0.305 step_s:0.417 smp/s:2 mem_gb:6.29
+Training:  66%|██████▌   | 211/320 [01:38<00:47,  2.31step/s]Training:  66%|██████▋   | 212/320 [01:39<00:46,  2.32step/s]Training:  67%|██████▋   | 213/320 [01:39<00:45,  2.37step/s]Training:  67%|██████▋   | 214/320 [01:40<00:44,  2.40step/s]Training:  67%|██████▋   | 215/320 [01:41<00:55,  1.90step/s]Training:  68%|██████▊   | 216/320 [01:41<00:53,  1.95step/s]Training:  68%|██████▊   | 217/320 [01:41<00:49,  2.08step/s]Training:  68%|██████▊   | 218/320 [01:42<00:50,  2.02step/s]Training:  68%|██████▊   | 219/320 [01:42<00:49,  2.04step/s]Training:  69%|██████▉   | 220/320 [01:43<00:47,  2.13step/s]INFO 2026-09-29 17:49:45 ot_train.py:778 step:220 smpl:220 ep:2 epch:0.00 loss:0.054 grdn:0.123 lr:2.8e-05 data_s:0.001 prep_s:0.120 updt_s:0.354 step_s:0.479 smp/s:2 mem_gb:6.29
+Training:  69%|██████▉   | 221/320 [01:43<00:44,  2.21step/s]Training:  69%|██████▉   | 222/320 [01:44<00:43,  2.24step/s]Training:  70%|██████▉   | 223/320 [01:44<00:42,  2.28step/s]Training:  70%|███████   | 224/320 [01:45<00:42,  2.27step/s]Training:  70%|███████   | 225/320 [01:45<00:40,  2.34step/s]Training:  71%|███████   | 226/320 [01:45<00:39,  2.36step/s]Training:  71%|███████   | 227/320 [01:46<00:39,  2.38step/s]Training:  71%|███████▏  | 228/320 [01:46<00:39,  2.36step/s]Training:  72%|███████▏  | 229/320 [01:47<00:37,  2.41step/s]Training:  72%|███████▏  | 230/320 [01:47<00:36,  2.49step/s]INFO 2026-09-29 17:49:50 ot_train.py:778 step:230 smpl:230 ep:2 epch:0.00 loss:0.080 grdn:0.069 lr:2.4e-05 data_s:0.001 prep_s:0.102 updt_s:0.305 step_s:0.412 smp/s:2 mem_gb:6.29
+Training:  72%|███████▏  | 231/320 [01:47<00:34,  2.61step/s]Training:  72%|███████▎  | 232/320 [01:48<00:32,  2.68step/s]Training:  73%|███████▎  | 233/320 [01:48<00:32,  2.69step/s]Training:  73%|███████▎  | 234/320 [01:48<00:32,  2.62step/s]Training:  73%|███████▎  | 235/320 [01:49<00:32,  2.65step/s]Training:  74%|███████▍  | 236/320 [01:50<00:41,  2.02step/s]Training:  74%|███████▍  | 237/320 [01:50<00:38,  2.14step/s]Training:  74%|███████▍  | 238/320 [01:50<00:36,  2.28step/s]Training:  75%|███████▍  | 239/320 [01:51<00:35,  2.31step/s]Training:  75%|███████▌  | 240/320 [01:51<00:34,  2.33step/s]INFO 2026-09-29 17:49:54 ot_train.py:778 step:240 smpl:240 ep:2 epch:0.00 loss:0.081 grdn:0.077 lr:1.9e-05 data_s:0.001 prep_s:0.073 updt_s:0.343 step_s:0.421 smp/s:2 mem_gb:6.29
+Training:  75%|███████▌  | 241/320 [01:52<00:32,  2.44step/s]Training:  76%|███████▌  | 242/320 [01:52<00:32,  2.42step/s]Training:  76%|███████▌  | 243/320 [01:52<00:31,  2.43step/s]Training:  76%|███████▋  | 244/320 [01:53<00:31,  2.44step/s]Training:  77%|███████▋  | 245/320 [01:53<00:30,  2.44step/s]Training:  77%|███████▋  | 246/320 [01:54<00:31,  2.34step/s]Training:  77%|███████▋  | 247/320 [01:54<00:29,  2.47step/s]Training:  78%|███████▊  | 248/320 [01:54<00:28,  2.51step/s]Training:  78%|███████▊  | 249/320 [01:55<00:30,  2.35step/s]Training:  78%|███████▊  | 250/320 [01:55<00:29,  2.35step/s]INFO 2026-09-29 17:49:58 ot_train.py:778 step:250 smpl:250 ep:2 epch:0.00 loss:0.050 grdn:0.034 lr:1.5e-05 data_s:0.001 prep_s:0.097 updt_s:0.310 step_s:0.412 smp/s:2 mem_gb:6.29
+Training:  78%|███████▊  | 251/320 [01:56<00:28,  2.43step/s]Training:  79%|███████▉  | 252/320 [01:56<00:28,  2.42step/s]Training:  79%|███████▉  | 253/320 [01:57<00:27,  2.43step/s]Training:  79%|███████▉  | 254/320 [01:57<00:27,  2.43step/s]Training:  80%|███████▉  | 255/320 [01:57<00:25,  2.55step/s]Training:  80%|████████  | 256/320 [01:58<00:25,  2.53step/s]Training:  80%|████████  | 257/320 [01:58<00:25,  2.51step/s]Training:  81%|████████  | 258/320 [01:59<00:31,  1.94step/s]Training:  81%|████████  | 259/320 [01:59<00:28,  2.13step/s]Training:  81%|████████▏ | 260/320 [02:00<00:26,  2.27step/s]INFO 2026-09-29 17:50:02 ot_train.py:778 step:260 smpl:260 ep:2 epch:0.00 loss:0.045 grdn:0.023 lr:1.2e-05 data_s:0.001 prep_s:0.080 updt_s:0.343 step_s:0.429 smp/s:2 mem_gb:6.29
+Training:  82%|████████▏ | 261/320 [02:00<00:24,  2.37step/s]Training:  82%|████████▏ | 262/320 [02:00<00:23,  2.46step/s]Training:  82%|████████▏ | 263/320 [02:01<00:22,  2.49step/s]Training:  82%|████████▎ | 264/320 [02:01<00:22,  2.50step/s]Training:  83%|████████▎ | 265/320 [02:02<00:21,  2.55step/s]Training:  83%|████████▎ | 266/320 [02:02<00:20,  2.65step/s]Training:  83%|████████▎ | 267/320 [02:02<00:20,  2.56step/s]Training:  84%|████████▍ | 268/320 [02:03<00:20,  2.56step/s]Training:  84%|████████▍ | 269/320 [02:03<00:20,  2.51step/s]Training:  84%|████████▍ | 270/320 [02:03<00:19,  2.59step/s]INFO 2026-09-29 17:50:06 ot_train.py:778 step:270 smpl:270 ep:2 epch:0.00 loss:0.028 grdn:0.053 lr:8.9e-06 data_s:0.001 prep_s:0.074 updt_s:0.304 step_s:0.383 smp/s:3 mem_gb:6.29
+Training:  85%|████████▍ | 271/320 [02:04<00:19,  2.51step/s]Training:  85%|████████▌ | 272/320 [02:04<00:19,  2.45step/s]Training:  85%|████████▌ | 273/320 [02:05<00:18,  2.50step/s]Training:  86%|████████▌ | 274/320 [02:05<00:17,  2.59step/s]Training:  86%|████████▌ | 275/320 [02:05<00:18,  2.49step/s]Training:  86%|████████▋ | 276/320 [02:06<00:17,  2.54step/s]Training:  87%|████████▋ | 277/320 [02:06<00:17,  2.50step/s]Training:  87%|████████▋ | 278/320 [02:07<00:21,  1.97step/s]Training:  87%|████████▋ | 279/320 [02:07<00:19,  2.13step/s]Training:  88%|████████▊ | 280/320 [02:08<00:17,  2.26step/s]INFO 2026-09-29 17:50:10 ot_train.py:778 step:280 smpl:280 ep:3 epch:0.00 loss:0.017 grdn:0.028 lr:6.1e-06 data_s:0.001 prep_s:0.080 updt_s:0.349 step_s:0.433 smp/s:2 mem_gb:6.29
+Training:  88%|████████▊ | 281/320 [02:08<00:16,  2.35step/s]Training:  88%|████████▊ | 282/320 [02:09<00:15,  2.45step/s]Training:  88%|████████▊ | 283/320 [02:09<00:14,  2.47step/s]Training:  89%|████████▉ | 284/320 [02:09<00:14,  2.50step/s]Training:  89%|████████▉ | 285/320 [02:10<00:13,  2.57step/s]Training:  89%|████████▉ | 286/320 [02:10<00:13,  2.52step/s]Training:  90%|████████▉ | 287/320 [02:10<00:13,  2.53step/s]Training:  90%|█████████ | 288/320 [02:11<00:12,  2.48step/s]Training:  90%|█████████ | 289/320 [02:11<00:12,  2.45step/s]Training:  91%|█████████ | 290/320 [02:12<00:12,  2.42step/s]INFO 2026-09-29 17:50:14 ot_train.py:778 step:290 smpl:290 ep:3 epch:0.01 loss:0.055 grdn:0.072 lr:3.8e-06 data_s:0.001 prep_s:0.086 updt_s:0.306 step_s:0.397 smp/s:3 mem_gb:6.29
+Training:  91%|█████████ | 291/320 [02:12<00:11,  2.47step/s]Training:  91%|█████████▏| 292/320 [02:13<00:11,  2.43step/s]Training:  92%|█████████▏| 293/320 [02:13<00:11,  2.40step/s]Training:  92%|█████████▏| 294/320 [02:13<00:10,  2.38step/s]Training:  92%|█████████▏| 295/320 [02:14<00:10,  2.44step/s]Training:  92%|█████████▎| 296/320 [02:14<00:10,  2.38step/s]Training:  93%|█████████▎| 297/320 [02:15<00:09,  2.42step/s]Training:  93%|█████████▎| 298/320 [02:15<00:09,  2.29step/s]Training:  93%|█████████▎| 299/320 [02:16<00:08,  2.41step/s]Training:  94%|█████████▍| 300/320 [02:16<00:07,  2.52step/s]INFO 2026-09-29 17:50:18 ot_train.py:778 step:300 smpl:300 ep:3 epch:0.01 loss:0.034 grdn:0.096 lr:2.1e-06 data_s:0.001 prep_s:0.101 updt_s:0.304 step_s:0.410 smp/s:2 mem_gb:6.29
+Training:  94%|█████████▍| 301/320 [02:17<00:09,  2.01step/s]Training:  94%|█████████▍| 302/320 [02:17<00:08,  2.09step/s]Training:  95%|█████████▍| 303/320 [02:17<00:07,  2.19step/s]Training:  95%|█████████▌| 304/320 [02:18<00:07,  2.25step/s]Training:  95%|█████████▌| 305/320 [02:18<00:06,  2.27step/s]Training:  96%|█████████▌| 306/320 [02:19<00:06,  2.32step/s]Training:  96%|█████████▌| 307/320 [02:19<00:05,  2.43step/s]Training:  96%|█████████▋| 308/320 [02:19<00:04,  2.46step/s]Training:  97%|█████████▋| 309/320 [02:20<00:04,  2.53step/s]Training:  97%|█████████▋| 310/320 [02:20<00:03,  2.52step/s]INFO 2026-09-29 17:50:23 ot_train.py:778 step:310 smpl:310 ep:3 epch:0.01 loss:0.033 grdn:0.010 lr:9.4e-07 data_s:0.001 prep_s:0.087 updt_s:0.343 step_s:0.435 smp/s:2 mem_gb:6.29
+Training:  97%|█████████▋| 311/320 [02:21<00:03,  2.58step/s]Training:  98%|█████████▊| 312/320 [02:21<00:03,  2.56step/s]Training:  98%|█████████▊| 313/320 [02:21<00:02,  2.66step/s]Training:  98%|█████████▊| 314/320 [02:22<00:02,  2.72step/s]Training:  98%|█████████▊| 315/320 [02:22<00:01,  2.68step/s]Training:  99%|█████████▉| 316/320 [02:22<00:01,  2.66step/s]Training:  99%|█████████▉| 317/320 [02:23<00:01,  2.66step/s]Training:  99%|█████████▉| 318/320 [02:23<00:00,  2.78step/s]Training: 100%|█████████▉| 319/320 [02:23<00:00,  2.86step/s]Training: 100%|██████████| 320/320 [02:24<00:00,  2.71step/s]INFO 2026-09-29 17:50:26 ot_train.py:778 step:320 smpl:320 ep:3 epch:0.01 loss:0.058 grdn:0.071 lr:2.0e-07 data_s:0.001 prep_s:0.059 updt_s:0.301 step_s:0.365 smp/s:3 mem_gb:6.29
+INFO 2026-09-29 17:50:26 ot_train.py:820 Checkpoint policy after step 320
+Training: 100%|██████████| 320/320 [02:25<00:00,  2.21step/s]
+INFO 2026-09-29 17:50:27 ot_train.py:915 End of training
+{
+ "mode": "lerobot_train",
+ "batch_size": 1,
+ "accumulation": 8,
+ "effective_batch": 8,
+ "opt_steps": 40,
+ "lora": {
+  "r": 16,
+  "alpha": 16,
+  "dropout": 0.1
+ },
+ "curve": {
+  "eval": [],
+  "train": [],
+  "eval_every": 0,
+  "episode": null,
+  "lr_schedule": "cosine",
+  "lr": 0.0001,
+  "opt_steps": 40,
+  "lora_r": 16
+ },
+ "parts": [
+  {
+   "name": "local/r054_train48",
+   "frames": 4800,
+   "episodes": 100
+  },
+  {
+   "name": "IPEC-COMMUNITY/libero_spatial_no_noops_1.0.0_lerobot",
+   "frames": 52970,
+   "episodes": 432
+  }
+ ],
+ "shares": [
+  0.5,
+  0.5
+ ],
+ "augmentation": {
+  "GrootN17PackInputsStep.training": false,
+  "GrootN17PackInputsStep.state_dropout_prob": 0.2,
+  "GrootN17VLMEncodeStep.training": false,
+  "GrootN17VLMEncodeStep.image_crop_size": [
+   230,
+   230
+  ],
+  "GrootN17VLMEncodeStep.crop_fraction": 0.95,
+  "GrootN17VLMEncodeStep.use_albumentations": true,
+  "random_crop_active": false
+ },
+ "checkpointed_blocks": 36,
+ "trainable": {
+  "trainable": 19136512,
+  "total": 3163152512,
+  "n_tensors": 496,
+  "non_lora_trainable": [],
+  "n_non_lora": 0
+ },
+ "scheduler": {
+  "builder": "build_scheduler",
+  "opt_steps": 40,
+  "accumulation": 8,
+  "warmup_opt_steps": 2,
+  "stepped": "per micro-batch; LR constant within each accumulation window"
+ },
+ "torch_max_memory_allocated_gib": 6.3003387451171875,
+ "torch_max_memory_reserved_gib": 6.44921875,
+ "nvidia_smi_peak_gib": 6.732421875,
+ "lr_live": {
+  "schedule_verified": true,
+  "schedule": {
+   "type": "cosine",
+   "lr": 0.0001,
+   "warmup_ratio": 0.05,
+   "warmup_opt_steps": 2,
+   "builder": "build_scheduler"
+  },
+  "schedule_guard_max_abs_err": 0.0,
+  "lr_live_max_abs_err": 0.0,
+  "lr_live_updates": 40,
+  "lr_live_first_opt_step": 0,
+  "lr_applied_last_update": 1.7077534966650766e-07,
+  "lr_registered_last_update": 1.7077534966650766e-07,
+  "lr_next": 0.0
+ },
+ "schedule_guard": {
+  "pass": true,
+  "tol": 1e-06,
+  "n_updates": 40,
+  "expected_updates": 40,
+  "start": 0,
+  "max_abs_err": 0.0,
+  "probes": {
+   "0": {
+    "applied": 0.0,
+    "registered": 0.0,
+    "abs_err": 0.0
+   },
+   "2": {
+    "applied": 0.0001,
+    "registered": 0.0001,
+    "abs_err": 0.0
+   },
+   "39": {
+    "applied": 1.7077534966650766e-07,
+    "registered": 1.7077534966650766e-07,
+    "abs_err": 0.0
+   }
+  },
+  "first_bad_step": null,
+  "mode": "lerobot_train",
+  "builder": "build_scheduler",
+  "accumulation": 8
+ }
+}
