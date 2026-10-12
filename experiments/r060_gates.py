@@ -327,6 +327,178 @@ def g0c(a):
                  "PASS": all(r["PASS"] for r in rows), "rows": rows})
 
 
+# --- G0c, amended (tol8px; amendment A1-A4 of runs/r060/gates/g0c_amendment_draft.md, user-approved 10-12) -----
+TOL_PX = 8          # A3: at most 8 differing PIXELS per camera (any channel, any magnitude); test run at this tolerance
+OUT_TOL = os.path.join(OUT, "tol8px")
+
+
+def _cmp_px(a, b):
+    """n_diff (channel elements, as _cmp), n_px (pixels differing in any channel), max_abs; ok = n_px <= TOL_PX."""
+    a = np.asarray(a); b = np.asarray(b)
+    if a.shape != b.shape:
+        return {"ok": False, "shape": [list(a.shape), list(b.shape)]}
+    d = np.abs(a.astype(np.float64) - b.astype(np.float64))
+    n_px = int((d > 0).any(-1).sum()) if d.ndim == 3 else int((d > 0).sum())
+    return {"ok": n_px <= TOL_PX, "equal": bool(np.array_equal(a, b)), "n_px": n_px, "n_diff": int((d > 0).sum()),
+            "max_abs": float(d.max()) if d.size else 0.0}
+
+
+def _both(fa, fb):
+    return {"agent": _cmp_px(fa["image"], fb["image"]), "wrist": _cmp_px(fa["image2"], fb["image2"])}
+
+
+def _ok(x):
+    return all(v["ok"] for v in x.values()) if "agent" in x else x["ok"]
+
+
+def _rerender(env, raw_hook=None):
+    """A1: the env's frames re-rendered at its CURRENT state (sim.forward + force_update), the same path
+    perturbed_frames / nominal_frames use; never a step/reset frame (robosuite samples those on a timer)."""
+    outer = env._env.unwrapped
+    inner = outer._env.env
+    inner.sim.forward()
+    raw = dict(inner._get_observations(force_update=True))
+    if raw_hook is not None:
+        raw = raw_hook(raw)
+    return dict(outer._format_raw_obs(raw)["pixels"])
+
+
+def g0c_selftest(_a):
+    """CPU unit checks for the tol8px comparison (no env, no model)."""
+    z = np.zeros((10, 10, 3), np.uint8)
+    one = z.copy(); one[0, 0, :] = 255                       # 1 pixel, 3 channels, max 255
+    eight = z.copy(); eight[:8, 0, 0] = 1                    # 8 pixels
+    nine = z.copy(); nine[:9, 0, 1] = 1                      # 9 pixels
+    res = {"identical": _cmp_px(z, z), "one_pixel_255": _cmp_px(z, one), "eight_px": _cmp_px(z, eight),
+           "nine_px": _cmp_px(z, nine), "shape_mismatch": _cmp_px(z, z[:5])}
+    ok = (res["identical"]["ok"] and res["identical"]["equal"] and res["one_pixel_255"]["ok"]
+          and res["one_pixel_255"]["n_px"] == 1 and res["one_pixel_255"]["n_diff"] == 3 and res["one_pixel_255"]["max_abs"] == 255
+          and res["eight_px"]["ok"] and res["eight_px"]["n_px"] == 8 and not res["nine_px"]["ok"] and res["nine_px"]["n_px"] == 9
+          and not res["shape_mismatch"]["ok"])
+    res["PASS"] = bool(ok)
+    os.makedirs(OUT_TOL, exist_ok=True)
+    json.dump({"tol8px": True, "what": "G0c tol8px comparison self-test (CPU)", **res}, open(os.path.join(OUT_TOL, "selftest.json"), "w"), indent=1)
+    print(json.dumps(res, indent=1))
+    if not ok:
+        sys.exit(1)
+
+
+def g0c_tol8(a):
+    """G0c with amendment A1-A4 (user-approved 10-12), tolerance A3 = TOL_PX pixels per camera.
+    A1 every comparison is re-render vs re-render;  A2 a FRESH control env and a FRESH variant env per row, each
+    reset once, nothing deleted between that reset and the row's renders (both are deleted together after it);
+    A3 pass = n_px <= 8 per camera, n_diff / n_px / max_abs reported for every comparison;  A4 noise end to end:
+    control perturbed_frames vs LIBERO-Plus's noise applied to the VARIANT env's own clean re-render, same seed.
+    Row selection is identical to g0c (same rng and order). N side uses nominal_frames with the 10-12 pose fix."""
+    import gc
+    from vla_harness.envs.libero_env import lplus_sensor_noise
+    from vla_harness.schema import PerturbationSpec
+    global OUT
+    out_main = OUT
+    OUT = OUT_TOL
+    try:
+        os.makedirs(OUT_TOL, exist_ok=True)
+        code_state()
+    finally:
+        OUT = out_main
+    cat = catalogue()
+    rx = re.compile(r"_view_(-?\d+)_(-?\d+)_(\d+)_(-?\d+)_(-?\d+)")
+    cam = sorted(i for i, r in cat.items() if r["category"] == "Camera Viewpoints")
+    rng = np.random.default_rng(60)
+    r048 = [x["task_id"] for x in json.load(open(R048))["instances"]]
+    endpt = [i for i in cam if rx.search(cat[i]["name"]).group(4, 5) != ("0", "0")]
+    scaled = [i for i in cam if rx.search(cat[i]["name"]).group(3) != "100"]
+    by_lvl = {L: [i for i in cam if cat[i]["difficulty_level"] == L] for L in range(1, 6)}
+    pick = list(r048[:4]) + list(rng.choice(endpt, 3, replace=False)) + list(rng.choice(scaled, 3, replace=False))
+    pick += [int(rng.choice(by_lvl[L])) for L in range(1, 6)]
+    pick = list(dict.fromkeys(int(x) for x in pick))[: a.n_camera]
+    rows = []
+
+    def fresh_pair(tid, ci):
+        gc.collect()
+        v = make_env(tid); c = make_env(ci)
+        ov = v.reset(0, PerturbationSpec()); oc = c.reset(0, PerturbationSpec())
+        return v, c, ov, oc
+
+    for tid in pick:
+        name = cat[tid]["name"]
+        ci = control_index(cat, name)
+        v, c, ov, oc = fresh_pair(tid, ci)
+        row = {"row": "camera", "task_id": tid, "control": ci, "variant": name, "level": cat[tid]["difficulty_level"],
+               "phys_equal": bool(np.array_equal(_phys(v), _phys(c)))}
+        c_before = _rerender(c)
+        row["P_vs_variant_rerender"] = _both(c.perturbed_frames(name), _rerender(v))
+        row["control_restored"] = _both(_rerender(c), c_before)
+        row["N_vs_control_rerender"] = _both(v.nominal_frames(), _rerender(c))
+        row["PASS"] = bool(row["phys_equal"] and _ok(row["P_vs_variant_rerender"]) and _ok(row["control_restored"])
+                           and _ok(row["N_vs_control_rerender"]))
+        print(f"camera {tid} L{row['level']} {name.split('_view_')[1]}: phys={row['phys_equal']} "
+              f"P {[row['P_vs_variant_rerender'][k]['n_px'] for k in ('agent', 'wrist')]} "
+              f"N {[row['N_vs_control_rerender'][k]['n_px'] for k in ('agent', 'wrist')]} -> {row['PASS']}", flush=True)
+        rows.append(row)
+        del v, c
+
+    noi = sorted(i for i, r in cat.items() if r["category"] == "Sensor Noise")
+    nval = lambda i: int(re.search(r"_noise_(\d+)", cat[i]["name"]).group(1))
+    fams = {"motion": (1, 10), "gaussian": (11, 20), "zoom": (21, 30), "fog": (31, 40), "glass": (41, 50)}
+    npick = []
+    for f, (lo, hi) in fams.items():
+        c_ = [i for i in noi if lo <= nval(i) <= hi]
+        npick += [int(x) for x in rng.choice(c_, min(a.n_noise_per_family, len(c_)), replace=False)]
+    for tid in npick:
+        name = cat[tid]["name"]; n = nval(tid)
+        fam = next(f for f, (lo, hi) in fams.items() if lo <= n <= hi)
+        ci = control_index(cat, name)
+        v, c, ov, oc = fresh_pair(tid, ci)
+        row = {"row": "noise", "task_id": tid, "control": ci, "variant": name, "noise": n, "family": fam,
+               "level": cat[tid]["difficulty_level"], "phys_equal": bool(np.array_equal(_phys(v), _phys(c)))}
+        seed = 0
+        ours = c.perturbed_frames(name, noise_seed=seed)
+        # LIBERO-Plus's own dispatch on the control's clean re-render (unchanged check, now under the tolerance)
+        wrapper = v._env.unwrapped._env
+        c._env.unwrapped._env.env.sim.forward()
+        clean = c._env.unwrapped._env.env._get_observations(force_update=True)
+        real_step = wrapper.env.step
+        st = np.random.get_state()
+        try:
+            wrapper.env.step = lambda _a, clean=clean: ({k: (np.array(x, copy=True) if isinstance(x, np.ndarray) else x)
+                                                        for k, x in clean.items()}, 0.0, False, {})
+            np.random.seed(seed)
+            theirs_raw = wrapper.step(None)[0]
+        finally:
+            wrapper.env.step = real_step
+            np.random.set_state(st)
+        theirs = c._env.unwrapped._format_raw_obs(theirs_raw)["pixels"]
+        row["P_agent_vs_lplus_dispatch"] = _cmp_px(ours["image"], theirs["image"])
+        row["P_wrist_vs_control_rerender"] = _cmp_px(ours["image2"], _rerender(c)["image2"])
+        row["seeded_repeatable"] = _cmp_px(c.perturbed_frames(name, noise_seed=seed)["image"], ours["image"])
+        row["seed_changes_frame"] = not _cmp_px(c.perturbed_frames(name, noise_seed=seed + 1)["image"], ours["image"])["equal"]
+
+        def noisy(raw, n=n):                         # A4: LIBERO-Plus noise on the VARIANT's own clean re-render
+            raw["agentview_image"] = lplus_sensor_noise(raw["agentview_image"], n, seed)
+            return raw
+        row["P_agent_vs_noise_of_variant_rerender"] = _cmp_px(ours["image"], _rerender(v, noisy)["image"])
+        row["N_vs_control_rerender"] = _both(v.nominal_frames(), _rerender(c))
+        row["PASS"] = bool(row["phys_equal"] and row["P_agent_vs_lplus_dispatch"]["ok"] and row["P_wrist_vs_control_rerender"]["ok"]
+                           and row["seeded_repeatable"]["ok"] and row["P_agent_vs_noise_of_variant_rerender"]["ok"]
+                           and _ok(row["N_vs_control_rerender"]))
+        print(f"noise {tid} {fam} {n}: phys={row['phys_equal']} dispatch {row['P_agent_vs_lplus_dispatch']['n_px']} "
+              f"e2e {row['P_agent_vs_noise_of_variant_rerender']['n_px']} N {[row['N_vs_control_rerender'][k]['n_px'] for k in ('agent', 'wrist')]} "
+              f"-> {row['PASS']}", flush=True)
+        rows.append(row)
+        del v, c
+    cr = [r for r in rows if r["row"] == "camera"]; nr = [r for r in rows if r["row"] == "noise"]
+    res = {"tol8px": True, "gate": "G0c training-pair exactness, AMENDED A1-A4 (test run at tolerance 8 px per camera)",
+           "tolerance_px_per_camera": TOL_PX, "amendment": "runs/r060/gates/g0c_amendment_draft.md A1-A4; user 10-12",
+           "pose_fix": "nominal_frames uses _bench_camera_pose(0, 0, 1.0) for LIBERO-Plus camera variants (user 10-12)",
+           "camera_pass": f"{sum(r['PASS'] for r in cr)}/{len(cr)}", "noise_pass": f"{sum(r['PASS'] for r in nr)}/{len(nr)}",
+           "noise_families": sorted({r['family'] for r in nr}), "PASS": all(r["PASS"] for r in rows), "rows": rows}
+    p = os.path.join(OUT_TOL, "g0c.json")
+    json.dump(res, open(p, "w"), indent=1, default=str)
+    print(json.dumps({k: res[k] for k in res if k != "rows"}, indent=1))
+    print("wrote", p)
+
+
 # --- G0b ---------------------------------------------------------------------------
 def g0b(a):
     import torch
@@ -397,13 +569,14 @@ def g0b(a):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("gate", choices=["g0a", "g0b", "g0c"])
+    ap.add_argument("gate", choices=["g0a", "g0b", "g0c", "g0c_tol8", "g0c_selftest"])
     ap.add_argument("--n", type=int, default=10)
     ap.add_argument("--n-camera", type=int, default=15)
     ap.add_argument("--n-noise-per-family", type=int, default=2)
     a = ap.parse_args()
-    code_state()
-    {"g0a": g0a, "g0b": g0b, "g0c": g0c}[a.gate](a)
+    if a.gate not in ("g0c_tol8", "g0c_selftest"):      # the amended runs write their own code_state under tol8px/
+        code_state()
+    {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g0c_tol8": g0c_tol8, "g0c_selftest": g0c_selftest}[a.gate](a)
 
 
 if __name__ == "__main__":

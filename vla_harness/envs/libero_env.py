@@ -713,9 +713,10 @@ class LiberoEnv:
                 saved["knob"] = (cid, self._snapshot_nominal(sim.model, cid))
                 self._write_model_fields(sim.model, cid, knob_nominal)
             if knobs["view"] is not None:
-                domain = type(inner).__module__.rsplit(".", 1)[-1]
-                domain = domain.removeprefix("libero_").removesuffix("_manipulation")
-                pos, quat = nominal.nominal_camera(domain)
+                # LIBERO-Plus's own canonical camera (its _setup_camera at view 0_0_100_0_0, 4-dp rounded), which
+                # is what LIBERO-Plus control envs render. nominal.nominal_camera(domain) is original LIBERO's
+                # unrounded pose and differed by ~22-24k px (R-060 G0c (b), 10-08); user decision 10-12.
+                pos, quat = self._bench_camera_pose(0, 0, 1.0)
                 cid = sim.model.camera_name2id(MAIN_CAMERA)
                 saved["cam"] = (cid, sim.model.cam_pos[cid].copy(), sim.model.cam_quat[cid].copy())
                 sim.model.cam_pos[cid] = np.asarray(pos)

@@ -1,0 +1,48 @@
+{
+ "tol8px": true,
+ "what": "G0c tol8px comparison self-test (CPU)",
+ "identical": {
+  "ok": true,
+  "equal": true,
+  "n_px": 0,
+  "n_diff": 0,
+  "max_abs": 0.0
+ },
+ "one_pixel_255": {
+  "ok": true,
+  "equal": false,
+  "n_px": 1,
+  "n_diff": 3,
+  "max_abs": 255.0
+ },
+ "eight_px": {
+  "ok": true,
+  "equal": false,
+  "n_px": 8,
+  "n_diff": 8,
+  "max_abs": 1.0
+ },
+ "nine_px": {
+  "ok": false,
+  "equal": false,
+  "n_px": 9,
+  "n_diff": 9,
+  "max_abs": 1.0
+ },
+ "shape_mismatch": {
+  "ok": false,
+  "shape": [
+   [
+    10,
+    10,
+    3
+   ],
+   [
+    5,
+    10,
+    3
+   ]
+  ]
+ },
+ "PASS": true
+}

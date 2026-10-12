@@ -1,0 +1,1434 @@
+{
+ "tol8px": true,
+ "gate": "G0c training-pair exactness, AMENDED A1-A4 (test run at tolerance 8 px per camera)",
+ "tolerance_px_per_camera": 8,
+ "amendment": "runs/r060/gates/g0c_amendment_draft.md A1-A4; user 10-12",
+ "pose_fix": "nominal_frames uses _bench_camera_pose(0, 0, 1.0) for LIBERO-Plus camera variants (user 10-12)",
+ "camera_pass": "15/15",
+ "noise_pass": "10/10",
+ "noise_families": [
+  "fog",
+  "gaussian",
+  "glass",
+  "motion",
+  "zoom"
+ ],
+ "PASS": true,
+ "rows": [
+  {
+   "row": "camera",
+   "task_id": 635,
+   "control": 1030,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_22_15_100_0_0_initstate_0",
+   "level": 5,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": false,
+     "n_px": 1,
+     "n_diff": 2,
+     "max_abs": 1.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 639,
+   "control": 1030,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_24_15_100_0_0_initstate_0",
+   "level": 4,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": false,
+     "n_px": 2,
+     "n_diff": 6,
+     "max_abs": 1.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 828,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_299_15_100_0_0_initstate_0",
+   "level": 4,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 889,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_317_0_100_0_0_initstate_0",
+   "level": 4,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 745,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_10_2_initstate_0",
+   "level": 2,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": false,
+     "n_px": 6,
+     "n_diff": 18,
+     "max_abs": 1.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 700,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_8_350_initstate_0",
+   "level": 2,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 657,
+   "control": 1062,
+   "variant": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate_view_0_0_100_6_10_initstate_0",
+   "level": 2,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": false,
+     "n_px": 2,
+     "n_diff": 6,
+     "max_abs": 1.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 652,
+   "control": 1062,
+   "variant": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate_view_0_0_125_0_0_initstate_0",
+   "level": 1,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 952,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_196_0_0_initstate_0",
+   "level": 4,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 956,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_200_0_0_initstate_0",
+   "level": 3,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 965,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_345_0_100_0_0_initstate_0",
+   "level": 1,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 792,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_0_0_100_350_2_initstate_0",
+   "level": 2,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 768,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_68_15_100_0_0_initstate_0",
+   "level": 3,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 978,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_354_15_100_0_0_initstate_0",
+   "level": 4,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "camera",
+   "task_id": 974,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_350_15_100_0_0_initstate_0",
+   "level": 5,
+   "phys_equal": true,
+   "P_vs_variant_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "control_restored": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1377,
+   "control": 984,
+   "variant": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_6",
+   "noise": 6,
+   "family": "motion",
+   "level": 2,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1691,
+   "control": 1327,
+   "variant": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_9",
+   "noise": 9,
+   "family": "motion",
+   "level": 4,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1522,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_20",
+   "noise": 20,
+   "family": "gaussian",
+   "level": 4,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": false,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1483,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_15",
+   "noise": 15,
+   "family": "gaussian",
+   "level": 2,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": false,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1567,
+   "control": 1169,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_30",
+   "noise": 30,
+   "family": "zoom",
+   "level": 4,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": false,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1635,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_22",
+   "noise": 22,
+   "family": "zoom",
+   "level": 1,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": false,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1602,
+   "control": 1201,
+   "variant": "pick_up_the_black_bowl_next_to_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_35",
+   "noise": 35,
+   "family": "fog",
+   "level": 1,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1534,
+   "control": 1132,
+   "variant": "pick_up_the_black_bowl_in_the_top_drawer_of_the_wooden_cabinet_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_38",
+   "noise": 38,
+   "family": "fog",
+   "level": 3,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1654,
+   "control": 1247,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_47",
+   "noise": 47,
+   "family": "glass",
+   "level": 3,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  },
+  {
+   "row": "noise",
+   "task_id": 1505,
+   "control": 1090,
+   "variant": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate_view_0_0_100_0_0_initstate_0_noise_50",
+   "noise": 50,
+   "family": "glass",
+   "level": 3,
+   "phys_equal": true,
+   "P_agent_vs_lplus_dispatch": {
+    "ok": true,
+    "equal": false,
+    "n_px": 5,
+    "n_diff": 5,
+    "max_abs": 1.0
+   },
+   "P_wrist_vs_control_rerender": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   },
+   "seeded_repeatable": {
+    "ok": true,
+    "equal": false,
+    "n_px": 5,
+    "n_diff": 5,
+    "max_abs": 1.0
+   },
+   "seed_changes_frame": true,
+   "P_agent_vs_noise_of_variant_rerender": {
+    "ok": true,
+    "equal": false,
+    "n_px": 5,
+    "n_diff": 5,
+    "max_abs": 1.0
+   },
+   "N_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "PASS": true
+  }
+ ]
+}
