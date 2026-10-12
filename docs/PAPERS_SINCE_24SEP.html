@@ -1,0 +1,220 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Papers Since 24 Sep</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.4em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+nav{font-size:.84rem;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px 14px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 10px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td:first-child{min-width:160px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.caution{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.caution .q{color:var(--warn)}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.st{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:0 6px;border-radius:3px;white-space:nowrap}
+.st.adopt{background:var(--ok);color:var(--bg)}
+.st.part{background:var(--accent);color:var(--bg)}
+.st.drop{background:var(--warn);color:var(--bg)}
+.st.wait{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Papers and surveys since 24 September</h1>
+<div class=meta>prim · 2026-10-12 · for the user's update to their manager · Compiled from the repo's own write-ups (each row links its source doc); no paper was re-read for this page. Depth of reading differs per source and is stated in each source doc: "full read" means the PDF (and code where noted), "abstract" means the arXiv abstract page only. Status key:
+<span class="st adopt">adopted</span> in a pre-registered experiment or our method ·
+<span class="st part">borrowed</span> one element ·
+<span class="st wait">open</span> waiting on a decision or GPU ·
+<span class="st drop">rejected</span> or parked.</div>
+
+<nav><a href="#s0">0 · Headline</a><a href="#s1">1 · STAC: what we actually know</a><a href="#s2">2 · Rejected or parked</a><a href="#s3">3 · Elements borrowed</a><a href="#s4">4 · Data and benchmarks</a><a href="#s5">5 · Surveys and landscapes</a><a href="#s6">6 · Timeline</a><a href="#s7">7 · Just before (09-23)</a></nav>
+
+<h2 id=s0>0 · Headline</h2>
+<div class="card tldr"><div class=q>In five lines</div>
+<ul>
+<li><b>Interpretability via SAE features (Dr. VLA) was not adopted.</b> The features would each need their own causal test before they could be trusted as labels; the paper's own evidence for "general vs memorized" is partly circular.</li>
+<li><b>Runtime monitoring (Sentinel/STAC, FAIL-Detect, VLA-Corrector) supplied our root-signal ideas.</b> STAC is pre-registered (R-059) and waits for GPU time; only cheap single-sample proxies have run.</li>
+<li><b>Data-targeting papers (Mulligan, Jung &amp; Park, FLARE) moved our novelty claim.</b> "Failure-targeted beats uniform at a matched budget" is now published (Mulligan), so ours is <i>mechanism</i>-targeted vs failure-targeted.</li>
+<li><b>One adaptation paper became an experiment:</b> the 4K-parameter visual recalibration (FTM, 2512.02902) is R-060, pre-registered, blocked on a render check.</li>
+<li><b>Data:</b> no public dataset labels where a failure is <i>decided</i>. The best external source is podolinsky's GR00T-N1.7 LIBERO rollouts (10 sampled plans per step, VLM onset labels); work on it starts today (session impl2).</li>
+</ul></div>
+
+<h2 id=s1>1 · STAC: what we actually know</h2>
+<div class="card caution"><div class=q>Careful wording</div>
+<p>Safe line: <b>"early signs the policy is confidently wrong on start-pose failures; the proper multi-sample STAC test is pre-registered and waiting for GPU time."</b></p>
+<ul>
+<li><b>What STAC is</b> (Sentinel paper). Compare the <i>distribution</i> of the policy's planned actions over the steps two consecutive chunks share, using several noise samples per step. GR00T predicts 40 steps and executes 16, so 24 steps overlap; nothing has to be added to the stack.</li>
+<li><b>09-28, single-sample STAC on stored R-041 chunks:</b> swamped by the policy's own sampling noise (noise floor ~7 vs a perturbed-vs-nominal gap ~1); AUROC at chance. This is why R-059 uses ≥ 32 seeded samples.</li>
+<li><b>10-09, E1 (R-059 part A, single sample, CPU):</b> on start-pose perturbations, failures were <i>more</i> self-consistent than successes (AUROC 0.20 at the first forward, CI 0.11–0.30). That fits "confidently wrong". It may also be a phase artefact: rollouts are compared at the same forward index, not the same stage of the task. The check that settles it (E1-phase) has not been run. Camera yaw: no signal (0.40–0.60).</li>
+<li><b>"The policy lacks data in the regions where it fails"</b> is our hypothesis, not a STAC result. It is supported by the fine-tuning work: the adapters fitted their own training starts (first chunk 27–30% of the way to nominal) but moved new starts only ~10%, so coverage, not volume, looks like the limit (D20, R-056 post-mortem).</li>
+<li><b>Not yet run:</b> R-059 B (seeded multi-sample smoke) and C1 (240 start-pose rollouts, only if STAC ≥ 3× the noise floor). All results above are exploratory and not val-checked (round exempted by the user, 10-09).</li>
+</ul>
+<p class=small>Sources: <a href="SENTINEL_METHODOLOGY.html">SENTINEL_METHODOLOGY</a> §13 · <a href="Decision_28Sep.html">Decision_28Sep</a> (option 4a) · <a href="EXPERIMENTS_2026-10-09.html">EXPERIMENTS_2026-10-09</a> · <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a> · RESULTS.md R-059 · <a href="FLOW_MATCHING_MATHS.html">FLOW_MATCHING_MATHS</a> (fit test)</p>
+</div>
+
+<h2 id=s2>2 · Rejected or parked</h2>
+<div class=tw><table>
+<tr><th>Paper</th><th>Status</th><th>What it claims</th><th>Why not for us</th><th>Source</th></tr>
+<tr><td><b>Dr. VLA / SAE features</b><br>Swann et al., Stanford, arXiv:2603.19183 (repo <code>drvla</code>)</td><td><span class="st drop">rejected</span></td>
+<td>Sparse-autoencoder features in π0.5 / OpenVLA are interpretable (79% of 120 sampled) and steerable; removing 4 "general" features drops real-robot success 39/40 → 0/40.</td>
+<td>Labels and the general/memorized classifier use the same metrics, so they partly check themselves. The ablation is confounded by how often and how strongly a feature fires (no matched-signal control). Steering tests are small (n = 5) and tuned per task. Each feature would need its own causal test to be used as a label: it narrows the search to candidates, it is not a control panel. Also not adopted: comparing SAE features before and after our fine-tune to explain the scene-1327 regression.</td>
+<td><a href="HANDOFF_6Oct.html#SAE">HANDOFF_6Oct §SAE</a>, <a href="Decision_28Sep.html">Decision_28Sep</a></td></tr>
+<tr><td><b>Simulator alternatives</b><br>Isaac Lab-Arena v0.3, Cosmos Transfer 2.5, MuJoCo Warp, RoboVerse</td><td><span class="st drop">rejected</span></td>
+<td>Richer sims and generative re-rendering.</td>
+<td>Either don't fit 8 GB (Isaac Sim 6.0 needs 16 GB VRAM; Cosmos Transfer 65 GB) or change the pixels/physics GR00T was trained on. ROBOGATE measured a GR00T LIBERO-Spatial checkpoint at 97.65% in MuJoCo and 0% on Isaac Sim scenes. We stay on LIBERO-Plus on MuJoCo.</td>
+<td><a href="SIM_ALTERNATIVES_PIPELINE.html">SIM_ALTERNATIVES_PIPELINE</a></td></tr>
+<tr><td><b>IDM + world models as a way to raise success</b><br>GR00T N1 neural trajectories, DreamGen, Seer, UWM, VLA-RFT, AnyPos</td><td><span class="st drop">rejected</span> as a fix · <span class="st part">kept</span> as a tool</td>
+<td>Inverse-dynamics models label generated or human video with actions.</td>
+<td>Gains need huge video-generation compute (~105k L40 GPU-h for GR00T N1) or a low-data regime. In sim, actions are already free and exact. Kept: a small IDM as a measuring instrument (commanded vs achieved motion without robot state, gripper events on video-only data); gate tests T0/T1/E3b proposed.</td>
+<td><a href="IDM_VLA_HORIZONS.html">IDM_VLA_HORIZONS</a></td></tr>
+</table></div>
+
+<h2 id=s3>3 · Elements borrowed</h2>
+<div class=tw><table>
+<tr><th>Paper</th><th>Status</th><th>What we took</th><th>What we did not take, and caveats</th><th>Source</th></tr>
+<tr><td><b>Sentinel / STAC</b><br>Agia et al., CoRL 2024</td><td><span class="st wait">pre-registered</span></td>
+<td>Temporal consistency between overlapping chunks, thresholds calibrated on successes only (conformal). R-059: STAC at matched forward index vs a clock baseline. GR00T's 24-step overlap means no shadow inference.</td>
+<td>Our "spread across samples at one moment" probe (S4) equals the paper's worst baseline (TPR 0.33), so it is demoted to a weak covariate. Nobody has run STAC on a VLA; it is an extension, and may not transfer. Status in §1.</td>
+<td><a href="SENTINEL_METHODOLOGY.html">SENTINEL_METHODOLOGY</a> §13</td></tr>
+<tr><td><b>FAIL-Detect</b><br>Xu et al., TRI, RSS 2025, arXiv:2503.08558 (full read + code)</td><td><span class="st part">borrowed</span></td>
+<td>Works on a frozen checkpoint: train only a small scorer on the policy's observation embedding, calibrate a time-varying band on successful rollouts. Lesson for GR00T: use the pre-adapter image features (S1), not what the action head conditions on (S2 does not move under vision perturbations, R-037).</td>
+<td>Expect it to detect perturbations, not predict failure (R-037). Not run; no R-number. Code is CC BY-NC, so reimplement.</td>
+<td><a href="FAIL_DETECT_MATHS.html">FAIL_DETECT_MATHS</a></td></tr>
+<tr><td><b>VLA-Corrector</b><br>Pan et al., ZJU / Alibaba, arXiv:2607.01804 (full read + code)</td><td><span class="st part">borrowed</span></td>
+<td>The "predicted vs actual change" idea became root signal E3 (commanded vs achieved motion), at action level.</td>
+<td>Most of its gain is replanning sooner (48.7 → 60.35); the gradient-guidance part adds ~4 points and is negative on the Hard split. Its monitor can't fire in the first ~15 control steps, which is where our start-pose failures are decided. A 6-arm runtime-correction test was sketched, not scheduled.</td>
+<td><a href="VLA_CORRECTOR_MATHS.html">VLA_CORRECTOR_MATHS</a></td></tr>
+<tr><td><b>"VLAs are more generalizable than you think" (FTM / FLA)</b><br>Li et al., CVPR 2026, arXiv:2512.02902 (full read)</td><td><span class="st wait">pre-registered</span></td>
+<td>A 4,096-parameter per-channel affine on visual tokens recovers most of a camera-viewpoint gap. Became R-060 (camera and noise rows; FTM vs an action-head fix at matched data).</td>
+<td>Its "LoRA" baseline is mostly a full SigLIP fine-tune (414.8M of 467M), and its Table 3 FTM average is misprinted (90.5 vs 93.2). It is a camera fix, not a start-pose fix. R-060 is blocked on a render check (G0c).</td>
+<td><a href="SPATIAL_ADAPT_MATHS.html">SPATIAL_ADAPT_MATHS</a>, RESULTS.md R-060</td></tr>
+<tr><td><b>Mulligan</b><br>Ankile et al., Stanford, arXiv:2610.05882 (full read)</td><td><span class="st part">borrowed</span></td>
+<td>Published version of our failure-targeted arm: retry the initial states that failed, fill the rest by coverage. Its Alg. 2 is how we would build that arm (D23).</td>
+<td>About half its simulated gain is better coverage, not failure targeting. Moves our novelty claim to mechanism-targeted (which frames to label, from an internal mechanism) vs failure-targeted.</td>
+<td><a href="MULLIGAN_TARGETED_INIT.html">MULLIGAN_TARGETED_INIT</a></td></tr>
+<tr><td><b>Jung &amp; Park</b>, initial-pose dependence<br>KIST, arXiv:2608.11769 (full read)</td><td><span class="st part">borrowed</span></td>
+<td>Same question as ours (GR00T start-pose failures, wrist camera matters). We borrow its equal-budget coverage control and a physical joint-substitution check.</td>
+<td>Weaker instruments (behavioural metrics, out-of-distribution masking); its targeted fix worked at one pose without a matched control. Our splice attribution, time localisation and first-chunk rescue are not in it.</td>
+<td><a href="JUNG_PARK_INITPOSE.html">JUNG_PARK_INITPOSE</a></td></tr>
+<tr><td><b>FLARE</b><br>Zhao et al., CVPR 2026, arXiv:2608.26645 (full read)</td><td><span class="st part">borrowed</span></td>
+<td>Its "bridging" (drive from an off-distribution pose back onto a demo) is the same primitive as our bridge-and-join data option.</td>
+<td>Diagnosis is a VLM classifying videos, not mechanistic. VLM-mined resets add 140 → 147 / 200 (p = 0.51). Never tests start-pose perturbation.</td>
+<td><a href="FLARE_RECOVERY.html">FLARE_RECOVERY</a></td></tr>
+<tr><td><b>Demo-generation literature</b><br>LIBERO-Plus training set, MimicGen, DART, DAgger, CCIL, VLAMotor, RECALL, DATAFARM</td><td><span class="st part">borrowed</span></td>
+<td>Replaying demo actions from moved starts barely helps (LIBERO-Plus's own set: +8.6 pp on robot initial state), so we dropped it as the main source. Next source: bridge-and-join (a one-skill MimicGen-lite) or a scripted expert with DART-style noise.</td>
+<td>"Find failures, then synthesise data" is not a new idea in itself (2026 papers do it).</td>
+<td><a href="DATA_SOURCING_RESEARCH.html">DATA_SOURCING_RESEARCH</a></td></tr>
+<tr><td><b>Sweep-design literature</b><br>Wichmann &amp; Hill (psychometric fitting), Geirhos et al., covering arrays, adaptive design</td><td><span class="st adopt">adopted</span></td>
+<td>Treat the failure boundary as a probability: fit success vs magnitude as a curve with a lapse term and scene effects; spend replicates where the 50% crossing is least certain; drop bisection.</td>
+<td>Covering arrays kept for later, for discrete factors only.</td>
+<td><a href="SWEEP_DESIGN_LITERATURE.html">SWEEP_DESIGN_LITERATURE</a></td></tr>
+<tr><td><b>Flow-matching background</b><br>GR00T N1.7 and π0 action heads, RTC</td><td><span class="st adopt">adopted</span> (as explanation)</td>
+<td>Explains why a 65% training-loss drop moved held-out first chunks only ~10%; the fit test settled it in favour of coverage.</td>
+<td>Primer from code, not a single paper.</td>
+<td><a href="FLOW_MATCHING_MATHS.html">FLOW_MATCHING_MATHS</a></td></tr>
+</table></div>
+
+<h2 id=s4>4 · Data and benchmarks found (10-08 to 10-12)</h2>
+<div class=tw><table>
+<tr><th>Source</th><th>Status</th><th>What it gives</th><th>Caveat</th><th>Doc</th></tr>
+<tr><td><b>podolinsky GR00T-N1.7 LIBERO features v3</b></td><td><span class="st adopt">starting today</span></td>
+<td>NVIDIA's own N1.7 LIBERO-10 checkpoint, 500 episodes (normal + occluded), 10 sampled action chunks per inference, Gemini 3.5 Flash onset frame and mode for every failure; 115 occlusion-only failure pairs.</td>
+<td>Onset labels are VLM-made and unchecked; no sim state stored; no licence stated (internal use only). Phase 1 on CPU (impl2).</td>
+<td><a href="FAILURE_LABEL_DATASETS.html">FAILURE_LABEL_DATASETS</a></td></tr>
+<tr><td><b>FailTime</b> (ProTracer)</td><td><span class="st part">borrowed</span></td>
+<td>Human onset labels with 50 ms agreement (ALOHA / SO-101), CC-BY-4.0. We adopt its onset rules for our symptom labels and to calibrate our VLM labeller.</td><td>Different robots; no root labels.</td><td><a href="FAILURE_LABEL_DATASETS.html">FAILURE_LABEL_DATASETS</a></td></tr>
+<tr><td><b>RoboFAC</b>, FailGen, AHA, REFLECT</td><td><span class="st wait">open</span></td>
+<td>RoboFAC injects the root, so it is known by construction: a test set for our v1 root rules. FailGen is a protocol to port.</td><td>Onset ≠ decision point everywhere.</td><td><a href="FAILURE_LABEL_DATASETS.html">FAILURE_LABEL_DATASETS</a></td></tr>
+<tr><td><b>LIBERO-MAX</b> (2609.36518)</td><td><span class="st wait">open</span></td>
+<td>8,000 paired cases with a mid-task event; already reports GR00T N1.7 (69.3% base vs 50.0% dynamic): a published number we could reproduce.</td><td>New failure mode (dynamic events), not our perturbation axes.</td><td><a href="TASK_DIVERSITY_LANDSCAPE.html">TASK_DIVERSITY_LANDSCAPE</a></td></tr>
+<tr><td><b>LIBERO-Recover</b> (2609.05178)</td><td><span class="st wait">watch</span></td>
+<td>Starts from states saved at real failures of six policies, GR00T among them.</td><td>Labels not released; full release promised 20 Oct.</td><td><a href="TASK_DIVERSITY_LANDSCAPE.html">TASK_DIVERSITY_LANDSCAPE</a></td></tr>
+<tr><td><b>LIBERO-Para, LIBERO-Occ</b></td><td><span class="st wait">open</span></td>
+<td>Paraphrased instructions; static occluders. Both reuse LIBERO and our harness.</td><td>LIBERO-Occ is the occluded half of the podolinsky set.</td><td><a href="TASK_DIVERSITY_LANDSCAPE.html">TASK_DIVERSITY_LANDSCAPE</a></td></tr>
+</table></div>
+<p class=small>Overall verdict (res21, 10-12): no public dataset labels the decision point; they all mark where the failure shows. The decision point can only be measured with our own correct-at-forward-k interventions (R-044, R-057). A ~30-episode hand-labelled set is still needed, as an audit of the podolinsky onsets.</p>
+
+<h2 id=s5>5 · Surveys and landscapes</h2>
+<div class=tw><table>
+<tr><th>Survey</th><th>Date</th><th>Question</th><th>Conclusion</th><th>Status</th></tr>
+<tr><td><a href="RL_GYM_LANDSCAPE.html">RL gyms for VLAs</a></td><td>09-24</td><td>What exists for closed-loop "find errors, mine data, retrain" improvement?</td>
+<td>"Gym" means three things: env suites (crowded), RL substrates (emerging: RLinf-VLA, SimpleVLA-RL), environments-as-a-service (none for robots; 0 of 38 vendors). Nobody ships the full loop; the closest attempt (AgenticRobotics, 2608.07555) found the final checkpoint beat every measurement-driven selector. Everyone breaks at diagnosis and deciding what data to collect, which is where our harness sits.</td>
+<td><span class="st part">positioning</span></td></tr>
+<tr><td><a href="HUMAN_VIDEO_TO_POLICY.html">Human video to policy</a></td><td>09-25</td><td>What is egocentric, captioned assembly-line video (no robot actions) worth?</td>
+<td>Actions transfer, pixels don't (R-039: every perturbation reaches the action via image tokens). Recommended route B′: retarget hand pose to actions, use captions to segment, render observations from sim or robot. Needs a metric-scale source (stereo, depth or one measured fixture).</td>
+<td><span class="st wait">open</span> (scale source, policy choice)</td></tr>
+<tr><td><a href="SUITES_AND_CHECKPOINTS.html">Suites and checkpoints</a></td><td>09-28</td><td>Can we evaluate beyond one LIBERO suite?</td>
+<td>GR00T work is all on libero_spatial (2,712 rollouts). Every published LIBERO number is a fine-tune. MINERVA covers all 40 tasks and reproduced; π0.5 needs a bigger GPU. The perturbation knobs carry over; localisation needs goal-based scoring and stage awareness.</td>
+<td><span class="st part">informs roster</span></td></tr>
+<tr><td><a href="robustness_of_exps.html">Robustness of experiments</a></td><td>09-28</td><td>Where is GR00T not robust, against the benchmark's own ranges?</td>
+<td>Start pose: not robust, measured (0.37 at 0.5 rad). Layout and language: fragile, no magnitude axis. Camera yaw: degrades (0.93 → 0.58–0.73 at 50–75°). Distance, pitch, −yaw, lighting, noise: unknown (sweeps stopped short; lighting knob only brightens).</td>
+<td><span class="st adopt">internal map</span></td></tr>
+<tr><td><a href="SWEEP_DESIGN_LITERATURE.html">Sweep-design literature</a></td><td>09-28</td><td>How do others find a failure boundary?</td><td>See §3: probabilistic curve fitting, adaptive replicates, small interaction layer.</td><td><span class="st adopt">adopted</span></td></tr>
+<tr><td><a href="FAILURE_MINING_RELEVANCE.html">Failure-mining relevance</a></td><td>09-29</td><td>What unit do people mine failures over, and what matters to a client?</td>
+<td>Measure at (policy, task, perturbation, size); report weighted by how often each condition occurs in the client's deployment × failure cost (the self-driving ODD/exposure idea). Benchmarks (LIBERO-Plus/PRO, COLOSSEUM, LIBERO-CTRL) and failure searchers (RoboGate, FATE-VLA, RoboMD) don't weight by deployment. Mostly abstract-level reading.</td>
+<td><span class="st part">framing</span></td></tr>
+<tr><td><a href="AMBITIOUS_DIRECTIONS.html">Ambitious directions</a> + <a href="AMBITIOUS_DIRECTIONS_REVIEW.html">review</a></td><td>09-29, review 10-06</td><td>Where could the project go, built on what we've shown?</td>
+<td>Seven directions; top pick is a data-efficiency law for repairing a policy. Others: fixing the policy at run time, steering internal features, cross-architecture checks, pricing human demos vs sim corrections, failure search instead of grids, sim-to-real on a cheap arm. ~35 papers, mostly abstract-level. The review (C1–C22) added Mulligan, updated Jung &amp; Park / FLARE / 2512.02902, fixed citations (all 41 IDs resolve) and flagged that the run-time arm used an oracle (the nominal chunk).</td>
+<td><span class="st wait">C1–C22 awaiting approval</span></td></tr>
+<tr><td><a href="SIM_ALTERNATIVES_PIPELINE.html">Simulation alternatives</a></td><td>10-06</td><td>Should we move off LIBERO-Plus on MuJoCo?</td><td>No (see §2).</td><td><span class="st drop">rejected</span></td></tr>
+<tr><td><a href="TASK_DIVERSITY_LANDSCAPE.html">Task diversity beyond LIBERO</a></td><td>10-08</td><td>Which benchmarks add new failure modes?</td>
+<td>Keep LIBERO's tasks and change what happens during them: LIBERO-MAX, LIBERO-Recover first; LIBERO-Para, LIBERO-Occ, SimplerEnv as cheap add-ons.</td><td><span class="st wait">open</span></td></tr>
+<tr><td><a href="IDM_VLA_HORIZONS.html">Policy × IDM × world model</a></td><td>10-09</td><td>Is combining a VLA with an IDM too optimistic?</td><td>For raising success soon, yes; as instruments for the mining spec, realistic and cheap (see §2).</td><td><span class="st part">tool only</span></td></tr>
+<tr><td><a href="FAILURE_LABEL_DATASETS.html">Failure-label datasets</a></td><td>10-12</td><td>Which datasets label failure onset or root?</td><td>See §4.</td><td><span class="st adopt">podolinsky started</span></td></tr>
+<tr><td><a href="MIND_ROBOTICS_METHODOLOGY.html">Mind Robotics dossier</a></td><td>09-22 (context)</td><td>What does a $1B+ competitor actually claim?</td><td>A claims ledger, not a results ledger: no paper, repo, dataset or benchmark. Its method is a data-access argument (factory-floor human data).</td><td><span class="st part">context</span></td></tr>
+</table></div>
+
+<h2 id=s6>6 · Timeline</h2>
+<div class=tw><table>
+<tr><th>Date</th><th>What was read or written</th></tr>
+<tr><td>09-24</td><td>RL gym landscape; perturbation map and retraining plan (internal)</td></tr>
+<tr><td>09-25</td><td>Human video to policy</td></tr>
+<tr><td>09-28</td><td>FAIL-Detect full read; single-sample STAC on R-041 (chance); Sentinel doc corrected (24-step overlap); sweep-design literature; suites and checkpoints; robustness of experiments</td></tr>
+<tr><td>09-29</td><td>R-059 (STAC) pre-registered; failure-mining relevance; ambitious directions (~35 papers)</td></tr>
+<tr><td>09-30</td><td>Data-sourcing research (demo generation, bridge-and-join)</td></tr>
+<tr><td>10-01 to 10-05</td><td>SAE / Dr. VLA discussion (recorded in the 10-06 handoff); not adopted</td></tr>
+<tr><td>10-06</td><td>Jung &amp; Park, FLARE, spatial-adapt (FTM) full reads; simulation alternatives; ambitious-directions review (C1–C22)</td></tr>
+<tr><td>10-07</td><td>Mulligan full read; flow-matching maths; R-060 (FTM) pre-registered</td></tr>
+<tr><td>10-08</td><td>VLA-Corrector full read; task-diversity landscape</td></tr>
+<tr><td>10-09</td><td>IDM horizons; root-signal experiments E1–E7 (E1 single-sample STAC result)</td></tr>
+<tr><td>10-12</td><td>Failure-label datasets; podolinsky work begins</td></tr>
+</table></div>
+<p class=small>The 10-01 to 10-05 date for the SAE discussion is approximate: the handoff that records it was written 10-06 and covers work since 09-30.</p>
+
+<h2 id=s7>7 · Just before the window (09-23)</h2>
+<p class=small>Read or written on 09-23, the day before this page's window starts; kept here for reference. All three are parked.</p>
+<div class=tw><table>
+<tr><th>Paper</th><th>Status</th><th>What it claims</th><th>Why not for us</th><th>Source</th></tr>
+<tr><td><b>Action Atlas</b>, "Not All Features Are Created Equal"<br>Grant, Zhao &amp; Wang, arXiv:2603.19233</td><td><span class="st drop">parked</span></td>
+<td>Feature-level analysis of VLAs including GR00T.</td>
+<td>Reproduction blocked 09-23: the release does not load under its own pinned library versions. Its GR00T claims stay unverified, so nothing builds on them.</td>
+<td><code>~/Documents/Code/action-atlas-repro/STATUS.md</code></td></tr>
+<tr><td><b>RoboTTT</b><br>NVIDIA GEAR / Stanford, arXiv:2607.15275</td><td><span class="st drop">parked</span></td>
+<td>Test-time-training layers inside GR00T's action head give the policy long-horizon memory.</td>
+<td>A 160M add-on, but trained on 16 GB200 GPUs at up to 8K-timestep contexts. A LIBERO-scale version is conceivable (GR00T is frozen in phase 1), not on our 8 GB card.</td>
+<td><a href="ROBOTTT_METHOD.html">ROBOTTT_METHOD</a></td></tr>
+<tr><td><b>GEN-1.5</b> one-shot learning<br>Generalist AI blog, 2026-08</td><td><span class="st drop">parked</span></td>
+<td>A closed model that does a new task from one 3–12 s demo in context (59%), 83% after 1–10 gradient steps.</td>
+<td>Closed, and the ability comes from scale (500k+ hours, 7B+ params, long context). GR00T sees one frame, so there is no place for a demo. Its "failures are coverage gaps" thesis matches ours. Realistic open paths named: RoboTTT, BPP (Stanford, LIBERO benchmark, not pursued).</td>
+<td><a href="GEN15_ONE_SHOT.html">GEN15_ONE_SHOT</a></td></tr>
+</table></div>
+
+</div></body></html>
