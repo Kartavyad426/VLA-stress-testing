@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Root-to-Goal Corrective Demos</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+pre{background:var(--card);padding:10px;overflow-x:auto;font-size:.85rem}
+a{color:var(--accent)}
+.tag{font-size:.75rem;color:var(--warn);font-weight:600}
+</style>
+</head>
+<body><main>
+<h1>Root-to-Goal Corrective Demos (DMP retargeting)</h1>
+<p class="meta">2026-10-12 · session res, from the user's proposal · outline approved by the user 10-12 · for prim · no code yet</p>
+<div class="status"><b>Status:</b> proposal. Nothing here has been run. All costs are estimates. Any number this pipeline produces must pass val before it counts, so it is UNVERIFIED until then. The open questions in §5 are for the user and prim.</div>
+
+<h2>0 · In one paragraph</h2>
+<p>For each failed rollout, find its <b>root</b> state: the first unrecovered event (ROOT_IDENTIFICATION). Take the most similar <b>clean human demo</b> at the same phase. Retarget that demo's remaining motion from the root to the goal with <b>Dynamic Movement Primitives</b>, so the motion keeps the demo's shape, speed and gripper timing. <b>Execute it in the sim through the controller</b>, so actions are recorded exactly. Keep only successes and co-train on these root→goal corrective segments. No video model is needed, and the IDM is used only as a checker, not a labeller.</p>
+
+<h2>1 · Why this and not DreamGen</h2>
+<ul>
+<li>DreamGen (2505.12705) uses a video world model to imagine new situations, then an IDM to guess the actions. That is a substitute for a simulator. We have the simulator, which gives exact actions and an exact success check.</li>
+<li>Cost: DreamGen RoboCasa took about 54 h × 1,500 L40s. A scaled-down pilot would need roughly 200–1,000 cloud GPU-h (res estimate, not measured). This proposal runs on CPU plus the 8 GB card.</li>
+<li>Our failures are start-pose failures decided at forwards 0–1 (R-044, R-057). R-056 showed that coverage matters, not volume, so data has to start where the policy goes wrong.</li>
+</ul>
+
+<h2>2 · Pipeline</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Stage</th><th>What it does</th><th>Output / check</th></tr>
+<tr><td>S0</td><td>Clean-demo gate</td><td>Replay each human demo's recorded actions from its restored <code>states[0]</code> (test T0 in IDM_VLA_HORIZONS). Drop demos that don't reproduce.</td><td>A whitelist of clean demos. D22 says demo replay is still unverified.</td></tr>
+<tr><td>S1</td><td>Root</td><td>Find the root of each failed rollout using the ROOT_IDENTIFICATION rules ("first unrecovered event"). Store the full sim state at the root.</td><td>Root state, phase × failure mode (D12), timestep.</td></tr>
+<tr><td>S2</td><td>Goal</td><td>Define the end state: the task's success predicate. In practice the target is the end of the matched demo segment, expressed in the target object's frame.</td><td>Goal pose and gripper state per segment.</td></tr>
+<tr><td>S3</td><td>Nearest demo</td><td>Filter to the same task, then the same phase (split at gripper events). Features: relative EEF pose in the target object's frame, gripper width, and optionally nearby obstacles. Match a 5–10 step window ending at the root, with features normalised by their spread across demos. Take the top-k (3–5).</td><td>k (demo, timestep) matches. A root whose nearest match is beyond the distance threshold counts as a coverage gap: log it and use the planner fallback.</td></tr>
+<tr><td>S4</td><td>DMP retarget</td><td>Split the rest of the demo at gripper events and fit one DMP per segment. Position uses a Cartesian DMP with vector-wise scaling (to avoid flip and overscale); orientation uses a quaternion DMP. Gripper events are replayed at the same phase. Set <code>y₀</code> to the root, <code>g</code> to the goal, and choose <code>τ</code> to keep the demo's duration.</td><td>Reference EEF trajectory plus gripper schedule.</td></tr>
+<tr><td>S5</td><td>Execute</td><td>Track the reference with LIBERO's OSC controller in closed loop. Record frames and the commanded actions in the policy's relative-EEF convention.</td><td>Frames and exact actions. Nothing is teleported.</td></tr>
+<tr><td>S6</td><td>Filter</td><td>Keep only rollouts that pass the sim's success check. Also reject collisions and excessive speed or jerk.</td><td>Corrective episodes, plus a yield figure for each offset band.</td></tr>
+<tr><td>S7</td><td>Style check (optional)</td><td>Run an IDM trained only on clean demos (T1) over the new episodes and compare its predictions with the recorded actions. Its disagreement should match what it shows on held-out real demos.</td><td>A distribution-shift score. This is a diagnostic only, not a filter, until it is validated.</td></tr>
+<tr><td>S8</td><td>Train and eval</td><td>LoRA co-train with the original demos at a pre-registered dose. Evaluate held-out vs base with the R-056 lessons applied (grasp-regression check on scene 1327, dose, offset bands).</td><td>retraining-viz page and a val PASS before any result travels.</td></tr>
+</table></div>
+
+<h2>3 · How it relates to what we already have</h2>
+<ul>
+<li><b>D21 (open):</b> Option A bridge-and-join (MimicGen-lite, FLARE-style bridging) vs Option B scripted expert with DART noise. This proposal is a variant of Option A. It starts at the policy's own root instead of at a perturbed start, and it uses a DMP instead of MimicGen's rigid transform plus linear interpolation. prim should decide whether it replaces Option A, is part of it, or is separate.</li>
+<li><b>MINING_SPEC D14:</b> the success search already matches "a snapshot of the situation at the root". S3 could be that search, and the two should share code.</li>
+<li><b>R-054 rescue minting:</b> dropped on 10-06 because yield was about 0.2 beyond 16 cm. S6 has to report yield by offset band from day one, so we find out early whether DMP retargeting does better at large offsets.</li>
+<li><b>IDM_VLA_HORIZONS T0/T1:</b> these are S0 and the IDM for S7. Nothing else involving an IDM runs before T1 passes.</li>
+</ul>
+
+<h2>4 · Prior work <span class="tag">metadata checked via search · full texts not read</span></h2>
+<div class="tw"><table>
+<tr><th>Paper</th><th>What it does</th><th>How we differ / what we take</th></tr>
+<tr><td><a href="https://arxiv.org/abs/2405.01472">IntervenGen</a> (Hoque, Mandlekar, Garrett, Goldberg, Fox, IROS 2024)</td><td>Turns a few human corrective interventions into many synthetic ones by transforming source trajectories. Up to 39× robustness with 10 human interventions. Quasi-static, rigid objects only.</td><td><b>The closest prior work.</b> It also produces corrections from the policy's failure states. Full comparison in §4a.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2310.17596">MimicGen</a> (Mandlekar et al., CoRL 2023)</td><td>Splits demos into object-centric subtask segments, transforms them to new object poses, joins them with interpolation, executes them, and keeps successes. 50k+ demos from about 200.</td><td>The template for S3–S6. We swap its rigid transform plus interpolation for a DMP and start from roots instead of fresh episodes.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2410.18907">SkillMimicGen</a> (Garrett et al., CoRL 2024)</td><td>Skill segments plus motion-planned transit between them. About 24% over MimicGen and 24k demos from 60.</td><td>Our planner fallback for coverage gaps follows this.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2502.16932">DemoGen</a> (Xue et al., RSS 2025)</td><td>Retargets one demo's action trajectory to new object layouts and synthesises the observations with point-cloud editing. Has extensions for disturbance resistance.</td><td>Same retarget idea. We render real frames in sim instead of editing point clouds.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2310.12972">CCIL</a> (Ke et al., ICLR 2024)</td><td>Builds corrective labels near the demos from a locally continuous dynamics model.</td><td>An alternative that needs no sim execution. We have the sim, so we execute instead.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/1011.0686">DAgger</a> (Ross, Gordon, Bagnell, AISTATS 2011)</td><td>Collect expert labels on the learner's own state distribution.</td><td>The principle behind starting from roots. Here the "expert" is the retargeted demo.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/1703.09327">DART</a> (Laskey et al., CoRL 2017)</td><td>Inject noise during demos so the demos show how to recover.</td><td>D21 Option B. A useful baseline to compare against.</td></tr>
+<tr><td><a href="https://infoscience.epfl.ch/record/185437">DMPs</a> (Ijspeert, Nakanishi, Hoffmann, Pastor, Schaal, Neural Computation 25:328–373, 2013)</td><td>The canonical DMP formulation: spring-damper plus a learned forcing term and a phase clock.</td><td>S4's core.</td></tr>
+<tr><td><a href="https://acat-project.eu/modules/BibtexModule/uploads/PDF/udenemecpetric2014.pdf">Orientation DMPs</a> (Ude, Nemec, Petrič, Morimoto, ICRA 2014)</td><td>Quaternion / rotation-matrix DMPs. A 2019 follow-up reports oscillations and gives a corrected SO(3) form.</td><td>Use for orientation in S4.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/1908.10608">Overcoming some drawbacks of DMPs</a> (Ginesi, Sansonetto, Fiorini)</td><td>Uses affine invariance to make goal generalisation robust. Sidiropoulos &amp; Doulgeri (2024) also report overscaling.</td><td>The fix for the flip / overscale problem in S4.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2102.03861">DMP tutorial survey</a> (Saveriano et al., 2021)</td><td>A tutorial on variants, coupling terms and obstacle avoidance.</td><td>The implementation reference.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2112.01511">VINN</a> (Pari et al., RSS 2022) · <a href="https://arxiv.org/abs/2304.08742">Behavior Retrieval</a> (Du et al., RSS 2023)</td><td>Nearest-neighbour retrieval over demos, in a learned embedding space.</td><td>We match on privileged sim state instead (S3). An embedding is the fallback if state matching proves brittle.</td></tr>
+<tr><td><a href="https://arxiv.org/abs/2505.12705">DreamGen</a> (NVIDIA GEAR, 2025)</td><td>Video world model plus IDM produce "neural trajectories".</td><td>Rejected for LIBERO (§1). Only relevant for real robots or video-only data.</td></tr>
+</table></div>
+
+<h2>4a · IntervenGen side by side <span class="tag">method read in the arXiv PDF (v1), §IV B–D</span></h2>
+<p>IntervenGen (I-Gen) is the closest prior work, so I read its generation method directly. Its loop: run the base policy in a new scene with a fresh observation corruption until contact detection flags a mistake. Pick a random <i>human intervention</i>, transform its recovery segment to the current object pose, linearly interpolate the EEF to its start, and replay it open-loop. Keep the episode only if the task succeeds, and keep the recovery part, not the mistake, for training. Aggregate with the base data and retrain (BC-RNN, robomimic). The paper's claim, verbatim: "increase policy robustness by up to 39× with only 10 human interventions" (3.5× / 10.7× / 39× over base on Nut Insertion / 2-Piece Assembly / Coffee).</p>
+<div class="tw"><table>
+<tr><th>Step</th><th>IntervenGen</th><th>This proposal</th><th>So what</th></tr>
+<tr><td>Mistake state</td><td>Policy rollout under a fresh pose corruption, stopped by contact detection</td><td>Root of a real failed rollout (first unrecovered event, ROOT_IDENTIFICATION)</td><td>Same idea: start where the policy actually goes wrong. Our root rules are untested for some failure types (ROOT_IDENTIFICATION UQ4).</td></tr>
+<tr><td>Recovery source</td><td>10 human teleop <b>interventions</b>, which show real recoveries</td><td>Clean full-task <b>demos</b>, which never show a recovery</td><td><b>The main difference and the main risk.</b> We assume a nominal demo segment, retargeted, can recover from an off-distribution root. I-Gen didn't need that assumption. Test 2 in §7 measures it per offset band.</td></tr>
+<tr><td>Bridge to the source</td><td>Linear interpolation in EEF space, then an open-loop SE(3)-transformed replay</td><td>DMP retarget (keeps the demo's shape and speed), tracked closed-loop</td><td>Ours should look more like the demos at the join. That is unproven; S7 is the check.</td></tr>
+<tr><td>Filter</td><td>Task success; the mistake part is excluded</td><td>Task success plus collision and jerk limits; train on root→goal</td><td>Same.</td></tr>
+<tr><td>Learner</td><td>BC-RNN, one or more rounds of aggregation</td><td>GR00T N1.7 LoRA co-train</td><td>The dose is open (§5 Q5); R-056 showed it matters.</td></tr>
+<tr><td>Stated limits</td><td>Quasi-static, rigid objects; assumes valid interventions can be made by transforming source data; delta-pose EEF actions; known subtask sequence</td><td>LIBERO-Spatial satisfies all four</td><td>No blocker.</td></tr>
+</table></div>
+<p><b>Novelty, honestly:</b> this is close to "IntervenGen without human interventions": DMP bridging from nominal demos plus automatic root finding. It is a reasonable engineering variant for our setup, not a new method. If it works, the reportable comparison is against I-Gen-style linear-interpolation bridging on the same roots, which costs one extra arm in the root pilot.</p>
+<p class="meta">The I-Gen paper's own text and table don't quite agree (a summarising fetch read the table as about 4.5× / 11.7× / 40×). Not re-derived here; the paper's verbatim text claim is the one quoted above.</p>
+
+<h2>5 · Undecided questions (for the user / prim)</h2>
+<ol>
+<li><b>Scope vs D21:</b> replace Option A, sit inside it, or be a separate track?</li>
+<li><b>Goal definition:</b> the end of the matched demo segment, or the end of the whole task? (This affects whether one episode covers several phases.)</li>
+<li><b>Match threshold and k:</b> set from the spread of distances between demos (for example the 95th percentile) or fixed by hand?</li>
+<li><b>What to train on:</b> only the root→goal corrective segment, or also the policy's own start→root prefix (for state context, with no action loss on the prefix)?</li>
+<li><b>Dose:</b> the corrective:original ratio, pre-registered from the R-056 / D20 offset-band data.</li>
+<li><b>S7:</b> worth building now, or later once T1 passes?</li>
+</ol>
+
+<h2>6 · Cost (estimate)</h2>
+<ul>
+<li>Engineering: S0–S6 about 5–8 days (DMP core about 1 day; matching and segmentation about 2; execution and filter about 2; plumbing and val checks 1–3).</li>
+<li>Compute: everything up to S6 runs on CPU. S8 is a normal LoRA retrain plus eval sweep on the 8 GB card. No cloud.</li>
+</ul>
+
+<h2>7 · Cheapest first tests (in order)</h2>
+<ol>
+<li><b>T0:</b> does demo replay reproduce the demos? If not, S0 and S3 have nothing clean to match against. (CPU, about 2–4 h.)</li>
+<li><b>DMP sanity:</b> retarget a demo to its own start and goal and check it reproduces itself. Then retarget to ±2/8/16 cm offsets and report success yield per band. Compare with R-054's 0.2 beyond 16 cm.</li>
+<li><b>Root pilot:</b> 20 roots from one scene, top-3 matches each. Report yield, a visual match check (root frame vs matched demo frame), and coverage-gap rate. Add a second arm that uses I-Gen-style linear-interpolation bridging on the same roots (§4a).</li>
+<li>Only after these, a small S8 co-train with a pre-registered dose and val in the loop.</li>
+</ol>
+</main></body>
+</html>
