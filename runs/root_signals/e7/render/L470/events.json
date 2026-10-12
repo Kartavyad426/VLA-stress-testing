@@ -1,0 +1,49 @@
+{
+ "envs_alive_before_replay": 0,
+ "frames_source": "env._raw step-returned pixels (replay), no re-render",
+ "ep": "L470",
+ "line": 470,
+ "role": "success_calibration",
+ "axis": "camera_yaw_deg",
+ "task_id": "libero_plus/libero_spatial/task1090",
+ "success": true,
+ "instruction": "lift the darkhued container located on top of the container of baked treats and set it on the dish",
+ "objects": [
+  "akita_black_bowl_1",
+  "akita_black_bowl_2",
+  "cookies_1",
+  "glazed_rim_porcelain_ramekin_1",
+  "plate_1"
+ ],
+ "target": "akita_black_bowl_1",
+ "plate": "plate_1",
+ "events": [
+  {
+   "event": "grasp_onset",
+   "t": 42,
+   "t_frame": 42
+  },
+  {
+   "event": "onset_plus_10",
+   "t": 52,
+   "t_frame": 52
+  },
+  {
+   "event": "final",
+   "t": 86,
+   "t_frame": 86
+  }
+ ],
+ "n_frames": 87,
+ "n_truth": 87,
+ "fidelity": {
+  "n_compared": 87,
+  "max_dev_m": 0.00282,
+  "median_dev_m": 0.00113
+ },
+ "replay_vs_logged_obj_pos_m": {
+  "max": 1.1274479339278938e-13,
+  "median": 0.0
+ },
+ "has_grasp_event": true
+}

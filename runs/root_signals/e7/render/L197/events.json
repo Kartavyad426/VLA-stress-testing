@@ -1,0 +1,49 @@
+{
+ "envs_alive_before_replay": 0,
+ "frames_source": "env._raw step-returned pixels (replay), no re-render",
+ "ep": "L197",
+ "line": 197,
+ "role": "success_calibration",
+ "axis": "joint_radius_rad",
+ "task_id": "libero_plus/libero_spatial/task1062",
+ "success": true,
+ "instruction": "retrieve the darkhued concave container from the middle of the flat surface for meals and set it atop the flat dish",
+ "objects": [
+  "akita_black_bowl_1",
+  "akita_black_bowl_2",
+  "cookies_1",
+  "glazed_rim_porcelain_ramekin_1",
+  "plate_1"
+ ],
+ "target": "akita_black_bowl_1",
+ "plate": "plate_1",
+ "events": [
+  {
+   "event": "grasp_onset",
+   "t": 39,
+   "t_frame": 39
+  },
+  {
+   "event": "onset_plus_10",
+   "t": 49,
+   "t_frame": 49
+  },
+  {
+   "event": "final",
+   "t": 88,
+   "t_frame": 88
+  }
+ ],
+ "n_frames": 89,
+ "n_truth": 89,
+ "fidelity": {
+  "n_compared": 89,
+  "max_dev_m": 0.0,
+  "median_dev_m": 0.0
+ },
+ "replay_vs_logged_obj_pos_m": {
+  "max": 0.0,
+  "median": 0.0
+ },
+ "has_grasp_event": true
+}

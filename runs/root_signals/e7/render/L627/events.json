@@ -1,0 +1,54 @@
+{
+ "envs_alive_before_replay": 0,
+ "frames_source": "env._raw step-returned pixels (replay), no re-render",
+ "ep": "L627",
+ "line": 627,
+ "role": "success_calibration",
+ "axis": "camera_yaw_deg",
+ "task_id": "libero_plus/libero_spatial/task1247",
+ "success": true,
+ "instruction": "grasp the darkcolored vessel situated on the cooking appliance and relocate it to rest upon the flat dish",
+ "objects": [
+  "akita_black_bowl_1",
+  "akita_black_bowl_2",
+  "cookies_1",
+  "glazed_rim_porcelain_ramekin_1",
+  "plate_1"
+ ],
+ "target": "akita_black_bowl_1",
+ "plate": "plate_1",
+ "events": [
+  {
+   "event": "grasp_onset",
+   "t": 26,
+   "t_frame": 26
+  },
+  {
+   "event": "onset_plus_10",
+   "t": 36,
+   "t_frame": 36
+  },
+  {
+   "event": "release",
+   "t": 107,
+   "t_frame": 107
+  },
+  {
+   "event": "final",
+   "t": 108,
+   "t_frame": 108
+  }
+ ],
+ "n_frames": 109,
+ "n_truth": 109,
+ "fidelity": {
+  "n_compared": 109,
+  "max_dev_m": 0.00257,
+  "median_dev_m": 0.00152
+ },
+ "replay_vs_logged_obj_pos_m": {
+  "max": 3.8741805229396855e-14,
+  "median": 0.0
+ },
+ "has_grasp_event": true
+}

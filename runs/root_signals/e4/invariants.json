@@ -1,0 +1,112 @@
+{
+ "stats_min": [
+  -0.9375,
+  -0.9375,
+  -0.9375,
+  -0.1875,
+  -0.3675000071525574,
+  -0.36000001430511475,
+  0.0
+ ],
+ "stats_max": [
+  0.9375,
+  0.9375,
+  0.9375,
+  0.1971428543329239,
+  0.33642858266830444,
+  0.375,
+  1.0
+ ],
+ "roundtrip_max_abs_in_range": 1.5265566588595902e-16,
+ "actions_out_of_range_per_dim": [
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  2615
+ ],
+ "n_actions": 5068,
+ "instruction_hdf5": "pick up the black bowl between the plate and the ramekin and place it on the plate",
+ "instruction_matches_r047_scene984": true,
+ "shapes_first3": {
+  "demo_0": [
+   [
+    98,
+    128,
+    128,
+    3
+   ],
+   [
+    98,
+    7
+   ]
+  ],
+  "demo_1": [
+   [
+    84,
+    128,
+    128,
+    3
+   ],
+   [
+    84,
+    7
+   ]
+  ],
+  "demo_2": [
+   [
+    90,
+    128,
+    128,
+    3
+   ],
+   [
+    90,
+    7
+   ]
+  ]
+ },
+ "forwards_total_per_seed": 334,
+ "lag_eef_m": {
+  "t_minus_1": {
+   "median": 0.00041235460380019526,
+   "max": 0.0006309981227350944,
+   "n": 68
+  },
+  "t": {
+   "median": 0.01007466256172057,
+   "max": 0.01596982488396646,
+   "n": 68
+  }
+ },
+ "lag_agentview_meanabs": {
+  "t_minus_1": {
+   "median": 3.308186848958333,
+   "max": 4.666259765625
+  },
+  "t": {
+   "median": 5.037119547526041,
+   "max": 9.0462646484375
+  },
+  "orient_agentview_image_as_stored": {
+   "median": 3.308186848958333,
+   "max": 4.666259765625
+  },
+  "orient_agentview_image_rot180": {
+   "median": 71.94219970703125,
+   "max": 75.57073974609375
+  },
+  "orient_robot0_eye_in_hand_image_as_stored": {
+   "median": 1.9762776692708335,
+   "max": 6.871500651041667
+  },
+  "orient_robot0_eye_in_hand_image_rot180": {
+   "median": 73.17017618815103,
+   "max": 87.07889811197917
+  }
+ },
+ "lag_ok": true,
+ "orientation_ok": true
+}

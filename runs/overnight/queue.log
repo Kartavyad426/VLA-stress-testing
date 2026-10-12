@@ -129,3 +129,16 @@
 [2026-10-06 18:46:42] [d1006] D20_fit end rc=0 (13 min) peaks: RSS tree 13.251 GiB (anon 6.875), GPU 7.478 GiB
 [2026-10-07 11:25:03] [d1006] R058_r64_score start (MemAvailable 17.6 GiB): .venvs/groot/bin/python experiments/r056_eval.py --train-dir runs/r058_r64_cached_train --out runs/r058_r64 --run-prefix r058 --lora-r 64 --base-manifest runs/r056_r16/manifest.jsonl score
 [2026-10-07 11:25:05] [d1006] R058_r64_score end rc=0 (0 min) peaks: RSS tree 0.013 GiB (anon 0.007), GPU 0.104 GiB
+[2026-10-09 16:00:09] [d1006] e4_0_invariants start (MemAvailable 14.3 GiB): .venvs/libero-plus/bin/python experiments/e4_demo_disagreement.py invariants
+[2026-10-09 16:00:25] [d1006] e4_0_invariants end rc=0 (0 min) peaks: RSS tree 2.4 GiB (anon 1.865), GPU 0.697 GiB
+[2026-10-09 16:03:22] [d1006] e4_1_smoke start (MemAvailable 14.4 GiB): .venvs/libero-plus/bin/python experiments/e4_demo_disagreement.py run --limit 1
+[2026-10-09 16:04:33] [d1006] e4_1_smoke end rc=0 (1 min) peaks: RSS tree 12.095 GiB (anon 6.876), GPU 7.159 GiB
+[2026-10-09 16:14:58] [d1006] e7_1_render_smoke start (MemAvailable 14.5 GiB): .venvs/libero-plus/bin/python experiments/e7_render.py render --limit 3
+[2026-10-09 16:15:39] [d1006] e7_1_render_smoke end rc=0 (0 min) peaks: RSS tree 2.788 GiB (anon 2.246), GPU 0.722 GiB
+[2026-10-09 16:17:43] [d1006] e7_1_render start (MemAvailable 14.0 GiB): .venvs/libero-plus/bin/python experiments/e7_render.py render
+[2026-10-09 16:49:38] [d1006] e7_1_render end rc=0 (31 min) peaks: RSS tree 2.948 GiB (anon 2.382), GPU 0.722 GiB
+[2026-10-09 16:51:46] [d1006] e7_truth start (MemAvailable 14.6 GiB): .venvs/libero-plus/bin/python experiments/e7_truth_contacts.py
+[2026-10-11 13:25:39] [d1006] e7_truth end rc=0 (2673 min) peaks: RSS tree 3.009 GiB (anon 2.461), GPU 0.722 GiB
+[2026-10-12 11:22:28] [d1006] e4_2_run REFUSED: MemAvailable 13.7 GiB < 14
+[2026-10-12 11:32:02] [d1006] e4_2_run start (MemAvailable 14.3 GiB): .venvs/libero-plus/bin/python experiments/e4_demo_disagreement.py run
+[2026-10-12 11:32:41] [d1006] e4_2_run end rc=1 (0 min) peaks: RSS tree 11.857 GiB (anon 6.712), GPU 0.0 GiB

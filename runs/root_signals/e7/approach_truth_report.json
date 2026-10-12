@@ -1,0 +1,42 @@
+{
+ "n_approach": 396,
+ "n_ambiguous": 58,
+ "n_no_object": 127,
+ "n_differs_from_body_centre_rule": 169,
+ "nearest_pad_dist_m_quantiles": {
+  "0": 0.0,
+  "10": 0.0,
+  "25": 0.002523844681794217,
+  "50": 0.014229755273140157,
+  "75": 0.05600154563158733,
+  "90": 0.12134147211862194,
+  "100": 0.22467913270415077
+ },
+ "hist_cm_0_1_2_3_5_10_25": [
+  164,
+  73,
+  32,
+  25,
+  50,
+  52
+ ],
+ "thresholds": {
+  "approach_max_m": 0.03,
+  "ambiguous_m": 0.01
+ },
+ "known_answer_L014_t31_target_bowl": [
+  [
+   "the black bowl between the plate and the ramekin"
+  ],
+  0.0102,
+  true
+ ],
+ "L014_t80": [
+  [
+   "the plate"
+  ],
+  0.0051,
+  false
+ ],
+ "provenance_note": "e7_truth_contacts.py run 2026-10-09 16:51 -> 2026-10-11 13:25 (d_step rc=0); the machine suspended once between episodes 120 and 121 (158,504 s gap in runs/overnight/e7_truth.log); render-only, deterministic, each episode replayed in a fresh env, so the gap does not affect the values."
+}

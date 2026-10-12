@@ -4,6 +4,9 @@
         --instruction "pick up the black bowl ..." \
         [--backend local|nim] [--model nvidia/Cosmos-Reason2-2B] [--quant 4bit]
 
+Closed-question mode (E7): `vlm_label.py closed --images f.png --instruction ... --question ... --options "a|b|c"`
+(see ask_closed / LocalVLM / NimVLM below; experiments/e7_vlm.py drives it in batch).
+
 Backends:
   local  transformers, in the isolated `.venvs/cosmos` (bitsandbytes lives there
          and nowhere else, so no policy venv changes). `--quant 4bit` is NF4,
@@ -163,6 +166,171 @@ def run_nim(video: str, text: str, model_id: str, max_new_tokens: int,
     return {"text": msg.get("content") or "", "usage": r.get("usage"),
             "gen_s": round(time.time() - t0, 1)}
 
+# --- closed-question mode (E7, ROOT_SIGNAL_EXPERIMENTS; 10-09) ----------------------------------------------------
+# One or more STILL frames, one question, a fixed list of options; the answer must be one option letter. The model is
+# loaded once (LocalVLM) or called per request (NimVLM), so a batch of ~1,500 questions does not reload weights.
+# The prompt states neither the outcome nor the perturbation. An answer that does not parse to an offered letter is
+# recorded as invalid, never guessed.
+
+CLOSED_PROMPT = """{preamble}
+Left half of each image: a fixed third-person camera. Right half: a camera mounted on the robot's wrist.
+The robot was asked to: "{instruction}".
+
+Question: {question}
+Options:
+{options}
+
+Choose exactly one option. End your reply with a final line of the form
+ANSWER: <letter>"""
+
+LETTERS = "ABCDEFGHIJ"
+
+
+def closed_prompt(instruction: str, question: str, options: list[str], n_images: int = 1) -> str:
+    pre = ("The image shows a robot workspace at one moment of an attempt." if n_images == 1 else
+           f"The {n_images} images are frames from one attempt, in time order.")
+    opts = "\n".join(f"{LETTERS[i]}. {o}" for i, o in enumerate(options))
+    return CLOSED_PROMPT.format(preamble=pre, instruction=instruction, question=question, options=opts)
+
+
+def parse_choice_rule(text: str, n_options: int):
+    """(index, rule): rule "strict" (an 'ANSWER: X' line), "bare_letter" (the reply is exactly one offered letter),
+    or None when unparsed."""
+    m = list(re.finditer(r"ANSWER:\s*\**\s*([A-J])\b", text))
+    if m:
+        i = LETTERS.index(m[-1].group(1))
+        return (i, "strict") if i < n_options else (None, None)
+    bare = text.strip().strip("*").strip()
+    if len(bare) == 1 and bare in LETTERS[:n_options]:
+        return LETTERS.index(bare), "bare_letter"
+    return None, None
+
+
+def parse_choice(text: str, n_options: int) -> int | None:
+    """Index of the chosen option from the LAST 'ANSWER: X' line; None if absent or out of range."""
+    m = list(re.finditer(r"ANSWER:\s*\**\s*([A-J])\b", text))
+    if not m:
+        bare = text.strip().strip("*").strip()          # a reply that is exactly one offered letter (NIM smoke 10-09)
+        if len(bare) == 1 and bare in LETTERS[:n_options]:
+            return LETTERS.index(bare)
+        return None
+    i = LETTERS.index(m[-1].group(1))
+    return i if i < n_options else None
+
+
+def _to_uint8(img):
+    import numpy as np
+    from PIL import Image
+    if isinstance(img, str):
+        return np.asarray(Image.open(img).convert("RGB"))
+    return np.asarray(img, dtype=np.uint8)
+
+
+class LocalVLM:
+    def __init__(self, model_id="Qwen/Qwen3-VL-8B-Thinking", quant="4bit", scale=0.5, max_new_tokens=2048):
+        import torch
+        from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
+        kw = {"dtype": torch.bfloat16, "device_map": "cuda"}
+        if quant == "4bit":
+            from transformers import BitsAndBytesConfig
+            kw["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16, bnb_4bit_use_double_quant=True)
+        self.model = Qwen3VLForConditionalGeneration.from_pretrained(model_id, **kw).eval()
+        self.proc = AutoProcessor.from_pretrained(model_id)
+        self.scale, self.max_new_tokens, self.model_id = scale, max_new_tokens, model_id
+
+    def ask(self, images, text) -> dict:
+        import torch
+        from PIL import Image
+        ims = []
+        for im in images:
+            a = _to_uint8(im)
+            if self.scale != 1.0:
+                h, w = a.shape[:2]
+                a = Image.fromarray(a).resize((int(w * self.scale) // 32 * 32, int(h * self.scale) // 32 * 32), Image.BILINEAR)
+            else:
+                a = Image.fromarray(a)
+            ims.append(a)
+        msgs = [{"role": "user", "content": [*({"type": "image"} for _ in ims), {"type": "text", "text": text}]}]
+        prompt = self.proc.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+        inputs = self.proc(text=[prompt], images=ims, return_tensors="pt").to(self.model.device)
+        n_in = int(inputs["input_ids"].shape[1])
+        t0 = time.time()
+        with torch.inference_mode():
+            out = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, do_sample=False)
+        gen = out[0, n_in:]
+        return {"text": self.proc.decode(gen, skip_special_tokens=True), "input_tokens": n_in,
+                "output_tokens": int(gen.shape[0]), "gen_s": round(time.time() - t0, 1)}
+
+
+class NimVLM:
+    URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+    def __init__(self, model_id="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning", max_new_tokens=3072, retries=10, timeout=600):
+        self.key = os.environ.get("NVIDIA_NIM_API_KEY")
+        if not self.key:
+            raise SystemExit("set NVIDIA_NIM_API_KEY")
+        self.model_id, self.max_new_tokens, self.retries, self.timeout = model_id, max_new_tokens, retries, timeout
+
+    def ask(self, images, text) -> dict:
+        import io
+        import urllib.error
+        import urllib.request
+        from PIL import Image
+        media = []
+        for im in images:
+            buf = io.BytesIO()
+            Image.fromarray(_to_uint8(im)).save(buf, format="JPEG", quality=95)
+            media.append({"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()}})
+        body = {"model": self.model_id, "max_tokens": self.max_new_tokens, "temperature": 0,
+                "messages": [{"role": "user", "content": [{"type": "text", "text": text}, *media]}]}
+        req = lambda: urllib.request.Request(self.URL, data=json.dumps(body).encode(),
+                                             headers={"Authorization": "Bearer " + self.key, "Content-Type": "application/json"})
+        delay, last = 5.0, None
+        for attempt in range(self.retries):
+            t0 = time.time()
+            try:
+                r = json.load(urllib.request.urlopen(req(), timeout=self.timeout))
+                msg = r["choices"][0]["message"]
+                return {"text": msg.get("content") or "", "usage": r.get("usage"), "gen_s": round(time.time() - t0, 1),
+                        "attempts": attempt + 1}
+            except urllib.error.HTTPError as e:
+                last = f"HTTP {e.code}"
+                if e.code not in (429, 500, 502, 503, 504):
+                    raise
+            except (urllib.error.URLError, TimeoutError) as e:
+                last = f"{type(e).__name__}: {e}"
+            time.sleep(delay)
+            delay = min(delay * 2, 120)
+        raise RuntimeError(f"NIM failed after {self.retries} attempts: {last}")
+
+
+def ask_closed(vlm, images, instruction, question, options) -> dict:
+    text = closed_prompt(instruction, question, options, len(images))
+    res = vlm.ask(images, text)
+    i, rule = parse_choice_rule(res["text"], len(options))
+    res.update({"choice_index": i, "choice": options[i] if i is not None else None, "valid": i is not None, "parse_rule": rule})
+    return res
+
+
+def main_closed(argv):
+    ap = argparse.ArgumentParser(prog="vlm_label.py closed")
+    ap.add_argument("--images", nargs="+", required=True)
+    ap.add_argument("--instruction", required=True)
+    ap.add_argument("--question", required=True)
+    ap.add_argument("--options", required=True, help="'|'-separated")
+    ap.add_argument("--backend", choices=["local", "nim"], default="local")
+    ap.add_argument("--model", default=None)
+    ap.add_argument("--quant", choices=["4bit"], default="4bit")
+    ap.add_argument("--scale", type=float, default=0.5)
+    a = ap.parse_args(argv)
+    vlm = (LocalVLM(a.model or "Qwen/Qwen3-VL-8B-Thinking", a.quant, a.scale) if a.backend == "local"
+           else NimVLM(a.model or "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"))
+    res = ask_closed(vlm, a.images, a.instruction, a.question, a.options.split("|"))
+    print(json.dumps({**res, "backend": a.backend}))
+
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -191,4 +359,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "closed":
+        main_closed(sys.argv[2:])
+    else:
+        main()

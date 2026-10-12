@@ -13,6 +13,13 @@ noise) for the state axis) so ‖P−N‖ at forward 0 is on record.
 Writes runs/<run-id>/<axis>/manifest.jsonl (one row per rollout) and the
 per-rollout npz; resumable at rollout granularity.
 
+R-059 parts B/C (E1b, 10-09): `--draws B --seed-noise` draws B seeded samples per forward from the head in
+one batched call (experiments/r059_multidraw.py) and executes draw 0. In that mode the splice arms are NOT run (no
+paired nominal, no act_N/T/I/S, no d_pn, no tf_*): the npz holds act_P (= draw 0, normalised, F x 40 x 7, as before),
+act_B (F x B x 40 x 7), draw0_seed and head_s per forward, and act_B_null (a second independent B-set) with
+`--null-extra`. `--radii/--dirs/--noise` override the axis grid. Default flags (B = 1, no --seed-noise) run the
+original code path unchanged.
+
 SIGTERM (e.g. `timeout` at a queue deadline) finishes the rollout in flight,
 writes its row, and exits 0: the next run resumes from the manifest. A scene
 whose camera setup ignores a bench knob (the knob raises NotImplementedError,
@@ -30,6 +37,7 @@ import time
 
 os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), "experiments"))
 
 import numpy as np
 import torch
@@ -108,17 +116,35 @@ def main():
     ap.add_argument("--axis", required=True, choices=list(GRIDS))
     ap.add_argument("--scenes", default=",".join(map(str, SCENES)))
     ap.add_argument("--max-rollouts", type=int, default=None, help="smoke: stop after N new rollouts")
+    ap.add_argument("--draws", type=int, default=1, help="R-059: B draws per forward (draw 0 executed)")
+    ap.add_argument("--seed-noise", action="store_true", help="R-059: seeded per-draw head noise (sha256 of noise seed, forward, draw)")
+    ap.add_argument("--null-extra", action="store_true", help="R-059: also record a second independent B-set per forward")
+    ap.add_argument("--radii", default=None, help="override the axis magnitudes, e.g. 0,0.4")
+    ap.add_argument("--dirs", default=None, help="override the joint directions, e.g. 0")
+    ap.add_argument("--noise", default=None, help="override the noise seeds, e.g. 0,1")
     a = ap.parse_args()
+    multi = a.draws > 1 or a.seed_noise
+    if a.null_extra and not multi:
+        ap.error("--null-extra needs --seed-noise")
     n_new = 0
     scenes = [int(s) for s in a.scenes.split(",")]
     mags, rep = GRIDS[a.axis]
+    rep = dict(rep)
+    if a.radii is not None:
+        mags = [float(x) for x in a.radii.split(",")]
+    if a.dirs is not None:
+        rep["dirs"] = [int(x) for x in a.dirs.split(",")]
+    if a.noise is not None:
+        rep["noise"] = [int(x) for x in a.noise.split(",")]
     is_state = a.axis == "joint_radius_rad"
     out_dir = os.path.join("runs", a.run_id, a.axis)
     os.makedirs(out_dir, exist_ok=True)
     code_dir = os.path.join("runs", a.run_id, "code_state")
     if not os.path.exists(code_dir):
         os.makedirs(code_dir)
-        os.system(f"git rev-parse HEAD > {code_dir}/HEAD; git diff > {code_dir}/uncommitted.patch")
+        os.system(f"git rev-parse HEAD > {code_dir}/HEAD; git diff > {code_dir}/uncommitted.patch; "
+                  f"git status --porcelain > {code_dir}/status.txt; "
+                  f"git ls-files --others --exclude-standard experiments vla_harness | grep '\\.py$' | xargs -r -I{{}} cp --parents {{}} {code_dir}/")
     manifest = os.path.join(out_dir, "manifest.jsonl")
     done = set()
     if os.path.exists(manifest):
@@ -147,6 +173,47 @@ def main():
                         continue
                     env = make_env(scene)
                     rec = None
+                    if multi:
+                        from r059_multidraw import attach_multidraw
+                        if torch.cuda.is_available():
+                            torch.cuda.reset_peak_memory_stats()
+                        md = attach_multidraw(pol._policy, a.draws, ns, a.seed_noise, a.null_extra)
+                        try:
+                            r = rollout(env, pol, ENV_SEED, spec_for(a.axis, m, d), video_dir=None)
+                        finally:
+                            md.detach()
+                        store.append(r)
+                        F = len(md.records)
+                        if F == 0 or F != r.model_forwards:
+                            raise RuntimeError(f"multi-draw: {F} records vs {r.model_forwards} model forwards")
+                        actB = np.stack([x["act_B"].numpy() for x in md.records]).astype(np.float16)
+                        extra = {"act_B_null": np.stack([x["act_B_null"].numpy() for x in md.records]).astype(np.float16)} if a.null_extra else {}
+                        head_s = np.array([x["head_s"] for x in md.records], np.float32)
+                        ca = closest_to_bowl(r, env)
+                        tag = f"{scene}_{m:.6f}_d{d}_n{ns}".replace(".", "p")
+                        np.savez_compressed(os.path.join(out_dir, f"{tag}.npz"), env_steps=np.array(pol.forward_env_steps[:F], np.int32),
+                                            act_P=actB[:, 0], act_B=actB, draw0_seed=np.array([x["draw0_seed"] for x in md.records], np.int64),
+                                            head_s=head_s, closest_approach=ca, **extra)
+                        peak = torch.cuda.max_memory_allocated() / 2**30 if torch.cuda.is_available() else None
+                        import resource
+                        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 2**20   # GiB, process lifetime peak
+                        row = {"rollout_id": r.rollout_id, "task_id": scene, "axis": a.axis, "magnitude": round(float(m), 6),
+                               "dir": d, "noise_seed": ns, "env_seed": ENV_SEED, "success": r.success, "termination": r.termination,
+                               "forwards": F, "env_steps": r.env_steps, "draws": a.draws, "seed_noise": a.seed_noise,
+                               "null_extra": a.null_extra, "arms": False, "head_s_mean": float(head_s.mean()),
+                               "head_s_max": float(head_s.max()), "head_input_shapes": md.input_shapes, "peak_gpu_alloc_gib": peak, "peak_rss_gib_process": round(rss, 2),
+                               "closest_approach_m": float(np.nanmin(ca)) if np.isfinite(ca).any() else None, "wall_s": round(r.wall_time_s, 1)}
+                        with open(manifest, "a") as f:
+                            f.write(json.dumps(row) + "\n")
+                        done.add(key); n_new += 1
+                        log(f"scene {scene} m={m:<6} dir {d} noise {ns}: success={r.success} F={F} B={a.draws} "
+                            f"head {row['head_s_mean']*1e3:.0f} ms/fwd wall {row['wall_s']} s peak {peak}")
+                        del env
+                        if a.max_rollouts is not None and n_new >= a.max_rollouts:
+                            log("max-rollouts reached"); return
+                        if STOP["requested"]:
+                            log("stopped on signal; resumable"); return
+                        continue
                     if m == 0:
                         rec = attach_recorder(pol._policy)
                         source = lambda i, env=env: pol.features_for(env.nominal_observation())

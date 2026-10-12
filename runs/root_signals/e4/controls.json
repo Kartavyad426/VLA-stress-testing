@@ -1,0 +1,64 @@
+{
+ "known_answer_r047_actP0": [
+  {
+   "scene": 984,
+   "noise_seed": 0,
+   "max_abs_vs_stored_fp16": 0.049102783203125,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": false,
+   "tolerance": 0.0009765625,
+   "PASS": false,
+   "note": "anchor unstable in R-047 (axes disagree); not gating"
+  },
+  {
+   "scene": 984,
+   "noise_seed": 1,
+   "max_abs_vs_stored_fp16": 0.0,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": true,
+   "tolerance": 0.0009765625,
+   "PASS": true
+  },
+  {
+   "scene": 1030,
+   "noise_seed": 0,
+   "max_abs_vs_stored_fp16": 0.0,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": true,
+   "tolerance": 0.0009765625,
+   "PASS": true
+  },
+  {
+   "scene": 1030,
+   "noise_seed": 1,
+   "max_abs_vs_stored_fp16": 0.0,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": true,
+   "tolerance": 0.0009765625,
+   "PASS": true
+  },
+  {
+   "scene": 1062,
+   "noise_seed": 0,
+   "max_abs_vs_stored_fp16": 0.0,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": true,
+   "tolerance": 0.0009765625,
+   "PASS": true,
+   "note": "anchor unstable in R-047 (axes disagree); not gating"
+  },
+  {
+   "scene": 1062,
+   "noise_seed": 1,
+   "max_abs_vs_stored_fp16": 0.0,
+   "repeat_max_abs": 0.0,
+   "bitwise_fp16": true,
+   "tolerance": 0.0009765625,
+   "PASS": true
+  }
+ ],
+ "known_answer_PASS": true,
+ "null_same_obs_same_key_bitwise": true,
+ "null_same_obs_seed0_vs_seed1_l2": 7.004619121551514,
+ "known_answer_PASS_note": "annotated 10-09 after E4-1 (my prim): 984/n0 unstable in R-047 itself"
+}

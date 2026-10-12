@@ -1,0 +1,44 @@
+{
+ "float32": {
+  "1_draw0_B1_eq_B32": true,
+  "1_max_abs": 0.0,
+  "2_same_seed_repeat_bitwise": true,
+  "3_draws_differ": true,
+  "4_randn_restored": true,
+  "4_stray_call_raises": true,
+  "5_wrapper_eq_direct": true,
+  "returned_batch": [
+   1,
+   40,
+   32
+  ],
+  "act_B_shape": [
+   32,
+   40,
+   7
+  ]
+ },
+ "bfloat16": {
+  "1_draw0_B1_eq_B32": true,
+  "1_max_abs": 0.0,
+  "2_same_seed_repeat_bitwise": true,
+  "3_draws_differ": true,
+  "4_randn_restored": true,
+  "4_stray_call_raises": true,
+  "5_wrapper_eq_direct": true,
+  "returned_batch": [
+   1,
+   40,
+   32
+  ],
+  "act_B_shape": [
+   32,
+   40,
+   7
+  ]
+ },
+ "6_whitelist_rejects_extra_key_and_bad_rank": [
+  true,
+  true
+ ]
+}

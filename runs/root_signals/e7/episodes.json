@@ -1,0 +1,3238 @@
+{
+ "n": 220,
+ "n_failures": 170,
+ "n_success_sample": 50,
+ "excluded_failures": {
+  "lines": [
+   285,
+   297,
+   309,
+   549,
+   558,
+   702
+  ],
+  "why": "magnitude-0 (nominal) failures are outside the start-pose and camera-yaw axes"
+ },
+ "by_axis_role": {
+  "joint_radius_rad|failure": 109,
+  "joint_radius_rad|success_calibration": 25,
+  "camera_yaw_deg|failure": 61,
+  "camera_yaw_deg|success_calibration": 25
+ },
+ "episodes": [
+  {
+   "line": 14,
+   "rollout_id": "d46c2c057325",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L014"
+  },
+  {
+   "line": 15,
+   "rollout_id": "f900636f18a6",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L015"
+  },
+  {
+   "line": 16,
+   "rollout_id": "63cc5b9f9ec9",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L016"
+  },
+  {
+   "line": 21,
+   "rollout_id": "f900636f18a6",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L021"
+  },
+  {
+   "line": 29,
+   "rollout_id": "5c65c498b7ec",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L029"
+  },
+  {
+   "line": 35,
+   "rollout_id": "5c65c498b7ec",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L035"
+  },
+  {
+   "line": 39,
+   "rollout_id": "0f315ce7a9d6",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L039"
+  },
+  {
+   "line": 50,
+   "rollout_id": "170b6786744f",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L050"
+  },
+  {
+   "line": 51,
+   "rollout_id": "853d3ce3e7fc",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L051"
+  },
+  {
+   "line": 52,
+   "rollout_id": "eec0a41344eb",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L052"
+  },
+  {
+   "line": 53,
+   "rollout_id": "5636ba70f689",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L053"
+  },
+  {
+   "line": 57,
+   "rollout_id": "853d3ce3e7fc",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L057"
+  },
+  {
+   "line": 66,
+   "rollout_id": "34d9451ff3f7",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L066"
+  },
+  {
+   "line": 67,
+   "rollout_id": "eb8b7d0dc8de",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L067"
+  },
+  {
+   "line": 75,
+   "rollout_id": "34d9451ff3f7",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L075"
+  },
+  {
+   "line": 76,
+   "rollout_id": "eb8b7d0dc8de",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L076"
+  },
+  {
+   "line": 84,
+   "rollout_id": "34d9451ff3f7",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L084"
+  },
+  {
+   "line": 85,
+   "rollout_id": "eb8b7d0dc8de",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L085"
+  },
+  {
+   "line": 86,
+   "rollout_id": "24b833c53da0",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L086"
+  },
+  {
+   "line": 93,
+   "rollout_id": "34d9451ff3f7",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L093"
+  },
+  {
+   "line": 94,
+   "rollout_id": "eb8b7d0dc8de",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L094"
+  },
+  {
+   "line": 95,
+   "rollout_id": "24b833c53da0",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L095"
+  },
+  {
+   "line": 102,
+   "rollout_id": "ba96478e5ab2",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L102"
+  },
+  {
+   "line": 104,
+   "rollout_id": "f0d3ad51d4ca",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L104"
+  },
+  {
+   "line": 137,
+   "rollout_id": "6bb63fd60406",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L137"
+  },
+  {
+   "line": 146,
+   "rollout_id": "6bb63fd60406",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L146"
+  },
+  {
+   "line": 147,
+   "rollout_id": "4dc4dabf5bac",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L147"
+  },
+  {
+   "line": 148,
+   "rollout_id": "3420d517c17f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L148"
+  },
+  {
+   "line": 154,
+   "rollout_id": "886a18781098",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L154"
+  },
+  {
+   "line": 155,
+   "rollout_id": "6bb63fd60406",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L155"
+  },
+  {
+   "line": 161,
+   "rollout_id": "c0a8faede764",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L161"
+  },
+  {
+   "line": 164,
+   "rollout_id": "1e26ccdce752",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L164"
+  },
+  {
+   "line": 167,
+   "rollout_id": "c0a8faede764",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L167"
+  },
+  {
+   "line": 170,
+   "rollout_id": "1e26ccdce752",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L170"
+  },
+  {
+   "line": 176,
+   "rollout_id": "c8d46b95cbc7",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L176"
+  },
+  {
+   "line": 182,
+   "rollout_id": "c8d46b95cbc7",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L182"
+  },
+  {
+   "line": 185,
+   "rollout_id": "6e62fcadf83f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L185"
+  },
+  {
+   "line": 186,
+   "rollout_id": "7d4020f3d70f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L186"
+  },
+  {
+   "line": 187,
+   "rollout_id": "67b443700a47",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L187"
+  },
+  {
+   "line": 188,
+   "rollout_id": "ca8b5e4ce5f2",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L188"
+  },
+  {
+   "line": 191,
+   "rollout_id": "6e62fcadf83f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L191"
+  },
+  {
+   "line": 192,
+   "rollout_id": "7d4020f3d70f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L192"
+  },
+  {
+   "line": 193,
+   "rollout_id": "67b443700a47",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L193"
+  },
+  {
+   "line": 194,
+   "rollout_id": "ca8b5e4ce5f2",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L194"
+  },
+  {
+   "line": 198,
+   "rollout_id": "f2502a25e30e",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L198"
+  },
+  {
+   "line": 200,
+   "rollout_id": "5c2cf2331d72",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L200"
+  },
+  {
+   "line": 206,
+   "rollout_id": "5c2cf2331d72",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L206"
+  },
+  {
+   "line": 221,
+   "rollout_id": "469ca5cbaffb",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L221"
+  },
+  {
+   "line": 222,
+   "rollout_id": "2166efd75f10",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L222"
+  },
+  {
+   "line": 223,
+   "rollout_id": "275ab3aa4493",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L223"
+  },
+  {
+   "line": 224,
+   "rollout_id": "f684b422875b",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L224"
+  },
+  {
+   "line": 228,
+   "rollout_id": "2166efd75f10",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L228"
+  },
+  {
+   "line": 229,
+   "rollout_id": "275ab3aa4493",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L229"
+  },
+  {
+   "line": 230,
+   "rollout_id": "f684b422875b",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L230"
+  },
+  {
+   "line": 248,
+   "rollout_id": "820ed9deed5e",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L248"
+  },
+  {
+   "line": 257,
+   "rollout_id": "2abc9a7a61ef",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L257"
+  },
+  {
+   "line": 258,
+   "rollout_id": "2e3307bd0619",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L258"
+  },
+  {
+   "line": 259,
+   "rollout_id": "22b53eb25aff",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L259"
+  },
+  {
+   "line": 260,
+   "rollout_id": "89fc2546c218",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L260"
+  },
+  {
+   "line": 263,
+   "rollout_id": "2abc9a7a61ef",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L263"
+  },
+  {
+   "line": 264,
+   "rollout_id": "2e3307bd0619",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L264"
+  },
+  {
+   "line": 265,
+   "rollout_id": "22b53eb25aff",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L265"
+  },
+  {
+   "line": 266,
+   "rollout_id": "89fc2546c218",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L266"
+  },
+  {
+   "line": 271,
+   "rollout_id": "f4a1aa48acc2",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L271"
+  },
+  {
+   "line": 272,
+   "rollout_id": "2f7a71633461",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L272"
+  },
+  {
+   "line": 277,
+   "rollout_id": "f4a1aa48acc2",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L277"
+  },
+  {
+   "line": 278,
+   "rollout_id": "2f7a71633461",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L278"
+  },
+  {
+   "line": 295,
+   "rollout_id": "fe34e3289867",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L295"
+  },
+  {
+   "line": 296,
+   "rollout_id": "bf47bccbd5a1",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L296"
+  },
+  {
+   "line": 301,
+   "rollout_id": "fe34e3289867",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L301"
+  },
+  {
+   "line": 302,
+   "rollout_id": "bf47bccbd5a1",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L302"
+  },
+  {
+   "line": 306,
+   "rollout_id": "46c56728d1c9",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L306"
+  },
+  {
+   "line": 312,
+   "rollout_id": "46c56728d1c9",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L312"
+  },
+  {
+   "line": 314,
+   "rollout_id": "f748e6b62293",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L314"
+  },
+  {
+   "line": 329,
+   "rollout_id": "c355850cfd28",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L329"
+  },
+  {
+   "line": 330,
+   "rollout_id": "b4e5b2e5b2d5",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L330"
+  },
+  {
+   "line": 331,
+   "rollout_id": "d981b083cece",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L331"
+  },
+  {
+   "line": 332,
+   "rollout_id": "91c565a89515",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L332"
+  },
+  {
+   "line": 335,
+   "rollout_id": "c355850cfd28",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L335"
+  },
+  {
+   "line": 336,
+   "rollout_id": "b4e5b2e5b2d5",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L336"
+  },
+  {
+   "line": 337,
+   "rollout_id": "d981b083cece",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L337"
+  },
+  {
+   "line": 338,
+   "rollout_id": "91c565a89515",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L338"
+  },
+  {
+   "line": 344,
+   "rollout_id": "160b7c85388d",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L344"
+  },
+  {
+   "line": 349,
+   "rollout_id": "8f6970c5da14",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L349"
+  },
+  {
+   "line": 350,
+   "rollout_id": "160b7c85388d",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L350"
+  },
+  {
+   "line": 354,
+   "rollout_id": "395dd340859c",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L354"
+  },
+  {
+   "line": 355,
+   "rollout_id": "2501f309e05d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L355"
+  },
+  {
+   "line": 356,
+   "rollout_id": "85bb2aa1f88d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L356"
+  },
+  {
+   "line": 360,
+   "rollout_id": "395dd340859c",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L360"
+  },
+  {
+   "line": 361,
+   "rollout_id": "2501f309e05d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L361"
+  },
+  {
+   "line": 362,
+   "rollout_id": "85bb2aa1f88d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L362"
+  },
+  {
+   "line": 365,
+   "rollout_id": "69ea0a1ed8a8",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L365"
+  },
+  {
+   "line": 366,
+   "rollout_id": "f7f11964def8",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L366"
+  },
+  {
+   "line": 367,
+   "rollout_id": "bce847644835",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L367"
+  },
+  {
+   "line": 368,
+   "rollout_id": "734e620e539b",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L368"
+  },
+  {
+   "line": 371,
+   "rollout_id": "69ea0a1ed8a8",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L371"
+  },
+  {
+   "line": 372,
+   "rollout_id": "f7f11964def8",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L372"
+  },
+  {
+   "line": 373,
+   "rollout_id": "bce847644835",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L373"
+  },
+  {
+   "line": 374,
+   "rollout_id": "734e620e539b",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L374"
+  },
+  {
+   "line": 378,
+   "rollout_id": "5d78e4bf16eb",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L378"
+  },
+  {
+   "line": 379,
+   "rollout_id": "9ceb2448cbcf",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L379"
+  },
+  {
+   "line": 380,
+   "rollout_id": "1e7a05beb5d2",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L380"
+  },
+  {
+   "line": 384,
+   "rollout_id": "5d78e4bf16eb",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L384"
+  },
+  {
+   "line": 385,
+   "rollout_id": "9ceb2448cbcf",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L385"
+  },
+  {
+   "line": 386,
+   "rollout_id": "1e7a05beb5d2",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L386"
+  },
+  {
+   "line": 403,
+   "rollout_id": "5209d7a0da27",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L403"
+  },
+  {
+   "line": 404,
+   "rollout_id": "2971f83b732d",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L404"
+  },
+  {
+   "line": 410,
+   "rollout_id": "2971f83b732d",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L410"
+  },
+  {
+   "line": 421,
+   "rollout_id": "136869acac39",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L421"
+  },
+  {
+   "line": 436,
+   "rollout_id": "10708c8d71a6",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.1
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L436"
+  },
+  {
+   "line": 437,
+   "rollout_id": "8b80ea07befb",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L437"
+  },
+  {
+   "line": 438,
+   "rollout_id": "bd23a10fa560",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L438"
+  },
+  {
+   "line": 439,
+   "rollout_id": "c257127d4a63",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L439"
+  },
+  {
+   "line": 440,
+   "rollout_id": "19e0ae1ba90e",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L440"
+  },
+  {
+   "line": 443,
+   "rollout_id": "8b80ea07befb",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L443"
+  },
+  {
+   "line": 444,
+   "rollout_id": "bd23a10fa560",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L444"
+  },
+  {
+   "line": 445,
+   "rollout_id": "c257127d4a63",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L445"
+  },
+  {
+   "line": 446,
+   "rollout_id": "19e0ae1ba90e",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L446"
+  },
+  {
+   "line": 448,
+   "rollout_id": "59095d5a048d",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.1
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L448"
+  },
+  {
+   "line": 449,
+   "rollout_id": "b0a0f9a8dede",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.2
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L449"
+  },
+  {
+   "line": 450,
+   "rollout_id": "4940eebe8c0e",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L450"
+  },
+  {
+   "line": 451,
+   "rollout_id": "ad513af61c0a",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L451"
+  },
+  {
+   "line": 452,
+   "rollout_id": "3ff90b9f0e21",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L452"
+  },
+  {
+   "line": 454,
+   "rollout_id": "59095d5a048d",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.1
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L454"
+  },
+  {
+   "line": 456,
+   "rollout_id": "4940eebe8c0e",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L456"
+  },
+  {
+   "line": 457,
+   "rollout_id": "ad513af61c0a",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.4
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L457"
+  },
+  {
+   "line": 458,
+   "rollout_id": "3ff90b9f0e21",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.5
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L458"
+  },
+  {
+   "line": 465,
+   "rollout_id": "4dc4dabf5bac",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L465"
+  },
+  {
+   "line": 466,
+   "rollout_id": "3420d517c17f",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L466"
+  },
+  {
+   "line": 483,
+   "rollout_id": "53fcd294b9df",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L483"
+  },
+  {
+   "line": 492,
+   "rollout_id": "53fcd294b9df",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L492"
+  },
+  {
+   "line": 501,
+   "rollout_id": "53fcd294b9df",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L501"
+  },
+  {
+   "line": 508,
+   "rollout_id": "79c1d5d6046d",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L508"
+  },
+  {
+   "line": 509,
+   "rollout_id": "a5c9af5aae4a",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L509"
+  },
+  {
+   "line": 510,
+   "rollout_id": "f3c917d58eaa",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L510"
+  },
+  {
+   "line": 512,
+   "rollout_id": "79dbfd33933c",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L512"
+  },
+  {
+   "line": 525,
+   "rollout_id": "fc76485288c1",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L525"
+  },
+  {
+   "line": 528,
+   "rollout_id": "f3c917d58eaa",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L528"
+  },
+  {
+   "line": 535,
+   "rollout_id": "79c1d5d6046d",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L535"
+  },
+  {
+   "line": 536,
+   "rollout_id": "a5c9af5aae4a",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L536"
+  },
+  {
+   "line": 539,
+   "rollout_id": "79dbfd33933c",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L539"
+  },
+  {
+   "line": 555,
+   "rollout_id": "9b395a03c871",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L555"
+  },
+  {
+   "line": 574,
+   "rollout_id": "f639d0b63cb9",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L574"
+  },
+  {
+   "line": 580,
+   "rollout_id": "2f40c4aa6f4a",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L580"
+  },
+  {
+   "line": 584,
+   "rollout_id": "4ffeac1d8d14",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L584"
+  },
+  {
+   "line": 587,
+   "rollout_id": "08b49b147a87",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 10.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L587"
+  },
+  {
+   "line": 592,
+   "rollout_id": "fed939860556",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L592"
+  },
+  {
+   "line": 601,
+   "rollout_id": "fed939860556",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L601"
+  },
+  {
+   "line": 618,
+   "rollout_id": "cb794f0d618b",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L618"
+  },
+  {
+   "line": 620,
+   "rollout_id": "8fc4d908325d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L620"
+  },
+  {
+   "line": 625,
+   "rollout_id": "9aef4dd44a08",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L625"
+  },
+  {
+   "line": 626,
+   "rollout_id": "d5ceb75aacd5",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L626"
+  },
+  {
+   "line": 628,
+   "rollout_id": "ae728a893f51",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L628"
+  },
+  {
+   "line": 629,
+   "rollout_id": "8fc4d908325d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L629"
+  },
+  {
+   "line": 637,
+   "rollout_id": "ae728a893f51",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L637"
+  },
+  {
+   "line": 638,
+   "rollout_id": "8fc4d908325d",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L638"
+  },
+  {
+   "line": 642,
+   "rollout_id": "bf56756e756e",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L642"
+  },
+  {
+   "line": 645,
+   "rollout_id": "cb794f0d618b",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L645"
+  },
+  {
+   "line": 646,
+   "rollout_id": "ae728a893f51",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L646"
+  },
+  {
+   "line": 670,
+   "rollout_id": "b30734ab59c8",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L670"
+  },
+  {
+   "line": 679,
+   "rollout_id": "b30734ab59c8",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L679"
+  },
+  {
+   "line": 690,
+   "rollout_id": "77b8ab0c5d71",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L690"
+  },
+  {
+   "line": 692,
+   "rollout_id": "2ce2c5a3e8ba",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L692"
+  },
+  {
+   "line": 696,
+   "rollout_id": "89dc42fccbc9",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L696"
+  },
+  {
+   "line": 697,
+   "rollout_id": "68f7f2dd10d2",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L697"
+  },
+  {
+   "line": 707,
+   "rollout_id": "105db905430f",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L707"
+  },
+  {
+   "line": 708,
+   "rollout_id": "77b8ab0c5d71",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L708"
+  },
+  {
+   "line": 710,
+   "rollout_id": "2ce2c5a3e8ba",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L710"
+  },
+  {
+   "line": 716,
+   "rollout_id": "105db905430f",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L716"
+  },
+  {
+   "line": 718,
+   "rollout_id": "f1e4094dd7b7",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": false,
+   "env_steps": 280,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "failure",
+   "ep": "L718"
+  },
+  {
+   "line": 56,
+   "rollout_id": "170b6786744f",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 137,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L056"
+  },
+  {
+   "line": 202,
+   "rollout_id": "c0f4da802317",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 94,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L202"
+  },
+  {
+   "line": 240,
+   "rollout_id": "c3ce5dc80919",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": true,
+   "env_steps": 83,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L240"
+  },
+  {
+   "line": 254,
+   "rollout_id": "820ed9deed5e",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": true,
+   "env_steps": 114,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L254"
+  },
+  {
+   "line": 304,
+   "rollout_id": "210c8a09b1cd",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 88,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L304"
+  },
+  {
+   "line": 317,
+   "rollout_id": "1a8df33f7073",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 97,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L317"
+  },
+  {
+   "line": 358,
+   "rollout_id": "1a47c9637ab7",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 116,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L358"
+  },
+  {
+   "line": 398,
+   "rollout_id": "52a36f127af5",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": true,
+   "env_steps": 83,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L398"
+  },
+  {
+   "line": 442,
+   "rollout_id": "10708c8d71a6",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 141,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L442"
+  },
+  {
+   "line": 32,
+   "rollout_id": "57c3371e46cb",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 74,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L032"
+  },
+  {
+   "line": 49,
+   "rollout_id": "2b8007412db7",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 94,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L049"
+  },
+  {
+   "line": 173,
+   "rollout_id": "2c1898be1d25",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 83,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L173"
+  },
+  {
+   "line": 234,
+   "rollout_id": "c3ce5dc80919",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.3
+   },
+   "success": true,
+   "env_steps": 84,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L234"
+  },
+  {
+   "line": 252,
+   "rollout_id": "b8cd2c1b57f7",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.3
+   },
+   "success": true,
+   "env_steps": 114,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L252"
+  },
+  {
+   "line": 298,
+   "rollout_id": "44b02163030b",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 83,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L298"
+  },
+  {
+   "line": 319,
+   "rollout_id": "e747ae38fa5c",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.4
+   },
+   "success": true,
+   "env_steps": 92,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L319"
+  },
+  {
+   "line": 359,
+   "rollout_id": "93e1aec33e96",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 125,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L359"
+  },
+  {
+   "line": 392,
+   "rollout_id": "52a36f127af5",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": true,
+   "env_steps": 82,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L392"
+  },
+  {
+   "line": 432,
+   "rollout_id": "3194d2bcd618",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.3
+   },
+   "success": true,
+   "env_steps": 123,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L432"
+  },
+  {
+   "line": 5,
+   "rollout_id": "0f0aec59685b",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": true,
+   "env_steps": 68,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L005"
+  },
+  {
+   "line": 40,
+   "rollout_id": "e111bf3b3c33",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.4
+   },
+   "success": true,
+   "env_steps": 108,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L040"
+  },
+  {
+   "line": 197,
+   "rollout_id": "2e0c6cda5dbe",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "joint_dir_seed": 2,
+    "joint_radius_rad": 0.2
+   },
+   "success": true,
+   "env_steps": 88,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L197"
+  },
+  {
+   "line": 218,
+   "rollout_id": "59f6be61b817",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.5
+   },
+   "success": true,
+   "env_steps": 73,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L218"
+  },
+  {
+   "line": 262,
+   "rollout_id": "bc262f839549",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "joint_dir_seed": 1,
+    "joint_radius_rad": 0.1
+   },
+   "success": true,
+   "env_steps": 119,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L262"
+  },
+  {
+   "line": 289,
+   "rollout_id": "150562cdd36b",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "joint_dir_seed": 0,
+    "joint_radius_rad": 0.4
+   },
+   "success": true,
+   "env_steps": 84,
+   "axis": "joint_radius_rad",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L289"
+  },
+  {
+   "line": 108,
+   "rollout_id": "788b401b2805",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": true,
+   "env_steps": 103,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L108"
+  },
+  {
+   "line": 463,
+   "rollout_id": "886a18781098",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": true,
+   "env_steps": 155,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L463"
+  },
+  {
+   "line": 488,
+   "rollout_id": "1d65e42f7911",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 10.0
+   },
+   "success": true,
+   "env_steps": 84,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L488"
+  },
+  {
+   "line": 537,
+   "rollout_id": "f3c917d58eaa",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": true,
+   "env_steps": 114,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L537"
+  },
+  {
+   "line": 544,
+   "rollout_id": "ac99f455b567",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": true,
+   "env_steps": 99,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L544"
+  },
+  {
+   "line": 597,
+   "rollout_id": "cc4fc059142a",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": true,
+   "env_steps": 134,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L597"
+  },
+  {
+   "line": 640,
+   "rollout_id": "ed2dd088ecf2",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 5.0
+   },
+   "success": true,
+   "env_steps": 112,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L640"
+  },
+  {
+   "line": 663,
+   "rollout_id": "3bac05072e49",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": true,
+   "env_steps": 96,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L663"
+  },
+  {
+   "line": 686,
+   "rollout_id": "9937dfc6da40",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 10.0
+   },
+   "success": true,
+   "env_steps": 122,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L686"
+  },
+  {
+   "line": 68,
+   "rollout_id": "24b833c53da0",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": true,
+   "env_steps": 78,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L068"
+  },
+  {
+   "line": 100,
+   "rollout_id": "2a1a31fff8a1",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": true,
+   "env_steps": 106,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L100"
+  },
+  {
+   "line": 153,
+   "rollout_id": "d927412463c0",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": true,
+   "env_steps": 100,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L153"
+  },
+  {
+   "line": 500,
+   "rollout_id": "7b84708e4739",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": true,
+   "env_steps": 118,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L500"
+  },
+  {
+   "line": 511,
+   "rollout_id": "afff752c726a",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 60.0
+   },
+   "success": true,
+   "env_steps": 120,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L511"
+  },
+  {
+   "line": 557,
+   "rollout_id": "42b6e2095dab",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": true,
+   "env_steps": 195,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L557"
+  },
+  {
+   "line": 589,
+   "rollout_id": "2f40c4aa6f4a",
+   "task_id": "libero_plus/libero_spatial/task1201",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": true,
+   "env_steps": 142,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L589"
+  },
+  {
+   "line": 627,
+   "rollout_id": "cb794f0d618b",
+   "task_id": "libero_plus/libero_spatial/task1247",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": true,
+   "env_steps": 108,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L627"
+  },
+  {
+   "line": 672,
+   "rollout_id": "3bac05072e49",
+   "task_id": "libero_plus/libero_spatial/task1282",
+   "perturbation": {
+    "camera_yaw_deg": 50.0
+   },
+   "success": true,
+   "env_steps": 92,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L672"
+  },
+  {
+   "line": 687,
+   "rollout_id": "89dc42fccbc9",
+   "task_id": "libero_plus/libero_spatial/task1327",
+   "perturbation": {
+    "camera_yaw_deg": 20.0
+   },
+   "success": true,
+   "env_steps": 116,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L687"
+  },
+  {
+   "line": 73,
+   "rollout_id": "22847791f049",
+   "task_id": "libero_plus/libero_spatial/task984",
+   "perturbation": {
+    "camera_yaw_deg": 30.0
+   },
+   "success": true,
+   "env_steps": 74,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L073"
+  },
+  {
+   "line": 131,
+   "rollout_id": "f0d3ad51d4ca",
+   "task_id": "libero_plus/libero_spatial/task1030",
+   "perturbation": {
+    "camera_yaw_deg": 75.0
+   },
+   "success": true,
+   "env_steps": 183,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L131"
+  },
+  {
+   "line": 133,
+   "rollout_id": "aa6f8262acb3",
+   "task_id": "libero_plus/libero_spatial/task1062",
+   "perturbation": {
+    "camera_yaw_deg": 5.0
+   },
+   "success": true,
+   "env_steps": 95,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L133"
+  },
+  {
+   "line": 470,
+   "rollout_id": "1d65e42f7911",
+   "task_id": "libero_plus/libero_spatial/task1090",
+   "perturbation": {
+    "camera_yaw_deg": 10.0
+   },
+   "success": true,
+   "env_steps": 86,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L470"
+  },
+  {
+   "line": 524,
+   "rollout_id": "1367cddb07ec",
+   "task_id": "libero_plus/libero_spatial/task1132",
+   "perturbation": {
+    "camera_yaw_deg": 10.0
+   },
+   "success": true,
+   "env_steps": 132,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L524"
+  },
+  {
+   "line": 545,
+   "rollout_id": "156a0b69184b",
+   "task_id": "libero_plus/libero_spatial/task1169",
+   "perturbation": {
+    "camera_yaw_deg": 40.0
+   },
+   "success": true,
+   "env_steps": 95,
+   "axis": "camera_yaw_deg",
+   "seed": 0,
+   "role": "success_calibration",
+   "ep": "L545"
+  }
+ ]
+}
