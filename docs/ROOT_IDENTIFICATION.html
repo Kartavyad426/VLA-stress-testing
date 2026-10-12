@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Root Identification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:900px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:18px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  code,pre{font:13px var(--mono);background:var(--surface-2);border-radius:3px}
+  code{padding:1px 4px}
+  pre{padding:12px 14px;overflow-x:auto;border:1px solid var(--rule)}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:500 11px var(--mono);padding:1px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);vertical-align:1px;white-space:nowrap}
+  .tag.agreed{background:var(--ok);color:var(--surface)}
+  .tag.prop{background:var(--warn);color:var(--surface)}
+  .tag.open{background:var(--accent);color:var(--surface)}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+  .piece{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;font-size:14px}
+  .piece b{display:block;font-size:15px;margin-bottom:2px}
+  .piece .n{font:500 12px var(--mono);color:var(--accent)}
+  .piece.core{border-top:3px solid var(--accent)}
+  .piece.prod{border-top:3px solid var(--ok)}
+  a{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+<main>
+<h1>Root Identification</h1>
+<p class="sub">Where a failed robot episode first went wrong, and how we find it. 2026-10-12 · prim, from the 10-08 to 10-12 discussions with the user. Tags: <span class="tag agreed">agreed</span> decided by the user; <span class="tag prop">proposed</span> not yet decided; <span class="tag open">open</span>. [V] checked against files, [I] inferred. Detailed records: <a href="MINING_SPEC_DESIGN.html">MINING_SPEC_DESIGN</a> §6d (UQ1–UQ10), <a href="ROOT_SIGNAL_EXPERIMENTS.html">ROOT_SIGNAL_EXPERIMENTS</a>, <a href="EXPERIMENTS_2026-10-09.html">day summary 10-09</a>.</p>
+
+<nav class="card" style="font-size:14px"><b>Contents:</b> <a href="#bl">Bottom line</a> · <a href="#why">1 Why root matters</a> · <a href="#problem">2 The problem</a> · <a href="#solution">3 Proposed solution</a> · <a href="#labels">4 Why hand-labelled data</a> · <a href="#res21">5 res21's research</a> · <a href="#exp">6 Experiments</a> · <a href="#decide">7 Decisions pending</a></nav>
+
+<div class="card top" id="bl">
+<h3>Bottom line</h3>
+<ul>
+<li>A failure has two different "roots": where it <b>shows</b> (the symptom, e.g. the gripper closes 6.8 cm short) and where it was <b>decided</b> (for start pose, by forward 0–1). Only an intervention can find the second.</li>
+<li><b>Simple tasks (LIBERO pick-and-place, v1):</b> find the symptom with event rules on telemetry and sim state, root = the first <em>unrecovered</em> event, with a VLM filling the rules' blind spots. The decision point comes from interventions, where we have them.</li>
+<li><b>Complex tasks</b> (cloth, pouring, drawers, long-horizon): gripper rules break; they need per-task-family phases, progress signals, the VLM, and task-agnostic signals. Still experimental.</li>
+<li><b>Evidence so far:</b> our draft rules are not unique per episode and their order changes 83/176 labels. The cheap policy-side timing signals only find the grasp event. So the rules need measuring against ground truth, which means <b>hand-labelled episodes</b> or a dataset with root labels (res21 is searching).</li>
+</ul>
+</div>
+
+<h2 id="why">1 · Why root matters</h2>
+<p>The root is where a mining-spec instance hangs (D13). Everything downstream starts from it:</p>
+<div class="tw"><table>
+<tr><th>Use</th><th>What the root provides</th></tr>
+<tr><td><b>Identity</b></td><td>The instance's sub-scenario = phase × failure mode at the root (D12). This is what the index and the failure corpus count.</td></tr>
+<tr><td><b>Search key</b></td><td>The success search matches a snapshot of the situation at the root (D14): the same situation, gone right.</td></tr>
+<tr><td><b>Restore point</b></td><td>Sim generation replays the prefix up to the root, then substitutes a successful continuation (UQ2).</td></tr>
+<tr><td><b>Teleop brief</b></td><td>"Get to here, then succeed."</td></tr>
+<tr><td><b>Training weight</b></td><td>The frames around the root carry nearly all the new signal (R-054: only 5–13% of minted frames were new information).</td></tr>
+</table></div>
+<p><b>Which root matters depends on the fix</b> (UQ1). A symptom anchor asks for <em>recovery</em> data (succeed from the bad situation). A decision anchor asks for <em>prevention</em> data (don't get into it). R-056 was the prevention kind; it fitted its training starts but didn't generalise.</p>
+
+<h2 id="problem">2 · The problem, as we understand it</h2>
+<ul>
+<li><b>Two anchors</b> <span class="tag prop">proposed (t10c)</span>. Toy case, scene 984, start pose 0.2 rad: the gripper closes 6.8 cm short at t = 31 (the symptom), but R-044 rescued 7/7 start-pose failures by correcting forward 0, and R-057 found start pose decided by forward 1 (the decision) [V].</li>
+<li><b>Rules are not unique</b> (UQ10 probe on 720 R-047 rollouts, unverified): 115/176 failures fire 2 or more failure modes (retry loops pile up events). Root = first event vs a fixed rule order disagree on <b>83/176</b>. Rules also fire inside 163/544 successes: partly real recoveries, partly rule bugs (placing looked like dropping; bumps looked like wrong-object grasps).</li>
+<li><b>"First event" can be the wrong root</b> [V]. Row 14 slips at t = 31, then retries, then carries the bowl to the plate and releases it 5.2 cm off centre (successes end ≤ 3.0 cm). Under "first unrecovered event" its root is <b>place × off-target at t = 242</b>, not grasp × slip at t = 31.</li>
+<li><b>Rule blind spots</b> (UQ4): wrong object (a clean lift of the wrong bowl), wrong placement, never reaching or hesitating, pushing the object during the approach, collisions, fingers stalling on the table.</li>
+<li><b>Other task families</b> (UQ5): cloth, pouring/wiping, drawers, insertion and bimanual have no crisp gripper events; success is a shape, a flow, an angle or a force.</li>
+<li><b>External data</b> (§6c, D15): outside sim there are no object poses or contacts; fields must be estimated (with error) or come from a VLM.</li>
+<li><b>Policy-side signals so far</b> (10-09, exploratory): chunk self-consistency (E1), gap to nominal (E2), commanded vs achieved (E3) and FAST tokens (E6) either track the grasp event, which the rules already find, or reflect perturbation size. None marks where a failure was decided. Reading: R-047 failures are "smooth and wrong" [I].</li>
+<li><b>Labels from outside the model</b> <span class="tag agreed">agreed (D16)</span>: the spec's labels come from actions, telemetry, sim state, a VLM or action tokenizers. Looking inside the model is for mechanism localisation only.</li>
+</ul>
+
+<h2 id="solution">3 · Proposed solution <span class="tag prop">proposed</span></h2>
+<div class="tw"><table>
+<tr><th></th><th>Simple tasks (v1 scope: LIBERO pick-and-place)</th><th>Complex tasks (experimental)</th></tr>
+<tr><td><b>Symptom anchor</b></td><td>Event rules on telemetry and sim state: grasp onset (gripper commanded closed) → miss, slip or wrong object; held then lost away from the goal → drop; released with the goal relation failing (goal threshold ≈ 3 cm, not 6) → off-target; no grasp before timeout → stall. Store <b>all</b> events, time-ordered, each flagged recovered or unrecovered. <b>Root = the first unrecovered event.</b> Recovered events in successes become a "recovery" instance type. Thresholds fitted from the 500 human demos. (t10a)</td><td>Phases and success predicates <b>per task family</b>, timed by progress signals: task state (articulation angle, cloth corners, spill) where available, else a learned or VLM progress score. An explicit "unexplained deviation" class.</td></tr>
+<tr><td><b>Blind spots</b></td><td>VLM + telemetry + instruction (UQ8–UQ9): telemetry says <em>when</em>, the VLM answers a closed question at that frame (which object is held, on the plate or not); bisection with a yes/no state question when no event fires. A VLM–telemetry disagreement is a low-confidence flag, never a root.</td><td>The same VLM pattern carries more of the timing, through bisection on state questions.</td></tr>
+<tr><td><b>Task-agnostic signals</b></td><td>Add little so far (they find the grasp event).</td><td>Where they would matter most: multi-draw self-consistency (E1b), IDM residuals, latent-action tokens. Unproven.</td></tr>
+<tr><td><b>Decision anchor</b></td><td>Optional field, filled only where an intervention measured it (R-044/R-057 style). No new intervention runs in v1.</td><td>Same in principle; costlier (many candidate decision points; needs a sim of the task).</td></tr>
+<tr><td><b>Validation</b></td><td>About 30 hand-labelled R-047 episodes (§4), or a labelled dataset (§5)</td><td>Per-family labelled sets, or datasets with onset labels</td></tr>
+</table></div>
+<p class="muted">The v1 build details (files, thresholds, schema) are in PoC's <a href="MINING_SPEC_V1_DESIGN.html">MINING_SPEC_V1_DESIGN</a> (awaiting the user's review).</p>
+
+<h2 id="labels">4 · Why we need hand-labelled data</h2>
+<ul>
+<li><b>There is no ground truth for the symptom anchor.</b> Our rules, the VLM and the policy signals are all <em>detectors</em>; without labelled episodes we can't tell which is right when they disagree (83/176 disagreements already).</li>
+<li><b>To measure each rule's error rate</b> (P4b) before v1 relies on it, and to fix the loose ones: drop vs place, wrong object vs bump, and the 163/544 fires in successes.</li>
+<li><b>To choose the root rule</b> between first-in-time, first-unrecovered and a precedence order, using real cases like row 14.</li>
+<li><b>To score E7</b> (the VLM's answers) and E5 (the combined root) against something other than another detector.</li>
+<li><b>Why labels are valid here:</b> symptoms are <em>visible</em> (UQ1), so a human watching the episode can mark them. Decision points are not visible; those come from interventions, not labels.</li>
+<li><b>Proposed protocol</b> <span class="tag open">open (t10b)</span>: ~30 R-047 episodes, mixed failures and successes, start pose and camera. Per episode: every event with its step, phase × mode, recovered or not, and the root. A session labels and the user checks a sample. Rendered frames may need a GPU replay (PoC's v1 item).</li>
+</ul>
+
+<h2 id="res21">5 · What res21 is researching (brief, started 10-12)</h2>
+<p>Datasets, sim or real, with <b>richer failure labels than usual</b>, ideally root or onset time: label granularity, how labels were made, the taxonomy and its overlap with our phase × mode list, recovery annotations, size, robot and action-space fit, whether GR00T is in-domain (D10), licence. Leads to check: LIBERO-Recover, ProTracer, RoboMIND failure labels, AHA, RoboFAC, REFLECT, FailGen, Sentinel/FAIL-Detect data, AutoEval logs. It builds on res22's TASK_DIVERSITY_LANDSCAPE §6. Goal: headroom for E5 and the v1 rules, and possibly a replacement for our hand-labelled set. Outline goes to the user first; deliverable <code>docs/FAILURE_LABEL_DATASETS.html</code>.</p>
+
+<h2 id="exp">6 · Experiments</h2>
+<p class="muted">All root-signal results are exploratory and not val-checked (the user exempted this round, 10-09). The GPU is blocked until a reboot (driver mismatch, 10-12).</p>
+<div class="tw"><table>
+<tr><th>Status</th><th>Experiment</th><th>What it says about root</th></tr>
+<tr><td rowspan="6"><span class="tag agreed">run</span></td><td>UQ10 rule-order probe (prim, CPU, unverified)</td><td>Rules not unique; order matters (83/176); false fires in successes; goal threshold should be ≈ 3 cm</td></tr>
+<tr><td>E1: R-059 part A, single-draw chunk self-consistency</td><td>Start-pose failures MORE self-consistent (AUROC 0.20): confidently wrong, or a phase artefact</td></tr>
+<tr><td>E2: gap to nominal chunk</td><td>Timing tracks the grasp event via the gripper, not the decision</td></tr>
+<tr><td>E3: commanded vs achieved motion</td><td>Spikes at every grasp onset; failure ≈ chance. "Smooth and wrong"</td></tr>
+<tr><td>E6: FAST action tokens</td><td>No phase boundaries; tokens reflect heading</td></tr>
+<tr><td>E4-0/E4-1 (invariants, smoke); E7 render (220 episodes) + truth pass</td><td>Pipelines ready; no root result yet</td></tr>
+<tr><td rowspan="3"><span class="tag agreed">approved, not run</span></td><td>E4-2: GR00T open-loop on 50 demos vs demo actions (imitation disagreement)</td><td>Would show where the policy deviates from successful behaviour (a proactive signal). Failed at launch on the driver; re-launch after the reboot.</td></tr>
+<tr><td>E7 VLM pass (NIM): closed questions at event frames + bisection, scored vs sim truth</td><td>The first measurement of how far a VLM can carry root timing and the blind-spot modes. Controls running now.</td></tr>
+<tr><td>R-059 B0 → B smoke → C1: multi-draw self-consistency</td><td>Whether STAC with proper sampling finds failures before the clock</td></tr>
+<tr><td rowspan="7"><span class="tag prop">proposed</span></td><td>E1-phase: E1 aligned by distance-to-target</td><td>Is E1's reversal real?</td></tr>
+<tr><td>E5: combined root (signal time + rule phase) vs ground truth</td><td>Whether any signal beats the rules; needs t10c and labels</td></tr>
+<tr><td>Hand-labelled set (~30 episodes)</td><td>Ground truth for rules, VLM and E5</td></tr>
+<tr><td>v1 rule fixes + measurement (t10a)</td><td>The v1 root, with a stated error rate</td></tr>
+<tr><td>K1: E4 in loss form; T0/T1/E3b: IDM gate</td><td>Proprio-free symptom detection; an imitation-disagreement signal</td></tr>
+<tr><td>Latent-action segmentation (E6 next step)</td><td>Task-agnostic phases for complex tasks</td></tr>
+<tr><td>res21's dataset search</td><td>External root labels</td></tr>
+</table></div>
+
+<h2 id="decide">7 · Decisions pending (yours)</h2>
+<ul>
+<li><b>t10a:</b> v1 root rules (first unrecovered event, multi-label, recovery type, rule fixes).</li>
+<li><b>t10c:</b> the anchor split (symptom required, decision optional).</li>
+<li><b>t10b:</b> who hand-labels, and which episodes.</li>
+<li><b>ms8:</b> review PoC's v1 design doc (it includes the root logic).</li>
+<li><b>GPU order after the reboot:</b> E4-2, R-059 B, C1.</li>
+<li><b>E1-phase;</b> K1 and T0/T1.</li>
+</ul>
+
+<footer>Written by prim, 2026-10-12. Sources: MINING_SPEC_DESIGN §6d (UQ1–UQ10), D12–D16; ROOT_SIGNAL_EXPERIMENTS; EXPERIMENTS_2026-10-09; IDM_VLA_HORIZONS; RESULTS.md R-044, R-054, R-056, R-057, R-059; runs/r047, runs/root_signals, runs/r059/partA; docs/drafts/prim_probes/root_rules_probe_v2.py.</footer>
+</main>
+</body>
+</html>
