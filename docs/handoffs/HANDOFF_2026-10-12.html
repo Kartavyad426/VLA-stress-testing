@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Handoff 12 Oct</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 12 October</h1>
+  <p class="stand">One section per working session, written by that session, verified by prim. Covers 09–12 Oct (no handoffs were written on 10-10 or 10-11). The previous handoff is <a href="../HANDOFF_8Oct.html">HANDOFF_8Oct.html</a>. Each section header says when it was filled. <b>Purpose today: capture every agent's state before the user clears their contexts and prim re-onboards them from this file.</b> Day summary for 10-09: <a href="../EXPERIMENTS_2026-10-09.html">EXPERIMENTS_2026-10-09.html</a>. Live trackers: <a href="../PRIORITIES_7Oct.html">PRIORITIES_7Oct</a>, <a href="../Decision_28Sep.html">Decision_28Sep</a>, <a href="../../PIPELINE_CHECKS.md">PIPELINE_CHECKS.md</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-12 11:30</span><span>HEAD at creation: <code>149410b</code> (main) · <code>9f6c828</code> (exp/root-signals)</span></div>
+</header>
+
+<!-- USER-DECISIONS: optional block, added only if the user gives decisions -->
+
+<section class="check" id="state">
+  <h2>State at a glance <span class="small">(filled 2026-10-12 11:30 by prim)</span></h2>
+  <ul>
+    <li><span class="box">·</span><span><b>GPU:</b> no model loaded (106 MiB), lock free, AC on, MemAvailable 14.6 GiB (the d_step floor is 14). Running now: impl's <code>e7_vlm.py ask --backend nim --controls-only</code> (CPU + NIM API, started ~11:18).</span><span class="who">impl</span></li>
+    <li><span class="box">·</span><span><b>Root-signal experiments</b> (worktree <code>VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code>; exempt from val by the user 10-09). Done: R-059 part A (E1), E2, E3, E6 (CPU, committed 9f6c828); E4-0 invariants + E4-1 smoke; E7 render (220 episodes) and the E7 truth pass. Not done: E4-2 full run, the E7 VLM pass, R-059 B0 / B smoke / C1. Pattern so far: cheap timing signals find the grasp event or perturbation size, not the decision point.</span><span class="who">my prim · impl</span></li>
+    <li><span class="box">·</span><span><b>Incident:</b> the E7 truth pass ran <b>44.5 h</b> (10-09 16:51 → 10-11 13:25; expected ~30 min) and held the GPU lock the whole time. NIM returned HTTP 503 on several smoke calls (10-09). Cause not yet reported.</span><span class="who">impl</span></li>
+    <li><span class="box">·</span><span><b>Mining spec:</b> PoC green-lit. v1 = rule-based symptom roots on LIBERO-Spatial. PoC's <code>docs/MINING_SPEC_V1_DESIGN.html</code> (written 10-09, uncommitted) awaits the user's review (§0 lists 11 decisions). Design record: MINING_SPEC_DESIGN D1–D16, §6d UQ1–UQ10.</span><span class="who">PoC · user</span></li>
+    <li><span class="box">·</span><span><b>Code checks:</b> PIPELINE_CHECKS.md (the gate is on code, not results). val's scope is final; no entries yet; the current root-signal round is exempt; the toy pipeline is exempt.</span><span class="who">val</span></li>
+    <li><span class="box">·</span><span><b>Git:</b> main has <b>92 unpushed commits</b> (origin at fabdb5b). Untracked by choice: <code>docs/MINING_SPEC_V1_DESIGN.html</code> (until approved), <code>mining_spec_v0_schema.png</code>, <code>tmp.json</code> (added to .gitignore by the user, uncommitted), <code>docs/R042_WRIST_MATHS.pdf</code>. The worktree holds impl's uncommitted E4/E7/R-059 code and outputs.</span><span class="who">prim · user</span></li>
+    <li><span class="box">·</span><span><b>Daily reminder:</b> session-only cron job 4bc2bf2f (2:02 pm). It fired late (10-12 11:19); no handoffs on 10-10 or 10-11. It expires ~10-16.</span><span class="who">prim</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#impl">impl</a></li><li><a href="#my-prim">my prim</a></li><li><a href="#SFT">SFT</a></li><li><a href="#res">res</a></li><li><a href="#res21">res21</a></li><li><a href="#res22">res22</a></li><li><a href="#PoC">PoC</a></li><li><a href="#val">val</a></li></ol></nav>
+
+<!-- ============================================================ -->
+<section class="sess" id="prim">
+  <h2>prim <span class="small">(filled 2026-10-12 11:30 by prim)</span></h2>
+  <p class="lead"><span class="owner">owner: prim</span> · Main orchestrator and housekeeping agent of the whole workspace: relays the user's approvals, owns all commits, the trackers and the daily handoff</p>
+
+  <h3>1 · Rules prim works under</h3>
+  <ul class="tight">
+    <li>prim owns all commits; metadata-only for runs; never push (the user pushes). Ask the user before changing docs or code or asking peers to; relaying approved decisions and asking for information is fine. A peer's "the user said" is confirmed with the user. No subagents. Deliverables are local HTML.</li>
+    <li><b>New 10-09:</b> PIPELINE_CHECKS.md: the gate is on code, not results. Output of new code is tagged UNVERIFIED until val passes it; RESULTS.md, run commits and GPU launches need the PASS; controls and smokes may run before. Exemptions: the toy pipeline, and the current root-signal round.</li>
+    <li><b>New 10-09:</b> the daily handoff lives in <code>docs/handoffs/</code>, one file per day; first ask the user for decisions to record; busy agents finish their work before writing.</li>
+  </ul>
+
+  <h3>2 · Who did what, 09–12 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Session</th><th>Main outputs (commit)</th><th>Status 10-12</th></tr>
+    <tr><td>prim</td><td>MINING_SPEC_DESIGN iterations 1–11 (D1–D16, v0 schema §6, §6c external data, §6d UQ1–UQ10, §7b branching, §7c links); ROOT_SIGNAL_EXPERIMENTS (6f5904e…); PIPELINE_CHECKS.md (52c6ee4 → d031e74); day summary EXPERIMENTS_2026-10-09 (3ae4642…149410b); docs/handoffs/ (097e7e4); checklist sections (o8, ms, g0c, c9, rs, t10); the rule-order probe (UQ10, scratchpad)</td><td>This handoff</td></tr>
+    <tr><td>impl</td><td>Worktree setup; G0c diagnosis (a7f00b3); E4, E7 and R-059 multi-draw code (uncommitted in the worktree); runs: E4-0, E4-1, E7 render, E7 truth (44.5 h); answered val's 6 notes</td><td>Busy: E7 NIM controls</td></tr>
+    <tr><td>my prim</td><td>R-059 part A, E2, E3, E6 (9f6c828, exp/root-signals); GPU gate for impl's plans (conditions a–k); caught E4's gripper-sign bug and E7's paraphrased-prompt bug; R-059 gate choice (V-statistic, f=0 null)</td><td>Idle</td></tr>
+    <tr><td>PoC</td><td>MINING_SPEC_TOY + POC_INTERNAL (3eadd66); handoff section (e8ffcf8, fe984bd); port analysis; v1 design doc (uncommitted); found the row-14 off-target placement</td><td>Idle; doc awaiting the user</td></tr>
+    <tr><td>res22</td><td>TASK_DIVERSITY_LANDSCAPE (23e37cb); IDM_VLA_HORIZONS + §8 c9k (8f969f8, 21ad6f2)</td><td>Idle</td></tr>
+    <tr><td>res21</td><td>PERTURBATION_MAP_VALIDITY pm1 (041c444); re-onboarded 10-09</td><td>Idle; waits on pm2, c9a–c9c, g0c3</td></tr>
+    <tr><td>res</td><td>VLA_CORRECTOR_MATHS d3 (ea86076)</td><td>Idle</td></tr>
+    <tr><td>SFT</td><td>Re-onboarded 10-09 and 10-12; nothing pasted (rs9 unchecked by the user)</td><td>Waiting</td></tr>
+    <tr><td>val</td><td>Scope final (PIPELINE_CHECKS.md); stood down for the exempt round; 9 plain notes, all answered</td><td>Idle</td></tr>
+  </table></div>
+
+  <h3>3 · How the sessions interact</h3>
+  <ul class="tight">
+    <li>Approval relay (prim → owner, "APPROVED by the user"); run gate (impl plan → my prim OK → <code>d_step.sh</code> with flock, 14 GiB floor, announce); code-check gate (author → val + prim; val asks owners about known issues first); handoff slots filled with Edit only.</li>
+    <li>Experiments run in worktree <code>VLA-exp-rootsignals</code> (branch <code>exp/root-signals</code>), never merged to main without the user's go. Mining spec v1 will get its own worktree (feat/mining-spec-v1) once the v1 doc is approved.</li>
+  </ul>
+
+  <h3>4 · Incidents and lessons</h3>
+  <ul class="tight">
+    <li><b>E7 truth pass 44.5 h vs ~30 min</b>, holding the GPU lock (impl to explain). Lesson: long steps need a progress or time-limit check.</li>
+    <li><b>Rule deadlock:</b> "no GPU launch before PASS" vs "val needs GPU controls" was resolved by the user's controls-before-PASS ruling.</li>
+    <li><b>Peer-relayed user decisions</b> (val's scope) were confirmed with the user before the ledger was changed.</li>
+    <li><b>The daily reminder fired late</b> (session-only cron; it fires only while prim is idle); no handoffs on 10-10 or 10-11.</li>
+    <li><b>Bugs caught before results:</b> E4 gripper sign (my prim); E7 paraphrased prompts (my prim); E7 rim-grasp truth (impl); the R-059 wrapper's repeat risk (val); my probe's 6 cm goal threshold (PoC: row 14 was an off-target placement, not a drop).</li>
+    <li><b>Memory hygiene:</b> session-specific "I am …" memory files can confuse a cleared session (SFT's flag); the val index line now says "role of the session NAMED val only".</li>
+  </ul>
+
+  <h3>5 · Tools prim maintains</h3>
+  <ul class="tight"><li>PRIORITIES_7Oct (sections o8, t10, ms, g0c, c9, rs on top), Decision_28Sep, PIPELINE_CHECKS.md, docs/handoffs/, the day summary, the 2 pm cron (4bc2bf2f), and memory notes (daily-handoff-2pm, pipeline-checks-gate, mining-spec-design, root-signal-experiments).</li></ul>
+
+  <h3>6 · Open decisions for the user</h3>
+  <p>All are in <a href="../EXPERIMENTS_2026-10-09.html#decide">EXPERIMENTS_2026-10-09 §1</a> with recommendations. The main ones:</p>
+  <ul class="tight">
+    <li>the v1 design doc (ms8; 11 items);</li>
+    <li>the v1 root rules (t10a) and the anchor split (t10c);</li>
+    <li>GPU priority for E4-2, the E7 VLM pass and R-059 B/C1;</li>
+    <li>rs9 (R-059 deviations);</li>
+    <li>g0c1–g0c4;</li>
+    <li>t10e–t10j (val next round, token cost, the context report);</li>
+    <li>o8b–o8j;</li>
+    <li>c9a–c9i;</li>
+    <li>the push (92 commits).</li>
+  </ul>
+
+  <h3>7 · For the next prim / after the context reset</h3>
+  <ul class="tight">
+    <li>Read MEMORY.md, this file, the day summary §1 and the checklist. Run CronList and re-create the 2 pm handoff job if it's missing (daily-handoff-2pm memory).</li>
+    <li>After the user clears the agents' contexts, re-onboard each one from its section here: role, rules, what to read, open items.</li>
+  </ul>
+</section>
+
+<section class="sess" id="impl">
+  <h2>impl <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:impl -->
+  <p class="small">impl: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by impl)", and keep the marker as "HANDOFF-SLOT:impl filled".</p>
+</section>
+
+<section class="sess" id="my-prim">
+  <h2>my prim <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:my prim -->
+  <p class="small">my prim: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by my prim)", and keep the marker as "HANDOFF-SLOT:my prim filled".</p>
+</section>
+
+<section class="sess" id="SFT">
+  <h2>SFT <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:SFT -->
+  <p class="small">SFT: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by SFT)", and keep the marker as "HANDOFF-SLOT:SFT filled".</p>
+</section>
+
+<section class="sess" id="res">
+  <h2>res <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:res -->
+  <p class="small">res: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by res)", and keep the marker as "HANDOFF-SLOT:res filled".</p>
+</section>
+
+<section class="sess" id="res21">
+  <h2>res21 <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:res21 -->
+  <p class="small">res21: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by res21)", and keep the marker as "HANDOFF-SLOT:res21 filled".</p>
+</section>
+
+<section class="sess" id="res22">
+  <h2>res22 <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:res22 -->
+  <p class="small">res22: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by res22)", and keep the marker as "HANDOFF-SLOT:res22 filled".</p>
+</section>
+
+<section class="sess" id="PoC">
+  <h2>PoC <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:PoC -->
+  <p class="small">PoC: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by PoC)", and keep the marker as "HANDOFF-SLOT:PoC filled".</p>
+</section>
+
+<section class="sess" id="val">
+  <h2>val <span class="small">(pending)</span></h2>
+  <!-- HANDOFF-SLOT:val -->
+  <p class="small">val: fill this slot with Edit only (never Write), after finishing any work in progress. Replace this line, change "(pending)" to "(filled YYYY-MM-DD HH:MM by val)", and keep the marker as "HANDOFF-SLOT:val filled".</p>
+</section>
+
+</div>
+</body>
+</html>
