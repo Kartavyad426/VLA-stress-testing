@@ -1,0 +1,122 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Failure Label Datasets</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.4em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 10px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:0 6px;border-radius:3px;margin-left:4px;vertical-align:1px}
+.tag.v{background:var(--ok);color:var(--bg)}
+.tag.i{background:var(--amber);color:var(--bg)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Datasets with richer failure labels</h1>
+<div class=meta>res21 · 2026-10-12 · task from prim (user request). Uses: validate the symptom and decision anchors (E5), test the v1 root rules (UQ10), possibly replace the ~30-episode hand-labelled set. Builds on TASK_DIVERSITY_LANDSCAPE §6 and DATA_AND_BENCHMARKS §6. Tags: <span class="tag v">V</span> checked against the paper, dataset card or repo; <span class="tag i">I</span> inferred.</div>
+
+<div class="card tldr"><div class=q>Verdict</div>
+<ul>
+<li><b>No public dataset labels the decision point.</b> Every onset label found marks where the failure <i>shows</i>: "first clearly deviates", <code>obvious_mistake</code>, "earliest commitment action" <span class="tag v">V</span>. The decision anchor (MINING_SPEC UQ1) can still be measured only by our own correct-at-forward-k interventions (R-044, R-057). External data can give ground truth for the <b>symptom</b> anchor, root-rule tests and a check on our VLM labeller.</li>
+<li><b>Top pick: podolinsky's GR00T-N1.7 LIBERO rollouts.</b> These are NVIDIA's own N1.7 LIBERO checkpoints, with 10 action chunks sampled at every inference. Every failure carries a Gemini onset frame and one of 10 modes <span class="tag v">V</span>. The labels are VLM-made and unchecked. The data is gated and the card states no licence.</li>
+<li><b>The ~30-episode hand-labelled set is still needed, but as an audit.</b> Labelling 30 podolinsky onsets by hand under FailTime's onset rules tests their VLM labels and our <code>vlm_label.py</code> in one pass. No external set covers our <code>libero_spatial</code> checkpoint under our perturbations, so it cannot replace labels on our own rollouts <span class="tag i">I</span>.</li>
+</ul></div>
+
+<h2>1 · Ranked candidates</h2>
+<p class=small>Our list is phase (approach / grasp / transport / place) × mode (miss, slip, drop, wrong_object, wrong_location, stall). In-domain status follows MINING_SPEC D10, judged for our GR00T <code>libero_spatial</code> checkpoint.</p>
+<div class=tw><table>
+<tr><th>#</th><th>Dataset</th><th>Granularity · onset / root · how made</th><th>Taxonomy and overlap with ours</th><th>Recovery</th><th>Size</th><th>Embodiment · in-domain?</th><th>Licence · access</th><th>Cheapest use · cost</th></tr>
+
+<tr><td>1</td><td><b>podolinsky GR00T-N1.7 LIBERO features v3</b> (<a href="https://huggingface.co/datasets/podolinsky/groot-libero-10-features-v3">libero-10</a>, <a href="https://huggingface.co/datasets/podolinsky/gr00t-libero-x-features-v3">LIBERO-X</a>)</td>
+<td>Frame. An onset frame per failure: a Gemini 3.5-flash pass, then a second pass on a slowed window that refines it to one frame (165 of 169 refined). Onset type is <code>obvious_mistake</code>, <code>operator_intervention</code> or <code>timeout</code>. No human check is mentioned <span class="tag v">V</span></td>
+<td>10 modes: <code>wrong_object</code>, <code>wrong_target</code>, <code>grasp_failure</code>, <code>object_displacement</code>, <code>placement_or_insertion_failure</code>, <code>stuck_or_no_progress</code>, <code>timeout_or_insufficient_progress</code>, <code>press_failure</code>, <code>open_close_failure</code>, <code>other</code> <span class="tag v">V</span>. These map to wrong_object, wrong_location, grasp × miss/slip, drop, place and stall. No phase field <span class="tag i">I</span></td>
+<td>Text only: "reason / recovery / prevention" strings <span class="tag v">V</span></td>
+<td>libero-10: 500 episodes, 169 failures (88% normal, 44% occluded). LIBERO-X: 2,180 episodes, 1,258 failures <span class="tag v">V</span>. GB not checked</td>
+<td>LIBERO Franka, same 7-D EEF-delta action space. The policy is N1.7 itself, but the <code>libero_10</code> and LIBERO-X fine-tunes, not our spatial one: <i>in-domain</i> for those checkpoints, <i>held-out task, same embodiment</i> for ours <span class="tag i">I</span></td>
+<td>Gated on HF (share contact details); the card states no licence <span class="tag v">V</span></td>
+<td>Audit 30 onsets by hand; test v1 root rules against modes; score E5 timing signals and chunk dispersion (K=10 samples are already there) against onsets. CPU only. An access request plus a download <span class="tag i">I</span></td></tr>
+
+<tr><td>2</td><td><b>FailTime</b> (<a href="https://arxiv.org/html/2609.21369">ProTracer, 2609.21369</a>; <a href="https://huggingface.co/datasets/ChangUoA/FailTime">HF</a>)</td>
+<td>Frame/time: <code>onset</code> in seconds. Six human annotators, 120+ h; 0.94 category agreement; 50 ms mean onset disagreement, 99.6% within 0.5 s. Each category has an explicit "earliest commitment" onset rule <span class="tag v">V</span></td>
+<td>10 types: wrong sequence, wrong object, wrong gripper, wrong placement, closing error, open error, translation error, orientation error, avoidable / unavoidable intervention <span class="tag v">V</span>. Good overlap: closing error ≈ grasp × miss, translation/orientation ≈ approach × miss, wrong placement ≈ place × wrong_location <span class="tag i">I</span></td>
+<td>Text <code>avoidance</code> field <span class="tag v">V</span></td>
+<td>1,639 episodes (1,017 failed); 6.12 GB. Short: 1,539 from ViFailback. Long: 100 new, ~54 s each <span class="tag v">V</span></td>
+<td>Real ALOHA (bimanual) and SO-101: <i>other embodiment</i> <span class="tag v">V</span></td>
+<td>CC-BY-4.0, public. The Short split needs the ViFailback recordings <span class="tag v">V</span></td>
+<td>Adopt its onset rules as our labelling protocol; measure our VLM labeller's onset accuracy@0.5 s against human labels before trusting any VLM onsets. ~6 GB plus NIM calls; no GPU</td></tr>
+
+<tr><td>3</td><td><b>LIBERO-Recover</b> (<a href="https://arxiv.org/html/2609.05178">2609.05178</a>)</td>
+<td>Frame/time. Qwen3.5-27B splits each video into pre / during / post failure; four trained teleoperators check the labels, and disagreements go to adjudication <span class="tag v">V</span></td>
+<td>5 categories: grasp, placement, object displacement, collision/interaction, environmental obstruction <span class="tag v">V</span>. Close to our grasp / place / drop</td>
+<td>Yes: 3,184 teleop recovery trajectories over 413 failure scenarios, in 4 levels <span class="tag v">V</span></td>
+<td>2,178 recovery scenarios <span class="tag v">V</span></td>
+<td>LIBERO, natural failures from six policies including GR00T <span class="tag v">V</span>. Version and checkpoint not checked <span class="tag i">I</span></td>
+<td>Assets Apache-2.0 on ModelScope, but the <b>880 released scenes have only <code>.bddl</code> + <code>_sim_state.npy</code>: no failure type, level or source policy</b>. <a href="https://github.com/liulin815/LIBERO-Recovery/issues/4">Issue #4</a> open since 09-16 with no reply <span class="tag v">V</span></td>
+<td>Watch the release; the paper promises the full data "upon acceptance" <span class="tag v">V</span>. Today: sim states as start states only</td></tr>
+
+<tr><td>4</td><td><b>RoboFAC</b> (<a href="https://arxiv.org/html/2505.12224">2505.12224</a>; <a href="https://github.com/MINT-SJTU/RoboFAC">repo</a>)</td>
+<td>Substage. An erroneous code snippet replaces the scripted expert at a chosen substage; each trajectory records the failure substage, type and explanation <span class="tag v">V</span>. So the <b>root is known by construction</b>. Whether frame indices are in the released files is not checked <span class="tag i">I</span></td>
+<td>6 leaves in 3 levels: step omission, wrong object, position deviation, orientation deviation, grasping error, timing error <span class="tag v">V</span></td>
+<td>Correction QA <span class="tag v">V</span></td>
+<td>9,440 failure trajectories; 480 real (SO-100) <span class="tag v">V</span></td>
+<td>ManiSkill sim plus SO-100 real; failures come from a scripted expert, not a VLA: <i>other embodiment</i> <span class="tag v">V</span></td>
+<td>MIT; HF and ModelScope <span class="tag v">V</span></td>
+<td>Do the v1 rules recover the injected substage? That directly tests UQ10 (rule order changes 83 of 176 labels). Small download; CPU only</td></tr>
+
+<tr><td>5</td><td><b>AHA / FailGen</b> (<a href="https://arxiv.org/html/2410.00371">2410.00371</a>)</td>
+<td>Keyframe. A perturbation is injected at a swept keyframe, and the simulator's success checker keeps the ones that fail <span class="tag v">V</span></td>
+<td>7 modes: incomplete grasp, inadequate grip retention, misaligned keyframe, incorrect rotation, missing rotation, wrong action sequence, wrong target object <span class="tag v">V</span>. Maps to grasp × miss, transport × slip/drop and wrong_object</td>
+<td>No</td>
+<td>49k image–query pairs, 79 RLBench tasks <span class="tag v">V</span></td>
+<td>RLBench (Franka) and ManiSkill <span class="tag v">V</span></td>
+<td>Open source; licence not checked</td>
+<td>More use as a protocol: port the keyframe injection to LIBERO and get roots known by construction on our own stack (the B2FF idea, DATA_AND_BENCHMARKS §6.1). Days of CPU work <span class="tag i">I</span></td></tr>
+</table></div>
+
+<h2>2 · Top picks</h2>
+<h3>1 · podolinsky GR00T-N1.7 LIBERO v3</h3>
+<p>This is the only source that pairs our policy family with per-failure onset frames and the per-inference action samples (K=10) our dispersion signals need, so E5's timing questions can run without any GPU <span class="tag v">V</span>. The weakness is the labels: one VLM made them, with no human audit stated, and the onset mixes symptom types (<code>obvious_mistake</code> 1,088 vs <code>operator_intervention</code> 167 in LIBERO-X; the card does not say what the second means here <span class="tag i">I</span>). Plan: request access, hand-audit 30 failures under FailTime's rules, then use the dataset only where the audit agrees. The audit costs about as much as the planned hand-labelled set but checks both their labels and our labeller. The licence is unstated, so treat it as research-only until the author confirms <span class="tag i">I</span>.</p>
+
+<h3>2 · FailTime</h3>
+<p>This is the only open, human-made onset ground truth with measured agreement (50 ms), and it gives a per-category onset rule we can copy instead of inventing our own <span class="tag v">V</span>. It is another embodiment, so it says nothing about our policy's failures. Its role is to calibrate: score <code>vlm_label.py</code> (NIM VLMs) on onset accuracy@0.5 s against these human labels. ProTracer's own best is 71% Short and 40% Long <span class="tag v">V</span>, which sets the bar. Caveat: most of the Short split comes from ViFailback, where 4,995 of 5,202 trajectories are teleoperated, deliberately staged failures <span class="tag v">V</span>. So prefer the Long split (real policy-length episodes) for the headline number <span class="tag i">I</span>.</p>
+
+<h3>3 · LIBERO-Recover</h3>
+<p>On paper this is the ideal fixture: our simulator, natural failures including GR00T's, VLM labels checked by humans, and recovery demos <span class="tag v">V</span>. But the labels are not released, and nobody has answered the request for them <span class="tag v">V</span>. It is worth a check each week. If the labels arrive, it outranks rank 1 because humans verified them.</p>
+
+<h2>3 · Checked and not picked</h2>
+<ul class=small>
+<li><b>ViFailback</b> (2512.02787): real ALOHA, keyframe and correction labels, but 4,995 of 5,202 trajectories are teleoperated, deliberately staged failures <span class="tag v">V</span>. Reach it through FailTime instead.</li>
+<li><b>RoboMIND <code>failure_data/</code></b>: mostly rejected teleop demos, episode-level (DATA_AND_BENCHMARKS §6.3) <span class="tag v">V</span>.</li>
+<li><b>REFLECT / RoboFail</b> (2306.15724): small; AI2-THOR plus a UR5. The details were not on the abstract page <span class="tag i">I</span>.</li>
+<li><b>Sentinel / FAIL-Detect, AutoEval logs</b>: episode-level success only, as far as known; not re-checked <span class="tag i">I</span>.</li>
+<li><b>FailureSpot</b> (2609.04277): frame-labelled LIBERO-10 rollouts (π0, π0-FAST, OpenVLA) under a "first clearly deviates" rule, but only about 27 trajectories, with no release stated <span class="tag v">V</span>.</li>
+<li><b>Early-warning OpenVLA</b> (2606.29699): heuristic onsets (wrong-object grasp, drop at &gt;0.06 fall, stall at &lt;0.015 per 25 steps) that the authors call "unaudited". The code is CC-BY-4.0; the rollouts are not released <span class="tag v">V</span>. Its thresholds are a useful cross-check for our rules.</li>
+<li><b>LabRobFail</b> (2607.23704): injected faults with temporal labels, but a chemistry-lab domain and still under review <span class="tag v">V</span>.</li>
+<li><b>robotwin-failure-recovery</b>: has <code>fault_detected_frame</code>, but it is an unlicensed backup (DATA_AND_BENCHMARKS §6.2) <span class="tag v">V</span>.</li>
+<li><b>REPAIR-Bench</b> (2606.29937): a human–robot interaction study, not manipulation failures <span class="tag v">V</span>.</li>
+</ul>
+
+<h2>4 · Sources</h2>
+<p class=small>Dataset cards: <a href="https://huggingface.co/datasets/podolinsky/groot-libero-10-features-v3">podolinsky libero-10 v3</a>, <a href="https://huggingface.co/datasets/podolinsky/gr00t-libero-x-features-v3">podolinsky LIBERO-X v3</a>, <a href="https://huggingface.co/datasets/ChangUoA/FailTime">FailTime</a>. Papers: <a href="https://arxiv.org/html/2609.21369">ProTracer</a>, <a href="https://arxiv.org/html/2609.05178">LIBERO-Recover</a>, <a href="https://arxiv.org/html/2505.12224">RoboFAC</a>, <a href="https://arxiv.org/html/2410.00371">AHA</a>, <a href="https://arxiv.org/html/2512.02787">ViFailback</a>, <a href="https://arxiv.org/html/2609.04277">FailureSpot</a>, <a href="https://arxiv.org/html/2606.29699v2">Early warning</a>, <a href="https://arxiv.org/abs/2607.23704">LabRobFail</a>, <a href="https://arxiv.org/abs/2606.29937">REPAIR-Bench</a>, <a href="https://arxiv.org/abs/2306.15724">REFLECT</a>. Repos: <a href="https://github.com/liulin815/LIBERO-Recovery/issues/4">LIBERO-Recovery issue #4</a>, <a href="https://github.com/MINT-SJTU/RoboFAC">RoboFAC</a>. Ours: MINING_SPEC_DESIGN §6d (UQ1, UQ10, D10), EXPERIMENTS_2026-10-09 §2, TASK_DIVERSITY_LANDSCAPE §6, DATA_AND_BENCHMARKS §6. All checked 2026-10-12, through web fetches of cards and papers; no data downloaded.</p>
+
+</div></body></html>
