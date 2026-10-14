@@ -65,6 +65,16 @@ def main():
             if m.body(m.geom_bodyid[g]).name == body and m.geom_rgba[g, 3] > 0:
                 m.geom_rgba[g, :3] = rgb
 
+    # light fitted to the real robot's shadow (calibrate_light.py), if available
+    light = None
+    if os.path.exists(os.path.join(a.out, "light.json")):
+        import json
+        light = json.load(open(os.path.join(a.out, "light.json")))
+        m.light_type[0] = mujoco.mjtLightType.mjLIGHT_DIRECTIONAL
+        m.light_dir[0] = light["dir"]
+        m.light_castshadow[0] = 1
+        print("light from light.json: az", light["azimuth_deg"], "el", light["elevation_deg"], "real shadow ratio", round(light["real_shadow_ratio"], 3))
+
     table = m.geom("table").id
     fg_geoms = np.array([g for g in range(m.ngeom) if g != table and m.geom_bodyid[g] != 0])  # robot + objects
     rend = mujoco.Renderer(m, H, W)
@@ -91,7 +101,12 @@ def main():
             m.geom_group[:] = group0
             on_table = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & (seg[..., 0] == table)
             ratio = np.ones((H, W), np.float32)
-            ratio[on_table] = np.clip(sim[on_table].mean(-1) / np.maximum(lit[on_table].mean(-1), 1.0), 0.35, 1.0)
+            r = sim[on_table].mean(-1) / np.maximum(lit[on_table].mean(-1), 1.0)
+            if light:  # sim says where the shadow is; the real video says how dark (measured median ratio)
+                inside = np.clip((1.0 - r) / 0.1, 0.0, 1.0)  # same 0.9 threshold as calibrate_light
+                ratio[on_table] = 1.0 - inside * (1.0 - light["real_shadow_ratio"])
+            else:
+                ratio[on_table] = np.clip(r, 0.35, 1.0)
             ratio = cv2.GaussianBlur(ratio, (0, 0), 3)
             out *= ratio[..., None]
         out[fg] = sim[fg]
