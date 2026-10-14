@@ -1,0 +1,81 @@
+16:49:40
+intrinsics convention check (worst px error): {'offset': 0.77, 'absolute': inf}
+random search: best IoU [0.464, 0.416, 0.409, 0.374, 0.367]
+eval 100
+eval 200
+eval 300
+eval 400
+eval 500
+eval 600
+eval 700
+eval 800
+eval 900
+eval 1000
+eval 1100
+eval 1200
+eval 1300
+eval 1400
+eval 1500
+eval 1600
+eval 1700
+eval 1800
+eval 1900
+eval 2000
+eval 2100
+eval 2200
+eval 2300
+eval 2400
+eval 2500
+eval 2600
+eval 2700
+eval 2800
+eval 2900
+eval 3000
+eval 3100
+eval 3200
+eval 3300
+eval 3400
+eval 3500
+eval 3600
+{"delta_rot_deg": 17.754, "delta_trans_m": [0.20691664466576187, -0.2458067424551361, -0.07449596093911552], "cost_before_px": 39.239, "cost_after_px": 4.62, "iou_before": 0.19, "iou_after": 0.471, "nfev": 253}
+Exception ignored in: <function Renderer.__del__ at 0x7487ab08d620>
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/mujoco/rendering/classic/renderer.py", line 349, in __del__
+    self.close()
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/mujoco/rendering/classic/renderer.py", line 335, in close
+    self._gl_context.free()
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/mujoco/egl/__init__.py", line 132, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE,
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7486e16bef50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7487bdfcbe50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7487bdfcbe50>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7487bdfcbbd0>,
+	),
+	result = 0
+)
+Exception ignored in: <function GLContext.__del__ at 0x7487ab08cfe0>
+Traceback (most recent call last):
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/mujoco/egl/__init__.py", line 139, in __del__
+    self.free()
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/mujoco/egl/__init__.py", line 132, in free
+    EGL.eglMakeCurrent(EGL_DISPLAY, EGL.EGL_NO_SURFACE,
+  File "/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/OpenGL/error.py", line 230, in glCheckError
+    raise self._errorClass(
+OpenGL.raw.EGL._errors.EGLError: EGLError(
+	err = EGL_NOT_INITIALIZED,
+	baseOperation = eglMakeCurrent,
+	cArguments = (
+		<OpenGL._opaque.EGLDisplay_pointer object at 0x7486e16bef50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7487bdfcbe50>,
+		<OpenGL._opaque.EGLSurface_pointer object at 0x7487bdfcbe50>,
+		<OpenGL._opaque.EGLContext_pointer object at 0x7487bdfcbbd0>,
+	),
+	result = 0
+)
+17:02:02
