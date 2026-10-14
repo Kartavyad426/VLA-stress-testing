@@ -52,7 +52,10 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--target", default="orange_block")
+    ap.add_argument("--target", default="orange_block", help="single target body (kept for the orange-block runs)")
+    ap.add_argument("--targets", default="", help="comma-separated bodies picked in sequence; 'auto:N' = the N blocks "
+                    "with the most clearance from other objects, most isolated first")
+    ap.add_argument("--tag", default="scripted_grasp", help="output name prefix")
     a = ap.parse_args()
 
     m = mujoco.MjModel.from_binary_path(os.path.join(a.out, "scene.mjb"))
@@ -65,9 +68,12 @@ def main():
     grip_u = [i for i in range(m.nu) if m.actuator(i).name.startswith("g_")][0]
     g_lo, g_hi = m.actuator_ctrlrange[grip_u]
     pinch = m.site("g_pinch").id
-    blk, bowl = m.body(a.target).id, m.body("black_bowl").id
-    blk_geom = [g for g in range(m.ngeom) if m.geom_bodyid[g] == blk][0]
     fit = json.load(open(os.path.join(a.out, "scene_fit.json")))
+    free = [m.body(m.jnt_bodyid[j]).name for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
+    bowl_name = [n for n in free if "bowl" in n][0]
+    bowl = m.body(bowl_name).id
+    bowl_fit = [o for o in fit["objects"].values() if o.get("kind", "bowl") == "bowl" and "rim_radius" in o][0]
+    rim_top = fit["table"]["z"] + bowl_fit["height_asset_scaled"]
 
     # settle the scene with the arm at the recorded start pose
     d.qpos[arm_q] = q_start
@@ -75,75 +81,89 @@ def main():
     d.ctrl[grip_u] = g_lo
     for _ in range(int(0.5 / m.opt.timestep)):
         mujoco.mj_step(m, d)
+    start_pos = {n: d.xpos[m.body(n).id].copy() for n in free}
 
-    p_blk = d.xpos[blk].copy()
-    R_blk = d.xmat[blk].reshape(3, 3)
-    half = m.geom_size[blk_geom]
-    # close across the block's narrower horizontal side: the 2F-85 fingers move along the pinch frame's y axis
-    ax = R_blk[:, 0] if half[0] < half[1] else R_blk[:, 1]
-    ax = np.array([ax[0], ax[1], 0.0])
-    ax /= np.linalg.norm(ax)
-    z_down = np.array([0, 0, -1.0])
-    R_grasp = np.c_[np.cross(ax, z_down), ax, z_down]  # columns: x, y (closing), z (approach)
-    p_bowl = d.xpos[bowl].copy()
-    rim_top = fit["table"]["z"] + fit["objects"]["black bowl"]["height_asset_scaled"]
-
-    waypoints = [  # (name, pinch position, gripper ctrl, seconds)
-        ("above block", p_blk + [0, 0, 0.12], g_lo, 2.0),
-        ("down to block", p_blk + [0, 0, 0.0], g_lo, 1.5),
-        ("close", p_blk + [0, 0, 0.0], g_hi, 1.0),
-        ("lift", p_blk + [0, 0, 0.15], g_hi, 1.5),
-        ("above bowl", np.r_[p_bowl[:2], rim_top + 0.12], g_hi, 2.0),
-        ("lower", np.r_[p_bowl[:2], rim_top + 0.05], g_hi, 1.0),
-        ("open", np.r_[p_bowl[:2], rim_top + 0.05], g_lo, 1.0),
-        ("retreat", np.r_[p_bowl[:2], rim_top + 0.20], g_lo, 1.5),
-    ]
-    q_prev, ik_err = d.qpos[arm_q].copy(), {}
-    plan = []
-    for name, p, g, secs in waypoints:
-        q, e = ik(m, q_prev, pinch, p, R_grasp, arm_q, arm_dof)
-        ik_err[name] = e
-        plan.append((name, q_prev, q, g, secs))
-        q_prev = q
+    if a.targets.startswith("auto:"):
+        n_pick = int(a.targets.split(":")[1])
+        blocks = [n for n in free if "block" in n]
+        others = {n: d.xpos[m.body(n).id][:2] for n in free}
+        clear = {b: min(np.linalg.norm(others[b] - others[o]) for o in free if o != b) for b in blocks}
+        targets = sorted(blocks, key=lambda b: -clear[b])[:n_pick]
+        print("auto targets (clearance cm):", [(t, round(100 * clear[t], 1)) for t in targets])
+    elif a.targets:
+        targets = [t.strip() for t in a.targets.split(",")]
+    else:
+        targets = [a.target]
 
     H, W = 720, 1280
     rend = mujoco.Renderer(m, H, W)
     real0 = read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), 0)
-    writer = imageio.get_writer(os.path.join(a.out, "scripted_grasp.mp4"), fps=FPS, quality=7, macro_block_size=8)
+    writer = imageio.get_writer(os.path.join(a.out, f"{a.tag}.mp4"), fps=FPS, quality=7, macro_block_size=8)
     n_sub = int(round(1 / FPS / m.opt.timestep))
-    z_blk, log, states = [], [], []
-    for name, qa, qb, g, secs in plan:
-        n = int(secs * FPS)
-        for k in range(n):
-            s = (k + 1) / n
-            d.ctrl[arm_u] = qa + (qb - qa) * (0.5 - 0.5 * np.cos(np.pi * s))  # smooth interpolation
-            d.ctrl[grip_u] = g
-            for _ in range(n_sub):
-                mujoco.mj_step(m, d)
-            z_blk.append(d.xpos[blk][2])
-            states.append(d.qpos.copy())
-            rend.update_scene(d, camera="ext")
-            sim = rend.render()
-            row = np.concatenate([real0, sim], 1)
-            row = cv2.resize(row, (row.shape[1] // 2, row.shape[0] // 2), interpolation=cv2.INTER_AREA)
-            cv2.putText(row, "real (first frame only)", (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            cv2.putText(row, f"sim scripted: {name}", (W // 2 + 10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            writer.append_data(row)
-        log.append(dict(step=name, pinch_err_m=float(np.linalg.norm(d.site_xpos[pinch] - waypoints[[w[0] for w in waypoints].index(name)][1])),
-                        block_xyz=d.xpos[blk].round(4).tolist()))
+    states, picks = [], []
+    z_down = np.array([0, 0, -1.0])
+    for ti, tgt in enumerate(targets):
+        blk = m.body(tgt).id
+        blk_geom = [g for g in range(m.ngeom) if m.geom_bodyid[g] == blk][0]
+        p_blk = d.xpos[blk].copy()  # planned from the CURRENT state: earlier picks may have nudged things
+        R_blk = d.xmat[blk].reshape(3, 3)
+        half = m.geom_size[blk_geom]
+        # close across the block's narrower horizontal side: the 2F-85 fingers move along the pinch frame's y axis
+        ax = R_blk[:, 0] if half[0] < half[1] else R_blk[:, 1]
+        ax = np.array([ax[0], ax[1], 0.0])
+        ax /= np.linalg.norm(ax)
+        R_grasp = np.c_[np.cross(ax, z_down), ax, z_down]  # columns: x, y (closing), z (approach)
+        p_bowl = d.xpos[bowl].copy()
+        drop = rim_top + 0.05 + 0.03 * ti  # drop a little higher each time as the bowl fills
+        waypoints = [  # (name, pinch position, gripper ctrl, seconds)
+            ("above block", p_blk + [0, 0, 0.12], g_lo, 2.0),
+            ("down to block", p_blk + [0, 0, 0.0], g_lo, 1.5),
+            ("close", p_blk + [0, 0, 0.0], g_hi, 1.0),
+            ("lift", p_blk + [0, 0, 0.15], g_hi, 1.5),
+            ("above bowl", np.r_[p_bowl[:2], rim_top + 0.15], g_hi, 2.0),
+            ("lower", np.r_[p_bowl[:2], drop], g_hi, 1.0),
+            ("open", np.r_[p_bowl[:2], drop], g_lo, 1.0),
+            ("retreat", np.r_[p_bowl[:2], rim_top + 0.20], g_lo, 1.5),
+        ]
+        q_prev, ik_err, z_blk = d.qpos[arm_q].copy(), {}, []
+        others_before = {n: d.xpos[m.body(n).id].copy() for n in free if n != tgt}
+        for name, p, g, secs in waypoints:
+            q, e = ik(m, q_prev, pinch, p, R_grasp, arm_q, arm_dof)
+            ik_err[name] = e
+            n = int(secs * FPS)
+            for k in range(n):
+                sm = (k + 1) / n
+                d.ctrl[arm_u] = q_prev + (q - q_prev) * (0.5 - 0.5 * np.cos(np.pi * sm))  # smooth interpolation
+                d.ctrl[grip_u] = g
+                for _ in range(n_sub):
+                    mujoco.mj_step(m, d)
+                z_blk.append(d.xpos[blk][2])
+                states.append(d.qpos.copy())
+                rend.update_scene(d, camera="ext")
+                row = np.concatenate([real0, rend.render()], 1)
+                row = cv2.resize(row, (row.shape[1] // 2, row.shape[0] // 2), interpolation=cv2.INTER_AREA)
+                cv2.putText(row, "real (first frame only)", (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                cv2.putText(row, f"sim pick {ti + 1}/{len(targets)} {tgt}: {name}", (W // 2 + 10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                writer.append_data(row)
+            q_prev = q
+        final = d.xpos[blk]
+        horiz = float(np.linalg.norm(final[:2] - d.xpos[bowl][:2]))
+        moved = {n: float(np.linalg.norm(d.xpos[m.body(n).id] - p0)) for n, p0 in others_before.items()}
+        picks.append(dict(target=tgt, block_start=p_blk.tolist(), block_final=final.tolist(), block_size_m=(2 * half).tolist(),
+                          lifted_m=float(max(z_blk) - p_blk[2]), block_to_bowl_horizontal_m=horiz,
+                          in_bowl=bool(horiz < 0.8 * bowl_fit["rim_radius"] and final[2] < rim_top),
+                          max_ik_residual_m=float(max(ik_err.values())),
+                          others_moved_m={k: v for k, v in moved.items() if v > 0.005}))
     writer.close()
     # the scripted run has no matching real frames after frame 0: the composite uses the real background only
-    np.savez_compressed(os.path.join(a.out, "scripted_grasp_states.npz"), qpos=np.array(states),
-                        real_frames=np.zeros(len(states), int))
-
-    final = d.xpos[blk]
-    horiz = float(np.linalg.norm(final[:2] - d.xpos[bowl][:2]))
-    r = fit["objects"]["black bowl"]["rim_radius"]
-    metrics = dict(block_start=p_blk.tolist(), block_final=final.tolist(), block_size_m=(2 * half).tolist(),
-                   lifted_m=float(max(z_blk) - p_blk[2]), block_to_bowl_horizontal_m=horiz, bowl_rim_radius_m=r,
-                   in_bowl=bool(horiz < 0.8 * r and final[2] < rim_top), ik_residual_m=ik_err, per_step=log)
-    json.dump(metrics, open(os.path.join(a.out, "scripted_grasp_metrics.json"), "w"), indent=1)
-    print(json.dumps({k: metrics[k] for k in ("lifted_m", "block_to_bowl_horizontal_m", "in_bowl", "ik_residual_m")}))
+    np.savez_compressed(os.path.join(a.out, f"{a.tag}_states.npz"), qpos=np.array(states), real_frames=np.zeros(len(states), int))
+    metrics = dict(targets=targets, picks=picks, n_in_bowl=sum(p["in_bowl"] for p in picks),
+                   bowl_moved_m=float(np.linalg.norm(d.xpos[bowl] - start_pos[bowl_name])))
+    if len(picks) == 1:  # keep the single-target fields the orange-block runs report
+        metrics.update({k: picks[0][k] for k in ("lifted_m", "block_to_bowl_horizontal_m", "in_bowl")})
+    json.dump(metrics, open(os.path.join(a.out, f"{a.tag}_metrics.json"), "w"), indent=1)
+    print(json.dumps(dict(n_in_bowl=metrics["n_in_bowl"], of=len(picks), bowl_moved_cm=round(100 * metrics["bowl_moved_m"], 1),
+                          picks=[(p["target"], round(100 * p["lifted_m"], 1), p["in_bowl"], {k: round(100 * v, 1) for k, v in p["others_moved_m"].items()}) for p in picks])))
 
 
 if __name__ == "__main__":
