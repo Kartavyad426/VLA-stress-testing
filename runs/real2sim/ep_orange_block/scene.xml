@@ -110,7 +110,7 @@
     <mesh name="g_pad" class="g_2f85" file="pad.stl"/>
     <mesh name="g_silicone_pad" class="g_2f85" file="silicone_pad.stl"/>
     <mesh name="g_spring_link" class="g_2f85" file="spring_link.stl"/>
-    <mesh name="bowl_vis" file="/home/imerit/Documents/Code/VLA/third_party/LIBERO-plus/libero/libero/assets/stable_scanned_objects/akita_black_bowl/akita_black_bowl.obj" scale="1.07012 1.07012 1.07012"/>
+    <mesh name="bowl_vis_0" file="/home/imerit/Documents/Code/VLA/third_party/LIBERO-plus/libero/libero/assets/stable_scanned_objects/akita_black_bowl/akita_black_bowl.obj" scale="1.07012 1.07012 1.07012"/>
   </asset>
 
   <worldbody>
@@ -264,21 +264,9 @@
         </body>
       </body>
     </body>
-    <body name="orange_block" pos="0.626549 0.0458564 -0.0117624" quat="0.903158 0 0 0.429307">
-      <joint type="free"/>
-      <geom size="0.0190017 0.0103677 0.01756" type="box" rgba="0.95 0.35 0.1 1" density="600"/>
-    </body>
-    <body name="yellow_block" pos="0.567874 0.043762 -0.0180276" quat="0.430847 0 0 0.902425">
-      <joint type="free"/>
-      <geom size="0.020957 0.0135958 0.0112948" type="box" rgba="0.95 0.85 0.2 1" density="600"/>
-    </body>
-    <body name="green_block" pos="0.505787 -0.0206485 -0.0162353" quat="0.6643 0 0 0.747466">
-      <joint type="free"/>
-      <geom size="0.021303 0.0140747 0.0130871" type="box" rgba="0.1 0.55 0.4 1" density="600"/>
-    </body>
     <body name="black_bowl" pos="0.637413 -0.215173 -0.00997756">
       <joint type="free"/>
-      <geom pos="0 0 0" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" rgba="0.08 0.08 0.08 1" mass="0" mesh="bowl_vis"/>
+      <geom pos="0 0 0" quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" rgba="0.08 0.08 0.08 1" mass="0" mesh="bowl_vis_0"/>
       <geom size="0.0010854 0.0151651 0.0181461" pos="-0.000152874 0.0513808 0.0143548" quat="-0.609901 0.3578 0.3578 0.609901" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
       <geom size="0.0010854 0.0151651 0.0181461" pos="-0.0224571 0.046122 0.0146606" quat="0.459591 -0.426721 0.267041 0.731692" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
       <geom size="0.0010854 0.0151651 0.0181461" pos="-0.0398236 0.0322257 0.0149052" quat="0.291721 -0.472991 0.16619 0.814592" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
@@ -320,6 +308,18 @@
       <geom size="0.00394414 0.00692517 0.0236495" pos="-0.0276701 6.11494e-05 0.00637483" quat="-0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
       <geom size="0.00394414 0.0113279 0.0247197" pos="0 0.0227782 0.00637483" quat="0 0.707107 0 -0.707107" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
     </body>
+    <body name="green_block" pos="0.505588 -0.0193971 -0.0163477" quat="0.666786 0 0 0.74525">
+      <joint type="free"/>
+      <geom size="0.0129747 0.0129747 0.0129747" type="box" rgba="0.262745 0.54902 0.409804 1" density="600"/>
+    </body>
+    <body name="orange_block" pos="0.626215 0.047505 -0.0131112" quat="0.900275 0 0 0.435321">
+      <joint type="free"/>
+      <geom size="0.0162112 0.0162112 0.0162112" type="box" rgba="0.756863 0.211765 0.00784314 1" density="600"/>
+    </body>
+    <body name="yellow_block" pos="0.567541 0.0443044 -0.0182904" quat="0.434927 0 0 0.900466">
+      <joint type="free"/>
+      <geom size="0.011032 0.011032 0.011032" type="box" rgba="0.905882 0.901961 0.423529 1" density="600"/>
+    </body>
   </worldbody>
 
   <contact>
@@ -357,6 +357,6 @@
   </actuator>
 
   <keyframe>
-    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0.626549 0.0458564 -0.0117624 0.903158 0 0 0.429307 0.567874 0.043762 -0.0180276 0.430847 0 0 0.902425 0.505787 -0.0206485 -0.0162353 0.6643 0 0 0.747466 0.637413 -0.215173 -0.00997756 1 0 0 0" ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 0"/>
+    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0.637413 -0.215173 -0.00997756 1 0 0 0 0.505588 -0.0193971 -0.0163477 0.666786 0 0 0.74525 0.626215 0.047505 -0.0131112 0.900275 0 0 0.435321 0.567541 0.0443044 -0.0182904 0.434927 0 0 0.900466" ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 0"/>
   </keyframe>
 </mujoco>

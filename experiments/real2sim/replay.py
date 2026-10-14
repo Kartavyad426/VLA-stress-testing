@@ -57,7 +57,8 @@ def main():
     g_lo, g_hi = m.actuator_ctrlrange[grip_u]
     pinch = m.site("g_pinch").id
     tgt = m.body(a.target).id
-    bowl = m.body("black_bowl").id
+    free_bodies = [m.body(m.jnt_bodyid[j]).name for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
+    bowl = m.body([n for n in free_bodies if "bowl" in n][0]).id
 
     def command(i):
         d.ctrl[arm_u] = jp[i]
@@ -66,8 +67,7 @@ def main():
     d.qpos[arm_q] = jp[0]
     command(0)
     mujoco.mj_forward(m, d)
-    p0 = {n: d.xpos[m.body(n).id].copy() for n in ("orange_block", "yellow_block", "green_block", "black_bowl")
-          if mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, n) >= 0}
+    p0 = {n: d.xpos[m.body(n).id].copy() for n in free_bodies}  # every free object, whatever the scene
     for _ in range(int(a.settle_s / m.opt.timestep)):
         mujoco.mj_step(m, d)
     settle = {n: float(np.linalg.norm(d.xpos[m.body(n).id] - p)) for n, p in p0.items()}
@@ -100,7 +100,8 @@ def main():
     tpos = np.array(tpos)
     pe = np.array(pinch_err)
     bowl_xy, bowl_z = d.xpos[bowl][:2], d.xpos[bowl][2]
-    r = fit["objects"]["black bowl"]["rim_radius"]
+    bowl_fit = [o for o in fit["objects"].values() if o.get("kind", "bowl") == "bowl" and "rim_radius" in o][0]
+    r = bowl_fit["rim_radius"]
     final = tpos[-1]
     horiz = float(np.linalg.norm(final[:2] - bowl_xy))
     metrics = dict(
@@ -108,7 +109,7 @@ def main():
         target_lifted_m=float(tpos[:, 2].max() - tpos[0, 2]),
         target_final_xyz=final.tolist(), bowl_final_xyz=d.xpos[bowl].tolist(),
         target_to_bowl_horizontal_m=horiz, bowl_rim_radius_m=r,
-        target_in_bowl=bool(horiz < 0.8 * r and final[2] < bowl_z + fit["objects"]["black bowl"]["height_fit"] + 0.02),
+        target_in_bowl=bool(horiz < 0.8 * r and final[2] < bowl_z + bowl_fit["height_fit"] + 0.02),
         pinch_minus_recorded_ee_mean_m=pe.mean(0).tolist(), pinch_minus_recorded_ee_std_m=pe.std(0).tolist(),
     )
     json.dump(metrics, open(os.path.join(a.out, "replay_metrics.json"), "w"), indent=1)

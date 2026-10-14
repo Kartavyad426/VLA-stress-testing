@@ -25,6 +25,51 @@ MENAGERIE = os.path.join(REPO, "data/real2sim/menagerie")
 BOWL_DIR = os.path.join(REPO, "third_party/LIBERO-plus/libero/libero/assets/stable_scanned_objects/akita_black_bowl")
 BOWL_ASSET_SCALE = 0.7  # the scale LIBERO's akita_black_bowl.xml applies to its mesh
 NOT_OBJECTS = ("table", "gripper", "robot")
+COLOURS = {"red", "orange", "yellow", "green", "blue", "black", "white", "brown", "purple", "pink", "grey", "gray", "toy", "small", "large"}
+LIBERO_ASSETS = os.path.join(REPO, "third_party/LIBERO-plus/libero/libero/assets")
+
+
+def asset_catalogue(source):
+    """name -> MJCF path, one instance per name (sorted). 'libero': LIBERO + LIBERO-Plus objects (research-only
+    licence per res32's audit). Other sources (e.g. CC BY mujoco_scanned_objects) plug in here."""
+    import glob
+    cat = {}
+    if source == "libero":
+        for sub in ("stable_scanned_objects", "stable_hope_objects", "turbosquid_objects"):
+            for x in sorted(glob.glob(f"{LIBERO_ASSETS}/{sub}/*/*.xml")):
+                cat.setdefault(os.path.basename(os.path.dirname(x)), x)
+        for x in sorted(glob.glob(f"{LIBERO_ASSETS}/new_objects/*/*/usd/MJCF/*.xml")):
+            cat.setdefault(x.split("/new_objects/")[1].split("/")[0], x)
+    return cat
+
+
+def match_asset(label, cat):
+    """Detected label -> catalogue name: exact noun first, then 'half_<noun>', then names ending in '_<noun>'."""
+    words = [w for w in label.split("#")[0].lower().split() if w not in COLOURS]
+    for w in reversed(words):  # the head noun is usually last ("red radish" -> "radish")
+        for cand in (w, f"half_{w}"):
+            if cand in cat:
+                return cand
+        ends = sorted(n for n in cat if n.endswith("_" + w))
+        if ends:
+            return ends[0]
+    return None
+
+
+def asset_footprint(xml):
+    """(x/y half-extents, z min, z max) of the asset's visual geoms in its body frame, at native scale."""
+    m = mujoco.MjSpec.from_file(xml).compile()
+    d = mujoco.MjData(m)
+    mujoco.mj_forward(m, d)
+    pts = []
+    for g in range(m.ngeom):
+        if m.geom_type[g] != mujoco.mjtGeom.mjGEOM_MESH:
+            continue
+        mid = m.geom_dataid[g]
+        v = m.mesh_vert[m.mesh_vertadr[mid]:m.mesh_vertadr[mid] + m.mesh_vertnum[mid]]
+        pts.append(v @ d.geom_xmat[g].reshape(3, 3).T + d.geom_xpos[g])
+    p = np.concatenate(pts)
+    return (p[:, :2].max(0) - p[:, :2].min(0)) / 2, float(p[:, 2].min()), float(p[:, 2].max()), (p[:, :2].max(0) + p[:, :2].min(0)) / 2
 
 
 def object_kind(label):
@@ -58,16 +103,32 @@ def masked_points(per, name, erode=3):
     return per["points"][m]
 
 
-def fit_box(pb, z_table):
-    z_top = np.percentile(pb[:, 2], 95)
-    top = pb[pb[:, 2] > z_top - 0.006]
-    c = top[:, :2].mean(0)
+def robust_extent(xy, axis_vec, lo=5, hi=95):
+    proj = xy @ axis_vec
+    return float(np.percentile(proj, hi) - np.percentile(proj, lo))
+
+
+def fit_box(pb, z_table, pb_inner=None, cube=False):
+    """Footprint from the top-face points (PCA axes, 5-95th percentile extents, so a few stray points don't
+    stretch a side); height from the inner part of the mask (edge pixels smear depth upward in clutter);
+    cube=True ("block"/"cube" labels) sets all three sides to the median of the measured ones."""
+    inner = pb_inner if pb_inner is not None and len(pb_inner) > 30 else pb
+    z_top = np.percentile(inner[:, 2], 90)
+    top = pb[(pb[:, 2] > z_top - 0.006) & (pb[:, 2] < z_top + 0.01)]
+    if len(top) < 10:
+        top = pb
+    c = np.median(top[:, :2], axis=0)
     evals, evecs = np.linalg.eigh(np.cov((top[:, :2] - c).T))
-    ext = [np.ptp((top[:, :2] - c) @ evecs[:, i]) for i in (0, 1)]
+    ext = [robust_extent(top[:, :2] - c, evecs[:, i]) for i in (0, 1)]
     yaw = float(np.arctan2(evecs[1, 1], evecs[0, 1]))
     h = float(z_top - z_table)
-    return dict(center=[float(c[0]), float(c[1]), float(z_table + h / 2)], half=[ext[1] / 2, ext[0] / 2, h / 2],
-                yaw=yaw, n_points=int(len(pb)), n_top=int(len(top)))
+    half = [ext[1] / 2, ext[0] / 2, h / 2]
+    if cube:
+        side = float(np.median([ext[0], ext[1], h]))
+        half = [side / 2] * 3
+        h = side
+    return dict(center=[float(c[0]), float(c[1]), float(z_table + h / 2)], half=half, yaw=yaw,
+                measured_wdh=[ext[1], ext[0], float(z_top - z_table)], n_points=int(len(pb)), n_top=int(len(top)))
 
 
 def fit_ellipsoid(pb, z_table):
@@ -147,6 +208,8 @@ def main():
     ap.add_argument("--grip_yaw_deg", type=float, default=0.0, help="Robotiq mount rotation about the flange z axis")
     ap.add_argument("--calib", default=None, help="calib.json from calibrate_cam.py (camera pose + ZED intrinsics); "
                     "default: DROID's recorded extrinsics + MoGe's intrinsics")
+    ap.add_argument("--assets", choices=["libero", "none"], default="libero",
+                    help="mesh source for named non-block objects; 'none' = fitted ellipsoids only")
     ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
     a = ap.parse_args()
     anchor_info = {}
@@ -205,6 +268,7 @@ def main():
     fit["table"] = dict(z=z_table, xy_lo=lo.tolist(), xy_hi=hi.tolist(), z_spread_iqr=float(np.subtract(*np.percentile(tb[:, 2], [75, 25]))))
 
     boxes, body0, r_asset, zmin_a, zmax_a = bowl_asset()
+    cat = asset_catalogue(a.assets) if a.assets != "none" else {}
     for key in sorted(k for k in per if k.startswith("mask/")):
         label = key[5:]
         kind = object_kind(label)
@@ -216,9 +280,21 @@ def main():
         rgb = (np.median(per["image"][cv2.erode(per[key].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0).tolist()
         body = label.replace("#", "_").replace(" ", "_")
         if kind == "box":
-            o = fit_box(pts, z_table)
+            inner = to_base(masked_points(per, label, erode=9))
+            o = fit_box(pts, z_table, inner, cube=any(w in label.lower() for w in ("block", "cube")))
         elif kind == "ellipsoid":
             o = fit_ellipsoid(pts, z_table)
+            name = match_asset(label, cat)
+            if name:  # retrieved mesh, uniformly scaled so its footprint matches the fitted one
+                half_xy, zmin, zmax, cxy = asset_footprint(cat[name])
+                cols = np.flatnonzero(per[key].any(0))
+                z_med = float(np.median(s * per["depth"][per[key] & per["valid"]]))
+                width_m = (np.percentile(cols, 95) - np.percentile(cols, 5)) * z_med / K[0, 0]
+                k = float(width_m / (2 * max(half_xy)))
+                o["half"] = [width_m / 2, width_m / 2, o["half"][2]]  # footprint from the image, not the point spread
+                o.update(kind="asset", asset=name, asset_xml=cat[name], asset_scale=k, asset_zmin=zmin,
+                         asset_height_scaled=k * (zmax - zmin), asset_cxy=cxy.tolist())
+                kind = "asset"
         else:  # bowl: LIBERO's akita_black_bowl, uniformly scaled to the fitted rim
             z_top = float(np.percentile(pts[:, 2], 98))
             rim = pts[pts[:, 2] > z_top - 0.012]
@@ -228,6 +304,22 @@ def main():
                      height_asset_scaled=k * (zmax_a - zmin_a), asset_scale=k, n_rim=int(len(rim)))
         o.update(kind=kind, body=body, mask=label, rgb=rgb)
         fit["objects"][label] = o
+
+    groups = {}
+    for lab, o in fit["objects"].items():
+        if o["kind"] == "box" and o["half"][0] == o["half"][1] == o["half"][2]:
+            groups.setdefault(lab.split("#")[0], []).append(lab)
+    for base, labs in groups.items():
+        if len(labs) < 3:
+            continue
+        med = float(np.median([fit["objects"][l]["half"][0] for l in labs]))
+        for l in labs:
+            o = fit["objects"][l]
+            h = float(np.clip(o["half"][0], 0.5 * med, 1.5 * med))
+            if h != o["half"][0]:
+                o["clamped_from_half"] = o["half"][0]
+            o["half"] = [h, h, h]
+            o["center"][2] = z_table + h
 
     # ---- assemble the MJCF ----
     spec = robot_spec(a.grip_yaw_deg)
@@ -256,6 +348,30 @@ def main():
             continue
         b = wb.add_body(name=o["body"], pos=o["center"], quat=Rot.from_euler("z", o.get("yaw", 0.0)).as_quat(scalar_first=True))
         b.add_freejoint()
+        if o["kind"] == "asset":
+            k = o["asset_scale"]
+            b.pos = [o["center"][0], o["center"][1], z_table - k * o["asset_zmin"] + 0.001]
+            child = mujoco.MjSpec.from_file(o["asset_xml"])
+            for lt in list(child.lights):
+                child.delete(lt)
+            # LIBERO-Plus objects carry hundreds of convex collision parts (559 for half_radish); resting on the
+            # table they made ~7k contacts and overflowed MuJoCo's constraint arena (everything fell through).
+            # Collide with the visual mesh's single convex hull instead and drop the parts.
+            vis = [g for g in child.geoms if g.meshname == "visuals"]
+            if vis:
+                for g in list(child.geoms):
+                    if g.meshname != "visuals":
+                        child.delete(g)
+                for ms in list(child.meshes):
+                    if ms.name != "visuals":
+                        child.delete(ms)
+                for g in vis:
+                    g.contype, g.conaffinity, g.density = 1, 1, 500
+            for ms in child.meshes:
+                ms.scale = [k * v for v in ms.scale]
+            fr = b.add_frame(pos=[-k * o["asset_cxy"][0], -k * o["asset_cxy"][1], 0])
+            spec.attach(child, frame=fr, prefix=o["body"] + "_")
+            continue
         gtype = mujoco.mjtGeom.mjGEOM_BOX if o["kind"] == "box" else mujoco.mjtGeom.mjGEOM_ELLIPSOID
         b.add_geom(type=gtype, size=o["half"], rgba=[*o["rgb"], 1], density=600, friction=[1.0, 0.005, 0.0001])
     # camera: MuJoCo looks down -z with +y up; OpenCV looks down +z with +y down

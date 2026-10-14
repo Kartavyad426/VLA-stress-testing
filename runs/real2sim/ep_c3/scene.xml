@@ -52,9 +52,23 @@
         </default>
       </default>
     </default>
+    <default class="apple_1_main">
+      <default class="apple_1_visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="1"/>
+      </default>
+      <default class="apple_1_collision"/>
+    </default>
+    <default class="red_radish_1_main">
+      <default class="red_radish_1_visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="1"/>
+      </default>
+      <default class="red_radish_1_collision"/>
+    </default>
   </default>
 
   <asset>
+    <texture type="2d" colorspace="linear" name="apple_1_base_link_diffuse" file="visuals/agveuv__base_link__diffuse.png"/>
+    <texture type="2d" colorspace="linear" name="red_radish_1_base_link_diffuse" file="visuals/kyujnh__base_link__diffuse.png"/>
     <material name="black" rgba="0.2 0.2 0.2 1"/>
     <material name="white"/>
     <material name="red" rgba="1 0.072272 0.039546 1"/>
@@ -66,6 +80,8 @@
     <material name="g_silicone" rgba="0.1882 0.1882 0.1882 1"/>
     <material name="g_gray" rgba="0.4627 0.4627 0.4627 1"/>
     <material name="g_black" rgba="0.149 0.149 0.149 1"/>
+    <material name="apple_1_agveuv__base_link_vray" texture="apple_1_base_link_diffuse" reflectance="0.5"/>
+    <material name="red_radish_1_kyujnh__base_link_vray" texture="red_radish_1_base_link_diffuse" reflectance="0.5"/>
     <mesh name="link0_0" file="link0_0.obj"/>
     <mesh name="link0_1" file="link0_1.obj"/>
     <mesh name="link0_2" file="link0_2.obj"/>
@@ -110,7 +126,9 @@
     <mesh name="g_pad" class="g_2f85" file="pad.stl"/>
     <mesh name="g_silicone_pad" class="g_2f85" file="silicone_pad.stl"/>
     <mesh name="g_spring_link" class="g_2f85" file="spring_link.stl"/>
+    <mesh name="apple_1_visuals" content_type="model/obj" file="visuals/visuals.obj" scale="0.666047 0.666047 0.666047"/>
     <mesh name="bowl_vis_0" file="/home/imerit/Documents/Code/VLA/third_party/LIBERO-plus/libero/libero/assets/stable_scanned_objects/akita_black_bowl/akita_black_bowl.obj" scale="1.03287 1.03287 1.03287"/>
+    <mesh name="red_radish_1_visuals" content_type="model/obj" file="visuals/visuals.obj" scale="5.14124 5.14124 5.14124"/>
   </asset>
 
   <worldbody>
@@ -264,9 +282,16 @@
         </body>
       </body>
     </body>
-    <body name="apple_1" pos="0.585048 -0.0895759 0.29704" quat="0.886141 0 0 0.463416">
+    <body name="apple_1" pos="0.585048 -0.0895759 0.236468" quat="0.886141 0 0 0.463416">
       <joint type="free"/>
-      <geom size="0.0257535 0.0139999 0.0868605" type="ellipsoid" rgba="0.858824 0.32549 0.0117647 1" density="600"/>
+      <frame pos="-0.00130191 -0.000308819 0">
+        <body name="apple_1_object">
+          <geom name="apple_1_visuals" class="apple_1_visual" quat="1 0 0 0" contype="1" conaffinity="1" density="500" material="apple_1_agveuv__base_link_vray" mesh="apple_1_visuals"/>
+          <site name="apple_1_bottom_site" pos="0 0 -0.25" rgba="0 0 0 0"/>
+          <site name="apple_1_top_site" pos="0 0 0.06" rgba="0 0 0 0"/>
+          <site name="apple_1_horizontal_radius_site" pos="0.01 0.01 0" rgba="0 0 0 0"/>
+        </body>
+      </frame>
     </body>
     <body name="black_bowl" pos="0.623676 0.0528504 0.228886">
       <joint type="free"/>
@@ -312,41 +337,48 @@
       <geom size="0.00380686 0.00668413 0.0228264" pos="-0.026707 5.9021e-05 0.00615294" quat="-0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
       <geom size="0.00380686 0.0109336 0.0238593" pos="0 0.0219853 0.00615294" quat="0 0.707107 0 -0.707107" type="box" friction="0.95 0.3 0.1" rgba="0.1 0.1 0.1 0" density="300"/>
     </body>
-    <body name="red_radish_1" pos="0.659868 0.184626 0.282998" quat="0.26795 0 0 0.963433">
+    <body name="red_radish_1" pos="0.659868 0.184626 0.225199" quat="0.26795 0 0 0.963433">
       <joint type="free"/>
-      <geom size="0.187081 0.0291055 0.0728187" type="ellipsoid" rgba="0.32549 0.286275 0.2 1" density="600"/>
+      <frame pos="-8.20019e-05 0.000332227 0">
+        <body name="red_radish_1_object">
+          <geom name="red_radish_1_visuals" class="red_radish_1_visual" quat="1 0 0 0" contype="1" conaffinity="1" density="500" material="red_radish_1_kyujnh__base_link_vray" mesh="red_radish_1_visuals"/>
+          <site name="red_radish_1_bottom_site" pos="0 0 -0.25" rgba="0 0 0 0"/>
+          <site name="red_radish_1_top_site" pos="0 0 0.06" rgba="0 0 0 0"/>
+          <site name="red_radish_1_horizontal_radius_site" pos="0.01 0.01 0" rgba="0 0 0 0"/>
+        </body>
+      </frame>
     </body>
-    <body name="toy_block_1" pos="0.432645 0.161222 0.225643" quat="0.888414 0 0 0.459044">
+    <body name="toy_block_1" pos="0.432085 0.162302 0.223185" quat="0.897433 0 0 0.44115">
       <joint type="free"/>
-      <geom size="0.0151336 0.0177012 0.0154634" type="box" rgba="0.407843 0.592157 0.45098 1" density="600"/>
+      <geom size="0.0130051 0.0130051 0.0130051" type="box" rgba="0.407843 0.592157 0.45098 1" density="600"/>
     </body>
-    <body name="toy_block_2" pos="0.485205 0.0111559 0.254425" quat="0.702527 0 0 0.711657">
+    <body name="toy_block_2" pos="0.483953 0.0136851 0.222405" quat="0.611301 0 0 0.791398">
       <joint type="free"/>
-      <geom size="0.0202047 0.0130203 0.0442452" type="box" rgba="0.819608 0.196078 0 1" density="600"/>
+      <geom size="0.0122259 0.0122259 0.0122259" type="box" rgba="0.819608 0.196078 0 1" density="600"/>
     </body>
-    <body name="toy_block_3" pos="0.523216 0.0154854 0.259235" quat="0.817125 0 0 0.57646">
+    <body name="toy_block_3" pos="0.521258 0.0180082 0.226115" quat="0.793636 0 0 0.608393">
       <joint type="free"/>
-      <geom size="0.02158 0.0186413 0.0490551" type="box" rgba="0.905882 0.733333 0.0666667 1" density="600"/>
+      <geom size="0.0159359 0.0159359 0.0159359" type="box" rgba="0.905882 0.733333 0.0666667 1" density="600"/>
     </body>
-    <body name="toy_block_4" pos="0.543858 0.172033 0.244873" quat="0.343181 0 0 -0.939269">
+    <body name="toy_block_4" pos="0.541795 0.173425 0.223908" quat="0.329754 0 0 -0.944067">
       <joint type="free"/>
-      <geom size="0.0166867 0.0156537 0.0346936" type="box" rgba="0.403922 0.533333 0.376471 1" density="600"/>
+      <geom size="0.0137288 0.0137288 0.0137288" type="box" rgba="0.403922 0.533333 0.376471 1" density="600"/>
     </body>
-    <body name="toy_block_5" pos="0.437706 0.103172 0.22904" quat="0.787583 0 0 0.616208">
+    <body name="toy_block_5" pos="0.437404 0.104607 0.225999" quat="0.789926 0 0 0.613202">
       <joint type="free"/>
-      <geom size="0.0193994 0.014003 0.0188606" type="box" rgba="0.941176 0.376471 0.0431373 1" density="600"/>
+      <geom size="0.0158194 0.0158194 0.0158194" type="box" rgba="0.941176 0.376471 0.0431373 1" density="600"/>
     </body>
-    <body name="toy_block_6" pos="0.580322 0.177241 0.2451" quat="0.825044 0 0 0.565069">
+    <body name="toy_block_6" pos="0.578701 0.17933 0.221825" quat="0.629589 0 0 0.776928">
       <joint type="free"/>
-      <geom size="0.0141084 0.0123366 0.0349206" type="box" rgba="0.8 0.223529 0.00392157 1" density="600"/>
+      <geom size="0.0116455 0.0116455 0.0116455" type="box" rgba="0.8 0.223529 0.00392157 1" density="600"/>
     </body>
-    <body name="toy_block_7" pos="0.490166 0.0799708 0.24042" quat="0.512557 0 0 0.858653">
+    <body name="toy_block_7" pos="0.487791 0.081384 0.230455" quat="0.509555 0 0 0.860438">
       <joint type="free"/>
-      <geom size="0.0388895 0.0157249 0.0302406" type="box" rgba="0.960784 0.878431 0.243137 1" density="600"/>
+      <geom size="0.0202758 0.0202758 0.0202758" type="box" rgba="0.960784 0.878431 0.243137 1" density="600"/>
     </body>
-    <body name="toy_block_8" pos="0.583088 0.140708 0.248957" quat="0.251573 0 0 -0.967838">
+    <body name="toy_block_8" pos="0.581948 0.141814 0.223485" quat="0.22542 0 0 -0.974262">
       <joint type="free"/>
-      <geom size="0.0155041 0.0144293 0.0387771" type="box" rgba="0.0568627 0.462745 0.288235 1" density="600"/>
+      <geom size="0.0133056 0.0133056 0.0133056" type="box" rgba="0.0568627 0.462745 0.288235 1" density="600"/>
     </body>
   </worldbody>
 
@@ -385,6 +417,6 @@
   </actuator>
 
   <keyframe>
-    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0.585048 -0.0895759 0.29704 0.886141 0 0 0.463416 0.623676 0.0528504 0.228886 1 0 0 0 0.659868 0.184626 0.282998 0.26795 0 0 0.963433 0.432645 0.161222 0.225643 0.888414 0 0 0.459044 0.485205 0.0111559 0.254425 0.702527 0 0 0.711657 0.523216 0.0154854 0.259235 0.817125 0 0 0.57646 0.543858 0.172033 0.244873 0.343181 0 0 -0.939269 0.437706 0.103172 0.22904 0.787583 0 0 0.616208 0.580322 0.177241 0.2451 0.825044 0 0 0.565069 0.490166 0.0799708 0.24042 0.512557 0 0 0.858653 0.583088 0.140708 0.248957 0.251573 0 0 -0.967838" ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 0"/>
+    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0.585048 -0.0895759 0.236468 0.886141 0 0 0.463416 0.623676 0.0528504 0.228886 1 0 0 0 0.659868 0.184626 0.225199 0.26795 0 0 0.963433 0.432085 0.162302 0.223185 0.897433 0 0 0.44115 0.483953 0.0136851 0.222405 0.611301 0 0 0.791398 0.521258 0.0180082 0.226115 0.793636 0 0 0.608393 0.541795 0.173425 0.223908 0.329754 0 0 -0.944067 0.437404 0.104607 0.225999 0.789926 0 0 0.613202 0.578701 0.17933 0.221825 0.629589 0 0 0.776928 0.487791 0.081384 0.230455 0.509555 0 0 0.860438 0.581948 0.141814 0.223485 0.22542 0 0 -0.974262" ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 0"/>
   </keyframe>
 </mujoco>
