@@ -49,7 +49,7 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--run", choices=["replay", "scripted_grasp"], default="replay")
+    ap.add_argument("--run", default="replay", help="<run>_states.npz from replay.py or scripted_grasp.py (--tag)")
     ap.add_argument("--no_shadows", action="store_true")
     a = ap.parse_args()
 

@@ -34,19 +34,22 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames, comma-separated")
     a = ap.parse_args()
+    frames = [int(x) for x in a.frames.split(",")]
 
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
     h, w = H // DOWN, W // DOWN
-    small = [cv2.resize(x, (w, h), interpolation=cv2.INTER_AREA).astype(np.float32) for x in real]
-    plate = np.median(np.stack(small), axis=0)
+    step = max(1, len(real) // 150)  # plate from <=~150 frames (memory on long episodes)
+    small = {i: cv2.resize(real[i], (w, h), interpolation=cv2.INTER_AREA).astype(np.float32) for i in sorted(set(range(0, len(real), step)) | set(frames))}
+    plate = np.median(np.stack([small[i] for i in range(0, len(real), step)]), axis=0)
     pc = plate / (plate.sum(-1, keepdims=True) + 1e-3)
     per = np.load(os.path.join(a.out, "perception.npz"))
     table_px = cv2.resize(per["mask/wooden table"].astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST).astype(bool)
 
     real_sh, ratios = {}, []
-    for i in FRAMES:
+    for i in frames:
         x = small[i]
         ratio = x.sum(-1) / (plate.sum(-1) + 1e-3)
         chroma = np.abs(x / (x.sum(-1, keepdims=True) + 1e-3) - pc).sum(-1)
@@ -58,7 +61,7 @@ def main():
         real_sh[i] = sh
         ratios.append(ratio[sh])
     real_strength = float(np.median(np.concatenate(ratios)))
-    print(f"real shadow: {sum(int(v.sum()) for v in real_sh.values())} px over {len(FRAMES)} frames, median brightness ratio {real_strength:.3f}")
+    print(f"real shadow: {sum(int(v.sum()) for v in real_sh.values())} px over {len(frames)} frames, median brightness ratio {real_strength:.3f}")
 
     m = mujoco.MjModel.from_binary_path(os.path.join(a.out, "scene.mjb"))
     d = mujoco.MjData(m)
@@ -98,7 +101,7 @@ def main():
         for el in (30, 40, 50, 60, 70, 80, 89):
             m.light_dir[0] = light_dir(az, el)
             ious = []
-            for i in FRAMES:
+            for i in frames:
                 s = sim_shadow(i)
                 ious.append((s & real_sh[i]).sum() / max(1, (s | real_sh[i]).sum()))
             results.append((float(np.mean(ious)), az, el))
@@ -107,10 +110,10 @@ def main():
     m.light_dir[0] = light_dir(az, el)
     print("best light: azimuth", az, "elevation", el, "mean shadow IoU", round(best_iou, 3), "| next:", [tuple(round(v, 3) for v in r) for r in results[1:4]])
     json.dump(dict(type="directional", azimuth_deg=az, elevation_deg=el, dir=light_dir(az, el).tolist(), shadow_iou=best_iou,
-                   real_shadow_ratio=real_strength, top5=results[:5], frames=FRAMES), open(os.path.join(a.out, "light.json"), "w"), indent=1)
+                   real_shadow_ratio=real_strength, top5=results[:5], frames=frames), open(os.path.join(a.out, "light.json"), "w"), indent=1)
 
     tiles = []
-    for i in FRAMES[::2]:
+    for i in frames[::2]:
         s = sim_shadow(i)
         img = cv2.cvtColor(small[i].astype(np.uint8), cv2.COLOR_RGB2BGR)
         img[real_sh[i] & ~s] = (0.4 * img[real_sh[i] & ~s] + [0, 0, 150]).astype(np.uint8)
