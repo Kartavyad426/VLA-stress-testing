@@ -34,13 +34,34 @@ def scene_objects(out):
     return {o.get("body", lab.replace("#", "_").replace(" ", "_")): o.get("mask", lab) for lab, o in objs.items()}
 
 
-def clean_plate(frames, per, objects, dilate=15):
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LAMA_WEIGHTS = os.path.join(REPO, "data/real2sim/tools/lama/big-lama.pt")
+
+
+def lama_inpaint(img, hole):
+    """LaMa (advimman/lama, Apache-2.0) via the TorchScript export from simple-lama-inpainting (Apache-2.0),
+    loaded directly so its numpy<2/pillow<10/opencv<5 pins don't touch this venv. Same preprocessing as that
+    wrapper: float [0,1] CHW, binary mask, both padded symmetrically to a multiple of 8."""
+    import torch
+    model = torch.jit.load(LAMA_WEIGHTS, map_location="cpu").eval()
+    H, W = hole.shape
+    ph, pw = (-H) % 8, (-W) % 8
+    x = np.pad(img.astype(np.float32).transpose(2, 0, 1) / 255, ((0, 0), (0, ph), (0, pw)), mode="symmetric")
+    mk = np.pad((hole > 0).astype(np.float32)[None], ((0, 0), (0, ph), (0, pw)), mode="symmetric")
+    with torch.inference_mode():
+        y = model(torch.from_numpy(x)[None], torch.from_numpy(mk)[None])[0]
+    return np.clip(y.permute(1, 2, 0).numpy() * 255, 0, 255).astype(np.uint8)[:H, :W]
+
+
+def clean_plate(frames, per, objects, dilate=15, method="telea"):
     plate = np.median(np.stack(frames[::max(1, len(frames) // 150)]), axis=0).astype(np.uint8)  # <=~150 frames: memory
     hole = np.zeros(plate.shape[:2], np.uint8)
     for name in objects.values():
         if f"mask/{name}" in per:
             hole |= per[f"mask/{name}"].astype(np.uint8)
     hole = cv2.dilate(hole, np.ones((dilate, dilate), np.uint8))
+    if method == "lama":
+        return lama_inpaint(plate, hole)
     return cv2.inpaint(plate, hole, 7, cv2.INPAINT_TELEA)
 
 
@@ -51,6 +72,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--run", default="replay", help="<run>_states.npz from replay.py or scripted_grasp.py (--tag)")
     ap.add_argument("--no_shadows", action="store_true")
+    ap.add_argument("--inpaint", choices=["telea", "lama"], default="telea", help="how the real objects are removed from the plate")
     a = ap.parse_args()
 
     m = mujoco.MjModel.from_binary_path(os.path.join(a.out, "scene.mjb"))
@@ -60,8 +82,8 @@ def main():
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
     objects = scene_objects(a.out)
-    plate = clean_plate(real, per, objects).astype(np.float32)
-    cv2.imwrite(os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
+    plate = clean_plate(real, per, objects, method=a.inpaint).astype(np.float32)
+    cv2.imwrite(os.path.join(a.out, f"plate_clean_{a.inpaint}.png") if a.inpaint != "telea" else os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     # real colours on the sim objects
     for body, name in objects.items():
