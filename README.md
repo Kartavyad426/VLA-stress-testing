@@ -298,3 +298,5 @@ fail out of distribution for exactly that reason. See VLA-RL (Lu et al., 2025,
 
 `.venvs/` and `third_party/` are excluded from the repository; rebuild from the pinned
 versions recorded in each run's `provenance.txt`.
+Exception: `third_party/LIBERO-MAX` is a git submodule pinned to 01625e2 (added 2026-10-14); after cloning, run
+`git submodule update --init` (or clone with `--recurse-submodules`). Keep any local patches to it as `.patch` files in this repo.
