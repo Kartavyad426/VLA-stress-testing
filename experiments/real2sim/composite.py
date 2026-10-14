@@ -25,13 +25,19 @@ from replay import read_video  # noqa: E402
 
 FPS = 15
 HIDE_GROUP = 5
-OBJECTS = {"orange_block": "orange block", "yellow_block": "yellow block", "green_block": "green block", "black_bowl": "black bowl"}
 
 
-def clean_plate(frames, per, dilate=15):
-    plate = np.median(np.stack(frames), axis=0).astype(np.uint8)
+def scene_objects(out):
+    """body name -> perception mask label, from build_scene's scene_fit.json (older fits: label-derived body names)."""
+    import json
+    objs = json.load(open(os.path.join(out, "scene_fit.json")))["objects"]
+    return {o.get("body", lab.replace("#", "_").replace(" ", "_")): o.get("mask", lab) for lab, o in objs.items()}
+
+
+def clean_plate(frames, per, objects, dilate=15):
+    plate = np.median(np.stack(frames[::max(1, len(frames) // 150)]), axis=0).astype(np.uint8)  # <=~150 frames: memory
     hole = np.zeros(plate.shape[:2], np.uint8)
-    for name in OBJECTS.values():
+    for name in objects.values():
         if f"mask/{name}" in per:
             hole |= per[f"mask/{name}"].astype(np.uint8)
     hole = cv2.dilate(hole, np.ones((dilate, dilate), np.uint8))
@@ -53,11 +59,12 @@ def main():
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
-    plate = clean_plate(real, per).astype(np.float32)
+    objects = scene_objects(a.out)
+    plate = clean_plate(real, per, objects).astype(np.float32)
     cv2.imwrite(os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     # real colours on the sim objects
-    for body, name in OBJECTS.items():
+    for body, name in objects.items():
         if f"mask/{name}" not in per:
             continue
         rgb = np.median(per["image"][cv2.erode(per[f"mask/{name}"].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0

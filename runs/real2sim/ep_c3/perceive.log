@@ -1,0 +1,11 @@
+Loading weights:   0%|          | 0/978 [00:00<?, ?it/s]Loading weights:  35%|███▍      | 340/978 [00:00<00:00, 3245.08it/s]Loading weights:  68%|██████▊   | 665/978 [00:00<00:00, 2540.20it/s]Loading weights:  95%|█████████▍| 928/978 [00:00<00:00, 2237.24it/s]Loading weights: 100%|██████████| 978/978 [00:00<00:00, 2376.26it/s]
+Loading weights:   0%|          | 0/978 [00:00<?, ?it/s]Loading weights:  34%|███▍      | 336/978 [00:00<00:00, 3357.85it/s]Loading weights:  69%|██████▊   | 672/978 [00:00<00:00, 2771.90it/s]Loading weights:  98%|█████████▊| 956/978 [00:00<00:00, 2405.03it/s]Loading weights: 100%|██████████| 978/978 [00:00<00:00, 2573.07it/s]
+Loading weights:   0%|          | 0/314 [00:00<?, ?it/s]Loading weights: 100%|██████████| 314/314 [00:00<00:00, 3161.74it/s]
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+{"wooden table": 0.614, "robot gripper": 0.306, "black bowl": 0.921, "toy block#1": 0.553, "toy block#2": 0.505, "toy block#3": 0.489, "toy block#4": 0.47, "toy block#5": 0.457, "toy block#6": 0.456, "toy block#7": 0.414, "apple#1": 0.377, "toy block#8": 0.369, "red radish#1": 0.308}
+fov_x_deg 100.3

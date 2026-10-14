@@ -24,7 +24,20 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 MENAGERIE = os.path.join(REPO, "data/real2sim/menagerie")
 BOWL_DIR = os.path.join(REPO, "third_party/LIBERO-plus/libero/libero/assets/stable_scanned_objects/akita_black_bowl")
 BOWL_ASSET_SCALE = 0.7  # the scale LIBERO's akita_black_bowl.xml applies to its mesh
-BLOCKS = {"orange block": (0.95, 0.35, 0.1), "yellow block": (0.95, 0.85, 0.2), "green block": (0.1, 0.55, 0.4)}
+NOT_OBJECTS = ("table", "gripper", "robot")
+
+
+def object_kind(label):
+    """How a detected label is modelled: bowl -> retrieved LIBERO bowl; block/cube/box -> fitted box;
+    other objects (fruit, toys) -> fitted ellipsoid (a physics stand-in until a mesh source exists)."""
+    low = label.lower()
+    if any(w in low for w in NOT_OBJECTS):
+        return None
+    if "bowl" in low:
+        return "bowl"
+    if any(w in low for w in ("block", "cube", "box")):
+        return "box"
+    return "ellipsoid"
 
 
 def cam_pose(extr):
@@ -55,6 +68,16 @@ def fit_box(pb, z_table):
     h = float(z_top - z_table)
     return dict(center=[float(c[0]), float(c[1]), float(z_table + h / 2)], half=[ext[1] / 2, ext[0] / 2, h / 2],
                 yaw=yaw, n_points=int(len(pb)), n_top=int(len(top)))
+
+
+def fit_ellipsoid(pb, z_table):
+    z_top = np.percentile(pb[:, 2], 95)
+    c = np.median(pb[:, :2], axis=0)
+    evals, evecs = np.linalg.eigh(np.cov((pb[:, :2] - c).T))
+    ext = [np.percentile((pb[:, :2] - c) @ evecs[:, i], 95) - np.percentile((pb[:, :2] - c) @ evecs[:, i], 5) for i in (0, 1)]
+    h = float(z_top - z_table)
+    return dict(center=[float(c[0]), float(c[1]), float(z_table + h / 2)], half=[ext[1] / 2, ext[0] / 2, h / 2],
+                yaw=float(np.arctan2(evecs[1, 1], evecs[0, 1])), n_points=int(len(pb)))
 
 
 def fit_circle(xy):
@@ -181,18 +204,30 @@ def main():
     lo, hi = np.percentile(tb[:, :2], 2, axis=0), np.percentile(tb[:, :2], 98, axis=0)
     fit["table"] = dict(z=z_table, xy_lo=lo.tolist(), xy_hi=hi.tolist(), z_spread_iqr=float(np.subtract(*np.percentile(tb[:, 2], [75, 25]))))
 
-    for name in BLOCKS:
-        if f"mask/{name}" in per:
-            fit["objects"][name] = fit_box(to_base(masked_points(per, name)), z_table)
-
-    bb = to_base(masked_points(per, "black bowl"))
-    z_top = float(np.percentile(bb[:, 2], 98))
-    rim = bb[bb[:, 2] > z_top - 0.012]
-    c, r = fit_circle(rim[:, :2])
     boxes, body0, r_asset, zmin_a, zmax_a = bowl_asset()
-    k = r / r_asset
-    fit["objects"]["black bowl"] = dict(center=[float(c[0]), float(c[1])], rim_radius=r, height_fit=z_top - z_table,
-                                        height_asset_scaled=k * (zmax_a - zmin_a), asset_scale=k, n_rim=int(len(rim)))
+    for key in sorted(k for k in per if k.startswith("mask/")):
+        label = key[5:]
+        kind = object_kind(label)
+        if kind is None:
+            continue
+        pts = to_base(masked_points(per, label))
+        if len(pts) < 50:
+            continue
+        rgb = (np.median(per["image"][cv2.erode(per[key].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0).tolist()
+        body = label.replace("#", "_").replace(" ", "_")
+        if kind == "box":
+            o = fit_box(pts, z_table)
+        elif kind == "ellipsoid":
+            o = fit_ellipsoid(pts, z_table)
+        else:  # bowl: LIBERO's akita_black_bowl, uniformly scaled to the fitted rim
+            z_top = float(np.percentile(pts[:, 2], 98))
+            rim = pts[pts[:, 2] > z_top - 0.012]
+            c, r = fit_circle(rim[:, :2])
+            k = r / r_asset
+            o = dict(center=[float(c[0]), float(c[1])], rim_radius=r, height_fit=z_top - z_table,
+                     height_asset_scaled=k * (zmax_a - zmin_a), asset_scale=k, n_rim=int(len(rim)))
+        o.update(kind=kind, body=body, mask=label, rgb=rgb)
+        fit["objects"][label] = o
 
     # ---- assemble the MJCF ----
     spec = robot_spec(a.grip_yaw_deg)
@@ -205,22 +240,24 @@ def main():
     ctr = (lo + hi) / 2
     wb.add_geom(name="table", type=mujoco.mjtGeom.mjGEOM_BOX, size=[*((hi - lo) / 2), th],
                 pos=[*ctr, z_table - th], rgba=[0.80, 0.60, 0.38, 1], friction=[1.0, 0.005, 0.0001])
-    for name, rgb in BLOCKS.items():
-        o = fit["objects"].get(name)
-        if not o:
+    n_bowl = 0
+    for label, o in fit["objects"].items():
+        if o["kind"] == "bowl":
+            k = o["asset_scale"]
+            b = wb.add_body(name=o["body"], pos=[*o["center"], z_table - k * zmin_a + 0.001])
+            b.add_freejoint()
+            mesh = f"bowl_vis_{n_bowl}"
+            n_bowl += 1
+            spec.add_mesh(name=mesh, file=os.path.join(BOWL_DIR, "akita_black_bowl.obj"), scale=[BOWL_ASSET_SCALE * k] * 3)
+            b.add_geom(type=mujoco.mjtGeom.mjGEOM_MESH, meshname=mesh, contype=0, conaffinity=0, rgba=[0.08, 0.08, 0.08, 1], mass=0)
+            for p, M, sz in boxes:
+                b.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, pos=k * (p - body0), size=k * sz, density=300,
+                           quat=Rot.from_matrix(M).as_quat(scalar_first=True), rgba=[0.1, 0.1, 0.1, 0], friction=[0.95, 0.3, 0.1])
             continue
-        b = wb.add_body(name=name.replace(" ", "_"), pos=o["center"],
-                        quat=Rot.from_euler("z", o["yaw"]).as_quat(scalar_first=True))
+        b = wb.add_body(name=o["body"], pos=o["center"], quat=Rot.from_euler("z", o.get("yaw", 0.0)).as_quat(scalar_first=True))
         b.add_freejoint()
-        b.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, size=o["half"], rgba=[*rgb, 1], density=600,
-                   friction=[1.0, 0.005, 0.0001])
-    bowl = wb.add_body(name="black_bowl", pos=[c[0], c[1], z_table - k * zmin_a + 0.001])
-    bowl.add_freejoint()
-    spec.add_mesh(name="bowl_vis", file=os.path.join(BOWL_DIR, "akita_black_bowl.obj"), scale=[BOWL_ASSET_SCALE * k] * 3)
-    bowl.add_geom(type=mujoco.mjtGeom.mjGEOM_MESH, meshname="bowl_vis", contype=0, conaffinity=0, rgba=[0.08, 0.08, 0.08, 1], mass=0)
-    for p, M, sz in boxes:
-        bowl.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, pos=k * (p - body0), size=k * sz, density=300,
-                      quat=Rot.from_matrix(M).as_quat(scalar_first=True), rgba=[0.1, 0.1, 0.1, 0], friction=[0.95, 0.3, 0.1])
+        gtype = mujoco.mjtGeom.mjGEOM_BOX if o["kind"] == "box" else mujoco.mjtGeom.mjGEOM_ELLIPSOID
+        b.add_geom(type=gtype, size=o["half"], rgba=[*o["rgb"], 1], density=600, friction=[1.0, 0.005, 0.0001])
     # camera: MuJoCo looks down -z with +y up; OpenCV looks down +z with +y down
     wb.add_camera(name="ext", pos=t, quat=Rot.from_matrix(R @ np.diag([1, -1, -1])).as_quat(scalar_first=True),
                   fovy=float(np.degrees(2 * np.arctan(H / (2 * K[1, 1])))))
@@ -240,16 +277,13 @@ def main():
     for (u, v), zz in zip(uv, z):
         if zz > 0:
             cv2.circle(vis, (int(u), int(v)), 3, (0, 0, 255), -1)
-    for name in list(BLOCKS) + ["black bowl"]:
-        o = fit["objects"].get(name)
-        if o:
-            p = o["center"] if len(o["center"]) == 3 else [*o["center"], z_table]
-            (u, v), = project(K, R, t, np.array(p))[0]
-            cv2.drawMarker(vis, (int(u), int(v)), (255, 255, 0), cv2.MARKER_CROSS, 18, 2)
+    for o in fit["objects"].values():
+        p = o["center"] if len(o["center"]) == 3 else [*o["center"], z_table]
+        (u, v), = project(K, R, t, np.array(p))[0]
+        cv2.drawMarker(vis, (int(u), int(v)), (255, 255, 0), cv2.MARKER_CROSS, 18, 2)
     cv2.imwrite(os.path.join(a.out, "projection_check.png"), vis)
     print(json.dumps({"scale": round(s, 3), "scale_anchor": s_anchor, "z_table": round(z_table, 3),
-                      **{n: [round(x, 3) for x in o["center"]] for n, o in fit["objects"].items()},
-                      "bowl_r": round(r, 3), "bowl_scale": round(k, 2)}))
+                      "objects": {n: (o["kind"], [round(x, 3) for x in o["center"]]) for n, o in fit["objects"].items()}}))
 
 
 if __name__ == "__main__":

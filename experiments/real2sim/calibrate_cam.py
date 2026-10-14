@@ -90,8 +90,9 @@ def motion_masks(video_path, frames, thr=35):
     """Robot masks by background subtraction: the camera is static and the robot is the main moving thing.
     Plate = per-pixel temporal median. Shadows (darker than the plate, same chromaticity) are rejected."""
     from replay import read_video
-    fr = np.stack(read_video(video_path))
-    plate = np.median(fr, axis=0).astype(np.float32)
+    vid = read_video(video_path)
+    plate = np.median(np.stack(vid[::max(1, len(vid) // 150)]), axis=0).astype(np.float32)  # <=~150 frames: memory
+    fr = {i: vid[i] for i in frames}
     pc = plate / (plate.sum(-1, keepdims=True) + 1e-3)
     out = {}
     for i in frames:
@@ -110,14 +111,17 @@ def motion_masks(video_path, frames, thr=35):
 
 
 def main():
+    global FRAMES
     ap = argparse.ArgumentParser()
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--masks", choices=["motion", "dino"], default="motion",
                     help="motion: background subtraction (default); dino: Grounding DINO + SAM (unreliable on this episode)")
+    ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames to fit, comma-separated")
     ap.add_argument("--search", type=int, default=2000, help="random camera poses scored before local refinement")
     a = ap.parse_args()
+    FRAMES = [int(x) for x in a.frames.split(",")]
 
     f = h5py.File(os.path.join(a.episode, "trajectory.h5"))
     jp = f["observation/robot_state/joint_positions"][()]

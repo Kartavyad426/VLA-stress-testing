@@ -46,6 +46,50 @@ def detect(img, prompts, box_thr=0.30, text_thr=0.25):
     return out
 
 
+def _iou(a, b):
+    x0, y0, x1, y1 = max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])
+    inter = max(0, x1 - x0) * max(0, y1 - y0)
+    area = lambda r: (r[2] - r[0]) * (r[3] - r[1])
+    return inter / max(1e-6, area(a) + area(b) - inter)
+
+
+def _contains(big, small, tol=4):
+    return big[0] - tol <= small[0] and big[1] - tol <= small[1] and big[2] + tol >= small[2] and big[3] + tol >= small[3]
+
+
+def detect_multi(img, prompts, box_thr=0.30, text_thr=0.25, nms_iou=0.5, max_frac=0.15):
+    """Every instance per prompt (cluttered scenes). Instances across all these prompts are merged by NMS;
+    boxes covering > max_frac of the image, or containing two or more other boxes (group boxes), are dropped.
+    Returns {"<prompt>#<k>": {box, score}}."""
+    from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+    mid = "IDEA-Research/grounding-dino-tiny"
+    proc = AutoProcessor.from_pretrained(mid)
+    model = AutoModelForZeroShotObjectDetection.from_pretrained(mid).eval()
+    pil = Image.fromarray(img)
+    H, W = img.shape[:2]
+    cands = []
+    for p in prompts:
+        inputs = proc(images=pil, text=p + ".", return_tensors="pt")
+        with torch.no_grad():
+            o = model(**inputs)
+        r = proc.post_process_grounded_object_detection(
+            o, inputs.input_ids, threshold=box_thr, text_threshold=text_thr, target_sizes=[img.shape[:2]])[0]
+        for b, s in zip(r["boxes"].tolist(), r["scores"].tolist()):
+            if (b[2] - b[0]) * (b[3] - b[1]) <= max_frac * H * W:
+                cands.append((s, p, b))
+    cands = [c for c in cands if sum(_contains(c[2], d[2]) for d in cands if d is not c) < 2]
+    cands.sort(key=lambda c: -c[0])
+    kept = []
+    for c in cands:
+        if all(_iou(c[2], k[2]) < nms_iou for k in kept):
+            kept.append(c)
+    out, n = {}, {}
+    for s, p, b in kept:
+        n[p] = n.get(p, 0) + 1
+        out[f"{p}#{n[p]}"] = dict(box=b, score=float(s))
+    return out
+
+
 def segment(img, boxes):
     from transformers import SamModel, SamProcessor
     mid = "facebook/sam-vit-base"
@@ -81,6 +125,8 @@ def main():
     ap.add_argument("--cam", required=True)
     ap.add_argument("--frame", type=int, default=0)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--prompts", default=",".join(PROMPTS), help="single-instance prompts (best box each), comma-separated")
+    ap.add_argument("--multi", default="", help="multi-instance prompts for cluttered scenes, comma-separated")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     torch.set_num_threads(os.cpu_count())
@@ -91,7 +137,9 @@ def main():
         c = np.load(cache, allow_pickle=True)
         dets, masks = c["dets"].item(), c["masks"].item()
     else:
-        dets = detect(img, PROMPTS)
+        dets = detect(img, [x.strip() for x in a.prompts.split(",") if x.strip()])
+        if a.multi:
+            dets.update(detect_multi(img, [x.strip() for x in a.multi.split(",") if x.strip()]))
         masks = segment(img, dets)
         np.savez_compressed(cache, dets=np.array(dets, dtype=object), masks=np.array(masks, dtype=object))
     geo = geometry(img)  # FOV left to MoGe: no ZED intrinsics without the SDK
