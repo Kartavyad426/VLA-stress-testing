@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sim-Ready Asset Libraries</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--ok:#2d6a3e;--bad:#9b2c2c;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58b8b;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58b8b;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--ok);padding:8px 12px;margin:12px 0}
+.alert{background:var(--card);border-left:3px solid var(--bad);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.84rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+.v{font-size:.72rem;color:var(--ok);font-weight:700}
+.i{font-size:.72rem;color:var(--warn);font-weight:700}
+.nc{color:var(--muted);font-style:italic}
+.no{color:var(--bad);font-weight:600}
+.yes{color:var(--ok);font-weight:600}
+ol li,ul li{margin:.25em 0}
+</style>
+</head>
+<body><main>
+<h1>Sim-ready 3D asset libraries for real-to-sim retrieval</h1>
+<p class="meta">2026-10-14 · session res32, brief from res31 (user-approved 10-14) · outline approved by the user 10-14, option (c): docs only · companion to <a href="REAL_TO_SIM_SCENES.html">REAL_TO_SIM_SCENES.html</a> and <a href="REAL_TO_SIM_ASSETS.html">REAL_TO_SIM_ASSETS.html</a></p>
+<div class="status"><b>Status:</b> desk research only. Nothing has been downloaded and no code has been run. <span class="v">[V]</span> means I read the claim in the library's own page, dataset card, licence file, README or paper (linked in §9). <span class="i">[I]</span> means I inferred it. <span class="nc">not checked</span> means I could not find it in a source, and it is left out of the recommendation. Collision quality is taken from what the docs say. Measuring it (watertight or not, number of parts) is the follow-up the user parked as option (a).</div>
+
+<h2>1 · Verdict</h2>
+<div class="verdict">
+<p><b>Kitchen/household: four libraries are permissively licensed (CC BY 4.0) and need little or no conversion.</b>
+(1) NVIDIA/Lightwheel <b>Kitchen-MJCF</b>: native MuJoCo, decomposed collision meshes, 58 object types plus 17 fixture groups, 1.32 GB <span class="v">[V]</span>.
+(2) <b>mujoco_scanned_objects</b>: all 1,030 Google Scanned Objects as MJCF with 32 V-HACD convex parts each <span class="v">[V]</span>.
+(3) <b>YCB</b>: 80+ objects, CC BY 4.0; needs obj2mjcf + CoACD <span class="v">[V]</span>.
+(4) <b>RoboCasa</b> assets: MJCF, CC BY 4.0 as stated by RoboCasa, about 10 GB <span class="v">[V]</span>.
+For articulated kitchen objects, <b>Infinigen-Sim</b> (BSD-3 code) generates MJCF for 18 categories on the CPU, so there is nothing to download <span class="v">[V]</span>.</p>
+<p><b>Industrial: there is no open, permissively licensed, sim-ready library of bins, totes, tools or fasteners that I could verify.</b>
+The best checked options are T-LESS (30 industrial parts, CAD models, CC BY 4.0) <span class="v">[V]</span> and NVIDIA SimReady Warehouse-01 (753 USD assets with colliders, CC BY 4.0, ~15 GB). Warehouse-01's visible rows are mostly hand-sized props, not totes or bins <span class="v">[V]</span>.
+ITODD, IPD, XYZ-IBD, Fusion 360 Gallery and PartNet-Mobility are non-commercial <span class="v">[V]</span>.
+ARMBench has no 3D models <span class="v">[V]</span>.
+For bins, totes and boxes, building them from MuJoCo box primitives is likely cheaper than any library <span class="i">[I]</span>.</p>
+<p><b>Licence finding on what we already have.</b> The LIBERO-Plus <code>new_objects</code> folders use BEHAVIOR-1K's file layout, including <code>*.encrypted.usd</code> files <span class="v">[V]</span>. The BEHAVIOR Data Bundle EULA allows <b>non-commercial academic research only</b>, <b>use only within OmniGibson</b>, and <b>no redistribution</b> <span class="v">[V]</span>. If these objects do come from BEHAVIOR <span class="i">[I]</span>, most of our 1,176 models (all but the LIBERO originals) cannot be used in a commercial product. Details in §4.</p>
+<p><b>Retrieval index:</b> no checked kitchen library above ships image embeddings. Objathor/Holodeck annotated about 50K Objaverse assets with category, size in cm, mass and material, and retrieves them with CLIP <span class="v">[V]</span>, but the asset licences are mixed per object (§3a). We will have to build our own CLIP/DINO index over whichever library we adopt <span class="i">[I]</span>.</p>
+</div>
+
+<h2>2 · What "sim-ready" means here</h2>
+<p>Our pipeline is detect → retrieve a mesh → place → simulate, in MuJoCo. A retrieved asset is useful only if it already has, or cheaply gets, each of these:</p>
+<div class="tw"><table>
+<tr><th>Criterion</th><th>Why it matters for us</th><th>Cheapest fix if missing</th></tr>
+<tr><td>Collision geometry (convex parts)</td><td>MuJoCo convexifies each mesh geom for collision <span class="v">[V]</span>, so a raw concave mesh (bowl, mug) collides as its convex hull.</td><td>CoACD or V-HACD → convex parts (§5)</td></tr>
+<tr><td>Watertight mesh</td><td>Needed for a correct volume, so mass and inertia from density come out right <span class="i">[I]</span></td><td>Repair, or accept approximate inertia</td></tr>
+<tr><td>Real-world (metric) scale</td><td>The gripper and arm are real size. A wrong scale breaks grasp width and height.</td><td>Rescale from the detector's metric depth, or from an annotated size</td></tr>
+<tr><td>Mass / friction</td><td>Can't be seen. Matters for pushing, sliding and heavy objects.</td><td>Density priors per material; randomise</td></tr>
+<tr><td>Joints</td><td>Drawers, doors, lids, appliances</td><td>Only from an articulated dataset or a generator</td></tr>
+<tr><td>Native format</td><td>MJCF is ready to use. URDF loads into MuJoCo directly. OBJ/GLB needs obj2mjcf. USD import in MuJoCo is experimental <span class="v">[V]</span>.</td><td>§5</td></tr>
+<tr><td>Retrieval index</td><td>Image → asset lookup</td><td>Render thumbnails and embed them ourselves</td></tr>
+<tr><td>Licence</td><td>The work may become a product (BRAINSTORM offerings), so non-commercial licences block it.</td><td>None</td></tr>
+</table></div>
+
+<h2>3 · Comparison</h2>
+<h3>3a · Kitchen / household / general</h3>
+<div class="tw"><table>
+<tr><th>Library</th><th>Size and coverage</th><th>Format → MuJoCo</th><th>Collision</th><th>Scale / mass / friction</th><th>Joints</th><th>Retrieval index</th><th>Licence (commercial?)</th><th>Download</th></tr>
+
+<tr><td><b>NVIDIA Kitchen-MJCF</b> (Lightwheel)</td><td>58 kitchen object types (kettle, pot, colander, jar, saucepan, glass cup, foods…) and 17 fixture groups (fridge, oven, microwave, dishwasher, stove, sink, cabinets…), several model variations per type <span class="v">[V]</span>. Folder names say <code>objects_lightwheel</code> / <code>fixtures_lightwheel</code> <span class="v">[V]</span>.</td><td><b>MJCF native</b>: <code>model.xml</code> per model <span class="v">[V]</span></td><td>"Decomposed collision meshes", several pieces per complex object <span class="v">[V]</span>; method <span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>Fixtures are "interactable" <span class="v">[V]</span>; joint details <span class="nc">not checked</span></td><td>2 collage images only <span class="v">[V]</span></td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span>, with attribution</td><td>1.32 GB total: objects 0.79 GB (69 zips), fixtures 0.53 GB (17 zips) <span class="v">[V]</span></td></tr>
+
+<tr><td><b>Google Scanned Objects</b> (GSO)</td><td>1,030 scanned household items, none larger than about 50 cm <span class="v">[V]</span></td><td>OBJ + MTL + PNG + SDF <span class="v">[V]</span>. An MJCF port exists (next row).</td><td>Original: visual mesh used directly as the collision mesh <span class="v">[V]</span></td><td>Mass estimated from volume where not recorded (0.1 g/ml default); inertia assumes solid, uniform density <span class="v">[V]</span>. Metric units <span class="nc">not checked</span>.</td><td>None (rigid scans) <span class="i">[I]</span></td><td>None stated</td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span></td><td>13 GB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>mujoco_scanned_objects</b> (GSO in MJCF)</td><td>All 1,030 GSO objects <span class="v">[V]</span></td><td><b>MJCF native</b>, generated with obj2mjcf <span class="v">[V]</span></td><td><b>32 V-HACD convex parts</b> per object <span class="v">[V]</span></td><td><span class="nc">not checked</span> whether GSO's mass carries over</td><td>None</td><td>None stated</td><td>Meshes/textures CC BY 4.0; XML MIT <span class="v">[V]</span> → <span class="yes">yes</span></td><td><span class="nc">not checked</span></td></tr>
+
+<tr><td><b>YCB</b></td><td>80+ objects (food, kitchen, tools, shapes) <span class="v">[V]</span></td><td>Meshes (Poisson, TSDF, Google 16k/64k/512k) + OpenRAVE Kinbody files <span class="v">[V]</span> → obj2mjcf + CoACD</td><td>Raw scan meshes <span class="i">[I]</span></td><td>Mass <span class="nc">not checked</span> (not on the AWS page)</td><td>None</td><td>None</td><td>CC BY 4.0 (AWS Open Data listing) <span class="v">[V]</span> → <span class="yes">yes</span></td><td><span class="nc">not checked</span> (ycbbenchmarks.com returned HTTP 500)</td></tr>
+
+<tr><td><b>RoboCasa</b> / RoboCasa365</td><td>Paper: 2,509 objects in 153 categories, mostly kitchen; 1,592 from Luma.ai text-to-3D, the rest from Objaverse <span class="v">[V]</span>. RoboCasa365 (v1.0, 2026-02-18) says "3,200+" objects <span class="v">[V]</span>.</td><td><b>MJCF native</b> <span class="v">[V]</span></td><td><span class="nc">not checked</span> (the paper doesn't say)</td><td><span class="nc">not checked</span></td><td>Articulated appliances <span class="v">[V]</span></td><td>None stated</td><td>README: "Assets and Datasets: CC BY 4.0" <span class="v">[V]</span>. The Objaverse-sourced objects may carry their own per-object licences <span class="i">[I]</span> → <span class="yes">yes</span>, but check the Objaverse subset</td><td>About 10 GB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>Objaverse 1.0</b></td><td>818K objects from Sketchfab; Objaverse-LVIS subset of 47K objects in 1,156 categories <span class="v">[V]</span></td><td>GLB <span class="v">[V]</span> (file paths <code>glbs/…/*.glb</code>) → obj2mjcf + CoACD</td><td>Raw artist meshes <span class="i">[I]</span></td><td>Scale not normalised; the paper rescales by annotating a max dimension per category <span class="v">[V]</span></td><td>None</td><td>Per-object metadata, including the licence <span class="v">[V]</span></td><td>Dataset ODC-By; per object: 721K CC BY, 25K CC BY-NC, 52K CC BY-NC-SA, 16K CC BY-SA, 3.5K CC0 <span class="v">[V]</span> → <span class="yes">yes</span> if filtered to CC BY / CC0</td><td>8.9 TB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>Objaverse-XL</b></td><td>10M+ objects <span class="v">[V]</span></td><td>Mixed <span class="i">[I]</span></td><td>Raw</td><td><span class="nc">not checked</span></td><td>None</td><td><span class="nc">not checked</span></td><td>ODC-By overall; per-object licences differ; the Polycam part is non-commercial academic only <span class="v">[V]</span></td><td><span class="nc">not checked</span></td></tr>
+
+<tr><td><b>Objaverse++</b></td><td>Quality labels for 789,195 Objaverse objects: score 0–3, is_scene, is_transparent, is_single_color, is_multi_object, is_figure <span class="v">[V]</span></td><td>Labels only</td><td>—</td><td>—</td><td>—</td><td>A filter, not an embedding index</td><td>ODC-By v1.0 <span class="v">[V]</span></td><td>355 MB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>Objathor / Holodeck</b></td><td>About 50K annotated assets (51,464 including ProcTHOR) curated from Objaverse 1.0 for indoor scenes <span class="v">[V]</span></td><td>THOR assets (<code>.msgpack.gz</code>) converted from GLB <span class="v">[V]</span>; MuJoCo route <span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>GPT-4V annotations: category, bounding box in cm, mass in kg, materials, description <span class="v">[V]</span></td><td>None</td><td><b>Yes</b>: Holodeck retrieves by CLIP image similarity + Sentence-BERT text + size <span class="v">[V]</span></td><td>Code Apache-2.0 <span class="v">[V]</span>; asset licences <span class="nc">not checked</span> (inherit Objaverse per object <span class="i">[I]</span>)</td><td><span class="nc">not checked</span></td></tr>
+
+<tr><td><b>Amazon Berkeley Objects</b></td><td>3D models for about 7,900 of 147,702 products <span class="v">[V]</span></td><td>glTF 2.0 / GLB <span class="v">[V]</span> → obj2mjcf + CoACD</td><td>Artist meshes <span class="i">[I]</span></td><td>Product dimensions in metadata; whether the models are metric <span class="nc">not checked</span></td><td>None</td><td>Product listings + images <span class="v">[V]</span></td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span></td><td>3D models tar 154 GB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>OmniObject3D</b></td><td>Count <span class="nc">not checked</span>. Raw scans, renders, point clouds <span class="v">[V]</span>.</td><td>OBJ scans <span class="v">[V]</span> → obj2mjcf + CoACD</td><td>Raw scans</td><td><span class="nc">not checked</span></td><td>None</td><td>None</td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span></td><td>About 1.2 TB total; single folders can be downloaded <span class="v">[V]</span></td></tr>
+
+<tr><td><b>HSSD</b></td><td>18,000+ object models, 211 scenes <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>CC BY-NC 4.0, gated <span class="v">[V]</span> → <span class="no">no</span></td><td>38.5 GB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>BEHAVIOR-1K</b></td><td>9,589 object models (7,718 ready) in 1,829 categories <span class="v">[V]</span></td><td>Encrypted USD for OmniGibson <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>Yes <span class="i">[I]</span></td><td>Knowledgebase site</td><td>EULA: non-commercial academic only; only within OmniGibson; no extraction; no redistribution <span class="v">[V]</span> → <span class="no">no</span></td><td><span class="nc">not checked</span></td></tr>
+
+<tr><td><b>PartNet-Mobility</b> (SAPIEN)</td><td>About 2K articulated objects <span class="v">[V]</span></td><td>SAPIEN format (URDF <span class="i">[I]</span>); MuJoCo loads URDF <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>Yes, motion annotations <span class="v">[V]</span></td><td>None</td><td>Non-commercial research/education only; ShapeNet terms also apply; gated <span class="v">[V]</span> → <span class="no">no</span></td><td>3.26 GB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>PhysXNet / PhysXNet-XL</b></td><td>26K+ objects, based on PartNet <span class="v">[V]</span></td><td>OBJ + per-object JSON; <code>urdf_gen.py</code> converts to URDF/XML <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td><b>Rich</b>: scale in cm, per-part material, density, Young's modulus, Poisson's ratio <span class="v">[V]</span></td><td>Yes: prismatic, revolute, hinge… <span class="v">[V]</span></td><td>Text descriptions per part <span class="v">[V]</span></td><td>Tag says GPL-3.0, but the card binds users to the ShapeNet terms and research-only redistribution <span class="v">[V]</span> → <span class="no">no</span> <span class="i">[I]</span></td><td>1.96 TB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>PhysX-Mobility</b></td><td>About 2K objects (1,636 train / 388 test), based on PartNet-Mobility <span class="v">[V]</span></td><td>Same structure as PhysXNet <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td>Same 5 annotation dimensions <span class="v">[V]</span></td><td>Yes</td><td>—</td><td>CC BY-NC 4.0 <span class="v">[V]</span> → <span class="no">no</span></td><td>937 MB <span class="v">[V]</span></td></tr>
+
+<tr><td><b>Infinigen-Sim</b> (Infinigen-Articulated)</td><td>Procedural generators for 18 articulated categories: door, cooktop, lamp, box, soap dispenser, oven, toaster, cabinet, drawer, pepper grinder, refrigerator, trashcan, dishwasher, faucet, microwave, window, plier, handle <span class="v">[V]</span></td><td><b>Exports MJCF</b>, URDF or USD (<code>spawn_sim_ready_asset.sh</code>) <span class="v">[V]</span></td><td>CoACD per part <span class="v">[V]</span></td><td>Friction, density, and joint stiffness/damping distributions <span class="v">[V]</span>; scale <span class="nc">not checked</span></td><td><b>Yes</b> <span class="v">[V]</span></td><td>None (it's a generator)</td><td>Code BSD-3-Clause <span class="v">[V]</span>; licence of the generated assets not stated <span class="v">[V]</span> → probably yes <span class="i">[I]</span></td><td>Generated on demand</td></tr>
+
+<tr><td><b>ManiSkill assets</b></td><td>YCB, PartNet-Mobility and others via <code>download_asset</code> <span class="v">[V]</span></td><td>SAPIEN</td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td>"The assets are licensed under CC BY-NC 4.0" <span class="v">[V]</span> → <span class="no">no</span> (use the upstream YCB copy instead)</td><td><span class="nc">not checked</span></td></tr>
+
+<tr><td><b>Isaac Sim / Isaac Lab assets</b></td><td><span class="nc">not checked</span></td><td>USD</td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td>NVIDIA Isaac Sim Additional Software and Materials License; "may not be modified or redistributed except as expressly permitted"; free for internal R&amp;D <span class="v">[V]</span> → <span class="no">restricted</span></td><td>Packs of tens of GB <span class="nc">not checked</span></td></tr>
+
+<tr><td><b>NVIDIA DigitalCousin-Assets</b></td><td>Mugs, bottles, bowls, containers <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td>CC BY-NC 4.0 <span class="v">[V]</span> → <span class="no">no</span></td><td>270 MB <span class="v">[V]</span></td></tr>
+
+<tr><td>Newer, not usable yet: <b>Artiverse</b> (CVPR 2026; 5.4K articulated objects, 88 categories, URDF/USD), <b>ArtVIP</b> (USD), <b>PhysXVerse</b></td><td colspan="8">Found in search results only. I could not open their dataset pages or licences, so everything about them is <span class="nc">not checked</span> and they are left out of the recommendation.</td></tr>
+</table></div>
+
+<h3>3b · Industrial (bins, totes, boxes, tools, machine parts, fasteners)</h3>
+<div class="tw"><table>
+<tr><th>Library</th><th>Size and coverage</th><th>Format → MuJoCo</th><th>Collision</th><th>Scale / mass</th><th>Joints</th><th>Licence (commercial?)</th><th>Download</th></tr>
+<tr><td><b>T-LESS</b></td><td>30 "industry-relevant" textureless objects, often similar in shape; some are parts of others <span class="v">[V]</span></td><td>Two models per object: manual CAD + reconstructed <span class="v">[V]</span>; format <span class="nc">not checked</span> (BOP datasets use PLY in mm <span class="i">[I]</span>)</td><td>Needs CoACD <span class="i">[I]</span></td><td><span class="nc">not checked</span></td><td>None</td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span></td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>NVIDIA SimReady Warehouse-01</b></td><td>753 OpenUSD assets classed as Prop / Assembly / Scenario; visible rows are hand-sized props (books, spray bottles, buckets, jars, paint containers, brushes, rulers), not totes or bins <span class="v">[V]</span></td><td>USD for Isaac Sim 4.x <span class="v">[V]</span>; MuJoCo USD import is experimental <span class="v">[V]</span></td><td>"All … have USDPhysics Colliders applied"; no rigid bodies by default <span class="v">[V]</span></td><td>CSV has a mass (kg) column, empty in the visible rows <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td>CC BY 4.0 <span class="v">[V]</span> → <span class="yes">yes</span></td><td>About 15 GB (14.4 GB) <span class="v">[V]</span></td></tr>
+<tr><td><b>ABC</b></td><td>1M CAD models; about 750K also as OBJ <span class="v">[V]</span>; no category labels <span class="v">[V]</span></td><td>STEP, Parasolid, STL, OBJ <span class="v">[V]</span></td><td>Clean CAD <span class="i">[I]</span>; needs CoACD</td><td>Units not stated <span class="v">[V]</span></td><td>None</td><td>Copyright stays with the creators, under Onshape Terms of Use 1.g.ii <span class="v">[V]</span>; commercial use not stated → <span class="nc">unclear</span></td><td>10K-model chunks; total <span class="nc">not checked</span></td></tr>
+<tr><td><b>Fusion 360 Gallery</b></td><td>Assembly: 8,251 assemblies / 154,468 parts; Joint: 32,148 joints <span class="v">[V]</span></td><td>STEP and others <span class="v">[V]</span></td><td>CAD</td><td><span class="nc">not checked</span></td><td>Joint annotations <span class="v">[V]</span></td><td>"Only for non-commercial research purposes"; no full redistribution <span class="v">[V]</span> → <span class="no">no</span></td><td>2.0–3.1 GB per subset <span class="v">[V]</span></td></tr>
+<tr><td><b>MVTec ITODD</b> (+ ITODD-MV)</td><td>28 industrial objects <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td>CC BY-NC-SA 4.0; "not allowed to use the dataset for commercial purposes"; custom licence on request <span class="v">[V]</span> → <span class="no">no</span></td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>Intrinsic IPD</b></td><td>"Recreated 3D models of the parts"; 22 industrial parts per the abstract <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td>Repo: CC BY-NC-SA, non-commercial only <span class="v">[V]</span>. BOP lists CC BY-SA 4.0 <span class="v">[V]</span>. The sources conflict, so I take the stricter one → <span class="no">no</span>.</td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>XYZ-IBD</b> (BOP)</td><td>Bin-picking objects <span class="v">[V]</span></td><td>Untextured models <span class="v">[V]</span></td><td>—</td><td>—</td><td>—</td><td>CC BY-NC-SA 4.0 <span class="v">[V]</span> → <span class="no">no</span></td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>I-AsSET</b> (arXiv 2602.21141)</td><td>32 industrial classes; CAD + reconstructed meshes <span class="v">[V]</span></td><td><span class="nc">not checked</span></td><td>—</td><td>—</td><td>—</td><td><span class="nc">not checked</span></td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>ARMBench</b></td><td>190K+ objects, but images, videos and metadata only. <b>No 3D models.</b> <span class="v">[V]</span></td><td colspan="6">Not usable as an asset library. Possibly useful as a real-image test set for retrieval <span class="i">[I]</span>; its data licence is <span class="nc">not checked</span>.</td></tr>
+</table></div>
+<p><b>Gap.</b> I found no verified open library of totes, bins, cardboard boxes, fasteners or hand tools with collision hulls. These shapes are mostly boxes and cylinders. A small procedural generator (box walls with thickness, lips, dividers) written straight in MJCF primitives gives exact collision without any decomposition <span class="i">[I]</span>. Writing it would be code, so it needs a go.</p>
+
+<h2>4 · Overlap with what we already have</h2>
+<div class="alert">
+<p><b>Our LIBERO-Plus objects appear to be BEHAVIOR-1K assets, and BEHAVIOR's EULA is non-commercial.</b></p>
+<ul>
+<li>Each object in <code>third_party/LIBERO-plus/libero/libero/assets/new_objects/&lt;category&gt;/&lt;6-letter id&gt;/</code> has <code>misc/metadata.json</code> and <code>usd/&lt;id&gt;.encrypted.usd</code> next to a plain <code>&lt;id&gt;.usd</code> and an <code>MJCF</code> folder <span class="v">[V]</span> (checked on disk, e.g. <code>apple/agveuv</code>).</li>
+<li>OmniGibson's own loader rewrites asset paths from <code>.usd</code> to <code>.encrypted.usd</code> (<code>asset_utils.py</code> lines 307, 333) <span class="v">[V]</span>. The metadata uses BEHAVIOR-style category/model IDs (e.g. <code>"category": "half_apple", "model": "sguztn"</code>) <span class="v">[V]</span>.</li>
+<li>BEHAVIOR Data Bundle EULA (rev. 2022-12-08), terms 2–5: "Data may only be used for non-commercial academic research"; "strictly prohibited from extracting any Data from OmniGibson or reverse engineering"; "may only use the Data within OmniGibson"; "may not redistribute … in whole or part" <span class="v">[V]</span>.</li>
+<li>The LIBERO-Plus README and the asset folder state no licence or provenance <span class="v">[V]</span>. That these objects are BEHAVIOR's is my inference from the matching layout <span class="i">[I]</span>. Confirming it means asking the LIBERO-Plus authors.</li>
+</ul>
+<p><b>Consequence:</b> REAL_TO_SIM_ASSETS.html already says "check before any commercial use". This makes it concrete. For anything that could become a product, treat the LIBERO-Plus <code>new_objects</code> (and probably its other non-LIBERO folders) as research-only. That leaves the LIBERO originals (HOPE, scanned and TurboSquid objects, already in the LIBERO repo), whose licence is still <span class="nc">not checked</span>. That page is owned by res31; I have not edited it.</p>
+</div>
+<p><b>Where the new libraries add coverage:</b> GSO (1,030) and YCB (80+) are scanned real products, closer to what a camera sees than LIBERO-Plus's artist models <span class="i">[I]</span>. Kitchen-MJCF adds utensils and appliances (colander, grater, peeler, pizza cutter, blender, coffee machine, kettle) that our library's keyword list mostly lacks <span class="i">[I]</span>. Overlap by category has not been computed; that needs a script.</p>
+
+<h2>5 · Tools that make a mesh sim-ready</h2>
+<div class="tw"><table>
+<tr><th>Tool</th><th>What it does</th><th>In → out</th><th>Licence</th></tr>
+<tr><td><b>CoACD</b> (<code>pip install coacd</code>)</td><td>Approximate convex decomposition; "fewer components" while keeping collision behaviour; input need not be manifold <span class="v">[V]</span></td><td>OBJ / triangle mesh → convex parts as OBJ/WRL, or a list of hulls in Python <span class="v">[V]</span></td><td>MIT <span class="v">[V]</span></td></tr>
+<tr><td><b>obj2mjcf</b> (<code>pip install obj2mjcf</code>)</td><td>Splits an OBJ by material into sub-meshes and writes the MJCF; optional CoACD collision <span class="v">[V]</span></td><td>OBJ + MTL → MJCF XML + meshes <span class="v">[V]</span></td><td>MIT <span class="v">[V]</span></td></tr>
+<tr><td><b>V-HACD</b></td><td>Convex decomposition; used for mujoco_scanned_objects (32 parts each) <span class="v">[V]</span></td><td>Mesh → convex parts</td><td><span class="nc">not checked</span></td></tr>
+<tr><td><b>MuJoCo URDF loader</b></td><td>MuJoCo "also supports loading models from … URDF", with a <code>&lt;mujoco&gt;</code> extension element for compiler options. Warning: in URDF, "mis-typed attribute names are silently ignored". <span class="v">[V]</span></td><td>URDF → loaded model (save as MJCF)</td><td>Apache-2.0 (MuJoCo) <span class="nc">not checked</span></td></tr>
+<tr><td><b>MuJoCo OpenUSD import</b></td><td>Loads .usd/.usda/.usdc/.usdz via MJCF; UsdPhysics plus mjcPhysics schemas; "currently experimental and subject to frequent change" <span class="v">[V]</span></td><td>USD → model</td><td>—</td></tr>
+<tr><td><b>mujoco-usd-converter</b> (Newton)</td><td>Converts MJCF → USD, the opposite direction; Alpha <span class="v">[V]</span></td><td>MJCF → USD</td><td><span class="nc">not checked</span></td></tr>
+</table></div>
+<p><b>Conversion effort per format</b> <span class="i">[I]</span>: MJCF is ready to use. URDF is a single load-and-save, with joint and inertia values to check by hand. OBJ/GLB needs obj2mjcf + CoACD + a scale and density guess per object. USD has an experimental path; for SimReady Warehouse, exporting meshes to OBJ and running obj2mjcf is probably safer. CAD (STEP) needs tessellation first, then CoACD.</p>
+
+<h2>6 · Recommendation</h2>
+<p>Built from <span class="v">[V]</span> claims only; the reasoning that connects them is mine <span class="i">[I]</span>.</p>
+<ol>
+<li><b>Kitchen, rigid:</b> start with <b>Kitchen-MJCF</b> (native MJCF, decomposed collision, CC BY 4.0, utensils our library lacks) and <b>mujoco_scanned_objects</b> (1,030 real scans, 32 convex parts each, CC BY 4.0 / MIT). Neither needs conversion.</li>
+<li><b>Kitchen, more breadth:</b> <b>YCB</b> (CC BY 4.0) via obj2mjcf + CoACD, then <b>RoboCasa</b> (MJCF, ~10 GB; filter out any Objaverse-sourced objects with NC per-object licences).</li>
+<li><b>Kitchen, articulated:</b> <b>Infinigen-Sim</b>: CPU generation, MJCF export, CoACD hulls, joint dynamics. Avoid PartNet-Mobility, PhysX-Mobility and PhysXNet for anything commercial.</li>
+<li><b>Retrieval:</b> build our own embedding index (render thumbnails → CLIP/DINO) over the adopted libraries. Holodeck shows CLIP + size matching works for this <span class="v">[V]</span>. Objaverse with the Objaverse++ quality filter and a CC BY / CC0 licence filter is the long-tail fallback, at the cost of per-object conversion.</li>
+<li><b>Industrial:</b> <b>T-LESS</b> (CC BY 4.0) for machine-part-like objects. <b>SimReady Warehouse-01</b> only after a USD → MJCF test, since its contents look like props rather than logistics items. Build bins, totes and boxes from primitives. Treat ABC as unclear until someone reads Onshape ToU 1.g.ii.</li>
+<li><b>Existing library:</b> mark the LIBERO-Plus objects research-only until their provenance is confirmed (§4).</li>
+</ol>
+
+<h2>7 · Download these first</h2>
+<p>Downloads over 1 GB need the user's approval, per the brief. Nothing has been downloaded.</p>
+<h3>Kitchen</h3>
+<div class="tw"><table>
+<tr><th>#</th><th>What</th><th>Size</th><th>Licence</th><th>Conversion</th></tr>
+<tr><td>1</td><td>Kitchen-MJCF, object categories only (<code>objects_lightwheel/*.zip</code>)</td><td>0.79 GB across 69 zips, 1–56 MB each, summed from the HF file listing <span class="v">[V]</span> (the full repo is 1.32 GB)</td><td>CC BY 4.0</td><td>None. Then check mass/scale in <code>model.xml</code>.</td></tr>
+<tr><td>2</td><td>mujoco_scanned_objects (git clone)</td><td><span class="nc">not checked</span>; GSO itself is 13 GB, so this may exceed 1 GB</td><td>CC BY 4.0 + MIT</td><td>None</td></tr>
+<tr><td>3</td><td>Infinigen-Sim: generate a few instances of microwave, dishwasher, cabinet, drawer, toaster</td><td>Code + generated files</td><td>BSD-3 (code)</td><td>Already MJCF. Running it is code, so it needs a go.</td></tr>
+<tr><td>4</td><td>YCB Google 16k meshes</td><td><span class="nc">not checked</span></td><td>CC BY 4.0</td><td>obj2mjcf + CoACD</td></tr>
+<tr><td>5</td><td>Kitchen-MJCF fixtures (<code>fixtures_lightwheel/*.zip</code>)</td><td>0.53 GB across 17 zips <span class="v">[V]</span></td><td>CC BY 4.0</td><td>None</td></tr>
+</table></div>
+<h3>Industrial</h3>
+<div class="tw"><table>
+<tr><th>#</th><th>What</th><th>Size</th><th>Licence</th><th>Conversion</th></tr>
+<tr><td>1</td><td>T-LESS models only (CAD + reconstructed)</td><td><span class="nc">not checked</span></td><td>CC BY 4.0</td><td>Rescale mm → m <span class="i">[I]</span>, then CoACD + MJCF</td></tr>
+<tr><td>2</td><td>Procedural bins/totes/boxes in MJCF primitives</td><td>—</td><td>Ours</td><td>Code, so it needs a go</td></tr>
+<tr><td>3</td><td>SimReady Warehouse-01, after the user's OK</td><td>About 15 GB</td><td>CC BY 4.0</td><td>USD → OBJ → obj2mjcf, or MuJoCo's experimental USD import</td></tr>
+</table></div>
+
+<h2>8 · Open questions and not checked</h2>
+<ul>
+<li>Collision quality measured, not just described: watertightness and part count on about 10 objects per library (user option (a), parked).</li>
+<li>Kitchen-MJCF: are mass, friction and scale set in <code>model.xml</code>? Which decomposition method was used? Is it the same as RoboCasa365's Lightwheel objects? <span class="i">[I]</span></li>
+<li>mujoco_scanned_objects and YCB download sizes; YCB's own terms page (ycbbenchmarks.com returned HTTP 500).</li>
+<li>LIBERO-Plus asset provenance: ask the authors. Also the licence of the original LIBERO HOPE, scanned and TurboSquid objects.</li>
+<li>ABC: what Onshape ToU 1.g.ii allows commercially.</li>
+<li>T-LESS model format, units and archive size; I-AsSET licence and release.</li>
+<li>Artiverse, ArtVIP, PhysXVerse: dataset pages and licences.</li>
+<li>Licence of Infinigen-generated assets (code is BSD-3; output not stated).</li>
+<li>V-HACD and mujoco-usd-converter licences.</li>
+</ul>
+
+<h2>9 · Sources</h2>
+<ul>
+<li>Objaverse: <a href="https://huggingface.co/datasets/allenai/objaverse">HF card</a> (ODC-By, per-object licence counts, 8.9 TB) · <a href="https://arxiv.org/abs/2212.08051">paper</a> (818K, LVIS 47K/1,156, scale annotation) · <a href="https://objaverse.allenai.org/">site</a></li>
+<li>Objaverse-XL: <a href="https://github.com/allenai/objaverse-xl">GitHub</a> (10M+, ODC-By, Polycam NC)</li>
+<li>Objaverse++: <a href="https://huggingface.co/datasets/cindyxl/ObjaversePlusPlus">HF card</a></li>
+<li>Google Scanned Objects: <a href="https://arxiv.org/abs/2204.11918">paper</a> (1,030, 13 GB, CC BY 4.0, collision = visual mesh, mass/inertia method)</li>
+<li>mujoco_scanned_objects: <a href="https://github.com/kevinzakka/mujoco_scanned_objects">GitHub</a></li>
+<li>YCB: <a href="https://registry.opendata.aws/ycb-benchmarks/">AWS Open Data registry</a></li>
+<li>RoboCasa: <a href="https://arxiv.org/abs/2406.02523">paper</a> · <a href="https://github.com/robocasa/robocasa">GitHub README</a> (MIT / CC BY 4.0, ~10 GB, RoboCasa365)</li>
+<li>NVIDIA Kitchen-MJCF: <a href="https://huggingface.co/datasets/nvidia/PhysicalAI-Robotics-Manipulation-Objects-Kitchen-MJCF">HF card + file listing</a></li>
+<li>NVIDIA SimReady Warehouse-01: <a href="https://huggingface.co/datasets/nvidia/PhysicalAI-SimReady-Warehouse-01">HF card</a> · <a href="https://www.nvidia.com/en-us/glossary/simready/">NVIDIA SimReady page</a> · <a href="https://huggingface.co/collections/nvidia/physicalai-67c643edbb024053dcbcd6d8">Physical AI collection</a></li>
+<li>NVIDIA DigitalCousin-Assets: <a href="https://huggingface.co/datasets/nvidia/PhysicalAI-DigitalCousin-Assets">HF card</a></li>
+<li>Isaac Sim licence: <a href="https://docs.isaacsim.omniverse.nvidia.com/latest/common/license-faq.html">License FAQ</a></li>
+<li>Objathor: <a href="https://github.com/allenai/objathor">GitHub</a> · Holodeck <a href="https://arxiv.org/abs/2312.09067">paper</a></li>
+<li>Amazon Berkeley Objects: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html">ABO page</a></li>
+<li>OmniObject3D: <a href="https://github.com/omniobject3d/OmniObject3D">GitHub</a></li>
+<li>HSSD: <a href="https://huggingface.co/datasets/hssd/hssd-models">HF card</a></li>
+<li>BEHAVIOR-1K: <a href="https://behavior.stanford.edu/knowledgebase/">knowledgebase</a> · <a href="https://github.com/StanfordVL/BEHAVIOR-1K/blob/main/OmniGibson/omnigibson/utils/asset_utils.py">asset_utils.py</a> (EULA text, <code>.encrypted.usd</code>) · <a href="https://github.com/StanfordVL/BEHAVIOR-1K">repo</a> (code MIT)</li>
+<li>PartNet-Mobility: <a href="https://huggingface.co/datasets/sapien-sim/PartNetMobility">HF card / terms</a></li>
+<li>PhysXNet: <a href="https://huggingface.co/datasets/Caoza/PhysX-3D">HF card</a> · PhysX-Mobility: <a href="https://huggingface.co/datasets/Caoza/PhysX-Mobility">HF card</a> · <a href="https://arxiv.org/abs/2511.13648">PhysX-Anything paper</a></li>
+<li>Infinigen-Sim: <a href="https://arxiv.org/abs/2505.10755">paper</a> · <a href="https://infinigen.cs.princeton.edu/docs/latest/ExportingToSimulators.html">export docs</a> · <a href="https://github.com/princeton-vl/infinigen">repo</a> (BSD-3)</li>
+<li>ManiSkill: <a href="https://github.com/haosulab/ManiSkill">README licence section</a></li>
+<li>BOP datasets (T-LESS, ITODD, IPD, XYZ-IBD licences): <a href="https://bop.felk.cvut.cz/datasets/">BOP</a> · <a href="http://cmp.felk.cvut.cz/t-less/">T-LESS</a> · <a href="https://www.mvtec.com/company/research/datasets/mvtec-itodd">MVTec ITODD</a> · <a href="https://github.com/intrinsic-ai/ipd">IPD repo</a></li>
+<li>ABC: <a href="https://deep-geometry.github.io/abc-dataset/">site</a> · Fusion 360 Gallery: <a href="https://github.com/AutodeskAILab/Fusion360GalleryDataset">repo</a> + <a href="https://github.com/AutodeskAILab/Fusion360GalleryDataset/blob/master/LICENSE.md">LICENSE.md</a></li>
+<li>ARMBench: <a href="https://arxiv.org/abs/2303.16382">paper</a> · I-AsSET: <a href="https://arxiv.org/abs/2602.21141">paper</a></li>
+<li>Tools: <a href="https://github.com/SarahWeiii/CoACD">CoACD</a> · <a href="https://github.com/kevinzakka/obj2mjcf">obj2mjcf</a> · <a href="https://mujoco.readthedocs.io/en/stable/modeling.html">MuJoCo modeling (URDF, convexification)</a> · <a href="https://mujoco.readthedocs.io/en/stable/OpenUSD/mjcPhysics.html">MuJoCo OpenUSD</a></li>
+<li>Local: <code>third_party/LIBERO-plus/README.md</code>; <code>third_party/LIBERO-plus/libero/libero/assets/new_objects/apple/agveuv/</code></li>
+</ul>
+</main></body>
+</html>

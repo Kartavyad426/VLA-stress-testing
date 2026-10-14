@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMP PoC Method</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+pre{background:var(--card);padding:10px;overflow-x:auto;font-size:.85rem;line-height:1.45}
+a{color:var(--accent)}
+.tag{font-size:.75rem;color:var(--warn);font-weight:600}
+</style>
+</head>
+<body><main>
+<h1>DMP corrective-data PoC: method and maths</h1>
+<p class="meta">2026-10-14 · session impl21, scope from prim (user, 10-14) · source design: <a href="ROOT_TO_GOAL_CORRECTIVE_DEMOS.html">ROOT_TO_GOAL_CORRECTIVE_DEMOS</a> (approved 10-12, incl. res's 10-14 additions) · for the user's approval · no code yet</p>
+<div class="status"><b>Status:</b> method for approval. <b>No code has been written and nothing has been run.</b> The only numbers on this page that are not from other docs are a read-only look at the R-047 logs used to pick candidate scenarios (§6); they are exploratory and UNVERIFIED. Everything the PoC produces goes to val before it travels.</div>
+
+<h2>0 · Bottom line</h2>
+<ul>
+<li><b>What the PoC does:</b> for 4 scenarios from R-047, restore the sim at the failure's root, pick the 3 nearest clean human demos, bend each demo's remaining motion from the root to the goal with a DMP, execute it in LIBERO through the normal OSC controller, and keep it only if the task succeeds and the motion passes a jerk check. Then run the same thing over all R-047 failures to see where it works, by failure type and by distance from the demos.</li>
+<li><b>Choices I recommend:</b> one Cartesian position DMP per demo segment in the <b>Hoffmann/Pastor 2009 form</b> (it cannot flip or overscale; it differs from the source design's vector-wise scaling, see §1.3 and decision C1), orientation as a rotation-vector DMP relative to the goal orientation (the rotations here are small), the gripper replayed as a binary step at segment boundaries, and segments expressed in the frame of the object they act on.</li>
+<li><b>Fastest because:</b> everything except a few visual-check renders runs on <b>CPU, physics only</b>. Roots are restored by replaying the logged actions, not by re-running the policy. No GPU, no training, no IDM.</li>
+<li><b>Effort:</b> about <b>4 working days</b> of my time plus val's check (§9). The source design estimated 5–8 days for S0–S6; the saving comes from what §10 skips.</li>
+<li><b>Biggest risks:</b> (1) restoring a root by action replay may not reproduce the logged state (it has to be tested first, B1); (2) nominal demos never show a recovery, so a far root may be outside anything a demo segment can bend to (that is what the coverage-gap measure and scenario D test).</li>
+</ul>
+
+<h2>1 · DMP formulation</h2>
+<h3>1.1 · Space and segments</h3>
+<ul>
+<li><b>Cartesian EEF space, not joint space.</b> The actions we record and the policy's action space are both relative EEF deltas (OSC_POSE, <code>control_delta</code>), so a Cartesian reference turns directly into actions. Joint space would need IK and would not transfer between start poses that differ in the joints (which is exactly what R-047 perturbs).</li>
+<li><b>Segments split at gripper events.</b> Each LIBERO-Spatial demo has two gripper events (close, open), so three segments: <b>A</b> approach → grasp pose (frame: target bowl), <b>B</b> lift, carry → release pose (frame: plate), <b>C</b> retreat (frame: plate; usually not needed because success fires on release).</li>
+<li><b>Object frames.</b> Each segment's goal is the demo's segment-end EEF pose expressed in its object's frame, then mapped to the current object pose in the root scene. This is MimicGen's object-centric idea; only the goal is transformed, the shape is the DMP's job. <b>As built (10-14):</b> the frames are translation-only, because the bowl and the plate are rotationally symmetric: the goal is the demo's EEF-minus-object offset placed at the object's current position, with the demo's world orientation. This replaces the "yaw closest to the root's" rule in §1.4.</li>
+</ul>
+
+<h3>1.2 · Position DMP (per axis, per segment)</h3>
+<p>Discrete DMP in the Hoffmann/Pastor form (Hoffmann et al. 2009; Pastor et al. 2009), one per axis of the EEF position <code>y ∈ ℝ³</code>:</p>
+<pre>canonical:        τ ṡ = −α_s s                          s(0) = 1
+transformation:   τ ż = K (g − y) − D z − K (g − y₀) s + K f(s)
+                  τ ẏ = z
+forcing term:     f(s) = Σᵢ wᵢ ψᵢ(s) · s / Σᵢ ψᵢ(s),     ψᵢ(s) = exp(−hᵢ (s − cᵢ)²)
+
+constants (standard): K = 150 (τ-normalised), D = 2√K (critical damping),
+                      α_s = −ln(0.01) ≈ 4.6 so s(τ) = 0.01, N = 30 basis functions,
+                      cᵢ spaced evenly in time (cᵢ = exp(−α_s·i/(N−1))), hᵢ = 1/(cᵢ₊₁ − cᵢ)²</pre>
+<p><b>Fitting</b> on a demo segment with samples <code>y_d(t)</code>, <code>t = 0…T</code> at 20 Hz, <code>τ = T·Δt</code>:</p>
+<pre>z_d = τ ẏ_d,   ż_d = τ ÿ_d          (finite differences, demo smoothed with a 5-step Savitzky–Golay filter)
+f_target(s) = (τ ż_d + D z_d) / K − (g_d − y_d) + (g_d − y_d,0) · s
+w = argmin Σₜ (f(sₜ) − f_target(sₜ))²     (locally weighted regression, one closed-form solve per basis)</pre>
+<p><b>Why this form.</b> The original form multiplies <code>f</code> by <code>(g − y₀)</code>. When the demo's displacement on an axis is small (common: the approach is mostly vertical at the end), a new start flips or overscales the shape on that axis. In the 2009 form <code>f</code> is in absolute units, so the shape is kept as the demo had it, and the <code>−K(g−y₀)s</code> term shifts the whole path linearly from the new start to the new goal as <code>s</code> decays. For a correction this is what we want: "the demo's motion, plus a smooth shift that absorbs the root's offset". It cannot flip and cannot overscale.</p>
+
+<h3>1.3 · Against the source design's vector-wise scaling</h3>
+<p>The source design (S4) names a Cartesian DMP <i>with vector-wise scaling</i> (rotate and scale <code>f</code> so the demo's displacement vector maps onto the new one; Ginesi et al., Sidiropoulos &amp; Doulgeri). That fixes flipping but still <b>scales</b> the shape by <code>‖g−y₀‖/‖g_d−y_d,0‖</code>. For roots far from the demos (10–40 cm against demo approach segments of a similar length) that scale reaches 2–3×, which stretches the lift height and the approach curvature by the same factor. I recommend the 2009 form as the default and vector-wise scaling as a second arm in the scenario runs only (it is ~20 extra lines). <b>Decision C1.</b></p>
+
+<h3>1.4 · Orientation</h3>
+<ul>
+<li>Represent orientation as the rotation vector relative to the segment's goal orientation: <code>r(t) = log(q_g⁻¹ ⊗ q(t)) ∈ ℝ³</code>, and run the same DMP as §1.2 on <code>r</code> with goal <code>0</code>. Convert back with <code>q(t) = q_g ⊗ exp(r(t))</code>.</li>
+<li>This is exact as a parameterisation and well behaved while <code>‖r‖</code> stays well below π. LIBERO-Spatial grasps are near top-down; the largest per-step rotation command in a demo I checked is 0.35 of full scale (≈ 0.17 rad/step). The build checks <code>max ‖r‖</code> over all 500 demos and roots; above 60° it falls back to the quaternion DMP of Ude et al. 2014 (with the 2019 SO(3) correction). Both cost about the same to write; the rotation-vector form is easier to test and to explain.</li>
+<li>The goal orientation <code>q_g</code> is the demo's segment-end orientation in the object frame, mapped to the root scene. Bowls are rotationally symmetric, so for segment A the yaw about the bowl's vertical axis is free: take the yaw closest to the root's current yaw (avoids needless wrist spins).</li>
+</ul>
+
+<h3>1.5 · Gripper</h3>
+<ul>
+<li>The demos command the gripper as binary ±1. Within a segment the command is constant; at the segment end it switches, exactly as in the demo. No gripper DMP.</li>
+<li>After a close or open command, hold the arm's reference still for the number of steps the demo took between its gripper command and the start of its next motion (read from that demo), so the fingers settle before lifting.</li>
+</ul>
+
+<h2>2 · Retargeting maths (from root to goal)</h2>
+<pre>Given root state at step t_r, with EEF pose (y_r, q_r), EEF velocity ẏ_r, gripper state, object poses.
+Given matched demo d at step t* inside segment k (see §4).
+
+1. Remaining demo motion:  segment k from t* to its end, then segments k+1, … unchanged.
+2. Goal of segment k:      g = T_obj(root) · T_obj(demo, end of k)⁻¹ · y_d(end of k)
+                           (object frame of segment k; T = object pose as a rigid transform)
+3. Fit the DMP on the demo's sub-segment [t*, end of k]  (so its shape starts where the root is most similar).
+4. Integrate with y₀ = y_r, z₀ = τ·ẏ_r (velocity-matched join, §3), goal g, τ = (end − t*)·Δt.
+5. Segments k+1, …: y₀ = where the previous segment actually ended (achieved pose, not planned),
+   z₀ = τ·(achieved velocity), goal from their own object frames. Each is fitted on its full demo segment.
+6. Output: a reference EEF pose per 20 Hz step plus the gripper schedule.</pre>
+<p>τ keeps the demo's duration for the sub-segment. If the root is much further from the goal than the demo point was, keeping τ means a faster motion; step 4 checks the peak reference speed against the demos' 99th percentile and, if it is exceeded, stretches τ by the ratio (the DMP is time-invariant in shape, so this only slows it).</p>
+
+<h3>2.1 · The baseline arm: I-Gen-style linear bridge</h3>
+<p>Same match, same goal. Instead of a DMP: rigidly transform the demo's remaining segment into the root scene's object frame, then linearly interpolate the EEF from the root pose to the transformed segment's first pose over 20 steps, and replay. This is the comparison the source design asks for (§4a there): the DMP has to beat it to earn its place.</p>
+
+<h2>3 · Velocity-matched join</h2>
+<ul>
+<li><b>Position:</b> continuous by construction (<code>y₀ = y_r</code>).</li>
+<li><b>Velocity:</b> start the DMP with <code>z₀ = τ·ẏ_r</code>, where <code>ẏ_r</code> is the EEF velocity at the root (finite difference of the logged EEF positions over the last 2 steps, cross-checked against the sim's site velocity after restore). The demo's own start velocity is replaced; the difference decays through the damping term with time constant <code>τ/√K</code> ≈ 0.08·τ, i.e. 4–8 steps for typical segment lengths.</li>
+<li><b>Acceleration:</b> not matched. At <code>s = 1</code> the DMP's acceleration is <code>(K f(1) − D z₀)/τ²</code>, which generally differs from the policy's acceleration at the root, so jerk can spike at the join. I propose to <b>measure</b> it (§5.2) rather than add C² matching up front. If the jerk check fails often, the fix is a 3-step quintic blend on the reference, about half a day.</li>
+<li>If the root is the start of a corrective move against the policy's motion (for example the policy was moving away from the bowl), velocity matching makes the correction start by continuing that motion for a few steps. That is the honest join (it is what the robot is doing), but if it makes too many rollouts fail, <code>z₀ = 0</code> is the alternative arm. Measured in B4.</li>
+</ul>
+
+<h2>4 · Choosing a matching demo</h2>
+<pre>Candidates:  the 50 demos of the same task (same scene layout family), same segment k as the root.
+             Root's segment: A if the target is not held and no grasp attempt has completed; B if held.
+Features at a step (all in the segment's object frame):
+   p   EEF position relative to the object               (3)
+   φ   EEF orientation as rotation vector relative to the object, yaw folded for segment A   (3)
+   v   EEF velocity                                     (3)
+   w   gripper aperture                                 (1)
+   (segment B adds the held object's offset from the EEF (3))
+Distance:    d(root, demo step) = ‖(x_root − x_demo) / σ‖₂,  σ = per-feature std over all demo steps of
+             that segment in that task. Velocity weighted 0.5 (it is noisier).
+Match:       for each demo, the step t* minimising d; keep the 3 demos with the smallest d (top-k = 3).</pre>
+<ul>
+<li><b>Single-frame match plus velocity, not a 5–10 step window.</b> The window in the source design is meant to capture motion context; the velocity term carries most of it, and the window is what makes matching expensive. Logged as a skip in §10.</li>
+<li><b>Coverage gap.</b> Reference spread: for each demo step, its distance to the nearest step of any <i>other</i> demo of the same task and segment (leave-one-demo-out). <code>d_gap</code> = 95th percentile of that. A root whose best match has <code>d &gt; d_gap</code> is a <b>coverage gap</b>. It is still executed (we want to know whether the DMP bends that far), but it is reported separately. The source design's planner fallback for gaps is not built (§10).</li>
+<li><b>DART-style offsets (source S3, res 10-14):</b> for each root, also 5 restarts from small random EEF offsets (uniform direction, radius 1–3 cm, reached by a short OSC move from the root), each matched and executed the same way. They give extra labelled off-distribution states near the root. In the PoC they run in the sweep (B5), not in the first scenario runs.</li>
+</ul>
+
+<h3>4b · Demo set actually used (as built 10-14) <span class="tag">UNVERIFIED</span></h3>
+<p>445 of the 500 demos are used (40–48 per task). The 55 dropped, and why:</p>
+<div class="tw"><table>
+<tr><th>Dropped</th><th>n</th><th>Why</th><th>What it costs</th></tr>
+<tr><td>Last recorded state fails the env's success check (T0-lite)</td><td>10</td><td>Not demonstrably clean in our sim stack (7 of them otherwise have the normal shape).</td><td>Little; 10 % of one task at most.</td></tr>
+<tr><td>Extra grasp attempts (4–5 gripper segments after ignoring 1–2 step blips)</td><td>39</td><td>The PoC's segmenter assumes one approach, one grasp, one release (segments A/B/C).</td><td><b>The real compromise.</b> These are the only human demos that contain anything like a recovery (a missed or adjusted grasp followed by a second attempt). Dropping them removes the closest human evidence for exactly what we are trying to generate. Worth adding back as their own match pool once the canonical case works.</td></tr>
+<tr><td>Never release (2 segments: success fires with the bowl still held)</td><td>6</td><td>No release segment to retarget for place roots.</td><td>Small; they could still serve grasp roots.</td></tr>
+</table></div>
+<p>Per task the drop is 2–10 demos; the scene-984 task (scenarios A and B) loses the most, 10 of 50. Blip rule: gripper-command runs of 1–2 steps are absorbed into the run before them (operator jitter, not events).</p>
+
+<h2>5 · Executing and judging a rollout</h2>
+<h3>5.1 · Execution</h3>
+<ul>
+<li><b>Root restore.</b> The R-047 logs keep EEF, joints, gripper and object positions per step, but not the full MuJoCo state. So: rebuild the same LIBERO-Plus env (task, init state 0, the same start-pose perturbation spec), reset, and <b>replay the logged actions</b> for steps <code>0 … t_r − 1</code>. Accept the restore only if EEF position and every object position match the log within 1 mm at every replayed step. Physics is deterministic given the same state and actions; the known render nondeterminism (README risks) concerns images, not physics. This is test B1 and it gates everything else.</li>
+<li><b>Where the root sits.</b> For a grasp root the restore point is the step at which the faulty close is <i>commanded</i>, before it takes effect (fingers still open). For a release root it is the step before the open command (bowl still held). The correction therefore never has to undo a gripper action.</li>
+<li><b>Tracking.</b> Each step, command <code>a_pos = clip((y_ref[t+L] − y_now)/0.05, −1, 1)</code> and <code>a_rot = clip(log(q_ref[t+L] ⊗ q_now⁻¹)/0.5, −1, 1)</code>, gripper from the schedule. 0.05 m and 0.5 rad are the OSC_POSE output limits in the demo files' controller config (kp 150, critically damped). The look-ahead <code>L</code> (1 or 2 steps) is tuned once in the self-reproduction test (§7, T2) and then frozen.</li>
+<li><b>What is recorded.</b> The commanded 7-D actions, which are in the env's action convention (the same one our harness sends for GR00T), plus the per-step state. Frames are rendered afterwards only for the kept rollouts we look at, by replaying their actions on the GPU through prim.</li>
+<li><b>Budget.</b> At most 200 control steps after the root, with no cap at the episode's original 280-step limit (user, 10-14, C3). Each kept episode logs whether it would also have fitted inside 280, so it can be used as a full episode or as a root→goal segment only.</li>
+</ul>
+<h3>5.2 · Judging</h3>
+<div class="tw"><table>
+<tr><th>Check</th><th>Rule</th><th>Why</th></tr>
+<tr><td>Success</td><td>The env's own success check (BDDL predicate: target bowl on the plate) fires within the budget.</td><td>The same check the eval uses. Full-task success, not a phase-only predicate (decision C2).</td></tr>
+<tr><td>Jerk after the join</td><td>EEF jerk = third finite difference of the <i>achieved</i> EEF position at 20 Hz. Take the max ‖jerk‖ over the first 16 steps after the root (one GR00T chunk). Pass if it is ≤ the 99th percentile of the same statistic over all 16-step windows of the 500 human demos.</td><td>Training data with a spike at the join would teach the policy that spike. The comparison is against what humans did, not a fixed number.</td></tr>
+<tr><td>Speed</td><td>Peak EEF speed ≤ the demos' 99th percentile; fewer than 10 % of steps with any action component saturated at ±1.</td><td>Saturation means the controller could not follow the reference; the actions would not mean what the reference meant.</td></tr>
+<tr><td>Collateral</td><td>No non-target object displaced by more than 2 cm from its root position.</td><td>A cheap collision proxy instead of contact accounting (§10).</td></tr>
+</table></div>
+<p>A rollout is <b>kept</b> only if all four pass. Each reported yield says which checks failed, so "fails success" and "succeeds but jerky" are told apart.</p>
+
+<h2>6 · Scenarios</h2>
+<p>Picked to cover the two phases, the two grasp failure modes and the near-to-far range of root distance. The candidate rows come from a read-only look at <code>runs/r047/rollouts.jsonl</code> (first gripper-close command, EEF-to-bowl distance at that step, bowl lift). <span class="tag">EXPLORATORY · UNVERIFIED</span> — in scenes with two bowls my look took the first bowl in the log, so B1 confirms each row's target object before it is used.</p>
+<div class="tw"><table>
+<tr><th>#</th><th>R-047 row</th><th>Root</th><th>What it is</th><th>Why it was picked</th></tr>
+<tr><td>A</td><td>14 · scene 984 · radius 0.2 rad, dir 1</td><td>first failure: <b>grasp.slip, t = 31</b></td><td>Closes about 7–8 cm from the bowl; the bowl lifts 2 cm and slips.</td><td>The mining-spec toy case (<code>runs/poc_toy/instance.json</code>), so the two lines of work meet on one example. A near root, should be the easy case.</td></tr>
+<tr><td>B</td><td>14 (same rollout)</td><td>first unrecovered: <b>place.off_target, t = 242</b></td><td>Bowl carried to the plate and released 5.2 cm off centre (successes end ≤ 3.0 cm).</td><td>The other root rule the user kept, on the same rollout. It is the only scenario in segment B (object in hand, plate frame), so it tests the second segment type.</td></tr>
+<tr><td>C</td><td>186 · scene 1062 · radius 0.3, dir 1</td><td><b>grasp.miss, t ≈ 28</b></td><td>Closes about 14 cm from the bowl; the bowl never moves.</td><td>A clean miss: one grasp attempt, no lift, no retry pile-up, so the root is unambiguous. Mid-range distance.</td></tr>
+<tr><td>D</td><td>440 · scene 1327 · radius 0.5, dir 1 (backup: 224 · scene 1090 · radius 0.5)</td><td><b>grasp.miss, t ≈ 18</b></td><td>Closes about 40 cm from the bowl (backup: about 29 cm).</td><td>The far end of the start-pose axis, where R-054 got only ~0.2 yield beyond 16 cm. Scene 1327 is also where R-056 regressed the grasp. If the DMP does no better here, the method covers only near roots. <b>Checked 10-14:</b> the close is 40.8 cm from the target bowl but 13.9 cm from the <i>other</i> bowl, so row 440 is far from the target and may be a wrong-object attempt rather than a pure miss. Backup row 224 is a clean far miss (28.6 cm from the target, 44.8 cm from the other bowl). Both are run.</td></tr>
+</table></div>
+<p>Each scenario runs 3 matched demos × 2 arms (DMP, linear bridge), plus the vector-wise-scaling and <code>z₀ = 0</code> variants as single extra arms: about 30 executions in total, minutes on CPU.</p>
+
+<h2>7 · Tests in order (from the source design's §7, adapted)</h2>
+<div class="tw"><table>
+<tr><th>Test</th><th>What</th><th>Pass</th></tr>
+<tr><td>T0-lite</td><td>For all 500 demos: set the sim to the demo's last recorded state and run the success check (no stepping). Full action replay (the source design's T0) only for the demos that get matched.</td><td>A demo whose last state is not a success is dropped. A matched demo whose replay fails is dropped from the matches.</td></tr>
+<tr><td>B1 restore</td><td>Root restore by action replay for the 4 scenario rows.</td><td>≤ 1 mm EEF and objects vs the log at every step. If it fails, stop and report: nothing downstream is meaningful.</td></tr>
+<tr><td>T1 synthetic</td><td>DMP unit tests on synthetic curves: exact self-reproduction, start/goal moved, <code>z₀</code> honoured.</td><td>Reproduction error &lt; 1 mm; no flip under a 90° goal rotation.</td></tr>
+<tr><td>T2 self-reproduction</td><td>10 demos (one per task): DMP fitted to the demo, executed from the demo's own start with its own goal. Then from EEF offsets of 2 / 8 / 16 cm (3 directions each).</td><td>Own start: success and tracking error within the demo's own replay error. Offsets: yield per band, reported against R-054's ~0.2 beyond 16 cm. Jerk within the demos' range.</td></tr>
+<tr><td>T3 scenarios</td><td>§6, all arms.</td><td>Reported, no pass bar: this is the PoC result.</td></tr>
+<tr><td>T4 sweep</td><td>§8 over all R-047 failures.</td><td>Reported.</td></tr>
+</table></div>
+<p>The source design's "20-root pilot from one scene" is replaced by T3 (4 chosen roots) plus T4 (all roots), because T4 is cheap on CPU and answers the coverage question directly.</p>
+
+<h2>8 · "Applies to most failures?" analysis</h2>
+<ul>
+<li><b>Population:</b> all 176 failed R-047 rollouts: 112 on the start-pose axis (109 perturbed + 3 at radius 0) and 64 on the camera-yaw axis (61 perturbed + 3 at yaw 0). The earlier "109 vs 112" was only whether the radius-0 rows count; both numbers are right (reconciled 10-14 from the axis manifests).</li>
+<li><b>Roots:</b> a minimal rule set, the same events ROOT_IDENTIFICATION §3 lists: grasp onset → miss or slip by bowl lift; held then lost away from the goal → drop; released with the bowl &gt; 3 cm from the plate centre → off-target; no grasp before timeout → stall. Both root rules (first event, first unrecovered) are run, so every failure gets up to two roots. <b>C4 (user, 10-14):</b> reuse the rules in <code>experiments/poc_toy_instance.py</code> / the UQ10 probe for now, tagged UNVERIFIED like the rest, because the PoC only needs the root step, not a validated label. The user wants a more robust root-selection process; that is open work (UQ4), not part of this PoC.</li>
+<li><b>Per root:</b> top-3 matches, DMP arm and linear arm, plus 5 DART offsets on the DMP arm. A root counts as <b>covered</b> if at least one of its 3 matched DMP rollouts is kept.</li>
+<li><b>Coverage-gap measure:</b> <code>d_match / d_gap</code> (§4), the root's best match distance in units of the demos' own 95th-percentile neighbour distance. Binned ≤ 1, 1–2, 2–4, &gt; 4.</li>
+<li><b>Tables reported:</b>
+  <ol>
+  <li>Kept rate by failure type (phase × mode) × root rule.</li>
+  <li>Kept rate by coverage-gap bin, and by start-pose radius / camera yaw.</li>
+  <li>DMP vs linear bridge on the same roots: paired counts (both kept, only DMP, only linear, neither), McNemar.</li>
+  <li>Which check fails when a rollout is not kept (success, jerk, speed, collateral).</li>
+  <li>DART offsets: kept rate per offset radius.</li>
+  </ol></li>
+<li><b>Reading the answer:</b> "applies to most failures" means the covered fraction is above one half overall and does not collapse in any one failure type that holds more than 10 % of the failures. If coverage drops sharply beyond some gap bin, that bin is where real teleop (or the planner fallback) is needed, and the PoC says how many failures sit beyond it. All of these numbers are UNVERIFIED until val passes the code.</li>
+<li><b>Caveat on camera failures:</b> their start state is nominal, so their roots are probably close to the demos and should be easy for the DMP. They are reported separately so they do not inflate the start-pose answer.</li>
+</ul>
+
+<h2>9 · Build order and effort</h2>
+<div class="tw"><table>
+<tr><th>Step</th><th>Work</th><th>Effort</th><th>Gate</th></tr>
+<tr><td>B0</td><td>Demo loader: per demo and step, EEF pose, gripper, object poses (set state, read bodies, no stepping); segments at gripper events; T0-lite.</td><td>0.5 d</td><td>—</td></tr>
+<tr><td>B1</td><td>Root restore by action replay for the 4 scenario rows, physics only (checks whether the LIBERO-Plus env builds without an offscreen renderer on CPU; if it needs EGL, that run goes through prim).</td><td>0.5 d</td><td>Stops the PoC if restore fails.</td></tr>
+<tr><td>B2</td><td>DMP core (position, rotation vector), retargeting, tracking controller; T1, T2.</td><td>1 d</td><td>T2 own-start success.</td></tr>
+<tr><td>B3</td><td>Matcher and <code>d_gap</code>.</td><td>0.5 d</td><td>—</td></tr>
+<tr><td>B4</td><td>T3 scenarios with all arms; checks of §5.2; one HTML results page with per-root plots (reference vs achieved, jerk, distances).</td><td>0.5 d</td><td>—</td></tr>
+<tr><td>B5</td><td>Root rules, DART offsets, T4 sweep over 176 failures, §8 tables.</td><td>1 d</td><td>—</td></tr>
+<tr><td>val</td><td>val checks the number-producing code (restore, DMP, checks, tables).</td><td>val's time</td><td>Numbers travel only after a PASS.</td></tr>
+<tr><td>GPU</td><td>Render 4–8 kept rollouts by action replay, for the visual check, through prim under <code>flock /tmp/vla_gpu.lock</code>.</td><td>&lt; 1 h GPU</td><td>prim's OK.</td></tr>
+</table></div>
+<p><b>Total ≈ 4 working days</b> of my time, compute on CPU (the full sweep is roughly 176 roots × ~20 executions × ≤ 480 steps; a few CPU-hours at most, to be measured in B1). No commits from me; prim commits.</p>
+
+<h2>9a · Code files (approved by the user 10-14)</h2>
+<p>All new, in <code>experiments/dmp_poc/</code> of worktree <code>../VLA-exp-dmp-poc</code> (branch <code>exp/dmp-poc</code>); outputs in <code>runs/dmp_poc/</code>. No existing code is changed. Reused: <code>LiberoEnv</code> and <code>PerturbationSpec</code> (as in <code>r047_run.py</code>), and the toy PoC's root and search code (<code>poc_toy_common.py</code>, <code>poc_toy_instance.py</code>, <code>poc_toy_search.py</code>), extended in my own files.</p>
+<div class="tw"><table>
+<tr><th>#</th><th>File</th><th>Logic</th><th>Sim</th></tr>
+<tr><td>1</td><td><code>dmp.py</code></td><td>Phase clock; Hoffmann/Pastor DMP fit and rollout; vector-wise-scaling variant; <code>z₀</code>; quaternion log/exp and rotation-vector orientation DMP; I-Gen linear-bridge reference.</td><td>none</td></tr>
+<tr><td>2</td><td><code>test_dmp.py</code></td><td>T1 unit tests on synthetic curves.</td><td>none</td></tr>
+<tr><td>3</td><td><code>demos.py</code></td><td>Per-step EEF pose, gripper, object poses for the 500 demos (set state, no stepping); segments at gripper events; object-frame transforms; T0-lite. Cached to <code>demos.npz</code>.</td><td>CPU set-state</td></tr>
+<tr><td>4</td><td><code>restore.py</code></td><td>B1: rebuild the R-047 env and perturbation, replay logged actions to the root, ≤ 1 mm check per step; returns the env, target object, EEF velocity and object poses at the root.</td><td>CPU physics</td></tr>
+<tr><td>5</td><td><code>roots.py</code></td><td>Root rules (C4): reuses the toy PoC's grasp events; adds drop, off-target, stall; both root rules; restore point at the faulty gripper command.</td><td>none</td></tr>
+<tr><td>6</td><td><code>match.py</code></td><td>Demo search (§4): object-frame features, per-task/segment normalisation, top-3, <code>d_gap</code>, coverage-gap flag. Builds on the toy PoC's search.</td><td>none</td></tr>
+<tr><td>7</td><td><code>execute.py</code></td><td>Retarget, track, gripper schedule, 200-step budget, the four arms, the four checks, DART offsets; saves actions and states.</td><td>CPU physics</td></tr>
+<tr><td>8</td><td><code>run.py</code></td><td>Resumable driver: <code>t0</code>, <code>b1</code>, <code>t2</code>, <code>t3</code>, <code>t4</code>.</td><td>CPU</td></tr>
+<tr><td>9</td><td><code>report.py</code></td><td><code>runs/dmp_poc/report.html</code>: §8 tables, per-scenario plots, search showcase (root vs top-3 demo frames); all UNVERIFIED until val passes.</td><td>none</td></tr>
+<tr><td>10</td><td><code>render.py</code></td><td>Frames for the report by action replay; GPU through prim under <code>flock /tmp/vla_gpu.lock</code>.</td><td>GPU</td></tr>
+</table></div>
+<p>val checks files 1, 3–7 and 9 before any number travels. prim commits.</p>
+
+<h2>10 · Skipped for speed</h2>
+<div class="tw"><table>
+<tr><th>Skipped</th><th>Cost of skipping</th><th>When to add</th></tr>
+<tr><td>S7 IDM style check, S8 co-train and eval</td><td>We learn whether the data can be made, not whether it helps the policy.</td><td>After the PoC, if coverage is good.</td></tr>
+<tr><td>Full T0 replay of all 500 demos</td><td>An unclean demo could be matched; mitigated by replaying every matched demo.</td><td>Before any data is used for training.</td></tr>
+<tr><td>5–10 step window matching, obstacle features</td><td>Matches may ignore motion context and clutter.</td><td>If the visual match check shows wrong matches.</td></tr>
+<tr><td>Planner fallback for coverage gaps</td><td>Gap roots are only measured, not rescued.</td><td>If §8 shows many failures beyond the gap.</td></tr>
+<tr><td>Quaternion DMP (rotation-vector DMP instead)</td><td>Wrong only for large rotations; checked by <code>max ‖r‖</code>.</td><td>If any segment exceeds 60°.</td></tr>
+<tr><td>Acceleration matching at the join</td><td>Possible jerk spikes; measured by the jerk check.</td><td>If the jerk check fails often.</td></tr>
+<tr><td>Contact-based collision check</td><td>Brushing contacts that move nothing are not caught.</td><td>Before training use.</td></tr>
+<tr><td>Rendering every rollout</td><td>No frames for most rollouts; they can be rendered later by replaying the recorded actions.</td><td>When data is produced for training.</td></tr>
+</table></div>
+
+<h2>11 · Decisions for the user · 2026-10-14</h2>
+<ul>
+<li>☑ <b>C0</b> (user, 10-14) Method, maths and the code plan in §9a approved; code in worktree <code>../VLA-exp-dmp-poc</code>, branch <code>exp/dmp-poc</code>. Roots and matching to reuse the toy-PoC code where it exists (asked prim which).</li>
+<li>☑ <b>C1</b> (user, 10-14) Hoffmann/Pastor 2009 form as default, vector-wise scaling as an extra arm on the scenarios.</li>
+<li>☑ <b>C2</b> (user, 10-14) Success = full-task success from the env's check.</li>
+<li>☑ <b>C3</b> (user, 10-14) Budget: 200 steps after the root, not capped at the original 280; fit-in-280 logged per kept episode.</li>
+<li>☑ <b>C4</b> (user, 10-14) Reuse the existing exploratory root rules for now. A more robust root-selection process is needed (UQ4).</li>
+<li>☑ <b>C5</b> (user, 10-14) Scenarios A–D as in §6.</li>
+</ul>
+
+<h2>12 · Undecided, not blocking</h2>
+<ul>
+<li><b>UQ1</b> Whether DMP-generated corrections replace or sit inside D21 Option A (the source design's §5 Q1). Not needed for the PoC.</li>
+<li><b>UQ2</b> Whether the start→root prefix is kept for state context in training (source §5 Q4). Only matters at S8.</li>
+<li><b>UQ3</b> <i>Resolved 10-14:</i> 112 start-pose failures = 109 perturbed + 3 at radius 0 (§8).</li>
+<li><b>UQ4</b> A more robust root-selection process (user, 10-14). Candidates are in ROOT_IDENTIFICATION §3–4 (validated rules from hand-labelled episodes, VLM for the blind spots). Owner and timing open; the PoC's sweep is cheap to rerun once it exists.</li>
+</ul>
+
+<h2>13 · Sources</h2>
+<ul>
+<li>Design: <a href="ROOT_TO_GOAL_CORRECTIVE_DEMOS.html">ROOT_TO_GOAL_CORRECTIVE_DEMOS</a> (res, 10-12 and 10-14); <a href="ROOT_IDENTIFICATION.html">ROOT_IDENTIFICATION</a> (prim, 10-12).</li>
+<li>Data: <code>data/libero_raw/libero_spatial</code> (10 tasks × 50 demos, 75–197 steps, mean 124.5; per step <code>actions</code>, <code>states</code> (92-D), <code>obs/ee_pos</code>, <code>obs/ee_ori</code>, <code>obs/gripper_states</code>; controller OSC_POSE, delta, output limits 0.05 m / 0.5 rad, kp 150). <code>runs/r047/rollouts.jsonl</code> (720 rollouts, 176 failures; per step EEF, joints, gripper, object positions, action; no full sim state). <code>runs/poc_toy/instance.json</code>.</li>
+<li>Methods: Ijspeert et al., Neural Computation 2013 (DMPs); Hoffmann, Pastor, Park, Schaal, ICRA 2009 and Pastor et al., ICRA 2009 (the form in §1.2); Ude et al., ICRA 2014 (orientation DMPs); Ginesi et al. and Sidiropoulos &amp; Doulgeri 2024 (vector-wise scaling); Mandlekar et al., MimicGen, CoRL 2023; Hoque et al., IntervenGen, IROS 2024; Laskey et al., DART, CoRL 2017.</li>
+</ul>
+</main></body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STAC on GR00T</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--accent);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+.tag{font-size:.75rem;color:var(--warn);font-weight:600}
+</style>
+</head>
+<body><main>
+<h1>Why STAC failed on GR00T, and why GR00T is confidently wrong</h1>
+<p class="meta">2026-10-14 · session res, task from the user via prim · outline approved by the user · theory note, no GPU · not committed</p>
+<div class="status"><b>Status:</b> R-059 Part C is UNVERIFIED (val pending). The numbers marked <span class="tag">res-descriptive</span> come from an ad-hoc CPU script, <code>docs/drafts/stac_theory_probes/descriptive.py</code> (output <code>descriptive_out.json</code>), run read-only on the C1 files; also UNVERIFIED until val passes them. §3c is a hypothesis, not a measurement.</div>
+
+<h2>0 · Verdict</h2>
+<div class="verdict">
+<ol>
+<li>STAC was aimed at the wrong kind of failure. Sentinel splits failures into <i>erratic</i> (STAC) and <i>no progress</i> (a VLM). All 70 C1 failures are no-progress timeouts: slow, smooth and wrong.</li>
+<li>On GR00T, STAC mostly measures how fast the arm is moving (rank correlation 0.77). Failures command smaller moves, so they look "more consistent". Within bands of similar motion size, the inversion mostly disappears.</li>
+<li>Draw diversity isn't uncertainty: the 32 draws agree on the executed 16 steps (std 0.014) and spread out only in the unexecuted tail (0.33). Nothing in flow-matching training makes draws spread out on unfamiliar states.</li>
+<li>The as-published cumulative detector reads episode length (shuffled control 0.99), because every failure runs to the 18-forward timeout.</li>
+<li>Progress toward the object separates early (AUROC 0.91 as a success signal by forward 4, and within every radius band). It is the first detector to test, with start-joint distance from home (0.72) as the baseline to beat.</li>
+</ol>
+</div>
+
+<h2>1 · The result being explained</h2>
+<p>R-059 Part C on C1: 240 start-pose rollouts (radius {0, 0.2, 0.3, 0.4} rad × 10 scenes × 3 joint directions × 2 noise seeds), B = 32 draws per forward, 170 successes, 70 failures. Source: <code>VLA-exp-rootsignals/runs/r059/c1/score_c.json</code>, scorer <code>experiments/r059_score_c.py</code>, pre-registration RESULTS.md R-059.</p>
+<div class="tw"><table>
+<tr><th>Score (failure-high AUROC)</th><th>f0</th><th>f1</th><th>f2</th><th>f3</th></tr>
+<tr><td>STAC (MMD², chunk f steps 16:40 vs chunk f+1 steps 0:24)</td><td>0.18</td><td>0.43</td><td>0.30</td><td>0.26</td></tr>
+<tr><td>Spread (mean pairwise L2 within draws, steps 16:40)</td><td>0.41</td><td>0.26</td><td>0.40</td><td>0.71</td></tr>
+<tr><td>Single-draw self-consistency</td><td>0.31</td><td>0.33</td><td>0.29</td><td>0.35</td></tr>
+</table></div>
+<ul>
+<li>STAC per-forward detector: 26% of failures caught before the clock (f_c = 12) at FPR 0.29, against a target FPR ≤ 0.05. E6 and E7 fail.</li>
+<li>As-published cumulative detector: whole-episode AUROC 0.97; the shuffled-length control gives 0.99 (E8 holds). <b>Every failure has F = 18 forwards; successes have a median of 7.</b> A cumulative sum over a run of length 18 vs 7 separates them whatever the per-forward score is.</li>
+<li>Failures by radius: 3 / 15 / 23 / 29 out of 60 each at 0 / 0.2 / 0.3 / 0.4 rad.</li>
+<li>Agrees with E1 (single-draw self-consistency AUROC 0.20, ROOT_IDENTIFICATION §6).</li>
+</ul>
+
+<h2>2 · Q1: how our setup differs from Sentinel's</h2>
+<div class="tw"><table>
+<tr><th>Axis</th><th>Sentinel (Agia et al., CoRL 2024)</th><th>Ours (GR00T N1.7 on LIBERO-Spatial, C1)</th><th>Consequence for STAC</th></tr>
+<tr><td>Policy class</td><td>Diffusion policy; chunks sampled by iterative denoising</td><td>Flow matching, 4 Euler steps; chunk C = 40, execute H = 16, so consecutive chunks overlap by 24 steps</td><td>With 4 steps from Gaussian noise, the strongly conditioned near-term steps come out nearly deterministic; diversity is left in the far tail (§3a). STAC compares exactly that tail with the next chunk's head.</td></tr>
+<tr><td>Failure type targeted</td><td>STAC targets <i>erratic</i> failures: the policy switches between modes from one chunk to the next. No-progress failures go to the VLM branch, by design (SENTINEL_METHODOLOGY, "complementary-category architecture").</td><td>Smooth, slow and wrong; every failure is a timeout</td><td>Our failures belong to Sentinel's <i>other</i> branch. STAC failing here is the paper's own partition, not a contradiction of it.</td></tr>
+<tr><td>What is out of distribution</td><td>Scene and object changes the policy sees in its images</td><td>The start joint configuration. Proprioception reports it exactly; the agent-view image looks normal; the wrist view carries 0.88 of the effect (R-042)</td><td>Nothing the model sees looks dramatically new, so nothing pushes it into multi-modal "I don't know" sampling.</td></tr>
+<tr><td>When the outcome is decided</td><td>Mid-episode, as erratic switching accumulates</td><td>By forward 1 (R-057)</td><td>A per-chunk consistency score has at most one or two forwards in which to see anything.</td></tr>
+</table></div>
+
+<h2>3 · Q2: why the draws agree on failures</h2>
+<h3>3a · Draw diversity measures demo randomness, not unfamiliarity <span class="tag">res-descriptive</span></h3>
+<ul>
+<li>Flow matching learns a velocity field whose samples reproduce the spread of actions <i>in the demos</i> for similar observations. Its loss says nothing about what to do away from the demos, so there is no term that makes samples spread out on unfamiliar inputs. Networks extrapolate smoothly and confidently there.</li>
+<li>Measured: the median per-step std across the 32 draws is <b>0.014</b> on the executed steps 0–16 and <b>0.33</b> on steps 16–40, 24× larger. The model is near-deterministic about what it will do next, in successes and failures alike.</li>
+<li>Absolute Spread is about 7.7 for every episode (median 7.71 failure vs 7.75 success at f0). It reflects the noise floor of the tail, not the state.</li>
+</ul>
+<h3>3b · STAC tracks motion size; stalling looks consistent <span class="tag">res-descriptive</span></h3>
+<ul>
+<li>STAC vs commanded action magnitude over the overlap: Spearman ρ = 0.77 (480 episode-forward rows, f0 and f1 pooled). With a fixed RBF bandwidth (σ 8.17), smaller actions mean smaller distances, which means smaller MMD.</li>
+<li>Failures command smaller translations at f1: median 0.71 vs 0.96 (AUROC failure-high 0.15).</li>
+<li>Within thirds of motion size, STAC's AUROC is 0.51 / 0.60 / 0.37: the strong inversion (0.18 at f0) mostly disappears. What's left is noise around 0.5, not a hidden detector.</li>
+<li>A slow or stalled arm changes the observation little between forwards, so consecutive chunks are predicted from nearly the same input and agree. A fixed point is perfectly self-consistent.</li>
+</ul>
+<h3>3c · Why an OOD start reads as in-distribution <span class="tag">hypothesis</span></h3>
+<ol>
+<li><b>State aliasing.</b> The perturbed pose produces a wrist view and an agent view that the vision encoder maps close to some familiar state (a different phase or a different reach). The action head then executes, confidently, the action for that familiar state. R-042 (the wrist carries 0.88 of the effect) fits this: the wrist view is what gets misread.</li>
+<li><b>Proprio is underused.</b> GR00T takes <code>observation.state</code> through a small encoder, but in LIBERO demos the start pose barely varies, so the model can't have learned to rely on it. An off-support joint vector is extrapolated linearly and outweighed by the vision tokens.</li>
+<li><b>Early commitment.</b> The episode is decided at forward 1 (R-057). Once the first chunk heads the wrong way, the next observations are self-generated and consistent with that choice: smooth and wrong.</li>
+</ol>
+<p>Tests for 3c (cheap first): (i) nearest-neighbour check of the wrist-image embedding at forward 0 against demo frames: do failures' nearest demo frames come from a different phase or position than their true one? (one GPU forward per frame, or cached embeddings if they exist); (ii) proprio ablation: replace <code>observation.state</code> with the nominal start state at forward 0 and see whether chunk 0 changes. If it barely moves, proprio is being ignored (GPU, about 60 forwards).</p>
+
+<h2>4 · Q3: detectors that should work, each with one cheap test</h2>
+<div class="tw"><table>
+<tr><th>Detector</th><th>Why it should work here</th><th>What we already see <span class="tag">res-descriptive</span></th><th>Cheapest test</th></tr>
+<tr><td><b>Progress</b>: drop in distance from the gripper to the target object over the first k forwards</td><td>Targets no-progress failures directly, which is what ours are</td><td>Using the <i>nearest</i> object (crude): AUROC failure-high 0.58 / 0.23 / 0.09 after 1 / 2 / 4 forwards; at 4 forwards it is 0.20 / 0.06 / 0.07 within the 0.2 / 0.3 / 0.4 bands, so it isn't just radius</td><td>CPU on C1: use the instruction's target object; per-forward conformal calibration that leaves each scene out of its own threshold (as in r059_score_c.py); report catch rate before f_c at FPR ≤ 0.05</td></tr>
+<tr><td><b>Distance of the start joints from home</b> (baseline)</td><td>The perturbation is the joint configuration; proprio reports it exactly (VLA_CORRECTOR_MATHS)</td><td>Radius alone: AUROC 0.72</td><td>CPU: AUROC of initial joint distance from the nominal start; every detector must beat it within radius bands</td></tr>
+<tr><td><b>Commanded motion and relative spread</b></td><td>Failures move less (§3b), and their draws spread more relative to the motion</td><td>Commanded translation at f1: 0.15; spread relative to it at f1: 0.90</td><td>CPU on C1: per-f AUROC within radius bands, plus a conformal detector</td></tr>
+<tr><td><b>Imitation disagreement</b> (E4-2)</td><td>Compares against what a demo would do at the same state, which is a sense of being wrong that STAC lacks</td><td>E4-2 failed on a driver mismatch</td><td>CPU version: for each C1 state at f0–f1, the nearest demo state by proprio plus object pose; distance between the policy's chunk and that demo's next 16 actions</td></tr>
+<tr><td><b>How familiar the state is</b></td><td>Asks directly whether the input is off the demo support</td><td>Not run</td><td>CPU: kNN distance of the forward-0 proprio state to all demo states; then (GPU) the same on the wrist-image embedding</td></tr>
+<tr><td><b>VLM on video</b> (Sentinel's other half)</td><td>Sentinel's own answer to no-progress failures</td><td>Not run</td><td>20 failures + 20 successes, frames up to forward 4, our NIM VLM setup (vlm_label.py), asked "is the robot making progress on &lt;task&gt;?"</td></tr>
+<tr><td>Dropped: absolute Spread, cumulative STAC</td><td>Noise floor (§3a); length (§1)</td><td>—</td><td>—</td></tr>
+</table></div>
+
+<h2>5 · Caveats</h2>
+<ul>
+<li>R-059 Part C has no val PASS yet; neither do the res-descriptive numbers.</li>
+<li>C1 rollouts are B = 32 rollouts: draw 0 of a batched call differs from a B = 1 run by about one bf16 step at f0, and compounds (NOTES.md, known limit 2). The bit-identity control failed (known limit 1).</li>
+<li>The motion-tertile analysis pools f0 and f1 rows, so episodes count twice; treat it as descriptive.</li>
+<li>Progress uses the nearest object, not the instruction's target; the AUROCs are on all 240 episodes without calibration. They show a signal exists, not a detector's operating point.</li>
+<li>The Sentinel comparison rests on SENTINEL_METHODOLOGY.html (the paper as read there), not a fresh read.</li>
+</ul>
+</main></body>
+</html>

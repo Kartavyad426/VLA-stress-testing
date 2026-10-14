@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIBERO-MAX Portability</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--mut:#62605a;--line:#dcd8cf;--card:#fff;--acc:#2d5f8b;--warn:#a2561b;--ok:#2f6f3e;--code:#f1eee7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--fg:#e7e5e0;--mut:#a3a09a;--line:#34363a;--card:#1f2124;--acc:#8db8e0;--warn:#e0a46e;--ok:#8fcf9c;--code:#2a2c30}}
+:root[data-theme="dark"]{--bg:#17181a;--fg:#e7e5e0;--mut:#a3a09a;--line:#34363a;--card:#1f2124;--acc:#8db8e0;--warn:#e0a46e;--ok:#8fcf9c;--code:#2a2c30}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:1.6rem;margin:0 0 4px}
+h2{font-size:1.2rem;margin:36px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:22px 0 6px}
+.meta{color:var(--mut);font-size:.88rem}
+code{background:var(--code);padding:1px 4px;border-radius:3px;font-size:.88em}
+pre{background:var(--code);padding:12px;border-radius:6px;overflow-x:auto;font-size:.84rem;line-height:1.45}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem;background:var(--card)}
+th,td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
+th{background:var(--code)}
+.tag{display:inline-block;font-size:.72rem;padding:0 5px;border-radius:3px;border:1px solid var(--line);color:var(--mut)}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);padding:10px 14px;border-radius:4px;margin:12px 0}
+.warn{border-left-color:var(--warn)}
+ul{padding-left:20px}
+li{margin:3px 0}
+.eff{white-space:nowrap;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Porting the experiments to LIBERO-MAX</h1>
+<p class="meta">impl, 2026-10-14 · for prim / the user · CPU inventory only: no code changed, nothing run.
+Source: a read of the scripts in the worktree <code>VLA-exp-rootsignals</code> (branch exp/root-signals) and in main, plus impl2's LIBERO-MAX scoping answers (10-14).
+Tags: <span class="tag">V</span> read in code, a manifest or a paper · <span class="tag">I</span> my inference or estimate.</p>
+
+<div class="box">
+<b>Verdict.</b>
+<ul>
+<li><b>Most of our code is not tied to LIBERO-Spatial's task logic.</b> The harness already knows all four suites: step caps, BDDL region→body resolution and the instruction cleaner <span class="tag">V</span>. Most of the Spatial lock-in is in the analysis scripts, through four assumptions.
+  <ol>
+    <li>The target is "the one object whose name doesn't contain <code>plate</code>".</li>
+    <li>The goal is "target on the plate".</li>
+    <li>The policy executes 16 steps of a 40-step chunk.</li>
+    <li>Paths and scene IDs are hard-coded to R-047 (and to one task's 50 demos for E4/E6).</li>
+  </ol></li>
+<li><b>Three LIBERO-MAX facts change things beyond renaming.</b>
+  <ol>
+    <li>LIBERO-MAX runs <b>its own runner</b>, not <code>libero_env.py</code>.</li>
+    <li>The paper's GR00T probably executes <b>8 of 40</b> steps per forward, not 16.</li>
+    <li>Each case is a <b>Base/Dynamic pair</b> with a mid-task event. Objects can move after t = 0, and the Base arm is already perturbed.</li>
+  </ol></li>
+<li><b>Recommendation:</b> first, one per-task config and one rollout format that LIBERO-MAX writes from the start (about 3 days). Then port in this order: R-059 scorers and the E1/E2 timing analyses, then E7, then the mining-spec rules. The rules are the largest job, because LIBERO-MAX brings success templates other than pick-and-place.</li>
+<li><b>Total estimate:</b> about 13–19 impl-days <span class="tag">I</span>. This excludes GPU runs, val checks and the extra checkpoints.</li>
+</ul>
+</div>
+
+<h2>1 · What LIBERO-MAX is, as it affects us</h2>
+<p>From impl2 (10-14). <b>Nothing is installed or run yet</b>; a run needs the user's go, prim's GPU OK and val.</p>
+<div class="wrap"><table>
+<tr><th>Item</th><th>LIBERO-MAX</th><th>Ours today (R-047, C1, E7)</th><th>Consequence</th></tr>
+<tr><td>Runner</td><td>Their repo (@01625e2) is used as is, including the event env wrapper, the prefix checks and the aggregator. A new GR00T shard script would reuse <code>lerobot_policy.py</code>. Not <code>libero_env.py</code>. <span class="tag">V</span></td><td><code>r047_run.py</code> → <code>LiberoEnv</code> → harness <code>rollout()</code></td><td>Our <code>Rollout</code> schema and <code>_gt_*</code> fields are not written for free. They need a converter or logging in the shard (§5).</td></tr>
+<tr><td>Tasks</td><td>All four suites. The Lite set has 800 pairs: object 253, libero_10 186, spatial 182, goal 179. They come from 598 LIBERO-Plus/PRO variants. <span class="tag">V</span></td><td>libero_spatial, 10 scenes</td><td>The "non-plate object" target rule breaks on goal, object and libero_10. There are multi-stage and articulated tasks.</td></tr>
+<tr><td>Pairing / event</td><td>The Dynamic arm replays Base's chunks until the EEF is within 0.18 m of a named entity, then one event fires. There are 8 event types. <span class="tag">V</span></td><td>Perturbations apply at reset only</td><td>Positions at t = 0 are no longer the resting reference. A natural paired nominal now exists: the Base arm, with an exact prefix.</td></tr>
+<tr><td>Base arm</td><td>Already LIBERO-Plus/PRO-perturbed (camera, init, light, texture, layout, language). <span class="tag">V</span></td><td>R-047 magnitude 0 is nominal</td><td>"Radius-0 successes" have no direct counterpart for calibration. They become Base-arm successes (§3).</td></tr>
+<tr><td>Goal check</td><td>BDDL <code>_check_success</code>. Per-step predicates are not exposed by their wrapper, but they can be read from the inner <code>OffScreenRenderEnv</code>. <span class="tag">V</span>/<span class="tag">I</span></td><td>Success flag; E7 reads <code>check_ontop</code> itself</td><td>Ask for per-step goal predicates in the format (§5).</td></tr>
+<tr><td>Step budget</td><td>spatial 220, object 280, goal 300, libero_10 520 <span class="tag">V</span></td><td>spatial 280 (<code>MAX_STEPS</code>, libero_env.py:100)</td><td>Same suite, different cap. The timeout forward and f_c change.</td></tr>
+<tr><td>Policy</td><td>The paper's checkpoint is "NVIDIA's official LIBERO post-trained", with H = 40 and Q = 8 executed. That is likely Isaac-GR00T's <code>nvidia/GR00T-N1.7-LIBERO</code> <span class="tag">I</span>. Four per-suite checkpoints, one resident at a time.</td><td><code>gr00t17-lerobot-libero_spatial-640</code>, 16 of 40 executed</td><td>Every <code>16:40</code> / <code>0:24</code> / <code>t//16</code> in our code must come from config. The multi-draw wrapper's asserts are tied to one head.</td></tr>
+<tr><td>Cameras</td><td>agentview + robot0_eye_in_hand. GR00T's resolution and flip are not stated. Camera-shift and noise-onset events happen mid-task. <span class="tag">V</span></td><td>360 px, 180° flip in renders, camera knobs at reset</td><td>E7 renders and R-060 pose logic don't carry over unchanged.</td></tr>
+<tr><td>Instruction</td><td>Mostly one per task. About 138/800 Lite cases change it (Plus "Language", PRO semantic/task). The runtime exposes the current instruction per query. <span class="tag">V</span></td><td>Base instruction forced (<code>libero_plus_base_instruction=True</code>); E7 reads it from R-047 rows</td><td>Log the instruction the policy actually got, per query.</td></tr>
+<tr><td>Versions</td><td>MuJoCo 3.2.6, robosuite 1.4.0 <span class="tag">V</span></td><td>MuJoCo 3.3.2, robosuite 1.4.1</td><td>Frozen fits (bandwidth, controller kernel, thresholds) need re-checking, not reuse <span class="tag">I</span>.</td></tr>
+</table></div>
+
+<h2>2 · Per-experiment inventory</h2>
+<p>Effort is impl-days to make the code config-driven and LIBERO-MAX-ready (CPU work and smoke tests). It excludes GPU runs and val. Each column lists the LIBERO-Spatial assumptions found, with file:line where it matters.</p>
+<div class="wrap"><table>
+<tr><th>Experiment / files</th><th>Objects, target, goal</th><th>Goal check</th><th>Schema fields used</th><th>Fitted thresholds</th><th>Camera</th><th>Instruction</th><th>Step budget / chunking</th><th>Ports as is</th><th class="eff">Effort</th></tr>
+
+<tr><td><b>R-047-style grids</b><br><code>r047_run.py</code></td>
+<td><code>closest_to_bowl</code> filters <code>obj_of_interest</code> by <code>"bowl"</code> (l.91)</td>
+<td>env success only</td>
+<td>manifest row + npz (<code>act_P</code> F×40×7, <code>closest_approach</code>)</td>
+<td>—</td>
+<td>camera axes are harness knobs at reset; bench knobs = LIBERO-Plus pose</td>
+<td><code>libero_plus_base_instruction=True</code> (l.80)</td>
+<td><code>SCENES</code> = 10 Spatial ids (l.53); checkpoint and <code>suite="libero_spatial"</code> hard-coded (l.72–80); <code>noise_key = 1000·s + i</code></td>
+<td>Grid, resume, SIGTERM and npz logic. Axis grids are generic.</td>
+<td class="eff">0.5–1 d</td></tr>
+
+<tr><td><b>R-059 multi-draw runner</b><br><code>r059_multidraw.py</code>, flags in <code>r047_run.py</code></td>
+<td>—</td><td>—</td>
+<td><code>act_B</code> F×B×40×7, <code>draw0_seed</code>, <code>head_s</code></td>
+<td>—</td><td>—</td><td>—</td>
+<td>Wraps the lerobot GR00T head's <code>get_action_with_features</code>. The BO_KEYS whitelist and seq/batch asserts (l.28, 111–127) are tied to this head. If LIBERO-MAX uses the Isaac-GR00T checkpoint, the wrapper must be re-derived and re-unit-checked.</td>
+<td>The idea (seeded per-draw noise, draw 0 executed) and <code>r059_unit_check.py</code>'s pattern</td>
+<td class="eff">0.5 d (same lerobot head) – 2 d (Isaac-GR00T head)</td></tr>
+
+<tr><td><b>R-059 scorers</b><br><code>r059_score_b.py</code>, <code>r059_score_c.py</code></td>
+<td>—</td><td>success flag</td>
+<td>manifest (<code>task_id, magnitude, dir, noise_seed, forwards</code>) + npz; tag naming</td>
+<td>Bandwidth frozen from <b>radius-0 successes of r059/b32</b> (σ 8.17); f_c from R-047 part A (= 12 at 280 steps)</td>
+<td>—</td><td>—</td>
+<td>Overlap windows <code>16:40</code> vs <code>0:24</code> = Q = 16 hard-coded. At Q = 8 they become <code>8:40</code> vs <code>0:32</code> (32×6 dims). "Scene" = Spatial task id for the leave-one-scene-out and bootstrap clusters. Radius grid {0, .2, .3, .4} in the checks.</td>
+<td>MMD/Spread/Single maths, conformal detectors, bootstrap, shuffled-length control</td>
+<td class="eff">0.5–1 d</td></tr>
+
+<tr><td><b>E1</b> (R-059 part A)<br><code>r059_partA.py</code>, <code>root_signals_common.py</code></td>
+<td><code>target_of</code>: exactly one non-<code>plate</code> object in <code>_gt_object_pos</code>, asserted (l.62–66)</td>
+<td>—</td>
+<td><code>join_r047</code> reconstructs the axis from R-047's block layout (magnitude-0 row first); <code>_gt_eef_to_object</code>, actions</td>
+<td>A1 erratic/stalled cut-offs = success p95/p5 per axis; window 80 steps</td>
+<td>—</td><td>—</td>
+<td><code>K, H, D = 16, 40, 6</code>; <code>FS = range(5)</code>; f_c scan to 18 forwards (280/16)</td>
+<td>A2 clock, A3 overlap, AUROC/bootstrap</td>
+<td class="eff">0.5 d</td></tr>
+
+<tr><td><b>E2</b> d_pn<br><code>root_signals_e2_dpn.py</code></td>
+<td><code>target_of</code> non-plate (l.69); grasp anchor uses the target's z</td>
+<td>—</td>
+<td><code>act_N</code> from R-047 splice arms; <code>_gt_scene_object_pos</code></td>
+<td>γ_f = success p95 per (axis, magnitude); <code>LIFT_M = 0.05</code>, window 40</td>
+<td>camera N = paired nominal re-render</td>
+<td>—</td>
+<td><code>anchor_t // 16</code></td>
+<td>Statistics. On LIBERO-MAX the <b>Base arm is a better N</b> (exact prefix up to the event) than R-047's forward-index alignment. That is a redesign, not a port.</td>
+<td class="eff">1 d</td></tr>
+
+<tr><td><b>E3</b> commanded vs achieved<br><code>root_signals_e3_cmd_vs_achieved.py</code></td>
+<td><code>target_of</code> non-plate (l.107); target z from t = 0</td>
+<td>—</td>
+<td><code>eef_pos</code>, actions, <code>_gt_scene_object_pos</code></td>
+<td>Controller FIR (L = 8) fitted on successes; <code>SCALE 0.05</code> (OSC_POSE); <code>LIFT_M 0.05</code>, <code>SLIP_M 0.015</code></td>
+<td>—</td><td>—</td>
+<td><code>K = 16</code>; matched window 80 steps</td>
+<td>The FIR controller model. The residual is eef-only, so object relocation doesn't break it. Refit under MuJoCo 3.2.6.</td>
+<td class="eff">0.5 d</td></tr>
+
+<tr><td><b>E4</b> demo disagreement<br><code>e4_demo_disagreement.py</code>, <code>e4_anchor_firstenv.py</code></td>
+<td>one task's demo HDF5 path (l.52); <code>TOY_SCENE = 984</code></td>
+<td>—</td>
+<td>HDF5 keys (<code>agentview_rgb</code>, <code>eye_in_hand_rgb</code>, <code>robot_states</code>); gripper label = −sign(a[6])</td>
+<td>known-answer anchors = R-047 cells (984/1030/1062); unstable set {(984,0),(1062,0)}</td>
+<td>128 px demo frames as stored</td>
+<td>HDF5's language instruction, asserted equal to R-047's</td>
+<td><code>CHUNK, H = 40, 16</code>; forwards at t = 1 + 16k</td>
+<td>Alignment logic (obs[j] recorded after step j), scoring, plant. <b>Data:</b> only <code>data/libero_raw/libero_spatial</code> is downloaded (10 files).</td>
+<td class="eff">1 d + raw demos for 3 suites</td></tr>
+
+<tr><td><b>E5</b> combined root</td>
+<td colspan="8">Not started (waits on UQ1). Inherits the assumptions of whichever signal and phase rules it combines: the phase segmenter (below) and E2/E3.</td>
+<td class="eff">—</td></tr>
+
+<tr><td><b>E6</b> FAST tokens<br><code>root_signals_e6_fast.py</code></td>
+<td>target from phase info; <code>LiberoPhaseSegmenter(target_index=0)</code> (BDDL's first object = manipuland)</td>
+<td>—</td>
+<td>actions; <code>_gt_scene_object_pos</code></td>
+<td>Tokenizer stats from <code>lerobot/libero</code> (all four suites); segmenter thresholds <code>CLOSED 0.030</code>, <code>PREGRASP 0.10</code>, <code>LIFT 0.015</code>, <code>STALL 0.004</code></td>
+<td>—</td><td>—</td>
+<td>window 80; demo path = the toy task's HDF5 (l.78)</td>
+<td>The tokenizer itself: it is fitted on all four suites. The segmenter's target index needs a per-task override for tasks whose first object is a receptacle.</td>
+<td class="eff">0.5 d</td></tr>
+
+<tr><td><b>E7</b> telemetry + VLM<br><code>e7_render.py</code>, <code>e7_truth_contacts.py</code>, <code>e7_vlm.py</code>, <code>vlm_label.py</code></td>
+<td>target = first non-plate <code>obj_of_interest</code>, plate = the one with "plate" (render l.128–129); <code>NAMES</code> phrase map has 6 Spatial objects only (vlm l.51); the two-bowl rule "the other black bowl"</td>
+<td><code>plate.check_ontop(target)</code> (fixed 10-12). Questions are hard-wired to "on the plate" and "done".</td>
+<td>Reads R-047 rows by line (<code>r047_instruction</code>, <code>gripper_qpos</code>); <code>events.json</code>, <code>truth_events.json</code></td>
+<td>approach ≤ 3 cm fingerpad distance, ambiguity 1 cm; <code>MAX_CYCLES = 2</code></td>
+<td>Replays through <code>LiberoEnv</code>; agent | wrist side by side with a 180° flip</td>
+<td>Base instruction forced from R-047 rows (asserted)</td>
+<td>Event frames from gripper commands: suite-free</td>
+<td>Telemetry events, the fingerpad truth (Panda), the NIM/local back-ends, closed-prompt parsing, scoring. <b>LIBERO-MAX:</b> replay must re-apply the event, or frames are saved during the run (preferred).</td>
+<td class="eff">2–3 d</td></tr>
+
+<tr><td><b>E7 hand-review page</b><br><code>e7_handreview.py</code>, <code>docs/E7_HAND_REVIEW.html</code></td>
+<td>hard tags <code>other_bowl</code> and <code>approach_none_bowl</code> are Spatial-specific</td>
+<td>on_plate question type</td>
+<td>R-047 lines; drift list L085/L094/L102</td>
+<td>finger open/closed 0.035 / 0.005 (Panda, so these port)</td>
+<td>embedded stills</td><td>shown on the page</td><td>—</td>
+<td>The page itself: blind labels, localStorage, download. It is generic once the item list and question types are config-driven. Give it a new localStorage key per item set.</td>
+<td class="eff">0.5 d</td></tr>
+
+<tr><td><b>Mining-spec v1 root rules</b><br><code>MINING_SPEC_V1_DESIGN.html</code> §3, §6 (not yet built)</td>
+<td>One target and one goal (bowl → plate). Events grasp.* / transport.drop / place.* assume a single pick-and-place. The in-gripper check is generic.</td>
+<td><code>place.ok</code> = xy ≤ R_GOAL and dz ∈ [DZ_MIN, DZ_MAX] above the goal: an <b>On</b> relation only. There are no <b>In</b> (basket, drawer, microwave), <b>Open/Close</b> or <b>TurnOn</b> templates.</td>
+<td><code>_gt_scene_object_pos</code>, <code>eef_pos</code>, action[6]; demo restored states</td>
+<td>All fits come from Spatial: R_GOAL 3.5 cm (544 R-047 successes), DZ 0–2.6 cm (bowl above plate), LIFT_OK/W_GRASP/SEP_M/GRIP_R from Spatial demos. Index ids are <code>libero_spatial.&lt;task_id&gt;</code>.</td>
+<td>—</td><td>task.instruction</td>
+<td>budget 280 in the costly-recovery example; COSTLY_FRAC is relative, so it ports</td>
+<td>Event-table and root-option machinery (a–e), the recovered flag, schema ms-1.0. v1 itself scopes out other suites (§1). <b>LIBERO-MAX:</b> objects move at the event, so heights "at onset" (already the v1 choice) are right, and the root should be reported relative to the event step.</td>
+<td class="eff">3–5 d</td></tr>
+</table></div>
+
+<h3>Shared code these all sit on</h3>
+<ul>
+<li><code>vla_harness/envs/libero_env.py</code> already handles the four suites:
+  <ul>
+    <li><code>MAX_STEPS</code> for each suite;</li>
+    <li><code>_resolve_body</code> for region goals;</li>
+    <li><code>_clean_instruction</code> for libero_10 scene prefixes.</li>
+  </ul>
+  It does not handle mid-episode events. LIBERO-MAX bypasses it, per impl2's plan.</li>
+<li><code>_gt_object_pos</code> holds the BDDL <code>obj_of_interest</code> only. <code>_gt_scene_object_pos</code> holds every movable body. Distractors added by a <code>distractor_burst</code> event would appear only if logging is per step and reads the live body list.</li>
+<li><code>poc_toy_common.py</code>: <code>TARGET</code> and <code>NEIGHBOURS</code> are the toy task's bodies, and <code>LIFT_M 0.05 / WINDOW 40</code>. It is used by E2, E3 and E6 for the grasp anchor.</li>
+</ul>
+
+<h2>3 · Assumptions by category, and what replaces each</h2>
+<div class="wrap"><table>
+<tr><th>Category</th><th>Spatial assumption</th><th>Replacement</th></tr>
+<tr><td>Target / goal names</td><td>The single non-<code>plate</code> object is the target and <code>plate</code> is the goal. E7 also treats two bowls as "target" and "the other black bowl".</td><td>The per-task config names <code>stages[]</code>, each with <code>target</code>, <code>receptacle</code> and <code>relation</code>. It is derived once from the BDDL <code>:goal</code> and checked by hand for the 40 tasks. LIBERO-MAX adds <code>trigger.value</code> and <code>change.object</code> per case.</td></tr>
+<tr><td>Goal check</td><td><code>check_ontop</code>, bowl on plate</td><td>Per-step booleans for each BDDL goal predicate (On, In, Open, Close, TurnOn, …), read from the inner env's <code>object_states_dict</code>, logged in the rollout (§5). Rules and VLM truth read these and never re-implement predicates.</td></tr>
+<tr><td>Rollout schema</td><td>R-047 layout (axis blocks with a magnitude-0 row first; rollout_id shared across noise seeds); joins by line index</td><td>One row per arm with an explicit key: <code>case_id, arm, task, seed, noise_seed</code>. No positional joins.</td></tr>
+<tr><td>Fitted thresholds</td><td>Bandwidth σ 8.17; f_c 12; R_GOAL 3.5 cm; DZ 0–2.6 cm; LIFT/GRIP/SEP from Spatial demos; FIR kernel; A1 percentiles</td><td>Refit per (suite, checkpoint, Q) on Base-arm successes or that suite's demos. Store fits in <code>fits/&lt;suite&gt;.json</code> with source hash, never as constants. Receptacle-dependent ones (R_GOAL, DZ) are per receptacle class.</td></tr>
+<tr><td>Camera</td><td>360 px, agentview + wrist, 180° flip for display; harness/bench camera knobs at reset; R-060 nominal pose</td><td>Config: camera names, size and flip as the policy received them. LIBERO-MAX camera_shift / noise events are logged as events, not knobs. Save event-step frames during the run, so no replay is needed.</td></tr>
+<tr><td>Instruction</td><td>Base instruction forced; E7 reads it from R-047 rows</td><td>Log <code>instruction_given</code> per policy query plus <code>instruction_base</code>. Prompts use the logged one.</td></tr>
+<tr><td>Step budget</td><td>280 steps, 18 forwards, every failure a timeout at 18</td><td><code>max_steps</code> from the case (220/280/300/520). The forward count follows from Q. f_c is recomputed per suite.</td></tr>
+<tr><td>Chunking</td><td>Q = 16 executed of H = 40; overlap 16:40 vs 0:24; forward k at t = 16k</td><td><code>H</code>, <code>Q</code> in config. Overlap = <code>[Q:H]</code> vs <code>[0:H−Q]</code>. Logged <code>forward_env_steps</code> are used instead of <code>t // Q</code>.</td></tr>
+<tr><td>Scene / cluster unit</td><td>10 Spatial task ids for leave-one-out and the bootstrap</td><td>Cluster by LIBERO task (40), or by source variant (598); config chooses.</td></tr>
+<tr><td>Demos</td><td>Only <code>data/libero_raw/libero_spatial</code> (10 HDF5)</td><td>Download object/goal/libero_10 raw HDF5 (≈ 30 more files). Needed by E4, E6 and the mining-spec fits.</td></tr>
+</table></div>
+
+<h2>4 · What a per-task config must hold</h2>
+<p>One JSON per LIBERO task (40), plus a per-case overlay for LIBERO-MAX. Proposal only:</p>
+<pre>{
+  "task_key": "libero_goal/5",                     // suite/task index; LIBERO-Plus/PRO variant id in the overlay
+  "suite": "libero_goal", "bddl_sha": "...",
+  "policy": {"checkpoint": "...", "H": 40, "Q": 8, "action_space": "osc_pose_delta7", "gripper_open_sign": -1},
+  "budget": {"max_steps": 300, "warmup_steps": 10},
+  "cameras": [{"name": "agentview", "px": 360, "flip_for_display": 180}, {"name": "robot0_eye_in_hand", "px": 360}],
+  "instruction_base": "...",
+  "objects": {"movable": ["moka_pot_1", ...], "fixtures": ["flat_stove_1", ...],
+              "phrases": {"moka_pot_1": "the moka pot", ...}},        // for VLM options; disambiguation for duplicates
+  "stages": [                                        // ordered; libero_10 has 2
+    {"target": "moka_pot_1", "receptacle": "flat_stove_1_cook_region", "relation": "On",
+     "template": "pick_place", "bodies": {"target": "moka_pot_1_main", "receptacle": "flat_stove_1_..."}},
+    {"target": "flat_stove_1", "relation": "TurnOn", "template": "articulate"}],
+  "goal_predicates": [["On", "moka_pot_1", "flat_stove_1_cook_region"], ["TurnOn", "flat_stove_1"]],
+  "fits_ref": "fits/libero_goal.json"               // thresholds per template / receptacle class, with hashes
+}
+// LIBERO-MAX case overlay
+{"case_id": "...", "source_variant": "...", "init_state_index": 3, "pair_id": "...",
+ "event": {"type": "target_relocation", "trigger": {"kind": "pre_grasp_proximity", "entity": "moka_pot_1", "radius_m": 0.18},
+           "change": {"object": "moka_pot_1"}}, "instruction_override": null}</pre>
+<p>The success templates needed beyond pick-and-place are <b>pick_place_in</b> (basket, bowl, drawer, microwave), <b>articulate</b> (open/close drawer or microwave, turn on stove) and <b>push</b> (plate to the front). The mining-spec event vocabulary needs a version of grasp/place/drop for each of them. Articulate has no grasp-lift. That is most of the 3–5 days in its row.</p>
+
+<h2>5 · One rollout format: AGREED (10-14)</h2>
+<div class="box"><b>Status.</b> impl2 agreed to the format sent to them on 10-14, with 7 changes. The user approved all 7 (via prim, 10-14), plus <code>checkpoint_revision</code> and the frame policy below. LIBERO-MAX keeps its own files (<code>cases/&lt;id&gt;/…</code>), which their aggregator needs; this format is written <b>in addition</b>, for each arm. <b>It is built only once a LIBERO-MAX run is approved.</b> Every GPU run still needs prim's OK. Lines marked <code>[A1]</code>–<code>[A7]</code> are impl2's amendments.</div>
+<pre>rollouts.jsonl   one row per ARM (schema_version "3.0", existing fields unchanged), plus:
+  "case": {"case_id", "pair_id", "arm": "base" | "dynamic", "source_variant", "init_state_index",
+           "task_config_ref": "libero_goal/5", "max_steps",
+           "task_name", "substrate_category", "source_benchmark": "LIBERO-Plus" | "LIBERO-PRO",      [A1]
+           "policy_seed", "init_state_sha256"}                                                    [A1]
+  "event": null | {"type", "trigger": {"kind", "entity", "radius_m"},
+                   "trigger_reached": bool,                                                       [A3]
+                   "t_event": int | null, "forward_event": int | null,      // steps[] index      [A3][A4]
+                   "stale_actions_after_event": int | null,  // queued actions run before the first post-event forward [A3]
+                   "change": &lt;manifest change payload, VERBATIM&gt;,                                 [A2]
+                   "change_resolved": null | {"objects": [{"name", "pose_before", "pose_after"}]},  // optional [A2]
+                   "prefix_sha",          // sha256 of the executed action prefix, steps &lt; t_event      [A5]
+                   "prefix_replay_exact": bool,
+                   "prefix_state_match": float,   // max |Δ obs_state| between arms at t_event − 1     [A5]
+                   "prefix_image_sha": {"agentview", "robot0_eye_in_hand"}}  // at the last pre-event query [A5]
+  "goal": {"stages": [...], "goal_predicates": [...]}           // copied from the task config (§4)
+  steps[t]: t counts EVERY env step, including the 10 warm-up steps, which carry "warmup": true;
+            t_event and forward_event use this clock (LIBERO-MAX's policy_step excludes warm-up)  [A4]
+  steps[t].obs_state, as LiberoEnv writes today:
+     eef_pos, eef_quat, gripper_qpos, gripper_qvel, joint_pos, joint_vel,
+     _gt_object_pos (BDDL objects), _gt_scene_object_pos (ALL movable bodies, live list),
+     _gt_eef_to_object, _gt_n_contacts
+     + _gt_goal_predicates: {"On(moka_pot_1,flat_stove_1_cook_region)": false, ...}   // every step
+     + _gt_held: [...]                                           // robosuite _check_grasp per movable
+  steps[t].action (7, env units); steps[t].policy_query: null | {"forward": k, "source": "model" | "control_replay",
+     "instruction_given": "..."}
+  fingerprint: + {"mujoco", "robosuite", "libero_max_commit", "checkpoint", "checkpoint_revision" (HF sha), "H", "Q"}
+per-arm npz (predictions):
+  act_P (F_model×H×7, normalised): rows for MODEL forwards only                                     [A6]
+  forward_source (F_model), forward_env_steps (F_model, steps[] index, row-aligned with act_P),     [A6]
+  query_seed (F_model; LIBERO-MAX reseeds with seed + policy_step), noise keys; act_B if multi-draw  [A6]
+per-arm npz (frames), uint8:                                                                        [A7]
+  the frames the POLICY saw (post-flip, as passed to the policy), agent + wrist, at every policy query;
+  360 px at t_event ± 1 and at grasp-onset queries, 256 px elsewhere;
+  per frame: t, camera, px (resolution recorded per frame), reason ("query" | "event" | "grasp_onset")</pre>
+<p>Why these fields:</p>
+<ul>
+<li><code>_gt_goal_predicates</code> means no analysis re-implements a predicate (the 10-12 <code>check_ontop</code> bug class).</li>
+<li><code>forward_env_steps</code> and <code>H</code>/<code>Q</code> remove the hard-coded 16.</li>
+<li>Stored policy-view frames remove the replay that broke E7 twice.</li>
+<li>impl2's amendments, in order:
+  <ul>
+    <li>[A1] the case key is unique across Lite's 598 Plus/PRO variants;</li>
+    <li>[A2] camera, noise, lighting and theme events have no object, and <code>distractor_burst</code> inserts five;</li>
+    <li>[A3] an unreached trigger stays in the denominator, and stale-action exposure is reported separately;</li>
+    <li>[A4] there is one clock;</li>
+    <li>[A5] the Dynamic arm runs in a fresh env, and identical actions don't prove identical sim or renders (R-060);</li>
+    <li>[A6] control-replay queries make no prediction;</li>
+    <li>[A7] PNG at 360 px would be about 10–20 GB for Lite.</li>
+  </ul></li>
+</ul>
+
+<h2>6 · Effort and order</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Piece</th><th>Effort</th><th>Notes</th></tr>
+<tr><td>0</td><td>Per-task configs for the 40 tasks (BDDL-derived plus a hand check); loader; fits file layout</td><td class="eff">1.5 d</td><td>Needed by everything below</td></tr>
+<tr><td>0</td><td>Format agreed with impl2 (10-14, §5); a converter or validator from their trace to schema v3 (rows above)</td><td class="eff">1–1.5 d</td><td>Field additions on impl2's side are theirs to estimate</td></tr>
+<tr><td>1</td><td>R-059 scorers + E1 (part A) config-driven (H, Q, clusters, f_c, bandwidth refit)</td><td class="eff">1–1.5 d</td><td>+0.5–2 d for the multi-draw wrapper if the checkpoint is Isaac-GR00T</td></tr>
+<tr><td>2</td><td>E2 with the Base arm as the nominal; E3 refit</td><td class="eff">1.5 d</td><td></td></tr>
+<tr><td>3</td><td>E7 (generic predicates and questions, phrase map, saved frames) + hand-review generator</td><td class="eff">2.5–3.5 d</td><td>E7 as it stands is not usable as a state reader (10-13); porting it waits on the user's E7 decision</td></tr>
+<tr><td>4</td><td>E4, E6 (multi-suite demos, segmenter target override)</td><td class="eff">1.5 d</td><td>+ raw HDF5 download</td></tr>
+<tr><td>5</td><td>Mining-spec rules: templates for in / articulate / push, multi-stage roots, event-relative root, per-suite fits</td><td class="eff">3–5 d</td><td>v1 scopes other suites out; this would be v1.1 and needs the user's go</td></tr>
+<tr><td></td><td><b>Total</b></td><td class="eff">≈ 13–19 d</td><td><span class="tag">I</span> CPU work only. Excludes the GPU runs, val checks (each new number-producing script needs a PASS) and fetching the other three checkpoints.</td></tr>
+</table></div>
+
+<h2>7 · Open points</h2>
+<ul>
+<li><b>Checkpoint and Q.</b> If we run LIBERO-MAX with our lerobot checkpoints at Q = 16, it is not the paper's setting (Q = 8). If we use Isaac-GR00T's, the multi-draw wrapper must be redone. Which one the paper used is not settled. It has to be read from LIBERO-MAX's result artefacts.</li>
+<li><b>Spatial step cap:</b> LIBERO-MAX says 220 and we use 280. To compare with the published 69.3 / 50.0, use theirs.</li>
+<li><b>Base arm is perturbed.</b> Calibration sets ("successes still running", the bandwidth pool) come from the Base arm. They are not nominal, unlike R-047's radius 0.</li>
+<li><b>MuJoCo 3.2.6 vs 3.3.2.</b> Every frozen fit is re-derived, not carried over.</li>
+<li>Nothing here has been run or changed. Every code change listed waits for the user's approval.</li>
+</ul>
+</main>
+</body>
+</html>

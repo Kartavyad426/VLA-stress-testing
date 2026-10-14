@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-to-Sim Scenes</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--ok:#2d6a3e;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:960px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--ok);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+pre{background:var(--card);padding:10px;overflow-x:auto;font-size:.85rem}
+a{color:var(--accent)}
+.v{font-size:.72rem;color:var(--ok);font-weight:700}
+.i{font-size:.72rem;color:var(--warn);font-weight:700}
+</style>
+</head>
+<body><main>
+<h1>Real-to-Sim Scenes: a few RGB frames → a physics-ready scene for training rollouts</h1>
+<p class="meta">2026-10-14 · session res31, brief from prim (user's scope) · outline approved by the user 10-14 · survey + test design · nothing run yet</p>
+<div class="status"><b>Status:</b> survey and test design. No code has been written or run. Tags: <span class="v">[V]</span> = I read it in the paper, abstract, README or licence file (for papers, that means "the authors claim", not "independently reproduced"). <span class="i">[I]</span> = my inference or prior knowledge, not checked this session. All 2026 arXiv systems below are preprints. The user's scope update (10-14): <b>any simulator is fine</b>; the target is accurate simulated rollout videos. Prefer something that runs locally on the 8 GB card, and report heavy-compute options too, so a weaker local scene can be shown before asking for more compute.</div>
+
+<h2>0 · Verdict</h2>
+<div class="verdict">
+<p><b>Your pipeline (detect → mesh → scale/pose → physics) is the right backbone, and it is now what the field converged on.</b> The newest single-image systems (RoboSnap 2607.06699, DEXTERA 2609.21045, SimuScene 2606.03994) are all that pipeline plus two things you didn't list: <b>(1) a physics "settling" refinement step</b>, and <b>(2) a splat or generated background for appearance</b>. <span class="v">[V]</span></p>
+<p><b>Your worry is correct, and it is the main failure.</b> Single-view meshes are not physics-ready out of the box. A BMVC 2026 benchmark of 13 methods found that all single-object methods produce meshes in collision in most scenes, and that "the reconstructed meshes would be largely unusable for physics simulation without significant, non-trivial postprocessing" (2505.17966) <span class="v">[V]</span>. In RoboSnap's own ablation, 43% of objects fall without the refinement step and 10% with it <span class="v">[V]</span>. The fix is known: convex decomposition plus pose and shape refinement in a physics loop. It is engineering, not research.</p>
+<p><b>Retrieval beats generation where it can be used</b>, especially for anything with joints. A retrieved asset arrives with clean collision hulls, real scale and (for articulated assets) correct joints. Generation is the fallback for objects not in the library. Locally we already have a library: <b>LIBERO-Plus ships 1,125 MuJoCo object models with convex collision hulls already built</b> (<code>third_party/LIBERO-plus/libero/libero/assets/new_objects</code>) <span class="v">[V]</span>.</p>
+<p><b>Monocular metric scale is good enough to start, not good enough to trust.</b> Expect errors of a few percent to ~10% of the distance <span class="i">[I]</span>. For grasping, a few cm can decide success. The CPU test (§7) measures exactly how much error a LIBERO demo tolerates.</p>
+<p><b>Mass and friction cannot be seen.</b> Everyone uses VLM or material-table priors (RoboSnap says so in its limitations <span class="v">[V]</span>). Only interaction (a robot, or a human video with known forces) identifies them. For quasi-static pick-and-place under position control this matters less than geometry <span class="i">[I]</span>. The CPU test includes a sensitivity check.</p>
+<p><b>What to try locally (8 GB):</b> Grounded-SAM-2 (masks) + MoGe-2 (metric depth, MIT) + retrieval from the LIBERO-Plus library, with Hunyuan3D-2mini (6 GB, shape only) or TripoSG (8 GB, MIT) as the generation fallback + CoACD (MIT) + a physics-settle step + MuJoCo or ManiSkill. That fits on our card if run one model at a time <span class="i">[I]</span>. <b>Heavy-compute upgrade:</b> SAM 3D Objects (needs ≥32 GB VRAM <span class="v">[V]</span>) + Isaac Sim (≥16 GB, RTX 4080-class minimum <span class="v">[V]</span>) + a splat background, i.e. the RoboSnap stack.</p>
+<p><b>Splats alone don't give physics. Video world models don't give actions you can trust. Deformables from monocular RGB are not feasible yet.</b> (§3, §6.)</p>
+</div>
+
+<h2>1 · What "good enough" means for training rollouts</h2>
+<p>A rollout video is accurate if it is right on two separate axes. Approaches differ on which one they buy.</p>
+<div class="tw"><table>
+<tr><th>Axis</th><th>Requirement</th><th>Training data needs</th><th>Evaluation twin needs</th></tr>
+<tr><td rowspan="5"><b>Motion</b> (contact, dynamics)</td><td>Collision geometry: watertight, convex-decomposed, no interpenetration at t=0</td><td>Must have. Bad hulls give impossible grasps.</td><td>Must have.</td></tr>
+<tr><td>Metric scale and resting pose</td><td>Plausible: within the policy's tolerance. Randomisation covers the rest.</td><td>Matched to the real scene, or the success rate is off.</td></tr>
+<tr><td>Stability (objects stay put when nothing touches them)</td><td>Must have</td><td>Must have</td></tr>
+<tr><td>Mass, friction, inertia</td><td>Plausible range; randomise</td><td>Matched, if the task involves sliding, pushing or heavy objects</td></tr>
+<tr><td>Articulation (joint type, axis, limits, damping)</td><td>Correct type and axis; limits approximate</td><td>Matched</td></tr>
+<tr><td><b>Appearance</b></td><td>Textures, lighting, background, camera</td><td>Plausible; randomisation helps (ACDC: "cousins" beat exact twins, 90% vs 25% zero-shot <span class="v">[V]</span>)</td><td>Close match. SIMPLER/PolaRiS show it drives sim–real correlation (see REAL_SIM_PAIRED_DATA)</td></tr>
+</table></div>
+<p><b>The key asymmetry:</b> for training data, "plausible plus randomised" is enough, and that is cheaper than "matched". ACDC's result is the evidence: training on several digital cousins (similar, not identical, scenes) transferred better than training on the one exact twin <span class="v">[V]</span>. Evaluation needs matching. Training data doesn't.</p>
+
+<h2>2 · Your pipeline, stage by stage</h2>
+<div class="tw"><table>
+<tr><th>Stage</th><th>Best open option (local)</th><th>How good</th><th>Main failure</th></tr>
+<tr><td><b>2a Detect + segment</b></td><td>Grounded-SAM-2 (Apache-2.0) <span class="v">[V]</span>; SAM 3 (SAM License) <span class="v">[V]</span></td><td>Essentially solved for tabletop objects <span class="i">[I]</span></td><td>Occluded and thin objects; a mask cut off at an occlusion produces a cut-off mesh</td></tr>
+<tr><td><b>2b Mesh: retrieve</b></td><td>LIBERO-Plus library (1,125 MJCF objects with collision hulls) <span class="v">[V]</span>; GSO, YCB, Objaverse, PartNet-Mobility (§5)</td><td>Physics-clean by construction; shape is a "cousin", not exact</td><td>Shape mismatch (a different bowl). Needs a good retrieval key (CLIP/SigLIP + mask silhouette + rough size).</td></tr>
+<tr><td><b>2b Mesh: generate</b></td><td>Hunyuan3D-2mini: 6 GB for shape, 16 GB with texture <span class="v">[V]</span>; TripoSG: ≥8 GB, MIT <span class="v">[V]</span>; TRELLIS needs ≥16 GB, TRELLIS.2 ≥24 GB <span class="v">[V]</span>; SAM 3D Objects ≥32 GB <span class="v">[V]</span></td><td>~5 mm surface error on YCB; only about half of grasps transfer to the true mesh (2505.17966) <span class="v">[V]</span></td><td>Collisions at initialisation in most scenes; unstable resting poses; invented back faces; no scale. Scene-level models (SAM 3D, MIDI) handle occlusion far better: Chamfer error rises ≤10% in occluded regions vs 40–105% for single-object models <span class="v">[V]</span>.</td></tr>
+<tr><td><b>2c Collision</b></td><td>CoACD (MIT) <span class="v">[V]</span>; V-HACD (RoboSnap uses it <span class="v">[V]</span>); MuJoCo uses convex hulls per geom</td><td>Mature</td><td>A non-watertight generated mesh gives bad hulls. Thin walls (bowls, cups) need a fine decomposition or a hand-written primitive collision model.</td></tr>
+<tr><td><b>2d Metric scale + pose</b></td><td>MoGe-2 (MIT; 35M/104M/331M params, metric) <span class="v">[V]</span>; MoGe-3 (released 2026-08, metric) <span class="v">[V]</span>; Depth Anything 3: DA3METRIC-LARGE Apache-2.0, the bigger any-view models CC BY-NC 4.0 <span class="v">[V]</span>; then ICP/registration of the mesh to the masked points</td><td>Good relative geometry; metric scale from one global factor (MoGe-2) <span class="v">[V]</span>. A known FOV improves it <span class="v">[V]</span> (README).</td><td>A global scale error moves every object and resizes the scene relative to the robot, which is always real size. Single-view ICP sees only the front surface, so yaw is ambiguous for symmetric objects.</td></tr>
+<tr><td><b>2e Mass, friction, inertia</b></td><td>VLM or material priors (RoboSnap, DEXTERA do this <span class="v">[V]</span>); PhysXNet-style density annotations (PhysX-3D 2507.12465) <span class="v">[V]</span>; inertia from mesh + density</td><td>Order-of-magnitude</td><td>Not observable from images. Identification needs interaction: scalable-real2sim does it with a robot <span class="v">[V]</span>.</td></tr>
+<tr><td><b>2f Articulation</b></td><td>Retrieval with category-level kinematics (RoboSnap: P3-SAM parts + kinematics from an articulated dataset <span class="v">[V]</span>); URDFormer (MIT) <span class="v">[V]</span>; Articulate-Anything (no licence file) <span class="v">[V]</span>; PhysX-Anything (S-Lab licence, non-commercial <span class="i">[I]</span>) <span class="v">[V]</span>; URDF-Anything+, SIMART, Articraft (2026 preprints) <span class="v">[V]</span></td><td>Joint type and axis: usable for common furniture <span class="i">[I]</span></td><td>Hidden interiors (drawer depth), joint limits and damping are guesses. Single-image regression tends to trade off geometric fidelity (SIMART's own framing) <span class="v">[V]</span>.</td></tr>
+<tr><td><b>2g Scene assembly (the step you didn't list)</b></td><td>Physics-in-the-loop refinement: settle under gravity, fix penetration and support, re-fit (RoboSnap §3.2; SimuScene) <span class="v">[V]</span></td><td>RoboSnap: falling 0.43→0.10, collision 0.30→0.03, mean displacement 0.31 m→0.05 m (10 DROID scenes) <span class="v">[V]</span></td><td>Without it, scenes collapse: objects interpenetrate, hover or sink (SimuScene's motivation) <span class="v">[V]</span></td></tr>
+</table></div>
+<p><b>Does metric scale matter for physics?</b> Yes, through the robot. Gravity, the gripper and the arm's reach are real size. Shrink a bowl by 10% and the grasp height and closing width change. Move it by 3 cm and an open-loop demo misses <span class="i">[I]</span>. How much it matters for <i>generated</i> demos is a different question. If demos are planned in the reconstructed scene (DMP/planner), scale errors cancel inside the sim and only hurt transfer back to the real scene. §7 measures both.</p>
+
+<h2>3 · The alternatives, compared</h2>
+<div class="tw"><table>
+<tr><th>Approach</th><th>Input</th><th>Physics</th><th>Articulation</th><th>Appearance</th><th>Code / licence</th><th>Compute</th><th>Evidence</th></tr>
+<tr><td><b>Your pipeline, retrieval-first</b> (ACDC, URDFormer, RialTo family)</td><td>1 image (ACDC), or a scan/video (RialTo)</td><td>Yes: clean assets</td><td>Yes, from the asset library</td><td>Asset textures; not photoreal</td><td>ACDC Apache-2.0, but needs OmniGibson + BEHAVIOR assets, "recommended 24+ GB" <span class="v">[V]</span>; URDFormer MIT <span class="v">[V]</span></td><td>ACDC ≥24 GB recommended <span class="v">[V]</span></td><td>ACDC: 90% zero-shot sim-to-real for cousins vs 25% for twins (CoRL 2024) <span class="v">[V]</span>. RialTo: +67% robustness via RL in the twin (RSS 2024) <span class="v">[V]</span>.</td></tr>
+<tr><td><b>Your pipeline, generation-first + refinement</b> (RoboSnap, SimuScene, DEXTERA)</td><td>1 RGB image</td><td>Yes, after refinement; V-HACD hulls; mass/friction from VLM <span class="v">[V]</span></td><td>RoboSnap: yes (parts + category kinematics) <span class="v">[V]</span></td><td>Splat background (RoboSnap, DEXTERA) <span class="v">[V]</span></td><td>RoboSnap: project page, release not confirmed <span class="v">[V]</span>; DEXTERA, SimuScene: not confirmed</td><td>SAM 3D ≥32 GB + Isaac ≥16 GB <span class="v">[V]</span></td><td>RoboSnap: trajectory replay 5/5 vs 2/5 (RoLA); real co-training π0.5 32.7→41.7; sim–real r = 0.887 <span class="v">[V]</span>. DEXTERA: co-training 29.2%→61.9% <span class="v">[V]</span>.</td></tr>
+<tr><td><b>Gaussian splatting only</b></td><td>Multi-view scan / video</td><td><b>No.</b> R2R2R turns collisions off <span class="v">[V]</span>.</td><td>R2R2R tracks parts kinematically <span class="v">[V]</span></td><td>Photoreal</td><td>gsplat Apache-2.0 <span class="v">[V]</span></td><td>Splat training fits 8 GB for small scenes <span class="i">[I]</span></td><td>R2R2R: 1 human demo + scan ≈ 150 teleop demos <span class="v">[V]</span>. Kinematic replay, so no contact dynamics.</td></tr>
+<tr><td><b>Hybrid: splat appearance + mesh collision</b> (RoboGSim, Re3Sim, GSWorld, φ-RIE, PolaRiS)</td><td>Multi-view scan</td><td>Yes, via proxy meshes</td><td>Limited</td><td>Photoreal</td><td>Mixed; check each</td><td>Usually Isaac/SAPIEN-class GPU <span class="i">[I]</span></td><td>φ-RIE: matched F1@20 mm 0.336→0.383 on 50 ScanNet++ scenes <span class="v">[V]</span>. PolaRiS r≈0.9 for evaluation (prior doc).</td></tr>
+<tr><td><b>Physics-parameter ID</b> (scalable-real2sim)</td><td>A <b>robot</b> doing pick-and-place + cameras</td><td>Identified mass, inertia, friction</td><td>No</td><td>Frosting / Nerfstudio</td><td>MIT <span class="v">[V]</span>; needs MOSEK, BundleSDF, COLMAP; robot-specific <span class="v">[V]</span></td><td>Heavy setup</td><td>The only open pipeline that identifies physics. Needs a real robot, which we don't have (BRAINSTORM §1.3).</td></tr>
+<tr><td><b>Video-agent loop</b> (Agentic RSR 2610.10479)</td><td>Workspace video + known robot</td><td>MuJoCo <span class="v">[V]</span></td><td>?</td><td>?</td><td>"Will be made publicly available" <span class="v">[V]</span></td><td>?</td><td>18/18 scenes pass the visual check; depth MAE 0.081 m; real success = 80% of sim success <span class="v">[V]</span></td></tr>
+<tr><td><b>Video world model as the simulator</b> (Cosmos-Predict2.5, WorldGym, DreamGen)</td><td>Start frame(s) + actions or text</td><td><b>None explicit</b>; learned, can drift</td><td>Implicit</td><td>Photoreal</td><td>Cosmos code Apache-2.0, weights NVIDIA Open Model License <span class="v">[V]</span></td><td>Predict2 2B ≈ 32.5 GB (2.5 not found) <span class="v">[V]</span>; DreamGen ~54 h × 1,500 L40s (ROOT_TO_GOAL doc)</td><td>WorldGym (ICLR 2026) preserves policy rankings, but under-/overestimates values <span class="v">[V]</span>. For training data, the actions come from an IDM, not physics.</td></tr>
+</table></div>
+<h3>3b · Simulators and renderers</h3>
+<div class="tw"><table>
+<tr><th>Sim</th><th>Fits 8 GB?</th><th>Rendering</th><th>Articulation / deformables</th><th>Notes</th></tr>
+<tr><td>MuJoCo (+ MJX/Warp)</td><td>Yes (our stack)</td><td>Basic rasteriser; photoreal only via an external render pass (Blender/splat) <span class="i">[I]</span></td><td>Good articulation; flex/composite for cloth <span class="i">[I]</span></td><td>Zero setup; LIBERO ground truth lives here.</td></tr>
+<tr><td>ManiSkill3 / SAPIEN</td><td>Yes, likely <span class="i">[I]</span></td><td>Better rasteriser + optional ray tracing <span class="i">[I]</span></td><td>PartNet-Mobility native <span class="i">[I]</span></td><td>The SIMPLER lineage; GPU-parallel.</td></tr>
+<tr><td>Genesis</td><td>Likely <span class="i">[I]</span></td><td>Ray-traced option <span class="i">[I]</span></td><td>Rigid, MPM, SPH, PBD (cloth, liquids) <span class="i">[I]</span></td><td>The only one with liquids built in <span class="i">[I]</span>; younger.</td></tr>
+<tr><td>Isaac Sim / Lab</td><td><b>No</b>: RTX 4080, 16 GB minimum; 32 GB system RAM <span class="v">[V]</span></td><td>RTX path tracing</td><td>Good; deformables via PhysX</td><td>Isaac Lab BSD-3 <span class="v">[V]</span>. What RoboSnap and R2R2R use <span class="v">[V]</span>. Our machine has 30 GB RAM <span class="v">[V]</span>.</td></tr>
+</table></div>
+
+<h2>4 · Inputs</h2>
+<ul>
+<li><b>A few monocular frames.</b> Enough for rigid objects with retrieval plus refinement (RoboSnap and ACDC use one image <span class="v">[V]</span>). The back faces and hidden interiors are invented.</li>
+<li><b>Human video is strictly better than a few frames.</b> It adds (1) <b>multiple views</b>: Depth Anything 3 and VGGT estimate camera pose plus depth from many views <span class="v">[V]</span>, which steadies metric scale; (2) <b>object motion</b>: tracked part motion gives articulation axes and limits (R2R2R does this <span class="v">[V]</span>); (3) <b>hand–object contact</b>: tools like RoboWheel and HA-HOI turn monocular HOI video into physically plausible object trajectories <span class="v">[V]</span> (abstract level). It still does not give mass or friction.</li>
+<li><b>Teleop logs: your scepticism is mostly right.</b> They help only in three cases: (a) the log's cameras see the scene, so they are extra views for reconstruction; (b) the log has joint torques or gripper width, which constrain object size and mass (system ID, as in scalable-real2sim <span class="v">[V]</span>); (c) as a <b>validation</b> set: replay the logged trajectory in the reconstructed scene and check that it still succeeds (RoboSnap's trajectory-replay metric <span class="v">[V]</span>). Without visible scene or force data, they add nothing to the reconstruction.</li>
+<li><b>No depth camera.</b> Fine for a start. A known camera FOV (intrinsics) is the cheapest accuracy boost (MoGe takes it as an input <span class="v">[V]</span>).</li>
+</ul>
+
+<h2>5 · Open resources (open source first)</h2>
+<div class="tw"><table>
+<tr><th>Resource</th><th>What</th><th>Licence</th><th>Use</th></tr>
+<tr><td>LIBERO-Plus <code>new_objects</code></td><td>1,125 object instances in ~416 categories, MJCF with convex collision meshes and PBR textures, <b>already on disk</b> <span class="v">[V]</span></td><td>Not stated in the README; the asset IDs look like BEHAVIOR-1K's <span class="i">[I]</span>. Check before any commercial use.</td><td>Local retrieval library; test bed</td></tr>
+<tr><td>LIBERO assets (scanned, HOPE, turbosquid, 19 articulated)</td><td>The true assets of LIBERO scenes <span class="v">[V]</span></td><td>LIBERO repo MIT <span class="i">[I]</span>; meshes from various sources</td><td>Ground truth for §7</td></tr>
+<tr><td>YCB, Google Scanned Objects (GSO)</td><td>Scanned household objects</td><td>CC BY 4.0 <span class="i">[I]</span></td><td>Retrieval; physics-clean after decomposition</td></tr>
+<tr><td>Objaverse / Objaverse-XL</td><td>800K / 10M meshes</td><td>Per-object Creative Commons <span class="i">[I]</span></td><td>Retrieval at scale; quality varies, filter needed</td></tr>
+<tr><td>PartNet-Mobility (SAPIEN)</td><td>~2.3K articulated objects with URDF <span class="i">[I]</span></td><td>Non-commercial research terms <span class="i">[I]</span></td><td>Articulation retrieval</td></tr>
+<tr><td>PhysXNet (PhysX-3D)</td><td>Assets annotated with scale, material (density, Young's modulus), kinematics <span class="v">[V]</span></td><td>Not stated <span class="v">[V]</span></td><td>Mass priors</td></tr>
+<tr><td>DROID-Sim (RoboSnap)</td><td>564 real DROID scenes rebuilt in sim <span class="v">[V]</span></td><td>Release not confirmed</td><td>The only large real↔sim scene-pair set found</td></tr>
+<tr><td>PolaRiS, SIMPLER</td><td>Real↔sim paired evaluation</td><td>See REAL_SIM_PAIRED_DATA.md</td><td>Evaluation-twin validation</td></tr>
+<tr><td>DexYCB, HO3D, HOI4D</td><td>Human hand–object RGB-D video with object meshes/poses <span class="i">[I]</span></td><td>Mixed, mostly non-commercial <span class="i">[I]</span></td><td>Test bed for the human-video path (true depth available to score monocular estimates)</td></tr>
+<tr><td>Code: MoGe (MIT), Depth Anything 3 (Apache for Small/Base/Metric), Grounded-SAM-2 (Apache), CoACD (MIT), TripoSG (MIT), TRELLIS/TRELLIS.2 (MIT), Hunyuan3D-2 (Tencent community licence, <b>not valid in the EU, UK or South Korea</b>), SAM 3 / SAM 3D (SAM License), URDFormer (MIT), digital-cousins (Apache), scalable-real2sim (MIT) <span class="v">[V]</span></td><td colspan="3">All licences checked against the GitHub API or the LICENSE/README this session.</td></tr>
+</table></div>
+
+<h2>6 · Deformables (cloth, liquids)</h2>
+<ul>
+<li><b>Verdict: not feasible from monocular RGB today; feasible only with multi-view RGB-D and a dedicated simulator.</b></li>
+<li>PhysTwin (ICCV 2025) is the best open result: spring-mass physics + Gaussian rendering for ropes, cloth, plush toys. It needs <b>three RGB-D views</b> of the object being manipulated <span class="v">[V]</span>. A follow-up uses it for policy evaluation with real–sim correlation on soft bodies (2511.04665) <span class="v">[V]</span>.</li>
+<li>I found no monocular, physics-parameterised cloth real-to-sim method. 2026 monocular cloth work is avatar animation, not simulation <span class="v">[V]</span> (search level).</li>
+<li>Liquids: no real-to-sim method found. Genesis (SPH/MPM) can simulate them, but parameters would be hand-set <span class="i">[I]</span>.</li>
+<li>For training data, procedural deformables (generated cloth in MuJoCo flex or Genesis) are a more realistic route than reconstructing them <span class="i">[I]</span>.</li>
+</ul>
+
+<h2>7 · CPU feasibility test on LIBERO (design; not run)</h2>
+<p><b>Why LIBERO:</b> we know the true scene (meshes, poses, physics), so every reconstruction error can be measured, and the demos give a success check. <b>Question:</b> how much reconstruction error can a LIBERO demo tolerate, and does monocular depth plus mesh fitting land inside that tolerance?</p>
+<h3>7.0 · Prerequisite: replay check (also answers the open D22 item)</h3>
+<p>Set the env to a demo's <code>states[0]</code> and replay its actions open-loop. Nobody has checked yet whether D22 demos replay (HANDOFF_8Oct §5). If replay fails at true state, open-loop replay can't be the success measure, and I fall back to a scripted pick-and-place driven by object poses.</p>
+<h3>7.1 · Conditions</h3>
+<div class="tw"><table>
+<tr><th>Cond.</th><th>Depth</th><th>Masks</th><th>Mesh</th><th>Isolates</th></tr>
+<tr><td>N (calibration)</td><td colspan="3">True scene, with known noise added to object poses: 0.5, 1, 2, 3, 5 cm and 5/15/30° yaw</td><td>Tolerance curve: success vs pose error</td></tr>
+<tr><td>C0</td><td>True (MuJoCo depth render)</td><td>True (MuJoCo segmentation)</td><td>True</td><td>Pipeline sanity; the fitting step's own error</td></tr>
+<tr><td>C1</td><td>MoGe-2 ViT-S/B (CPU), known FOV</td><td>True</td><td>True</td><td>Monocular depth error alone</td></tr>
+<tr><td>C1u</td><td>Same, FOV estimated</td><td>True</td><td>True</td><td>Cost of not knowing the camera</td></tr>
+<tr><td>C2</td><td>MoGe-2</td><td>True</td><td>Retrieved cousin: same category from the LIBERO-Plus library, true asset held out, scale fitted</td><td>Digital-cousin case</td></tr>
+<tr><td>M (physics)</td><td colspan="3">True geometry; mass and friction ×0.5 / ×2</td><td>How much the unseen parameters matter</td></tr>
+<tr><td>C3 (GPU, ask first)</td><td>MoGe-2</td><td>True</td><td>Generated (Hunyuan3D-2mini / TripoSG)</td><td>Generation vs retrieval</td></tr>
+</table></div>
+<p>True masks are used on purpose: detection is solved enough (§2a), and this keeps the test about geometry.</p>
+<h3>7.2 · Method</h3>
+<ol>
+<li>5 LIBERO-Spatial tasks × 3 demos each. Render agentview RGB, depth and segmentation at the demo's <code>states[0]</code>, plus camera intrinsics and extrinsics.</li>
+<li>Back-project masked pixels to points. Fit the table plane (RANSAC). Register each mesh to its points: ICP with gravity prior (upright, resting on the table); scale fitted only in C2.</li>
+<li>Write the estimated poses into the env (and, for C2, swap in the cousin mesh). Settle 2 s under gravity.</li>
+<li>Replay the demo (or the scripted fallback).</li>
+</ol>
+<h3>7.3 · Scores</h3>
+<ul>
+<li>Position error (cm), yaw error (°), scale error (%) per object.</li>
+<li>Stability: displacement during settling; interpenetration depth at t=0.</li>
+<li><b>Success of the replayed demo</b> (the number that matters for training data), read against the N tolerance curve.</li>
+<li>Image match: PSNR/SSIM of the rebuilt scene's first frame against the original.</li>
+</ul>
+<h3>7.4 · Cost and dependencies</h3>
+<p>A new venv <code>.venvs/real2sim</code> with MoGe (MIT, CPU inference), trimesh, Open3D (or scipy ICP), CoACD. The MoGe-2 ViT-S weights are about 35M params <span class="v">[V]</span>. LIBERO itself runs from the existing <code>libero-plus</code> venv. Expected runtime: minutes on CPU <span class="i">[I]</span>. Results get tagged UNVERIFIED until val checks them (PIPELINE_CHECKS rule).</p>
+
+<h2>8 · Recommendation</h2>
+<ol>
+<li><b>Now (CPU, after you approve the code):</b> run §7. It tells us the pose tolerance of LIBERO demos and whether MoGe-2 + retrieval lands inside it. That decides whether monocular input is enough.</li>
+<li><b>Then, the "weaker local scene" for your compute ask (8 GB GPU, with your permission):</b> one real photo of a tabletop (a phone photo is fine) → Grounded-SAM-2 → MoGe-2 → retrieval from the LIBERO-Plus library (SigLIP/CLIP match), Hunyuan3D-2mini/TripoSG as fallback → CoACD → physics settle → a Panda in MuJoCo running a scripted grasp or DMP demo → video. Side-by-side with the photo. That is the demo to show.</li>
+<li><b>With more compute (≥32 GB GPU):</b> the RoboSnap stack. SAM 3 + SAM 3D Objects (scene-level, handles occlusion) + VGGT/DA3 + refinement + Isaac Sim + a splat background. Photoreal, articulated, published sim–real correlation r = 0.887 <span class="v">[V]</span>. Check whether RoboSnap's code is out first.</li>
+<li><b>Not recommended now:</b> world models as the data generator (no physics, no trustworthy actions; costly), splat-only twins (no contact), deformables.</li>
+</ol>
+
+<h2>9 · Unverified</h2>
+<ul>
+<li>8 GB fit of the local pipeline end to end (each model run separately should fit; not tested).</li>
+<li>ManiSkill3 and Genesis memory on our card; their licences (GitHub lookup failed this session).</li>
+<li>Licences of YCB, GSO, Objaverse, PartNet-Mobility, DexYCB/HO3D/HOI4D: from memory, not rechecked.</li>
+<li>LIBERO-Plus <code>new_objects</code> provenance and licence.</li>
+<li>Code releases of RoboSnap, DEXTERA, SimuScene, Agentic RSR.</li>
+<li>Cosmos-Predict2.5 2B VRAM (only Predict2's ≈32.5 GB figure found).</li>
+<li>All 2026 paper numbers are author claims from preprints.</li>
+</ul>
+
+<h2>Sources</h2>
+<ul>
+<li>RoboSnap <a href="https://arxiv.org/abs/2607.06699">2607.06699</a> (full HTML read) · SimuScene <a href="https://arxiv.org/abs/2606.03994">2606.03994</a> · DEXTERA <a href="https://arxiv.org/abs/2609.21045">2609.21045</a> · Agentic RSR <a href="https://arxiv.org/abs/2610.10479">2610.10479</a> · φ-RIE <a href="https://arxiv.org/abs/2609.26795">2609.26795</a> · R2S-EGO <a href="https://arxiv.org/abs/2608.06827">2608.06827</a> (not read)</li>
+<li>Is Single-View Mesh Reconstruction Ready for Robotics? <a href="https://arxiv.org/abs/2505.17966">2505.17966</a> (BMVC 2026, full HTML read)</li>
+<li>ACDC <a href="https://arxiv.org/abs/2410.07408">2410.07408</a> · RialTo <a href="https://arxiv.org/abs/2403.03949">2403.03949</a> · Real2Render2Real <a href="https://arxiv.org/abs/2505.09601">2505.09601</a> · Scalable Real2Sim <a href="https://arxiv.org/abs/2503.00370">2503.00370</a></li>
+<li>URDF-Anything+ <a href="https://arxiv.org/abs/2603.14010">2603.14010</a> · PhysX-Anything <a href="https://arxiv.org/abs/2511.13648">2511.13648</a> · SIMART <a href="https://arxiv.org/abs/2603.23386">2603.23386</a> · Articraft <a href="https://arxiv.org/abs/2605.15187">2605.15187</a> · USDCraft <a href="https://arxiv.org/abs/2610.11322">2610.11322</a> · PhysX-3D <a href="https://arxiv.org/abs/2507.12465">2507.12465</a></li>
+<li>MoGe-2 <a href="https://arxiv.org/abs/2507.02546">2507.02546</a> · <a href="https://github.com/microsoft/MoGe">microsoft/MoGe</a> · <a href="https://github.com/ByteDance-Seed/Depth-Anything-3">Depth-Anything-3</a> · <a href="https://github.com/facebookresearch/sam-3d-objects">sam-3d-objects</a> · <a href="https://github.com/Tencent-Hunyuan/Hunyuan3D-2">Hunyuan3D-2</a> · <a href="https://github.com/VAST-AI-Research/TripoSG">TripoSG</a> · <a href="https://github.com/microsoft/TRELLIS">TRELLIS</a> · <a href="https://github.com/microsoft/TRELLIS.2">TRELLIS.2</a> · <a href="https://github.com/SarahWeiii/CoACD">CoACD</a></li>
+<li>PhysTwin <a href="https://arxiv.org/abs/2503.17973">2503.17973</a> · soft-body splat evaluation <a href="https://arxiv.org/abs/2511.04665">2511.04665</a> · WorldGym <a href="https://arxiv.org/abs/2506.00613">2506.00613</a> · RoboWheel <a href="https://arxiv.org/abs/2512.02729">2512.02729</a> · HA-HOI <a href="https://arxiv.org/abs/2605.14462">2605.14462</a></li>
+<li><a href="https://docs.isaacsim.omniverse.nvidia.com/5.1.0/installation/requirements.html">Isaac Sim 5.1 requirements</a> · <a href="https://docs.nvidia.com/cosmos/1.2.0/predict2/model_matrix.html">Cosmos Predict2 model matrix</a></li>
+<li>Prior internal docs: SIM_TO_REAL_TRANSFER.md §3, REAL_SIM_PAIRED_DATA.md §2.4, BRAINSTORM.html §1.2, ROOT_TO_GOAL_CORRECTIVE_DEMOS.html</li>
+</ul>
+</main></body></html>

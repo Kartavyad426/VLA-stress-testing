@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMP PoC Options</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec;--ok:#2e6b3a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d;--ok:#8fcf9a}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d;--ok:#8fcf9a}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.rec{background:var(--card);border-left:3px solid var(--ok);padding:6px 12px;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+</style>
+</head>
+<body><main>
+<h1>DMP corrective-data PoC: options, pros and cons</h1>
+<p class="meta">2026-10-14 · session impl21 · internal companion to <a href="DMP_POC_METHOD.html">DMP_POC_METHOD</a> · no code yet</p>
+<div class="status"><b>What this is:</b> for each decision (C1–C5) and each method choice in the main page, the options considered, their pros and cons, and my recommendation. Section numbers in brackets point to the main page. Nothing here has been run; the cost figures are my estimates.</div>
+
+<h2>0 · Recommendations at a glance</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Choice</th><th>Recommendation</th></tr>
+<tr><td>C1</td><td>Position DMP form</td><td>Hoffmann/Pastor 2009 as default; vector-wise scaling as an extra arm on the 4 scenarios (decided 10-14)</td></tr>
+<tr><td>C2</td><td>Success definition</td><td>Full-task success from the env's check (decided 10-14)</td></tr>
+<tr><td>C3</td><td>Step budget</td><td>200 steps after the root, uncapped (decided 10-14)</td></tr>
+<tr><td>C4</td><td>Root rules for the sweep</td><td>Reuse the existing exploratory rules, tagged UNVERIFIED (decided 10-14)</td></tr>
+<tr><td>C5</td><td>Scenarios</td><td>A–D as proposed (row 14 ×2, row 186, row 440 with 224 as backup) (decided 10-14)</td></tr>
+<tr><td>M1</td><td>Space</td><td>Cartesian EEF</td></tr>
+<tr><td>M2</td><td>Orientation</td><td>Rotation-vector DMP, quaternion DMP fallback above 60°</td></tr>
+<tr><td>M3</td><td>Gripper</td><td>Binary switch at segment ends, plus the demo's settle time</td></tr>
+<tr><td>M4</td><td>Join</td><td>Match position and velocity; measure jerk, don't match acceleration yet</td></tr>
+<tr><td>M5</td><td>Matching</td><td>Single frame + velocity, top-3, normalised state distance</td></tr>
+<tr><td>M6</td><td>Root restore</td><td>Replay logged actions on CPU, gated by a 1 mm check</td></tr>
+<tr><td>M7</td><td>Tracking</td><td>Closed-loop P on the reference with a fixed look-ahead</td></tr>
+<tr><td>M8</td><td>Baseline</td><td>Include the I-Gen-style linear bridge arm</td></tr>
+<tr><td>M9</td><td>Pilot shape</td><td>4 chosen scenarios + full 176-failure sweep, instead of a 20-root single-scene pilot</td></tr>
+<tr><td>M10</td><td>Coverage-gap threshold</td><td>95th percentile of leave-one-demo-out neighbour distances</td></tr>
+</table></div>
+
+<h2>C1 · Position DMP form [§1.2–1.3]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Hoffmann/Pastor 2009</b> (forcing term in absolute units, linear start→goal shift)</td><td>Cannot flip or overscale. Keeps the demo's shape at its real size (lift height, approach curve), which is what a correction should look like. Well known, simple to fit and test. Behaves predictably for far roots.</td><td>Does not adapt the shape to a longer or rotated start→goal vector: for a far root the shape is the demo's, plus a straight-line shift, which can look less natural than a scaled shape. Differs from the source design, so it needs the user's OK.</td></tr>
+<tr><td><b>b. Original Ijspeert 2013</b> (forcing term × (g − y₀) per axis)</td><td>The textbook form; scales the shape with the displacement.</td><td>Flips or blows up on axes where the demo's displacement is near zero (common at the end of the approach). Known failure mode; I would not use it.</td></tr>
+<tr><td><b>c. Vector-wise scaling</b> (rotate and scale f to the new displacement; source design S4)</td><td>No flip. Shape rotates with the new start→goal direction, so the motion looks "aimed".</td><td>Still scales the shape by ‖g−y₀‖/‖g_d−y_d,0‖: 2–3× for far roots, so lift heights and curvature stretch with it (Sidiropoulos &amp; Doulgeri 2024 report this overscaling). Rotation is ill-defined when the demo's displacement is short.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a) as default, (c) as an extra arm on the 4 scenarios (~20 lines). The comparison tells us whether scaling helps at far roots, with no extra build risk.</div>
+
+<h2>C2 · Success definition [§5.2]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Full-task success</b> (env's BDDL check: bowl on plate)</td><td>The same check as the eval; a kept episode is a real success. One rule for every root type. Nothing to define or validate.</td><td>A grasp root has to succeed at the place step too, so a good grasp correction can be lost to a bad place; yield is lower and mixes two causes.</td></tr>
+<tr><td><b>b. Per-segment predicate</b> (e.g. grasp.lift for grasp roots)</td><td>Isolates whether the correction of that phase worked. Higher yield, shorter rollouts.</td><td>Needs predicates per phase that are not validated (ROOT_IDENTIFICATION §4). A "successful" episode may still fail the task, so it is not usable training data as is.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a) for keep/reject. Also log whether the segment's own predicate was met, so a failure can be attributed to the grasp or the place without changing the bar.</div>
+
+<h2>C3 · Step budget [§5.1]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. 200 after the root, capped at the original 280</b></td><td>A kept episode is also a success under the eval's own limit, so it is consistent with how the policy is scored and directly usable as a full episode.</td><td>Late roots (e.g. B at t = 242) get only 38 steps, which is probably too few to re-place. B could fail for budget reasons, not method reasons.</td></tr>
+<tr><td><b>b. 200 after the root, no cap</b></td><td>Every root gets the same chance; the method is judged fairly across early and late roots.</td><td>Some kept episodes would be over 280 steps; fine for corrective segments (root→goal only), not for full-episode use.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation (changed after writing this out):</b> (b), uncapped, and log whether each kept episode would also fit inside 280. Training uses the root→goal segment anyway (I-Gen keeps only the post-mistake part), so the cap mostly penalises late roots like scenario B. <b>Decided (user, 10-14): (b), uncapped</b>; the main page is aligned.</div>
+
+<h2>C4 · Root rules for the sweep [§8]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Reuse the existing exploratory rules</b> (<code>poc_toy_instance.py</code> / UQ10 probe)</td><td>Available now; no wait. The PoC only needs a root <i>step</i> to restart from, not a validated label. Running both root rules gives two roots per failure, which covers the rule ambiguity.</td><td>Known weak spots: rules not unique (115/176 fire 2+ modes), blind spots (wrong object, pushing). The per-failure-type table inherits those labelling errors.</td></tr>
+<tr><td><b>b. Wait for MINING_SPEC_V1 rules</b></td><td>Better labels; the failure-type table would mean more. Shared code with the mining line.</td><td>Blocks the sweep on another session's schedule (v1 awaits the user's review and hand-labelled data).</td></tr>
+<tr><td><b>c. Hand-pick roots by watching episodes</b></td><td>Most accurate per root.</td><td>Does not scale to 176; needs renders (GPU).</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), with the failure-type table marked as resting on unvalidated labels. Swap in v1 rules later; the sweep is cheap to rerun.</div>
+<p><b>Decided (user, 10-14):</b> (a) for now; a more robust root-selection process is needed (main page UQ4).</p>
+
+<h2>C5 · Scenarios [§6]</h2>
+<div class="tw"><table>
+<tr><th>Scenario</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>A · row 14, slip t = 31</b></td><td>The mining-spec toy case, so both lines of work share one example. Near root: should work; if it doesn't, the method is broken.</td><td>Slip roots are muddled (partial lift), and row 14 is a retry-loop episode.</td></tr>
+<tr><td><b>B · row 14, off-target t = 242</b></td><td>The only segment-B (bowl in hand) case; tests plate-frame retargeting and the second root rule on the same rollout.</td><td>Late root: sensitive to the budget (C3). Restore by replaying 242 steps is the longest replay, so the most exposed to drift.</td></tr>
+<tr><td><b>C · row 186, clean miss</b></td><td>Unambiguous root (one attempt, nothing moves); mid distance (~14 cm).</td><td>Scene 1062 differs from A's scene, so scene and distance effects mix. Fine for a PoC.</td></tr>
+<tr><td><b>D · row 440, far miss</b> (backup 224)</td><td>Tests the far end where R-054 had ~0.2 yield; scene 1327 links to R-056's grasp regression.</td><td>The ~40 cm figure may be to the wrong bowl (1327 has two); confirmed in B1, else use 224 (~29 cm, scene 1090).</td></tr>
+<tr><td><b>Alternative: 3 scenarios, drop A</b></td><td>Saves ~10 executions (minutes).</td><td>Loses the link to the toy case; the saving is negligible.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> keep A–D. The marginal cost of each is minutes of CPU.</div>
+
+<h2>M1 · Cartesian vs joint space [§1.1]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Cartesian EEF</b></td><td>The recorded actions and the policy's actions are EEF deltas, so the reference maps straight to actions. Object-frame goals are natural. Independent of the arm's joint configuration, which is what R-047 perturbs.</td><td>Needs orientation handling (M2). Ignores the null space: the arm's posture may drift from the demos' (could cause joint limits at extreme start poses).</td></tr>
+<tr><td><b>b. Joint space</b></td><td>Orientation comes for free; no singularity issues in the DMP itself.</td><td>Needs IK for goals; demo joint shapes don't transfer when the start joints differ by 0.5 rad; actions would have to be converted back to EEF deltas anyway.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a). Log joint-limit hits so (b)'s one advantage is checked.</div>
+
+<h2>M2 · Orientation [§1.4]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Rotation-vector DMP relative to goal</b></td><td>Reuses the position DMP; easy to test and explain. Exact while rotations stay well below 180°, which LIBERO-Spatial's near top-down grasps satisfy.</td><td>Breaks down for large rotations (wrap-around near π). Not the method in the source design.</td></tr>
+<tr><td><b>b. Quaternion DMP</b> (Ude 2014 + 2019 correction)</td><td>Correct for any rotation; the source design's choice.</td><td>More to get right (the 2019 paper exists because the 2014 form oscillates); harder to unit-test.</td></tr>
+<tr><td><b>c. Hold orientation fixed at the goal</b></td><td>Simplest.</td><td>Throws away the demo's wrist motion; the result would not look like the demos.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), with a check of the largest rotation over all demos and roots; switch to (b) only if any exceeds 60°.</div>
+
+<h2>M3 · Gripper [§1.5]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Binary switch at segment ends + demo's settle time</b></td><td>Matches how the demos command it (±1 only). No extra model.</td><td>Timing is fixed to the reference reaching the segment end; if tracking lags, the gripper closes early relative to the actual pose.</td></tr>
+<tr><td><b>b. Close when the achieved pose is within a tolerance of the grasp goal</b></td><td>Robust to tracking lag.</td><td>Adds a tolerance to tune; departs from the demo's timing.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), and add (b)'s tolerance as a guard only if T2 shows tracking lag at the grasp point.</div>
+
+<h2>M4 · Join at the root [§3]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Position + velocity match (z₀ = τ·ẏ_root)</b></td><td>No jump in position or velocity; the res 10-14 addition. Honest: it is what the robot is doing at the root.</td><td>Acceleration still jumps; if the policy was moving the wrong way, the first few steps continue that motion.</td></tr>
+<tr><td><b>b. Start from rest (z₀ = 0)</b></td><td>Simplest; the DMP's native case.</td><td>Velocity jump at the join: a visible stop that the policy could learn.</td></tr>
+<tr><td><b>c. Also match acceleration (quintic blend)</b></td><td>Smoothest; removes the jerk spike.</td><td>~0.5 d extra; may not be needed.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), with (b) as a comparison arm on the scenarios; add (c) only if the jerk check fails often.</div>
+
+<h2>M5 · Demo matching [§4]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Single frame + velocity, normalised state distance, top-3</b></td><td>Cheap and simple; velocity carries most of the motion context. Uses privileged sim state, which we have.</td><td>Ignores clutter and longer motion context; may match a demo that was going somewhere else.</td></tr>
+<tr><td><b>b. 5–10 step window</b> (source design)</td><td>Captures direction of travel more robustly.</td><td>Slower, more parameters; the root's recent past is the policy's (off-distribution) motion, so matching it closely may not help.</td></tr>
+<tr><td><b>c. Learned embedding</b> (VINN-style)</td><td>Would work without privileged state (real data).</td><td>Needs training and validation; not needed in sim.</td></tr>
+<tr><td><b>Top-k: 1 vs 3 vs 5</b></td><td>k = 3 gives a yield per root with little cost.</td><td>k = 1 makes coverage noisy; k = 5 adds runs with weaker matches.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a) with k = 3; move to (b) only if the visual check shows wrong matches.</div>
+
+<h2>M6 · Root restore [§5.1]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Replay logged actions on CPU</b></td><td>No GPU, no policy, no new rollout. Exact if physics is deterministic.</td><td>Not proven yet; long replays (B: 242 steps) are the most exposed to drift. Depends on rebuilding the identical LIBERO-Plus env and start-pose perturbation.</td></tr>
+<tr><td><b>b. Re-run the policy with the same seeds</b></td><td>Also records full sim state for future use.</td><td>GPU through prim; render nondeterminism could change the policy's actions, so it may not reproduce the same failure.</td></tr>
+<tr><td><b>c. Set the state from logged joints + object poses</b></td><td>Instant; no replay.</td><td>Logs have no velocities of objects, no orientations of all objects, no contact state; an approximate state, especially bad with the bowl in hand (B).</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), gated by the 1 mm check; (c) as a fallback for grasp roots only if (a) drifts; (b) last.</div>
+
+<h2>M7 · Tracking controller [§5.1]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Closed-loop P on the reference, fixed look-ahead</b></td><td>Corrects drift; one parameter, tuned once in T2.</td><td>Actions are a function of tracking error, so their statistics may differ from human actions.</td></tr>
+<tr><td><b>b. Open-loop: reference differences as actions</b></td><td>Actions look like the demo's actions.</td><td>Drifts, especially after contact; lower yield.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a); report action statistics against the demos' so the difference is visible.</div>
+
+<h2>M8 · Linear-bridge baseline arm [§2.1]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. Include it</b></td><td>The only way to know the DMP adds anything over I-Gen's published method; same code path, small extra cost.</td><td>Doubles executions (still minutes to hours on CPU).</td></tr>
+<tr><td><b>b. Skip it</b></td><td>Slightly faster.</td><td>A positive result could not be attributed to the DMP.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a).</div>
+
+<h2>M9 · Pilot shape [§7]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. 4 chosen scenarios + full 176-failure sweep</b></td><td>Answers "most failures?" directly; CPU makes the sweep cheap. Scenarios give interpretable cases.</td><td>More runs for val to check; sweep labels rest on C4's rules.</td></tr>
+<tr><td><b>b. 20 roots from one scene</b> (source design)</td><td>Controls for scene; smaller.</td><td>Says nothing about other scenes or failure types, which is the question asked.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a).</div>
+
+<h2>M10 · Coverage-gap threshold [§4]</h2>
+<div class="tw"><table>
+<tr><th>Option</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>a. 95th percentile of leave-one-demo-out distances</b></td><td>Data-driven, per task and segment; means "farther than demos are from each other".</td><td>Percentile is arbitrary; tight if demos are very similar.</td></tr>
+<tr><td><b>b. Fixed by hand (e.g. 5 cm)</b></td><td>Easy to explain.</td><td>Ignores orientation, velocity and per-task spread.</td></tr>
+</table></div>
+<div class="rec"><b>Recommendation:</b> (a), and report yield in bins of d/d_gap so the choice of percentile does not hide anything.</div>
+</main></body>
+</html>
