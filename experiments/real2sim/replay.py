@@ -77,12 +77,13 @@ def main():
     rend = mujoco.Renderer(m, H, W)
     n_sub = int(round(1 / FPS / m.opt.timestep))
     writer = imageio.get_writer(os.path.join(a.out, "replay.mp4"), fps=FPS, quality=7, macro_block_size=8)
-    pinch_err, tz, tpos = [], [], []
+    pinch_err, tz, tpos, states = [], [], [], []
     T = min(len(jp), len(real))
     for i in range(T):
         command(i)
         for _ in range(n_sub):
             mujoco.mj_step(m, d)
+        states.append(d.qpos.copy())
         pinch_err.append(d.site_xpos[pinch] - ee[i])
         tpos.append(d.xpos[tgt].copy())
         rend.update_scene(d, camera="ext")
@@ -94,6 +95,7 @@ def main():
             cv2.putText(row, label, (x, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         writer.append_data(row)
     writer.close()
+    np.savez_compressed(os.path.join(a.out, "replay_states.npz"), qpos=np.array(states), real_frames=np.arange(T))
 
     tpos = np.array(tpos)
     pe = np.array(pinch_err)

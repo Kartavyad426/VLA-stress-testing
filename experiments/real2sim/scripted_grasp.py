@@ -111,7 +111,7 @@ def main():
     real0 = read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), 0)
     writer = imageio.get_writer(os.path.join(a.out, "scripted_grasp.mp4"), fps=FPS, quality=7, macro_block_size=8)
     n_sub = int(round(1 / FPS / m.opt.timestep))
-    z_blk, log = [], []
+    z_blk, log, states = [], [], []
     for name, qa, qb, g, secs in plan:
         n = int(secs * FPS)
         for k in range(n):
@@ -121,6 +121,7 @@ def main():
             for _ in range(n_sub):
                 mujoco.mj_step(m, d)
             z_blk.append(d.xpos[blk][2])
+            states.append(d.qpos.copy())
             rend.update_scene(d, camera="ext")
             sim = rend.render()
             row = np.concatenate([real0, sim], 1)
@@ -131,6 +132,9 @@ def main():
         log.append(dict(step=name, pinch_err_m=float(np.linalg.norm(d.site_xpos[pinch] - waypoints[[w[0] for w in waypoints].index(name)][1])),
                         block_xyz=d.xpos[blk].round(4).tolist()))
     writer.close()
+    # the scripted run has no matching real frames after frame 0: the composite uses the real background only
+    np.savez_compressed(os.path.join(a.out, "scripted_grasp_states.npz"), qpos=np.array(states),
+                        real_frames=np.zeros(len(states), int))
 
     final = d.xpos[blk]
     horiz = float(np.linalg.norm(final[:2] - d.xpos[bowl][:2]))
