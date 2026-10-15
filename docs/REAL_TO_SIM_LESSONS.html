@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-to-Sim Lessons</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--warn:#8a4b12}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--warn:#e0a26a}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--warn:#e0a26a}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem;margin:8px 0}.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+</style>
+</head>
+<body><main>
+<h1>Real-to-sim scene building: failures seen and how they were fixed</h1>
+<p class="meta">Internal handover, written 10-15 by res31 from the 10-14 → 10-15 work. Code: <code>experiments/real2sim/</code>. Context: <code>docs/REAL_TO_SIM_SCENES.html</code> (survey + §10 log). Videos: <code>runs/real2sim/videos.html</code>, <code>runs/real2sim/tasks/presentation.html</code>. All numbers are exploratory and not val-checked.</p>
+
+<div class="box"><b>If you only read one thing:</b> nothing in this pipeline can be trusted until it has been <b>checked against something independent</b>. Every serious bug below was caught by one of four checks:
+<ol>
+<li>overlay the sim robot (or recorded gripper path) on the real frames;</li>
+<li>compare fitted object positions/heights with where the recorded gripper actually closed;</li>
+<li>run physics for 0.5 s and see whether anything moves or falls;</li>
+<li>look at the rendered frames yourself.</li>
+</ol>
+Do these after every change. Don't guess conventions, offsets or units: test them with a projection or a sim check first.</div>
+
+<h2>1 · Camera calibration</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
+<tr><td>1</td><td>Sim arm smaller and higher than the real arm; recorded gripper path drawn ~270 px above the real gripper; real-action replay misses everything.</td><td><b>DROID's per-episode camera extrinsics are wrong</b> for some episodes (DROID's own README calls them noisy). The refined set (<code>KarlP/droid</code>) didn't cover our episodes and didn't fit either.</td><td>Self-calibrate: match the sim robot's outline (recorded joints) to the real robot. Never trust dataset extrinsics without an overlay check.</td><td><code>calibrate_cam.py</code></td></tr>
+<tr><td>2</td><td>Calibration "converged" but overlap got worse.</td><td>Robot masks from text prompts (Grounding DINO "robot arm") grabbed the wall, the bowl, a desk clamp.</td><td>Use <b>motion masks</b>: per-pixel temporal median = empty background; robot = pixels that differ; reject shadows (darker, same chromaticity). Never use DINO for robot masks.</td><td><code>calibrate_cam.motion_masks</code></td></tr>
+<tr><td>3</td><td>Optimiser stuck at IoU ~0.28, wrong pose.</td><td>Local optimiser (Powell) started far from the truth.</td><td>Random global search (≈2,000 poses, scored by IoU at ¼ resolution), then refine the best 5.</td><td><code>--search</code></td></tr>
+<tr><td>4</td><td>Overflow warnings, NaNs during calibration.</td><td>Candidate poses that put the robot out of view → empty mask → distance transform unbounded.</td><td>Fixed penalty when the sim robot isn't in view.</td><td><code>cost()</code></td></tr>
+<tr><td>5</td><td>Colour keypoints (track the orange block) gave a nonsense PnP solution.</td><td>The wooden table has the same hue as the orange block.</td><td>Don't use colour tracking on wooden tables; use outlines.</td><td>(abandoned)</td></tr>
+<tr><td>6</td><td>Rebuilt cart tilted 13.5°; the bowl looked wrong; objects ~7 cm too high.</td><td>Outline fit has a weak direction (pitch) when only part of the robot is seen.</td><td>Add a <b>level-table</b> cost (assumes robot base and table are level): tilt 13.5° → 0.02°, IoU 0.425 → 0.404.</td><td><code>--level_weight</code></td></tr>
+<tr><td>7</td><td>Lens self-check reported "∞ px error" on new data.</td><td>Marker spheres (4 mm) project to under 1 px at ¼ resolution on 640 px video; video size was hard-coded to 1280×720.</td><td>2 cm spheres; read the size from the video.</td><td><code>check_convention</code></td></tr>
+<tr><td>8</td><td>CMU (Open X-Embodiment) calibration failed (IoU 0.16–0.19, then a crash).</td><td>Robot mostly outside the third-person view; in a short episode the robot sits still long enough to become part of the "empty background"; custom finger extensions.</td><td>Outline calibration needs the robot well in view and moving. Most open datasets ship no camera info (only DROID, of 181 LeRobot datasets): treat camera info as an input.</td><td><code>REAL_TO_SIM_SCENES §10</code></td></tr>
+<tr><td>9</td><td>Sim wrist view showed the gripper side-on.</td><td>I assumed the Robotiq mounts at 0° on the flange; the real DROID rig is ±90° (impl, from wrist footage). DROID's wrist-camera offset is also only roughly right.</td><td>Use <code>--grip_yaw_deg 90</code> for policy work. The scripted expert isn't affected (it plans the wrist rotation).</td><td><code>build_scene.robot_spec</code></td></tr>
+</table></div>
+
+<h2>2 · Depth, scale and geometry</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
+<tr><td>10</td><td>MoGe crashed on CPU (Half vs float).</td><td>MoGe defaults to fp16, which is GPU-only.</td><td><code>infer(..., use_fp16=False)</code> on CPU.</td><td><code>perceive.geometry</code></td></tr>
+<tr><td>11</td><td>Scale anchor 0.47 (nonsense: table above the robot base).</td><td>Anchored at frame 0, where the robot was barely visible and its mask was wrong.</td><td>Anchor at a frame where the calibration was verified (sim robot depth vs MoGe on robot pixels); carry to frame 0 through static table pixels.</td><td><code>--anchor_frame</code></td></tr>
+<tr><td>12</td><td>Real recorded grasps land 3.5–5 cm <i>below</i> the rebuilt table.</td><td>MoGe's metric depth is off in a way one global scale can't fix.</td><td>Open. Use real stereo (DROID ships stereo MP4s) or accept it and use sim-planned actions. Check with: pinch height at each recorded grasp vs table.</td><td>open</td></tr>
+<tr><td>13</td><td>Blocks became 7–10 cm pillars.</td><td>Depth at object edges smears toward the background, so the "top" point is too high.</td><td>Height from the inner (eroded) mask; robust 5–95% extents; cube rule for "block"; clamp to ±50% of the same-label median.</td><td><code>fit_box</code></td></tr>
+<tr><td>14</td><td>Retrieved radish scaled ×25 (40 cm).</td><td>Thin leaves against a far background scatter depth points.</td><td>Size retrieved meshes from mask pixel width × median depth ÷ focal length, not from point spread.</td><td><code>build_scene</code> (asset branch)</td></tr>
+<tr><td>15</td><td>I reported "the bowl mesh is lying on its side". False alarm.</td><td>MuJoCo re-centres each mesh on its principal axes and compensates in the geom pose; <code>mesh_vert</code> axes are not the file's axes.</td><td>Check orientation by rendering or from the source file, never from compiled mesh vertices.</td><td>—</td></tr>
+</table></div>
+
+<h2>3 · Physics and assets</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
+<tr><td>16</td><td>Every object fell through the table at t = 0; MuJoCo warned "Insufficient arena memory".</td><td>Retrieved LIBERO-Plus meshes carry hundreds of convex collision parts (559 for half_radish) → ~7,000 contacts.</td><td>Collide retrieved meshes with one convex hull of the visual mesh. Also (res32): 136 LIBERO-Plus objects have 1 m "fillable" parts and 500+ kg masses.</td><td><code>build_scene</code> (asset branch)</td></tr>
+<tr><td>17</td><td>Bowl ended at z = −11,780 m in a replay.</td><td>No floor: anything knocked off the table falls forever.</td><td>Ground plane (assumed 0.75 m below the table; marked assumed).</td><td><code>--floor_below</code></td></tr>
+<tr><td>18</td><td>Sim gripper never squeezed the block in the real-action replay.</td><td>Drove the gripper with the <i>observed</i> position (0.52, where the block stopped it) instead of the <i>commanded</i> target (1.0).</td><td>Use <code>action/target_gripper_position</code>.</td><td><code>replay.py</code></td></tr>
+<tr><td>19</td><td>Panda model: compile errors after renaming; gripper opened when told to close.</td><td>MjSpec renames don't update contact-exclude pairs or actuator targets; Menagerie's Panda uses ctrl 255 = <b>open</b> (Robotiq: 255 = closed).</td><td>Update <code>excludes</code> and <code>actuator.target</code> when renaming; invert the Panda gripper (verified: 0 → 4 cm open, 255 → 0 cm).</td><td><code>robot_spec("panda")</code></td></tr>
+<tr><td>20</td><td>Task generator crashed: "max() iterable is empty".</td><td>Retrieved meshes sit on a child body; looking up geoms by the free body's id finds none.</td><td>Use <code>body_rootid</code>.</td><td><code>make_tasks.body_radius</code></td></tr>
+<tr><td>21</td><td>Replaying the real recorded actions always fails, even with good alignment.</td><td>Real actions only work in a near-perfect copy; centimetre errors break grasps.</td><td>Generate actions in the sim scene (scripted IK expert, DMP, policy) and keep the successes. This works: 89/105 expert episodes over 21 tasks.</td><td><code>make_tasks.py</code></td></tr>
+</table></div>
+
+<h2>4 · Perception and object lists</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
+<tr><td>22</td><td>Radish not detected.</td><td>Grounding DINO is wording-sensitive: "radish" &lt; 0.30, "red radish" 0.31.</td><td>Try several phrasings; long term, segment-everything + name each piece (no prompt wording to get wrong).</td><td><code>perceive.py --multi</code></td></tr>
+<tr><td>23</td><td>VLM object names made bad detector prompts (6/11 found).</td><td>"green cube", "yellow cube" score below threshold; generic "toy block" finds all 8.</td><td>The VLM gives correct counts (11/11 on c3, 4/4 on orange block) but its names aren't good prompts. Use generic category prompts.</td><td><code>vlm_objects.py</code></td></tr>
+<tr><td>24</td><td>NIM calls hung for minutes.</td><td>Llama-3.2-90B-Vision unresponsive; Nemotron Omni 503; Gemma-3 404 (10-15).</td><td>Probe with a 1-token text call first. Llama-3.2-11B-Vision answered in ~5 s.</td><td>—</td></tr>
+</table></div>
+
+<h2>5 · Video, compositing, rendering</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
+<tr><td>25</td><td>Real video played 4× too fast in a side-by-side.</td><td>DROID raw MP4s are tagged 60 fps but contain 15 Hz frames.</td><td>Retime with <code>setpts=N/15/TB</code>. Python scripts read frame by frame and are unaffected.</td><td>ffmpeg</td></tr>
+<tr><td>26</td><td>Blurry smears and a dark ghost behind the bowl in composites.</td><td>The background plate is a whole-video median, so objects appear where they sat mid-episode; holes were cut from frame 0's masks; OpenCV Telea inpainting smears.</td><td>Also cut holes from objects detected in the plate itself; inpaint with LaMa (17 s/plate on CPU).</td><td><code>composite.py --inpaint lama --holes frame0+plate</code></td></tr>
+<tr><td>27</td><td>Shadows black and wrong direction; c3 light fit meaningless (IoU 0.08).</td><td>Default overhead spot light; c3's real shadows are too faint/sparse to fit.</td><td>Fit a directional light to the real robot's shadow and use the measured darkness (0.845 orange, 0.887 c3). When the fit fails, assume overhead and say so.</td><td><code>calibrate_light.py</code></td></tr>
+<tr><td>28</td><td>Blender render showed only the background.</td><td>Blender 5.2.2's USD Transform-Cache import left every mesh at the origin (the USD itself was correct). MuJoCo's USD exporter writes a fixed 12 mm camera.</td><td>Export per-prim world matrices and set them directly; rebuild the camera from <code>calib.json</code> and self-check it (0.72 px).</td><td><code>export_usd.py</code>, <code>blender_render.py</code></td></tr>
+<tr><td>29</td><td>Task videos looked flat ("no texture").</td><td>The task recorder saved raw MuJoCo renders for speed.</td><td>Composite every frame a human or a <b>policy</b> sees. Flat renders are useless for testing vision policies.</td><td><code>make_tasks.py</code> + <code>composite.py --states</code></td></tr>
+</table></div>
+
+<h2>6 · Process mistakes (mine)</h2>
+<ul>
+<li><b>Guessing.</b> I stated "is MuJoCo inferior?" from memory, assumed a 0° gripper mount, assumed DROID's camera was right, and announced a bowl bug that wasn't one. The user's rule: check first, then state or use.</li>
+<li><code>pkill -f &lt;pattern&gt;</code> matched its own shell and killed the command. Use the PID.</li>
+<li><code>grep</code> in a pipe buffers output until exit; use <code>--line-buffered</code> for live logs.</li>
+<li>Two jobs writing the same output path overwrote each other (Telea vs LaMa composite). Give each run its own name.</li>
+<li>The user's rule: <b>commit before new work</b>. prim does all commits; send a commit request and verify the hash in <code>git log</code> before continuing.</li>
+</ul>
+
+<h2>7 · Open items</h2>
+<ul>
+<li>~5 cm depth-scale error (stereo depth not tried).</li>
+<li>Main scenes still use the 0° gripper mount (switch to 90° before any DROID-policy work).</li>
+<li>Licences: LIBERO-Plus objects research-only; LaMa's training data (Places) unchecked; GR00T-N1.7-DROID licence conflict open with res32.</li>
+<li>Calibration without camera info: parked by the user (not actively worked on).</li>
+</ul>
+
+<h2>8 · Checklist for a new scene</h2>
+<ol>
+<li>Pick an episode with a <b>fixed camera</b>, the <b>robot well in view</b>, and recorded joint angles; get the lens values from the dataset if they exist.</li>
+<li><code>perceive.py</code> with generic category prompts; look at <code>perception_check.png</code>.</li>
+<li><code>build_scene.py --scale raw</code>, then <code>calibrate_cam.py</code> (motion masks, global search, <code>--level_weight 1</code>); <b>look at the overlay</b> (target IoU ≥ 0.4).</li>
+<li><code>build_scene.py --calib ... --anchor_frame &lt;a frame where the robot is clearly visible&gt;</code>; check <code>scene_fit.json</code> sizes and the settle movement (&lt; 2 cm).</li>
+<li>Grasp-height check against the recorded grasps (horizontal and vertical).</li>
+<li><code>scripted_grasp.py</code> / <code>make_tasks.py</code>; then <code>composite.py --inpaint lama --holes frame0+plate</code>; look at frames.</li>
+</ol>
+</main></body></html>
