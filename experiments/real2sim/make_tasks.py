@@ -128,6 +128,30 @@ def footprint_radius(m, fit, body):
     return r * np.sqrt(2) / np.sqrt(3) if "block" in body else r
 
 
+def task_success(m, d, fit, task):
+    """Success of `task` in the current sim state (call after objects have settled): put_in_bowl = target centre
+    within 0.8 rim radii of the bowl and below the rim top; stack = on top of the reference; next_to = beside it
+    (gap -0.5..8 cm) and on the table."""
+    pt, pr = d.xpos[m.body(task["target"]).id], d.xpos[m.body(task["ref"]).id]
+    horiz = float(np.linalg.norm(pt[:2] - pr[:2]))
+    h_t = 2 * body_radius(m, task["target"]) / np.sqrt(3)  # cube side from its bounding sphere
+    if task["type"] == "put_in_bowl":
+        bowl_fit = [o for o in fit["objects"].values() if o["kind"] == "bowl"][0]
+        return bool(horiz < 0.8 * bowl_fit["rim_radius"] and pt[2] < fit["table"]["z"] + bowl_fit["height_asset_scaled"])
+    if task["type"] == "stack":
+        return bool(horiz < body_radius(m, task["ref"]) and pt[2] > pr[2] + 0.7 * (h_t / 2 + body_radius(m, task["ref"]) / np.sqrt(3)))
+    gap = horiz - footprint_radius(m, fit, task["ref"]) - footprint_radius(m, fit, task["target"])
+    return bool(-0.005 < gap < 0.08 and pt[2] < fit["table"]["z"] + 0.6 * h_t + 0.02)  # beside it, on the table
+
+
+def scene_tasks(m, fit):
+    """The scene's task list (same order and indices as main() uses for output dirs and variant seeds)."""
+    d0 = mujoco.MjData(m)
+    mujoco.mj_forward(m, d0)
+    objs = inventory(fit)
+    return tasks_for(objs, describe(objs, d0, m))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", action="append", required=True, help="<scene out dir>:<episode dir> (repeatable)")
@@ -155,14 +179,9 @@ def main():
         free = [m.body(m.jnt_bodyid[j]).name for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
         bowl_fit = [o for o in fit["objects"].values() if o["kind"] == "bowl"]
         rim_top = fit["table"]["z"] + bowl_fit[0]["height_asset_scaled"] if bowl_fit else None
-        objs = inventory(fit)
         rend = mujoco.Renderer(m, RH, RW)
         n_sub = int(round(1 / FPS / m.opt.timestep))
-
-        d0 = mujoco.MjData(m)
-        mujoco.mj_forward(m, d0)
-        names = describe(objs, d0, m)
-        tasks = tasks_for(objs, names)
+        tasks = scene_tasks(m, fit)
         print(f"{sname}: {len(tasks)} tasks", [t["text"] for t in tasks], flush=True)
 
         for ti, task in enumerate(tasks):
@@ -227,14 +246,7 @@ def main():
                 for _ in range(int(0.8 / m.opt.timestep)):  # let things settle before judging
                     mujoco.mj_step(m, d)
                 pt, pr = d.xpos[tb], d.xpos[rb]
-                horiz = float(np.linalg.norm(pt[:2] - pr[:2]))
-                if task["type"] == "put_in_bowl":
-                    ok = horiz < 0.8 * bowl_fit[0]["rim_radius"] and pt[2] < rim_top
-                elif task["type"] == "stack":
-                    ok = horiz < body_radius(m, task["ref"]) and pt[2] > pr[2] + 0.7 * (h_t / 2 + body_radius(m, task["ref"]) / np.sqrt(3))
-                else:
-                    gap = horiz - footprint_radius(m, fit, task["ref"]) - footprint_radius(m, fit, task["target"])
-                    ok = -0.005 < gap < 0.08 and pt[2] < fit["table"]["z"] + 0.6 * h_t + 0.02  # beside it, on the table
+                ok = task_success(m, d, fit, task)
                 n_ok += bool(ok)
                 base = os.path.join(tdir, f"v{vi}")
                 w = imageio.get_writer(base + ".mp4", fps=FPS, quality=7, macro_block_size=4)  # 180 px divides by 4

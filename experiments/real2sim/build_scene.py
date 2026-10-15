@@ -166,10 +166,23 @@ def bowl_asset():
     return boxes, body0, radius, float(zmin), float(zmax)
 
 
-def robot_spec(grip_yaw_deg, robot="fr3_robotiq"):
+FLANGE_IN_LINK7 = np.array([0, 0, 0.107])  # fr3.xml attachment_site; == DROID's cartesian_position frame (checked:
+#                                           0 mm / 0 deg FK error on ep_orange_block frames 0, 60, 120)
+
+
+def wrist_cam_local(offset):
+    """DROID <wrist>_left_gripper_offset [x y z rx ry rz] (camera pose in the end-effector frame, euler 'xyz';
+    checked: cartesian_position composed with it reproduces <wrist>_left exactly) -> (R, t) of the OpenCV camera
+    in fr3_link7's frame."""
+    return Rot.from_euler("xyz", offset[3:]).as_matrix(), FLANGE_IN_LINK7 + np.asarray(offset[:3])
+
+
+def robot_spec(grip_yaw_deg, robot="fr3_robotiq", wrist_offset=None):
     """fr3_robotiq: DROID's FR3 + Robotiq 2F-85. panda: Menagerie's Panda + Panda hand (LIBERO's robot), renamed to the
     names the other scripts use (fr3_joint1..7 / fr3_link*, g_* gripper bodies, g_pinch site, g_fingers_actuator) and
-    with the gripper actuator flipped so ctrl 255 = closed, as on the Robotiq."""
+    with the gripper actuator flipped so ctrl 255 = closed, as on the Robotiq.
+    wrist_offset (fr3_robotiq only): DROID's wrist-camera gripper offset; adds camera 'wrist' on fr3_link7 (pose only;
+    the caller sets the ZED intrinsics on the compiled model with calibrate_cam.set_camera)."""
     if robot == "panda":
         spec = mujoco.MjSpec.from_file(os.path.join(MENAGERIE, "franka_emika_panda/panda.xml"))
         rename = {f"link{k}": f"fr3_link{k}" for k in range(8)}
@@ -198,6 +211,9 @@ def robot_spec(grip_yaw_deg, robot="fr3_robotiq"):
     site = spec.site("attachment_site")
     site.quat = Rot.from_euler("z", grip_yaw_deg, degrees=True).as_quat(scalar_first=True)
     spec.attach(grip, site=site, prefix="g_")
+    if wrist_offset is not None:
+        Rw, tw = wrist_cam_local(wrist_offset)
+        spec.body("fr3_link7").add_camera(name="wrist", pos=tw, quat=Rot.from_matrix(Rw @ np.diag([1, -1, -1])).as_quat(scalar_first=True))
     return spec
 
 
@@ -231,7 +247,11 @@ def main():
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--scale", choices=["anchor", "raw"], default="anchor")
-    ap.add_argument("--grip_yaw_deg", type=float, default=0.0, help="Robotiq mount rotation about the flange z axis")
+    # 90: the sim wrist view (DROID gripper offset + ZED intrinsics) matches the real DROID wrist video only with the
+    # Robotiq at +-90 deg about the flange (impl, 10-15, ep_orange_block frame 50; at 0 the gripper is seen side-on,
+    # i.e. the fingers close 90 deg rotated vs the real rig). The sign is unresolved (the 2F-85 looks the same).
+    # The scale anchor (sim_robot_depth) still renders the robot at 0, so object fits don't depend on this.
+    ap.add_argument("--grip_yaw_deg", type=float, default=90.0, help="Robotiq mount rotation about the flange z axis")
     ap.add_argument("--calib", default=None, help="calib.json from calibrate_cam.py (camera pose + ZED intrinsics); "
                     "default: DROID's recorded extrinsics + MoGe's intrinsics")
     ap.add_argument("--assets", choices=["libero", "none"], default="libero",
@@ -239,6 +259,7 @@ def main():
     ap.add_argument("--robot", choices=["fr3_robotiq", "panda"], default="fr3_robotiq")
     ap.add_argument("--floor_below", type=float, default=0.75, help="ASSUMED floor depth under the table top (m)")
     ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
+    ap.add_argument("--no_wrist", action="store_true", help="don't add the DROID wrist camera")
     a = ap.parse_args()
     anchor_info = {}
 
@@ -350,7 +371,15 @@ def main():
             o["center"][2] = z_table + h
 
     # ---- assemble the MJCF ----
-    spec = robot_spec(a.grip_yaw_deg, a.robot)
+    # wrist camera from DROID's (constant) gripper offset; found only roughly right in res31's checks, so treat
+    # the wrist view as approximate
+    wrist_keys = sorted(k for k in f["observation/camera_extrinsics"] if k.endswith("_left_gripper_offset"))
+    wrist = None
+    if wrist_keys and a.robot == "fr3_robotiq" and not a.no_wrist:
+        serial = wrist_keys[0].split("_")[0]
+        wrist = dict(serial=serial, offset=f[f"observation/camera_extrinsics/{wrist_keys[0]}"][0])
+        fit["wrist_camera"] = dict(serial=serial, gripper_offset=wrist["offset"].tolist(), approximate=True)
+    spec = robot_spec(a.grip_yaw_deg, a.robot, wrist_offset=wrist["offset"] if wrist else None)
     spec.option.timestep = 0.002
     spec.visual.global_.offwidth, spec.visual.global_.offheight = W, H
     spec.option.noslip_iterations = 3
@@ -414,6 +443,12 @@ def main():
     if a.calib:  # real ZED intrinsics on the render camera (principal-point convention checked in calibrate_cam.py)
         from calibrate_cam import set_camera
         set_camera(model, model.camera("ext").id, R, t, K, W, H, "offset")
+    if wrist:  # ZED intrinsics of the wrist camera at its native 1280x720 (renders at other sizes keep the FOV)
+        from calibrate_cam import set_camera, zed_K
+        Kw = zed_K(a.episode, wrist["serial"])
+        Rw, tw = wrist_cam_local(wrist["offset"])
+        set_camera(model, model.camera("wrist").id, Rw, tw, Kw, 1280, 720, "offset")
+        fit["wrist_camera"]["K"] = Kw.tolist()
     # the .mjb is what replay loads (asset paths of attached specs don't survive an XML round trip);
     # the .xml is for reading
     mujoco.mj_saveModel(model, os.path.join(a.out, "scene.mjb"), None)

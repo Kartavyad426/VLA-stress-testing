@@ -81,6 +81,89 @@ def clean_plate(frames, per, objects, dilate=15, method="telea", holes="frame0")
     return cv2.inpaint(plate, hole, 7, cv2.INPAINT_TELEA)
 
 
+def load_plate(out, inpaint="telea", holes="frame0", real=None, per=None):
+    """Cleaned plate (float32 RGB, full camera resolution), from <out>/plate_cache_<inpaint>_<holes>.png when it
+    exists, else computed from the real frames + perception masks and cached."""
+    cache = os.path.join(out, f"plate_cache_{inpaint}_{holes.replace('+', '_')}.png")
+    if os.path.exists(cache):  # the cleaned plate depends only on the scene, not on the run
+        return cv2.cvtColor(cv2.imread(cache), cv2.COLOR_BGR2RGB).astype(np.float32)
+    if real is None or per is None:
+        raise FileNotFoundError(f"{cache} missing; run composite.py on this scene once to build it")
+    plate = clean_plate(real, per, scene_objects(out), method=inpaint, holes=holes).astype(np.float32)
+    cv2.imwrite(cache, cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
+    return plate
+
+
+class Compositor:
+    """Per-frame composite for camera 'ext': sim robot + object pixels over the cleaned real plate, the plate darkened
+    by the sim's shadow ratio on table pixels. Sets the real median colours on the sim objects and the light from
+    light.json (if present) on the model `m` -- render-only fields; physics is unaffected.
+    size=(H, W) renders and composites at that size (the plate is downscaled; the camera FOV is resolution-free)."""
+
+    def __init__(self, m, out, plate, per=None, shadows=True, size=None, verbose=True):
+        import json
+        self.m, self.shadows = m, shadows
+        per = per if per is not None else dict(np.load(os.path.join(out, "perception.npz")))
+        # real colours on the sim objects
+        for body, name in scene_objects(out).items():
+            if f"mask/{name}" not in per:
+                continue
+            rgb = np.median(per["image"][cv2.erode(per[f"mask/{name}"].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0
+            for g in range(m.ngeom):
+                if m.body(m.geom_bodyid[g]).name == body and m.geom_rgba[g, 3] > 0:
+                    m.geom_rgba[g, :3] = rgb
+        # light fitted to the real robot's shadow (calibrate_light.py), if available
+        self.light = None
+        if os.path.exists(os.path.join(out, "light.json")):
+            self.light = json.load(open(os.path.join(out, "light.json")))
+            m.light_type[0] = mujoco.mjtLightType.mjLIGHT_DIRECTIONAL
+            m.light_dir[0] = self.light["dir"]
+            m.light_castshadow[0] = 1
+            if verbose:
+                print("light from light.json: az", self.light["azimuth_deg"], "el", self.light["elevation_deg"],
+                      "real shadow ratio", round(self.light["real_shadow_ratio"], 3))
+        self.H, self.W = size if size else plate.shape[:2]
+        self.plate = plate if plate.shape[:2] == (self.H, self.W) else cv2.resize(plate, (self.W, self.H), interpolation=cv2.INTER_AREA)
+        self.table = m.geom("table").id
+        self.fg_geoms = np.array([g for g in range(m.ngeom) if g != self.table and m.geom_bodyid[g] != 0])  # robot + objects
+        self.rend = mujoco.Renderer(m, self.H, self.W)
+        self.opt_all, self.opt_hide = mujoco.MjvOption(), mujoco.MjvOption()
+        self.opt_hide.geomgroup[HIDE_GROUP] = 0
+        self.group0 = m.geom_group.copy()
+
+    def __call__(self, d):
+        """float32 RGB composite of the current state of `d` (kinematics must be up to date)."""
+        m, rend = self.m, self.rend
+        rend.update_scene(d, camera="ext", scene_option=self.opt_all)
+        sim = rend.render().astype(np.float32)
+        rend.enable_segmentation_rendering()
+        rend.update_scene(d, camera="ext", scene_option=self.opt_all)
+        seg = rend.render()
+        rend.disable_segmentation_rendering()
+        fg = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], self.fg_geoms)
+        out = self.plate.copy()
+        if self.shadows:
+            m.geom_group[self.fg_geoms] = HIDE_GROUP
+            rend.update_scene(d, camera="ext", scene_option=self.opt_hide)
+            lit = rend.render().astype(np.float32)
+            m.geom_group[:] = self.group0
+            on_table = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & (seg[..., 0] == self.table)
+            ratio = np.ones((self.H, self.W), np.float32)
+            r = sim[on_table].mean(-1) / np.maximum(lit[on_table].mean(-1), 1.0)
+            if self.light:  # sim says where the shadow is; the real video says how dark (measured median ratio)
+                inside = np.clip((1.0 - r) / 0.1, 0.0, 1.0)  # same 0.9 threshold as calibrate_light
+                ratio[on_table] = 1.0 - inside * (1.0 - self.light["real_shadow_ratio"])
+            else:
+                ratio[on_table] = np.clip(r, 0.35, 1.0)
+            ratio = cv2.GaussianBlur(ratio, (0, 0), 3)
+            out *= ratio[..., None]
+        out[fg] = sim[fg]
+        return out
+
+    def close(self):
+        self.rend.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episode", required=True)
@@ -102,69 +185,15 @@ def main():
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
-    objects = scene_objects(a.out)
-    cache = os.path.join(a.out, f"plate_cache_{a.inpaint}_{a.holes.replace('+', '_')}.png")
-    if os.path.exists(cache):  # the cleaned plate depends only on the scene, not on the run
-        plate = cv2.cvtColor(cv2.imread(cache), cv2.COLOR_BGR2RGB).astype(np.float32)
-    else:
-        plate = clean_plate(real, per, objects, method=a.inpaint, holes=a.holes).astype(np.float32)
-        cv2.imwrite(cache, cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
+    plate = load_plate(a.out, a.inpaint, a.holes, real, per)
     cv2.imwrite(os.path.join(a.out, f"plate_clean_{a.inpaint}.png") if a.inpaint != "telea" else os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
-
-    # real colours on the sim objects
-    for body, name in objects.items():
-        if f"mask/{name}" not in per:
-            continue
-        rgb = np.median(per["image"][cv2.erode(per[f"mask/{name}"].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0
-        for g in range(m.ngeom):
-            if m.body(m.geom_bodyid[g]).name == body and m.geom_rgba[g, 3] > 0:
-                m.geom_rgba[g, :3] = rgb
-
-    # light fitted to the real robot's shadow (calibrate_light.py), if available
-    light = None
-    if os.path.exists(os.path.join(a.out, "light.json")):
-        import json
-        light = json.load(open(os.path.join(a.out, "light.json")))
-        m.light_type[0] = mujoco.mjtLightType.mjLIGHT_DIRECTIONAL
-        m.light_dir[0] = light["dir"]
-        m.light_castshadow[0] = 1
-        print("light from light.json: az", light["azimuth_deg"], "el", light["elevation_deg"], "real shadow ratio", round(light["real_shadow_ratio"], 3))
-
-    table = m.geom("table").id
-    fg_geoms = np.array([g for g in range(m.ngeom) if g != table and m.geom_bodyid[g] != 0])  # robot + objects
-    rend = mujoco.Renderer(m, H, W)
-    opt_all, opt_hide = mujoco.MjvOption(), mujoco.MjvOption()
-    opt_hide.geomgroup[HIDE_GROUP] = 0
-    group0 = m.geom_group.copy()
+    comp = Compositor(m, a.out, plate, per=per, shadows=not a.no_shadows)
 
     writer = imageio.get_writer(a.video_out or os.path.join(a.out, f"composite_{a.run}.mp4"), fps=FPS, quality=8, macro_block_size=8)
     for k, q in enumerate(st["qpos"]):
         d.qpos[:] = q
         mujoco.mj_forward(m, d)
-        rend.update_scene(d, camera="ext", scene_option=opt_all)
-        sim = rend.render().astype(np.float32)
-        rend.enable_segmentation_rendering()
-        rend.update_scene(d, camera="ext", scene_option=opt_all)
-        seg = rend.render()
-        rend.disable_segmentation_rendering()
-        fg = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], fg_geoms)
-        out = plate.copy()
-        if not a.no_shadows:
-            m.geom_group[fg_geoms] = HIDE_GROUP
-            rend.update_scene(d, camera="ext", scene_option=opt_hide)
-            lit = rend.render().astype(np.float32)
-            m.geom_group[:] = group0
-            on_table = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & (seg[..., 0] == table)
-            ratio = np.ones((H, W), np.float32)
-            r = sim[on_table].mean(-1) / np.maximum(lit[on_table].mean(-1), 1.0)
-            if light:  # sim says where the shadow is; the real video says how dark (measured median ratio)
-                inside = np.clip((1.0 - r) / 0.1, 0.0, 1.0)  # same 0.9 threshold as calibrate_light
-                ratio[on_table] = 1.0 - inside * (1.0 - light["real_shadow_ratio"])
-            else:
-                ratio[on_table] = np.clip(r, 0.35, 1.0)
-            ratio = cv2.GaussianBlur(ratio, (0, 0), 3)
-            out *= ratio[..., None]
-        out[fg] = sim[fg]
+        out = comp(d)
         if a.composite_only:  # full resolution, no side panel, no burned-in text
             writer.append_data(out.clip(0, 255).astype(np.uint8))
             continue

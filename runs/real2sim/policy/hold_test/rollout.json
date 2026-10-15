@@ -1,0 +1,39 @@
+{
+ "scene": "ep_orange_block",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "green_block",
+  "ref": "black_bowl",
+  "text": "put the green block in the bowl"
+ },
+ "instruction": "put the green block in the bowl",
+ "variant": 0,
+ "policy": "hold",
+ "checkpoint": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 45,
+ "seconds": 3.0,
+ "open_loop": 15,
+ "policy_calls": 3,
+ "load_s": 0.0,
+ "infer_s_median": 0.0,
+ "wall_s": 2.1059162616729736,
+ "vram": {},
+ "gpu_used_max_gib": 0.470703125,
+ "joint_target_minus_ctrlrange_max": -0.31831989479064937,
+ "gripper_closed_frac": 0.0,
+ "final_target_xyz": [
+  0.5055884349988283,
+  -0.01939713315730912,
+  -0.01645548429327717
+ ],
+ "final_ref_xyz": [
+  0.6374126829574921,
+  -0.215173367522007,
+  -0.03177507177607788
+ ],
+ "wrist_view": "plain MuJoCo render (no real plate)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED"
+}
