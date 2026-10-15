@@ -8,7 +8,8 @@ executed, gripper binarised at 0.5.
 
   - exterior camera: composite.Compositor per frame (cleaned real plate + sim robot/objects + sim shadow ratio),
     rendered directly at 180x320, so the policy sees the real background, not a flat render;
-  - wrist camera: PLAIN MuJoCo render (no real plate exists for a moving wrist camera);
+  - wrist camera: composite.WristCompositor (sim robot/objects; background textured from the cleaned exterior plate,
+    else from the cleaned real wrist frame 0 via wrist_plate);
   - eef_9d: FK of fr3_link7 + flange offset (== DROID's cartesian_position frame, checked 0 mm / 0 deg) -> DROID euler
     ('xyz', checked against DROID's own extrinsics) -> NVIDIA's compute_eef_9d ('XYZ' + DROID_EEF_ROTATION_CORRECT,
     copied from gr00t/data/state_action/droid_frame.py; checked: our episodes fall inside the checkpoint's q01-q99);
@@ -165,7 +166,7 @@ def main():
     import cv2, h5py, imageio.v2 as imageio, mujoco
     from scipy.spatial.transform import Rotation as Rot
     sys.path.insert(0, HERE)
-    from composite import Compositor, load_plate
+    from composite import Compositor, WristCompositor, load_plate, wrist_plate
     from make_tasks import scene_tasks, task_success, randomise
     from build_scene import FLANGE_IN_LINK7
 
@@ -203,13 +204,13 @@ def main():
     n_sub = int(round(1 / FPS / m.opt.timestep))
     lo, hi = m.actuator_ctrlrange[arm_u].T
 
-    comp = Compositor(m, sdir, load_plate(sdir, "lama", "frame0+plate"), size=(H, W), verbose=False)
-    wrist_r = mujoco.Renderer(m, H, W)
+    plate = load_plate(sdir, "lama", "frame0+plate")
+    comp = Compositor(m, sdir, plate, size=(H, W), verbose=False)  # first: sets the real object colours + light
+    wcomp = WristCompositor(m, plate, comp, (H, W), plate2=wrist_plate(m, sdir, edir, comp, fit["wrist_camera"]["serial"]))
 
     def observe():
         ext = comp(d).clip(0, 255).astype(np.uint8)
-        wrist_r.update_scene(d, camera="wrist")
-        wr = wrist_r.render().copy()
+        wr = wcomp(d).clip(0, 255).astype(np.uint8)
         R = d.xmat[link7].reshape(3, 3)
         cart = np.r_[d.xpos[link7] + R @ FLANGE_IN_LINK7, Rot.from_matrix(R).as_euler("xyz")]  # DROID cartesian_position
         grip = np.clip(d.qpos[drv_q] / drv_max, 0, 1)
@@ -260,7 +261,7 @@ def main():
                joint_target_minus_ctrlrange_max=float(np.max(np.maximum(acts[:, 10:17] - hi, lo - acts[:, 10:17]))) if len(acts) else None,
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                final_target_xyz=d.xpos[m.body(task["target"]).id].tolist(), final_ref_xyz=d.xpos[m.body(task["ref"]).id].tolist(),
-               wrist_view="plain MuJoCo render (no real plate)", exterior_view="composite (cleaned real plate + sim)",
+               wrist_view="textured (exterior plate + real wrist frame 0, composite.WristCompositor)", exterior_view="composite (cleaned real plate + sim)",
                status="exploratory, UNVERIFIED")
     np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s))
     json.dump(res, open(os.path.join(a.out, "rollout.json"), "w"), indent=1)
