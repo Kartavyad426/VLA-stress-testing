@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-to-Sim Videos</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#2f5d8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#8fb5dc}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#8fb5dc}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}
+.meta{color:var(--muted);font-size:.9rem}
+.v{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:14px 0}
+.v h3{margin:.1em 0 .3em;font-size:1rem}
+.v p{margin:.2em 0 .6em;color:var(--muted);font-size:.9rem}
+video{width:100%;max-height:520px;background:#000;border-radius:4px}
+code{background:var(--bg);padding:1px 4px;border-radius:3px;font-size:.85em}
+</style>
+</head>
+<body><main>
+<h1>Real-to-sim videos (res31, 10-14 → 10-15)</h1>
+<p class="meta">Every video produced so far, newest first within each section. Open this file locally in a browser; the videos are the files next to it (git-ignored). "Composite" = sim robot and objects drawn onto the real camera's background plate. "Replay" = the real robot's recorded joint motion played in the rebuilt sim (it fails where the rebuilt table height is off, a known error).</p>
+
+<h2>c3: cluttered cart (AUTOLab, 8 blocks + bowl + radish + apple)</h2>
+<div class="v"><h3>Composite, level-fixed scene, 3 scripted picks, LaMa background with plate holes (latest)</h3>
+<p>The bowl ghost is fixed. 3/3 blocks into the bowl. Faint reddish smudge at the back right where the real tomato sat mid-episode. <code>ep_c3/composite_scripted_picks3_level.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/composite_scripted_picks3_level.mp4"></video></div>
+<div class="v"><h3>Sim only, level-fixed scene, 3 scripted picks</h3>
+<p>Left: real frame 0. Right: plain MuJoCo render. <code>ep_c3/scripted_picks3_level.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/scripted_picks3_level.mp4"></video></div>
+<div class="v"><h3>Replay of the real recorded motion (real | sim | 50/50 blend), level-fixed scene with floor</h3>
+<p>Shows alignment. The motion fails in sim (the rebuilt cart is ~5 cm too high), and the bowl gets knocked onto the floor. 79 s, 23 MB. <code>ep_c3/replay.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/replay.mp4"></video></div>
+<div class="v"><h3>Composite before the bowl fix (frame-0 holes only)</h3>
+<p>Kept for comparison: dark ghost behind the bowl. <code>ep_c3/composite_scripted_picks3_level_frame0holes.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/composite_scripted_picks3_level_frame0holes.mp4"></video></div>
+<div class="v"><h3>Composite, first LaMa version (scene before the level fix, tilted 13.5°)</h3>
+<p><code>ep_c3/composite_scripted_picks3_lama.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/composite_scripted_picks3_lama.mp4"></video></div>
+<div class="v"><h3>Real c3 video (left) vs first composite (right)</h3>
+<p>Different tasks on each side: the real operator puts toys in the bowl; the sim does its own 3 picks. <code>ep_c3/real_vs_scripted_picks3.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/real_vs_scripted_picks3.mp4"></video></div>
+<div class="v"><h3>First 3-pick run, sim only (scene before the level fix)</h3>
+<p><code>ep_c3/scripted_picks3.mp4</code></p>
+<video controls preload="metadata" src="ep_c3/scripted_picks3.mp4"></video></div>
+
+<h2>Orange block into the bowl (AUTOLab, first episode)</h2>
+<div class="v"><h3>Real (left) vs sim scripted grasp on the real background (right)</h3>
+<p>Real video retimed to its true 15 Hz. <code>ep_orange_block/real_vs_scripted.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/real_vs_scripted.mp4"></video></div>
+<div class="v"><h3>Composite, scripted grasp, fitted light (soft shadows)</h3>
+<p><code>ep_orange_block/composite_scripted_grasp.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/composite_scripted_grasp.mp4"></video></div>
+<div class="v"><h3>Composite of the real-action replay, fitted light</h3>
+<p><code>ep_orange_block/composite_replay.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/composite_replay.mp4"></video></div>
+<div class="v"><h3>Scripted grasp, sim only (latest regression run)</h3>
+<p><code>ep_orange_block/scripted_grasp.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/scripted_grasp.mp4"></video></div>
+<div class="v"><h3>Replay (real | sim | blend), calibrated camera</h3>
+<p><code>ep_orange_block/replay.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/replay.mp4"></video></div>
+<div class="v"><h3>First replay with DROID's original (wrong) camera calibration</h3>
+<p>The sim arm is misplaced. This is what started the self-calibration work. <code>ep_orange_block/v1_droid_calib/replay.mp4</code></p>
+<video controls preload="metadata" src="ep_orange_block/v1_droid_calib/replay.mp4"></video></div>
+
+<h2>Cluttered DROID candidates (real only, both side cameras, 15 Hz)</h2>
+<div class="v"><h3>c3: AUTOLab cart (the scene used above)</h3><video controls preload="metadata" src="candidates/c3_both_cams.mp4"></video></div>
+<div class="v"><h3>c7: TRI home kitchen, microwave door</h3><video controls preload="metadata" src="candidates/c7_both_cams.mp4"></video></div>
+<div class="v"><h3>c8: PennPAL toy kitchen (about 12 objects)</h3><video controls preload="metadata" src="candidates/c8_both_cams.mp4"></video></div>
+<div class="v"><h3>c1: blocks inside a bowl</h3><video controls preload="metadata" src="candidates/c1_both_cams.mp4"></video></div>
+<div class="v"><h3>c0: lab desk, several small objects</h3><video controls preload="metadata" src="candidates/c0_both_cams.mp4"></video></div>
+<div class="v"><h3>c4: round table, pot / bowl / tray</h3><video controls preload="metadata" src="candidates/c4_both_cams.mp4"></video></div>
+</main></body></html>

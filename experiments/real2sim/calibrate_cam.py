@@ -72,7 +72,7 @@ def check_convention(K, R, t, W, H):
     for mode in ("offset", "absolute"):
         worst = 0.0
         for p in pts:
-            xml = f"""<mujoco><worldbody><geom type="sphere" size="0.004" pos="{p[0]} {p[1]} {p[2]}" rgba="1 1 1 1"/>
+            xml = f"""<mujoco><worldbody><geom type="sphere" size="0.02" pos="{p[0]} {p[1]} {p[2]}" rgba="1 1 1 1"/>
             <camera name="c"/></worldbody><visual><global offwidth="{W}" offheight="{H}"/></visual></mujoco>"""
             m = mujoco.MjModel.from_xml_string(xml)
             d = mujoco.MjData(m)
@@ -158,7 +158,7 @@ def main():
         """angle between the table normal (in the robot frame) and vertical: 0 for a level table"""
         nb = R @ n_cam
         return float(np.degrees(np.arccos(min(1.0, abs(nb[2])))))
-    W, H = 1280, 720
+    H, W = read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), 0).shape[:2]  # DROID 1280x720, CMU 640x360
     w, h = W // DOWN, H // DOWN
     Kd = K.copy()
     Kd[:2] /= DOWN

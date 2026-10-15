@@ -172,6 +172,42 @@ a{color:var(--accent)}
 <li>All 2026 paper numbers are author claims from preprints.</li>
 </ul>
 
+<h2>10 · Proof-of-concept log, 10-14 → 10-15</h2>
+<p class="meta">Added 10-15. Code: <code>experiments/real2sim/</code>. Videos: <code>runs/real2sim/videos.html</code>. All numbers are exploratory and not val-checked.</p>
+<h3>10.1 · What worked: DROID episodes (fixed cameras, robot fully in view, joint angles recorded)</h3>
+<ul>
+<li><b>Orange block</b> (AUTOLab, 3 blocks + bowl) and <b>c3 clutter</b> (AUTOLab cart, 8 blocks + bowl + radish + apple) were rebuilt from frame 0. The camera was self-calibrated from the robot's outline, because DROID's recorded extrinsics were off. c3 also needed a level-table constraint (13.5° tilt → 0.02°).</li>
+<li>Scripted (sim-planned) pick-and-place succeeds: orange block 1/1, c3 3/3. Composites onto the real background use a LaMa-filled plate and a light fitted to the real robot's shadow <span class="v">[V]</span>.</li>
+<li>Open: a ~5 cm depth-scale error in c3 (the recorded grasps sit below the rebuilt cart top), so replaying the real recorded actions fails <span class="v">[V]</span>.</li>
+</ul>
+<h3>10.2 · What failed: iamlab_cmu_pickup_insert (Open X-Embodiment, Franka Panda + Panda hand, no camera info)</h3>
+<ul>
+<li><b>Goal:</b> rebuild a LIBERO-robot scene from data that has no camera intrinsics or extrinsics, by solving pose + focal length from the robot's outline.</li>
+<li><b>Result:</b> calibration from scratch failed. The best sphere-search start reached outline IoU 0.163, the random search 0.187 (DROID runs reached 0.40–0.51), and the refinement crashed (SVD did not converge) <span class="v">[V]</span>.</li>
+<li><b>Causes, each checked on frames:</b>
+  <ol>
+  <li>the robot is mostly outside the third-person view; only the hand and fingers enter from the top, covering 0.9–4.5% of the image;</li>
+  <li>in a 302-frame episode the robot lingers long enough to end up in the median "empty" background, so the motion mask misses it (frame 180: 0 robot pixels while the hand is clearly visible);</li>
+  <li>the real gripper has long custom finger extensions, while Menagerie's Panda has standard fingers.</li>
+  </ol></li>
+<li><b>Fixes made on the way</b> (kept): the lens-convention self-check spheres were enlarged (4 mm became sub-pixel at quarter resolution on 640 px video), and the video size is now read from the file instead of being hard-coded for DROID.</li>
+<li><b>Not tried</b> (user decision 10-15, stop here): keypoint calibration (fingertip track + forward kinematics + unknown finger length) and a multi-episode background plate.</li>
+<li><b>Lesson:</b> outline-based self-calibration needs the robot well inside the view; DROID qualifies, this dataset doesn't.</li>
+</ul>
+<h3>10.3 · Audit: is camera calibration usually available? (asked before continuing calibration-free work)</h3>
+<div class="tw"><table>
+<tr><th>Source</th><th>Intrinsics</th><th>Extrinsics (camera ↔ robot)</th><th>Evidence</th></tr>
+<tr><td><b>181 LeRobot-hub datasets</b> (Hugging Face <code>lerobot/*</code>: Open X-Embodiment conversions, ALOHA, PushT, DROID…)</td><td>none declare a field</td><td><b>only DROID</b> (<code>camera_extrinsics.*</code>); 180 of 181 have none</td><td>scanned every <code>meta/info.json</code> for calibration-like field names, 10-15 <span class="v">[V]</span>. Caveat: a conversion may drop fields that the original release had.</td></tr>
+<tr><td>DROID (raw)</td><td>yes (ZED, via the KarlP/droid annotations)</td><td>yes per episode, but noisy; refined for 36k episodes</td><td>used here; DROID's README calls the original calibrations noisy <span class="v">[V]</span></td></tr>
+<tr><td>Open X-Embodiment (original RLDS)</td><td colspan="2">CalibAll (2511.17001): "most existing robot manipulation datasets […] lack camera extrinsic annotations"; they annotated 16 datasets (OXE + RoboMIND + RDT), using MoGe when intrinsics are missing</td><td>quoted from the paper <span class="v">[V]</span>; no released annotations found</td></tr>
+<tr><td>RH20T</td><td>yes</td><td>yes (relative to the robot base)</td><td>official API README <span class="v">[V]</span></td></tr>
+<tr><td>AgiBot World (Alpha)</td><td>yes</td><td>yes (per-episode <code>parameters/camera</code>)</td><td>HF README snippet <span class="v">[V]</span>, format not checked</td></tr>
+<tr><td>EgoDex (human, Vision Pro)</td><td>yes</td><td>camera poses per frame (ARKit); origin differs between recordings</td><td>paper + README <span class="v">[V]</span>; CC BY-NC-ND</td></tr>
+<tr><td>Our own deployments / new collections</td><td colspan="2">calibrated at install (checkerboard or hand-eye), then reused</td><td>standard practice <span class="i">[I]</span></td></tr>
+</table></div>
+<p><b>Answer:</b> in the large <b>existing open</b> robot data (Open X-Embodiment-era, LeRobot hub), calibration is <b>not</b> the norm: only DROID carries it, and noisily. <b>Newer large collections</b> (RH20T, AgiBot World, DROID) and <b>wearable human data</b> (EgoDex) do ship it, and any deployment of our own would calibrate once at install.</p>
+<p><b>So calibration-free reconstruction matters only for mining legacy open data</b>, and CalibAll already targets exactly that, training-free and with MoGe intrinsics. Our outline method duplicates it, so building it further is low-novelty. Recommendation: take camera info as given (from the dataset or an install-time calibration), and spend effort elsewhere, e.g. the 5 cm depth error, stereo depth, or the task and policy layer on top of the rebuilt scenes.</p>
+
 <h2>Sources</h2>
 <ul>
 <li>RoboSnap <a href="https://arxiv.org/abs/2607.06699">2607.06699</a> (full HTML read) · SimuScene <a href="https://arxiv.org/abs/2606.03994">2606.03994</a> · DEXTERA <a href="https://arxiv.org/abs/2609.21045">2609.21045</a> · Agentic RSR <a href="https://arxiv.org/abs/2610.10479">2610.10479</a> · φ-RIE <a href="https://arxiv.org/abs/2609.26795">2609.26795</a> · R2S-EGO <a href="https://arxiv.org/abs/2608.06827">2608.06827</a> (not read)</li>
