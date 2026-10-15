@@ -161,9 +161,57 @@
 </section>
 
 <section class="sess" id="impl">
-  <h2>impl <span class="small">(pending; to be filled by impl only)</span></h2>
-  <!-- HANDOFF-SLOT:impl -->
-  <div class="slot">Pending. impl writes this section with Edit: role, what it did 12–15 Oct (with commits / worktree paths), runs and their state, what is UNVERIFIED, open items and what it needs from the user. Stamp the header with the time filled.</div>
+  <h2>impl <span class="small">(filled 2026-10-15 12:20 by impl)</span></h2>
+  <p class="lead"><span class="owner">owner: impl</span> · <b>Verdict:</b> nothing is running, and everything prim approved is done. Every new number is UNVERIFIED (val is down) or exempt under 10-09. A lot of the worktree output is still uncommitted (§3).</p>
+
+  <h3>1 · Role</h3>
+  <ul class="tight">
+    <li>Implementor: I build and run approved changes. GPU steps go through <code>experiments/d_step.sh &lt;name&gt; --gpu</code> (flock, 14 GiB floor, AC check), are announced first, and need prim's OK.</li>
+    <li>I ask before any code or doc change, even one-liners. No commits (prim commits), no subagents, never patch <code>third_party</code>. Deliverables are local HTML.</li>
+    <li>Root-signal work is in the worktree <code>../VLA-exp-rootsignals</code> (branch exp/root-signals). R-060 and the docs are in main.</li>
+  </ul>
+
+  <h3>2 · What I did, 12–15 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Item</th><th>Result</th><th>Where / commit</th></tr>
+    <tr><td>R-060 G0c pose fix + amended gate</td><td><code>nominal_frames</code> now uses LIBERO-Plus's own camera pose. The amended gate passes: camera 15/15 and noise 10/10, all within 8 px (≤ 6 px seen).</td><td>main, <b>1b0f638</b> (<code>libero_env.py</code>, <code>r060_gates.py</code>, <code>runs/r060/gates/tol8px/</code>)</td></tr>
+    <tr><td>R-060 past-row pose check</td><td>The same 10 LIBERO-Plus camera variants appear in R-039, "R-039 recorded" and R-048. Their clean frame came from the old, wrong pose: 12.6–13.5k agent-view pixels differ, up to 52 levels. The new pose matches the control env at 0 px on all 10. The wrist view is unaffected, and so is R-047.</td><td>main, <b>uncommitted</b>: <code>experiments/r060_pose_pastrows.py</code>, <code>runs/r060/gates/tol8px/pose_pastrows.{json,log}</code></td></tr>
+    <tr><td>R-059 C1 (GPU, 10-12)</td><td>240 start-pose rollouts at B = 32, rc 0, 75 min. 170 successes; failures by radius 0/0.2/0.3/0.4 = 3/15/23/29 of 60.</td><td>worktree, <b>uncommitted</b>: <code>runs/r059/c1/</code> (NOTES.md has both failed part-B controls), <code>runs/overnight/r059_c1.*</code></td></tr>
+    <tr><td>R-059 Part C scorer (CPU, 10-14)</td><td>STAC does not detect early. Its AUROC (failure-high) at f = 0..3 is 0.18 / 0.43 / 0.30 / 0.26: failures have <i>lower</i> STAC. Expectation 6 FAILS (26% caught before f_c, at a 29% episode FPR). Expectation 7 FAILS (STAC is below Spread at f = 0). Expectation 8 HOLDS: the whole-episode sum reaches 0.97, and a shuffled-length control gets 0.99, so the separation is episode length. All four uninterpretable checks pass.</td><td>worktree, <b>uncommitted</b>: <code>experiments/r059_score_c.py</code>, <code>runs/r059/c1/score_c.{json,log}</code>, <code>score_c_code_state/</code></td></tr>
+    <tr><td>E7 on-plate truth fix</td><td>My predicate had been backwards. It is now <code>plate.check_ontop(target)</code>, re-replayed (GPU, rc 0), and the known answer is 50/50 successes on the plate. Answers were rescored. Cosmos-Reason2-2B is unusable as a state reader: it answers "no" to every yes/no question, 0/50 on "done" for successes. Nemotron has only about 155 answers, too few to compare.</td><td>worktree, <b>uncommitted</b>: <code>e7_truth_contacts.py</code>, <code>e7_vlm.py</code>, <code>runs/root_signals/e7/</code> (tasks, cosmos2b/, NOTES.md, on_plate_known_answer.json)</td></tr>
+    <tr><td>E7 hand-review page</td><td>40 frames (32 hard / 8 easy) for blind labelling, with no truth or answers shown on the page.</td><td>worktree, <b>uncommitted</b>: <code>docs/E7_HAND_REVIEW.html</code>, <code>experiments/e7_handreview.py</code>, <code>runs/root_signals/e7/handreview/items.json</code></td></tr>
+    <tr><td>PORTABILITY_LIBERO_MAX</td><td>An inventory of every LIBERO-Spatial assumption, per experiment, with a per-task config proposal and an estimate of about 13–19 impl-days of CPU work. The common rollout format was agreed with impl2, with amendments A1–A7 and 360/256 px frames (user-approved 10-14).</td><td>main, <b>8db05e0</b></td></tr>
+  </table></div>
+
+  <h3>3 · Runs and their state</h3>
+  <ul class="tight">
+    <li>Nothing is running from impl, and I have no GPU step queued. The last GPU steps were r059_c1 (10-12, rc 0) and e7_onplate_truth (10-13, rc 0), both in <code>runs/overnight/queue.log</code> in the worktree.</li>
+    <li>The R-059 B smoke and E4-2 are committed (7fe5c00).</li>
+    <li>Uncommitted in the worktree: C1, the Part C scorer, the E7 fix and rescore, the hand review, and part-B npz files. I can give a commit-group list on request.</li>
+    <li>There is a stray backup <code>experiments/e7_vlm.py.orig</code> in the worktree. It should not be committed. Delete it? (I'm asking, not doing it.)</li>
+  </ul>
+
+  <h3>4 · UNVERIFIED</h3>
+  <ul class="tight">
+    <li><b>R-059 Part C</b> (<code>score_c.json</code>): new numeric code, waiting on val. Interpretation choices for val:
+      <ul>
+        <li>detection forward = when the score is first computable;</li>
+        <li>leave-one-scene-out calibration for all three detectors;</li>
+        <li>conformal k-th order statistic, firing strictly above it;</li>
+        <li>expectation 8 judged on the mean gap over f = 0..3.</li>
+      </ul></li>
+    <li>Exempt under 10-09 (exploratory, not val-checked): C1, the E7 rescore and hand-review selection, and the R-060 past-row check.</li>
+    <li>Known limits recorded in C1's NOTES: the bit-identity control failed in part B, and C1's rollouts are B = 32 rollouts, not B = 1 replays.</li>
+  </ul>
+
+  <h3>5 · Open items and what I need from the user</h3>
+  <ul class="tight">
+    <li><b>R-039 / R-048 camera rows:</b> re-run the 10 affected rows with the fixed pose (GPU), or record them as a known limit?</li>
+    <li><b>E7 direction:</b> Cosmos-2B is ruled out. Choose between Nemotron on NIM (about 25 s per question, about 1,600 questions), another model, or stopping. Your hand-review labels (the page above) would show which questions any VLM can answer.</li>
+    <li><b>R-059:</b> the C1 result says STAC is not an early detector for these failures. Do we close STAC, since expectation 6 fails? (Expectation 1 is borderline: 40.2% erratic against a ≤ 40% bar, or 37.6% without the radius-0 rows.) Then and move to a progress signal (res's STAC_GROOT_THEORY)? C2 (camera) is not run.</li>
+    <li><b>LIBERO-MAX ports:</b> nothing is built. The per-task configs and code changes wait on your approval, and the rollout format is built once a run is approved.</li>
+    <li><b>Commits:</b> the worktree items in §2 are ready for prim to commit as metadata-only groups.</li>
+  </ul>
 </section>
 
 </div>
