@@ -164,6 +164,163 @@ class Compositor:
         self.rend.close()
 
 
+def cam_K(m, cid, w, h):
+    """OpenCV K of MuJoCo camera `cid` rendered at w x h (inverse of calibrate_cam.set_camera, 'offset' mode)."""
+    W0, H0 = m.cam_sensorsize[cid]
+    fx, fy, px, py = m.cam_intrinsic[cid]
+    s = w / W0
+    return np.array([[fx * s, 0, (px + W0 / 2) * s], [0, fy * s, (H0 / 2 - py) * s], [0, 0, 1.0]])
+
+
+def cam_pose(d, cid):
+    """OpenCV (R cam->world, t) of camera `cid` in the current state."""
+    return d.cam_xmat[cid].reshape(3, 3) @ np.diag([1, -1, -1]), d.cam_xpos[cid].copy()
+
+
+def wrist_plate(m, out, episode, ext_comp, serial, dilate=25):
+    """Second texture source for the wrist view: the real wrist frame at the start of <out>/replay_states.npz
+    (sim posed at the recorded joints), robot + object pixels (sim wrist segmentation, dilated) inpainted with LaMa.
+    Cached as <out>/plate_cache_wrist_frame0.png. Returns dict(img float32 RGB, K, R, t) of that wrist view."""
+    import json
+    st = np.load(os.path.join(out, "replay_states.npz"))
+    d = mujoco.MjData(m)
+    d.qpos[:] = st["qpos"][0]
+    mujoco.mj_forward(m, d)
+    cid = m.camera("wrist").id
+    W, H = (int(v) for v in m.cam_sensorsize[cid])
+    R, t = cam_pose(d, cid)
+    cache = os.path.join(out, "plate_cache_wrist_frame0.png")
+    if os.path.exists(cache):
+        img = cv2.cvtColor(cv2.imread(cache), cv2.COLOR_BGR2RGB)
+    else:
+        cap = cv2.VideoCapture(os.path.join(episode, f"{serial}.mp4"))
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(st["real_frames"][0]))
+        ok, bgr = cap.read()
+        if not ok:
+            raise RuntimeError(f"cannot read wrist frame {int(st['real_frames'][0])} of {episode}/{serial}.mp4")
+        real = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        if real.shape[:2] != (H, W):
+            raise ValueError(f"wrist video {real.shape[:2]} != wrist camera sensor size {(H, W)}")
+        rend = mujoco.Renderer(m, H, W)
+        rend.enable_segmentation_rendering()
+        rend.update_scene(d, camera="wrist", scene_option=ext_comp.opt_all)
+        seg = rend.render()
+        rend.close()
+        fg = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], ext_comp.fg_geoms)
+        hole = cv2.dilate(fg.astype(np.uint8), np.ones((dilate, dilate), np.uint8))
+        img = lama_inpaint(real, hole)
+        # colour gain exterior -> wrist camera (the policy sees the wrist camera's exposure/white balance): per-channel
+        # median ratio over background pixels seen by both cameras and outside the inpainted hole
+        rend = mujoco.Renderer(m, H, W)
+        rend.enable_depth_rendering()
+        rend.update_scene(d, camera="wrist", scene_option=ext_comp.opt_all)
+        depth = rend.render()
+        rend.close()
+        u, v = np.meshgrid(np.arange(W) + 0.5, np.arange(H) + 0.5)
+        Kw = cam_K(m, cid, W, H)
+        pw = np.stack([(u - Kw[0, 2]) / Kw[0, 0], (v - Kw[1, 2]) / Kw[1, 1], np.ones_like(u)], -1) * depth[..., None] @ R.T + t
+        Re, te = cam_pose(d, m.camera("ext").id)
+        Ke = cam_K(m, m.camera("ext").id, ext_comp.plate.shape[1], ext_comp.plate.shape[0])
+        pc = (pw - te) @ Re
+        z = np.maximum(pc[..., 2], 1e-6)
+        mx = (pc[..., 0] / z * Ke[0, 0] + Ke[0, 2] - 0.5).astype(np.float32)
+        my = (pc[..., 1] / z * Ke[1, 1] + Ke[1, 2] - 0.5).astype(np.float32)
+        both = (pc[..., 2] > 0) & (mx >= 0) & (mx <= ext_comp.plate.shape[1] - 1) & (my >= 0) & (my <= ext_comp.plate.shape[0] - 1) \
+            & (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & (hole == 0)
+        ext_tex = cv2.remap(ext_comp.plate.astype(np.float32), mx, my, cv2.INTER_LINEAR)
+        gain = (np.median(real[both].astype(np.float32), 0) / np.maximum(np.median(ext_tex[both], 0), 1.0)).tolist() if both.sum() > 1000 else [1.0, 1.0, 1.0]
+        cv2.imwrite(cache, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+        json.dump(dict(real_frame=int(st["real_frames"][0]), dilate=dilate, hole_frac=float(hole.mean()),
+                       ext_to_wrist_gain=gain, gain_px=int(both.sum())), open(cache.replace(".png", ".json"), "w"))
+    meta = json.load(open(cache.replace(".png", ".json")))
+    return dict(img=img.astype(np.float32), K=cam_K(m, cid, W, H), R=R, t=t, gain=np.array(meta["ext_to_wrist_gain"], np.float32))
+
+
+class WristCompositor:
+    """Per-frame wrist view with real texture on the static background (projective texturing).
+    Robot + object pixels come from the sim render (real colours from Compositor). Every other pixel (table, floor)
+    is back-projected with the sim wrist depth to a world point, projected into the calibrated exterior camera and
+    coloured from the cleaned exterior plate; points outside the exterior image are coloured from `plate2` (wrist_plate:
+    the cleaned real wrist frame 0, if given) and otherwise keep the sim colour. The table is
+    darkened by the sim shadow ratio as in Compositor. Needs a Compositor on the same model first (sets colours/light).
+    Limits: texture resolution is the exterior camera's; errors of the exterior calibration and of the (approximate)
+    wrist camera pose move the texture; the floor is ASSUMED (build_scene --floor_below) and there is no wall."""
+
+    def __init__(self, m, plate, ext_comp, size, cam="wrist", plate2=None, colour_gain=False):
+        self.m, self.ext, self.cam, self.plate2 = m, ext_comp, cam, plate2
+        # colour_gain: scale the exterior texture by plate2's frame-0 ext->wrist gain. Off by default: the real wrist
+        # camera's exposure changes during an episode, and the frame-0 gain made later frames too yellow (res31, 10-15)
+        self.gain = plate2["gain"] if (colour_gain and plate2 is not None) else 1.0
+        self.H, self.W = size
+        self.plate = plate.astype(np.float32)
+        self.cid, self.ext_cid = m.camera(cam).id, m.camera("ext").id
+        self.Kp = cam_K(m, self.ext_cid, plate.shape[1], plate.shape[0])  # exterior K at the plate's resolution
+        self.Kw = cam_K(m, self.cid, self.W, self.H)
+        u, v = np.meshgrid(np.arange(self.W) + 0.5, np.arange(self.H) + 0.5)
+        self.rays = np.stack([(u - self.Kw[0, 2]) / self.Kw[0, 0], (v - self.Kw[1, 2]) / self.Kw[1, 1], np.ones_like(u)], -1)
+        self.rend = mujoco.Renderer(m, self.H, self.W)
+
+    def __call__(self, d, return_info=False):
+        m, rend, ext = self.m, self.rend, self.ext
+        rend.update_scene(d, camera=self.cam, scene_option=ext.opt_all)
+        sim = rend.render().astype(np.float32)
+        rend.enable_segmentation_rendering()
+        rend.update_scene(d, camera=self.cam, scene_option=ext.opt_all)
+        seg = rend.render()
+        rend.disable_segmentation_rendering()
+        rend.enable_depth_rendering()
+        rend.update_scene(d, camera=self.cam, scene_option=ext.opt_all)
+        depth = rend.render()
+        rend.disable_depth_rendering()
+        is_geom = seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM
+        fg = is_geom & np.isin(seg[..., 0], ext.fg_geoms)
+        # world points of the wrist pixels -> exterior plate pixels
+        R, t = cam_pose(d, self.cid)
+        pw = (self.rays * depth[..., None]) @ R.T + t
+        Re, te = cam_pose(d, self.ext_cid)
+        pc = (pw - te) @ Re
+        z = np.maximum(pc[..., 2], 1e-6)
+        mx = (pc[..., 0] / z * self.Kp[0, 0] + self.Kp[0, 2] - 0.5).astype(np.float32)
+        my = (pc[..., 1] / z * self.Kp[1, 1] + self.Kp[1, 2] - 0.5).astype(np.float32)
+        inside = (pc[..., 2] > 0) & (mx >= 0) & (mx <= self.plate.shape[1] - 1) & (my >= 0) & (my <= self.plate.shape[0] - 1)
+        tex = cv2.remap(self.plate, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+        bg = is_geom & ~fg & inside
+        out = sim.copy()
+        out[bg] = tex[bg] * self.gain
+        bg2 = np.zeros_like(bg)
+        if self.plate2 is not None:
+            p2 = self.plate2
+            q = (pw - p2["t"]) @ p2["R"]
+            z2 = np.maximum(q[..., 2], 1e-6)
+            nx = (q[..., 0] / z2 * p2["K"][0, 0] + p2["K"][0, 2] - 0.5).astype(np.float32)
+            ny = (q[..., 1] / z2 * p2["K"][1, 1] + p2["K"][1, 2] - 0.5).astype(np.float32)
+            h2, w2 = p2["img"].shape[:2]
+            inside2 = (q[..., 2] > 0) & (nx >= 0) & (nx <= w2 - 1) & (ny >= 0) & (ny <= h2 - 1)
+            bg2 = is_geom & ~fg & ~inside & inside2
+            tex2 = cv2.remap(p2["img"], nx, ny, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+            out[bg2] = tex2[bg2]
+        bg = bg | bg2
+        if ext.shadows:
+            m.geom_group[ext.fg_geoms] = HIDE_GROUP
+            rend.update_scene(d, camera=self.cam, scene_option=ext.opt_hide)
+            lit = rend.render().astype(np.float32)
+            m.geom_group[:] = ext.group0
+            on_table = is_geom & (seg[..., 0] == ext.table) & bg
+            ratio = np.ones((self.H, self.W), np.float32)
+            r = sim[on_table].mean(-1) / np.maximum(lit[on_table].mean(-1), 1.0)
+            if ext.light:
+                ratio[on_table] = 1.0 - np.clip((1.0 - r) / 0.1, 0.0, 1.0) * (1.0 - ext.light["real_shadow_ratio"])
+            else:
+                ratio[on_table] = np.clip(r, 0.35, 1.0)
+            out *= cv2.GaussianBlur(ratio, (0, 0), 3)[..., None]
+        if return_info:
+            return out, dict(seg=seg, depth=depth, fg=fg, bg=bg, bg2=bg2, mx=mx, my=my, inside=inside)
+        return out
+
+    def close(self):
+        self.rend.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episode", required=True)
