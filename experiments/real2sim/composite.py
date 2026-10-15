@@ -53,12 +53,28 @@ def lama_inpaint(img, hole):
     return np.clip(y.permute(1, 2, 0).numpy() * 255, 0, 255).astype(np.uint8)[:H, :W]
 
 
-def clean_plate(frames, per, objects, dilate=15, method="telea"):
+def plate_holes(plate, objects):
+    """Masks of the objects as they appear in the median plate itself (mid-episode positions, things in the bowl),
+    found with the same detector + SAM using the scene's object labels as prompts."""
+    from perceive import detect_multi, segment
+    prompts = sorted({lab.split("#")[0] for lab in objects.values()})
+    dets = detect_multi(plate, prompts)
+    hole = np.zeros(plate.shape[:2], np.uint8)
+    for mk in segment(plate, dets).values():
+        hole |= mk.astype(np.uint8)
+    return hole, sorted(dets)
+
+
+def clean_plate(frames, per, objects, dilate=15, method="telea", holes="frame0"):
     plate = np.median(np.stack(frames[::max(1, len(frames) // 150)]), axis=0).astype(np.uint8)  # <=~150 frames: memory
     hole = np.zeros(plate.shape[:2], np.uint8)
     for name in objects.values():
         if f"mask/{name}" in per:
             hole |= per[f"mask/{name}"].astype(np.uint8)
+    if holes == "frame0+plate":
+        h2, found = plate_holes(plate, objects)
+        print("objects found in the plate:", found)
+        hole |= h2
     hole = cv2.dilate(hole, np.ones((dilate, dilate), np.uint8))
     if method == "lama":
         return lama_inpaint(plate, hole)
@@ -73,6 +89,8 @@ def main():
     ap.add_argument("--run", default="replay", help="<run>_states.npz from replay.py or scripted_grasp.py (--tag)")
     ap.add_argument("--no_shadows", action="store_true")
     ap.add_argument("--inpaint", choices=["telea", "lama"], default="telea", help="how the real objects are removed from the plate")
+    ap.add_argument("--holes", choices=["frame0", "frame0+plate"], default="frame0",
+                    help="frame0: perception masks from frame 0; +plate: also objects detected in the median plate")
     a = ap.parse_args()
 
     m = mujoco.MjModel.from_binary_path(os.path.join(a.out, "scene.mjb"))
@@ -82,7 +100,7 @@ def main():
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
     objects = scene_objects(a.out)
-    plate = clean_plate(real, per, objects, method=a.inpaint).astype(np.float32)
+    plate = clean_plate(real, per, objects, method=a.inpaint, holes=a.holes).astype(np.float32)
     cv2.imwrite(os.path.join(a.out, f"plate_clean_{a.inpaint}.png") if a.inpaint != "telea" else os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     # real colours on the sim objects
