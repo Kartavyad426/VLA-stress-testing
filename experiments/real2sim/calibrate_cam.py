@@ -119,6 +119,11 @@ def main():
     ap.add_argument("--masks", choices=["motion", "dino"], default="motion",
                     help="motion: background subtraction (default); dino: Grounding DINO + SAM (unreliable on this episode)")
     ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames to fit, comma-separated")
+    ap.add_argument("--init", default=None, help="start from this calib.json instead of DROID's extrinsics")
+    ap.add_argument("--level_weight", type=float, default=0.0,
+                    help="px of cost per degree of table tilt (assumes robot base and table are level); 0 = off")
+    ap.add_argument("--span_deg", type=float, default=15.0)
+    ap.add_argument("--span_m", type=float, default=0.25)
     ap.add_argument("--search", type=int, default=2000, help="random camera poses scored before local refinement")
     a = ap.parse_args()
     FRAMES = [int(x) for x in a.frames.split(",")]
@@ -127,7 +132,26 @@ def main():
     jp = f["observation/robot_state/joint_positions"][()]
     ex0 = f[f"observation/camera_extrinsics/{a.cam}_left"][0]
     R0, t0 = Rot.from_euler("xyz", ex0[3:]).as_matrix(), np.asarray(ex0[:3])
+    if a.init:  # refine from an earlier calibration instead of DROID's recorded extrinsics
+        c0 = json.load(open(a.init))
+        R0, t0 = np.array(c0["R_cam_to_base"]), np.array(c0["t_cam_in_base"])
     K = zed_K(a.episode, a.cam)
+    n_cam = None
+    if a.level_weight > 0:
+        # table normal in the camera frame (MoGe depth, ZED intrinsics; independent of the depth scale)
+        per = np.load(os.path.join(a.out, "perception.npz"))
+        Hh, Ww = per["depth"].shape
+        uu, vv = np.meshgrid(np.arange(Ww), np.arange(Hh))
+        zz = per["depth"]
+        P = np.stack([(uu - K[0, 2]) / K[0, 0] * zz, (vv - K[1, 2]) / K[1, 1] * zz, zz], -1)
+        tm = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & per["valid"]
+        tp = P[tm]
+        n_cam = np.linalg.svd(tp - tp.mean(0), full_matrices=False)[2][-1]
+
+    def tilt_deg(R):
+        """angle between the table normal (in the robot frame) and vertical: 0 for a level table"""
+        nb = R @ n_cam
+        return float(np.degrees(np.arccos(min(1.0, abs(nb[2])))))
     W, H = 1280, 720
     w, h = W // DOWN, H // DOWN
     Kd = K.copy()
@@ -198,7 +222,10 @@ def main():
                 continue
             dt_sim = cv2.distanceTransform((~sm[i]).astype(np.uint8), cv2.DIST_L2, 3)
             c += float(dt_real[i][sm[i]].mean()) + float(dt_sim[real_small[i]].mean())
-        return c / len(FRAMES)
+        c /= len(FRAMES)
+        if n_cam is not None:  # assumption: the robot base and the table are both level
+            c += a.level_weight * tilt_deg(Rot.from_rotvec(x[:3]).as_matrix() @ R0)
+        return c
 
     def iou(x):
         sm = sim_masks(x)
@@ -209,7 +236,7 @@ def main():
     # global stage: DROID's extrinsics can be far off (ep_orange_block: Powell from x0 stalled at IoU 0.28),
     # so score random poses around them by IoU first and refine only the best few
     rng = np.random.default_rng(0)
-    span = np.array([np.radians(15)] * 3 + [0.25] * 3)
+    span = np.array([np.radians(a.span_deg)] * 3 + [a.span_m] * 3)
     cands = [x0] + [rng.uniform(-span, span) for _ in range(a.search)]
     scored = sorted(((iou(x), k) for k, x in enumerate(cands)), reverse=True)
     print("random search: best IoU", [round(s, 3) for s, _ in scored[:5]], flush=True)
@@ -222,7 +249,8 @@ def main():
     c1, i1 = cost(res.x), iou(res.x)
     R1 = Rot.from_rotvec(res.x[:3]).as_matrix() @ R0
     t1 = t0 + res.x[3:]
-    calib = dict(cam=a.cam, K=K.tolist(), R_cam_to_base=R1.tolist(), t_cam_in_base=t1.tolist(),
+    tilts = dict(tilt_before_deg=tilt_deg(R0), tilt_after_deg=tilt_deg(R1)) if n_cam is not None else {}
+    calib = dict(cam=a.cam, K=K.tolist(), level_weight=a.level_weight, init=a.init, **tilts, R_cam_to_base=R1.tolist(), t_cam_in_base=t1.tolist(),
                  delta_rot_deg=float(np.degrees(np.linalg.norm(res.x[:3]))), delta_trans_m=res.x[3:].tolist(),
                  cost_before_px=c0, cost_after_px=c1, iou_before=i0, iou_after=i1, frames=FRAMES,
                  principal_mode=mode, convention_check_px=errs, nfev=int(res.nfev))
