@@ -88,6 +88,9 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--run", default="replay", help="<run>_states.npz from replay.py or scripted_grasp.py (--tag)")
     ap.add_argument("--no_shadows", action="store_true")
+    ap.add_argument("--states", default=None, help="explicit *_states.npz (e.g. a make_tasks episode) instead of <out>/<run>_states.npz")
+    ap.add_argument("--video_out", default=None, help="output mp4 path (default <out>/composite_<run>.mp4)")
+    ap.add_argument("--composite_only", action="store_true", help="write the composite at full resolution, no real-frame panel")
     ap.add_argument("--inpaint", choices=["telea", "lama"], default="telea", help="how the real objects are removed from the plate")
     ap.add_argument("--holes", choices=["frame0", "frame0+plate"], default="frame0",
                     help="frame0: perception masks from frame 0; +plate: also objects detected in the median plate")
@@ -95,12 +98,17 @@ def main():
 
     m = mujoco.MjModel.from_binary_path(os.path.join(a.out, "scene.mjb"))
     d = mujoco.MjData(m)
-    st = np.load(os.path.join(a.out, f"{a.run}_states.npz"))
+    st = np.load(a.states or os.path.join(a.out, f"{a.run}_states.npz"))
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
     objects = scene_objects(a.out)
-    plate = clean_plate(real, per, objects, method=a.inpaint, holes=a.holes).astype(np.float32)
+    cache = os.path.join(a.out, f"plate_cache_{a.inpaint}_{a.holes.replace('+', '_')}.png")
+    if os.path.exists(cache):  # the cleaned plate depends only on the scene, not on the run
+        plate = cv2.cvtColor(cv2.imread(cache), cv2.COLOR_BGR2RGB).astype(np.float32)
+    else:
+        plate = clean_plate(real, per, objects, method=a.inpaint, holes=a.holes).astype(np.float32)
+        cv2.imwrite(cache, cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
     cv2.imwrite(os.path.join(a.out, f"plate_clean_{a.inpaint}.png") if a.inpaint != "telea" else os.path.join(a.out, "plate_clean.png"), cv2.cvtColor(plate.astype(np.uint8), cv2.COLOR_RGB2BGR))
 
     # real colours on the sim objects
@@ -129,7 +137,7 @@ def main():
     opt_hide.geomgroup[HIDE_GROUP] = 0
     group0 = m.geom_group.copy()
 
-    writer = imageio.get_writer(os.path.join(a.out, f"composite_{a.run}.mp4"), fps=FPS, quality=7, macro_block_size=8)
+    writer = imageio.get_writer(a.video_out or os.path.join(a.out, f"composite_{a.run}.mp4"), fps=FPS, quality=8, macro_block_size=8)
     for k, q in enumerate(st["qpos"]):
         d.qpos[:] = q
         mujoco.mj_forward(m, d)
@@ -157,6 +165,9 @@ def main():
             ratio = cv2.GaussianBlur(ratio, (0, 0), 3)
             out *= ratio[..., None]
         out[fg] = sim[fg]
+        if a.composite_only:  # full resolution, no side panel, no burned-in text
+            writer.append_data(out.clip(0, 255).astype(np.uint8))
+            continue
         frame = real[int(st["real_frames"][k])]
         row = np.concatenate([frame, out.clip(0, 255).astype(np.uint8)], 1)
         row = cv2.resize(row, (row.shape[1] // 2, row.shape[0] // 2), interpolation=cv2.INTER_AREA)

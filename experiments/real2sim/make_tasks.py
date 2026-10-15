@@ -135,6 +135,8 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--res", default="320x180", help="recorded video size WxH")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--only", action="append", default=[], help="run only tasks whose instruction contains this text (repeatable)")
+    ap.add_argument("--variant_list", type=int, nargs="*", default=None, help="run only these variant indices")
     a = ap.parse_args()
     RW, RH = map(int, a.res.split("x"))
     summary = []
@@ -164,10 +166,12 @@ def main():
         print(f"{sname}: {len(tasks)} tasks", [t["text"] for t in tasks], flush=True)
 
         for ti, task in enumerate(tasks):
+            if a.only and not any(x in task["text"] for x in a.only):
+                continue
             tdir = os.path.join(a.out, sname, f"{ti:02d}_{task['type']}_{task['target']}")
             os.makedirs(tdir, exist_ok=True)
             n_ok = 0
-            for vi in range(a.variants):
+            for vi in (a.variant_list if a.variant_list else range(a.variants)):
                 rng = np.random.default_rng(a.seed * 1000 + ti * 100 + vi)
                 d = mujoco.MjData(m)
                 d.qpos[arm_q] = q_start
@@ -177,7 +181,7 @@ def main():
                 d.ctrl[grip_u] = g_lo
                 for _ in range(int(0.5 / m.opt.timestep)):
                     mujoco.mj_step(m, d)
-                frames, qs, acts = [], [], []
+                frames, qs, acts, full = [], [], [], []
 
                 def run(waypoints, R):
                     q_prev = d.qpos[arm_q].copy()
@@ -193,6 +197,7 @@ def main():
                             frames.append(rend.render().copy())
                             qs.append(np.r_[d.qpos[arm_q], d.ctrl[grip_u] / g_hi])
                             acts.append(np.r_[d.ctrl[arm_u], d.ctrl[grip_u] / g_hi])
+                            full.append(d.qpos.copy())  # whole sim state, for composite.py
                         q_prev = q
 
                 tb, rb = m.body(task["target"]).id, m.body(task["ref"]).id
@@ -237,6 +242,7 @@ def main():
                     w.append_data(fr)
                 w.close()
                 np.savez_compressed(base + ".npz", state=np.array(qs), action=np.array(acts))
+                np.savez_compressed(base + "_states.npz", qpos=np.array(full), real_frames=np.zeros(len(full), int))
                 json.dump(dict(scene=sname, task=task, instruction=task["text"], variant=vi, seed=int(a.seed * 1000 + ti * 100 + vi),
                                success=bool(ok), steps=len(frames), final_target_xyz=pt.tolist(), final_ref_xyz=pr.tolist()),
                           open(base + ".json", "w"), indent=1)
@@ -244,7 +250,8 @@ def main():
                                 successes=n_ok, variants=a.variants))
             print(f"  [{n_ok}/{a.variants}] {task['text']}", flush=True)
         rend.close()
-    json.dump(summary, open(os.path.join(a.out, "summary.json"), "w"), indent=1)
+    if not a.only and not a.variant_list:  # partial reruns don't overwrite the full summary
+        json.dump(summary, open(os.path.join(a.out, "summary.json"), "w"), indent=1)
 
 
 if __name__ == "__main__":

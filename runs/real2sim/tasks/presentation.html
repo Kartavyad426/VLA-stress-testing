@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks From Real Scenes</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--warn:#8a4b12}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--warn:#e0a26a}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--warn:#e0a26a}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,sans-serif;margin:0;padding:28px 16px}
+main{max-width:1180px;margin:0 auto}
+h1{font-size:1.7rem;margin:.1em 0 .3em}h2{font-size:1.25rem;margin-top:2.2em;border-bottom:1px solid var(--line);padding-bottom:.2em}
+.meta{color:var(--muted);font-size:.95rem}
+.note{background:var(--card);border-left:4px solid var(--warn);padding:10px 14px;margin:14px 0;font-size:.95rem}
+.src{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0}
+.src video{width:100%;max-height:560px;background:#000;border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;margin-top:12px}
+.task{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px}
+.task video{width:100%;background:#000;border-radius:6px;display:block}
+.task h3{font-size:1rem;margin:.5em 0 .1em}.task p{margin:0;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body><main>
+<h1>Making robot tasks from a real video</h1>
+<p class="meta">One real robot video in, a simulated scene with automatically generated language tasks out. Source data: DROID (public real-robot dataset). 10-15, exploratory.</p>
+
+<div class="note"><b>About the task videos below:</b> they are <b>demonstrations</b>, there to show what each task is. They come from a <b>scripted expert</b> (a planner that knows the exact simulated object positions and computes the arm motion), <b>not from a VLA or any learned policy</b>. What they show: the scene rebuilt from the real video supports these tasks physically, and the expert completes them. Testing a VLA (GR00T-N1.7-DROID) on the same tasks is the next step.</div>
+
+<h2>1 · Scene: cluttered cart (8 blocks, bowl, radish, apple)</h2>
+<div class="src"><b>Original real video</b> (DROID, AUTOLab, camera 1). The operator's task was "place the toys in the black bowl, then put the apple at the left back corner of the trolley". The scene was rebuilt from <b>its first frame</b>.
+<video controls preload="metadata" src="originals/ep_c3_real_cam1.mp4"></video></div>
+<p><b>Tasks generated from this scene</b> (simulated, composited onto the real camera background):</p>
+<div class="grid">
+<div class="task"><video controls preload="metadata" src="composites/01_ep_c3_put_the_red_block_in_the_bowl.mp4"></video><h3>"put the red block in the bowl"</h3><p>pick and place into a container</p></div>
+<div class="task"><video controls preload="metadata" src="composites/02_ep_c3_put_the_apple_in_the_bowl.mp4"></video><h3>"put the apple in the bowl"</h3><p>non-block object (retrieved mesh)</p></div>
+<div class="task"><video controls preload="metadata" src="composites/03_ep_c3_put_the_yellow_block_on_the_right_in_the_bowl.mp4"></video><h3>"put the yellow block on the right in the bowl"</h3><p>disambiguation between two look-alike blocks</p></div>
+<div class="task"><video controls preload="metadata" src="composites/04_ep_c3_stack_the_red_block_on_the_yellow_block_on_the_right.mp4"></video><h3>"stack the red block on the yellow block on the right"</h3><p>stacking</p></div>
+<div class="task"><video controls preload="metadata" src="composites/05_ep_c3_move_the_yellow_block_on_the_left_next_to_the_apple.mp4"></video><h3>"move the yellow block on the left next to the apple"</h3><p>spatial relation</p></div>
+</div>
+
+<h2>2 · Scene: three blocks and a bowl</h2>
+<div class="src"><b>Original real video</b> (DROID, AUTOLab, camera 1). The operator's task was "put the orange block inside the black bowl". The scene was rebuilt from <b>its first frame</b>.
+<video controls preload="metadata" src="originals/ep_orange_block_real_cam1.mp4"></video></div>
+<p><b>Tasks generated from this scene:</b></p>
+<div class="grid">
+<div class="task"><video controls preload="metadata" src="composites/06_ep_orange_block_put_the_green_block_in_the_bowl.mp4"></video><h3>"put the green block in the bowl"</h3><p>a new task the real operator never did</p></div>
+<div class="task"><video controls preload="metadata" src="composites/07_ep_orange_block_put_the_orange_block_in_the_bowl.mp4"></video><h3>"put the orange block in the bowl"</h3><p>the real operator's own task</p></div>
+<div class="task"><video controls preload="metadata" src="composites/08_ep_orange_block_stack_the_green_block_on_the_orange_block.mp4"></video><h3>"stack the green block on the orange block"</h3><p>stacking</p></div>
+<div class="task"><video controls preload="metadata" src="composites/09_ep_orange_block_move_the_orange_block_next_to_the_green_block.mp4"></video><h3>"move the orange block next to the green block"</h3><p>spatial relation</p></div>
+</div>
+
+<h2>How it works (one line each)</h2>
+<ol>
+<li><b>Perceive:</b> objects detected and segmented in frame 0; per-pixel depth from a monocular depth model.</li>
+<li><b>Calibrate:</b> camera pose found by matching the simulated robot's outline to the real robot in the video.</li>
+<li><b>Rebuild:</b> objects placed in MuJoCo with real sizes and colours; meshes retrieved by name where available.</li>
+<li><b>Generate tasks:</b> language instructions and success checks created automatically from the object list; randomised variants of each scene.</li>
+<li><b>Render:</b> simulated robot and objects drawn onto the real camera background, with shadows.</li>
+</ol>
+<p class="meta">Across all generated tasks (21 tasks × 5 variants), the scripted expert succeeds in 89/105 episodes. Known gaps: grasping the radish mesh, one placement inaccuracy, and a ~5 cm height error in the cluttered scene's reconstruction.</p>
+</main></body></html>
