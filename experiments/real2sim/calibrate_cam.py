@@ -39,6 +39,10 @@ def episode_id(episode_dir):
 
 
 def zed_K(episode_dir, cam):
+    local = os.path.join(episode_dir, "intrinsics.json")  # non-DROID episodes: {cam: [fx, cx, fy, cy]}
+    if os.path.exists(local):
+        fx, cx, fy, cy = json.load(open(local))[cam]
+        return np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1.0]])
     fx, cx, fy, cy = json.load(open(os.path.join(CALIB, "intrinsics.json")))[episode_id(episode_dir)][cam]["cameraMatrix"]
     return np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1.0]])
 
@@ -119,6 +123,8 @@ def main():
     ap.add_argument("--masks", choices=["motion", "dino"], default="motion",
                     help="motion: background subtraction (default); dino: Grounding DINO + SAM (unreliable on this episode)")
     ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames to fit, comma-separated")
+    ap.add_argument("--init_sphere", action="store_true", help="coarse pose search when no starting extrinsics exist")
+    ap.add_argument("--fit_focal", action="store_true", help="also fit the focal length (unknown intrinsics)")
     ap.add_argument("--init", default=None, help="start from this calib.json instead of DROID's extrinsics")
     ap.add_argument("--level_weight", type=float, default=0.0,
                     help="px of cost per degree of table tilt (assumes robot base and table are level); 0 = off")
@@ -196,8 +202,12 @@ def main():
 
     def sim_masks(x):
         R = Rot.from_rotvec(x[:3]).as_matrix() @ R0
-        t = t0 + x[3:]
-        set_camera(m, cid, R, t, Kd, w, h, mode)
+        t = t0 + x[3:6]
+        Kx = Kd.copy()
+        if len(x) > 6:  # --fit_focal: x[6] = log focal-length scale
+            Kx[0, 0] *= np.exp(x[6])
+            Kx[1, 1] *= np.exp(x[6])
+        set_camera(m, cid, R, t, Kx, w, h, mode)
         out = {}
         for i in FRAMES:
             d.qpos[arm_q] = jp[i]
@@ -231,12 +241,40 @@ def main():
         sm = sim_masks(x)
         return float(np.mean([(sm[i] & real_small[i]).sum() / max(1, (sm[i] | real_small[i]).sum()) for i in FRAMES]))
 
-    x0 = np.zeros(6)
+    if a.init_sphere:
+        # no usable starting pose (non-DROID data): cameras on spheres around the robot's working area, looking at
+        # it with the image's up direction pointing up; the best by IoU becomes the start for the search below
+        dk = mujoco.MjData(m)
+        pts = []
+        for i in FRAMES:
+            dk.qpos[arm_q] = jp[i]
+            mujoco.mj_kinematics(m, dk)
+            pts.append(dk.site_xpos[m.site("g_pinch").id].copy())
+        target = np.mean(pts, axis=0)
+        best0 = (-1, None, None)
+        for az in range(0, 360, 15):
+            for el in (15, 30, 45, 60, 75):
+                for dist in (0.7, 1.0, 1.3, 1.7, 2.2):
+                    c = target + dist * np.array([np.cos(np.radians(el)) * np.cos(np.radians(az)),
+                                                  np.cos(np.radians(el)) * np.sin(np.radians(az)), np.sin(np.radians(el))])
+                    zc = (target - c) / np.linalg.norm(target - c)  # OpenCV camera: z forward, y down
+                    xc = np.cross(zc, [0, 0, 1.0])
+                    xc /= np.linalg.norm(xc)
+                    yc = np.cross(zc, xc)
+                    R0, t0 = np.c_[xc, yc, zc], c
+                    sc = iou(np.zeros(6))
+                    if sc > best0[0]:
+                        best0 = (sc, R0.copy(), t0.copy(), az, el, dist)
+        _, R0, t0 = best0[:3]
+        print(f"sphere init: IoU {best0[0]:.3f} at azimuth {best0[3]} elevation {best0[4]} distance {best0[5]} m "
+              f"around {target.round(3).tolist()}", flush=True)
+    nx = 7 if a.fit_focal else 6
+    x0 = np.zeros(nx)
     c0, i0 = cost(x0), iou(x0)
     # global stage: DROID's extrinsics can be far off (ep_orange_block: Powell from x0 stalled at IoU 0.28),
     # so score random poses around them by IoU first and refine only the best few
     rng = np.random.default_rng(0)
-    span = np.array([np.radians(a.span_deg)] * 3 + [a.span_m] * 3)
+    span = np.array([np.radians(a.span_deg)] * 3 + [a.span_m] * 3 + ([0.2] if a.fit_focal else []))
     cands = [x0] + [rng.uniform(-span, span) for _ in range(a.search)]
     scored = sorted(((iou(x), k) for k, x in enumerate(cands)), reverse=True)
     print("random search: best IoU", [round(s, 3) for s, _ in scored[:5]], flush=True)
@@ -248,10 +286,14 @@ def main():
     res = minimize(cost, best.x, method="Powell", options=dict(xtol=1e-4, ftol=1e-3, maxfev=3000))
     c1, i1 = cost(res.x), iou(res.x)
     R1 = Rot.from_rotvec(res.x[:3]).as_matrix() @ R0
-    t1 = t0 + res.x[3:]
+    t1 = t0 + res.x[3:6]
+    if a.fit_focal:
+        K = K.copy()
+        K[0, 0] *= np.exp(res.x[6])
+        K[1, 1] *= np.exp(res.x[6])
     tilts = dict(tilt_before_deg=tilt_deg(R0), tilt_after_deg=tilt_deg(R1)) if n_cam is not None else {}
     calib = dict(cam=a.cam, K=K.tolist(), level_weight=a.level_weight, init=a.init, **tilts, R_cam_to_base=R1.tolist(), t_cam_in_base=t1.tolist(),
-                 delta_rot_deg=float(np.degrees(np.linalg.norm(res.x[:3]))), delta_trans_m=res.x[3:].tolist(),
+                 delta_rot_deg=float(np.degrees(np.linalg.norm(res.x[:3]))), delta_trans_m=res.x[3:6].tolist(), focal_scale=float(np.exp(res.x[6])) if a.fit_focal else 1.0,
                  cost_before_px=c0, cost_after_px=c1, iou_before=i0, iou_after=i1, frames=FRAMES,
                  principal_mode=mode, convention_check_px=errs, nfev=int(res.nfev))
     json.dump(calib, open(os.path.join(a.out, "calib.json"), "w"), indent=1)

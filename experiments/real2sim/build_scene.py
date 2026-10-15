@@ -166,7 +166,33 @@ def bowl_asset():
     return boxes, body0, radius, float(zmin), float(zmax)
 
 
-def robot_spec(grip_yaw_deg):
+def robot_spec(grip_yaw_deg, robot="fr3_robotiq"):
+    """fr3_robotiq: DROID's FR3 + Robotiq 2F-85. panda: Menagerie's Panda + Panda hand (LIBERO's robot), renamed to the
+    names the other scripts use (fr3_joint1..7 / fr3_link*, g_* gripper bodies, g_pinch site, g_fingers_actuator) and
+    with the gripper actuator flipped so ctrl 255 = closed, as on the Robotiq."""
+    if robot == "panda":
+        spec = mujoco.MjSpec.from_file(os.path.join(MENAGERIE, "franka_emika_panda/panda.xml"))
+        rename = {f"link{k}": f"fr3_link{k}" for k in range(8)}
+        rename.update({b: f"g_{b}" for b in ("hand", "left_finger", "right_finger")})
+        for ex in spec.excludes:  # contact-exclude pairs refer to bodies by name
+            ex.bodyname1 = rename.get(ex.bodyname1, ex.bodyname1)
+            ex.bodyname2 = rename.get(ex.bodyname2, ex.bodyname2)
+        for k in range(8):
+            spec.body(f"link{k}").name = f"fr3_link{k}"
+        for k in range(1, 8):
+            spec.joint(f"joint{k}").name = f"fr3_joint{k}"
+            act = spec.actuator(f"actuator{k}")
+            act.name, act.target = f"fr3_joint{k}", f"fr3_joint{k}"  # actuators refer to their joint by name
+        for b in ("hand", "left_finger", "right_finger"):
+            spec.body(b).name = f"g_{b}"
+        spec.body("g_hand").add_site(name="g_pinch", pos=[0, 0, 0.1034])  # Franka hand TCP offset
+        g = spec.actuator("actuator8")
+        g.name = "g_fingers_actuator"
+        g.gainprm[0] = -0.01568627451  # target opening 0.04 - ctrl*0.04/255: ctrl 255 = closed
+        g.biasprm[0], g.biasprm[1], g.biasprm[2] = 4.0, -100.0, -10.0
+        for key in list(spec.keys):
+            spec.delete(key)  # the 'home' keyframe would carry the old ctrl convention
+        return spec
     spec = mujoco.MjSpec.from_file(os.path.join(MENAGERIE, "franka_fr3/fr3.xml"))
     grip = mujoco.MjSpec.from_file(os.path.join(MENAGERIE, "robotiq_2f85/2f85.xml"))
     site = spec.site("attachment_site")
@@ -175,10 +201,10 @@ def robot_spec(grip_yaw_deg):
     return spec
 
 
-def sim_robot_depth(R, t, K, W, H, q_arm):
+def sim_robot_depth(R, t, K, W, H, q_arm, robot="fr3_robotiq"):
     """z-depth of the robot alone, rendered from the calibrated camera; 0 where there is no robot."""
     from calibrate_cam import set_camera
-    spec = robot_spec(0.0)
+    spec = robot_spec(0.0, robot)
     spec.visual.global_.offwidth, spec.visual.global_.offheight = W, H
     spec.worldbody.add_camera(name="ext")
     m = spec.compile()
@@ -210,6 +236,7 @@ def main():
                     "default: DROID's recorded extrinsics + MoGe's intrinsics")
     ap.add_argument("--assets", choices=["libero", "none"], default="libero",
                     help="mesh source for named non-block objects; 'none' = fitted ellipsoids only")
+    ap.add_argument("--robot", choices=["fr3_robotiq", "panda"], default="fr3_robotiq")
     ap.add_argument("--floor_below", type=float, default=0.75, help="ASSUMED floor depth under the table top (m)")
     ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
     a = ap.parse_args()
@@ -239,7 +266,7 @@ def main():
         # frame through static table pixels seen in both frames
         from perceive import read_frame, geometry
         n = a.anchor_frame
-        zs = sim_robot_depth(R, t, K, W, H, f["observation/robot_state/joint_positions"][n])
+        zs = sim_robot_depth(R, t, K, W, H, f["observation/robot_state/joint_positions"][n], a.robot)
         real_n = np.load(os.path.join(a.out, "robot_masks_motion.npz"))[str(n)]
         geo_n = geometry(read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), n))
         both = (zs > 0) & real_n & geo_n["mask"]
@@ -323,7 +350,7 @@ def main():
             o["center"][2] = z_table + h
 
     # ---- assemble the MJCF ----
-    spec = robot_spec(a.grip_yaw_deg)
+    spec = robot_spec(a.grip_yaw_deg, a.robot)
     spec.option.timestep = 0.002
     spec.visual.global_.offwidth, spec.visual.global_.offheight = W, H
     spec.option.noslip_iterations = 3
