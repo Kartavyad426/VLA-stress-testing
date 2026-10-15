@@ -210,6 +210,7 @@ def main():
                     "default: DROID's recorded extrinsics + MoGe's intrinsics")
     ap.add_argument("--assets", choices=["libero", "none"], default="libero",
                     help="mesh source for named non-block objects; 'none' = fitted ellipsoids only")
+    ap.add_argument("--floor_below", type=float, default=0.75, help="ASSUMED floor depth under the table top (m)")
     ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
     a = ap.parse_args()
     anchor_info = {}
@@ -330,6 +331,11 @@ def main():
     wb.add_light(pos=[0, 0, 2.5], dir=[0, 0, -1], diffuse=[0.7, 0.7, 0.7])
     th = 0.03
     ctr = (lo + hi) / 2
+    # ground plane so objects knocked off the table land instead of falling forever (c3 replay: the bowl ended at
+    # z = -11780 m). The real floor is not measured; it is ASSUMED --floor_below m under the table top.
+    wb.add_geom(name="floor", type=mujoco.mjtGeom.mjGEOM_PLANE, size=[0, 0, 0.05], pos=[0, 0, z_table - a.floor_below],
+                rgba=[0.3, 0.3, 0.3, 1])
+    fit["floor"] = dict(z=z_table - a.floor_below, assumed=True, below_table_m=a.floor_below)
     wb.add_geom(name="table", type=mujoco.mjtGeom.mjGEOM_BOX, size=[*((hi - lo) / 2), th],
                 pos=[*ctr, z_table - th], rgba=[0.80, 0.60, 0.38, 1], friction=[1.0, 0.005, 0.0001])
     n_bowl = 0
