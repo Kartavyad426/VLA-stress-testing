@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Handoff 15 Oct</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 15 October</h1>
+  <p class="stand">Covers 12–15 Oct. On the user's instruction (10-15) this handoff has two writers only: <b>prim</b> (the state at a glance and the prim section) and <b>impl</b> (its own section). No other session writes in this file. Other sessions' work is summarised by prim from commits and their messages. Previous: <a href="HANDOFF_2026-10-12.html">HANDOFF_2026-10-12.html</a>. Live trackers: <a href="../Decision_28Sep.html">Decision_28Sep</a>, <a href="../PRIORITIES_7Oct.html">PRIORITIES_7Oct</a>, <a href="../../PIPELINE_CHECKS.md">PIPELINE_CHECKS.md</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-15 12:15</span><span>HEAD at creation: <code>ec3f51d</code> (main) · <code>7fe5c00</code> (exp/root-signals) · <code>f76837b</code> (exp/dmp-poc)</span></div>
+</header>
+
+<section class="check" id="state">
+  <h2>State at a glance <span class="small">(filled 2026-10-15 12:15 by prim)</span></h2>
+  <ul>
+    <li><span class="box">·</span><span><b>Power: the machine is ON BATTERY (67%), not AC.</b> Plug it in before any GPU run. GPU idle (106 MiB). Disk 240 GB free.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>GPU:</b> stopped for 10-14 night by the user ("that time is gone; writing scripts is ok"). Nothing is running. LIBERO-MAX Lite is ready but not launched (see below).</span><span class="who">prim · impl2</span></li>
+    <li><span class="box">·</span><span><b>val is not running.</b> Everything new below is UNVERIFIED until the user restarts val: R-059 Part C scorer, res's STAC probes, DMP T3, real2sim, LIBERO-MAX pilot and new code.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>prim's role changed (10-14):</b> housekeeping only (routing, commits, the GPU gate, status, decision tracking). Longer tasks go to a new session with a ready-to-paste brief.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>Git:</b> main has <b>14 unpushed commits</b> (origin at 19507f6). The user pushes. Uncommitted by choice or pending review: see prim §5.</span><span class="who">prim · user</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#impl">impl</a></li></ol></nav>
+
+<section class="sess" id="prim">
+  <h2>prim <span class="small">(filled 2026-10-15 12:15 by prim)</span></h2>
+  <p class="lead"><span class="owner">owner: prim</span> · Orchestrator and housekeeping: routing between sessions, all commits (never push), the GPU gate, status, decision tracking.</p>
+
+  <h3>1 · Rules in force</h3>
+  <ul class="tight">
+    <li>prim owns commits; run commits are metadata only; never push. Ask the user before doc or code changes. impl-type sessions implement; prim doesn't edit code. No subagents. Deliverables are local HTML, never published.</li>
+    <li>New numeric code is checked by val; its numbers are tagged UNVERIFIED until val passes them.</li>
+    <li>Never be cryptic: verdict first, then state, in plain words. No guessing: check docs and data before stating.</li>
+    <li>The user's local <code>tmp.json</code> line in .gitignore stays uncommitted (stage .gitignore additions via <code>git update-index --cacheinfo</code>).</li>
+    <li>Sessions commit before starting new work (user, for res31).</li>
+  </ul>
+
+  <h3>2 · Who did what, 12–15 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>Session</th><th>Main outputs</th><th>Status 10-15</th></tr>
+    <tr><td>impl</td><td>R-059 Part C scorer (worktree, <code>experiments/r059_score_c.py</code>, <code>runs/r059/c1/score_c.json</code>): STAC AUROC (failure-high) 0.18–0.43 at f0..3, expectations 6 and 7 FAIL, 8 HOLDS (effect is episode length). PORTABILITY_LIBERO_MAX (8db05e0). UNVERIFIED.</td><td>Writes its own section below</td></tr>
+    <tr><td>impl2</td><td>LIBERO-MAX submodule (f76837b), GR00T shard, spatial pilot (133 pairs: Base 86.5%, Dynamic 61.7%, UNVERIFIED), observability build (lmax_obs.py, lmax_groot_shard.py, lmax_restore_check.py, run_lmax_lite.sh, LIBERO-PRO setup; uncommitted), 4-pair smoke all rc=0.</td><td>Ready; GPU stopped</td></tr>
+    <tr><td>impl21</td><td>DMP PoC (worktree <code>../VLA-exp-dmp-poc</code>, exp/dmp-poc): DMP_POC_METHOD(+_internal) (8db05e0); T3 kept a correction in all 5 scenarios, DMP 10/15 vs linear 7/15 (UNVERIFIED); DMP_POC_SHOWCASE.html (untracked). T4 sweep not run.</td><td>Idle</td></tr>
+    <tr><td>res31</td><td>Real-to-sim: survey REAL_TO_SIM_SCENES + code in experiments/real2sim (13 commits 7e772e0 → ec3f51d). ep_c3 (DROID) scene: scripted picks 3/3, ~5 cm depth-scale error, floor-bug fixed (c82dd89). CMU PoC FAILED calibration (IoU 0.16–0.19), stopped by the user; audit: only DROID of 181 LeRobot datasets ships extrinsics → take camera info as given.</td><td>Starting make_tasks.py (presentation 16:00)</td></tr>
+    <tr><td>res32</td><td>SIM_READY_ASSET_LIBRARIES (8db05e0; modified since, uncommitted). Licence audit LICENCE_AUDIT_COMMERCIAL in progress; robot models (Menagerie Panda/FR3 Apache-2.0, Robotiq BSD-2) and CMU data forwarded.</td><td>Working</td></tr>
+    <tr><td>res</td><td>STAC_GROOT_THEORY (8db05e0): STAC tracks motion size; a progress signal gives AUROC 0.91 by forward 4 (UNVERIFIED). ROOT_TO_GOAL edits uncommitted.</td><td>Idle</td></tr>
+    <tr><td>brain</td><td>BRAINSTORM (triage v0, labeller plan), ROUGH_ROBOTICS_PRODUCT_DESIGN, END_TO_END_PIPELINE draft (all uncommitted; the pipeline doc is under user review).</td><td>Waiting on the user</td></tr>
+    <tr><td>res21</td><td>FAILURE_LABEL_DATASETS findings. TASK_EVENT_MAP outline still owed.</td><td>Idle</td></tr>
+    <tr><td>papers, runtime</td><td>papers: PAPERS_WORKING_NOTES (uncommitted). runtime: owns failure triage (offering 2) since 10-14.</td><td>Idle</td></tr>
+    <tr><td>val</td><td>—</td><td>Not running</td></tr>
+  </table></div>
+
+  <h3>3 · LIBERO-MAX Lite: ready, waiting on three user answers</h3>
+  <ul class="tight">
+    <li>All 7 completeness items are saved by the code: full sim state every step, policy inputs and the full 40-step outputs, per-step poses/contacts/predicates, frames, events, pooled features, provenance. STAC (B=32) is excluded by design. Restore-from-state is written but not yet tested (needs GPU).</li>
+    <li>Next on GPU: a ~10 min re-smoke (distractor-pose fix + restore check), then Lite (800 pairs, ≈7–8 h; +10–15% with every-step frames). Launch under <code>systemd-inhibit</code>, on AC.</li>
+    <li><b>Open:</b> (A) model-call frames at 360 px (+~4 GB; prim recommends yes); (B) every-step 256 px frames (+~60 GB, ~70 GB of 240; prim recommends yes); (C) commit impl2's scripts now as UNVERIFIED?</li>
+  </ul>
+
+  <h3>4 · Incidents and lessons</h3>
+  <ul class="tight">
+    <li><b>Committed without opening a result file:</b> 0b78a69 shipped a replay where the bowl fell to z −11,780 m (no floor in the scene). brain caught it; res31 fixed it in c82dd89. Lesson: prim opens result json files before committing.</li>
+    <li><b>Peer message with a placeholder:</b> prim sent res31 a "&lt;pending&gt;" hash in parallel with the commit; corrected with ec3f51d.</li>
+    <li><b>prim took on long tasks</b> (E7 scoring); the user stopped it and set the housekeeping-only rule.</li>
+  </ul>
+
+  <h3>5 · Uncommitted, and why</h3>
+  <ul class="tight">
+    <li>Pending user review: MINING_SPEC_V1_DESIGN (N1–N12), END_TO_END_PIPELINE (brain: don't commit until final), MINING_SPEC_DESIGN §6c.1, ROOT_TO_GOAL edits (§5 Q1 open).</li>
+    <li>Owner's call or not yet asked: BRAINSTORM, ROUGH_ROBOTICS_PRODUCT_DESIGN, PAPERS_WORKING_NOTES, DMP_POC_SHOWCASE, SIM_READY_ASSET_LIBRARIES edits, impl2's lmax scripts, r060_pose_pastrows.py.</li>
+    <li>Kept untracked by choice: tmp.json line in .gitignore, R042_WRIST_MATHS.pdf, mining_spec_v0_schema.png, MUJOCO_LOG.TXT, local run logs.</li>
+    <li>Worktrees: exp/root-signals holds impl's uncommitted E7, C1 and R-059 Part C files; merge only after C1 is scored, E7 fixed and val checks.</li>
+  </ul>
+
+  <h3>6 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li>Restart val (blocks every verification above).</li>
+    <li>LIBERO-MAX choices A, B, C (§3); plug in AC before any run.</li>
+    <li>END_TO_END_PIPELINE review (brain); site planning as "medium fidelity"?</li>
+    <li>Tomorrow's demo for impl (never answered; may be moot).</li>
+    <li>Record N1 (both root rules) in the v1 doc and Decision_28Sep; UQ4 owner (robust root selection).</li>
+    <li>res31's demo-replay check folded into impl21's B1 gate? res32 collision sample and &gt;1 GB downloads.</li>
+    <li>E7 report needs a new session (brief given 10-14). Brain/runtime sync on trigger ownership.</li>
+    <li>Older: machine-sleep fix; v1 design doc review; res21's TASK_EVENT_MAP; podolinsky HF access; the push.</li>
+  </ul>
+</section>
+
+<section class="sess" id="impl">
+  <h2>impl <span class="small">(pending; to be filled by impl only)</span></h2>
+  <!-- HANDOFF-SLOT:impl -->
+  <div class="slot">Pending. impl writes this section with Edit: role, what it did 12–15 Oct (with commits / worktree paths), runs and their state, what is UNVERIFIED, open items and what it needs from the user. Stamp the header with the time filled.</div>
+</section>
+
+</div>
+</body>
+</html>
