@@ -1,0 +1,417 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>Papers Working Notes</title>
+<link rel=stylesheet href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#EDF0F4;--ink:#14181D;--muted:#5B636E;
+ --rule:#D7DDE5;--rule-soft:#E6EAEF;--accent:#2F4A9E;--ok:#1B6B4F;--warn:#A8481B;--amber:#8a6200;
+ --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;
+ --ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;--rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}}
+:root[data-theme="dark"]{--bg:#0E1116;--surface:#151A21;--surface-2:#1B212A;--ink:#E5EAF1;--muted:#9AA3AF;--rule:#262D37;
+ --rule-soft:#1F2630;--accent:#93A9F0;--ok:#5fcf9f;--warn:#f08a5d;--amber:#e0b54a;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:2.2em 0 .6em;padding-top:.6em;border-top:1px solid var(--rule)}
+h3{font-size:1.02rem;margin:1.4em 0 .4em}
+.meta{color:var(--muted);font-size:.85rem;margin-bottom:22px}
+nav{font-size:.84rem;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px 14px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:1px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 10px 7px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+th{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rule)}
+td:first-child{min-width:160px}
+.card{background:var(--surface);border:1px solid var(--rule-soft);border-radius:6px;padding:16px 18px;margin:14px 0}
+.tldr{border-left:4px solid var(--accent)}
+.caution{border-left:4px solid var(--warn)}
+.q{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.caution .q{color:var(--warn)}
+.small{font-size:.84rem;color:var(--muted)}
+ul,ol{padding-left:1.2em}li{margin:.25em 0}
+.st{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:0 6px;border-radius:3px;white-space:nowrap}
+.st.adopt{background:var(--ok);color:var(--bg)}
+.st.part{background:var(--accent);color:var(--bg)}
+.st.drop{background:var(--warn);color:var(--bg)}
+.st.wait{background:var(--amber);color:var(--bg)}
+</style>
+<style>
+:root{--done:#1B6B4F;--done-bg:#E7F4EE;--todo:#B42318;--todo-bg:#FCEBEA}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--done:#5fcf9f;--done-bg:#12261F;--todo:#f28b82;--todo-bg:#2C1716}}
+:root[data-theme="dark"]{--done:#5fcf9f;--done-bg:#12261F;--todo:#f28b82;--todo-bg:#2C1716}
+.k{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:1.2em 0 .3em}
+li.done,li.todo{list-style:none;margin-left:-1.2em;padding:4px 10px;border-radius:4px;margin-bottom:4px}
+li.done{background:var(--done-bg);border-left:3px solid var(--done)}
+li.todo{background:var(--todo-bg);border-left:3px solid var(--todo)}
+td.done{background:var(--done-bg);box-shadow:inset 3px 0 0 var(--done);padding-left:10px}
+td.todo{background:var(--todo-bg);box-shadow:inset 3px 0 0 var(--todo);padding-left:10px}
+.legend span{display:inline-block;padding:0 8px;border-radius:3px;margin-right:8px;font-size:.8rem}
+.legend .d{background:var(--done-bg);border-left:3px solid var(--done)}
+.legend .t{background:var(--todo-bg);border-left:3px solid var(--todo)}
+</style>
+</head><body><div class=wrap>
+
+<h1>Papers: working notes</h1>
+<div class=meta>Session papers · started 2026-10-12 · Companion to <a href="PAPERS_SINCE_24SEP.html">PAPERS_SINCE_24SEP</a>. That page is the summary table. This page gets one section per paper, filled in as we discuss it: what has been done in our code and runs, what the paper could still give us, and open discussion points. Sections are added only when a paper is discussed, so this page is not a complete list. All root-signal results are exploratory and val-exempt (user, 10-09) unless a section says otherwise.</div>
+<p class=legend><span class=d>done</span><span class=t>pending</span> Uncoloured text is background or discussion.</p>
+
+
+<div class="card idx"><div class=q>Index</div><ol>
+<li><a href="#compare"><b>How STAC, FAIL-Detect and VLA-Corrector differ</b></a> </li>
+<li><a href="#stac"><b>Sentinel / STAC</b></a> <span class="st wait">pre-registered</span><br><span class=small><a href="#stac-1">What it can give us</a> · <a href="#stac-2">Code and runs</a> · <a href="#stac-3">Pending for the multi-draw test</a> · <a href="#stac-4">Discussion points</a></span></li>
+<li><a href="#faildetect"><b>FAIL-Detect</b></a> <span class="st part">borrowed (idea only)</span><br><span class=small><a href="#faildetect-1">What it can give us</a> · <a href="#faildetect-2">Status</a> · <a href="#faildetect-3">Where the threshold comes from (checked against the paper PDF, 10-12)</a> · <a href="#faildetect-4">The episode-length issue (D26)</a> · <a href="#faildetect-5">How much data for a good threshold</a> · <a href="#faildetect-6">How the human demos would be used (no chunks stored)</a> · <a href="#faildetect-7">Is the data diverse enough?</a> · <a href="#faildetect-8">Changes needed</a> · <a href="#faildetect-9">Discussion points</a></span></li>
+<li><a href="#corrector"><b>VLA-Corrector</b></a> <span class="st part">borrowed (one idea)</span><br><span class=small><a href="#corrector-1">What the paper does</a> · <a href="#corrector-2">What it can give us</a> · <a href="#corrector-3">Status</a> · <a href="#corrector-4">The proposed 6-arm test (c9d, design only)</a> · <a href="#corrector-5">Discussion points</a></span></li>
+<li><a href="#ftm"><b>FTM ("VLAs are more generalizable than you think")</b></a> <span class="st wait">pre-registered</span><br><span class=small><a href="#ftm-1">What it can give us</a> · <a href="#ftm-2">Status</a> · <a href="#ftm-3">Discussion points</a></span></li>
+<li><a href="#mulligan"><b>Mulligan</b></a> <span class="st part">borrowed (design only)</span><br><span class=small><a href="#mulligan-1">What the paper does</a> · <a href="#mulligan-2">What it can give us</a> · <a href="#mulligan-3">Status</a> · <a href="#mulligan-4">Discussion points</a></span></li>
+<li><a href="#jungpark"><b>Jung &amp; Park (initial-pose dependence)</b></a> <span class="st part">borrowed (design only)</span><br><span class=small><a href="#jungpark-1">What the paper does</a> · <a href="#jungpark-2">What it can give us</a> · <a href="#jungpark-3">Status</a> · <a href="#jungpark-4">Review of the borrow list (user, 10-12)</a> · <a href="#jungpark-5">B4 plan sketch (not approved)</a> · <a href="#jungpark-6">B4 maths (how the score is measured)</a> · <a href="#jungpark-7">Discussion points</a></span></li>
+<li><a href="#log"><b>Change log</b></a> </li>
+</ol></div><!--/idx-->
+<h2 id=compare>How STAC, FAIL-Detect and VLA-Corrector differ</h2>
+<p>Only STAC looks at the action chunks. The three watch different things.</p>
+<div class=tw><table>
+<tr><th></th><th>STAC</th><th>FAIL-Detect (logpZO)</th><th>VLA-Corrector</th></tr>
+<tr><td>Looks at</td><td>The policy's <b>planned actions</b></td><td>What the policy <b>sees</b>: its internal encoding of images + robot state</td><td>How the <b>scene actually changed</b> after an action vs how it should have</td></tr>
+<tr><td>Question</td><td>Is the policy changing its mind between one plan and the next?</td><td>Does this input look like the training data?</td><td>Did the world respond the way this action should have made it respond?</td></tr>
+<tr><td>How</td><td>Several samples at two consecutive forwards; compare the two clouds over the 24 shared steps</td><td>Small model fitted on demo encodings scores how unusual the input is</td><td>Model trained on demos predicts the image-feature change 10 steps after an action; compare with the real change</td></tr>
+<tr><td>Extra model</td><td>None</td><td>Small, fitted on demos</td><td>~40M, trained on demos</td></tr>
+<tr><td>Threshold</td><td>From successful rollouts</td><td>From successful nominal rollouts; false-alarm guarantee</td><td>Relative to the episode's own recent scores; no calibration, no guarantee</td></tr>
+<tr><td>When it fires</td><td>Alarm</td><td>Alarm</td><td>Acts: drops the rest of the plan and replans</td></tr>
+<tr><td>Earliest for us</td><td>Forward 1</td><td>Forward 0</td><td>~Step 25 (forward 1–2)</td></tr>
+<tr><td>On our start-pose failures</td><td>The only one that tests "is the policy confused". Single-sample runs so far: failures looked <i>more</i> certain. Multi-sample test not run.</td><td>Will flag every perturbed start, including ones the policy recovers from: detects "perturbed", not "will fail" (as R-037 did)</td><td>Can't help: failures are decided at forward 0, before anything unexpected happens in the world</td></tr>
+</table></div>
+
+<h2 id=stac>Sentinel / STAC</h2>
+<p class=small>Agia et al., CoRL 2024 · method doc <a href="SENTINEL_METHODOLOGY.html">SENTINEL_METHODOLOGY</a> §13 · pre-registration RESULTS.md R-059 · code in worktree <code>VLA-exp-rootsignals</code>, branch <code>exp/root-signals</code> · <span class="st wait">pre-registered</span></p>
+
+<div class=k id=stac-1>What it can give us</div>
+<p>A failure signal that needs no extra model. GR00T predicts 40 steps and executes 16, so two consecutive chunks overlap on 24 steps. STAC compares the <i>distribution</i> of planned actions over that overlap, using several noise samples per forward. If the policy changes its mind between forwards, the distributions differ. Thresholds are calibrated on successful rollouts only.</p>
+
+<div class=k id=stac-2>Code and runs</div>
+<div class=tw><table>
+<tr><th>Piece</th><th>Where</th><th>What it does</th><th>Status</th></tr>
+<tr><td>Single draw on R-041</td><td>main, <code>experiments/stac_r041_single_draw.py</code> (55d20e4)</td><td>One sample per forward. L2 on the overlap, <code>chunk_f[16:40]</code> vs <code>chunk_{f+1}[0:24]</code>, dims 0–5. Threshold: p95 of magnitude-0 successes per overlap index (Sentinel-style, not conformal).</td><td class=done>Ran 09-28. At chance: sampling noise floor ~7 vs perturbed-vs-nominal gap ~1. Not val-checked (val didn't exist yet).</td></tr>
+<tr><td>E1 = R-059 part A</td><td>worktree, <code>experiments/r059_partA.py</code> + <code>root_signals_common.py</code> (9f6c828)</td><td>Single draw, same L2 with a fitted scale, on stored R-047 actions.</td><td class=done>Ran 10-09 (<code>runs/r059/partA/summary.json</code>). Start pose AUROC f0–f4: 0.198 / 0.315 / 0.394 / 0.318 / 0.382. Below chance: failures had the <i>lower</i> overlap distance ("confidently wrong"), or a phase artefact. Camera f0: 0.425.</td></tr>
+<tr><td>Multi-draw sampler</td><td>worktree, <code>experiments/r059_multidraw.py</code> (e200ef7), hooked into <code>r047_run.py</code> via <code>--draws B --seed-noise [--null-extra]</code></td><td>B seeded samples per forward from GR00T's flow-matching head. Wraps <code>get_action_with_features</code> at runtime without patching GR00T. Seed per draw = sha256("r059|noise_seed|forward|b"); draw 0 is executed. <code>--null-extra</code> records a second independent B-set at the same forward (the noise baseline).</td><td class=done>Code written. Unit check passes in fp32 and bf16 (<code>runs/r059/unit_check.json</code>): draw 0 at B=1 equals draw 0 at B=32, same seed repeats bitwise, draws differ, shape (32, 40, 7). B0 (one rollout, scene 984, magnitude 0, <code>runs/r059/b0</code>): PASS, bitwise to R-047 (prim, 10-12). The log ends in an EGL/OpenGL traceback after "done" (index), which looks like a teardown error.</td></tr>
+<tr><td>Scorer</td><td>worktree, <code>experiments/r059_score_b.py</code> (e200ef7)</td><td>Unbiased MMD² (RBF kernel) between the B draws of chunk f [16:40] and chunk f+1 [0:24], dims 0–5, flattened to 144. Also: V-statistic MMD², the same-forward null, within-draw spread, single-draw L2. Bandwidth by median heuristic, frozen in <code>runs/r059/bandwidth.json</code>.</td><td class=todo>Code written, never run on real data.</td></tr>
+</table></div>
+
+<div class=k id=stac-3>Pending for the multi-draw test</div>
+<ol>
+<li class=todo><b>Part B GPU runs:</b> b1 / b8 / b32 / b32_rep, each with <code>--null-extra</code>, then <code>r059_score_b.py</code>. Gate (my prim, 10-09): median V-STAC<sub>0</sub> / V-null ≥ 3 at radius 0.4. The B smoke is on hold (prim, 10-12).</li>
+<li class=todo><b>Conformal alarm:</b> not written anywhere. R-059 C1 specifies the ⌈(M+1)(1−δ)⌉/M quantile over the successes still running at forward f. This is also where the D26 length issue bites (see FAIL-Detect below).</li>
+<li class=todo><b>C1:</b> 240 start-pose rollouts, only if part B passes the 3× gate.</li>
+<li class=todo><b>E1-phase:</b> the CPU check that tells "confidently wrong" from a phase artefact (compare at the same task stage, not the same forward index).</li>
+<li class=todo><b>Merge to main:</b> the sampler lives in the worktree runner, not in a <code>vla_harness/policies</code> adapter. Needs the user's go.</li>
+</ol>
+
+<div class=k id=stac-4>Discussion points</div>
+<ul>
+<li>Until part B runs, every STAC number we have is single draw. The AUROC of 0.20 is not a STAC result. Safe wording: "early signs the policy is confidently wrong on start-pose failures; the multi-sample test is pre-registered and waiting for GPU time."</li>
+<li>Our "spread across samples at one moment" probe (S4) matches the paper's weakest baseline (TPR 0.33), so it's only a covariate.</li>
+</ul>
+<p class=small>Sources: index session inventory (10-12, spot-checked: files and commits exist); prim message 10-12; PAPERS_SINCE_24SEP §1.</p>
+
+<h2 id=faildetect>FAIL-Detect</h2>
+<p class=small>Xu et al., TRI, RSS 2025, arXiv:2503.08558 · full read + code at <code>b758e55</code> · method doc <a href="FAIL_DETECT_MATHS.html">FAIL_DETECT_MATHS</a> · related decision D26 (<a href="drafts/D26_draft.html">draft</a>; PRIORITIES_7Oct t4d / t4e) · <span class="st part">borrowed (idea only)</span></p>
+
+<div class="card tldr"><div class=q>Do we have enough data?</div><ul>
+<li class=done><b>To fit the scorer: yes.</b> 500 demos, 62,250 frames. One cheap check first: S1 features from 128 px demo frames vs 360 px renders.</li>
+<li class=todo><b>To set the threshold: no.</b> It needs ~150 nominal successes with S1/S0e captured. We have almost none (R-037: 20 episodes; R-047 / R-052 stored no features). Run ~160 new nominal rollouts with feature capture, probably under 1 GPU-hour (not measured).</li>
+<li class=todo><b>Per-perturbation thresholds: no, and hard to get.</b> They need successes in each perturbation setting, which are rare at large perturbations (0.37 at 0.5 rad).</li>
+</ul></div>
+<div class=k id=faildetect-1>What it can give us</div>
+<p>A detector for a frozen checkpoint: train only a small scorer (logpZO flow, CFM, RND, …) on the policy's internal observation embedding, then set a time-varying alarm band from successful rollouts with functional conformal prediction. That gives a false-alarm guarantee, which none of our probes has. The same band would also serve as STAC's missing conformal threshold.</p>
+<p>For GR00T, score pre-adapter image features plus encoded state (S1 + S0e, 3,584-d), not what the action head conditions on (S2). S2 doesn't move under vision perturbations (R-037). Keep S2 as a control.</p>
+
+<div class=k id=faildetect-2>Status</div>
+<ul>
+<li class=done>Paper and code read and written up: all five scorers, the CP band, and the GR00T mapping (FAIL_DETECT_MATHS §10).</li>
+<li class=done>Feature taps exist: S1 / S0e / S2 / action_pred per forward (<code>vla_harness/capture/groot_features.py</code>).</li>
+<li class=done>Raw LIBERO-Spatial demos for fitting are on disk: <code>data/libero_raw/libero_spatial</code>, 10 files, 500 demos, 62,250 frames (counted 10-12).</li>
+<li class=todo>No FAIL-Detect code, no run, no R-number, on main or in the worktree. Their code is CC BY-NC, so it must be reimplemented.</li>
+<li class=todo>D26 (episode length) is parked; the harness flag doesn't exist (line 346 unchanged).</li>
+</ul>
+
+<div class=k id=faildetect-3>Where the threshold comes from (checked against the paper PDF, 10-12)</div>
+<p>Three data sets, each with a different role. Failures are never used to fit or calibrate.</p>
+<div class=tw><table>
+<tr><th>Stage</th><th>Data</th><th>Paper's words / numbers</th></tr>
+<tr><td>1 · Fit the scorer</td><td>The policy's <b>training demonstrations</b>, through the frozen encoder</td><td>"we first obtain {(A<sub>t</sub>, O<sub>t</sub>)} for each task using the same training demonstration data for policy network" (App. C)</td></tr>
+<tr><td>2 · Calibrate the band</td><td><b>Successful rollouts only</b>. Default: successes in the <b>nominal (ID) environment</b>, and the same band is used for ID and OOD tests ("ID-only band")</td><td>"The CP band for each task is calibrated with successful rollouts under ID initial conditions only (i.e., the same band is used for ID and OOD)". Sim, FM policy: 224–296 successes for the band mean + 523–693 for its width, identical for each task's ID and OOD columns (Table IIIb)</td></tr>
+<tr><td>2′ · Alternative on hardware</td><td>"Setting-dependent band": successes <b>from each test environment</b> (ID or OOD) calibrate that environment's band</td><td>4–9 successes for the mean + 12–23 for the width per setting (Tables IIIc–d)</td></tr>
+<tr><td>3 · Test</td><td><b>All rollouts</b>, successes and failures, in ID and OOD settings</td><td>Sim: 1,000 ID / 2,000 OOD test rollouts per task (FM)</td></tr>
+</table></div>
+<p><b>What they found about the two bands.</b> In simulation, the ID-only band worked for both the ID and the camera-bump OOD tests. That's the practical choice, since it needs no new successes in each new environment. On hardware with OOD initial conditions, ID-only bands made most methods flag almost everything (TNR near zero). Successes under OOD conditions were slower and jerkier and scored higher than ID successes. Setting-dependent bands fixed that. The paper's own reading: such degraded successes "should potentially be classified as failures".</p>
+<p><b>For us.</b> The ID-only band = ~150 unperturbed nominal successes (sizing above). Our start-pose and camera perturbations are closer to their hardware OOD case than to the sim camera bump, because they apply from t = 0. So expect the ID-only band to flag many perturbed successes, as R-037 already suggests. A setting-dependent band would need successes per perturbation cell (e.g. per start-pose radius). Those are scarce exactly where it matters (success 0.37 at 0.5 rad), and calibrating per cell assumes we know the setting at run time. For start pose we do (proprioception). For camera shifts we may not.</p>
+<div class=k id=faildetect-4>The episode-length issue (D26)</div>
+<p>Their band needs equal-length score curves. Robomimic never ends on success (<code>is_done</code> always False; 50 forwards). We end on success: <code>done = success or …</code> at <code>vla_harness/envs/libero_env.py:346</code>, and the loop breaks at <code>vla_harness/runner.py:70</code>. Our successes run a median of 7 forwards (f<sub>c</sub> 11–15) and every failure runs 18, so the band thins out from about f8. Late "detections" partly measure exposure time.</p>
+<p>D26 (scoped and parked by the user 10-07): option 2 (end on success, score only up to f<sub>c</sub>) stays the primary readout. Option 4 (censoring-aware calibration) is the no-new-rollouts check. Options 1 + 5 merge into a <b>post-success calibration probe</b>: about 20 nominal successes run to the timeout with a per-step <code>post_success</code> tag. Per detector, post-success data goes into calibration only if post-success vs failure AUROC ≥ 0.7 at f8–18. Order: R-059 part A (done) → user OKs the flag → run with the part B smoke.</p>
+
+<div class=k id=faildetect-5>How much data for a good threshold</div>
+<p>Two separate pools, which must not overlap (otherwise the calibration is scored on points the scorer was fitted to, the R-036 leave-one-out trap).</p>
+<p><b>1. Fitting the scorer: enough in volume, not in variety (see "Is the data diverse enough?" below).</b> The paper fits on the policy's training demos through the frozen encoder, tens of thousands of samples. We have 62,250 demo frames (500 demos). It costs one backbone pass per frame, on GPU but without the simulator. That cost hasn't been measured.</p>
+<p><b>2. Calibrating the band: nominal successful rollouts.</b> Split exact conformal sets the threshold at the ⌈(N<sub>2</sub>+1)(1−α)⌉-th of N<sub>2</sub> calibration scores. The guarantee is on the <i>average</i> false-alarm rate. For one calibration set, the realised rate is Beta-distributed and wide when N<sub>2</sub> is small (α = 0.05, computed 10-12):</p>
+<div class=tw><table>
+<tr><th>N<sub>2</sub> successes</th><th>Mean false-alarm rate</th><th>90% range for one calibration set</th></tr>
+<tr><td>19 (minimum for a finite band)</td><td>5.0%</td><td>0.3–14.6%</td></tr>
+<tr><td>50</td><td>3.9%</td><td>0.7–9.1%</td></tr>
+<tr><td>100</td><td>5.0%</td><td>2.0–8.9%</td></tr>
+<tr><td>200</td><td>5.0%</td><td>2.7–7.7%</td></tr>
+<tr><td>700 (paper, sim)</td><td>5.0%</td><td>3.7–6.4%</td></tr>
+</table></div>
+<p>The shaping set N<sub>1</sub> (mean and width profile of the band) comes on top. The paper uses 300 : 700. Their hardware runs used 20–50 successes in total, which is the ~19 minimum, and noisy.</p>
+<p><b>Rough target:</b> about 100 calibration plus about 50 shaping successes, so ~150 nominal successes, or ~160 rollouts at ~93% nominal success. That gives a false-alarm rate within about 2–9% at α = 0.05, pooled over the 10 tasks. Per-task bands would need that per task. Rollout cost is not measured: the D26 estimate of ~20 run-to-timeout successes in ~15 min suggests well under an hour of GPU for 160 rollouts with end-on-success.</p>
+<p><b>The length issue multiplies this.</b> With end-on-success and an at-risk band (option 4), the late forwards need ≥ 19 successes <i>still running</i>. Only ~5% are still running at f<sub>c</sub> (11–15), so a band out to f<sub>c</sub> would need roughly 19 / 0.05 ≈ 400 successes. Run-to-timeout (option 1) avoids that, because every success spans all 18 forwards, but it puts post-success behaviour into the band (D26 option 5 rule). Scoring only up to about f8 (option 2), where most successes are still running, keeps the ~150 target.</p>
+<p class=small>Inferred (papers session, 10-12) from FAIL_DETECT_MATHS §8 and the Beta distribution of split-conformal coverage; not checked by val.</p>
+
+<div class=k id=faildetect-6>How the human demos would be used (no chunks stored)</div>
+<p>The demos store one 7-d action per env step (e.g. demo 0: 98 × 7, gripper ±1), not chunks. FAIL-Detect doesn't need stored chunks:</p>
+<ul>
+<li><b>logpZO / CFM (the paper's best scorers) use observations only.</b> Each demo frame plus robot state goes through the frozen GR00T backbone to give S1 / S0e. Every frame can be a sample, not just every 16th. No actions are involved.</li>
+<li><b>RND uses (observation, action chunk) pairs.</b> The chunk is cut from the demo by a sliding window: at step t, the observation the demonstrator had is <code>obs[t-1]</code>, and the chunk is <code>actions[t : t+16]</code>. The paper's chunk is 16 steps, which matches GR00T's 16 executed steps. At test time A = the policy's first 16 of 40 predicted actions, in the same normalised space.</li>
+<li class=done><b>This alignment already exists in E4</b> (<code>experiments/e4_demo_disagreement.py</code>, worktree). It does the obs/action lag (recorded obs come <i>after</i> the step, checked against the sim by its <code>invariants</code> mode), builds the state from <code>robot_states[t-1]</code>, and has <code>norm_label</code>: min-max normalise and clip dims 0–5, and flip the gripper sign, since +1 = open in the policy's space (the bug my prim caught 10-09). E4-2 ran on all 50 demos of the toy scene (334 cells): policy-vs-demo distance median 0.27 against a seed floor of 0.053, ~5×. Exploratory, not val-checked.</li>
+<li class=todo>Caveats for RND: the demos contain no-op actions (D22), and it's unknown whether the checkpoint's training data filtered them. Windows near the end of a demo are shorter than 16 steps and need padding or dropping. E4's known-answer anchor check didn't pass bitwise (1030/n0 off by 0.0059; it flips between processes), which matters for re-render reproduction, not for the stored-frame path FAIL-Detect would use.</li>
+</ul>
+<div class=k id=faildetect-7>Is the data diverse enough?</div>
+<p>Mostly no. There is enough data, but not enough variety for the question we care about.</p>
+<ol>
+<li class=todo><b>The demos only cover nominal conditions.</b> All 500 are teleop demos from their own start states, with the standard camera and lighting. A scorer fitted on them learns "nominal", so it flags <i>any</i> perturbation, including the ones the policy survives. That is exactly R-037's result: S1 flagged perturbed forwards but didn't separate pass from fail within them. To predict failure rather than detect perturbation, the calibration has to include <b>successful rollouts under perturbation</b> (start-pose radii, camera yaw / distance). That is the paper's setting-dependent band (see "Where the threshold comes from" above); the scorer itself can stay fitted on demos. We have those rollouts (R-047, R-052), but they store image references, not features. Getting the features means re-rendering by replay or re-running with feature capture.</li>
+<li><b>Demo image size: probably minor for actions, unchecked for features.</b> The raw HDF5 images are 128 px; our GR00T evals render at 360 px (<code>r047_run.py</code>, <code>obs_size=360</code>), and the GR00T processor resizes both. E4 measured the effect at action level: upsampling demo frames 128 → 256 changed the policy-vs-demo distance by a median 0.018 against a distance of 0.27 (32 cells, <code>runs/root_signals/e4/score.json</code>). An OOD scorer on S1 features may be more sensitive than the action output is, which hasn't been checked. If it matters, replay the demo states at 360 px (D22 replay, unverified).</li>
+<li><b>The demos aren't the policy's own trajectories.</b> Teleop paths and speeds differ from GR00T's rollouts, and the demo start states match no row of LIBERO-Plus's init files (D22). Calibrating the band on the policy's own nominal successes absorbs this for the threshold. But if nominal rollouts already score high against the demos, the room left for a perturbation signal shrinks. Mixing nominal rollouts into the fitting set helps.</li>
+<li><b>The effective sample size is the trajectory count, not the frame count.</b> Frames within a demo are highly correlated: 500 trajectories, 50 per task, to fit a 128–256-d density. That's workable pooled, thin per task.</li>
+<li><b>Scenes are uneven.</b> One scene fails unperturbed in R-047, two in R-052. Those scenes give few calibration successes, so a pooled band is dominated by the easy scenes, and exchangeability across scenes is doubtful.</li>
+</ol>
+<p><b>What would fix it (inferred, papers session 10-12):</b></p>
+<ul>
+<li class=todo>Fitting set = demos (re-rendered at 360 px only if the S1 size check says so) plus nominal rollouts with feature capture.</li>
+<li class=todo>If the goal is failure prediction: setting-dependent bands, calibrated on successes from each perturbation setting, disjoint from that setting's test rollouts. The paper calls a band "setting-dependent" when it is calibrated on successes from the same environment, so run-to-run independence, not held-out conditions, is what keeps it honest.</li>
+<li class=todo>Report results per scene, as well as pooled.</li>
+</ul>
+
+<div class=k id=faildetect-8>Changes needed</div>
+<div class=tw><table>
+<tr><th>Item</th><th>What</th><th>Size (estimate)</th></tr>
+<tr><td class=todo>D26 harness flag</td><td>An opt-in flag in the env's <code>identity()</code>, so the env id and fingerprint differ and caches never mix. End only on timeout; success = "reached at some point". Tag each step <code>post_success</code>. Per-episode aggregates (length, closest approach, <code>d_pn</code>) only up to first success. A <code>r047_run.py</code> argument. Never the default. Post-success segments never minted, exported as demos, or used in phase detection or failure mining.</td><td>~50–100 lines + test, ~½ day for impl, then a val check (or exemption). Probe ~15 min GPU.</td></tr>
+<tr><td class=todo>Demo feature pass</td><td>Run the demo frames once through the frozen backbone to get S1 / S0e, reusing E4's alignment (below). First check whether S1 differs between 128 px demo frames and 360 px renders; if so, replay the demo states at 360 px (D22).</td><td>GPU, no simulator; not measured</td></tr>
+<tr><td class=todo>Scorer</td><td>Per-dimension standardisation in fp32 → PCA to 128–256 → MLP flow scorer (logpZO), plus RND for the action side.</td><td>Small; part of 2–4 days total</td></tr>
+<tr><td class=todo>Calibration rollouts</td><td>~150 nominal successes (see above), disjoint from the fitting set. Labels from the same run as the scores (unseeded <code>torch.randn</code>). Use the exact finite-sample quantile, not <code>np.quantile</code> as their code does.</td><td>Under ~1 GPU-hour (inferred)</td></tr>
+<tr><td class=todo>Functional CP band + eval</td><td>Shaping / calibration split, max-over-time score, band. Evaluate on start-pose and camera rollouts, reporting detection time vs failure onset as well as TPR.</td><td>Part of 2–4 days total</td></tr>
+</table></div>
+
+<div class=k id=faildetect-9>Discussion points</div>
+<ul>
+<li>Expected payoff is modest. R-037: S1 flags perturbed forwards (46.6% vs a 3.0% self-rate) but doesn't separate pass from fail within them (0.00×, p = 0.53). Expect detection, not prediction. The state pathway (S0e) will likely dominate and may fire only after the failure has started.</li>
+<li>The α guarantee holds for nominal successes. On perturbed scenes, successes aren't exchangeable with calibration, so the false-alarm rate there is empirical, whatever N<sub>2</sub> is.</li>
+<li>RND is the only scorer that can see "normal scene, wrong action".</li>
+<li>Their code tunes α per task (0.0125–0.05), so their operating points aren't all α = 0.05.</li>
+<li>Recommendation (papers, 10-12): do the D26 flag first. It's cheap, and it removes the length confound from every detector comparison, STAC included. Build FAIL-Detect only if a second detector family is wanted alongside STAC. Changes go to impl; the GPU slot needs prim's OK.</li>
+</ul>
+<p class=small>Sources: FAIL_DETECT_MATHS §8, §10–11; D26_draft; memory note on D26 (10-07); code and data read 10-12.</p>
+
+<h2 id=corrector>VLA-Corrector</h2>
+<p class=small>Pan et al., ZJU / Alibaba DAMO, arXiv:2607.01804v1 · full read incl. appendices B–E + code at <code>ZJU-OmniAI/vla-corrector@e02ab51</code> (session res, 10-08) · method doc <a href="VLA_CORRECTOR_MATHS.html">VLA_CORRECTOR_MATHS</a> · tracker c9d · <span class="st part">borrowed (one idea)</span></p>
+
+<div class=k id=corrector-1>What the paper does</div>
+<p>A runtime layer around a frozen, chunked flow-matching VLA (π0.5, SmolVLA, X-VLA), with no backbone retraining.</p>
+<ol>
+<li><b>Monitor.</b> A ~40M token-wise MLP M<sub>φ</sub>, trained on demos, predicts how the policy's own SigLIP image tokens should change k = 10 steps after an action. The score is E<sub>t</sub> = 1 − cos(predicted change, actual change), every env step.</li>
+<li><b>Trigger.</b> A median/MAD state machine on the episode's own recent scores. There is no calibration set, so no false-alarm guarantee.</li>
+<li><b>Correction.</b> On a trigger, drop the rest of the chunk and replan once with Online Gradient Guidance (OGG). OGG nudges the velocity of the <i>first action only</i> through M<sub>φ</sub>.</li>
+</ol>
+<p>Results: MetaWorld π0.5 at H = 50 goes 48.7 → 64.35. Truncation alone (replan sooner) gives 60.35, so the guidance adds ~4 points, inside noise, and is negative on the Hard split (50.0 → 47.5). It is mostly an event-triggered adaptive horizon. LIBERO is tested only unperturbed (Spatial 95.4 → 100). The largest real-robot gain is on "object moved mid-task" (+28 pp).</p>
+
+<div class=k id=corrector-2>What it can give us</div>
+<ul>
+<li><b>The predicted-vs-actual idea</b>, at action level. This became root signal E3 (commanded vs achieved end-effector motion).</li>
+<li><b>A mid-episode fix</b> for drift-type failures, e.g. scene 1327's regrasp cycling. A GR00T port fits on 8 GB. Expect most of any gain from truncation.</li>
+<li><b>Not our start-pose failures.</b> The released monitor can't fire in the first ~15 control steps (threshold 10.0 until a 15-score queue fills; earliest interrupt ≈ step 25). GR00T executes 16 steps per forward, and our start-pose failures are decided at forward 0 (R-057, k* = 1).</li>
+<li><b>A framing</b> for a first-chunk runtime correction, which the doc works out as a 6-arm test (below).</li>
+</ul>
+
+<div class=k id=corrector-3>Status</div>
+<ul>
+<li class=done>Paper and code read; GR00T portability worked out (VLA_CORRECTOR_MATHS §8.1): latent = pre-adapter S1 tokens, M<sub>φ</sub> on cached features (<code>vla_harness/training/feature_cache.py</code>), truncation = clear the 16-step queue in <code>lerobot_policy.py</code>.</li>
+<li class=done><b>E3, commanded vs achieved motion</b> (my prim, 10-09, CPU, exploratory): <code>experiments/root_signals_e3_cmd_vs_achieved.py</code>, outputs <code>runs/root_signals/e3/</code> in the worktree. A kernel controller model fits held-out successes at R² 0.95. The residual spikes ~3 steps after every grasp onset, failed or not (AUROC 0.52). Miss vs slip is weak (best 0.66). Failure vs success ≈ chance. Reading: our failures are "smooth and wrong", not slips or blocks.</li>
+<li class=todo>No port of the monitor, M<sub>φ</sub>, truncation or OGG to GR00T. Not planned.</li>
+<li class=todo><b>c9d:</b> pre-register the 6-arm first-chunk correction test (~3.3 GPU-h). prim's recommendation in EXPERIMENTS_2026-10-09: "Later". Not decided.</li>
+<li class=todo>Re-homing baseline: not implemented anywhere (no code found on main or in the worktree).</li>
+</ul>
+
+<div class=k id=corrector-4>The proposed 6-arm test (c9d, design only)</div>
+<p>Instances: R-053's 10 start-pose instances × 3 noise seeds (no correction 6/30; nominal-first-chunk oracle 24/30, both known), plus a held-out R-047 grid with ≥ 4 directions per scene, stratified by cm. Paired seeds, ε seeded per forward.</p>
+<div class=tw><table>
+<tr><th>Arm</th><th>What</th><th>Oracle-free?</th><th>Expectation (from the doc)</th></tr>
+<tr><td>P</td><td>No correction</td><td>–</td><td>6/30 known</td></tr>
+<tr><td>R-053 oracle</td><td>Nominal first chunk, from the recorded control episode</td><td>No</td><td>Upper bound, 24/30</td></tr>
+<tr><td>Re-home</td><td>Drive the arm to q<sub>home</sub> (~1 s), then run the policy</td><td>Yes</td><td>The bar every other arm must beat</td></tr>
+<tr><td>(a1) wrist substitution</td><td>Feed a reference wrist frame (scene rendered at q<sub>home</sub>) for forward 0 only; gate on the proprio detector</td><td>Mostly</td><td>Closest to R-042's W = 0.88, so it should approach the oracle (inferred)</td></tr>
+<tr><td>(c) RTC prefix</td><td>Give GR00T's native RTC path an 8-step re-homing prefix and let the flow complete the chunk (<code>groot_n1_7.py:665–681</code>)</td><td>Yes</td><td>Risk: clean actions written into the initial noise are off-distribution</td></tr>
+<tr><td>(a2) wrist-token steering</td><td>Add a mean nominal-minus-perturbed shift to the S1 wrist tokens at forward 0, fitted on training starts only (C18 / t3b)</td><td>Yes</td><td>A single shift likely can't cover 7-D joint directions; same coverage problem as retraining</td></tr>
+</table></div>
+<p>(b), OGG-style guidance of the first chunk, is dropped: on GR00T's 4-step sampler it edits about 1 of 16 executed actions, far too weak for a 12–20 cm offset. Readouts: success /30 (McNemar vs P and vs re-home), first-chunk distance to nominal at fixed ε (D20 metric), time to success, nominal no-harm control (≥ 26/27). Cost ≈ 180 rollouts × ~45 s ≈ 2.3 GPU-h plus ~1 GPU-h for the held-out grid.</p>
+
+<div class=k id=corrector-5>Discussion points</div>
+<ul>
+<li><b>Re-homing may make this moot.</b> The start-pose detector is free (proprioception, or the D20 achieved-offset bands: ≤ 8 cm 0.93, 8–12 cm 0.65, 12–16 cm 0.22, &gt; 16 cm 0.15), and re-homing is a free fix. If re-home ≈ oracle, the start-pose row is solved by a 1-second manoeuvre and mechanism work should move to rows without a free fix (camera). A mechanism-guided arm is only interesting if it wins where re-homing can't be used (clutter, a real robot holding an object).</li>
+<li><b>Publishable angle</b> (doc's view): not "another detector" (crowded), but a measured comparison of a mechanism-specified correction (wrist evidence) vs re-homing vs retraining, at matched cost.</li>
+<li><b>Idea discussed 10-12: a policy-agnostic "interrupt and replan" framework</b> (plug in any chunked VLA; a monitor watches the H executed steps and can make the policy replan at any step x &lt; H). This is not the doc's proposal; the doc proposes only the 6-arm first-chunk test. Assessment: the mechanism is VLA-Corrector's own method (its release already does this for π0.5, SmolVLA and X-VLA), and in our harness truncation is a small change (clear the 16-step action queue in <code>lerobot_policy.py</code>). Its value would be as a <b>test bed for triggers</b> (STAC, FAIL-Detect, VLA-Corrector's monitor, proprioception, random, fixed shorter horizon) with the controls VLA-Corrector lacks: a random trigger at the same number of replans, and a plain shorter H. Its own Table 4 shows a shorter fixed horizon recovers much of the gap (H = 10: 64.5% vs H = 50: 48.7%). It wouldn't help our start-pose failures, which are decided in the first chunk, and it isn't novel as a method (VLA-Corrector, CheckVLA, RTC, Rewind-IL).</li>
+<li><b>Paper caveats:</b> no false-alarm control on clean episodes; no random-trigger control at matched call count; Table 1 vs Table 4 disagree at H = 50 (64.35 vs 58.70); the code's state machine differs from the paper's description (EWMA, jump trigger, cooldown 0 vs 10); a LIBERO-trained corrector transfers poorly to MetaWorld (+3.1 vs +10.0).</li>
+<li><b>Related methods</b> (abstract level only): CheckVLA has the conformal false-alarm control VLA-Corrector lacks; COAST steers latents at every call including forward 0, the nearest analogue of (a2); Rewind-IL re-homes to a checkpoint state; RTC is the machinery behind (c).</li>
+</ul>
+<p class=small>Sources: VLA_CORRECTOR_MATHS (direct answers, §5–§8); EXPERIMENTS_2026-10-09 (E3 row, c9d); ROOT_SIGNAL_EXPERIMENTS (signal c); worktree files checked 10-12.</p>
+
+<h2 id=ftm>FTM ("VLAs are more generalizable than you think")</h2>
+<p class=small>Li et al., CVPR 2026, arXiv:2512.02902 · full read; no code released · method doc <a href="SPATIAL_ADAPT_MATHS.html">SPATIAL_ADAPT_MATHS</a> · RESULTS.md R-060 (pre-registered 10-07, not run) · <span class="st wait">pre-registered</span></p>
+<div class="card tldr"><div class=q>Did we write code?</div><p>Partly. The FTM layer and the pre-run gate checks are written. The experiment runner is not, and nothing FTM-related has run on the policy. R-060 is blocked on a failed render check (G0c).</p></div>
+<div class=k id=ftm-1>What it can give us</div>
+<p>A 4,096-number fix for camera-viewpoint (and maybe sensor-noise) failures: scale and shift each channel of the visual tokens, (1 + γ)·F + β, the same for every token. In the paper it takes π0.5 from 48.5% to 87.1% on new camera views. A training-free version just matches the mean and spread of features under the shifted camera to the nominal ones. It is a camera fix, not a start-pose fix.</p>
+<div class=k id=ftm-2>Status</div>
+<ul>
+<li class=done><b>FTM layer</b>: class <code>FTM</code> in <code>vla_harness/capture/splice.py</code>, with <code>from_moments</code> (the training-free moment-matching version) and <code>TransformHandle</code>, which applies it to the image tokens before (S1) or after (S2) GR00T's adapter on every forward. Committed (dcdd172, "WIP"); working tree clean as of 10-12.</li>
+<li class=done><b>Gate script</b> <code>experiments/r060_gates.py</code> plus G0c diagnosis scripts <code>r060_g0c_diag*.py</code>, committed (prim, 10-12: dcdd172 then a7f00b3). Only the diagnosis logs and <code>g0c_diag_motion_input.npy</code> are untracked.</li>
+<li class=done><b>G0a, camera order: PASS</b> (<code>runs/r060/gates/g0a.json</code>). Agent view is the first image block.</li>
+<li class=todo><b>G0c, training-pair exactness: FAIL</b> (0/15 camera, 0/10 noise). Diagnosed 10-08 by impl. A step frame shows the state after physics substep 23 of 25, so it never matches a re-render. Reusing or deleting envs corrupts renders. A code bug: <code>nominal_frames</code> uses the wrong camera pose for LIBERO-Plus camera variants (~22–24k px off), which may also affect the paired comparisons in R-039/R-047/R-048 camera rows. Amendment drafted (<code>runs/r060/gates/g0c_amendment_draft.md</code>), not applied. The pose fix (g0c2) needs the user's go.</li>
+<li class=todo><b>G0b, FTM at zero = identical output</b> (checks the hook changes nothing when γ = β = 0): code written, not run. Waits for r60b and my prim's OK.</li>
+<li class=todo><b>R-060 runner</b> for parts A–C (fit moments or train FTM, then eval rollouts on camera and noise rows, vs an action-head fix at matched data): not written.</li>
+</ul>
+<div class=k id=ftm-3>Discussion points</div>
+<ul>
+<li>The paper's "LoRA" baseline is mostly a full SigLIP fine-tune (414.8M of 467M), and its Table 3 FTM average is misprinted (90.5 vs 93.2).</li>
+<li>Missing control in the paper: adapt the language model and action expert with vision frozen. Without it, "the fault is in vision" isn't shown, only "fixing vision is cheap".</li>
+<li>On GR00T, the adapter after the vision encoder already removes most of the pooled feature shift (R-037: 1.37× → 1.02×), but the action-relevant part survives (R-039: camera 0.69, noise 0.45). So where FTM sits (S1 vs S2) matters.</li>
+</ul>
+<p class=small>Sources: code and run files read 10-12; RESULTS.md R-060; memory note on the G0c diagnosis (10-08); SPATIAL_ADAPT_MATHS bottom line.</p>
+
+<h2 id=mulligan>Mulligan</h2>
+<p class=small>Ankile et al. (Finn lab, Stanford), arXiv:2610.05882v1 · full read of the PDF incl. appendices A–K (res21, 10-07); their code (github.com/ankile/mulligan) not opened · method doc <a href="MULLIGAN_TARGETED_INIT.html">MULLIGAN_TARGETED_INIT</a> · related decisions D21 (next demo source), D23 (next retraining probes) · <span class="st part">borrowed (design only)</span></p>
+<div class="card tldr"><div class=q>Where it stands</div><p>Read and written up. Nothing built: no sampler code, no experiment. It matters as the design template for D23's comparison arms and because it took away part of our novelty claim. D21 and D23 are both still undecided.</p></div>
+
+<div class=k id=mulligan-1>What the paper does</div>
+<p>It decides <b>where each round of data collection starts</b>, for a policy being improved with a human operator (HG-DAgger on a Diffusion Policy, real DROID Franka plus simulation). Each round: (1) retry the start states where the last evaluation failed, earliest failure first, up to a cap; (2) fill the rest of the budget with the start states farthest from everything already collected; (3) where a correction would only teach recovery, record a full demo from that start instead. The learner itself is unchanged.</p>
+<p><b>Results.</b> Real world, actor only, pooled over rounds: +11.7, +10.9 and +6.0 pp on three tasks (McNemar p = 0.002 / 0.0007 / 0.036, 300–350 paired episodes each). Simulation: +2 to +12 pp in every round, 5 seeds. The headline "+10–34 pp" includes their critic.</p>
+<p><b>About half of the gain is better coverage, not failure targeting</b> (simulation, Square-Narrow round 1): spreading starts evenly alone gives +3.9 pp; adding failure targeting gives +7.0; adding full demos gives +7.8.</p>
+
+<div class=k id=mulligan-2>What it can give us</div>
+<ul>
+<li><b>The failure-targeted arm for D23, built properly:</b> their Alg. 2 as our start sampler, over (joint direction on the sphere × achieved cm band), per scene. Beating the strongest published version is what makes a result count.</li>
+<li><b>A real broad-coverage arm:</b> evenly spread (Sobol / farthest-point) starts, not random ones. A random broad arm would be a weak baseline that flatters the targeted arms.</li>
+<li><b>Data hygiene:</b> adding the policy's own successful rollouts to its training data <i>hurt</i> (−3.4 pp). Our R-054 minted frames 16–47 were the base policy's own actions and 33% of draws. Drop or down-weight them.</li>
+<li><b>Evaluation protocol:</b> fresh, disjoint start states every round, arms interleaved, paired McNemar, rescues vs regressions reported. We pair seeds already; we evaluate on only 2–3 fixed held-out directions, which is too few.</li>
+<li><b>Stage-wise reporting</b> (grasp vs insert in theirs; approach / grasp / transport for us), which matters given scene 1327's grasp-stage regression.</li>
+</ul>
+
+<div class=k id=mulligan-3>Status</div>
+<ul>
+<li class=done>Paper read in full; design implications for D23 written up (MULLIGAN_TARGETED_INIT §7–8).</li>
+<li class=done>Its premise holds for us: start-pose failures concentrate by offset. D20: success 0.93 at ≤ 8 cm, 0.65 at 8–12, 0.22 at 12–16, 0.15 beyond 16 cm.</li>
+<li class=todo><b>No sampler code.</b> Nothing implements Sobol / farthest-point / failure-promotion start selection (searched main and the worktree, 10-12).</li>
+<li class=todo><b>D21, the next demo source, is undecided:</b> A bridge-and-join (res recommends), B scripted expert with DART noise, or keep rescue minting. The user + res proposal <a href="ROOT_TO_GOAL_CORRECTIVE_DEMOS.html">ROOT_TO_GOAL_CORRECTIVE_DEMOS</a> (outline approved 10-12, commit 9c0a939, no code or runs) is a variant of A.</li>
+<li class=todo><b>D23, the next retraining probes, is undecided:</b> (a) replay-only control with the corrected recipe; (b) a bridge-controller rescue probe; later a multi-arm comparison (~25–35 GPU-h).</li>
+<li class=todo>The D22 replay check (do the raw demos replay in our env?) comes before D23.</li>
+</ul>
+
+<div class=k id=mulligan-4>Discussion points</div>
+<ul>
+<li><b>Novelty.</b> "Failure-targeted collection beats uniform at a matched budget" is now published, on real robots, with blinded paired evaluation. Ours to claim: choosing <i>which frames to label</i> from an internal mechanism (forward 0, the wrist camera), and testing mechanism-targeted vs failure-targeted at a matched labelled-frame budget. Restated claim: "labels placed by an internal mechanism close more of a failure gap than Mulligan-style whole-episode collection at the same starts."</li>
+<li><b>What Mulligan trains on</b> (discussed 10-12). HG-DAgger: the policy runs from the chosen start; the operator takes over when it goes wrong, so <b>corrections start mid-episode, where the policy went wrong</b>; when the mistake is large, the operator also records a <b>full demo from the same start</b>. The actor trains on the human frames of successful episodes. Start selection is <b>targeted</b> (failed starts promoted, rest filled by even coverage); the baseline is uniform random starts.</li>
+<li><b>So our three possible differences, honestly:</b> (1) <i>on a VLA</i>: real but replication-level; Mulligan used a Diffusion Policy trained from scratch, and the authors list generalist policies as open. (2) <i>from the root, not the start</i>: weaker than it looks; DAgger-style corrections and IntervenGen already start where the policy goes wrong. What's different is that ours is automatic, from human-free demos retargeted by DMPs, at a root found by rules; the proposal itself calls it "IntervenGen without human interventions". (3) <i>targeted vs uniform sampling</i>: that is Mulligan's own published result, so for us it is a replication on a VLA, not a claim. What is still open is mechanism-targeted vs failure-targeted (which frames to label).</li>
+<li><b>To isolate that claim</b>, hold the starts fixed (Mulligan's) and vary only what is labelled: whole episodes vs forward-0/1 bridge frames. Match on labelled frames and on how often each region is sampled, not on episode count.</li>
+<li><b>Bearing on ROOT_TO_GOAL_CORRECTIVE_DEMOS</b> (user + res; checked with prim 10-12). Supports the motivation: failures cluster in start space and targeted collection beats uniform. Gaps in the proposal: (1) its co-train step (S8) has no evenly spread coverage arm, but about half of Mulligan's gain is coverage alone, so one is needed as the control; (2) match budgets in labelled frames, not episodes, since root→goal segments are shorter than full demos; (3) the −3.4 pp from training on the policy's own rollouts doesn't apply to sim-executed DMP successes, but it is a caution for Q4 (keeping the policy's own start→root prefix). Mulligan is not yet cited in the proposal. Novelty has to come from how the data is made (retargeting from the root), judged against the proposal's IntervenGen-style linear-bridge arm.</li>
+<li><b>Their hardness signal doesn't port.</b> "Earliest failure stage first" is useless for start pose, because every start-pose failure is decided at forward 0. Use the D20 offset curve instead.</li>
+<li><b>Their critic + best-of-N: low priority on GR00T.</b> It needs N samples per forward on 8 GB, and R-053's plain re-run flipped 0/22 failures, so noise diversity at forward 0 looks small.</li>
+<li><b>Fits our fit-test finding.</b> The r16 adapter closed 30% of the first-chunk gap on its training starts but 12% on held-out ones. Training used 100 one-off random directions; held-out used directions 100 and 101. Direction coverage and dose per region are the suspects, which is what Mulligan's coverage fill and promotion cap control.</li>
+<li><b>Paper caveats:</b> budgets are matched in episodes, not human frames (theirs had 8–28% more); the hardness tilt was chosen by people inspecting failures each round; final-round evidence alone is thin (one of three actor-only contrasts significant); a Diffusion Policy trained from scratch, not a VLA.</li>
+</ul>
+<p class=small>Sources: MULLIGAN_TARGETED_INIT (verdict, §4–8); Decision_28Sep D21–D23; EXPERIMENTS_2026-10-09; code search 10-12.</p>
+
+<h2 id=jungpark>Jung &amp; Park (initial-pose dependence)</h2>
+<p class=small>Chaeyeon Jung, Juyoun Park (KIST), arXiv:2608.11769v1 · full read of the PDF (8 pages, no appendix, no code), 10-06 · method doc <a href="JUNG_PARK_INITPOSE.html">JUNG_PARK_INITPOSE</a> · <span class="st part">borrowed (design only)</span></p>
+<div class="card tldr"><div class=q>Where it stands</div><p>The closest prior work to our start-pose study: same question, same policy family (GR00T), same conclusion that the wrist camera matters. Not prior work on our <i>method</i>. Read and written up; nothing borrowed from it has been built or run.</p></div>
+
+<div class=k id=jungpark-1>What the paper does</div>
+<p>Unitree G1 humanoid, GR00T N1.5, one task (pick an apple, either hand may succeed), 17 hand-built start poses, 9 fine-tuned policies, 20 rollouts per pose × policy, success judged by hand.</p>
+<ul>
+<li><b>Finding 1: the start pose decides which hand the policy uses</b>, sometimes regardless of where the apple is (a "hand prior"). Measured with an early-window left/right action-imbalance score.</li>
+<li><b>Finding 2: two right-arm joints (R3, R5) cause it.</b> Physically copying those two joint values from a no-bias pose into a biased pose removes the bias (7/8 → 0/4 wrong-hand attempts) and vice versa (0/12 → 7/7). A swap of two other joints changes nothing.</li>
+<li><b>Finding 3: the wrist cameras matter.</b> Masking both wrists drops success to 20% at one pose. Training with wrist cameras helps overall (61.5% → 76.8%) but made one pose worse.</li>
+<li><b>Finding 4: coverage fixes it.</b> Two training poses, each tied to one apple side, taught "pose decides side": 5.8% success. Eight poses with both sides, same episode budget (306 vs 304): 63.3%. Adding two poses beside a failing pose took it from 30% to 75% (6/20 → 15/20), with no matched control.</li>
+</ul>
+
+<div class=k id=jungpark-2>What it can give us</div>
+<ul>
+<li><b>B1, an equal-budget coverage control for D23:</b> offset-stratified demos vs the same number of demos at uniformly sampled offsets vs replay only, with the same steps and sampler share, reporting every offset band.</li>
+<li><b>B2, a joint-subset test of "wrist means where the wrist camera looks":</b> perturb only the joints that move the wrist camera vs only the joints that don't, at the same gripper offset in cm, then run our wrist / agent-view splice on each. If the wrist transfer collapses for the non-camera set, the mechanism is the wrist camera's view, and the data spec becomes wrist-view coverage. Needs a magnitude-matched control, which they lacked. LIBERO-Plus start-pose perturbations are joint-space, so this is a knob change.</li>
+<li><b>B3, report a per-scene × offset-band grid, not a mean.</b> R-056's held-out average hid a one-scene regression (scene 1327), the way their averages hide one bad pose.</li>
+<li><b>B4, an early-direction score:</b> the forward-0 chunk's direction relative to the gripper→bowl vector, split into a part driven by the start pose and a part driven by the target. Cheap, no new rollouts.</li>
+<li><b>B5, watch the dilution ratio:</b> reweighting alone gave them +21 pt (B2 40.3% → D 61.5%). Same lesson as our post-mortem, where the frame-0 correction was ~1% of training draws.</li>
+</ul>
+
+<div class=k id=jungpark-3>Status</div>
+<ul>
+<li class=done>Paper read in full; side-by-side with our method and GR00T N1.5 → N1.7 portability written up (JUNG_PARK_INITPOSE §7–8.3). Fisher p-values for their swap tables recomputed (the paper reports none).</li>
+<li class=done>Their two main conclusions already have stronger versions in our data: wrist carries start pose (R-042: restoring only the wrist frame moves the forward-0 action 0.88 of the way to nominal, in distribution); proprio is not the main channel (R-039: state token near-inert).</li>
+<li>B1 (coverage control): dropped as a research question (see review below).</li>
+<li class=todo>B2 (joint-subset swap): not built or proposed as an R-number.</li>
+<li class=todo>B4 (early-direction score): not built.</li>
+<li class=todo>DATA_SOURCING_RESEARCH Q4 still describes this paper as "unverified beyond the abstract"; the doc recommends updating it to the full read. Not done.</li>
+</ul>
+
+<div class=k id=jungpark-4>Review of the borrow list (user, 10-12)</div>
+<ul>
+<li><b>B1 dropped as a research question.</b> Mulligan already showed targeted beats uniform at a matched budget, so re-running "targeted vs uniform" adds nothing. The comparison arm our own claim needs is Mulligan-style failure-targeted collection (which already includes even coverage), not a uniform arm.</li>
+<li><b>B3 is not an experiment.</b> It is how results get reported (per scene × offset band, not one average). No cost; keep it as a reporting rule.</li>
+<li><b>B4 is not covered by FAIL-Detect or VLA-Corrector.</b> FAIL-Detect scores how unusual the input looks; it would flag every perturbed start and say nothing about where the first chunk points. VLA-Corrector can't fire before ~step 25 and measures how the world responds, not the plan. B4 asks something else: does the forward-0 chunk head toward the bowl, or is it pulled by the start pose? As a <i>detector</i> it isn't needed (the start offset in cm already predicts success: 0.93 / 0.65 / 0.22 / 0.15 by band). Its use is as a cheap mechanism readout, before and after training, next to the wrist transfer.</li>
+</ul>
+<div class=k id=jungpark-5>B4 plan sketch (not approved)</div>
+<ul>
+<li class=done><b>Data exists.</b> R-047 start-pose rows: 360 rollouts with stored forward chunks (<code>act_P</code>, 18 × 40 × 7 per rollout, <code>runs/r047/joint_radius_rad/*.npz</code>), and at t = 0 the gripper position and ground-truth object positions (<code>runs/r047/rollouts.jsonl</code>). No new rollouts, no GPU.</li>
+<li class=todo><b>Compute</b> per rollout: the forward-0 chunk's commanded translation over the 16 executed steps (un-normalised with the known policy→env map; 0.05 m per unit, as in E3); its angle to the gripper→bowl vector; its component along the start-pose offset; the same for the paired nominal chunk <code>act_N</code>.</li>
+<li class=todo><b>Report</b>: how these predict success (AUROC), per scene × offset band, against the offset-in-cm baseline. Question: does it add anything beyond the offset? If not, it's still useful as a before/after-training readout.</li>
+<li class=todo><b>Cost</b>: CPU only, roughly half a day including checks (estimate). Exploratory; it would need a val check or your exemption. Owner to decide (my prim ran the other CPU root-signal analyses).</li>
+</ul>
+<div class=k id=jungpark-6>B4 maths (how the score is measured)</div>
+<p>Per rollout, from the start (t = 0) only. Nothing is learned or fitted.</p>
+<ul>
+<li><b>Inputs:</b> <code>a</code> = forward-0 chunk (<code>act_P[0]</code>, 40 × 7; the first 16 rows are executed), <code>a<sup>N</sup></code> = the nominal-start chunk (<code>act_N[0]</code>), <code>p<sub>0</sub></code> = gripper position at t = 0, <code>b</code> = bowl position at t = 0, <code>p<sub>0</sub><sup>N</sup></code> = gripper position at the nominal start (same scene, magnitude 0).</li>
+<li><b>Planned displacement (metres):</b> c = 0.05 · Σ<sub>t=0..15</sub> clip(a<sub>t</sub>[0:3], −1, 1). The same for c<sup>N</sup> from a<sup>N</sup>. Stored chunks are in env units but not clipped (max |a| 2.26 seen), so the clip matters. The axes are world-aligned (E3: cross terms ≤ 0.03).</li>
+<li><b>Start offset:</b> o = p<sub>0</sub> − p<sub>0</sub><sup>N</sup>; |o| is the cm number in the D20 bands.</li>
+<li><b>Score 1, heading error:</b> θ = arccos( c · g / (|c| |g|) ), g = b − p<sub>0</sub>. θ = 0° means the plan heads straight at the bowl. Report it in xy and in 3D. θ doesn't depend on the 0.05 scale.</li>
+<li><b>Score 2, offset compensation:</b> k = −(c − c<sup>N</sup>) · o / |o|². If the plan aims at the same waypoint as the nominal plan, then c ≈ c<sup>N</sup> − o and k = 1. k = 0 means it ignores the offset and moves parallel to the nominal plan; k &lt; 0 means it moves further off. The "pulled by the start pose" hypothesis predicts k is low in failures. Also report the leftover sideways part, |(c − c<sup>N</sup>) + k·o|.</li>
+<li><b>Achieved variant:</b> the controller is compliant and lags, so commanded metres ≠ achieved metres within 16 steps. Score 2 mixes a commanded c with an achieved o. Version 2b: use the achieved displacement p<sub>16</sub> − p<sub>0</sub> from <code>rollouts.jsonl</code>, which only forward 0 controls, for both rollouts. Units are then consistent.</li>
+<li><b>Does it predict failure:</b> AUROC of θ, −k (and 2b) vs the success label, within scene × offset band and pooled with pos × neg weights (the <code>strat_auroc</code> already in E3). Baseline: AUROC of |o| alone. Added value: cross-validated logistic regression, success ~ |o| + scene vs success ~ |o| + scene + θ + k.</li>
+<li><b>Checks:</b> the first 16 clipped rows of <code>act_P[0]</code> equal the executed actions in <code>rollouts.jsonl</code>; at magnitude 0, k is undefined (o = 0), so it's excluded from score 2; the ≤ 8 cm band has few failures (93% success), so its within-band AUROC will be noisy.</li>
+</ul>
+<div class=k id=jungpark-7>Discussion points</div>
+<ul>
+<li><b>What's still ours after this paper:</b> in-distribution single-input splices with a transfer fraction (W = 0.88 at forward 0); time localisation (decided at forward 0, k* = 1, R-057); a sufficiency rescue (nominal first chunk flips 20/24 failures vs 0/22 for a re-run, R-053); data targeting specified by the mechanism (which frames, which forward); a before/after mechanism readout (W 0.88 → 0.84 after training).</li>
+<li><b>Our one weakness against them:</b> their targeted fix worked at its pose (30% → 75%); ours has not yet worked (R-056 held-out 59/108 vs base 67/108, p = 0.24, the drop all from scene 1327).</li>
+<li><b>Their mechanism doesn't drive their fix.</b> The joint-swap and masking diagnostics are at one pose (teleop_default); the added data goes to a different pose chosen only because its success was low.</li>
+<li><b>Our analogue of their coupling:</b> joint direction ↔ achieved offset (direction 0 never exceeds 12 cm, D20). Option A's stratified sampling, at least 4 directions per scene per cm band, is the decoupling step. The fit test points the same way: the r16 adapter moved the first chunk 30% of the way on its own training starts but 12% on held-out ones, so generalising across directions, not capacity, is the limit.</li>
+<li><b>Paper caveats:</b> the joint swap moves the forearm and wrist together, so it changes proprio, the head-camera view of the arm and the wrist camera's view at once; it can't name the channel. Treatment joints differ by ~1.3 rad, control joints by &lt; 0.39, so the control isn't magnitude-matched. Cells of 4–14 episodes; the reverse-direction swaps fail. Masking uses blank images (out of distribution). One task, one robot, no training details, no seeds.</li>
+<li><b>N1.5 vs N1.7:</b> different backbone (Eagle vs Qwen3-VL), so their feature-trace magnitudes don't transfer; same way of joining vision to the action head, so their questions mean the same thing on our model.</li>
+</ul>
+<p class=small>Sources: JUNG_PARK_INITPOSE (verdict, §3.4–8.3); code search 10-12 (no Jung &amp; Park-derived code found).</p>
+
+<h2 id=log>Change log</h2>
+<div class=tw><table>
+<tr><th>Date</th><th>Change</th></tr>
+<tr><td>10-12</td><td>Page created; STAC and FAIL-Detect sections from the papers session's discussion.</td></tr>
+<tr><td>10-12</td><td>Colour coding (green done, red pending); FAIL-Detect "How much data for a good threshold".</td></tr>
+<tr><td>10-12</td><td>VLA-Corrector section.</td></tr>
+<tr><td>10-12</td><td>FAIL-Detect "Is the data diverse enough?"</td></tr>
+<tr><td>10-12</td><td>Mulligan section.</td></tr>
+<tr><td>10-12</td><td>Jung &amp; Park section.</td></tr>
+<tr><td>10-12</td><td>Jung &amp; Park: B4 maths added (heading error θ, offset compensation k, achieved variant, AUROC vs offset baseline).</td></tr>
+<tr><td>10-12</td><td>Jung &amp; Park: borrow list reviewed (B1 dropped, B3 = reporting rule, B4 plan sketch).</td></tr>
+<tr><td>10-12</td><td>Index added at the top (sections and their subsections); replaces the link bar.</td></tr>
+<tr><td>10-12</td><td>VLA-Corrector: framework idea assessed. Mulligan: what it trains on, and our three possible differences.</td></tr>
+<tr><td>10-12</td><td>Mulligan: bearing on ROOT_TO_GOAL_CORRECTIVE_DEMOS (with prim).</td></tr>
+<tr><td>10-12</td><td>FTM: corrected commit status (gate scripts and splice.py edits are committed; prim).</td></tr>
+<tr><td>10-12</td><td>FTM section.</td></tr>
+<tr><td>10-12</td><td>Comparison table: STAC vs FAIL-Detect vs VLA-Corrector.</td></tr>
+<tr><td>10-12</td><td>FAIL-Detect "Where the threshold comes from", checked against the paper PDF (~/Downloads/Fail-Detect.pdf): ID-only vs setting-dependent bands.</td></tr>
+<tr><td>10-12</td><td>FAIL-Detect "How the human demos would be used". Corrected: GR00T evals render at 360 px, not 256 (the harness default); E4 shows 128 vs 256 px barely changes actions.</td></tr>
+</table></div>
+
+</div></body></html>

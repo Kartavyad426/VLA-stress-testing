@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brainstorm</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.q{background:var(--card);border-left:3px solid var(--accent);padding:6px 12px;margin:10px 0}
+.u{border-left:3px solid var(--warn);padding:6px 12px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+</style>
+</head>
+<body><main>
+<h1>Brainstorm</h1>
+<p class="meta">Started 2026-10-12 · session brain with the user · companion to <a href="ROUGH_ROBOTICS_PRODUCT_DESIGN.html">ROUGH_ROBOTICS_PRODUCT_DESIGN</a> §7</p>
+<div class="status"><b>What this is:</b> a running log of the discussion for each non-retraining offering in ROUGH_ROBOTICS_PRODUCT_DESIGN §7. There is one section per offering, in the order we discuss them. Each section gives the questions, the user's answers (orange bar), brain's analysis (blue bar) and where it ended: build, park or open. Nothing here is a decision until the user marks it one.</div>
+
+<h2 id="o1">1 · Evaluate: operating envelope (policy "datasheet")</h2>
+<p class="meta">Discussed 10-12 to 10-13 · state: <b>backlog</b> (user 10-13: not parked, but not in active consideration; may become a priority in the far future)</p>
+
+<h3>1.1 Where is the envelope measured?</h3>
+<div class="q"><b>brain:</b> a black-box API is useless without somewhere to run it that resembles the customer's deployment. Options: <b>A</b> sim with a digital twin of their cell; <b>B</b> on their real robot with FDE on site (controlled physical perturbations, adaptive boundary fitting); <b>C</b> standard benchmarks only (LIBERO-Plus, SimplerEnv), which serves model builders as a third-party audit. brain suggested C for the PoC and B for the paid product.</div>
+<div class="u"><b>User:</b> A is the more neutral offering and needs little effort beyond engineering. Weighting by their deployment environment makes sense, but how well can we recreate it in sim? Two ways: someone draws every element in Blender and that is the basis for everything, or real-to-sim models.</div>
+
+<h3>1.2 How well can a deployment be recreated in sim?</h3>
+<div class="q"><b>brain</b>, from existing docs (SIM_TO_REAL_TRANSFER, REAL_SIM_PAIRED_DATA, SIM_ALTERNATIVES_PIPELINE; 09-17): well enough to say <b>which conditions break the policy and in what order</b>, not to predict exact success rates.</div>
+<div class="tw"><table>
+<tr><th>Claim from the sim envelope</th><th>Transfers to real?</th><th>Evidence</th></tr>
+<tr><td>Which perturbation hurts most</td><td>Yes</td><td>SIMPLER Table VI: camera pose and table texture are the top two in both sim and real (peer-reviewed)</td></tr>
+<tr><td>Ranking of policies</td><td>Yes</td><td>SIMPLER Pearson r 0.86–0.98; PolaRiS (2512.16881) r = 0.9, 4 VLAs, 6 paired scenes</td></tr>
+<tr><td>How much each factor hurts</td><td>No; the error goes both ways</td><td>real÷sim: camera 0.61×, lighting 2.08×, distractors 4.11×</td></tr>
+<tr><td>Absolute success rate</td><td>No</td><td>same tables</td></tr>
+<tr><td>Whether failure types match</td><td>Unmeasured by anyone</td><td>open gap, and a possible contribution</td></tr>
+</table></div>
+<ul>
+<li><b>Blender / CAD by hand:</b> clean geometry and physics you can set (collision, mass, friction). The weakness is appearance: R-039 found every perturbation reaches GR00T's actions through the image tokens, so a drawn scene can shift results by itself. It does fit iMerit's model: asset building is skilled human labour that can be staffed and QA'd like annotation.</li>
+<li><b>Real-to-sim</b> (Gaussian splatting, Real2Render2Real 2505.09601, phone scans): gives appearance, not physics. R2R2R turns collisions off. <code>nepfaff/scalable-real2sim</code> (MIT) is the one artefact found that estimates physical parameters.</li>
+<li><b>Likely answer: a hybrid.</b> Hand-built or physics-estimated geometry for contact, plus real imagery for appearance (splat textures, or SIMPLER-style visual matching, the cheapest step with published correlation evidence).</li>
+<li><b>What makes it a product:</b> per-customer validation using the PolaRiS protocol, about 20 real rollouts per condition at a few conditions, checking that the sim gets the ordering right. The deliverable is a <i>validated</i> twin.</li>
+<li><b>Practical limits:</b> our stack is MuJoCo on one 8 GB card. Splat twins and Isaac need new infrastructure (a rented GPU and probably a second simulator).</li>
+</ul>
+
+<h3>1.3 Open question</h3>
+<div class="q"><b>brain:</b> do we have access to any real robot cell (one cheap arm such as the ~$250 SO-101 from AMBITIOUS #7, or a partner's)? Without one, the PoC is a sim-only envelope on LIBERO, citing PolaRiS and SIMPLER for transfer. With one, we twin our own cell and run the validation ourselves. That would be the first measured result on whether failure types match between sim and real.</div>
+<div class="u"><b>User (10-13):</b> we don't have a robot cell. Option 1 moved to the backlog. If it comes back, its PoC is sim-only (LIBERO), citing PolaRiS and SIMPLER for transfer.</div>
+
+<h2 id="o4">3 · Label: failure labelling as data (option 4)</h2>
+<p class="meta">Started 10-14 · state: <b>handled by the mining spec</b> (user 10-14) · options 3 (folded into option 2) and 2 belong to session runtime (§2 below); option 5 is §4</p>
+
+<h3>3.1 What we already know</h3>
+<ul>
+<li><b>No public dataset labels the decision point</b>; they all mark where the failure shows (res21, 10-12). FailTime has human onset labels with 50 ms agreement (CC-BY-4.0); we adopt its onset rules. RoboFAC injects the root, so it is known by construction (a test set for rules). podolinsky's GR00T-N1.7 onsets are VLM-made and unchecked.</li>
+<li><b>VLM labelling doesn't work yet</b> (E7): Nemotron hallucinates; Cosmos-Reason2-2B answers almost the same thing every time.</li>
+<li><b>The spec's labels come from outside the model</b> (D16): actions, telemetry, sim state, VLM. So labelling is black-box by design.</li>
+<li><b>Where humans are needed, given §2:</b> in sim, the triage service finds divergence and decision point automatically by branching. On <b>real-robot logs</b> there are no snapshots to branch from, so onset, phase, mode and the likely root have to be labelled from video and telemetry. That is where human labelling is unavoidable.</li>
+</ul>
+<div class="q"><b>brain:</b> what are the labels for? A real-log triage, B training data for monitors and judges, C audit and QA of automatic labels. Recommended A with C built in.</div>
+<div class="u"><b>User:</b> this is essentially our mining spec design, or am I missing something?</div>
+<div class="q"><b>brain:</b> not missing anything. It is the mining spec filled by humans instead of rules: D1 (one instance, three uses), D16 (labels from outside the model), D15 (exact / estimated / unavailable sources, which real logs need), FailTime onset rules already adopted. The extras are small: a human labelling protocol for real logs, a quality layer (agreement, spot-checks), and the limit that real logs give onset but never the decision point.</div>
+
+<h3>3.2 Humans adjudicate some, then VLM + telemetry takes over: is that E7?</h3>
+<div class="u"><b>User:</b> so humans adjudicate some of it, then VLM + telemetry takes over? That's essentially what we are testing in E7, right?</div>
+<div class="q"><b>brain:</b> partly. E7 tests the second half, and only in sim.
+<ul>
+<li><b>What E7 tests</b> (ROOT_SIGNAL_EXPERIMENTS E7; MINING_SPEC_DESIGN UQ8–UQ9): telemetry picks the moments (grasp onset, after lift, release, final frame); the VLM answers closed questions at those frames ("which object is held", "is it on the plate"), with bisection where no event fires. Answers are scored against <b>sim truth</b> (<code>_gt_scene_object_pos</code>, fingerpad distances), not human labels. The design is a three-way check: instruction = intent, telemetry = mechanics, VLM = which object / where.</li>
+<li><b>Status:</b> not shown yet. Nemotron hallucinates; Cosmos-Reason2-2B answers almost the same every time; the approach-truth rule was corrected (rim grasps); the NIM controls pass was paused at 84/148 on 10-12. No scored result.</li>
+<li><b>What E7 does not test, but the product needs:</b>
+<ol>
+<li><b>Real video.</b> In sim, truth is free, so humans aren't needed. On real logs, humans are the truth. Sim accuracy may not carry over to real footage.</li>
+<li><b>The handoff rule.</b> Which items the VLM keeps and which go to a human: per-question-type accuracy thresholds, plus routing every case where instruction, telemetry and VLM disagree.</li>
+<li><b>How many human labels are needed</b> before the VLM's accuracy on a customer's data is known well enough to switch over.</li>
+</ol></li>
+<li><b>A possible real-video test without a robot cell:</b> FailTime has human onset labels on real ALOHA / SO-101 video (CC-BY-4.0). Scoring VLM + telemetry against those humans would be the real-video half of E7. Whether FailTime ships the telemetry needed is unchecked.</li>
+<li><b>As a product</b> it is iMerit's usual model: human-calibrated, model-scaled labelling. What's ours is the telemetry-gated closed questions, which make VLM answers checkable, and the three-way disagreement flag that decides what humans see.</li>
+</ul></div>
+
+<h3>3.3 Is the VLM incompetent, or is it our input? Combining both views</h3>
+<div class="u"><b>User:</b> is the model incompetent? Or can we combine both images, or combine features from them? When I was adjudicating, I looked at both images to get an idea of what was going on.</div>
+<div class="q"><b>brain:</b> E7 already shows both views, but in the crudest way, so "incompetent model" vs "bad input" hasn't been separated yet.
+<ul>
+<li><b>What E7 sends now</b> (<code>e7_render.py</code> line 192, <code>e7_vlm.py</code> header): one still per event, agent view and wrist view concatenated side by side into a single image, <b>rotated 180° as the policy saw it</b>. The prompt does say which half is which ("Left half … third-person camera. Right half … wrist", <code>vlm_label.py</code> CLOSED_PROMPT; corrected by prim 10-14). What's missing is separate images, any guidance on combining the two views, and motion: a single frame, except in the bisection mode.</li>
+<li><b>Input problems that could explain the failures, independently of the model:</b> (1) upside-down images, which VLMs are trained on far less; (2) one merged image: the halves are named in the prompt, but the model gets no separate images and no guidance on combining the views; (3) no motion: a human sees the gripper closing and the object rising across frames, but a still can't show "holding" vs "touching"; (4) small images at <code>--scale 0.5</code>; (5) small models (Cosmos 2B).</li>
+<li><b>Cheap way to separate model from input:</b> an input-format ablation on the same questions and the same truth, changing one thing at a time: unrotated; two separate labelled images ("front camera", "wrist camera"); a frame before plus the event frame (motion); full resolution; telemetry facts in the prompt ("gripper closed at t=31; object z +3 cm"). If accuracy jumps on one change, it was the input. If it stays flat across all of them, it is the model. API calls and CPU only; no GPU.</li>
+<li><b>Combining features instead of pixels:</b> encode both views with a frozen image encoder (SigLIP / DINOv2), concatenate the two embeddings (plus telemetry), and train a small classifier on the human-adjudicated items. That is literally "humans adjudicate some, then the model takes over": few-shot learning from human labels, compared with the zero-shot VLM. It also gives a confidence score for the handoff rule (3.2, gap 2).</li>
+<li><b>Caveats:</b> the E7 code is impl's, in the worktree; any change goes through the user, then prim, then impl. The handreview labels exist (<code>runs/root_signals/e7/handreview/</code>), but how many items they cover hasn't been checked.</li>
+</ul></div>
+
+<h3>3.4 Merging tokens from both views (a DiT-like fusion): does our VLA correlate them?</h3>
+<div class="u"><b>User:</b> is there a way to get better accuracy by merging tokens from the two views, a DiT kind of approach, so there is at least some correlation between agent and wrist view? In our VLA, do both views get correlated or not?</div>
+<div class="q"><b>brain:</b> <b>yes, GR00T N1.7 correlates the two views, in three places</b> (read from <code>third_party/lerobot/src/lerobot/policies/groot/groot_n1_7.py</code> and <code>action_head/cross_attention_dit.py</code>):
+<ol>
+<li><b>Backbone</b> (Qwen3-VL, cut at layer 16): both camera images become image tokens in one sequence with the instruction, and the language model's self-attention mixes them. Its attention is causal and the agent view is the first image block (R-060 G0a), so the wrist tokens can attend to the agent tokens but not the other way round. This follows from the standard causal LM mask; not checked for a custom mask.</li>
+<li><b><code>vl_self_attention</code></b>: a small transformer over all vision-language tokens before the action head (<code>use_vlln</code>, <code>vl_self_attention_cfg</code>), so the views mix again.</li>
+<li><b>Action head</b> (<code>AlternateVLDiT</code>): the DiT cross-attends to the image tokens of both views together on alternate blocks and to the text tokens on the others.</li>
+</ol>
+The views still keep separable token positions: R-042 could splice the wrist tokens alone and found they carry start pose (W = 0.88).
+<ul>
+<li><b>The same holds for our VLM labellers.</b> Any multi-image VLM puts both images' tokens in one sequence and attends across them. So the first, cheap fix is to send <b>two separate, labelled, unrotated images</b> instead of one stitched upside-down image (the ablation in 3.3). That gives the "merging" for free, inside a model built for it.</li>
+<li><b>If that isn't enough, a small fusion model, DiT-style:</b> frozen encoder tokens from both views (DINOv2 / SigLIP), plus telemetry tokens, plus a few learned query tokens that cross-attend over all of them (Perceiver / Q-Former style), with one classification head per closed question. <b>In sim, sim truth provides unlimited free training labels</b>, so no human labels are needed to train it. Humans are needed only to check and calibrate it on real video.</li>
+<li><b>Why not use GR00T's own fused features?</b> They already merge both views with the instruction, from exactly these cameras, so a probe on them would probably be accurate. But that breaks D16 (labels from outside the model) and inherits the policy's own misperceptions (UQ6 circularity), and it needs weights, so it isn't black-box. It is fine as an internal comparison, not as the product's labeller.</li>
+<li><b>New evidence (prim, 10-14; preliminary, unchecked):</b> the user labelled the 40-item E7 hand-review set. On the 26 items the user decided, the user agrees with sim truth on 15. For "held" and "on plate", a single frame is ambiguous even for a human. Cosmos-2B agrees with the user on 10/26. So part of the problem is the single still, not only the model, which supports adding motion (two time points or a short clip) first. A full report awaits a new session.</li>
+<li><b>Suggested order:</b> (1) the input ablation (separate, labelled, unrotated, two time points); (2) only if accuracy stays low, the fusion model trained on sim truth; (3) optionally a GR00T-feature probe as an upper-bound comparison.</li>
+</ul></div>
+<div class="u"><b>User (10-14):</b> send the labeller idea to prim as a second measure after E7.</div>
+<div class="q"><b>brain (10-14):</b> sent to prim as a proposal (steps 1–3 above), to run after E7 finishes. Not approved to build or run; sequencing and gates are prim's. E7 code changes go user → prim → impl.</div>
+<div class="q"><b>prim (10-14):</b> no conflict; prim will sequence it after the E7 hand-review report and put it to the user. Corrections: the prompt already names the two halves (fixed in 3.3); the 180° flip is intended (<code>e7_render.py:20</code>); step 1(b) is the same as the agent-only / wrist-only / both test prim proposed to the user on 10-14, so it is one ablation; Nemotron never answered the 40 hand-review items (only 273 of 1,672 E7 tasks have Nemotron answers), so every step-1 variant needs fresh NIM calls.</div>
+
+<h2 id="o5">4 · Adapt inputs: FTM moment matching (option 5)</h2>
+<p class="meta">Started 10-14 · state: <b>deprioritised</b> (user 10-14); if revived, it belongs to the FDE / retraining track, and its first step is the g0c2 pose fix</p>
+<div class="u"><b>User:</b> for FTM, how much data, code or anything else do we need?</div>
+<div class="q"><b>brain</b> (from SPATIAL_ADAPT_MATHS, RESULTS.md R-060, PAPERS_WORKING_NOTES FTM section):
+<ul>
+<li><b>Data.</b> The training-free version (moment matching, eq. 3.2) needs <b>only unlabelled images from the new camera</b>, plus nominal images: no actions, no demos. It sets per-channel scale and shift so the new camera's visual-token mean and spread match the nominal ones (AdaBN-style). The paper never ran this baseline. The trained version (paper's FTM) uses one demo per task under the new view and learns the 4,096 numbers with the policy's own loss.</li>
+<li><b>Code.</b> Written: <code>class FTM</code> with <code>from_moments</code> and the hook that applies it before (S1) or after (S2) GR00T's adapter (<code>vla_harness/capture/splice.py</code>, committed); gate script <code>experiments/r060_gates.py</code>. Not written: the R-060 runner (fit moments / train FTM, then eval rollouts).</li>
+<li><b>Blockers.</b> G0a camera order PASS. G0c (training-pair exactness) FAIL, diagnosed: a camera-pose bug in <code>nominal_frames</code> for LIBERO-Plus camera variants, fix (g0c2) awaiting the user's go; it may also affect earlier camera-row comparisons. G0b (FTM at zero changes nothing) written, not run.</li>
+<li><b>Compute.</b> Fitting moments takes minutes. R-060 as pre-registered: ~660 rollouts ≈ 9 GPU-h plus ~2 h training, on our 8 GB card through prim's gate.</li>
+<li><b>Scope.</b> Camera and sensor-noise rows only (camera yaw: 0.93 → 0.58–0.73 at 50–75°), not start pose. On GR00T the adapter already removes most of the pooled shift (R-037: 1.37× → 1.02×), but the action-relevant part survives (R-039: camera 0.69, noise 0.45), so S1 vs S2 placement matters.</li>
+<li><b>As an offering.</b> "Calibration, not retraining": the customer moves a camera, we collect a few hundred unlabelled frames and fit 4,096 numbers. It needs a hook on the visual tokens (weights or an insertable layer), so it is not black-box; it fits the FDE delivery of offering 2 (retraining) better than the minimal-knowledge one.</li>
+</ul></div>
+
+<h2 id="o2">2 · Monitor: runtime guardrail</h2>
+<p class="meta">Started 10-13 · state: <b>open, active</b> · the user's main interest; candidates named by the user: STAC and VLA-Corrector</p>
+
+<h3>2.1 STAC vs VLA-Corrector as a black-box product</h3>
+<div class="tw"><table>
+<tr><th></th><th>STAC (Sentinel)</th><th>VLA-Corrector</th></tr>
+<tr><td>Watches</td><td>Whether the policy changes its mind: the spread of several sampled plans over the steps two consecutive chunks share</td><td>Whether the world responded as the action should have made it: predicted vs actual image-feature change 10 steps later</td></tr>
+<tr><td>What it needs from the customer</td><td>Several samples per call (a stochastic policy we can seed or call N times). No weights, no extra model. Costs N× inference per step, which means latency</td><td>As published, the policy's own SigLIP tokens (weights). <b>Black-box variant:</b> use our own frozen vision encoder on the camera images instead, so only observations and executed actions are needed, plus their demos to train the ~40M predictor</td></tr>
+<tr><td>Calibration</td><td>Conformal on successful rollouts: a false-alarm guarantee on nominal runs</td><td>None as published (median/MAD on the episode's own scores); would need the conformal layer added</td></tr>
+<tr><td>What it does on firing</td><td>Alarm only</td><td>Drops the rest of the chunk and replans (most of its gain is "replan sooner")</td></tr>
+<tr><td>Earliest firing</td><td>Forward 1</td><td>~step 25</td></tr>
+<tr><td>Our evidence</td><td>Single-draw: at chance (09-28); E1 AUROC 0.20 on start pose, i.e. failures more self-consistent ("confidently wrong", or a phase artefact). prim 10-12: the R-059 multi-draw smoke shows uncertainty above noise, C1 running (not verified by brain)</td><td>E3 (the action-level version): residual spikes after every grasp, failure vs success ≈ chance; our failures are "smooth and wrong"</td></tr>
+<tr><td>Fit to our failures</td><td>Start pose: possible from forward 1, if "confidently wrong" holds</td><td>Start pose: no, decided before anything unexpected happens. Mid-episode drift (scene 1327 regrasp, object moved): yes</td></tr>
+</table></div>
+<p>The two cover different failures: STAC for "the policy is confused or confidently wrong", the corrector for "the world isn't going as planned". As a product they are complementary triggers, not rivals. For start pose specifically, re-homing remains the free baseline (option 3 in ROUGH §7).</p>
+<div class="q"><b>brain:</b> what happens when the guardrail fires? A stop and flag; B hand off to a remote human operator (iMerit teleop, takeovers become corrective data); C correct automatically; D log only. brain recommended B with A as fallback.</div>
+
+<h3>2.2 The user's two ideas</h3>
+<div class="u"><b>User:</b> (1) If the corrector works, the episode is no longer a failure. The original run failed, but with our mechanism it succeeds: <b>that rescue could be the offering</b>, so measure success rate with the corrector. (2) The user's own aim was to simulate a rollout from that point for retraining: <b>can the corrector also judge the root?</b></div>
+
+<div class="q"><b>brain on (1), a rescue layer as the offering:</b>
+<ul>
+<li><b>The metric is paired flips:</b> failures turned into successes, against successes turned into failures, on the same seeds (McNemar), plus a no-harm check on nominal runs.</li>
+<li><b>The controls decide whether it is worth selling.</b> The paper's own Table 4 shows a fixed shorter horizon recovers most of the gain (H = 10: 64.5% vs H = 50: 48.7%), and truncation alone gives 60.35 of the 64.35. A product claim needs to beat (a) a fixed shorter horizon and (b) a random trigger at the same number of replans. Otherwise the "mechanism" is a knob the customer can set themselves.</li>
+<li><b>Where it can and can't rescue:</b> not start pose (decided at forward 0; the monitor can't fire before ~step 25; and a plain re-run flipped 0/22 in R-053). Plausible for mid-episode failures: scene 1327 regrasp, objects moved mid-task (the paper's largest real gain, +28 pp).</li>
+<li><b>Black-box fit:</b> needs control over execution (interrupt a chunk and ask for a new one), plus the vision-encoder swap from 2.1. No weights.</li>
+<li><b>Already in the repo:</b> the 6-arm first-chunk test (c9d) and the "interrupt-and-replan framework" assessment in PAPERS_WORKING_NOTES (not novel as a method; valuable as a test bed for triggers with the controls the paper lacks).</li>
+</ul></div>
+
+<div class="q"><b>brain on (2), the corrector as a root finder:</b>
+<ul>
+<li><b>Firing time is a candidate, not the root.</b> The monitor fires when the world diverges from what the action predicted. That is the onset of a symptom. res21's 10-12 verdict: onset ≠ decision point, and the decision point can only be measured by intervening.</li>
+<li><b>Replanning is that intervention.</b> Restore the sim state at step t and replan from there. If replanning at t rescues the episode, it was still recoverable at t, so the root is later. If replanning at t fails but at an earlier t′ succeeds, the root lies between t′ and t. A short bracket search (starting at the firing time, stepping back) gives a black-box root estimate. It is our correct-at-forward-k method (R-044, R-057), with "replan" in place of "execute the nominal chunk", so no oracle episode is needed.</li>
+<li><b>It feeds the retraining offering directly.</b> The bracket gives the root state, which is the input ROOT_TO_GOAL S1 needs. The rescued replan itself is a candidate corrective rollout from that point. Caution: Mulligan found that training on the policy's own successes hurt (−3.4 pp), so DMP-retargeted human demos (ROOT_TO_GOAL) are the safer source and the policy's rescues need a separate arm.</li>
+<li><b>Risks:</b> E3 (action-level) fired after every grasp, failed or not, so false triggers may be common. "Smooth and wrong" failures may not trip a prediction-error monitor until late. Stochastic replans may not differ enough to rescue anything (R-053's 0/22 on start pose). The image-latent version has never been run on our data.</li>
+</ul></div>
+
+<h3>2.3 First divergence vs decision point, and how this fits the mechanism layer</h3>
+<div class="u"><b>User:</b> can't we find both the decision point and the first divergence in the same run? And our mechanism work already maps each failure to a mechanism; how do the two fit?</div>
+<div class="q"><b>brain:</b>
+<ul>
+<li><b>From one passive run, only the first divergence.</b> The decision point is counterfactual ("would a different action from here have saved it?"), so it needs at least one branch. In sim the branches can come from the <b>same episode</b>: snapshot the state as it runs, then branch from earlier snapshots. A bisection over 18 forwards is about 4–5 branch points, × a few seeds because the policy is stochastic. Inside a live corrected run there is one free bit: if the replan at the firing time rescues it, the decision point was after the divergence; if not, it was before, and back-stepping is needed. On a real robot without snapshots, only the divergence is available.</li>
+<li><b>What the spec already says.</b> <code>root</code> is defined as the <b>first divergence</b> (D13), labelled from outside signals only (D16). <code>mechanism</code> is an optional block (D7) for <b>why</b> (which input channel carries the fault, found by white-box splices) and is validated only on perturbations. The decision point has no field of its own today.</li>
+<li><b>Where the decision point comes from now.</b> R-044 / R-057 correct-at-forward-k. It needs a recorded nominal twin episode (an oracle), so it exists only for perturbation-induced failures, and it sits on the mechanism side. So "the mechanism work already does that" is right, but only where a nominal twin exists.</li>
+<li><b>How they fit:</b>
+<div class="tw"><table>
+<tr><th>Question</th><th>Spec field</th><th>Method today</th><th>Corrector-based method</th></tr>
+<tr><td>Where it first went wrong</td><td><code>root</code> (D13)</td><td>Rule detectors (<code>divergence_point</code>, v1 rules)</td><td>Monitor firing time: one more detector, <code>root.detector = corrector-monitor</code></td></tr>
+<tr><td>Last point it could still be saved</td><td>none yet</td><td>R-057 nominal-chunk branch (oracle, perturbations only)</td><td>Replan branches from snapshots: any failure, black-box</td></tr>
+<tr><td>Why (which channel)</td><td><code>mechanism</code> (D7)</td><td>Splices (white-box)</td><td>Not provided; the corrector says when, not why</td></tr>
+</table></div></li>
+<li><b>One catch: "saveable" depends on who does the saving.</b> A replan branch measures "recoverable <i>by this policy</i>". The nominal-chunk branch measures "recoverable <i>by a good action</i>". They can disagree. Start pose: a plain re-run rescued 0/22 (R-053), but the nominal chunk at forward 1 rescued 20/24, so replan says "never saveable" where R-057 says k* = 1. For the rescue product, the policy-relative version is what counts. For retraining data, the good-action version is what counts, and the oracle-free way to get it is to branch with the ROOT_TO_GOAL DMP generator instead of the policy.</li>
+<li><b>Possible spec addition (a proposal only, not made):</b> a decision-point field next to <code>root</code>, e.g. <code>decision: {t_lo, t_hi, saved_by: policy_replan | dmp_branch | nominal_chunk}</code>. The R-057 cases, where k* is known, are the ground truth for checking the black-box brackets.</li>
+</ul></div>
+
+<h3>2.4 If a replan rescues it, was the policy incompetent at all?</h3>
+<div class="u"><b>User:</b> if VLA-Corrector makes it pass, the policy already knew how to do it; it just wasn't invoked at the right time. Then how can we claim the policy is incompetent?</div>
+<div class="q"><b>brain:</b> we can't, and that is the useful part. A replan rescue uses the same weights, so it shows a <b>timing failure</b>, not a competence gap: the policy ran a stale plan open-loop for too long. Failures then split three ways, and the branch tests from 2.3 tell them apart:
+<div class="tw"><table>
+<tr><th>Class</th><th>Test result</th><th>What it means</th><th>Fix (spec <code>fixability</code>)</th><th>Who sells it</th></tr>
+<tr><td><b>Timing</b></td><td>A policy replan from some step rescues it</td><td>The policy can do it; it wasn't re-queried in time</td><td><code>operational</code>: replan sooner or on a trigger. No data needed</td><td>Rescue layer (offering 2/3)</td></tr>
+<tr><td><b>Competence</b></td><td>No policy replan rescues it, but a good action does (DMP branch, human, nominal chunk)</td><td>A real gap in what the policy knows</td><td><code>data</code>: corrective demos from the decision point</td><td>Retraining offering, miner, ROOT_TO_GOAL</td></tr>
+<tr><td><b>Unrecoverable</b></td><td>Nothing rescues it after some step</td><td>Lost before that step, or infeasible</td><td>Look earlier (the decision point is before the bracket), or task/environment</td><td>Report only</td></tr>
+</table></div>
+<ul>
+<li><b>Controls needed before calling something "timing":</b> (a) the same replan step with several noise seeds: if only some seeds rescue it, part of the rescue is luck in sampling, not timing; (b) a plain re-run from the start (R-053: 0/22 on start pose); (c) a fixed shorter horizon: if that alone rescues it, the fix is just running the policy more closed-loop, a deployment setting.</li>
+<li><b>Why this matters commercially:</b> it triages failures before anyone spends money on data. Timing failures get the cheap runtime fix. Only competence failures go to the miner and retraining, where iMerit's data work applies. The spec's <code>fixability</code> field (operational | data | augmentation | architecture) gets filled by an experiment instead of a guess.</li>
+<li><b>Fit to our known cases:</b> start pose looks like <b>competence</b> (replans 0/22, nominal chunk 20/24). Mid-episode failures such as scene 1327's regrasp are unknown; that is what the test would find out.</li>
+</ul></div>
+
+<h3>2.5 Outcome: v0 candidate, a failure triage service</h3>
+<div class="u"><b>User (10-13):</b> "seems like a pretty good start, v0 kind of thing".</div>
+<div class="status"><b>v0 idea (not a plan, nothing built):</b> a failure triage service. For each of the customer's failures, it says whether the failure can be fixed at runtime for free or actually needs data.
+<ul>
+<li><b>Input:</b> the customer's policy behind an API (reset, act, interrupt), a sim of the task, and their failing episodes or a stress set.</li>
+<li><b>Method:</b> snapshot each failing episode; the monitor's firing time (VLA-Corrector-style, our own vision encoder) gives the first divergence; branch from snapshots with (a) policy replans and (b) a good-action generator (ROOT_TO_GOAL DMP) to bracket the decision point; apply the controls in 2.4.</li>
+<li><b>Output per failure:</b> class (timing / competence / unrecoverable), first divergence, decision-point bracket, all written into mining-spec instances (<code>root</code>, proposed <code>decision</code>, <code>fixability</code>).</li>
+<li><b>What it leads to:</b> timing failures go to the runtime rescue layer (offerings 2/3); competence failures go to the miner and retraining (ROUGH §3), where iMerit's data work applies.</li>
+<li><b>Model access:</b> black box. No weights, apart from optionally training a small predictor on the customer's demos.</li>
+<li><b>Still open:</b> whether STAC joins as a second trigger; the action-on-alarm question from 2.2 (A–D).</li>
+</ul></div>
+<div class="u"><b>User (10-14):</b> test bed = <b>LIBERO-MAX</b>. First reproduce its GR00T N1.7 result (69.3% Base vs 50.0% Dynamic); impl2 to scope it.</div>
+<div class="q"><b>brain (10-14):</b> sent impl2 a scope-only request (no installs, runs or code): exact checkpoint, eval protocol (Max vs Lite, events, seeds, steps), stack differences vs our harness, GPU-hours on 8 GB, a pass criterion for "reproduced", and blockers. Any run still needs prim's GPU OK, and val for new numeric code. Waiting on impl2.</div>
+
+<h3>2.6 How the black-box corrector monitor runs, and is it promising?</h3>
+<div class="u"><b>User (10-14):</b> how will it work at run time? We own the vision encoder and they provide rollouts? Is it promising?</div>
+<div class="q"><b>runtime: how it runs.</b> They provide <b>demos</b> (to train the predictor) and some <b>successful rollouts</b> (to set the threshold); at run time, only camera frames and executed actions. Their weights are never touched.
+<ul>
+<li><b>Setup (once per task, offline).</b> (1) Run <b>our own frozen, off-the-shelf vision encoder</b> on every demo image to get scene features <i>z</i>. (2) Train the ~40M predictor: input the scene now (<i>z<sub>t</sub></i>) plus the next 10 actions, output the expected feature change <i>z<sub>t+10</sub> − z<sub>t</sub></i> ("if the robot does these 10 actions from here, the scene should change like this"). (3) Set the alarm threshold conformally on their policy's successful rollouts (e.g. at most 5% of good runs ever alarm). The paper has no such calibration; we add it.</li>
+<li><b>Each control step (a sidecar next to their policy).</b> Encode the current image → <i>z<sub>t</sub></i>; compare the change predicted 10 steps ago with the change that actually happened; score = 1 − cos(predicted, actual). Above the threshold → call their <b>interrupt</b>: the policy drops the rest of its 16-action chunk and replans from the current image (that replan is where VLA-Corrector's gain comes from). Nothing is fed into the policy; we only decide <i>when</i> it is re-queried.</li>
+<li><b>Limits.</b> It judges an action only 10 steps later, and the released code can't fire before ~step 25, so it is no use for start-pose failures. Without an interrupt call in their API it can only alarm. Per-step cost is one image through our encoder plus a tiny MLP, probably tens of ms on a GPU (not measured). A generic encoder isn't tuned to their scene, and whether the predictor still works is untested. The action-level version (E3) fired after every grasp.</li>
+<li><b>In the v0 triage service</b> it doesn't run on their robot: we run their policy through the API in <b>our sim</b> with the monitor watching; its firing step is the first divergence, and we snapshot and branch there (policy replan vs DMP good action) to classify timing / competence / unrecoverable. A live guardrail on their robot is a later, separate product.</li>
+</ul></div>
+<div class="q"><b>runtime: is it promising?</b> <b>As the trigger inside the sim triage service: yes, moderately, and LIBERO-MAX is a good place to test it. As a standalone rescue product: weak, unless it beats a fixed shorter horizon.</b>
+<ul>
+<li><b>For.</b> (a) Its best real-robot result is "object moved mid-task" (+28 pp), and LIBERO-MAX's largest GR00T loss is the same kind of event, target relocation (−52.5). (b) Almost all of its gain comes from truncation, which needs only the interrupt call, so the black-box version keeps nearly everything. Gradient guidance (OGG) needs weights and is lost, but it added ~4 pts, within noise, and was negative on Hard. (c) LIBERO-MAX fires its events at a known moment (<code>pre_grasp_proximity</code>), so the true onset is known. "Does the monitor fire shortly after the event, and rarely otherwise?" is a cheap, clean first test that no other data set here gives us.</li>
+<li><b>Against.</b> (a) Its own Table 4: a fixed H = 10 gets 64.5 vs 48.7 at H = 50, so a customer can get most of the rescue by turning a knob. LIBERO-MAX's GR00T setup already uses 8 steps per forward, which leaves less to gain. (b) There is no false-alarm control as published, and E3 suggests contact events will trip it. (c) A generic encoder instead of the policy's own features has never been tested. (d) The detector field is crowded (12+ papers in 2026).</li>
+<li><b>The test that decides it</b> (proposal only, nothing approved; runs after LIBERO-MAX reproduces). On Dynamic episodes: monitor-triggered replan vs fixed shorter horizon vs random trigger at the same number of replans vs an oracle replan at the known event time, scored by paired flips plus a no-harm check on Base. Monitor ≈ fixed horizon → the rescue isn't sellable, but the monitor can still serve as the triage locator if its firing tracks the event time.</li>
+</ul></div>
+</main></body></html>

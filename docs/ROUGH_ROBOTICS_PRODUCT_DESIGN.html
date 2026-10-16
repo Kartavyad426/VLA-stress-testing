@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rough Robotics Product Design</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+</style>
+</head>
+<body><main>
+<h1>Rough Robotics Product Design</h1>
+<p class="meta">2026-10-12 · session brain, from a brainstorm with the user · project context from prim · parked, nothing decided</p>
+<div class="status"><b>Status:</b> parked thoughts, not a plan. Nothing here is final and nothing has been built or run. The user may revise any of it. The brainstorm moved on to the non-retraining offering (§6).</div>
+
+<h2>1 · Goal</h2>
+<ul>
+<li>A feature for <b>external</b> customers that can be sold. An intermediate step is fine, and even preferred, if it leads to a monetisable asset later. Internal research is easier to justify when that asset is promised down the line.</li>
+<li>The commercial framing is prim's inference, and it matches what the user described: teams training VLAs who have rollouts and demos but no failure labels. We find where and why the policy fails and deliver labelled failure instances plus targeted data.</li>
+</ul>
+
+<h2>2 · Two possible offerings</h2>
+<div class="tw"><table>
+<tr><th></th><th>Offering 1: minimal model knowledge</th><th>Offering 2: retraining</th></tr>
+<tr><td>Model access</td><td>Black box: inputs, outputs, rollouts</td><td>Architecture knowledge needed</td></tr>
+<tr><td>Delivery</td><td>Open (explored in §6)</td><td>Framework plus forward-deployed engineers (FDE) inside the customer's network, so data and model never leave</td></tr>
+<tr><td>Status</td><td>Being explored now</td><td>Parked (this doc)</td></tr>
+</table></div>
+
+<h2>3 · The miner (feeds the retraining offering)</h2>
+<ul>
+<li><b>Input:</b> mining-spec v0 instances (<code>mining_spec_v0_schema.png</code>). The search keys are <code>root</code> (phase, failure mode, step), <code>situation.fields</code> (with tolerance and <code>held_fixed</code>) and <code>success.predicate</code>.</li>
+<li><b>Search space:</b> our corpus of human plus simulated demos, or the customer's.</li>
+<li><b>Output:</b> corrective demos for scenarios that previously failed.</li>
+<li><b>Search method:</b> deferred by the user.</li>
+<li><b>Order (agreed):</b> run a basic spec-driven retrieval first. Use simulated generation (ROOT_TO_GOAL_CORRECTIVE_DEMOS) only where retrieval finds nothing within tolerance. Mining stays in, even though generation might make it unnecessary.</li>
+</ul>
+
+<h2>4 · What already exists (from prim, 10-12)</h2>
+<ul>
+<li><b>MINING_SPEC_DESIGN D14</b>, "Success query = situation + success".</li>
+<li><b>MINING_SPEC_V1_DESIGN §1</b>, "Dataset search": <code>ms_v1_search.py</code>, <code>configs/mining_spec_v1/search.json</code>, N7 tolerances (±1.5 cm toy hit) with a mandatory tolerance sweep. Image-embedding search is out of v1. The doc awaits the user's approval and nothing is coded.</li>
+<li><b>ROOT_TO_GOAL §2, S3 "Nearest demo"</b>: same task, then same phase (split at gripper events). It matches a 5–10-step window ending at the root, on relative end-effector pose in the target-object frame plus gripper width, normalised by the spread across demos. It keeps the top 3–5; anything beyond the threshold is a coverage gap. Threshold and k are open (§5).</li>
+<li>So the miner is essentially <b>D14 search plus S3, run on a client or large corpus</b>. The new parts are the product layer below.</li>
+</ul>
+
+<h2>5 · PoC shape and open points</h2>
+<ul>
+<li><b>Coverage and improvement go together</b> (user): "with coverage you can't improve and without improvement coverage don't matter". Coverage means the retrieved demos succeed when replayed from the failure situation. Improvement means retraining on them beats a matched broad-coverage set.</li>
+<li><b>Proposed failure target, not confirmed:</b> mid-episode roots (grasp miss or slip, wrong object, stall), because v1's rule-based roots produce these and nominal human demos can plausibly cover them. Start pose is weak: nominal demos don't reach large offsets, and re-homing is a free fix. Camera shift would need augmentation as well as retrieval.</li>
+<li><b>Corpus scale:</b> 500 LIBERO-Spatial demos now. LIBERO-90/100 share objects and scenes and could be the large-corpus test.</li>
+<li><b>Gaps:</b> no retrieval literature survey exists. STRAP, CUPID, DataMIL and Behavior Retrieval are mentioned across five docs; FlowRetrieval and SAILOR appear nowhere. LIBERO demo replay in our environment is unverified (T0), and that blocks the coverage check.</li>
+<li><b>Lesson to carry over:</b> retraining pilot R-053..R-058 was negative because the data covered the wrong places, not because there was too little of it.</li>
+</ul>
+
+<h2>6 · Where the brainstorm went next</h2>
+<p>The user started this session for the <b>non-retraining</b> offering: anything that improves or helps a customer's policy without retraining it, with minimal knowledge of the model, built from our existing literature review. See §7.</p>
+
+<h2>7 · v0 brainstorm: non-retraining features</h2>
+<p class="meta">Added 2026-10-12 · session brain · sources: PAPERS_SINCE_24SEP, AMBITIOUS_DIRECTIONS (+ review), PAPERS_WORKING_NOTES. We discuss these one at a time and mark each one <b>build</b> or <b>park</b>. The discussion for each offering is logged in <a href="BRAINSTORM.html">BRAINSTORM.html</a>, one section per offering.</p>
+<p>A customer can do four things with a policy without retraining it: evaluate it, monitor it, correct it at run time, or label its data. Option 5 is listed for completeness but needs more access than "minimal knowledge".</p>
+<div class="tw"><table>
+<tr><th>#</th><th>Offering</th><th>What the customer gets</th><th>Access we need</th><th>What we already have</th><th>Honest weakness</th><th>Decision</th></tr>
+<tr><td>1</td><td><b>Evaluate: operating envelope (a policy "datasheet")</b></td><td>Where the policy stops working (start pose, camera, lighting, layout, language). Each boundary is fitted as a probability curve, weighted by how often each condition occurs in their deployment × failure cost. Includes which sensor it is fragile through, found by swapping inputs.</td><td>API only, plus the input/output contract</td><td>Verified harness and sweeps (R-039..R-058); psychometric boundary fitting (SWEEP_DESIGN_LITERATURE); conformance gate; mining spec as the report format</td><td>Benchmarks (LIBERO-Plus, COLOSSEUM, LIBERO-CTRL) already sweep. The differentiator is weighting by deployment, which FAILURE_MINING_RELEVANCE found nobody does</td><td><b>backlog</b> (user 10-13): not parked, not in active consideration; may become a priority in the far future (<a href="BRAINSTORM.html#o1">BRAINSTORM §1</a>)</td></tr>
+<tr><td>2</td><td><b>Monitor: runtime guardrail</b></td><td>An alarm or safe stop when a run is going wrong, with a false-alarm rate guaranteed by conformal calibration</td><td>API only (STAC, chunk agreement); weights only for FAIL-Detect</td><td>R-059 STAC pre-registered; FAIL-Detect full read (FAIL_DETECT_MATHS)</td><td>Crowded (12+ papers in 2026). Our evidence so far is single-draw and at chance. Detects "perturbed", not "will fail" (R-037)</td><td><b>v0 candidate</b> (user 10-13): reframed as a <b>failure triage service</b> (timing / competence / unrecoverable, via replan and good-action branches). Still open: PoC test bed (<a href="BRAINSTORM.html#o2">BRAINSTORM §2.5</a>)</td></tr>
+<tr><td>3</td><td><b>Correct: runtime wrapper</b></td><td>Fewer failures with no retraining: re-home before running, replan sooner, sample several plans and pick one with a verifier (RoboMonkey)</td><td>API only</td><td>6-arm first-chunk test designed (c9d), not scheduled</td><td>Re-homing is trivial. "Replan sooner" is mostly VLA-Corrector's gain and is a knob anyone can set. Hard to defend as IP</td><td><b>folded into option 2</b> (user 10-14): the triage "timing" class is the rescue layer; owned by session runtime (<a href="BRAINSTORM.html#o2">BRAINSTORM §2</a>)</td></tr>
+<tr><td>4</td><td><b>Label: failure labelling as data</b></td><td>Human onset and root labels on their rollouts, in the mining-spec format</td><td>Rollouts only</td><td>FailTime onset rules; mining spec; VLM labelling attempts (E7: not usable so far)</td><td>Pure services work. Defensible only through the spec, quality checks and an audit set</td><td><b>handled by the mining spec</b> (user 10-14): it is the spec's labelling mode (rules in sim, humans + VLM/telemetry on real logs); E7 and the labeller follow-up (sent to prim) are its feasibility tests (<a href="BRAINSTORM.html#o4">BRAINSTORM §3</a>)</td></tr>
+<tr><td>5</td><td>Adapt inputs (FTM moment matching)</td><td>Undo a camera or lighting shift by matching visual-feature statistics; no training</td><td>Weights, to read features</td><td>R-060 pre-registered, blocked on G0c</td><td>Not minimal knowledge; fixes the camera row only</td><td><b>deprioritised</b> (user 10-14); if revived, it fits the FDE / retraining track (<a href="BRAINSTORM.html#o5">BRAINSTORM §4</a>)</td></tr>
+</table></div>
+<h3>First read (brain, not decided)</h3>
+<ul>
+<li><b>Option 1 looks strongest as the core.</b> The 09-24 RL-gym survey found 0 of 38 vendors offering robot environments-as-a-service, and found that everyone breaks at diagnosis, which is where our harness sits. It works with API access only and uses what is already verified.</li>
+<li><b>The report can lead into the rest.</b> The v0 schema's <code>fixability</code> field already includes <code>operational</code> and <code>augmentation</code>. So the envelope report can end in operational fixes ("keep the camera within ±20°", "re-home before grasp"), with options 2–4 sold as add-ons.</li>
+<li><b>Credibility PoC</b> (from AMBITIOUS_DIRECTIONS, cross-policy section): run only the black-box tools on GR00T as if it were a black box, and score them against our white-box ground truth (wrist camera for start pose, first chunk decides). MINERVA is the second architecture.</li>
+</ul>
+
+<p class="meta">Sources: brainstorm with the user (10-12); prim's project brief (10-12); docs/AMBITIOUS_DIRECTIONS.html, docs/PAPERS_WORKING_NOTES.html, docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html, mining_spec_v0_schema.png.</p>
+</main></body></html>
