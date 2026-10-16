@@ -1,0 +1,680 @@
+{
+ "tol8px": true,
+ "what": "past-row pose check: clean frame at the old (LIBERO) vs new (LIBERO-Plus) agentview pose, same reset state",
+ "unaffected": {
+  "R-047": "no LIBERO-Plus camera variants (camera axis = harness knob, snapshot restore)"
+ },
+ "n_rows": 10,
+ "rows": [
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 635,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_22_15_100_0_0_initstate_0",
+   "control": 1030,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": false,
+    "n_px": 2,
+    "n_diff": 6,
+    "max_abs": 1.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 639,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_24_15_100_0_0_initstate_0",
+   "control": 1030,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 828,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_299_15_100_0_0_initstate_0",
+   "control": 1169,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12586,
+     "n_diff": 22059,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12586,
+     "n_diff": 22059,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 889,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_317_0_100_0_0_initstate_0",
+   "control": 1247,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 887,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_316_0_100_0_0_initstate_0",
+   "control": 1247,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 823,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_view_297_0_100_0_0_initstate_0",
+   "control": 1169,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12584,
+     "n_diff": 22053,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12584,
+     "n_diff": 22053,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 918,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_next_to_the_plate_and_place_it_on_the_plate_view_0_0_185_0_0_initstate_0",
+   "control": 1282,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12978,
+     "n_diff": 22999,
+     "max_abs": 56.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12978,
+     "n_diff": 22999,
+     "max_abs": 56.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 873,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_on_the_stove_and_place_it_on_the_plate_view_0_0_173_0_0_initstate_0",
+   "control": 1247,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 12705,
+     "n_diff": 21776,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 637,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_23_15_100_0_0_initstate_0",
+   "control": 1030,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13481,
+     "n_diff": 24176,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13481,
+     "n_diff": 24176,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": false,
+    "n_px": 2,
+    "n_diff": 6,
+    "max_abs": 1.0
+   }
+  },
+  {
+   "runs": [
+    "R-039",
+    "R-039 recorded",
+    "R-048"
+   ],
+   "task_id": 648,
+   "seed": 0,
+   "variant": "pick_up_the_black_bowl_next_to_the_ramekin_and_place_it_on_the_plate_view_29_15_100_0_0_initstate_0",
+   "control": 1030,
+   "domain": "tabletop",
+   "old_vs_new": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "new_vs_control_rerender": {
+    "agent": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "old_vs_control_rerender": {
+    "agent": {
+     "ok": false,
+     "equal": false,
+     "n_px": 13479,
+     "n_diff": 24170,
+     "max_abs": 52.0
+    },
+    "wrist": {
+     "ok": true,
+     "equal": true,
+     "n_px": 0,
+     "n_diff": 0,
+     "max_abs": 0.0
+    }
+   },
+   "nominal_frames_now_vs_new": {
+    "ok": true,
+    "equal": true,
+    "n_px": 0,
+    "n_diff": 0,
+    "max_abs": 0.0
+   }
+  }
+ ]
+}
