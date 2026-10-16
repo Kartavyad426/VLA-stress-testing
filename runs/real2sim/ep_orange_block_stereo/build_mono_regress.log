@@ -1,0 +1,27 @@
+WARNING: Attach conflict when attaching 'robotiq_2f85' to 'fr3', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+/home/imerit/Documents/Code/VLA/experiments/real2sim/build_scene.py:226: UserWarning: Attach conflict when attaching 'robotiq_2f85' to 'fr3', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+  m = spec.compile()
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+WARNING: Attach conflict when attaching 'robotiq_2f85' to 'fr3', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+
+/home/imerit/Documents/Code/VLA/experiments/real2sim/build_scene.py:458: UserWarning: Attach conflict when attaching 'robotiq_2f85' to 'fr3', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+  model = spec.compile()
+/home/imerit/Documents/Code/VLA/experiments/real2sim/build_scene.py:471: UserWarning: Attach conflict when attaching 'robotiq_2f85' to 'fr3', policy is 'warning'
+impratio: parent has 1 (default), child has 10, keeping parent value
+cone: parent has 0 (default), child has 1, keeping parent value
+  open(os.path.join(a.out, "scene.xml"), "w").write(spec.to_xml())
+{"scale": 0.904, "scale_anchor": 0.903973060675419, "z_table": -0.029, "objects": {"black bowl": ["bowl", [0.637, -0.215]], "green block": ["box", [0.506, -0.019, -0.016]], "orange block": ["box", [0.626, 0.048, -0.013]], "yellow block": ["box", [0.568, 0.044, -0.018]]}}

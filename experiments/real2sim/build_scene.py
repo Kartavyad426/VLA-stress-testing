@@ -247,6 +247,9 @@ def main():
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--scale", choices=["anchor", "raw"], default="anchor")
+    ap.add_argument("--depth", choices=["mono", "stereo"], default="mono",
+                    help="mono: MoGe-2 depth x robot-anchored scale (scenes built before 10-16; found 6-8 cm too high); "
+                         "stereo: MoGe-2 shape, scale from the <cam>-stereo.mp4 pair on the table (needs --calib)")
     # 90: the sim wrist view (DROID gripper offset + ZED intrinsics) matches the real DROID wrist video only with the
     # Robotiq at +-90 deg about the flange (impl, 10-15, ep_orange_block frame 50; at 0 the gripper is seen side-on,
     # i.e. the fingers close 90 deg rotated vs the real rig). The sign is unresolved (the 2F-85 looks the same).
@@ -262,6 +265,8 @@ def main():
     ap.add_argument("--no_wrist", action="store_true", help="don't add the DROID wrist camera")
     a = ap.parse_args()
     anchor_info = {}
+    if a.depth == "stereo" and not a.calib:
+        raise SystemExit("--depth stereo needs --calib (the stereo depth uses the calibrated ZED intrinsics)")
 
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     info = json.load(open(os.path.join(a.out, "perception.json")))
@@ -275,13 +280,27 @@ def main():
         u, v = np.meshgrid(np.arange(W), np.arange(H))
         z = per["depth"]
         per["points"] = np.stack([(u - K[0, 2]) / K[0, 0] * z, (v - K[1, 2]) / K[1, 1] * z, z], -1)
+        if a.depth == "stereo":
+            # MoGe-2 keeps the shape (small blocks); its scale comes from the ZED stereo pair of the perception frame
+            # (stereo_depth.py): median stereo/MoGe ratio on the eroded table mask. Not stereo depth directly: SGBM is
+            # valid on ~40% of pixels and smears small blocks, and mixing stereo with scaled MoGe gave a bad table
+            # (10-16). MoGe's error is not one global scale (ratio 0.91-1.06 by depth band on ep_orange_block), so the
+            # scale is taken where the scene is: the table.
+            from stereo_depth import stereo_z, BASELINE_M
+            zs = stereo_z(a.episode, a.cam, info["frame"], K[0, 0], BASELINE_M["ext"])
+            tab = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
+            both = tab & np.isfinite(zs) & per["valid"] & (z > 0)
+            r = zs[both] / z[both]
+            stereo_scale = float(np.median(r))
+            anchor_info["stereo"] = dict(baseline_m=BASELINE_M["ext"], table_px=int(both.sum()), table_valid_frac=float(both.sum() / max(tab.sum(), 1)),
+                                         scale=stereo_scale, ratio_iqr=[float(np.percentile(r, 25)), float(np.percentile(r, 75))])
     else:
         R, t = cam_pose(f[f"observation/camera_extrinsics/{a.cam}_left"][info["frame"]])
         K = per["K"]
 
     uv_ee, z_ee = project(K, R, t, ee[info["frame"], :3])
     s_anchor = None
-    if a.calib:
+    if a.calib and a.depth != "stereo":  # stereo mode: the scale comes from stereo, not from the robot anchor
         # scale anchor at a frame where the calibration was checked (robot clearly visible): sim robot depth vs
         # MoGe depth on pixels where the sim robot and the real motion mask agree; then carried to the perception
         # frame through static table pixels seen in both frames
@@ -298,17 +317,20 @@ def main():
         s_anchor = s_n * ratio
         anchor_info = dict(anchor_frame=n, robot_px=int(both.sum()), s_at_anchor_frame=s_n, table_px=int(static.sum()),
                            depth_ratio_anchor_over_perception=ratio)
-    elif "mask/robot gripper" in per:
+    elif "mask/robot gripper" in per and a.depth != "stereo":
         # legacy anchor: recorded gripper position vs MoGe depth on the gripper mask
         zg = per["depth"][per["mask/robot gripper"] & per["valid"]]
         if len(zg):
             s_anchor = float(z_ee[0] / np.median(zg))
-    s = s_anchor if (a.scale == "anchor" and s_anchor) else 1.0
+    if a.depth == "stereo":
+        s = stereo_scale
+    else:
+        s = s_anchor if (a.scale == "anchor" and s_anchor) else 1.0
 
     def to_base(pc):
         return (s * pc) @ R.T + t
 
-    fit = dict(scale_mode=a.scale, scale=s, scale_anchor=s_anchor, **anchor_info, ee_pixel=uv_ee[0].tolist(),
+    fit = dict(depth=a.depth, scale_mode=a.scale if a.depth == "mono" else "none (stereo)", scale=s, scale_anchor=s_anchor, **anchor_info, ee_pixel=uv_ee[0].tolist(),
                ee_inside_image=bool(0 <= uv_ee[0, 0] < W and 0 <= uv_ee[0, 1] < H), objects={})
 
     tb = to_base(masked_points(per, "wooden table", erode=9))
