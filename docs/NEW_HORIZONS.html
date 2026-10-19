@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New Horizons</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:920px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--accent);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+.tag{font-size:.75rem;color:var(--warn);font-weight:600}
+.v{font-size:.75rem;color:var(--accent);font-weight:600}
+.open{font-size:.75rem;color:var(--warn);font-weight:600;border:1px solid var(--warn);border-radius:3px;padding:0 4px}
+</style>
+</head>
+<body><main>
+<h1>New horizons: four directions to pursue next</h1>
+<p class="meta">2026-10-19 · session NH (new horizons), brief from the user via prim · outline revised and approved by the user in NH's terminal · research only: no code, no GPU, nothing run except one read-only count (§1.2) · not committed (prim commits)</p>
+<div class="status"><b>How to read this.</b> Each section says what the direction builds on, what is new, the evidence so far, a first proof of concept with its rough cost, who it matters to, and the risks. Tags:
+<span class="tag">UNVERIFIED</span> a number from new code that session val has not passed;
+<span class="v">V</span> I checked it this session against the run file, doc, model card or paper page named next to it;
+<span class="tag">I</span> my inference or estimate;
+<span class="open">not decided</span> or <span class="open">active development</span> where the user has said so.
+Papers marked "abstract" were checked only on their arXiv or proceedings page, not read in full.</div>
+
+<h2>0 · Verdict</h2>
+<div class="verdict">
+<p>The user picked four directions on 10-19. All four can be done with what we have, and three of them start on CPU.</p>
+<ol>
+<li><b>Cheaper evaluation (§1).</b> Cut episodes that are likely to fail and count them as failures. On our start-pose set, every failure runs to the timeout and uses 51% of all model forwards <span class="v">V</span> <span class="tag">UNVERIFIED run</span>. A perfect cut at forward 4 would save at most 39% of forwards. The real saving depends on how many successes the cut also kills (false positives). Reducing those is a separate sub-problem, set up here for a literature review.</li>
+<li><b>Retraining from failure scenarios (§2).</b> Scope <span class="open">not decided</span> by the user. Every option is listed under one heading: SFT on DMP corrective demos, SFT on scripted-expert demos, failure-seeded RL, human intervention data, a broad-coverage control, and a parameter-only fix. They share one need: a held-out re-test design, which does not exist yet.</li>
+<li><b>Retraining data audit (§3), internal first.</b> A pre-flight check every retraining run must pass. It covers which failures are targeted, which layers are trained, how much new data there is against the original, and style gaps (teleop vs sim, DMP vs scripted). Our negative pilot (R-056) failed on at least four of these items, and each one could have been seen before training.</li>
+<li><b>A public failure dataset with roots, plus a benchmark (§4).</b> LIBERO first: the four suites we have checkpoints for, plus LIBERO-MAX. Both root rules ship, marked <span class="open">active development</span>. The benchmark compares GR00T N1.7 base with our fine-tunes. No public dataset labels where a failure is decided (res21, 10-12), so this would be the first. §4c makes the case for open release and peer review to the executives. That is the user's proposal and not yet approved.</li>
+</ol>
+<p><b>Start first:</b> §1's CPU replay on logs we already have (about 2–3 agent-days, no GPU). In parallel, run §3's audit backwards on R-056/R-058, to check it would have flagged that pilot (about 2 agent-days, CPU). Both feed §4: §1's cut rule becomes a benchmark task, and §3's audit gates every fine-tune that §4b compares.</p>
+</div>
+
+<h2>1 · Cheaper evaluation: stop episodes that are likely to fail</h2>
+
+<h3>1.1 What it builds on, and what is new</h3>
+<p><b>Builds on:</b> the progress signal from STAC_GROOT_THEORY §4, which is the drop in gripper-to-target distance over the first forwards. It gave AUROC 0.91 as a success signal by forward 4, and held within every radius band <span class="tag">UNVERIFIED</span>. Also the paired-seed scoring used since R-053, and the conformal calibration code in <code>r059_score_c.py</code>.</p>
+<p><b>What is new:</b> earlier docs treat the progress signal as a <i>guardrail</i>, an alarm on a robot (the "failure early warning" direction already noted). Here it is an <i>evaluation-cost tool</i>. In simulation we stop a rollout once it is predicted to fail and record it as a failure, which saves GPU time on every sweep, retraining eval and benchmark run.</p>
+
+<h3>1.2 Evidence so far</h3>
+<div class="tw"><table>
+<tr><th>Fact</th><th>Value</th><th>Source</th></tr>
+<tr><td>Failure length on the C1 start-pose set (240 rollouts)</td><td>All 70 failures are timeouts at 18 forwards (280 env steps). The 170 successes take a median of 7 forwards (range 5–18).</td><td>Counted this session from <code>VLA-exp-rootsignals/runs/r059/c1/rollouts.jsonl</code> (fields <code>success</code>, <code>termination</code>, <code>model_forwards</code>) <span class="v">V</span>. R-059 Part C has no val pass <span class="tag">UNVERIFIED</span></td></tr>
+<tr><td>Share of model forwards spent on failures</td><td>1,260 of 2,485 = 51%</td><td>same count <span class="v">V</span></td></tr>
+<tr><td>Upper bound on savings, if every failure were cut at forward 4 and no success were cut</td><td>70 × 14 = 980 forwards saved, 39% of the total</td><td>arithmetic on the count above <span class="tag">I</span></td></tr>
+<tr><td>Progress signal strength</td><td>AUROC 0.91 by forward 4. It uses the nearest object, not the instruction's target, and is uncalibrated: "a signal exists, not a detector's operating point"</td><td>STAC_GROOT_THEORY §4–5 <span class="tag">UNVERIFIED</span></td></tr>
+<tr><td>Baseline to beat</td><td>Start-joint distance from home: AUROC 0.72</td><td>STAC_GROOT_THEORY §4</td></tr>
+<tr><td>Our GPU cost per rollout, order of magnitude</td><td>~660 rollouts ≈ 9 GPU-h on our 8 GB card (R-060 estimate), i.e. ~50 s per rollout</td><td>BRAINSTORM §4 <span class="tag">I</span> (an estimate, not a timing)</td></tr>
+</table></div>
+<p>An asymmetry favours this. Cutting a <i>success</i> early saves little, because successes are already short (median 7 forwards). Cutting a <i>failure</i> saves up to 14 forwards. So a cut rule can be conservative, firing only when the signal is very confident, and still save most of what is available.</p>
+
+<h3>1.3 The cut rule, and the false-positive sub-problem</h3>
+<p><b>Scoped as the user asked:</b> a cut episode counts as a failure. Every success that gets cut is a false positive, and it biases the measured success rate downwards. Reporting and lowering that false-positive rate is a separate sub-problem. It is <b>marked for literature review</b>, starting from:</p>
+<div class="tw"><table>
+<tr><th>Work</th><th>What it offers this sub-problem</th><th>Read depth</th></tr>
+<tr><td>FIPER, "Failure Prediction at Runtime for Generative Robot Policies" (<a href="https://arxiv.org/abs/2510.09459v1">2510.09459</a>)</td><td>Conformal calibration on successful rollouts, bounding the chance that a new success is flagged as a failure. That bound is exactly our false-positive rate.</td><td>search summary</td></tr>
+<tr><td>Foresight (<a href="https://arxiv.org/pdf/2606.23085">2606.23085</a>)</td><td>A one-sided, time-varying threshold from successful calibration rollouts. A per-forward threshold suits a cut at forward k.</td><td>search summary</td></tr>
+<tr><td>Hide-and-Seek (<a href="https://arxiv.org/pdf/2605.30834">2605.30834</a>)</td><td>Bounds the trajectory-level false alarm rate under exchangeability. The authors note this holds only approximately on unseen tasks.</td><td>search summary</td></tr>
+<tr><td>Katz et al., RLC 2026 (<a href="https://rlj.cs.umass.edu/2026/papers/Paper63.html">paper</a>)</td><td>A conformal early-warning wrapper with a user-set lead time</td><td>search summary</td></tr>
+<tr><td>"Beyond Binary Success", RSS 2026 (<a href="https://arxiv.org/abs/2603.13616">2603.13616</a>)</td><td>Anytime-valid sequential comparison of policies, with up to 70% less evaluation effort. Fine-grained progress separates policies faster than binary success. This one stops the <i>campaign</i> early, where ours stops the <i>episode</i>, so the two stack.</td><td>abstract / search summary</td></tr>
+<tr><td>Snyder et al., RSS 2025 (<a href="https://arxiv.org/abs/2503.10966v2">2503.10966</a>)</td><td>Sequential tests for binary outcomes. Reported savings differ between versions (32–40% fewer trials), so check the version before citing a number.</td><td>search summary</td></tr>
+<tr><td>SC3-Eval (<a href="https://arxiv.org/pdf/2606.18610">2606.18610</a>)</td><td>Early termination inside a world-model evaluator. Tightening its threshold raised terminations from 4.88% to 10.22% and lowered in-distribution correlation from 0.984 to 0.941. The cost of cutting shows up there too.</td><td>search summary</td></tr>
+</table></div>
+<p>I found no paper that cuts individual sim rollouts on a predicted failure to save evaluation compute (one standard search). Treat the niche as probably open, not as checked.</p>
+
+<h3>1.4 First proof of concept and cost</h3>
+<ol>
+<li><b>CPU replay on existing logs</b> (C1, then R-047's 720 rollouts). Compute progress per forward toward the instruction's target. Set a per-forward conformal threshold with each scene left out of its own calibration, as <code>r059_score_c.py</code> already does. Report forwards saved against the false-positive rate, and the bias in success rate at each threshold. About <b>2–3 agent-days, 0 GPU</b> <span class="tag">I</span>.</li>
+<li><b>Live check</b> on one new sweep. Cut by the rule, but let a random 10–20% of cut episodes keep running, so the false-positive rate is measured rather than assumed. A few GPU-hours through prim's gate <span class="tag">I</span>. New numeric code goes to val before any number travels.</li>
+</ol>
+
+<h3>1.5 Why it matters</h3>
+<ul>
+<li><b>Us:</b> our single 8 GB card is the bottleneck for every sweep. The LIBERO-MAX Lite run is ~8–9 h (prim, 10-19); impl2's 10-14 scope estimated 20–25 GPU-h.</li>
+<li><b>§4:</b> the benchmark needs many rollouts per policy, so cheaper rollouts make it cheaper to run and to extend.</li>
+<li><b>Customers:</b> anyone running large sim evaluations, for example the deployment-matched regression tests already noted.</li>
+</ul>
+
+<h3>1.6 Risks</h3>
+<ul>
+<li>The signal uses sim state (target position). That's fine in sim, but this tool does not carry to real robots without a vision version.</li>
+<li>Calibration may not transfer to a new policy. A retrained policy may move more slowly and still succeed, which would raise false positives exactly when we evaluate fine-tunes. Recalibrate per policy.</li>
+<li>On LIBERO-MAX, the Dynamic event fires at pre-grasp proximity. A cut before the event would skip the thing being tested, so the rule must not fire before the event step.</li>
+<li>Our failures are all slow "no progress" timeouts (STAC_GROOT_THEORY §0). Other failure types, such as drops late in the episode, may not show low progress early.</li>
+</ul>
+
+<h2>2 · Retraining from failure scenarios <span class="open">scope not decided</span></h2>
+<p>The user asked for every option under one heading, with scope left open. Nothing here is a recommendation to run. The options share one fact from the pilot: R-056 was negative because the data covered the wrong places and the dose was weak, not because there was too little data (R056_POSTMORTEM §1; ROUGH_ROBOTICS_PRODUCT_DESIGN §5).</p>
+<div class="tw"><table>
+<tr><th>Option</th><th>Builds on (owner)</th><th>Evidence so far</th><th>First PoC and cost</th><th>Main risk</th></tr>
+<tr><td><b>A. SFT on DMP corrective demos</b></td><td>Root restore by replay plus a DMP bend from root to goal (session DMP, worktree <code>VLA-exp-dmp-poc</code>)</td><td>Restore matched the logs to 0.00 mm. Out of 3 attempts per scenario, DMP kept 3, 3, 1, 2 and 1; the linear bridge kept 3, 2, 1, 0 and 1. The sweep over all 176 failures has not run <span class="tag">UNVERIFIED</span> (END_TO_END_PIPELINE §3)</td><td>The sweep first (DMP's plan), then a LoRA run like R-056 on the kept demos: ~3–6 GPU-h per arm on our card <span class="tag">I</span></td><td>Far roots sit in a coverage gap (nearest demo 1.36× the demo spread). The style is planner-like (§3, item 4)</td></tr>
+<tr><td><b>B. SFT on scripted-expert demos</b></td><td>The scripted IK expert (D21 option B; session scripted, kept separate from DMP for a later comparison)</td><td>On rebuilt real scenes, the expert solved 89 of 105 variants (REAL_TO_SIM_LESSONS #21). Not yet run as corrective data on LIBERO failures</td><td>Same as A, so A and B compare at a matched budget</td><td>DATAFARM: planner demos help little unless their motion style and timing match the pretraining data (8.3% vs 56.7%, as recorded in AMBITIOUS_DIRECTIONS; not re-read)</td></tr>
+<tr><td><b>C. Failure-seeded RL</b></td><td>Restore by replay gives exact reset states at roots. RL_GYM_LANDSCAPE option B (our phased, cost-weighted reward instead of the binary success bit)</td><td>RLinf documents PPO fine-tuning of GR00T N1.5/N1.6/N1.7 on LIBERO, but its N1.7 result is still "TODO", and its examples split the work over 8 GPUs (<a href="https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/gr00t.html">RLinf docs</a>) <span class="v">V</span>. Nearby work: RePO-VLA (<a href="https://arxiv.org/pdf/2605.09410">2605.09410</a>, recovery-driven policy optimisation); failure-driven RL with a curriculum at 83.6% on LIBERO (<a href="https://arxiv.org/html/2510.12710v2">2510.12710</a>) (abstracts)</td><td>Rented multi-GPU node. First, a smoke test that RLinf's N1.7 path reproduces its nominal LIBERO-Spatial number, then RL with resets drawn from our root states. Days of rented GPU <span class="tag">I</span>; not costed in detail</td><td>Not on our card. The reward inherits our root labels' errors (RL_GYM: "an unvalidated taxonomy used as a reward function trains the policy on our mistakes"). RL may sidestep the style problem but forget nominal skills</td></tr>
+<tr><td><b>D. Human intervention data</b></td><td>AMBITIOUS #5 (pricing human vs sim corrections); BRAINSTORM 2.1 option B (operator takeover)</td><td>Jung &amp; Park: two targeted teleop poses took one pose from 30% to 75% (no matched control; AMBITIOUS_DIRECTIONS_REVIEW). IG-RFT (<a href="https://arxiv.org/pdf/2602.20715">2602.20715</a>) and DexHiL (<a href="https://arxiv.org/abs/2603.09121">2603.09121</a>, +25% over offline-only) use takeover segments for VLA post-training (abstracts)</td><td>Teleop in sim from restored root states. Needs a teleop interface we don't have. Cost is mostly human hours <span class="tag">I</span></td><td>No teleop rig here, and no robot cell (BRAINSTORM §1.3)</td></tr>
+<tr><td><b>E. Broad-coverage control</b></td><td>R-040's pre-registered matched-budget arms; AMBITIOUS_DIRECTIONS_REVIEW C9/C21</td><td>Mulligan: failure-targeted beats uniform at a matched budget (+10–34 pt). Our distinct claim is mechanism-targeted vs failure-targeted</td><td>Same LoRA recipe on wide start-pose coverage at the same budget</td><td>Without this arm, a gain from A–D can't be credited to targeting</td></tr>
+<tr><td><b>F. Parameter-only fix (no new data)</b></td><td>FTM visual-token recalibration (R-060); wrist-token steering (AMBITIOUS #3)</td><td>R-060 is pre-registered and blocked on the G0c pose fix; it covers the camera and noise rows only (BRAINSTORM §4). Deprioritised by the user on 10-14</td><td>Fit moments: minutes. R-060 as pre-registered: ~9 GPU-h + ~2 h training</td><td>Doesn't fix start pose. Needs the weights</td></tr>
+</table></div>
+<p><b>Dropped already:</b> rescue minting (R-054 style) was dropped by the user on 10-06 (AMBITIOUS_DIRECTIONS, "Where things stand").</p>
+<p><b>What all options need first, whatever the scope:</b></p>
+<ol>
+<li>A held-out re-test design (END_TO_END_PIPELINE §8 gap 10). It should be paired with base on the same seeds, include a nominal regression check, and be stratified by direction × achieved cm (AMBITIOUS_DIRECTIONS_REVIEW C16).</li>
+<li>Validation with enough rollouts to tell checkpoints apart. R-056 selected on 10 rollouts per checkpoint against a 30–40% render-jitter flip rate (R056_POSTMORTEM §3.4).</li>
+<li>§3's audit, passed before any GPU is spent.</li>
+</ol>
+
+<h2>3 · Retraining data audit (internal first)</h2>
+<h3>3.1 What it builds on, and what is new</h3>
+<p><b>Builds on:</b> R056_POSTMORTEM, the <code>finetune-postmortem</code> skill, the D20 diagnostics (first-chunk fit test, offset curve), the nearest-demo spread measure from ROOT_TO_GOAL S3, and the IDM label-quality check proposed in IDM_VLA_HORIZONS. <b>What is new:</b> those are all <i>after the fact</i>. The audit runs <i>before</i> training, as a gate like PIPELINE_CHECKS: no retraining run gets GPU time until its data and recipe pass. It is written so it could later run on a customer's fine-tune data. The published baseline for that later step is influence-based curation: CUPID (<a href="https://arxiv.org/pdf/2506.19121">2506.19121</a>, CoRL 2025) and DataMIL.</p>
+
+<h3>3.2 The audit items</h3>
+<p>The "R-056" column says what the pilot would have shown. Each figure there is from R056_POSTMORTEM unless noted. Pass rules are proposals for the user.</p>
+<div class="tw"><table>
+<tr><th>#</th><th>Item</th><th>How it is measured</th><th>R-056 would have shown</th><th>Proposed pass rule</th></tr>
+<tr><td>1</td><td><b>Which failures are targeted</b>, and are they the ones the held-out test measures?</td><td>Histogram of training starts or roots against held-out failures, on the same axes (direction × achieved cm, scene, failure type, root phase)</td><td>42% of held-out starts were beyond 12 cm and had 9 demos between them; the 33 starts beyond 16 cm had 2. The minted windows were 91% approach, so the data taught nothing about the grasp</td><td>Every held-out stratum with failures has at least a set share of the training data (threshold <span class="open">not decided</span>)</td></tr>
+<tr><td>2</td><td><b>Dose</b>: how often the correcting labels are actually seen</td><td>Expected views per correcting frame at the planned step count, from the sampler shares</td><td>Frame-0 corrections were 1% of draws and were seen 0.42–0.83 times by the selected checkpoints; ~83% of gradient went to frames whose labels the base already produces</td><td>Each correcting frame is seen several times before the planned checkpoint (number <span class="open">not decided</span>)</td></tr>
+<tr><td>3</td><td><b>Which layers are trained</b>, and do they match the mechanism?</td><td>List the trainable modules and compare them with where the failure is carried (R-039/R-042 splices: image tokens; the wrist camera carries start pose, W = 0.88)</td><td>LoRA covered the DiT and <code>vl_self_attention</code> with the VLM frozen. The base checkpoint trained the DiT, projector and VLLN. The mechanism sits on the vision side. The rank sweep (65 / 59 / 64 of 108) shows capacity was not the lever (R-058)</td><td>The trained modules can reach the input channel that carries the failure, or the run states why not. R-046 (frozen vs unfrozen VLM) is the pre-registered test</td></tr>
+<tr><td>4</td><td><b>Style gap</b> between new data and the original training data: teleop vs simulated, DMP vs scripted</td><td>Per-source distributions of speed, jerk, gripper-event timing, pauses, joint configuration and episode length against the original human demos. Optionally, IDM-inferred vs recorded actions (IDM_VLA_HORIZONS)</td><td>16 of the 100 "successful" minted demos contained a failed first grasp closing at 5.7 cm (clean demos close at 3.4 cm), and the adapters learned that signature on scene 1327</td><td>No source differs from the original demos beyond a set distance on these profiles (metric <span class="open">not decided</span>). DATAFARM is the external reason to check</td></tr>
+<tr><td>5</td><td><b>Size and ratio</b>: new data vs original training data</td><td>Episodes and frames of new data; mixing ratio; share of the original set replayed</td><td>100 minted demos × 48 frames, sampled 50:50 with the base's own training data (IPEC). Each LIBERO suite has 10 tasks × 50 demos (SUITES_AND_CHECKPOINTS §1)</td><td>Ratio declared and justified; a no-new-data control at the same steps (the "replay only" arm)</td></tr>
+<tr><td>6</td><td><b>Recipe drift</b> from the checkpoint's own training</td><td>Diff against the checkpoint's <code>train_config.json</code>: batch, LR, augmentation, state dropout</td><td>Effective batch 8 vs 320 at the same LR; ColorJitter off; state dropout off (the base used p = 0.2)</td><td>Each difference listed with its reason</td></tr>
+<tr><td>7</td><td><b>Eval power</b></td><td>Rollouts per checkpoint against the measured flip rate</td><td>10 rollouts per checkpoint, 30–40% flip rate, base never run on the validation set</td><td>Validation can detect the effect size the run hopes for (power stated)</td></tr>
+<tr><td>8</td><td><b>Coverage of the fix itself</b></td><td>Distance of each new demo's start or root from the original demos, in demo-spread units (ROOT_TO_GOAL S3)</td><td>Not measured for R-056. For DMP, one worked root sits at 1.36× spread (END_TO_END_PIPELINE §5)</td><td>Reported per stratum; no threshold yet</td></tr>
+</table></div>
+
+<h3>3.3 First proof of concept and cost</h3>
+<ol>
+<li><b>Backtest:</b> run items 1–8 on R-056 and R-058 from existing artifacts and check the audit flags what the post-mortem found. About <b>2 agent-days, CPU</b> <span class="tag">I</span>. It needs no new runs.</li>
+<li><b>Apply forward:</b> run it on the DMP and scripted demo sets before any §2 run. This mainly needs item 4's style profiles for each source. About <b>1–2 agent-days, CPU</b> <span class="tag">I</span>. The audit code produces numbers, so it goes to val.</li>
+</ol>
+
+<h3>3.4 Why it matters, and risks</h3>
+<p><b>Why:</b> each LoRA run costs hours on our only card, and the pilot showed that a run can be uninterpretable by its own rule. The audit is the cheapest way to avoid repeating that. Later, "why did our fine-tune not help" is a common customer question, and the audit plus the post-mortem skill is a service answer to it <span class="tag">I</span>.</p>
+<p><b>Risks:</b></p>
+<ul>
+<li>Passing the audit doesn't make a run succeed; it only removes known ways to fail.</li>
+<li>Thresholds are guesses until a few runs calibrate them.</li>
+<li>It overlaps with the finetune-postmortem skill. The split proposed here: the skill diagnoses after the run, the audit gates before it.</li>
+</ul>
+
+<h2>4 · A public failure dataset with roots, plus a benchmark</h2>
+<h3>4a · The dataset</h3>
+<p><b>Builds on:</b> R-047 and C1 rollouts with per-step state and actions, the mining-spec record format, the two root rules, R-057's correct-at-forward-k decision points, the R-039–R-051 mechanism splices, restore by replay (0.00 mm), and impl2's agreed LIBERO-MAX rollout format (PORTABILITY_LIBERO_MAX §5).</p>
+<p><b>What a record would hold:</b></p>
+<ul>
+<li>task, instruction, policy and checkpoint revision, perturbation and its size;</li>
+<li>per-step sim state, actions and frames as the policy saw them;</li>
+<li>success and termination;</li>
+<li>event list with recovered flags;</li>
+<li>root under <i>both</i> rules (first failure, first unrecovered), marked <span class="open">active development</span>;</li>
+<li>decision-point bracket, where an intervention measured one;</li>
+<li>mechanism (which input carries the failure), where splices ran;</li>
+<li>the sim state at each root, so anyone can restore it and branch.</li>
+</ul>
+<p><b>Scope as set by the user:</b> LIBERO first, meaning the four suites we have GR00T N1.7 checkpoints for, plus LIBERO-MAX. Our rebuilt real-to-sim scenes may follow later.</p>
+<div class="tw"><table>
+<tr><th>Part</th><th>What exists today</th><th>What must be collected</th></tr>
+<tr><td>libero_spatial</td><td>R-047: 720 rollouts, 176 failures (start pose, camera yaw). C1: 240 rollouts, 70 failures. Both have per-step logs. Roots exist only from the toy rules; v1 rules are designed but not coded</td><td>Roots under the v1 rules; decision points beyond R-057's cases</td></tr>
+<tr><td>libero_object, libero_goal, libero_10</td><td>Checkpoints in the local HF cache (<code>nvidia/gr00t17-lerobot-libero_{object,goal,10}-640</code>) <span class="v">V</span>. No GR00T rollouts on these suites yet (SUITES_AND_CHECKPOINTS §1; R-043 pre-registered, not run)</td><td>A reproduction run per suite first (roster rule), then perturbation grids. The root rules must handle goal predicates other than pick-and-place, and two-stage tasks (PORTABILITY_LIBERO_MAX: "the rules are the largest job")</td></tr>
+<tr><td>LIBERO-MAX</td><td>Spatial pilot of 133 pairs: Base 86.5%, Dynamic 61.7%, success only <span class="tag">UNVERIFIED</span>. The richer format passed a 4-case smoke test</td><td>The Lite run (800 pairs), gated on reproducing the paper's GR00T result (69.3 / 51.4 on Lite). It runs after res31's G2 (prim, 10-19). Known event steps give a timing reference no other set has</td></tr>
+</table></div>
+<p><b>Why it would be the first of its kind.</b> res21's survey (FAILURE_LABEL_DATASETS) found no public dataset that labels where a failure is <i>decided</i>; every onset label marks where it <i>shows</i>. The nearest sets each lack something this one has:</p>
+<div class="tw"><table>
+<tr><th>Dataset</th><th>What it lacks against ours</th></tr>
+<tr><td>podolinsky GR00T-N1.7 LIBERO</td><td>Its onsets are from a VLM with no stated human check, and the card states no licence</td></tr>
+<tr><td>FailTime</td><td>Human onsets, but on real ALOHA / SO-101: another embodiment, no sim state</td></tr>
+<tr><td>LIBERO-Recover</td><td>Failure labels not released</td></tr>
+<tr><td>RoboFAC</td><td>Failures injected into a scripted expert, not a VLA's own</td></tr>
+<tr><td>ViFailback</td><td>Mostly staged teleop failures (<a href="https://cvpr.thecvf.com/virtual/2026/poster/38126">CVPR 2026</a>)</td></tr>
+<tr><td>RoboMIND</td><td>5k real failure demos with causes, but teleoperated (<a href="https://roboticsconference.org/2025/program/papers/152/">RSS 2025</a>)</td></tr>
+</table></div>
+<p>None pairs a VLA's natural failures with sim-truth roots, restorable root states and interventional decision points.</p>
+
+<h3>4b · The benchmark</h3>
+<p><b>Policies, as the user set them:</b> GR00T N1.7 base checkpoints against our fine-tuned versions, on our card. Other policies (π0.5, OpenVLA-OFT, MINERVA) come once more GPU is approved after §4c. π0.5 doesn't fit our 8 GB card (R-032).</p>
+<div class="tw"><table>
+<tr><th>Task</th><th>Input → output</th><th>Scored against</th><th>Who uses it</th></tr>
+<tr><td>T1 Root localisation</td><td>rollout logs (or video only) → root step</td><td>both root rules, scored separately</td><td>failure-labeller and detector researchers; our own VLM labeller</td></tr>
+<tr><td>T2 Decision point</td><td>rollout plus restorable states → bracket of the last saveable step</td><td>R-057-style intervention brackets</td><td>anyone claiming a "root cause" method</td></tr>
+<tr><td>T3 Early failure prediction</td><td>first k forwards → P(fail)</td><td>outcomes, with the false-positive rate on successes reported (ties to §1)</td><td>runtime-monitor papers (a crowded field, so the restorable states are the draw)</td></tr>
+<tr><td>T4 Repair</td><td>a policy → success when started from the held-out root states</td><td>paired with base, plus a nominal regression check</td><td>anyone retraining on failures, including §2's arms</td></tr>
+</table></div>
+<p>T4 is the "difference between policies vs our fine-tuned policies" the user asked for. Because each root state can be restored, two policies can be compared from the same failure point, not only from the same start. This also absorbs the triage design left by session runtime (BRAINSTORM §2.3–2.5: timing / competence / unrecoverable via branches), which nobody owns since runtime ended (prim, 10-19).</p>
+<p><b>Rough cost for a v1 on our card</b> <span class="tag">I</span>:</p>
+<ul>
+<li>Spatial records from existing logs: ~3–5 agent-days CPU, once the v1 root rules are coded (mining-spec work, not counted here).</li>
+<li>Each further suite: a reproduction run plus a grid of the size of R-047, ~10 GPU-h at Spatial episode lengths. LIBERO-MAX caps libero_10 at 520 steps against 220 for Spatial (PORTABILITY_LIBERO_MAX §1), so expect over double there.</li>
+<li>LIBERO-MAX Lite: ~8–9 h (prim) to 20–25 GPU-h (impl2, 10-14).</li>
+<li>T4 on two or three fine-tunes: a few GPU-h each.</li>
+<li>§1's cut rule would lower all of the GPU figures.</li>
+</ul>
+
+<h3>4c · The case for executives: open release and peer review <span class="open">user's proposal, not approved</span></h3>
+<p>This subsection is written for the user to put to iMerit's executives. It argues for releasing the dataset and benchmark openly, optionally with a peer-reviewed paper, and says what it costs and risks.</p>
+<p><b>What it buys iMerit</b> <span class="tag">I</span>:</p>
+<ol>
+<li><b>Credibility for the method.</b> Our pitch rests on claims a customer can't easily check: where a failure began, which input carried it, whether targeted data fixes it. A dataset that outsiders can download, restore and re-score turns those claims into checkable ones, and peer review is an outside check on the method. That is the user's aim: "an open source peer reviewed thing for our whole methodology".</li>
+<li><b>A first.</b> No public dataset labels decision points (§4a). Being first sets the format others compare against, and the format is our mining-spec record.</li>
+<li><b>Shop window for iMerit's core business.</b> Labelled failure data is iMerit's kind of product. A public set shows the quality bar without giving away the service: the pipeline, the customer work and the labelling operation stay private.</li>
+<li><b>Leverage on compute.</b> A recognised benchmark is a reason for model builders to run their own policies on it, and a reason to approve rented GPU for the cross-policy comparison (§4b).</li>
+<li><b>Discipline we already have.</b> Pre-registration, reproduction gates and paired controls are already how we work (AMBITIOUS_DIRECTIONS, "What we have that others don't"). Release mostly packages that work.</li>
+</ol>
+<p><b>Options, from least to most exposure:</b></p>
+<div class="tw"><table>
+<tr><th>Option</th><th>What it involves</th><th>Cost</th><th>What it gives</th></tr>
+<tr><td>0. Internal only</td><td>Use the dataset as our own test bed</td><td>v1 cost above</td><td>Nothing external</td></tr>
+<tr><td>1. Open release</td><td>Dataset, loader, scorers and a leaderboard on Hugging Face and GitHub</td><td>+ licence review, docs, ~1 week of packaging <span class="tag">I</span></td><td>Community use; informal scrutiny</td></tr>
+<tr><td>2. Workshop paper</td><td>Short paper at a robot-learning workshop</td><td>+ ~1–2 weeks of writing <span class="tag">I</span></td><td>Light peer review; visibility</td></tr>
+<tr><td>3. Datasets-and-benchmarks track paper</td><td>Full paper with the release, e.g. a datasets-and-benchmarks track (I did not find a 2026 D&amp;B failure dataset of this kind in one search)</td><td>+ several weeks; likely more policies and more GPU for reviewers' expected baselines <span class="tag">I</span></td><td>Formal peer review of the method; the strongest credibility</td></tr>
+</table></div>
+<p><b>Risks and how to handle them:</b></p>
+<ul>
+<li><b>Licences, the main blocker.</b>
+<ul>
+<li>GR00T N1.7 LIBERO checkpoints: Apache-2.0 on their model card <span class="v">V</span>. The base <code>GR00T-N1.7-3B</code> is under the NVIDIA Open Model License <span class="v">V</span>.</li>
+<li>LIBERO-MAX's repo has no licence file; its ACKNOWLEDGEMENTS says users must follow each component's licence <span class="v">V</span>.</li>
+<li>LIBERO-Plus objects probably come from BEHAVIOR-1K, whose EULA allows no redistribution (SIM_READY_ASSET_LIBRARIES §1; provenance inferred).</li>
+<li>So release records and sim states, and point to the assets rather than shipping them. Ask the LIBERO-MAX and LIBERO-Plus authors before release.</li>
+</ul></li>
+<li><b>Showing unfinished work.</b> The root rules are under development, and our one retraining result is negative. Ship both rules and say so. Negative results in a benchmark are normal and are part of the credibility.</li>
+<li><b>Being scooped, or the field moving.</b> The LIBERO-Recover labels may be released. Its scenes come from six policies' failures, but it does not measure decision points.</li>
+<li><b>Maintenance.</b> A leaderboard needs an owner. Budget it, or release a frozen v1 only.</li>
+<li><b>Policy coverage.</b> GR00T-only is a thin benchmark for reviewers. Option 3 likely needs the extra GPU before submission.</li>
+</ul>
+<p><b>The ask, if the user takes this to executives:</b> approve option 1 for a Spatial-first v1 now, decide on option 2 or 3 once the four suites and LIBERO-MAX are in, and pre-approve rented GPU for the cross-policy runs on that condition.</p>
+
+<h2>5 · Ranked shortlist and what to start first</h2>
+<div class="tw"><table>
+<tr><th>Rank</th><th>Direction</th><th>First step</th><th>Cost of the first step</th><th>Waits on</th><th>Overlaps</th></tr>
+<tr><td>1</td><td>§1 Cheaper evaluation</td><td>CPU replay of the cut rule on C1 and R-047, plus the false-positive literature review</td><td>2–3 agent-days, 0 GPU</td><td>nothing (val before numbers travel)</td><td>uses the progress signal (early-warning direction); no session owns it</td></tr>
+<tr><td>2</td><td>§3 Retraining data audit</td><td>Backtest on R-056/R-058</td><td>~2 agent-days, CPU</td><td>nothing</td><td>finetune-postmortem skill; DMP and scripted data feed item 4</td></tr>
+<tr><td>3</td><td>§4 Failure dataset + benchmark</td><td>Spatial v1 records from existing logs, plus the §4c pitch</td><td>3–5 agent-days CPU after the v1 rules</td><td>v1 root rules coded; LIBERO-MAX reproduction; the user's exec decision</td><td>mining-spec (rules), impl2 (LIBERO-MAX), absorbs runtime's triage</td></tr>
+<tr><td>4</td><td>§2 Retraining from failures</td><td>Scope decision by the user, then the held-out re-test design</td><td>design ~2 agent-days; runs need GPU (RL: rented)</td><td>§3 audit; DMP sweep; held-out design</td><td>DMP, scripted</td></tr>
+</table></div>
+<p><b>Start first:</b> §1 and the §3 backtest together. Both are CPU only, use existing logs, and touch no other session's code. Each makes the later directions cheaper (§1) or safer (§3). The user's go, a session to do the work, and val's check would be needed before either produces numbers.</p>
+
+<h2>6 · Sources</h2>
+<p><b>Repo docs:</b> END_TO_END_PIPELINE (§3, §5, §7, §8); BRAINSTORM (§1, §2.1–2.6, §3, §4); ROUGH_ROBOTICS_PRODUCT_DESIGN (§5, §7); STAC_GROOT_THEORY (§0–§5); R056_POSTMORTEM (§1–§4); AMBITIOUS_DIRECTIONS and AMBITIOUS_DIRECTIONS_REVIEW; RL_GYM_LANDSCAPE (option B); IDM_VLA_HORIZONS; TASK_DIVERSITY_LANDSCAPE; FAILURE_LABEL_DATASETS; FAILURE_MINING_RELEVANCE; SUITES_AND_CHECKPOINTS (§1–§2); PORTABILITY_LIBERO_MAX (§1, §5); DMP_POC_METHOD; REAL_TO_SIM_LESSONS; REAL_TO_SIM_PREDEPLOY_CHECKLIST; SIM_READY_ASSET_LIBRARIES (§1, §4); PAPERS_SINCE_24SEP.</p>
+<p><b>RESULTS.md:</b> R-032, R-039, R-040, R-042, R-043, R-046, R-047, R-053, R-054, R-056, R-057, R-058, R-059, R-060.</p>
+<p><b>Run files read this session:</b> <code>../VLA-exp-rootsignals/runs/r059/c1/rollouts.jsonl</code> (forward counts, §1.2); HF cache model cards for <code>nvidia/gr00t17-lerobot-libero_spatial-640</code> and <code>nvidia/GR00T-N1.7-3B</code> (licences); <code>third_party/LIBERO-MAX/</code> (no licence file; ACKNOWLEDGEMENTS.md).</p>
+<p><b>Web</b> (search summaries or abstract pages unless stated):
+<a href="https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/gr00t.html">RLinf GR00T docs</a> (page read) ·
+<a href="https://arxiv.org/abs/2603.13616">Beyond Binary Success, 2603.13616</a> ·
+<a href="https://arxiv.org/abs/2503.10966v2">Snyder et al., 2503.10966</a> ·
+<a href="https://arxiv.org/pdf/2606.18610">SC3-Eval, 2606.18610</a> ·
+<a href="https://arxiv.org/abs/2510.09459v1">FIPER, 2510.09459</a> ·
+<a href="https://arxiv.org/pdf/2606.23085">Foresight, 2606.23085</a> ·
+<a href="https://arxiv.org/pdf/2605.30834">Hide-and-Seek, 2605.30834</a> ·
+<a href="https://rlj.cs.umass.edu/2026/papers/Paper63.html">Katz et al., RLC 2026</a> ·
+<a href="https://arxiv.org/pdf/2605.09410">RePO-VLA, 2605.09410</a> ·
+<a href="https://arxiv.org/html/2510.12710v2">Reflection-based task adaptation, 2510.12710</a> ·
+<a href="https://arxiv.org/pdf/2602.20715">IG-RFT, 2602.20715</a> ·
+<a href="https://arxiv.org/abs/2603.09121">DexHiL, 2603.09121</a> ·
+<a href="https://arxiv.org/pdf/2506.19121">CUPID, 2506.19121</a> ·
+<a href="https://cvpr.thecvf.com/virtual/2026/poster/38126">ViFailback, CVPR 2026</a> ·
+<a href="https://arxiv.org/pdf/2505.12224v1">RoboFAC, 2505.12224</a> ·
+<a href="https://roboticsconference.org/2025/program/papers/152/">RoboMIND, RSS 2025</a>.</p>
+<p class="meta">Written by session NH, 2026-10-19, from the documents above. No experiments were run for this page. Not committed; prim commits.</p>
+</main></body>
+</html>
