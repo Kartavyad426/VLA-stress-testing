@@ -60,11 +60,12 @@ def main():
                image_prep="cv2 INTER_AREA 1280x720 -> 320x180", ready=pol.ready, runs={})
     try:
         for instr in a.instruction:
-            rows = []
+            rows, chunks = [], {}
             for k in range(0, n - 1, a.every):
                 state = np.r_[compute_eef_9d(cart[k]), grip[k], joints[k]].astype(np.float32)
                 r = pol({IMG[0]: ext[k], IMG[1]: wr[k], "state": state, "instruction": instr})
                 act = r["action"]
+                chunks[k] = act
                 hz = min(a.horizon, n - 1 - k)
                 fut = slice(k + 1, k + 1 + hz)
                 pg = act[:hz, 9]  # predicted gripper (0 open .. 1 closed)
@@ -81,7 +82,8 @@ def main():
                       f"(close@{rw['pred_grip_first_close_step']}) real_next_max {rw['real_grip_max_next']:.2f} "
                       f"ee_err {rw['ee_err_mean_m']*100:.1f} cm dz pred {rw['pred_dz_m']*100:+.1f} real {rw['real_dz_m']*100:+.1f}", flush=True)
             pred_close = [rw["frame"] + rw["pred_grip_first_close_step"] for rw in rows if rw["pred_grip_first_close_step"] is not None]
-            res["runs"][instr] = dict(rows=rows, first_pred_close_frame=min(pred_close) if pred_close else None,
+            np.savez_compressed(os.path.join(a.out, f"chunks_{len(res['runs'])}.npz"), frames=np.array(sorted(chunks)), chunks=np.array([chunks[k] for k in sorted(chunks)]))
+            res["runs"][instr] = dict(chunks_npz=f"chunks_{len(res['runs'])}.npz", rows=rows, first_pred_close_frame=min(pred_close) if pred_close else None,
                                       ee_err_mean_m=float(np.mean([rw["ee_err_mean_m"] for rw in rows])))
     finally:
         pol.close()
