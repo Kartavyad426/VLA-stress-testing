@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIM Fixes</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--ok:#2c6e3a;--bad:#a3321f;--warn:#8a4b12;--accent:#2f5d8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--ok:#7fc98d;--bad:#ee8a76;--warn:#e0a26a;--accent:#8fb5dc}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--ok:#7fc98d;--bad:#ee8a76;--warn:#e0a26a;--accent:#8fb5dc}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin:1.2em 0 .3em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:12px 0}
+.verdict{border-left:4px solid var(--accent)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:8px 0}
+th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.warn{color:var(--warn);font-weight:600}
+code{font-size:.85em}
+.step{display:grid;grid-template-columns:110px 1fr;gap:4px 14px;margin:10px 0;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.step .when{color:var(--muted);font-size:.85rem}
+@media (max-width:640px){.step{grid-template-columns:1fr}}
+ol li,ul li{margin:.2em 0}
+</style>
+</head>
+<body><main>
+<h1>SIM fixes: how a sim that looked right turned out not to be, and how we found each fault</h1>
+<p class="meta">res31, 10-14 → 10-19, internal. Scenes rebuilt from single DROID episodes (FR3 + Robotiq 2F-85, exterior ZED 2 + wrist ZED Mini). Policy under test: GR00T-N1.7-DROID (internal research only; licence open). All numbers exploratory and UNVERIFIED (not through val). Commit hashes in brackets; pages linked at the end.</p>
+
+<div class="box verdict"><b>The short version.</b> The sim passed every check we had: composites matched the real camera, objects settled, a scripted expert succeeded on 91/105 episodes. The first policy run failed, and taking it apart found <b>four separate faults in the sim</b> and <b>one in the policy</b>:
+<ol>
+<li><b>Table and objects ~6 cm too high</b> (orange scene; ~8 cm in c3). Fixed with stereo depth.</li>
+<li><b>Exterior camera pose off</b> (~6–7 cm sideways at the objects). The old depth error had hidden it. Fixed with metric anchors from the wrist camera.</li>
+<li><b>Bowl built floating</b> (dropped 2.2–2.6 cm on load). Code bug, fixed.</li>
+<li><b>Wrist-camera image misleads the policy</b>: with our wrist render GR00T plans its grasp ~4 cm lower than with the real image, so it pushes its fingers into the table. Located (mainly the projected table texture); <b>not fixed yet</b>.</li>
+<li><b>Policy:</b> GR00T releases the block ~13 cm short of the bowl, and does the same on real frames, so that one is the policy's own.</li>
+</ol>
+After fixes 1–3: GR00T went from "never grasps" (0 closes) to 4/33 successes on the orange scene, with 32/33 reaching and 17/33 closing at the block.</div>
+
+<h2>1 · The sim we thought was good (10-14 → 10-15)</h2>
+<p>From one DROID video per scene we built a MuJoCo scene: objects detected and masked in frame 0 (Grounding DINO + SAM), depth from a monocular model (MoGe-2) scaled by matching the robot's own depth, the exterior camera calibrated by fitting the sim robot's outline to the real robot, the real background composited behind the sim (LaMa-inpainted plate), and later a projectively textured wrist view. Tasks were generated automatically and solved by a scripted expert.</p>
+<div class="wrap"><table>
+<tr><th>What we checked</th><th>Result then</th><th>Why it was not enough (learned later)</th></tr>
+<tr><td>Camera calibration overlay (robot outline)</td><td class="ok">IoU 0.47 orange / 0.40 c3, overlays looked right</td><td>Fits the robot's 2D outline only; says nothing about depth along the camera's rays.</td></tr>
+<tr><td>Composites (sim drawn on the real background)</td><td class="ok">looked correct in every frame</td><td>A depth-scale error moves every point along its own camera ray, so it projects to the same pixel: <b>invisible from this camera</b>.</td></tr>
+<tr><td>Physics settle</td><td class="ok">blocks 0.01 cm</td><td>The bowl moved 2.18 cm and was tolerated as "near the 2 cm limit"; it was a placement bug (fault 3).</td></tr>
+<tr><td>Scripted expert</td><td class="ok">89/105, then 91/105 after the gripper-mount fix (4e252de)</td><td>The expert reads the sim's exact object positions: it proves the scene is self-consistent, not that it matches reality, and it never looks at an image.</td></tr>
+<tr><td>Replay of the real operator's motion</td><td class="warn">failed (block not lifted)</td><td>Accepted as "a digital cousin won't reproduce exact motions". It was the first sign of fault 1.</td></tr>
+<tr><td>Gripper mount</td><td>fixed 0° → 90° (impl, 5c634d2)</td><td>Real DROID Robotiq sits at ±90° on the flange; the sign is still unresolved.</td></tr>
+</table></div>
+
+<h2>2 · How it kept breaking, and what isolated each fault</h2>
+
+<div class="step"><div class="when">10-15<br>smoke1</div><div><b>First policy run fails.</b> GR00T-DROID, "put the green block in the bowl": it reaches the right block in ~4 s, hovers 30 s, never closes (gripper closed 1.3% of steps) (4c56957).<br><b>Test:</b> compare the hover with the expert's grasp and with the real operator's grasp, all in robot coordinates.<br><b>Found:</b> GR00T <i>commands</i> its fingertips 4.5 cm below our table top (the arm is stopped ~1 cm in, 3.5 cm tracking error); the real operator's own grasp puts the fingertips 5.0 cm below our block's centre. An edge test (real fingertips must be above the real table) puts the real table ≥4.5 cm below ours. Either the table is too high or our gripper too long.<br><b>Built:</b> the pre-deploy checklist, 23 checks (5db8dcf).</div></div>
+
+<div class="step"><div class="when">10-16<br>table vs gripper</div><div><b>Gripper length ruled out:</b> sim finger pads overlay the real ones in the wrist video; a 4.5 cm length error would move them 144–184 px.<br><b>Table height measured independently with stereo</b> (DROID ships rectified stereo video; baselines from the camera specs: ZED 2 120 mm, ZED Mini 63 mm): exterior stereo −0.086 m, wrist stereo (pose from the robot's joints, so independent of our calibration) −0.092…−0.095 m, our scene −0.029 m. <b>Table ~6 cm too high</b> (c3 ~8 cm) (2c7247a).<br><b>Cause:</b> the monocular depth was scaled by matching the robot, then carried to frame 0 through table pixels; the result was ~15% short (scale 0.904 vs 1.055 from stereo). Fault 1.</div></div>
+
+<div class="step"><div class="when">10-16<br>stereo build</div><div><b>Fixing depth exposed a second fault.</b> Scaling the depth from stereo fixed the vertical error (real grasp 5.0 → 0.0 cm) but the horizontal error went 0.7 → 6.6 cm. The old wrong scale had been compensating a <b>wrong exterior camera pose</b> sideways. Fault 2.<br>Two of my own bugs on the way: the first stereo build mixed stereo and monocular pixels (table only half fixed, blocks shrank), and a comparison overlay used the old scene's object positions.</div></div>
+
+<div class="step"><div class="when">10-16/19<br>anchored calibration</div><div><b>Metric anchors for the camera:</b> block positions measured by the wrist camera's stereo (pose from the robot's joints) must project onto the blocks in the exterior image, and the stereo table must sit at the measured height. Anchor error 44.8 → 4.9 px, table error 1.5 → 0 cm, robot-outline IoU 0.488 → 0.495 (b783f5f).<br><b>Rebuilt orange scene</b> (df2cc9f): table −0.094 m vs stereo −0.093; blocks 0.7–1.2 cm from the wrist anchors; real grasp vertical +1.4 cm, horizontal 1.7 cm (threshold 1.5: marginal); release inside the bowl; distance scale 0.907.<br><b>Bowl bug found by the settle check:</b> the bowl's bottom was computed from box centre − largest half-size, ignoring rotation, so it was built floating. Fixed: 2.55 → 0.10 cm. Fault 3.</div></div>
+
+<div class="step"><div class="when">10-19<br>G1</div><div><b>Is our plumbing to the policy right?</b> GR00T on the <i>real</i> episode's frames + recorded state: it predicts the close at frame 70 (operator 75) and the release at ~120 (operator ~126), path within 2–3.4 cm around the grasp. The interface (state, gripper convention, action decoding) works; the failure was in the sim (df2cc9f).</div></div>
+
+<div class="step"><div class="when">10-19<br>P6, G2</div><div><b>New rollout instrumentation:</b> command tracking (flags an arm held back by something) and stage scoring (reached / closed / lifted / placed), regression-tested by replaying smoke1 exactly (18dcde5).<br><b>G2 in the rebuilt scene:</b> GR00T now <b>reaches, closes and lifts</b> the instructed block (green and orange), but drops it short of the bowl (7469cb2).</div></div>
+
+<div class="step"><div class="when">10-19<br>release analysis, test A</div><div><b>Why it misses the bowl:</b> GR00T itself opens the gripper ~13 cm from the bowl centre (rim 8.5 cm), 9–15 cm up. Ruled out: execution lag (commanded vs achieved 1–3 cm), block slip (none), a misplaced bowl in the images (sim vs real objects IoU 0.67–0.82, centres ≤0.3 cm), running the joint output instead of the hand output (both release as far) (816e510).<br><b>Test A on real frames:</b> GR00T also plans to open early there, 5–23 cm from the bowl centre (mostly 11–17). <b>Policy behaviour, not the sim.</b> Fault 5.</div></div>
+
+<div class="step"><div class="when">10-19<br>slot A</div><div><b>All tasks on the orange scene</b> (33 expert-solved variants): <b>4/33 success</b>; reached 32, closed at the block 17, lifted 11, placed 4. The sim does not fail everywhere (2d749a3).<br>Found on the way: a do-nothing policy "solved" one variant (task true at the start); such variants are now excluded (fde6ff4).<br><b>New pattern:</b> in 17/33 episodes GR00T pushes its fingertips ~2.6 cm into the table during grasp attempts; on real frames it never aims below +0.5 cm.</div></div>
+
+<div class="step"><div class="when">10-19<br>grasp compare</div><div><b>What differs in the approach</b> (page linked below): on real frames GR00T plans like the operator, gripper nearly upright (5° vs 7°) and stopping above the table (≥ +1.9 cm; operator closed at +3.1). In sim it comes in tilted 12–20° and too low (−0.8…−1.1 cm at the close, commanded down to −5.4). Speed is not the difference (fae4e50).</div></div>
+
+<div class="step"><div class="when">10-19<br>G3</div><div><b>Image swap:</b> same recorded state, different images. Real wrist image → plan +2.4 cm above the table, whether the exterior is real or ours. Our wrist render → −1.3/−1.4 cm, whether the exterior is real or ours. The state we compute in sim equals the recorded one exactly. <b>The wrist image is the cause</b>; geometry and state are not (fd011a2).</div></div>
+
+<div class="step"><div class="when">10-19<br>G4</div><div><b>Which part of the wrist image:</b> swapping one part at a time. Real wrist + our gripper +1.3 cm (−1.1); real wrist + our blocks +1.9 (−0.5); our wrist + real gripper −1.2 (no recovery); no shadows −1.5; real block colours −2.0. Everything built on the real wrist background stays above the table; everything built on ours goes below. <b>Main driver: the projected table texture</b> (blurry, smeared at grazing angles, inpainted); the rendered gripper adds ~1 cm. Fault 4 (e6f2f5e).</div></div>
+
+<h2>3 · Why the sim could not have been accurate from the start</h2>
+<ol>
+<li><b>We validated geometry from the camera it was estimated from.</b> That camera is blind to errors along its own rays; a 6 cm table offset looked perfect. Rule now: check from a second viewpoint (wrist camera, pose from the robot's joints) and against real robot coordinates (recorded grasps) — <code>scene_checks.py</code>.</li>
+<li><b>Metric scale came from the robot, carried through monocular depth.</b> Monocular depth error is not one global scale (it varied 0.91–1.06 across depth bands); real stereo was available in DROID all along.</li>
+<li><b>The camera pose came from the robot outline alone.</b> An outline fit leaves the pose loose along the viewing direction; it needed metric anchors.</li>
+<li><b>The scripted expert was our success signal,</b> but it uses the sim's exact object positions and no images, so it cannot catch a geometry or visual error.</li>
+<li><b>We judged visuals by eye.</b> A wrist image that looked plausible to us moves the policy's plan by ~4 cm. Only swapping images at a fixed state (G3/G4) measures this.</li>
+<li><b>The wrist view has no real background of its own.</b> The camera moves, so we projected the exterior camera's background onto the table; the exterior camera sees the table at a grazing angle, so the texture is blurry where the wrist camera looks closest.</li>
+<li><b>The robot is a sim render</b> (Menagerie FR3 + Robotiq 2F-85: same kinematics as the real robot, verified to 0 mm, but simplified meshes and flat materials); it costs ~1 cm in G4.</li>
+<li><b>Not yet addressed:</b> the controller (MuJoCo position actuators, not DROID's controller; never system-identified), the ±90° mount sign, and no real-robot reference for this checkpoint on these scenes. The eval-validity review (re412) says real-to-sim ranks policies only with matched visuals including the wrist view and robot, a matched controller and matched layouts; our scenes do not meet that yet.</li>
+</ol>
+
+<h2>4 · All policy runs on the GPU</h2>
+<div class="wrap"><table>
+<tr><th>Run</th><th>What</th><th>GPU time</th><th>Result</th><th>Commit</th></tr>
+<tr><td>smoke1 (10-15)</td><td>GR00T, old scene, green → bowl v0</td><td>~1 min</td><td class="bad">reaches, never closes</td><td>4c56957</td></tr>
+<tr><td>G1</td><td>GR00T on real frames (open loop)</td><td>32 s</td><td class="ok">close/release timing right; interface OK</td><td>df2cc9f</td></tr>
+<tr><td>G2</td><td>GR00T, rebuilt scene, green and orange v0</td><td>~1.5 min</td><td class="warn">grasp + lift, release short; 0/2</td><td>7469cb2</td></tr>
+<tr><td>slot A + test A</td><td>33 variants, orange scene; real-frame release</td><td>26 min</td><td class="warn">4/33; early release also on real frames</td><td>2d749a3</td></tr>
+<tr><td>G3</td><td>image swap, 10 approach states × 5</td><td>~1 min</td><td class="ok">wrist image identified</td><td>fd011a2</td></tr>
+<tr><td>G4</td><td>wrist-part swaps, 10 states × 7</td><td>~1 min</td><td class="ok">table texture (+ gripper ~1 cm)</td><td>e6f2f5e</td></tr>
+</table></div>
+
+<h2>5 · Where things stand, and what's next</h2>
+<div class="wrap"><table>
+<tr><th>Fault</th><th>Status</th><th>Next</th></tr>
+<tr><td>1 table height</td><td class="ok">fixed on orange</td><td>c3: rebuild in progress (calibration anchors vs robot outline disagree; IoU 0.40 → 0.35, being checked)</td></tr>
+<tr><td>2 exterior camera pose</td><td class="ok">fixed on orange</td><td>same for c3</td></tr>
+<tr><td>3 floating bowl</td><td class="ok">fixed (all future builds)</td><td>—</td></tr>
+<tr><td>4 wrist render</td><td class="warn">located, not fixed</td><td>confirm (our wrist image with the real table pixels), then texture the table from the real wrist video (sharp, close range) instead of the exterior camera; re-test with an image swap, then re-run the orange batch</td></tr>
+<tr><td>5 early release</td><td>policy behaviour</td><td>report as a policy finding; check it across variants once fault 4 is fixed</td></tr>
+<tr><td>robot appearance</td><td class="warn">~1 cm effect</td><td>after the table texture: real-gripper texture or re-rendered robot</td></tr>
+</table></div>
+
+<h2>Pages and code</h2>
+<ul>
+<li>Checklist: <a href="REAL_TO_SIM_PREDEPLOY_CHECKLIST.html">REAL_TO_SIM_PREDEPLOY_CHECKLIST.html</a> · lessons: <a href="REAL_TO_SIM_LESSONS.html">REAL_TO_SIM_LESSONS.html</a> · eval validity (re412): <a href="REAL_TO_SIM_EVAL_VALIDITY.html">REAL_TO_SIM_EVAL_VALIDITY.html</a></li>
+<li>Grasp comparison (video + curves): <a href="../runs/real2sim/policy/grasp_compare/index.html">runs/real2sim/policy/grasp_compare/index.html</a></li>
+<li>Image swaps: <code>runs/real2sim/policy/image_swap_orange/</code>, <code>runs/real2sim/policy/image_swap_wristparts/</code> (wrist_variants.jpg shows the swapped images)</li>
+<li>Code (experiments/real2sim/): <code>stereo_depth.py</code>, <code>wrist_anchors.py</code>, <code>calibrate_cam.py --anchors --table_z</code>, <code>build_scene.py --depth stereo</code>, <code>scene_checks.py</code>, <code>wrist_overlay.py</code>, <code>policy_realdata.py</code>, <code>policy_rollout.py</code> (tracking + stages), <code>policy_batch.py</code>, <code>release_analysis.py</code>, <code>grasp_compare.py</code>, <code>image_swap.py</code></li>
+</ul>
+</main></body></html>
