@@ -136,6 +136,23 @@ class HoldPolicy:  # sim-side test without a GPU: every chunk = hold the current
         pass
 
 
+class ReplayPolicy:  # CPU regression: re-issue a recorded rollout's actions (rollout.npz) open loop, chunk by chunk
+    ready = dict(ready=True, load_s=0.0, vram_alloc_gib=0.0)
+
+    def __init__(self, npz, open_loop):
+        self.acts, self.k, self.step = np.load(npz)["action"], 0, open_loop
+
+    def __call__(self, obs):
+        ch = self.acts[self.k:self.k + 40]
+        if len(ch) < 40:
+            ch = np.concatenate([ch, np.repeat(self.acts[-1:], 40 - len(ch), 0)])
+        self.k += self.step
+        return dict(action=ch, infer_s=0.0)
+
+    def close(self):
+        pass
+
+
 def gpu_used_gib():
     try:
         r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=10)
@@ -157,7 +174,8 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--open_loop", type=int, default=15, help="chunk steps executed before re-planning (NVIDIA client: 15)")
-    ap.add_argument("--policy", choices=["groot", "hold"], default="groot")
+    ap.add_argument("--policy", choices=["groot", "hold", "replay"], default="groot")
+    ap.add_argument("--replay_npz", default=None, help="--policy replay: rollout.npz whose actions are re-issued")
     ap.add_argument("--groot_python", default=os.path.join(REPO, ".venvs/groot/bin/python"))
     a = ap.parse_args()
     if a.serve:
@@ -203,6 +221,12 @@ def main():
         mujoco.mj_step(m, d)
     n_sub = int(round(1 / FPS / m.opt.timestep))
     lo, hi = m.actuator_ctrlrange[arm_u].T
+    # checklist #17 / #23 logging (10-19): commanded vs achieved fingertip point and the target, per step
+    pinch = m.site("g_pinch").id
+    tgt_body = m.body(task["target"]).id
+    tgt_z0 = float(d.xpos[tgt_body][2])
+    dk = mujoco.MjData(m)  # FK of the commanded joints only
+    pinch_cmd, pinch_ach, tgt_pos, grip_cmd = [], [], [], []
 
     plate = load_plate(sdir, "lama", "frame0+plate")
     comp = Compositor(m, sdir, plate, size=(H, W), verbose=False)  # first: sets the real object colours + light
@@ -217,7 +241,12 @@ def main():
         state = np.r_[compute_eef_9d(cart), grip, d.qpos[arm_q]].astype(np.float32)
         return ext, wr, state, cart
 
-    pol = HoldPolicy() if a.policy == "hold" else GrootClient(a.ckpt, a.groot_python, a.device, 600)
+    if a.policy == "hold":
+        pol = HoldPolicy()
+    elif a.policy == "replay":
+        pol = ReplayPolicy(a.replay_npz, a.open_loop)
+    else:
+        pol = GrootClient(a.ckpt, a.groot_python, a.device, 600)
     print("policy ready:", pol.ready, flush=True)
     writer = imageio.get_writer(os.path.join(a.out, "rollout.mp4"), fps=FPS, quality=8, macro_block_size=4)
     states, actions, carts, infer_s, gpu_used = [], [], [], [], []
@@ -243,6 +272,13 @@ def main():
             d.ctrl[grip_u] = g_hi if act[9] > 0.5 else g_lo  # binarised as in NVIDIA's client
             for _ in range(n_sub):
                 mujoco.mj_step(m, d)
+            dk.qpos[:] = d.qpos
+            dk.qpos[arm_q] = d.ctrl[arm_u]
+            mujoco.mj_kinematics(m, dk)
+            pinch_cmd.append(dk.site_xpos[pinch].copy())
+            pinch_ach.append(d.site_xpos[pinch].copy())
+            tgt_pos.append(d.xpos[tgt_body].copy())
+            grip_cmd.append(bool(act[9] > 0.5))
             states.append(state)
             actions.append(act)
             carts.append(cart)
@@ -253,8 +289,9 @@ def main():
         mujoco.mj_step(m, d)
     ok = task_success(m, d, fit, task)
     acts = np.array(actions)
+    diag = rollout_diagnostics(np.array(pinch_cmd), np.array(pinch_ach), np.array(tgt_pos), np.array(grip_cmd), tgt_z0, bool(ok))
     res = dict(scene=os.path.basename(os.path.normpath(sdir)), task=task, instruction=task["text"], variant=a.variant,
-               policy=a.policy, checkpoint=a.ckpt if a.policy == "groot" else None, embodiment_tag=TAG, success=bool(ok),
+               policy=a.policy, checkpoint=a.ckpt if a.policy == "groot" else None, replay_npz=a.replay_npz, embodiment_tag=TAG, success=bool(ok),
                steps=len(actions), seconds=a.seconds, open_loop=a.open_loop, policy_calls=len(infer_s),
                load_s=pol.ready.get("load_s"), infer_s_median=float(np.median(infer_s)) if infer_s else None,
                wall_s=time.time() - t_start, vram=vram, gpu_used_max_gib=float(np.nanmax(gpu_used)) if gpu_used else None,
@@ -262,10 +299,49 @@ def main():
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                final_target_xyz=d.xpos[m.body(task["target"]).id].tolist(), final_ref_xyz=d.xpos[m.body(task["ref"]).id].tolist(),
                wrist_view="textured (exterior plate + real wrist frame 0, composite.WristCompositor)", exterior_view="composite (cleaned real plate + sim)",
-               status="exploratory, UNVERIFIED")
-    np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s))
+               status="exploratory, UNVERIFIED", **diag)
+    np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
+                        pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd))
     json.dump(res, open(os.path.join(a.out, "rollout.json"), "w"), indent=1)
-    print(json.dumps({k: res[k] for k in ("success", "steps", "policy_calls", "infer_s_median", "vram", "gpu_used_max_gib", "wall_s")}), flush=True)
+    print(json.dumps({k: res[k] for k in ("success", "steps", "policy_calls", "infer_s_median", "vram", "gpu_used_max_gib", "wall_s", "stages", "tracking")}), flush=True)
+
+
+# checklist #17 (command tracking) and #23 (stage scoring); thresholds res31's, user-accepted 10-19 (reversible)
+REACH_M = 0.03        # fingertip point within 3 cm of the target's centre
+LIFT_M = 0.02         # target raised >= 2 cm above its start height
+TRACK_M = 0.01        # commanded - achieved fingertip point
+TRACK_SUSTAIN = FPS   # ... for >= 1 s of consecutive steps = "blocked"
+
+
+def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success):
+    """Stages reached -> closed -> lifted -> placed, and commanded-vs-achieved tracking (blocked arm = sim/geometry flag)."""
+    if len(cmd) == 0:
+        return dict(stages={}, tracking={})
+    dist = np.linalg.norm(ach - tgt, axis=1)
+    reached = dist < REACH_M
+    closed = reached & grip_cmd
+    lifted = (tgt[:, 2] - tgt_z0) >= LIFT_M
+    first = lambda mask: int(np.argmax(mask)) if mask.any() else None  # noqa: E731
+    stages = dict(reached=bool(reached.any()), closed_at_target=bool(closed.any()), lifted=bool(lifted.any()), placed=bool(success),
+                  first_step=dict(reached=first(reached), closed_at_target=first(closed), lifted=first(lifted)),
+                  min_dist_to_target_m=float(dist.min()), thresholds=dict(reach_m=REACH_M, lift_m=LIFT_M))
+    err = cmd - ach
+    en = np.linalg.norm(err, axis=1)
+    over = en > TRACK_M
+    runs, cur, start = [], 0, 0
+    for i, o in enumerate(np.r_[over, False]):
+        if o:
+            if cur == 0:
+                start = i
+            cur += 1
+        elif cur:
+            if cur >= TRACK_SUSTAIN:
+                seg = slice(start, start + cur)
+                runs.append(dict(start=start, steps=cur, mean_err_m=float(en[seg].mean()), mean_dz_cmd_minus_ach_m=float(err[seg, 2].mean())))
+            cur = 0
+    tracking = dict(max_err_m=float(en.max()), median_err_m=float(np.median(en)), blocked=bool(runs), blocked_segments=runs,
+                    thresholds=dict(err_m=TRACK_M, sustain_steps=TRACK_SUSTAIN))
+    return dict(stages=stages, tracking=tracking)
 
 
 if __name__ == "__main__":
