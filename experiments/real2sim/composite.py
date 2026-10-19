@@ -236,6 +236,129 @@ def wrist_plate(m, out, episode, ext_comp, serial, dilate=25):
     return dict(img=img.astype(np.float32), K=cam_K(m, cid, W, H), R=R, t=t, gain=np.array(meta["ext_to_wrist_gain"], np.float32))
 
 
+def wrist_table_texture(m, out, episode, serial, frames, res=0.0015, dilate=35, obj_dilate=61, near_frac=0.5, obj_margin=0.015):
+    """Top-down texture of the table top mosaicked from the REAL wrist video (frames before any object is touched),
+    cached as <out>/table_tex_wrist.npz. For each frame the sim is posed at the recorded joints + gripper; every texel
+    (x, y, table z) is projected into that wrist frame and sampled if the sim says the camera sees the table there
+    (segmentation, with robot/object pixels dilated by `dilate` px so edges and the objects' real twins are skipped).
+    Each sample is weighted by closeness and head-on-ness (cos / z^2). Per texel: the median of the samples within
+    `near_frac` of its best weight (median: transient things such as the gripper's moving shadow drop out). One
+    exposure pass: each frame is scaled to the first mosaic by its median ratio over shared texels (the ZED Mini
+    auto-exposes). Unobserved texels are inpainted from the mosaic itself (LaMa).
+    Texels within `obj_margin` of an object's footprint (bounding radius at its start pose) are left out: the real
+    objects sit there in every frame and their sides stick out beyond the sim masks (10-19: ghosts of the real blocks
+    next to the sim ones); per frame, robot pixels are dilated by `dilate` px (the sim gripper's outline differs from the
+    real one) and object pixels by `obj_dilate` px (a real block's top face, seen at an angle, lands behind its footprint)."""
+    import json
+    cache = os.path.join(out, "table_tex_wrist.npz")
+    if os.path.exists(cache):
+        z = np.load(cache)
+        return dict(tex=z["tex"].astype(np.float32), valid=z["valid"].astype(np.uint8), x0=float(z["x0"]), y0=float(z["y0"]),
+                    res=float(z["res"]), z=float(z["z"]))
+    import h5py
+    fit = json.load(open(os.path.join(out, "scene_fit.json")))
+    zt = fit["table"]["z"]
+    (x0, y0), (x1, y1) = fit["table"]["xy_lo"], fit["table"]["xy_hi"]
+    nx, ny = int(np.ceil((x1 - x0) / res)), int(np.ceil((y1 - y0) / res))
+    gx, gy = np.meshgrid(x0 + (np.arange(nx) + 0.5) * res, y0 + (np.arange(ny) + 0.5) * res)
+    P = np.stack([gx.ravel(), gy.ravel(), np.full(gx.size, zt)], 1)
+    d0 = mujoco.MjData(m)
+    mujoco.mj_forward(m, d0)
+    keep = np.ones(len(P), bool)
+    obj_geoms = []
+    for j in range(m.njnt):
+        if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE:
+            b = m.jnt_bodyid[j]
+            gs = [g for g in range(m.ngeom) if m.body_rootid[m.geom_bodyid[g]] == b]
+            obj_geoms += gs
+            # footprint radius on the table: box half-diagonal in xy (rbound is 3D and ~2x too big for blocks), else rbound
+            r = max(np.linalg.norm(d0.geom_xpos[g][:2] - d0.xpos[b][:2])
+                    + (np.linalg.norm(m.geom_size[g][:2]) if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_BOX else m.geom_rbound[g]) for g in gs)
+            keep &= np.linalg.norm(P[:, :2] - d0.xpos[b][:2], axis=1) > r + obj_margin
+    h = h5py.File(os.path.join(episode, "trajectory.h5"))
+    J, G = h["observation/robot_state/joint_positions"][:], h["observation/robot_state/gripper_position"][:]
+    arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
+    drv_max = m.jnt_range[m.joint("g_right_driver_joint").id][1]
+    cid = m.camera("wrist").id
+    W, H = (int(v) for v in m.cam_sensorsize[cid])
+    K = cam_K(m, cid, W, H)
+    tbl = m.geom("table").id
+    d = mujoco.MjData(m)
+    rend = mujoco.Renderer(m, H, W)
+    rend.enable_segmentation_rendering()
+    cap = cv2.VideoCapture(os.path.join(episode, f"{serial}.mp4"))
+    cols, wts = [], []
+    for k in frames:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, k)
+        ok, bgr = cap.read()
+        if not ok:
+            continue
+        img = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB).astype(np.float32)
+        d.qpos[:] = m.qpos0
+        d.qpos[arm] = J[k]
+        for jn in ("g_right_driver_joint", "g_left_driver_joint"):
+            d.qpos[m.joint(jn).qposadr[0]] = G[k] * drv_max
+        mujoco.mj_forward(m, d)
+        rend.update_scene(d, camera=cid)
+        seg = rend.render()
+        isg = seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM
+        table_px = isg & (seg[..., 0] == tbl)
+        objpx = isg & np.isin(seg[..., 0], obj_geoms)
+        # robot edges (sim and real gripper outlines differ) and a wide band around objects: seen at an angle, a real
+        # block's top face lands on table texels behind its footprint (10-19: ghost of the real block)
+        table_px &= ~(cv2.dilate((~table_px & ~objpx).astype(np.uint8), np.ones((dilate, dilate), np.uint8)) > 0)
+        table_px &= ~(cv2.dilate(objpx.astype(np.uint8), np.ones((obj_dilate, obj_dilate), np.uint8)) > 0)
+        R, t = cam_pose(d, cid)
+        pc = (P - t) @ R
+        zc = pc[:, 2]
+        front = zc > 0.03
+        u = np.full(len(P), -1, int)
+        v = np.full(len(P), -1, int)
+        u[front] = np.floor(pc[front, 0] / zc[front] * K[0, 0] + K[0, 2]).astype(int)
+        v[front] = np.floor(pc[front, 1] / zc[front] * K[1, 1] + K[1, 2]).astype(int)
+        inimg = front & (u >= 0) & (u < W) & (v >= 0) & (v < H)
+        seen = np.zeros(len(P), bool)
+        seen[inimg] = table_px[v[inimg], u[inimg]]
+        seen &= keep
+        col = np.full((len(P), 3), np.nan, np.float32)
+        col[seen] = img[v[seen], u[seen]]
+        ray = t - P
+        cosang = ray[:, 2] / np.linalg.norm(ray, axis=1)
+        w = np.where(seen, cosang / np.maximum(zc, 1e-3) ** 2, 0.0).astype(np.float32)
+        cols.append(col)
+        wts.append(w)
+    rend.close()
+    C, Wt = np.stack(cols), np.stack(wts)  # (frames, texels, 3), (frames, texels)
+
+    def mosaic(C):
+        near = Wt >= near_frac * Wt.max(0, keepdims=True)
+        Cn = np.where((near & (Wt > 0))[..., None], C, np.nan)
+        return np.nanmedian(Cn, axis=0)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN texels (never seen) stay NaN
+        tex0 = mosaic(C)
+        gains = []
+        for f in range(len(C)):
+            s = (Wt[f] > 0) & np.isfinite(tex0).all(1)
+            gains.append(np.nanmedian(tex0[s] / np.maximum(C[f][s], 1.0), axis=0) if s.sum() > 500 else np.ones(3, np.float32))
+        tex = mosaic(C * np.array(gains, np.float32)[:, None, :])
+    observed = np.isfinite(tex).all(1).reshape(ny, nx)
+    tex = np.nan_to_num(tex).clip(0, 255).reshape(ny, nx, 3).astype(np.uint8)
+    # fill the unobserved texels (under/around objects, never-seen spots) from the mosaic itself with LaMa, so the
+    # filled wood matches its surroundings (10-19: falling back to the exterior plate left visible colour patches)
+    # object zones are widened by ~2 cm first: a few edge texels there carry the real block's colour and LaMa grows
+    # them into a ghost (10-19, lime blob next to the yellow block)
+    zone = cv2.dilate((~keep).reshape(ny, nx).astype(np.uint8), np.ones((2 * int(0.02 / res) + 1,) * 2, np.uint8)) > 0
+    observed &= ~zone
+    tex = lama_inpaint(tex, (~observed).astype(np.uint8))
+    valid = np.ones_like(observed)
+    np.savez_compressed(cache, tex=tex, valid=valid.astype(np.uint8), observed=observed.astype(np.uint8), x0=x0, y0=y0, res=res, z=zt,
+                        frames=np.array(frames), gains=np.array(gains), dilate=dilate, obj_dilate=obj_dilate, obj_margin=obj_margin)
+    cv2.imwrite(cache.replace(".npz", ".png"), cv2.cvtColor(tex, cv2.COLOR_RGB2BGR))
+    return dict(tex=tex.astype(np.float32), valid=valid.astype(np.uint8), x0=x0, y0=y0, res=res, z=zt, observed_frac=float(observed.mean()))
+
+
 class WristCompositor:
     """Per-frame wrist view with real texture on the static background (projective texturing).
     Robot + object pixels come from the sim render (real colours from Compositor). Every other pixel (table, floor)
@@ -246,8 +369,11 @@ class WristCompositor:
     Limits: texture resolution is the exterior camera's; errors of the exterior calibration and of the (approximate)
     wrist camera pose move the texture; the floor is ASSUMED (build_scene --floor_below) and there is no wall."""
 
-    def __init__(self, m, plate, ext_comp, size, cam="wrist", plate2=None, colour_gain=False):
+    def __init__(self, m, plate, ext_comp, size, cam="wrist", plate2=None, colour_gain=False, table_tex=None):
         self.m, self.ext, self.cam, self.plate2 = m, ext_comp, cam, plate2
+        # table_tex (wrist_table_texture, 10-19): table-top texture mosaicked from the REAL WRIST video; used first on
+        # table pixels. G3/G4 showed the exterior-plate texture (blurry at this range) makes GR00T plan ~4 cm low
+        self.table_tex = table_tex
         # colour_gain: scale the exterior texture by plate2's frame-0 ext->wrist gain. Off by default: the real wrist
         # camera's exposure changes during an episode, and the frame-0 gain made later frames too yellow (res31, 10-15)
         self.gain = plate2["gain"] if (colour_gain and plate2 is not None) else 1.0
@@ -300,6 +426,16 @@ class WristCompositor:
             tex2 = cv2.remap(p2["img"], nx, ny, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
             out[bg2] = tex2[bg2]
         bg = bg | bg2
+        bg3 = np.zeros_like(bg)
+        if self.table_tex is not None:  # wrist-camera mosaic of the table top: first choice where it has texture
+            tt = self.table_tex
+            ix = ((pw[..., 0] - tt["x0"]) / tt["res"] - 0.5).astype(np.float32)
+            iy = ((pw[..., 1] - tt["y0"]) / tt["res"] - 0.5).astype(np.float32)
+            ok = cv2.remap(tt["valid"], ix, iy, cv2.INTER_NEAREST, borderMode=cv2.BORDER_CONSTANT, borderValue=0) > 0
+            bg3 = is_geom & (seg[..., 0] == ext.table) & ok
+            tex3 = cv2.remap(tt["tex"], ix, iy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+            out[bg3] = tex3[bg3]
+            bg = bg | bg3
         if ext.shadows:
             m.geom_group[ext.fg_geoms] = HIDE_GROUP
             rend.update_scene(d, camera=self.cam, scene_option=ext.opt_hide)
@@ -314,7 +450,7 @@ class WristCompositor:
                 ratio[on_table] = np.clip(r, 0.35, 1.0)
             out *= cv2.GaussianBlur(ratio, (0, 0), 3)[..., None]
         if return_info:
-            return out, dict(seg=seg, depth=depth, fg=fg, bg=bg, bg2=bg2, mx=mx, my=my, inside=inside)
+            return out, dict(seg=seg, depth=depth, fg=fg, bg=bg, bg2=bg2, bg3=bg3, mx=mx, my=my, inside=inside)
         return out
 
     def close(self):

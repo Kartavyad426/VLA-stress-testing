@@ -23,7 +23,7 @@ from scipy.spatial.transform import Rotation as Rot
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from policy_rollout import GrootClient, HoldPolicy, compute_eef_9d, IMG, H, W, DEFAULT_CKPT, REPO  # noqa: E402
-from composite import Compositor, WristCompositor, load_plate, wrist_plate  # noqa: E402
+from composite import Compositor, WristCompositor, load_plate, wrist_plate, wrist_table_texture  # noqa: E402
 from build_scene import FLANGE_IN_LINK7  # noqa: E402
 
 CONDS = ("real_real", "sim_sim", "sim_real", "real_sim", "real_fk")
@@ -33,7 +33,10 @@ WRIST_CONDS = ("w_simgrip_on_real",   # real wrist frame, sim gripper pixels pas
                "w_realgrip_on_sim",   # sim wrist render, real gripper pixels pasted in
                "w_noshadow",          # sim wrist render without the sim shadow darkening
                "w_recolour",          # sim wrist render, each object scaled to its real median colour (real wrist frame)
-               "w_simobj_on_real")    # real wrist frame, sim object pixels drawn over it
+               "w_simobj_on_real",    # real wrist frame, sim object pixels drawn over it
+               # G5 (10-19)
+               "w_realtable_on_sim",  # sim wrist render, table pixels replaced by the live real wrist frame (confirmation)
+               "w_mosaic")            # sim wrist render with the table textured from the real wrist video (the fix)
 
 
 def main():
@@ -62,6 +65,12 @@ def main():
     wc = WristCompositor(m, plate, comp, (H, W), plate2=wp)
     comp_ns = Compositor(m, a.scene, plate, shadows=False, size=(H, W), verbose=False)
     wc_ns = WristCompositor(m, plate, comp_ns, (H, W), plate2=wp)
+    wc_mo = None
+    if "w_mosaic" in conds:
+        g0 = h5py.File(os.path.join(a.episode, "trajectory.h5"))["observation/robot_state/gripper_position"][:]
+        k_close = int(np.argmax(g0 > 0.5))  # mosaic only from frames before the first grasp (objects untouched)
+        tt = wrist_table_texture(m, a.scene, a.episode, wserial, list(range(0, k_close - 2, 2)))
+        wc_mo = WristCompositor(m, plate, comp, (H, W), plate2=wp, table_tex=tt)
     grip_g = [g for g in range(m.ngeom) if m.body(m.geom_bodyid[g]).name.startswith(("fr3_", "g_"))]
     free_b = {m.jnt_bodyid[j] for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE}
     obj_ids = {b: [g for g in range(m.ngeom) if m.body_rootid[m.geom_bodyid[g]] == b] for b in free_b}
@@ -112,6 +121,11 @@ def main():
                     v["w_recolour"][om] = sw[om] * gain
                 v["w_simobj_on_real"][om] = sw[om]
             v["w_recolour"] = v["w_recolour"].clip(0, 255).astype(np.uint8)
+            tmask = isg & (info["seg"][..., 0] == m.geom("table").id)
+            v["w_realtable_on_sim"] = sw.copy()
+            v["w_realtable_on_sim"][tmask] = rw[tmask]
+            if wc_mo is not None:
+                v["w_mosaic"] = wc_mo(d).clip(0, 255).astype(np.uint8)
             imgs.update(v)
             R = d.xmat[l7].reshape(3, 3)
             cart_fk = np.r_[d.xpos[l7] + R @ FLANGE_IN_LINK7, Rot.from_matrix(R).as_euler("xyz")]
@@ -119,17 +133,19 @@ def main():
             st_fk = np.r_[compute_eef_9d(cart_fk), G[k], J[k]].astype(np.float32)
             obs = dict(real_real=(imgs["real_ext"], imgs["real_wr"], st_rec), sim_sim=(imgs["sim_ext"], imgs["sim_wr"], st_rec),
                        sim_real=(imgs["sim_ext"], imgs["real_wr"], st_rec), real_sim=(imgs["real_ext"], imgs["sim_wr"], st_rec),
-                       real_fk=(imgs["real_ext"], imgs["real_wr"], st_fk), **{c: (imgs["real_ext"], imgs[c], st_rec) for c in WRIST_CONDS})
+                       real_fk=(imgs["real_ext"], imgs["real_wr"], st_fk), **{c: (imgs["real_ext"], imgs[c], st_rec) for c in WRIST_CONDS if c in imgs})
             row = dict(frame=k, state_fk_minus_recorded_max=float(np.abs(st_fk - st_rec).max()))
             for c in conds:
                 e, w, s = obs[c]
                 row[c] = plan(pol({IMG[0]: e, IMG[1]: w, "state": s, "instruction": a.instruction})["action"])
             rows.append(row)
             thumbs.append(np.concatenate([np.concatenate([imgs["real_ext"], imgs["real_wr"]], 1), np.concatenate([imgs["sim_ext"], imgs["sim_wr"]], 1)], 0))
-            wtiles = [imgs[c].copy() for c in ("real_wr", "sim_wr") + WRIST_CONDS]
-            for im, lab in zip(wtiles, ("real_wr", "sim_wr") + WRIST_CONDS):
+            shown = [c for c in ("real_wr", "sim_wr") + WRIST_CONDS if c in imgs][:8]
+            wtiles = [imgs[c].copy() for c in shown]
+            for im, lab in zip(wtiles, shown):
                 cv2.putText(im, lab, (4, 14), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
-            wtiles.append(np.zeros_like(wtiles[0]))  # 7 tiles -> 2 rows of 4
+            while len(wtiles) < 8:
+                wtiles.append(np.zeros_like(wtiles[0]))  # 2 rows of 4
             wthumbs.append(np.concatenate([np.concatenate(wtiles[:4], 1), np.concatenate(wtiles[4:], 1)], 0))
             print(f"f{k}: " + "  ".join(f"{c} h {row[c]['min_height_cm']:+.1f} tilt {row[c]['mean_tilt_deg']:.1f}" for c in conds)
                   + f"  (state fk-rec max {row['state_fk_minus_recorded_max']:.4f})", flush=True)
