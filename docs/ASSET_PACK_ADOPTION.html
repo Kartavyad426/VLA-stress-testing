@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset Pack Adoption</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--ok:#2d6a3e;--bad:#9b2c2c;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58b8b;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58b8b;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--ok);padding:8px 12px;margin:12px 0}
+.alert{background:var(--card);border-left:3px solid var(--bad);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.84rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+.v{font-size:.72rem;color:var(--ok);font-weight:700}
+.i{font-size:.72rem;color:var(--warn);font-weight:700}
+.mm{font-size:.72rem;color:var(--accent);font-weight:700}
+.nc{color:var(--muted);font-style:italic}
+.no{color:var(--bad);font-weight:600}
+.yes{color:var(--ok);font-weight:600}
+ol li,ul li{margin:.25em 0}
+</style>
+</head>
+<body><main>
+<h1>Adopting commercially usable asset packs for real-to-sim</h1>
+<p class="meta">2026-10-19 · session AssetPack, brief from prim · outline approved by the user 10-19 · builds on <a href="SIM_READY_ASSET_LIBRARIES.html">SIM_READY_ASSET_LIBRARIES.html</a> (res32) · scenes and <code>experiments/real2sim/</code> owned by res31</p>
+<div class="status"><b>Status: stage 1 (download) done; stage 2 (matching) done; stage 3 (redundancies) awaiting the user's decisions.</b> Living document, updated at each stage. <span class="v">[V]</span> read in a source file or listing; <span class="mm">[M]</span> measured by me; <span class="i">[I]</span> inferred. All measured numbers are exploratory and UNVERIFIED (session val is not running). Analysis scripts are throwaway, in the session scratchpad, not in the repo (user, 10-19).</div>
+
+<h2>1 · Plan and order (user, 10-19)</h2>
+<ol>
+<li><b>Download</b> the asset packs (gitignored, under <code>data/real2sim/asset_packs/</code>; reverting = deleting that folder).</li>
+<li><b>Match</b> them against the models we already have (LIBERO originals + LIBERO-Plus, <a href="REAL_TO_SIM_ASSETS.html">REAL_TO_SIM_ASSETS.html</a>).</li>
+<li><b>Redundancies:</b> find duplicates and overlaps, and decide with the user how to deal with them.</li>
+<li><b>Retrieval:</b> then the retrieval part (name match first, image index after), including how to make it faster or better.</li>
+</ol>
+<p>Rules: ask the user before any repo code or permanent change; keep everything revertible; prim commits at each stage. Changes to res31's files (e.g. <code>build_scene.py</code>) go as proposals through prim.</p>
+
+<h2>2 · What the scenes use today</h2>
+<div class="tw"><table>
+<tr><th>Scene</th><th>Object</th><th>Model today</th><th>Commercial use</th></tr>
+<tr><td>ep_orange_block</td><td>3 blocks</td><td>box primitives</td><td class="yes">yes</td></tr>
+<tr><td>ep_orange_block, ep_c3</td><td>black bowl</td><td>LIBERO original <code>stable_scanned_objects/akita_black_bowl</code> (40 collision boxes) <span class="v">[V]</span></td><td class="nc">licence not checked; see §4</td></tr>
+<tr><td>ep_c3</td><td>8 toy blocks</td><td>box primitives</td><td class="yes">yes</td></tr>
+<tr><td>ep_c3</td><td>apple</td><td>LIBERO-Plus <code>new_objects/apple/agveuv</code> <span class="v">[V]</span></td><td class="no">probably no (BEHAVIOR-1K layout, res32 §4)</td></tr>
+<tr><td>ep_c3</td><td>red radish</td><td>LIBERO-Plus <code>new_objects/half_radish/kyujnh</code>, scaled ×5.2 <span class="v">[V]</span></td><td class="no">probably no</td></tr>
+</table></div>
+<p class="meta">Source: <code>runs/real2sim/*/scene_fit.json</code>. Note: <code>build_scene.py</code> collides every retrieved mesh as one convex hull (density 500), which would fill the cavity of any new container; the adoption needs a per-source collision policy (proposal to res31 later).</p>
+
+<h2>3 · Stage 1: downloads</h2>
+<div class="tw"><table>
+<tr><th>Pack</th><th>What</th><th>Size</th><th>Licence</th><th>Where</th><th>State</th></tr>
+<tr><td>NVIDIA/Lightwheel Kitchen-MJCF, objects only</td><td>69 object categories (<code>objects_lightwheel/*.zip</code>) + README <span class="v">[V]</span></td><td>0.79 GB (HF listing) <span class="v">[V]</span></td><td>CC BY 4.0 (res32) — to re-read in the README</td><td><code>data/real2sim/asset_packs/kitchen_mjcf/</code> (<code>zips/</code> 755 MB as downloaded, <code>objects/</code> 1.5 GB unzipped)</td><td><b>done</b>: 70 files, 69 categories, 922 model folders <span class="mm">[M]</span>; README states <code>license: cc-by-4.0</code> <span class="v">[V]</span>; each model = <code>model.xml</code> + <code>visual/</code> + <code>collision/</code> pieces <span class="v">[V]</span></td></tr>
+<tr><td>mujoco_scanned_objects (GSO in MJCF)</td><td>1,030 models <span class="v">[V]</span>, snapshot tarball without git history</td><td>1.95 GB of files (GitHub tree listing) <span class="v">[V]</span>; user approved 10-19</td><td>repo MIT (GitHub API) <span class="v">[V]</span>; meshes CC BY 4.0 (res32) — to re-read</td><td><code>data/real2sim/asset_packs/gso_mjcf/src/</code> (2.0 GB; tarball 1.07 GB, deleted after extracting)</td><td><b>done</b>: 1,030 models <span class="mm">[M]</span>; README: "3D assets (obj and png) … CC-BY 4.0 … MJCF (XML) files … MIT" <span class="v">[V]</span>; each model = <code>model.obj</code> + 32 <code>model_collision_*.obj</code> (V-HACD) + <code>texture.png</code> <span class="v">[V]</span></td></tr>
+</table></div>
+<p><b>Coverage from file names only</b> <span class="v">[V]</span>: Kitchen-MJCF has no apple, radish or plain bowl (it has <code>fruit_bowl</code>), so on its own it cannot replace the ep_c3 objects; it adds utensils, containers and foods. GSO has many bowls, mugs and block sets, and a model named <code>Now_Designs_Bowl_Akita_Black</code>.</p>
+
+<h2>4 · Stage 2: matching against what we have</h2>
+<h3>4a · LIBERO's "scanned objects" are Google Scanned Objects</h3>
+<p>Each LIBERO <code>stable_scanned_objects</code> model was compared with all 1,030 GSO models: texture (downscaled to 32×32, RMSE on 0–255) and the sorted bounding-box extents of the visual mesh <span class="mm">[M]</span>.</p>
+<div class="tw"><table>
+<tr><th>LIBERO model</th><th>GSO model</th><th>Texture RMSE</th><th>Extents (m), LIBERO vs GSO</th><th>Verdict</th></tr>
+<tr><td><b>akita_black_bowl</b> (our scenes' bowl)</td><td>Now_Designs_Bowl_Akita_Black</td><td>0.20</td><td>0.0752 / 0.1589 / 0.1597, identical</td><td class="yes">same scan</td></tr>
+<tr><td>chefmate_8_frypan</td><td>Chefmate_8_Frypan</td><td>0.00</td><td>identical to 0.1 mm</td><td class="yes">same scan</td></tr>
+<tr><td>glazed_rim_porcelain_ramekin</td><td>BIA_Porcelain_Ramekin_With_Glazed_Rim_35_45_oz_cup</td><td>0.00</td><td>identical</td><td class="yes">same scan</td></tr>
+<tr><td>plate</td><td>Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring</td><td>0.21</td><td>identical</td><td class="yes">same scan</td></tr>
+<tr><td>white_bowl, red_bowl</td><td>Threshold_Bead_Cereal_Bowl_White</td><td>0.21</td><td>identical</td><td class="yes">same scan (both)</td></tr>
+<tr><td>basket</td><td>Threshold_Basket_Natural_Finish_Fabric_Liner_Small</td><td>0.59</td><td>0.148 / 0.162 / <b>0.173</b> vs 0.148 / 0.162 / <b>0.239</b></td><td>same scan, one dimension shorter in LIBERO <span class="i">[I: trimmed]</span></td></tr>
+<tr><td>basin_faucet_base / _movable, simple_rack</td><td>none</td><td>—</td><td>—</td><td>not GSO (no texture; LIBERO-made)</td></tr>
+</table></div>
+<p><b>Consequence:</b> our bowl's <i>mesh and texture</i> are a GSO scan, so CC BY 4.0 with attribution. Its 40 hand-placed collision boxes were made by LIBERO; LIBERO-Plus ships no licence file <span class="v">[V]</span>, and upstream LIBERO's licence is <span class="nc">not checked</span>. GSO's own copy has 32 V-HACD parts instead, so a fully CC BY bowl is available either way.</p>
+<p class="meta">LIBERO <code>stable_hope_objects</code> (HOPE dataset) and <code>turbosquid_objects</code> (TurboSquid) were not compared; their licences are <span class="nc">not checked</span>.</p>
+
+<h3>4b · Category overlap with LIBERO-Plus</h3>
+<p>Crude head-noun match of category / model names (e.g. <code>bottle_of_beer</code> → "bottle") <span class="mm">[M]</span>. It over-counts (generic nouns like "bottle" or "box" match many GSO products), so treat it as an upper bound.</p>
+<div class="tw"><table>
+<tr><th></th><th>Count</th></tr>
+<tr><td>LIBERO-Plus <code>new_objects</code> categories</td><td>416</td></tr>
+<tr><td>… with a Kitchen-MJCF category of the same head noun</td><td>162</td></tr>
+<tr><td>… with at least one GSO model containing the head noun</td><td>265</td></tr>
+<tr><td>… with either</td><td>276 (66%)</td></tr>
+<tr><td>Kitchen-MJCF categories with no LIBERO-Plus counterpart (new coverage)</td><td>45 of 69, e.g. colander, kettle, saucepan, strainer, whisk, tongs, peeler, tupperware, dish rack</td></tr>
+</table></div>
+<h3>4c · The objects in our scenes</h3>
+<div class="tw"><table>
+<tr><th>Scene object</th><th>Kitchen-MJCF</th><th>GSO</th><th>Commercially usable replacement?</th></tr>
+<tr><td>black bowl</td><td>fruit_bowl only</td><td>the same akita bowl + ~15 other bowls</td><td class="yes">yes: GSO <code>Now_Designs_Bowl_Akita_Black</code> (identical scan)</td></tr>
+<tr><td>apple</td><td>none</td><td>none (only toy/food <i>sets</i>, e.g. <code>ASSORTED_VEGETABLE_SET</code>, <code>VEGETABLE_GARDEN</code>, not checked visually)</td><td class="no">not in these two packs</td></tr>
+<tr><td>red radish</td><td>none</td><td>none</td><td class="no">not in these two packs</td></tr>
+<tr><td>blocks</td><td>—</td><td>block sets exist (<code>50_BLOCKS</code>, <code>CREATIVE_BLOCKS_35_MM</code>…)</td><td>not needed: box primitives fit better</td></tr>
+</table></div>
+<p class="meta">Scripts (scratchpad, throwaway): <code>scripts/dup_scanned.py</code>, <code>scripts/dup_tex.py</code>, <code>scripts/cat_overlap.py</code>; output <code>out/dup_scanned.json</code>, <code>out/cat_overlap.json</code>. UNVERIFIED.</p>
+
+<h2>5 · Stage 3: redundancies</h2>
+<p>Three kinds found; how to deal with them is the user's decision (§7).</p>
+<ol>
+<li><b>Exact duplicates across libraries:</b> 8 LIBERO scanned models = GSO models (§4a). Same mesh, different collision (LIBERO hand-made boxes vs GSO V-HACD).</li>
+<li><b>Category overlap:</b> up to 276 of 416 LIBERO-Plus categories have a Kitchen-MJCF or GSO counterpart (§4b). LIBERO-Plus is research-only, so for a product the CC BY copy wins; for research the LIBERO-Plus copy can stay under <code>--assets libero</code>.</li>
+<li><b>Variants inside a pack:</b> Kitchen-MJCF has 6–25 models per category (922 total); GSO has some near-duplicate product entries (e.g. <code>Granimals_20_Wooden_ABC_Blocks_Wagon</code> three times with id suffixes). Retrieval needs either all variants (more choice) or one per category (faster index).</li>
+</ol>
+
+<h2>6 · Stage 4: retrieval</h2>
+<p class="nc">Not started.</p>
+
+<h2>7 · Decisions log</h2>
+<ul>
+<li>10-19 · outline approved for the most part; order download → match → redundancies → retrieval.</li>
+<li>10-19 · mass/friction/scale: our category defaults, user-overridable per scene (label beats category beats default), recorded in <code>scene_fit.json</code>.</li>
+<li>10-19 · Kitchen-MJCF objects (0.79 GB) and full GSO-MJCF (1.95 GB) downloads approved.</li>
+<li>10-19 · throwaway analysis scripts in the scratchpad are fine; repo code still needs a go.</li>
+<li>10-19 · stages 1–2 done; stage 3 decisions pending with the user.</li>
+</ul>
+</main></body></html>
