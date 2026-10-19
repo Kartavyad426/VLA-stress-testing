@@ -1,0 +1,131 @@
+put the green block in the bowl v0: done in 41 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the green block in the bowl v1: done in 49 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+put the green block in the bowl v2: done in 77 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+put the green block in the bowl v3: done in 68 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+put the green block in the bowl v4: done in 60 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked False
+put the orange block in the bowl v0: done in 75 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked True
+put the orange block in the bowl v1: done in 69 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the orange block in the bowl v2: done in 63 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked True
+put the orange block in the bowl v3: done in 60 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+put the orange block in the bowl v4: done in 60 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+put the yellow block in the bowl v0: done in 55 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+put the yellow block in the bowl v1: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked False
+put the yellow block in the bowl v2: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked False
+put the yellow block in the bowl v3: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the green block on the orange block v0: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked False
+stack the green block on the orange block v1: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the green block on the orange block v2: done in 43 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the green block on the orange block v3: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the green block on the orange block v4: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked True
+stack the orange block on the yellow block v0: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+stack the orange block on the yellow block v1: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked True
+stack the orange block on the yellow block v2: done in 42 s
+  -> success False stages {'reached': False, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the orange block on the yellow block v3: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+stack the orange block on the yellow block v4: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+move the orange block next to the green block v0: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+skip move the orange block next to the green block v1: already true for a do-nothing policy
+move the orange block next to the green block v2: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked False
+move the orange block next to the green block v3: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+move the orange block next to the green block v4: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked False
+move the green block next to the orange block v0: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': False, 'placed': False} blocked False
+move the green block next to the orange block v1: done in 42 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+move the green block next to the orange block v2: done in 41 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+move the green block next to the orange block v3: done in 41 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked True
+move the green block next to the orange block v4: done in 42 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+TOTAL {"n": 33, "success": 4, "reached": 32, "closed_at_target": 17, "lifted": 11, "placed": 4, "blocked": 17, "errors": 0}
+  1/5 put the green block in the bowl  (reached 5, closed 4, lifted 4, placed 1, blocked 0)
+  1/5 put the orange block in the bowl  (reached 5, closed 3, lifted 2, placed 1, blocked 4)
+  0/4 put the yellow block in the bowl  (reached 4, closed 1, lifted 0, placed 0, blocked 2)
+  0/5 stack the green block on the orange block  (reached 5, closed 1, lifted 0, placed 0, blocked 4)
+  0/5 stack the orange block on the yellow block  (reached 4, closed 2, lifted 1, placed 0, blocked 4)
+  0/4 move the orange block next to the green block  (reached 4, closed 2, lifted 1, placed 0, blocked 1)
+  2/5 move the green block next to the orange block  (reached 5, closed 4, lifted 3, placed 2, blocked 2)
+152 frames; recorded gripper first > 0.5 at frame 75
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  52%|█████▏    | 538/1031 [00:00<00:00, 3798.18it/s]Loading weights:  89%|████████▉ | 918/1031 [00:00<00:00, 3013.26it/s]Loading weights: 100%|██████████| 1031/1031 [00:00<00:00, 3152.56it/s]
+policy ready: {'ready': True, 'load_s': 2.449817657470703, 'vram_alloc_gib': 5.874017715454102}
+[put the orange block in the ] f  0 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 11.2 cm dz pred -8.8 real -0.9
+[put the orange block in the ] f  3 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 12.1 cm dz pred -9.9 real -1.9
+[put the orange block in the ] f  6 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 10.9 cm dz pred -10.2 real -2.9
+[put the orange block in the ] f  9 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 8.6 cm dz pred -9.3 real -3.6
+[put the orange block in the ] f 12 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 7.9 cm dz pred -10.4 real -4.5
+[put the orange block in the ] f 15 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 7.0 cm dz pred -9.5 real -6.2
+[put the orange block in the ] f 18 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 8.2 cm dz pred -11.0 real -7.8
+[put the orange block in the ] f 21 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 5.2 cm dz pred -11.7 real -9.2
+[put the orange block in the ] f 24 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 4.1 cm dz pred -14.0 real -10.6
+[put the orange block in the ] f 27 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 2.8 cm dz pred -14.5 real -11.5
+[put the orange block in the ] f 30 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 2.9 cm dz pred -14.4 real -11.6
+[put the orange block in the ] f 33 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 3.2 cm dz pred -14.3 real -11.4
+[put the orange block in the ] f 36 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 3.9 cm dz pred -14.4 real -10.9
+[put the orange block in the ] f 39 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 3.4 cm dz pred -12.8 real -10.4
+[put the orange block in the ] f 42 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 2.7 cm dz pred -11.2 real -9.9
+[put the orange block in the ] f 45 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 2.2 cm dz pred -9.6 real -9.2
+[put the orange block in the ] f 48 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 2.2 cm dz pred -8.4 real -7.9
+[put the orange block in the ] f 51 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 1.9 cm dz pred -7.1 real -6.4
+[put the orange block in the ] f 54 grip 0.00 pred_grip_max 0.41 (close@None) real_next_max 0.09 ee_err 2.2 cm dz pred -5.4 real -4.9
+[put the orange block in the ] f 57 grip 0.00 pred_grip_max 0.74 (close@11) real_next_max 0.33 ee_err 2.6 cm dz pred -3.1 real -3.3
+[put the orange block in the ] f 60 grip 0.00 pred_grip_max 0.78 (close@9) real_next_max 0.52 ee_err 3.0 cm dz pred -1.4 real -1.8
+[put the orange block in the ] f 63 grip 0.00 pred_grip_max 0.79 (close@8) real_next_max 0.52 ee_err 3.4 cm dz pred -0.3 real -0.5
+[put the orange block in the ] f 66 grip 0.00 pred_grip_max 0.79 (close@7) real_next_max 0.52 ee_err 2.6 cm dz pred +1.7 real +1.6
+[put the orange block in the ] f 69 grip 0.09 pred_grip_max 0.80 (close@0) real_next_max 0.52 ee_err 2.3 cm dz pred +7.0 real +6.1
+[put the orange block in the ] f 72 grip 0.33 pred_grip_max 0.75 (close@0) real_next_max 0.52 ee_err 7.0 cm dz pred +12.0 real +10.9
+[put the orange block in the ] f 75 grip 0.52 pred_grip_max 0.79 (close@0) real_next_max 0.52 ee_err 10.2 cm dz pred +13.7 real +13.9
+[put the orange block in the ] f 78 grip 0.52 pred_grip_max 0.78 (close@0) real_next_max 0.52 ee_err 7.8 cm dz pred +13.5 real +14.7
+[put the orange block in the ] f 81 grip 0.52 pred_grip_max 0.79 (close@0) real_next_max 0.52 ee_err 4.7 cm dz pred +12.9 real +13.4
+[put the orange block in the ] f 84 grip 0.52 pred_grip_max 0.79 (close@0) real_next_max 0.52 ee_err 5.8 cm dz pred +9.4 real +9.2
+[put the orange block in the ] f 87 grip 0.52 pred_grip_max 0.80 (close@0) real_next_max 0.52 ee_err 7.3 cm dz pred +6.6 real +4.1
+[put the orange block in the ] f 90 grip 0.52 pred_grip_max 0.80 (close@0) real_next_max 0.52 ee_err 7.9 cm dz pred +1.3 real +0.2
+[put the orange block in the ] f 93 grip 0.52 pred_grip_max 0.79 (close@0) real_next_max 0.52 ee_err 9.9 cm dz pred -2.2 real -1.9
+[put the orange block in the ] f 96 grip 0.52 pred_grip_max 0.78 (close@0) real_next_max 0.52 ee_err 10.2 cm dz pred -4.2 real -3.4
+[put the orange block in the ] f 99 grip 0.52 pred_grip_max 0.79 (close@0) real_next_max 0.52 ee_err 9.6 cm dz pred -5.2 real -4.4
+[put the orange block in the ] f102 grip 0.52 pred_grip_max 0.81 (close@0) real_next_max 0.52 ee_err 7.6 cm dz pred -7.5 real -4.7
+[put the orange block in the ] f105 grip 0.52 pred_grip_max 0.81 (close@0) real_next_max 0.52 ee_err 6.4 cm dz pred -7.0 real -4.6
+[put the orange block in the ] f108 grip 0.52 pred_grip_max 0.81 (close@0) real_next_max 0.52 ee_err 6.7 cm dz pred -4.6 real -4.5
+[put the orange block in the ] f111 grip 0.52 pred_grip_max 0.83 (close@0) real_next_max 0.52 ee_err 7.7 cm dz pred -3.4 real -4.6
+[put the orange block in the ] f114 grip 0.52 pred_grip_max 0.85 (close@0) real_next_max 0.52 ee_err 8.6 cm dz pred -1.2 real -4.1
+[put the orange block in the ] f117 grip 0.52 pred_grip_max 0.88 (close@0) real_next_max 0.52 ee_err 9.4 cm dz pred +0.4 real -2.3
+[put the orange block in the ] f120 grip 0.52 pred_grip_max 0.01 (close@None) real_next_max 0.52 ee_err 11.8 cm dz pred +7.3 real +0.8
+[put the orange block in the ] f123 grip 0.52 pred_grip_max 0.03 (close@None) real_next_max 0.52 ee_err 9.5 cm dz pred +6.9 real +5.7
+[put the orange block in the ] f126 grip 0.43 pred_grip_max 0.00 (close@None) real_next_max 0.36 ee_err 7.4 cm dz pred +9.9 real +11.3
+[put the orange block in the ] f129 grip 0.21 pred_grip_max 0.01 (close@None) real_next_max 0.12 ee_err 16.6 cm dz pred +12.0 real +15.6
+[put the orange block in the ] f132 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 19.1 cm dz pred +9.8 real +17.6
+[put the orange block in the ] f135 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 19.5 cm dz pred +9.2 real +16.7
+[put the orange block in the ] f138 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 14.0 cm dz pred -0.4 real +12.7
+[put the orange block in the ] f141 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 12.7 cm dz pred -4.0 real +8.4
+[put the orange block in the ] f144 grip 0.00 pred_grip_max 0.01 (close@None) real_next_max 0.00 ee_err 10.3 cm dz pred -6.3 real +4.5
+[put the orange block in the ] f147 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 8.4 cm dz pred -5.1 real +1.5
+[put the orange block in the ] f150 grip 0.00 pred_grip_max 0.00 (close@None) real_next_max 0.00 ee_err 6.2 cm dz pred -2.9 real +0.0
+SUMMARY [put the orange block in the bowl]: first predicted close at frame 68 (real 75); mean EE error over 15 steps 7.4 cm

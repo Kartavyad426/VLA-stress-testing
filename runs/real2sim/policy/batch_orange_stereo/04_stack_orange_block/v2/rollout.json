@@ -1,0 +1,89 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "stack",
+  "target": "orange_block",
+  "ref": "yellow_block",
+  "text": "stack the orange block on the yellow block"
+ },
+ "instruction": "stack the orange block on the yellow block",
+ "variant": 2,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.332698345184326,
+ "infer_s_median": 0.23785829544067383,
+ "wall_s": 34.27524781227112,
+ "vram": {
+  "vram_alloc_gib": 6.017563343048096,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.35612227306365973,
+ "gripper_closed_frac": 0.015555555555555555,
+ "final_target_xyz": [
+  0.674124792495199,
+  0.09709558753096803,
+  -0.07726767525498615
+ ],
+ "final_ref_xyz": [
+  0.5597475917952275,
+  0.023870803822131192,
+  -0.08175453321479266
+ ],
+ "wrist_view": "textured (exterior plate + real wrist frame 0, composite.WristCompositor)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": false,
+  "closed_at_target": false,
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": null,
+   "closed_at_target": null,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.03357091019178891,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.06762131651316844,
+  "median_err_m": 0.030075687546984795,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 101,
+    "steps": 19,
+    "mean_err_m": 0.035590709920859685,
+    "mean_dz_cmd_minus_ach_m": -0.025847778115332804
+   },
+   {
+    "start": 202,
+    "steps": 25,
+    "mean_err_m": 0.039892506822527166,
+    "mean_dz_cmd_minus_ach_m": -0.025898346502938575
+   },
+   {
+    "start": 346,
+    "steps": 25,
+    "mean_err_m": 0.03270344347026824,
+    "mean_dz_cmd_minus_ach_m": -0.022504530239245004
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

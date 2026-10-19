@@ -1,0 +1,119 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "stack",
+  "target": "orange_block",
+  "ref": "yellow_block",
+  "text": "stack the orange block on the yellow block"
+ },
+ "instruction": "stack the orange block on the yellow block",
+ "variant": 1,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.4079818725585938,
+ "infer_s_median": 0.20572984218597412,
+ "wall_s": 34.20959663391113,
+ "vram": {
+  "vram_alloc_gib": 6.017563343048096,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.2865911899566651,
+ "gripper_closed_frac": 0.05555555555555555,
+ "final_target_xyz": [
+  0.6717878272359548,
+  0.1845520821989872,
+  -0.07726767525489324
+ ],
+ "final_ref_xyz": [
+  0.5451116299553957,
+  0.027062338159721935,
+  -0.0817545332148602
+ ],
+ "wrist_view": "textured (exterior plate + real wrist frame 0, composite.WristCompositor)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": 32,
+   "closed_at_target": 64,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.01471816177243364,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.09404735064332234,
+  "median_err_m": 0.038823114853042254,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 140,
+    "steps": 25,
+    "mean_err_m": 0.041818252728667175,
+    "mean_dz_cmd_minus_ach_m": -0.02885191064829946
+   },
+   {
+    "start": 190,
+    "steps": 33,
+    "mean_err_m": 0.0496265493448546,
+    "mean_dz_cmd_minus_ach_m": -0.03841243221116237
+   },
+   {
+    "start": 224,
+    "steps": 16,
+    "mean_err_m": 0.05300706208754159,
+    "mean_dz_cmd_minus_ach_m": -0.04068806753063003
+   },
+   {
+    "start": 241,
+    "steps": 41,
+    "mean_err_m": 0.0515925217231321,
+    "mean_dz_cmd_minus_ach_m": -0.03975025659224096
+   },
+   {
+    "start": 283,
+    "steps": 17,
+    "mean_err_m": 0.05773948604321535,
+    "mean_dz_cmd_minus_ach_m": -0.045698878463783114
+   },
+   {
+    "start": 302,
+    "steps": 35,
+    "mean_err_m": 0.05201376976246063,
+    "mean_dz_cmd_minus_ach_m": -0.04140392662049356
+   },
+   {
+    "start": 338,
+    "steps": 20,
+    "mean_err_m": 0.05195329776976935,
+    "mean_dz_cmd_minus_ach_m": -0.040379647970642
+   },
+   {
+    "start": 415,
+    "steps": 17,
+    "mean_err_m": 0.06804063904968882,
+    "mean_dz_cmd_minus_ach_m": -0.05124850727747037
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

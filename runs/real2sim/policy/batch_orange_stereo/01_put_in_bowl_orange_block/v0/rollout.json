@@ -1,0 +1,77 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "orange_block",
+  "ref": "black_bowl",
+  "text": "put the orange block in the bowl"
+ },
+ "instruction": "put the orange block in the bowl",
+ "variant": 0,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 5.671487092971802,
+ "infer_s_median": 0.5154120922088623,
+ "wall_s": 58.20883297920227,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.23169650421142585,
+ "gripper_closed_frac": 0.18444444444444444,
+ "final_target_xyz": [
+  0.740558148168918,
+  -0.10839897249830145,
+  -0.07730802390871637
+ ],
+ "final_ref_xyz": [
+  0.6439128034657772,
+  -0.2960028091970153,
+  -0.09692527762191257
+ ],
+ "wrist_view": "textured (exterior plate + real wrist frame 0, composite.WristCompositor)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 31,
+   "closed_at_target": 160,
+   "lifted": 169
+  },
+  "min_dist_to_target_m": 0.00530967372192423,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.07927338788138456,
+  "median_err_m": 0.017071197334278098,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 311,
+    "steps": 20,
+    "mean_err_m": 0.0420917899061686,
+    "mean_dz_cmd_minus_ach_m": -0.02774149574971687
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

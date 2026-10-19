@@ -1,0 +1,89 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "yellow_block",
+  "ref": "black_bowl",
+  "text": "put the yellow block in the bowl"
+ },
+ "instruction": "put the yellow block in the bowl",
+ "variant": 0,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 4.650387763977051,
+ "infer_s_median": 0.35666656494140625,
+ "wall_s": 41.06822443008423,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.3652492542266845,
+ "gripper_closed_frac": 0.0,
+ "final_target_xyz": [
+  0.5739061102648888,
+  0.028539685272720067,
+  -0.08175453321476474
+ ],
+ "final_ref_xyz": [
+  0.6566490462344438,
+  -0.28152270141206565,
+  -0.09692527762006303
+ ],
+ "wrist_view": "textured (exterior plate + real wrist frame 0, composite.WristCompositor)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": false,
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": 28,
+   "closed_at_target": null,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.019397353348472316,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.07464245399511722,
+  "median_err_m": 0.04403289875412309,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 196,
+    "steps": 15,
+    "mean_err_m": 0.04645813390155246,
+    "mean_dz_cmd_minus_ach_m": -0.022852283492145336
+   },
+   {
+    "start": 224,
+    "steps": 32,
+    "mean_err_m": 0.043575581221694026,
+    "mean_dz_cmd_minus_ach_m": -0.022060137071533557
+   },
+   {
+    "start": 343,
+    "steps": 15,
+    "mean_err_m": 0.040425186431312,
+    "mean_dz_cmd_minus_ach_m": -0.01803409396664657
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}
