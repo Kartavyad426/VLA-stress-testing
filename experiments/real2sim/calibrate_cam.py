@@ -134,6 +134,8 @@ def main():
     # metric anchors (10-16): the robot outline alone left the 3D pose ~6 cm off at the objects (found by stereo)
     ap.add_argument("--anchors", default=None, help="wrist_anchors.json: metric 3D object points (wrist stereo + FK); "
                     "each must project onto a perception mask of the same label (nearest instance)")
+    ap.add_argument("--anchor_labels", default=None, help="comma-separated labels to use as anchors (default: all)")
+    ap.add_argument("--anchor_min_frames", type=int, default=1, help="use only anchors seen in at least this many wrist frames")
     ap.add_argument("--anchor_weight", type=float, default=0.0, help="cost per px (at 1/DOWN res) of mean anchor reprojection error")
     ap.add_argument("--table_z", type=float, default=None, help="table-top z in the robot frame from an independent source "
                     "(stereo_depth.py wrist results); the exterior stereo table points must land there")
@@ -171,6 +173,10 @@ def main():
                 mask_cent.setdefault(k[5:].split("#")[0], []).append([u_.mean() / DOWN, v_.mean() / DOWN])
         for name, an in json.load(open(a.anchors))["anchors"].items():
             lab = name.split("#")[0]
+            if a.anchor_labels and lab not in a.anchor_labels.split(","):
+                continue
+            if an.get("n_frames", 1) < a.anchor_min_frames:
+                continue
             if lab in mask_cent:
                 anchors3d.append((lab, np.array(an["point"])))
         print("anchors:", [(l, np.round(p, 3).tolist()) for l, p in anchors3d], flush=True)
@@ -370,7 +376,7 @@ def main():
                  delta_rot_deg=float(np.degrees(np.linalg.norm(res.x[:3]))), delta_trans_m=res.x[3:6].tolist(), focal_scale=float(np.exp(res.x[6])) if a.fit_focal else 1.0,
                  cost_before_px=c0, cost_after_px=c1, iou_before=i0, iou_after=i1, frames=FRAMES,
                  principal_mode=mode, convention_check_px=errs, nfev=int(res.nfev),
-                 anchors=a.anchors, anchor_weight=a.anchor_weight, table_z=a.table_z, table_weight=a.table_weight,
+                 anchors=a.anchors, anchor_labels=a.anchor_labels, anchor_min_frames=a.anchor_min_frames, anchor_weight=a.anchor_weight, table_z=a.table_z, table_weight=a.table_weight,
                  metric_before=metric_report(x0), metric_after=metric_report(res.x))
     json.dump(calib, open(os.path.join(a.out, "calib.json"), "w"), indent=1)
 

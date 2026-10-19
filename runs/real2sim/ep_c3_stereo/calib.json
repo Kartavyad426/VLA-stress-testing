@@ -1,0 +1,87 @@
+{
+ "cam": "22008760",
+ "K": [
+  [
+   524.2409057617188,
+   0.0,
+   639.7772827148438
+  ],
+  [
+   0.0,
+   524.2409057617188,
+   370.2778015136719
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "level_weight": 1.0,
+ "init": "runs/real2sim/ep_c3_stereo/calib_outline_only.json",
+ "tilt_before_deg": 0.020881685458858518,
+ "tilt_after_deg": 0.13700181308943088,
+ "R_cam_to_base": [
+  [
+   -0.7312766890487936,
+   -0.4577229863462951,
+   0.5056916766410764
+  ],
+  [
+   -0.6703404866244053,
+   0.3453239283260327,
+   -0.6568066812370534
+  ],
+  [
+   0.12600807928854896,
+   -0.8192930198016496,
+   -0.5593575883621353
+  ]
+ ],
+ "t_cam_in_base": [
+  0.31603321381543076,
+  0.4227166443602829,
+  0.3595246382118564
+ ],
+ "delta_rot_deg": 0.7007969412412908,
+ "delta_trans_m": [
+  0.004477621023604465,
+  0.00990955800441603,
+  -0.05504591163811806
+ ],
+ "focal_scale": 1.0,
+ "cost_before_px": 21.47256750542548,
+ "cost_after_px": 12.727255477580659,
+ "iou_before": 0.4014177961334392,
+ "iou_after": 0.349743974536069,
+ "frames": [
+  65,
+  212,
+  351,
+  513,
+  646,
+  741,
+  897,
+  1013
+ ],
+ "principal_mode": "offset",
+ "convention_check_px": {
+  "offset": 0.722284292374207,
+  "absolute": Infinity
+ },
+ "nfev": 226,
+ "anchors": "runs/real2sim/ep_c3_stereo/wrist_anchors.json",
+ "anchor_labels": "toy block",
+ "anchor_min_frames": 3,
+ "anchor_weight": 1.0,
+ "table_z": 0.111,
+ "table_weight": 1.0,
+ "metric_before": {
+  "anchor_err_px_full_res": 38.756385713414254,
+  "table_err_cm": 5.429627437436634
+ },
+ "metric_after": {
+  "anchor_err_px_full_res": 16.963622632919236,
+  "table_err_cm": 0.07621234418256351
+ }
+}

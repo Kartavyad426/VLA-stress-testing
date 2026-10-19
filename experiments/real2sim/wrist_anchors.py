@@ -33,7 +33,12 @@ def main():
     ap.add_argument("--min_px", type=int, default=150, help="ignore a detection with fewer valid stereo pixels")
     ap.add_argument("--table_z", type=float, default=None, help="drop detections whose point is not within [-3, +15] cm of this "
                     "table height (wrong detections, e.g. the gripper labelled as a block; seen on ep_orange_block frame 0)")
+    ap.add_argument("--reaggregate", action="store_true", help="re-cluster the observations already in <scene>/wrist_anchors.json")
     a = ap.parse_args()
+    if a.reaggregate:
+        j = json.load(open(os.path.join(a.scene, "wrist_anchors.json")))
+        per_frame = j.get("per_frame") or {n: [{k: v for k, v in o.items() if k != "det"} for o in an["obs"]] for n, an in j["anchors"].items()}
+        return save(a, j["serial"], per_frame)
     from perceive import detect_multi, segment
     m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
     d = mujoco.MjData(m)
@@ -71,13 +76,40 @@ def main():
                 continue
             per_frame.setdefault(name, []).append(dict(frame=fr, px=int(sel.sum()), mask_px=int(mk.sum()), score=dets[name]["score"],
                                                       point=np.median(pw, 0).tolist(), spread_iqr_m=float(np.mean(np.subtract(*np.percentile(pw, [75, 25], 0))))))
-    anchors = {}
+    save(a, serial, per_frame)
+
+
+def cluster(per_frame, radius=0.03):
+    """Instances by 3D position, per label. The detector numbers instances per frame ("toy block#1" in frame 0 is not
+    "toy block#1" in frame 15; 10-19 on ep_c3 that mixed blocks 10-20 cm apart), so group all observations of a label
+    greedily within `radius` of a cluster's running median; one observation per frame per cluster."""
+    by_label = {}
     for name, obs in per_frame.items():
-        P = np.array([o["point"] for o in obs])
-        anchors[name] = dict(point=np.median(P, 0).tolist(), n_frames=len(obs),
-                             frame_spread_m=float(np.max(np.linalg.norm(P - np.median(P, 0), axis=1))) if len(obs) > 1 else None, obs=obs)
-        print(name, np.round(anchors[name]["point"], 4), "frames", [o["frame"] for o in obs], "spread %.3f" % (anchors[name]["frame_spread_m"] or 0))
-    json.dump(dict(episode=a.episode, serial=serial, baseline_m=BASELINE_M["wrist"], frames=a.frames, anchors=anchors),
+        for o in obs:
+            by_label.setdefault(name.split("#")[0], []).append(dict(o, det=name))
+    anchors = {}
+    for lab, obs in by_label.items():
+        clusters = []
+        for o in sorted(obs, key=lambda o: -o["px"]):
+            p = np.array(o["point"])
+            best = min(clusters, key=lambda c: np.linalg.norm(np.median([q["point"] for q in c], 0) - p), default=None)
+            if best is not None and np.linalg.norm(np.median([q["point"] for q in best], 0) - p) < radius \
+                    and o["frame"] not in {q["frame"] for q in best}:
+                best.append(o)
+            else:
+                clusters.append([o])
+        for i, c in enumerate(sorted(clusters, key=lambda c: -len(c)), 1):
+            P = np.array([q["point"] for q in c])
+            med = np.median(P, 0)
+            anchors[f"{lab}#{i}"] = dict(point=med.tolist(), n_frames=len(c), frame_spread_m=float(np.max(np.linalg.norm(P - med, axis=1))), obs=c)
+    return anchors
+
+
+def save(a, serial, per_frame):
+    anchors = cluster(per_frame)
+    for name, an in anchors.items():
+        print(name, np.round(an["point"], 4), "frames", [o["frame"] for o in an["obs"]], "spread %.3f" % an["frame_spread_m"])
+    json.dump(dict(episode=a.episode, serial=serial, baseline_m=BASELINE_M["wrist"], frames=a.frames, per_frame=per_frame, anchors=anchors),
               open(os.path.join(a.scene, "wrist_anchors.json"), "w"), indent=1)
 
 
