@@ -1,0 +1,137 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "real": {
+  "close_frame": 75,
+  "open_frame": 126,
+  "carry_xy_m": [
+   -0.002116273893026377,
+   -0.2833464600148234
+  ],
+  "carry_dist_m": 0.2833543629770366,
+  "release_height_m": 0.007998016491648802
+ },
+ "bowl_xyz": [
+  0.6566493247136279,
+  -0.2815224827232866,
+  -0.0959032824225205
+ ],
+ "rollouts": {
+  "g2_green": {
+   "instruction": "put the green block in the bowl",
+   "carries": [
+    {
+     "close_step": 250,
+     "release_step": 284,
+     "carry_xy_m": [
+      0.1959356597907601,
+      -0.13921634476031394
+     ],
+     "carry_dist_m": 0.24035801094630294,
+     "object_to_bowl_xy_m": [
+      0.19843592784292413,
+      -0.2692077747482149
+     ],
+     "object_to_bowl_dist_m": 0.3344392970985434,
+     "release_to_bowl_m": 0.13234581022506636,
+     "release_height_above_bowl_base_m": 0.14675330352580498,
+     "B_hand_head_pinch_to_bowl_m": 0.19714220413896832,
+     "B_joint_head_pinch_to_bowl_m": 0.12973360289464397,
+     "B_heads_diff_m": 0.07705194261205195,
+     "chunk_index_at_release": 14
+    }
+   ],
+   "B_heads_diff_median_m": 0.01192989242989051,
+   "B_heads_diff_by_chunk_index_m": {
+    "0": 0.0049106571524933805,
+    "1": 0.010025760692369457,
+    "2": 0.008189802353756916,
+    "3": 0.009291015195478435,
+    "4": 0.010124074405040127,
+    "5": 0.01196151571068556,
+    "6": 0.013800641859495442,
+    "7": 0.014044294933804678,
+    "8": 0.012766539157066081,
+    "9": 0.015849144857052938,
+    "10": 0.01568329889403283,
+    "11": 0.015549816519930306,
+    "12": 0.01371903654148838,
+    "13": 0.01679077103981065,
+    "14": 0.015767269018544677
+   }
+  },
+  "g2_orange": {
+   "instruction": "put the orange block in the bowl",
+   "carries": [
+    {
+     "close_step": 285,
+     "release_step": 320,
+     "carry_xy_m": [
+      0.06460694463705041,
+      -0.17701395199407927
+     ],
+     "carry_dist_m": 0.18843565611607876,
+     "object_to_bowl_xy_m": [
+      0.024933498533792897,
+      -0.3081824559405089
+     ],
+     "object_to_bowl_dist_m": 0.3091894330320142,
+     "release_to_bowl_m": 0.12983248737925074,
+     "release_height_above_bowl_base_m": 0.08923225393853623,
+     "B_hand_head_pinch_to_bowl_m": 0.1465201832115515,
+     "B_joint_head_pinch_to_bowl_m": 0.14154024655526867,
+     "B_heads_diff_m": 0.01048934307659621,
+     "chunk_index_at_release": 5
+    }
+   ],
+   "B_heads_diff_median_m": 0.015027191610030561,
+   "B_heads_diff_by_chunk_index_m": {
+    "0": 0.005091507074029288,
+    "1": 0.009847880901749779,
+    "2": 0.009971321803743934,
+    "3": 0.013152862453774516,
+    "4": 0.01209391432307606,
+    "5": 0.012528588868254822,
+    "6": 0.01417448327564727,
+    "7": 0.01572067188102387,
+    "8": 0.015968006735395168,
+    "9": 0.017235114137103068,
+    "10": 0.014704777146697963,
+    "11": 0.020838885440177563,
+    "12": 0.019828819334206244,
+    "13": 0.022786935233400193,
+    "14": 0.023593848705043653
+   }
+  }
+ },
+ "C_objects_in_exterior_image": {
+  "black bowl": {
+   "iou": 0.8,
+   "centroid_offset_px": 1.1433023536017033,
+   "centroid_offset_cm_at_depth": 0.1873995155026257,
+   "sim_px": 8230,
+   "real_px": 6584
+  },
+  "green block": {
+   "iou": 0.7763819095477387,
+   "centroid_offset_px": 0.19985463421753852,
+   "centroid_offset_cm_at_depth": 0.022674619476988733,
+   "sim_px": 927,
+   "real_px": 1194
+  },
+  "orange block": {
+   "iou": 0.8205565019875071,
+   "centroid_offset_px": 0.417522716098734,
+   "centroid_offset_cm_at_depth": 0.046888556713642206,
+   "sim_px": 1581,
+   "real_px": 1625
+  },
+  "yellow block": {
+   "iou": 0.6686434395848777,
+   "centroid_offset_px": 2.4977384108346454,
+   "centroid_offset_cm_at_depth": 0.2686140167148743,
+   "sim_px": 926,
+   "real_px": 1325
+  }
+ }
+}
