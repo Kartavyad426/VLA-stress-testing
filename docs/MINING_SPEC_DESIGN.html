@@ -328,6 +328,19 @@ mechanism: unknown → hold all situation dims fixed (within tolerance)</pre>
   Every route needs a small hand-labelled check set per tier (20–40 episodes) to measure accuracy, the same as P4b.</li>
 </ul>
 
+<h3 id="s6c1">6c.1 · Search by data type: sim demos, teleop logs, human video <span class="tag prop">added 10-13 · prim with the user · nothing coded</span></h3>
+<p>How the D14 situation search (a snapshot at the root, not the prefix) works on each kind of demo a client could bring. Teleop logs reuse the same gripper events for clipping; human video is the hard case.</p>
+<div class="tw"><table>
+<tr><th></th><th>Sim demos</th><th>Teleop robot logs (DROID, Bridge, client logs)</th><th>Human or egocentric video</th></tr>
+<tr><td>Events and phases (clipping)</td><td>Exact</td><td>Mostly deterministic from proprioception: gripper closing, gripper width, eef speed. The same rules, so the same clipping</td><td>A hand-pose model or IDM-predicted gripper signal, then the same rules; much noisier</td></tr>
+<tr><td>"Is it holding?"</td><td>Exact</td><td>A gripper that stops short of fully closed means it holds something (parallel grippers)</td><td>VLM judge only</td></tr>
+<tr><td>Gripper → object offset</td><td>Exact</td><td>Estimated: object detector + depth + camera calibration, or a 6D pose model if meshes exist. Tolerances widen</td><td>Image position only, no metric units</td></tr>
+<tr><td>Layout / neighbours</td><td>Exact</td><td>Detector + depth</td><td>Image only</td></tr>
+<tr><td>Usable as training data?</td><td>Yes, in its own sim</td><td>Only after conversion to the target robot's action space and cameras (D10)</td><td>Not directly: needs converting hand motion to robot motion (retargeting), a research problem of its own</td></tr>
+<tr><td>Realistic use</td><td>Search and data production</td><td>Search, corpus counts, reference for teleop or sim generation</td><td>Find situations and show a teleoperator what to do; not training data until retargeting is proven</td></tr>
+</table></div>
+<p><b>Why human video is the real problem:</b> no gripper signal (grasp and release must be inferred from hand pose and contact), no metric positions (tolerances such as ±1.5 cm can't be checked, so matching falls back to image embeddings), and the embodiment gap. Which events survive without object poses, and whether hand-pose and contact models are usable, is proposed as an addition to res21's task-event map (docs/TASK_EVENT_MAP.html, in progress; not yet added to its scope).</p>
+
 <h2>6d · User questions, answered, nothing decided <span class="tag open">open · not decided</span></h2>
 <p><b>Summary of the root discussion (UQ1, UQ4, UQ5, UQ7–UQ10):</b> <a href="ROOT_IDENTIFICATION.html">ROOT_IDENTIFICATION.html</a>.</p>
 <p class="muted">Questions the user asked on 10-09, with prim's answers. These are answers and options, <b>not decided solutions</b>. Nothing here changes D1–D15, the v0 schema or ROOT_SIGNAL_EXPERIMENTS until the user decides. [V] = checked against files; [I] = inferred.</p>

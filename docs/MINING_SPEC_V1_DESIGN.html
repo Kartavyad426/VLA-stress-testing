@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mining Spec v1 Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --rule:#D7DDE5;
+    --accent:#2F4A9E; --ok:#1B6B4F; --warn:#8A6A12; --bad:#A8341B; --need:#7A2E8E;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+      --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E; --need:#D59BE6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --rule:#262D37;
+    --accent:#93A9F0; --ok:#5DC79B; --warn:#D9B85C; --bad:#E5905E; --need:#D59BE6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+  main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:19px;margin:40px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  h3{font-size:16px;margin:22px 0 6px}
+  h4{font-size:15px;margin:14px 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  p,li{max-width:86ch}
+  code{font:13px var(--mono);background:var(--surface-2);border-radius:3px;padding:1px 4px}
+  pre{font:12.5px/1.5 var(--mono);background:var(--surface-2);border:1px solid var(--rule);border-radius:6px;padding:12px;overflow-x:auto}
+  ul,ol{padding-left:22px} li{margin:4px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin:12px 0}
+  .card.top{border-left:4px solid var(--accent)}
+  .rec{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--ok);padding:12px 16px;border-radius:6px;margin:12px 0}
+  .warnbox{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--warn);padding:12px 16px;border-radius:6px;margin:12px 0}
+  .needbox{background:var(--surface);border:2px solid var(--need);padding:12px 16px;border-radius:6px;margin:12px 0}
+  .tag{display:inline-block;font:600 11px var(--mono);padding:1px 6px;border-radius:10px;vertical-align:1px;white-space:nowrap}
+  .V{background:var(--ok);color:var(--surface)} .I{background:var(--warn);color:var(--surface)}
+  .U{background:var(--bad);color:var(--surface)}
+  .need{background:var(--need);color:var(--surface)}
+  .src{font:500 11px var(--mono);padding:1px 6px;border-radius:10px;border:1px solid var(--rule);color:var(--muted);white-space:nowrap}
+  .tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--surface);margin:12px 0}
+  table{border-collapse:collapse;width:100%;min-width:760px}
+  th,td{text-align:left;vertical-align:top;padding:7px 11px;border-bottom:1px solid var(--rule);font-size:13.5px}
+  th{background:var(--surface-2);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.id{font:500 13px var(--mono);white-space:nowrap}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .file{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--accent);border-radius:6px;padding:4px 18px 12px;margin:18px 0}
+  .file h3{font:600 15px var(--mono);margin:12px 0 2px}
+  .file .role{color:var(--muted);margin:0 0 6px}
+  .file dl{margin:6px 0;display:grid;grid-template-columns:150px 1fr;gap:6px 14px}
+  .file dt{font-weight:600;font-size:13.5px;color:var(--muted)}
+  .file dd{margin:0;font-size:14px}
+  .file dd ol,.file dd ul{margin:0}
+  @media (max-width:700px){.file dl{grid-template-columns:1fr}.file dt{margin-top:6px}}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  a{color:var(--accent)}
+  nav.toc{columns:2 280px;font-size:14px}
+  nav.toc a{display:block;margin:2px 0}
+  svg.flow{width:100%;height:auto;max-width:1000px;display:block;margin:10px 0}
+  svg.flow rect{fill:var(--surface);stroke:var(--rule);stroke-width:1.2}
+  svg.flow rect.k{stroke:var(--accent);stroke-width:2}
+  svg.flow rect.g{stroke:var(--need);stroke-dasharray:5 4;stroke-width:1.6}
+  svg.flow text{fill:var(--ink);font:12.5px var(--sans)}
+  svg.flow text.m{fill:var(--muted);font:11.5px var(--mono)}
+  svg.flow path{stroke:var(--muted);stroke-width:1.4;fill:none;marker-end:url(#ah)}
+  svg.flow marker path{fill:var(--muted);stroke:none}
+  footer{color:var(--muted);font-size:13px;margin-top:40px;border-top:1px solid var(--rule);padding-top:12px}
+</style>
+</head>
+<body>
+<main>
+<h1>Mining spec v1: design before code</h1>
+<p class="sub">Design doc for the v1 PoC · 2026-10-09 · PoC session · outline approved by the user 10-09 · <b>nothing is coded</b>; coding starts only after the user approves this doc.
+Builds on <code>docs/MINING_SPEC_DESIGN.html</code> (D1–D15, §6d UQ1/UQ7/UQ10, §7b) and the toy (<code>docs/MINING_SPEC_POC_INTERNAL.html</code>).</p>
+
+<div class="card top">
+<b>How to read it.</b>
+<span class="tag V">V</span> checked against code or files in this session.
+<span class="tag I">I</span> inferred or estimated.
+<span class="tag U">UNVERIFIED</span> produced by code nobody has checked yet (PIPELINE_CHECKS).
+<span class="tag need">NEEDS YOU</span> a decision or approval only the user can give. All of these are collected in §0.
+Every threshold carries its origin: <span class="src">fit: demos</span> fitted from the 500 human demos,
+<span class="src">fit: ours</span> fitted from our successful rollouts, <span class="src">toy</span> carried from the toy,
+<span class="src">placeholder</span> a guess to be replaced by a fit or by labels.
+</div>
+
+<nav class="toc card">
+<a href="#needs">0 · Items that need you</a>
+<a href="#scope">1 · Scope and v1's pass test</a>
+<a href="#flow">2 · Data flow</a>
+<a href="#root">3 · Root logic</a>
+<a href="#files">4 · Per-file specs</a>
+<a href="#fixfirst">5 · Fix-first list</a>
+<a href="#thresholds">6 · Thresholds and where they come from</a>
+<a href="#labels">7 · Hand-labelling protocol</a>
+<a href="#schema">8 · Schema and index v0</a>
+<a href="#layout">9 · File layout in the v1 worktree</a>
+<a href="#effort">10 · Order of work, effort, val handovers</a>
+</nav>
+
+<h2 id="needs">0 · Items that need you</h2>
+<div class="needbox">
+<ol>
+<li id="N1"><span class="tag need">N1</span> <b>Root option</b> (§3.4). The choices are (a) first unrecovered event, (b) first event in time, (c) fixed precedence, (d) last event, (e) a plus "costly recovery".
+I recommend <b>(a) with the costly-recovery flag stored</b>, and storing all five so they can be compared.
+On the toy episode, (a) and (b) name <i>different</i> roots (§3.5).</li>
+<li id="N2"><span class="tag need">N2</span> <b>What "recovered" means</b> (§3.3). R1, phase-local (recommended), or R2, the whole episode succeeds.</li>
+<li id="N3"><span class="tag need">N3</span> <b>"Recovery" instance type in v1</b> (§3.6). Recommended yes: it comes from the same event table at almost no extra cost.</li>
+<li id="N4"><span class="tag need">N4</span> <b>Who labels</b> the ~30 episodes, and the ~3–4 h this takes (§7).</li>
+<li id="N5"><span class="tag need">N5</span> <b>Acceptance bars for the rules</b> (§7.5). My proposal: root agreement ≥ 80% for the chosen option and per-mode precision ≥ 0.8. Below the bar, a mode is marked "unvalidated" in every spec that uses it.</li>
+<li id="N6"><span class="tag need">N6</span> <b>Layout check: world positions or positions relative to the target</b> (§4, snapshot). On the toy, world positions excluded about half the human demos on layout alone (27 of 53 passed), and every demo once the offset check was added too. Relative positions keep more of them, but treat a shifted scene as the same situation.</li>
+<li id="N7"><span class="tag need">N7</span> <b>Default search tolerances</b> (§6). These decided the toy's answer: one hit at ±1.5 cm, none at ±1.0. Proposal: keep the toy's values as defaults and make the tolerance sweep a required part of every search output.</li>
+<li id="N8"><span class="tag need">N8</span> <b>Is P7b (producing successes in sim) in v1?</b> Proposal: stretch only, after the core passes val.</li>
+<li id="N9"><span class="tag need">N9</span> <b>A correction to the toy docs.</b> Row 14's 6th attempt was a placement 5–6 cm off the plate centre, not a drop (§3.5, <span class="tag V">V</span>).
+Doc A says "drops it" in three places, and Doc B, my handoff section and the <code>lifted_then_dropped</code> field in <code>runs/poc_toy/instance.json</code> repeat it.
+I need your OK to correct them. They are docs, plus one field name in an output, so val's scope doesn't apply. The instance builder would be re-run, though, and that is code.</li>
+<li id="N10"><span class="tag need">N10</span> <b>GPU render step for the labelling videos</b>: ~30 episodes, about 10–15 min of replay through prim and impl (§7.3).</li>
+<li id="N11"><span class="tag need">N11</span> <b>Effort.</b> The core comes to ~12.5–15.5 working days (§10), more than my earlier 6.5–9.5-day port estimate. The new event and recovery logic, the labelling tooling and the val handovers are what UQ10 added. Accept, or trim (§10.3 lists the trims).</li>
+<li id="N12"><span class="tag need">N12</span> <b>Use podolinsky's labelled GR00T rollouts alongside the ~30-episode set?</b> (§7.6, added by prim 10-12). They come from NVIDIA's libero_10 checkpoint, not ours, so they can only audit the symptom labels and the VLM labeller; they can't replace labels on our own rollouts. Our config and earlier results stay as they are. Proposal: yes, as an extra audit set, outside v1's pass test.</li>
+</ol>
+</div>
+
+<h2 id="scope">1 · Scope and v1's pass test</h2>
+<div class="tw"><table>
+<tr><th>Item</th><th>v1 choice</th><th>Meaning</th></tr>
+<tr><td class="id">P1a</td><td>Base GR00T N1.7 (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>), LIBERO-Spatial, 10 tasks</td><td>Failures from R-047's start-pose axis: 360 rollouts, 112 failed. Across both axes there are 720 rollouts and 176 failures, of which 64 are camera-yaw failures, which are out of scope <span class="tag V">V</span>. Pools: our successful rollouts plus the 500 human demos in <code>data/libero_raw</code>.</td></tr>
+<tr><td class="id">P2a</td><td>Numeric situation fields from sim state</td><td>Every field carries <code>source</code> (D15). In v1 everything is <code>exact</code>.</td></tr>
+<tr><td class="id">P3a</td><td>Per-phase success templates over sim state</td><td><code>grasp.ok</code> and <code>place.ok</code> (§4, criteria).</td></tr>
+<tr><td class="id">P4b</td><td>Rule-based events and root, measured against ~30 hand-labelled episodes</td><td>§3, §7. <code>divergence_point</code> is not used (§5).</td></tr>
+<tr><td class="id">P5b</td><td>Minimal index: 4 phases × modes, with numeric rules</td><td>§8.</td></tr>
+<tr><td class="id">P6a</td><td>One JSON spec file plus JSON Schema plus validator; JSONL event tables behind search</td><td>§8.</td></tr>
+<tr><td class="id">P7a</td><td>Dataset search; P7b only as a stretch</td><td><span class="tag need">N8</span></td></tr>
+</table></div>
+<p><b>Out of v1:</b> cost, severity and urgency (Phase 1), the teleop brief, the failure corpus, image-embedding search (P2b/c), other suites and simulators, the decision anchor (UQ1; the field exists but stays empty).</p>
+<div class="rec"><b>v1's pass test (proposal).</b> v1 passes when all of these hold:
+<ol>
+<li>Every R-047 failure yields an instance with a root event, or an explicit <code>unexplained</code> with a reason.</li>
+<li>Every instance validates against the schema.</li>
+<li>Every event mode used in a root has a measured precision and recall on the hand labels, and modes below the bar are marked <span class="tag need">N5</span>.</li>
+<li>Search returns, per instance, matching segments or an explicit empty result plus its tolerance sweep.</li>
+<li>Each pipeline stage holds a val PASS in <code>PIPELINE_CHECKS.md</code>.</li>
+</ol></div>
+
+<h2 id="flow">2 · Data flow</h2>
+<svg class="flow" viewBox="0 0 1000 300" role="img" aria-label="Data flow from rollouts and demos to spec and search">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z"/></marker></defs>
+<rect x="10" y="30" width="170" height="56" rx="6"/><text x="22" y="54">Our rollouts</text><text x="22" y="74" class="m">runs/r047/*.jsonl</text>
+<rect x="10" y="120" width="170" height="56" rx="6"/><text x="22" y="144">Human demos (500)</text><text x="22" y="164" class="m">data/libero_raw/*.hdf5</text>
+<rect x="10" y="215" width="170" height="56" rx="6"/><text x="22" y="239">Config</text><text x="22" y="259" class="m">tasks · thresholds · search</text>
+<rect x="240" y="65" width="200" height="80" rx="6" class="k"/><text x="252" y="89">state.py + events.py</text><text x="252" y="109">+ criteria.py</text><text x="252" y="129" class="m">ms_v1_event_table.py</text>
+<rect x="500" y="30" width="200" height="56" rx="6"/><text x="512" y="54">Event tables (JSONL)</text><text x="512" y="74" class="m">runs/ms_v1/events/</text>
+<rect x="500" y="120" width="200" height="56" rx="6" class="g"/><text x="512" y="144">Hand labels (~30 ep.)</text><text x="512" y="164" class="m">ms_v1_labels.py · render</text>
+<rect x="760" y="30" width="220" height="56" rx="6" class="k"/><text x="772" y="54">Spec file (JSON)</text><text x="772" y="74" class="m">ms_v1_build_spec.py</text>
+<rect x="760" y="120" width="220" height="56" rx="6"/><text x="772" y="144">Rule scores vs labels</text><text x="772" y="164" class="m">runs/ms_v1/labels/score.json</text>
+<rect x="760" y="215" width="220" height="56" rx="6" class="k"/><text x="772" y="239">Search results</text><text x="772" y="259" class="m">ms_v1_search.py</text>
+<path d="M180,58 L238,90"/><path d="M180,148 L238,120"/><path d="M180,243 L238,135"/>
+<path d="M440,95 L498,62"/><path d="M600,86 L600,118"/><path d="M700,58 L758,58"/><path d="M700,148 L758,148"/>
+<path d="M870,86 L870,213"/><path d="M700,70 C740,120 740,200 758,236"/>
+</svg>
+<p class="small muted">The dashed box is the human step. The spec file depends on the rule scores only through the "unvalidated" marks; it can be built before labelling finishes.</p>
+
+<h2 id="root">3 · Root logic</h2>
+
+<h3>3.1 · Why the toy's rule isn't enough (UQ10)</h3>
+<p>The toy took the root to be "the first grasp onset that fails the lift test". prim's CPU probe applied six draft event rules to all 720 R-047 rollouts and kept every event.
+I re-ran it read-only on 10-09 and got identical output. That reproduces the numbers but is not an independent check: it is the same code.
+<span class="tag U">UNVERIFIED</span> (probe at prim's scratchpad <code>root_rules_probe_v2.py</code>, not val-checked).</p>
+<div class="tw"><table>
+<tr><th>Finding</th><th>Numbers (of 176 failures, 544 successes)</th></tr>
+<tr><td>Most failures fire several modes</td><td>Distinct modes per failure: 1 → 61, 2 → 90, 3 → 20, 4 → 4, 5 → 1. Top combinations: miss + wrong_object 50, miss + drop 19, miss + slip 17.</td></tr>
+<tr><td>The rule for picking the root changes the label</td><td>First in time: miss 99, drop 30, slip 23, wrong_object 20, wrong_location 3, stall 1. Fixed precedence: miss 95, wrong_object 68, slip 10, wrong_location 1, stall 1, drop 1. The two disagree on <b>83 / 176</b>.</td></tr>
+<tr><td>Rules fire inside successes</td><td>163 / 544 successes fire at least one event. Some are real recovered events. Some are rule bugs: drop fires on placing, and wrong_object fires on bumps.</td></tr>
+</table></div>
+<p>The repo has hit the same problem before <span class="tag V">V</span>:</p>
+<ul>
+<li><code>classify.py</code> moved from first-match-wins to "evaluate all rules", because 76.6% of LIBERO failures matched more than one rule (R-008).</li>
+<li><code>_attempt_spread</code> was added after precedence masked a manipulation fault as "recovery".</li>
+<li>O4: an OR hid two broken holding detectors.</li>
+<li>UQ7: "first failing grasp" skips a grasp-then-drop.</li>
+</ul>
+<p>v1 therefore keeps <b>every</b> event, decides the root with an explicit, configurable rule, and stores the alternatives next to it.</p>
+
+<h3>3.2 · Event vocabulary (v1)</h3>
+<p>Each event is <code>(t, phase, mode, measures)</code>. <b>Failure</b> events are the modes below. <b>Success</b> events mark a phase completed; they are needed for the recovered flag.
+All thresholds are in §6.</p>
+<div class="tw"><table>
+<tr><th>Event id</th><th>Kind</th><th>When it fires (exact rule)</th><th>Changed from the probe</th></tr>
+<tr><td class="id">grasp.onset</td><td>marker</td><td>The gripper command flips open → closed: rollouts <code>action[6] &gt; 0.5</code>, demos <code>actions[t,6] &gt; 0</code>. Every onset is evaluated by exactly one of the next four rows.</td><td>none (toy rule)</td></tr>
+<tr><td class="id">grasp.ok</td><td>success</td><td>Within <code>W_GRASP</code> steps of the onset, the target rises ≥ <code>LIFT_OK</code> above its height <b>at onset</b>, and the target is in the gripper (§3.7).</td><td>The base height is now the height at onset, not at t=0. Re-grasps from the plate rim no longer start 1.5 cm "lifted".</td></tr>
+<tr><td class="id">grasp.miss</td><td>failure</td><td>Within the window, the target rises &lt; <code>LIFT_MIN</code> and no other object is in the gripper.</td><td>base height at onset</td></tr>
+<tr><td class="id">grasp.slip</td><td>failure</td><td>Within the window, the target rises ≥ <code>LIFT_MIN</code> but either never reaches <code>LIFT_OK</code>, or reaches it and falls back below <code>LIFT_MIN</code> before the window ends while the gripper is still commanded closed.</td><td>adds "rose then fell inside the window"</td></tr>
+<tr><td class="id">grasp.wrong_object</td><td>failure</td><td>Within the window, a non-target object is <b>in the gripper</b> (§3.7). A rise alone is not enough.</td><td>The in-gripper check replaces "a non-target object rises &gt; 1.5 cm" (bumps).</td></tr>
+<tr><td class="id">transport.drop</td><td>failure</td><td>After <code>grasp.ok</code> and before any release command, the target <b>separates from the gripper</b>: the eef-to-target distance grows by &gt; <code>SEP_M</code> over the onset distance and the target falls ≥ <code>LIFT_MIN</code>, while the gripper is still commanded closed.</td><td>Separation replaces "target back near rest away from goal". A lowered-while-held bowl is not a drop.</td></tr>
+<tr><td class="id">place.ok</td><td>success</td><td>At the first release after <code>grasp.ok</code> (command closed → open), or when the held target comes to rest: after <code>SETTLE</code> steps the target's xy distance to the goal is ≤ <code>R_GOAL</code> and its height above the goal is in <code>[DZ_MIN, DZ_MAX]</code>.</td><td><code>R_GOAL</code> fitted, not 6 cm (§6)</td></tr>
+<tr><td class="id">place.off_target</td><td>failure</td><td>Same moment as <code>place.ok</code>, but the goal relation fails.</td><td>renamed from wrong_location</td></tr>
+<tr><td class="id">approach.never_reached</td><td>failure</td><td>The episode ends with no <code>grasp.onset</code> at all.</td><td>renamed from stall</td></tr>
+</table></div>
+<p class="small muted">Not in v1: collision, wrong-goal placement (onto a different object), knocking objects over. They can't be checked against the hand labels yet and would add modes that are never validated.</p>
+
+<h3>3.3 · The recovered flag <span class="tag need">N2</span></h3>
+<ul>
+<li><b>R1, phase-local (recommended).</b> A failure event is <i>recovered</i> if a success event that completes its phase happens later in the episode:
+<ul><li>grasp.* is recovered by a later <code>grasp.ok</code>;</li>
+<li><code>transport.drop</code> and <code>place.off_target</code> are recovered by a later <code>place.ok</code>.</li></ul>
+The flag stores <code>recovered_by_t</code> and <code>cost_steps = recovered_by_t − t</code>.</li>
+<li><b>R2, episode-level.</b> An event is recovered only if the episode succeeds. In a failure nothing is recovered, so option (a) collapses into (b). Simple, but it throws away the information we want.</li>
+</ul>
+<p><b>Invariant under R1:</b> a successful episode has no unrecovered failure event. If one appears, that is a rule bug, which makes it a free check on all 544 successes (§4, events, check plan).</p>
+
+<h3>3.4 · Root options <span class="tag need">N1</span></h3>
+<div class="tw"><table>
+<tr><th></th><th>Root is</th><th>For</th><th>Against</th></tr>
+<tr><td class="id">(a) recommended</td><td>The first <b>unrecovered</b> failure event (R1)</td><td>It names the event the episode never got past, which is where the success data has to come from. Order-independent: no precedence table.</td><td>A recovered event that burned most of the time budget is not called the root, although it may be why the episode ran out of time (§3.5).</td></tr>
+<tr><td class="id">(b)</td><td>The first failure event in time</td><td>Simplest. Matches the toy and UQ1's symptom anchor.</td><td>Counts events the policy got past. On R-047, 83 / 176 roots differ from (c) <span class="tag U">UNVERIFIED</span>.</td></tr>
+<tr><td class="id">(c)</td><td>The highest-ranked mode by a fixed precedence</td><td>Stable labels.</td><td>Precedence is a severity judgement (Phase 1, D6). It masks faults (<code>_attempt_spread</code> precedent).</td></tr>
+<tr><td class="id">(d)</td><td>The last failure event before the end</td><td>Says what the policy was stuck on.</td><td>Usually a retry-loop artefact, not where things went wrong.</td></tr>
+<tr><td class="id">(e)</td><td>(a), but a recovered event with <code>cost_steps</code> ≥ <code>COSTLY_FRAC</code> × the step budget also qualifies</td><td>Catches "the policy got past it, but too late".</td><td>One more threshold (placeholder 0.5). Two roots per episode are possible.</td></tr>
+</table></div>
+<p>Whatever is chosen, every instance stores the root under all five options (<code>root_alternatives</code>), so the choice can be revisited without re-running anything. Only the designated root sets the instance's identity (index id).</p>
+
+<h3>3.5 · Worked example: the toy episode under each option</h3>
+<p>R-047 row 14 (scene 984, 0.2 rad, seed 0). Events read from <code>runs/poc_toy/traces.json</code> and the rollout <span class="tag V">V</span>. Event labels below are what the v1 rules in §3.2 would give <span class="tag I">I</span>.</p>
+<div class="tw"><table>
+<tr><th>t</th><th>What happened (from state)</th><th>v1 event</th><th>R1 flag</th></tr>
+<tr><td class="n">31</td><td>Closes 6.8 cm short; bowl rises 2.1 cm, falls by t=52</td><td>grasp.slip</td><td>recovered at 201 (cost 170 steps, 61% of the 280-step budget)</td></tr>
+<tr><td class="n">80, 103, 128</td><td>Re-grasps, bowl rises ≤ 0.65 cm</td><td>grasp.miss</td><td>recovered at 201</td></tr>
+<tr><td class="n">176</td><td>Bowl rises 1.9 cm</td><td>grasp.slip</td><td>recovered at 201</td></tr>
+<tr><td class="n">201</td><td>Bowl lifted 9.6 cm by t≈225 while gripped (aperture steady at 0.012 m)</td><td>grasp.ok</td><td>—</td></tr>
+<tr><td class="n">201–239</td><td>Carried towards the plate (xy 13.7 → 4.6 cm) and lowered <b>still gripped</b></td><td>(no drop: the eef goes down with the bowl)</td><td>—</td></tr>
+<tr><td class="n">242</td><td>Released; the bowl rests 5.2 cm from the plate centre, ends 6.2 cm off. All 544 R-047 successes end ≤ 3.0 cm off <span class="tag V">V</span></td><td>place.off_target</td><td>unrecovered</td></tr>
+<tr><td class="n">263, 272</td><td>Small re-grasps, timeout at 280</td><td>grasp.miss / slip</td><td>unrecovered</td></tr>
+</table></div>
+<div class="tw"><table>
+<tr><th>Option</th><th>Root for row 14</th></tr>
+<tr><td class="id">(a)</td><td><b>place.off_target at t=242</b>: the bowl reached the plate but was set down off it</td></tr>
+<tr><td class="id">(b)</td><td><b>grasp.slip at t=31</b>: the toy's answer</td></tr>
+<tr><td class="id">(c)</td><td>depends on the table; e.g. grasp.* if grasp modes rank first</td></tr>
+<tr><td class="id">(d)</td><td>grasp.miss/slip at t=272 (retry artefact)</td></tr>
+<tr><td class="id">(e)</td><td>grasp.slip at 31 (costly recovery, 61% of the budget) <b>and</b> place.off_target at 242</td></tr>
+</table></div>
+<div class="warnbox"><b>What this example shows.</b> (1) The toy's stakeholder page is not wrong about the first failure (t=31), but "lifts it, then drops it" is a misread of t=201–242 <span class="tag need">N9</span>.
+(2) The options give genuinely different answers on a single episode, so the choice (N1) is substantive, not cosmetic.
+(3) The probe's 6 cm goal radius would have counted this release as a correct placement. That is why §6 fits <code>R_GOAL</code> from data.</div>
+
+<h3>3.6 · Recovery instances <span class="tag need">N3</span></h3>
+<p>A recovered failure event in any episode, success or failure, becomes a <code>type: "recovery"</code> instance. Its situation is taken at the event, its success segment runs from the event to <code>recovered_by_t</code>, and its terminal is the episode's outcome.
+These are the policy's own successes from a bad situation: mining targets that need no new data collection. They also feed the search pool, as "our successes from situation X".
+Cost: a field and a filter in <code>ms_v1_build_spec.py</code>, about 0.25 d.</p>
+
+<h3>3.7 · The in-gripper check (wrong_object, grasp.ok, drop)</h3>
+<p>An object is <b>in the gripper</b> over a window <code>[t, t+K]</code> when all three hold:</p>
+<ol>
+<li>Its distance to the grip site is ≤ <code>GRIP_R</code> at every step.</li>
+<li>Its displacement follows the eef's: ‖Δobj − Δeef‖ ≤ <code>FOLLOW_M</code> per step, on average over the window.</li>
+<li>The gripper is commanded closed.</li>
+</ol>
+<p>A bump moves an object without it following the eef. A lift follows. Uses only <code>_gt_scene_object_pos</code> and <code>eef_pos</code> for rollouts, and restored states for demos.</p>
+<p><code>GRIP_R</code>, <code>FOLLOW_M</code> and <code>K</code> are <span class="src">placeholder</span>, then <span class="src">fit: demos</span>: the distribution over all demo grasp.ok windows, taking the 99th percentile for distance and following error.</p>
+
+<h3>3.8 · Symptom and decision anchors (UQ1)</h3>
+<p>The root is a <b>symptom anchor</b>: where the failure shows. v1 fills only <code>anchor.symptom = {t, event}</code>. <code>anchor.decision</code> stays <code>null</code> with <code>method: "not measured"</code>.
+Filling it needs interventions (R-044/R-057 style), which are outside v1. The doc and the spec say plainly that the root is "where it showed", not "where it was decided".</p>
+
+<h2 id="files">4 · Per-file specs</h2>
+<p>Paths are relative to the v1 worktree (§9). "Toy reuse" follows the port assessment sent to prim on 10-09. Every file is new or changed, so each goes to val.</p>
+
+<div class="file">
+<h3>configs/mining_spec_v1/{tasks,thresholds,search}.json</h3>
+<p class="role">Every constant the code uses, in one place, each with its origin. No constants in code.</p>
+<dl>
+<dt>Purpose</dt><dd>Replace the toy's hard-coded <code>TASK_ID</code>, <code>TASK_FILE</code>, <code>TARGET</code>, <code>NEIGHBOURS</code>, <code>LIFT_M</code> and <code>WINDOW</code>.</dd>
+<dt>Contents</dt><dd><code>tasks.json</code>: per LIBERO-Spatial task id → demo file, target body, goal body, neighbour bodies, instruction. All 10 R-047 tasks have target <code>akita_black_bowl_1_main</code> and goal <code>plate_1_main</code>, and the same five logged scene objects <span class="tag V">V</span>.
+<code>thresholds.json</code>: each threshold as <code>{value, unit, origin, fitted_by, fitted_on}</code>.
+<code>search.json</code>: tolerances, the sweep grid and the layout mode (<span class="tag need">N6</span>).</dd>
+<dt>Logic</dt><dd>Written once by hand. <code>tasks.json</code> is checked by <code>state.py</code> against the BDDL <code>obj_of_interest</code> order of each demo file and of the rollouts' <code>_gt_eef_to_object</code> keys.</dd>
+<dt>Known problems</dt><dd>Fixtures (stove, cabinet) are not in <code>_gt_scene_object_pos</code>, so the layout ignores them <span class="tag V">V</span>. Solution: record this as a limitation in the spec header; add fixture poses from restored states only for demos if N6 needs them.</dd>
+<dt>Toy reuse</dt><dd>The constants from <code>poc_toy_common.py</code>.</dd>
+<dt>Val plan</dt><dd>Invariant: every task's target and goal match BDDL order in both pools. Every threshold has an origin.</dd>
+<dt>Effort</dt><dd>0.5 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>vla_harness/mining_spec/state.py</h3>
+<p class="role">Read both pools into one frame: per-step eef, gripper rotation, aperture, object poses.</p>
+<dl>
+<dt>Inputs → outputs</dt><dd>A rollout dict from <code>rollouts.jsonl</code>, or a demo group in an HDF5 file → an <code>EpisodeState</code>: arrays <code>eef[T,3]</code>, <code>R[T,3,3]</code>, <code>aperture[T]</code>, <code>cmd_closed[T]</code>, <code>obj[name][T,3]</code>, plus key <code>(pool, file_or_run, row_or_demo)</code> and <code>success</code>.</dd>
+<dt>Logic</dt><dd><ol>
+<li><b>Rollouts:</b> read <code>eef_pos</code>, <code>joint_pos</code>, <code>gripper_qpos</code> and <code>_gt_scene_object_pos</code> per step. Compute <code>R</code> by forward kinematics from <code>joint_pos</code> in the kinematic model of the rollout's task. Assert the FK site agrees with <code>eef_pos</code> to ≤ 2 mm at every step. Do not use <code>eef_quat</code>, which is not the site frame <span class="tag V">V</span>.</li>
+<li><b>Demos:</b> load the demo's own <code>model_file</code> MJCF in plain MuJoCo. Remap the two author asset prefixes, deriving the robosuite root from <code>robosuite.__file__</code>. Fail if any asset path doesn't resolve. For each t, set <code>qpos = states[t, 1:1+nq]</code> and run <code>mj_forward</code>, then read the grip site and bodies.</li>
+<li><b>Demo lag check:</b> assert ‖site(states[t+1]) − obs/ee_pos[t]‖ ≤ 1 mm for all t. That is the lag-1 fact <span class="tag V">V</span> (toy max 0.68 mm), used as a guard.</li>
+<li>Episode key: rollouts by <code>(run, line index)</code>, with the manifest line order asserted (same task, perturbation and success). Demos by <code>(file, demo name)</code>. Never key on <code>rollout_id</code> <span class="tag V">V</span>.</li>
+</ol></dd>
+<dt>Rules</dt><dd>FK tolerance 2 mm <span class="src">toy</span> (observed 0.5–0.6 mm). Lag tolerance 1 mm <span class="src">toy</span>.</dd>
+<dt>Known problems</dt><dd>(1) The remap is checked on one file only <span class="tag V">V</span>; solution: fail-fast on all 10 files. (2) The toy uses task 984's model for every rollout's FK; solution: one model per task, plus the per-step assert.</dd>
+<dt>Toy reuse</dt><dd><code>poc_toy_common.load_model</code>, <code>fk_rot</code>, <code>site_rot</code>, <code>angle_deg</code>, <code>tilt_deg</code> and the restore loop in <code>demo_events</code>: generalised, not rewritten.</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> row 14, t=31: eef→bowl offset (−6.84, −3.63, +1.31) cm and tilt 4.1° (<code>runs/poc_toy/instance.json</code>), equal to relative 1e-6.
+<b>Null:</b> restore the same demo state twice → identical arrays.
+<b>Planted:</b> shift one body's qpos by 5 cm → its reported pose moves 5.000 cm and nothing else does.
+<b>Invariants:</b> FK ≤ 2 mm on all 720 rollouts; lag-1 ≤ 1 mm on all 500 demos; T matches between arrays; unique keys.</dd>
+<dt>Effort</dt><dd>1 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>vla_harness/mining_spec/criteria.py</h3>
+<p class="role">Success templates per phase: the yes/no test any segment, found or produced, is checked against.</p>
+<dl>
+<dt>Purpose</dt><dd>D13's success field and D14's search filter. The same functions <code>events.py</code> uses for <code>grasp.ok</code> and <code>place.ok</code>, so the definitions can't drift.</dd>
+<dt>API</dt><dd><code>grasp_ok(es, t_onset) → (bool, measures)</code> and <code>place_ok(es, t_release) → (bool, measures)</code>. Measures: <code>lift_cm</code>, <code>t_reach</code>, <code>xy_goal_cm</code>, <code>dz_goal_cm</code>, <code>in_gripper</code>.</dd>
+<dt>Logic</dt><dd>As in §3.2: base height at onset, window <code>W_GRASP</code>, the in-gripper check (§3.7), and the goal relation after <code>SETTLE</code> steps.</dd>
+<dt>Rules</dt><dd><code>LIFT_OK</code>, <code>LIFT_MIN</code>, <code>W_GRASP</code>, <code>R_GOAL</code>, <code>DZ_MIN/MAX</code>, <code>SETTLE</code>: §6.</dd>
+<dt>Known problems</dt><dd>The toy had one template, <code>grasp.lift</code>. A segment pass is not an episode pass (UQ7 gap 1). Solution: the spec records both <code>success</code> (segment) and <code>terminal</code> (episode).</dd>
+<dt>Toy reuse</dt><dd>The lift logic in <code>poc_toy_common.grasp_events</code>, split out and generalised.</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> row 14 onset t=31 lift 2.06 cm → fail; row 20 onset t=31 lift 11.01 cm → pass (<code>traces.json</code>).
+<b>Null:</b> every R-047 success's final release → <code>place_ok</code> true (544/544 expected, given the fitted <code>R_GOAL</code>).
+<b>Planted:</b> move a success's final bowl position 6 cm from the plate → <code>place_ok</code> false.
+<b>Recompute:</b> lift for 20 random onsets with an independent numpy script.</dd>
+<dt>Effort</dt><dd>0.75 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>vla_harness/mining_spec/events.py</h3>
+<p class="role">The root logic: every event, the recovered flags, the root under every option. This is the core new code.</p>
+<dl>
+<dt>Inputs → outputs</dt><dd>An <code>EpisodeState</code> → <code>events: list[Event]</code> sorted by t, each <code>{t, phase, mode, kind: failure|success|marker, measures, recovered, recovered_by_t, cost_steps}</code>, plus <code>roots: {a, b, c, d, e}</code> and <code>unexplained_reason</code> when a failure has no failure event.</dd>
+<dt>Logic</dt><dd><ol>
+<li>Find all <code>grasp.onset</code>s. With none and a failed episode, emit <code>approach.never_reached</code> at T−1.</li>
+<li>For each onset, run <code>criteria.grasp_ok</code>. Classify as grasp.ok / wrong_object / slip / miss by §3.2, checking in that order. The order is safe because the four are mutually exclusive by construction: wrong_object requires a non-target object in the gripper, ok requires the target in the gripper, and slip and miss split on lift.</li>
+<li>After each grasp.ok, track to the first of: a release command → <code>criteria.place_ok</code> → place.ok / place.off_target; separation while commanded closed → transport.drop; or episode end → no event (still holding at timeout; recorded in <code>terminal</code>).</li>
+<li>Flags (R1, N2): for each failure event, search forward for the completing success event; set <code>recovered</code>, <code>recovered_by_t</code> and <code>cost_steps</code>.</li>
+<li>Roots: (a) first unrecovered; (b) first failure; (c) by precedence (config); (d) last failure; (e) (a) ∪ {recovered with cost_steps ≥ COSTLY_FRAC·T_max}.</li>
+<li>Invariants raised as errors: a successful episode with an unrecovered failure; a failed episode with no failure event and no reason.</li>
+</ol></dd>
+<dt>Rules</dt><dd>All from <code>thresholds.json</code> (§6). The precedence table for (c) is config only, never used as the designated root unless N1 picks it.</dd>
+<dt>Known problems</dt><dd>(1) Multiple modes per episode (UQ10): handled by keeping all of them. (2) Drop vs place: separation test (§3.2). (3) Bumps counted as wrong_object: in-gripper test (§3.7). (4) Re-grasps from a raised rest height: base height at onset. (5) Holding at timeout: no event, terminal says so. (6) Every threshold is a placeholder or fit until the labels score it (§7).</dd>
+<dt>Toy reuse</dt><dd>Onset detection from <code>grasp_events</code>. The rest is new; the probe is a reference only (<span class="tag U">UNVERIFIED</span>, not ported).</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> row 14 onsets at t = 31, 80, 103, 128, 176, 201, 263, 272 (<code>traces.json</code>), and §3.5's table once N1/N2 are decided.
+<b>Null:</b> clean successes (no retries) → only marker and success events. Under R1, all 544 successes have zero unrecovered failure events.
+<b>Planted</b>, on copies of success traces:
+<ul>
+<li>hold the bowl at its onset height for 40 steps → grasp.miss at that onset;</li>
+<li>mid-transport, separate the bowl and drop it 5 cm while the eef stays → transport.drop at that t;</li>
+<li>move the release point 6 cm from the plate → place.off_target;</li>
+<li>attach a neighbour to the eef path → grasp.wrong_object.</li>
+</ul>
+<b>Invariants:</b> events sorted; mode labels from the closed list; flags consistent with times.
+<b>Plan:</b> rules line by line against §3.2.</dd>
+<dt>Effort</dt><dd>2.5–3 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>vla_harness/mining_spec/snapshot.py</h3>
+<p class="role">The situation at an event: the fields a search matches on.</p>
+<dl>
+<dt>Inputs → outputs</dt><dd><code>(EpisodeState, event)</code> → <code>situation</code>: <code>{at_t, observation_window: "1 frame", fields: {name: {value, unit, source, sigma, held_fixed}}, frames: {agent, wrist}}</code>.
+In v1 every <code>source</code> is <code>exact</code> and every <code>held_fixed</code> is true (mechanism unknown).</dd>
+<dt>Fields</dt><dd>Grasp events, at onset:
+<ul>
+<li>eef→target offset (3, cm);</li>
+<li>gripper rotation (quaternion in the site frame, plus tilt in degrees);</li>
+<li>aperture;</li>
+<li>target xyz;</li>
+<li>each neighbour's xy relative to the target (4 × 2).</li>
+</ul>
+Place events, at lowering onset (the first step of the final descent while held: eef z velocity &lt; −<code>V_DESC</code> for 3 steps) <span class="src">placeholder</span>:
+<ul><li>target→goal offset (3), gripper rotation, target tilt.</li></ul>
+Drop events: the eef→target offset and eef velocity at separation.</dd>
+<dt>Known problems</dt><dd>(1) Layout in world xy excludes demos drawn from different initial states (D22). Relative layout is the alternative <span class="tag need">N6</span>. (2) Lowering onset is a new, unvalidated detector; its labels come from §7.</dd>
+<dt>Toy reuse</dt><dd>The field extraction in <code>poc_toy_instance.py</code> and <code>grasp_events</code> (~30% of the instance builder).</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> row 14 t=31 fields equal <code>instance.json</code>'s <code>derived</code> block.
+<b>Planted:</b> rotate the gripper by 10° in a copied state → tilt changes 10°.
+<b>Invariants:</b> units, every field has a source.</dd>
+<dt>Effort</dt><dd>1 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>vla_harness/mining_spec/validate.py + schema/ms_v1.schema.json + data/index_v0.json</h3>
+<p class="role">The file format (P6a) and the closed id lists (P5b).</p>
+<dl>
+<dt>Logic</dt><dd>JSON Schema draft 2020-12, checked with <code>jsonschema</code> (4.26 in all three venvs <span class="tag V">V</span>). The validator also checks what a schema can't:
+<ul>
+<li>every event and root id is in <code>index_v0.json</code>;</li>
+<li>evidence keys are unique;</li>
+<li>every threshold referenced has an origin;</li>
+<li><code>schema_version</code> and <code>index_version</code> are present.</li>
+</ul></dd>
+<dt>Known problems</dt><dd>Index ids must stay stable across versions: changes are append-only, and a renamed mode keeps an <code>alias</code>.</dd>
+<dt>Toy reuse</dt><dd>None; the toy's <code>schema_version: "toy-0"</code> is replaced.</dd>
+<dt>Val plan</dt><dd><b>Planted:</b> five broken spec files (unknown mode, duplicate key, missing source, wrong type, missing version) → each rejected with the right message. <b>Null:</b> the built spec validates.</dd>
+<dt>Effort</dt><dd>1–1.5 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>experiments/ms_v1_event_table.py</h3>
+<p class="role">Run state + events over a whole pool, once, into JSONL. Search and spec building read these tables.</p>
+<dl>
+<dt>Command</dt><dd><code>.venvs/libero-plus/bin/python experiments/ms_v1_event_table.py --pool {r047,libero_raw} --out runs/ms_v1/events/</code> (CPU)</dd>
+<dt>Outputs</dt><dd><code>events_&lt;pool&gt;.jsonl</code>, one row per event: <code>{pool, key, task, success, t, phase, mode, kind, measures, recovered, recovered_by_t, cost_steps, situation}</code>.
+Also <code>episodes_&lt;pool&gt;.jsonl</code> (one row per episode with its roots), <code>config/</code> (a copy of the three configs plus sha256) and <code>code_state/</code>.</dd>
+<dt>Logic</dt><dd>For each episode: <code>state.py</code> → <code>events.py</code> → <code>snapshot.py</code> for every event; write rows; count rows per episode. About 5 min CPU for 500 demos <span class="tag I">I</span> (toy: 50 demos plus 56 rollouts in ~30 s).</dd>
+<dt>Known problems</dt><dd>R-047 has both axes in one file. v1 includes camera-yaw rollouts in the success pool but takes failures from start pose only (P1a). Solution: an <code>axis</code> field and a config filter.</dd>
+<dt>Toy reuse</dt><dd>The loop structure of <code>poc_toy_search.main</code> and <code>demo_events</code>.</dd>
+<dt>Val plan</dt><dd><b>Invariants:</b> episodes in = 720 / 500; every episode has a row in <code>episodes_*.jsonl</code>; event counts match a recount. <b>Recompute:</b> val's own count of grasp onsets per pool.</dd>
+<dt>Effort</dt><dd>1–1.5 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>experiments/ms_v1_labels.py</h3>
+<p class="role">Build the blind labelling sheet; later, score the rules against the labels (§7).</p>
+<dl>
+<dt>Command</dt><dd><code>... ms_v1_labels.py sample --n 30 --seed 0</code> → <code>runs/ms_v1/labels/sample.json</code>.
+<code>... ms_v1_labels.py sheet</code> → <code>labels/sheet.html</code> (videos plus a form, no rule outputs shown) and <code>labels/labels.csv</code> (empty).
+<code>... ms_v1_labels.py score</code> → <code>labels/score.json</code> and <code>score.html</code>.</dd>
+<dt>Logic</dt><dd>Sampling is stratified (§7.2), with the seed recorded. The sheet embeds the GPU-rendered videos (<code>ms_v1_render.py</code>) with a frame counter. Scoring matches each labelled event to a rule event of the same mode within ±10 steps. It reports per-mode precision and recall with Wilson 95% CIs, and root agreement for each option (a)–(e).</dd>
+<dt>Known problems</dt><dd>Sampling uses the rules' output, while the labels must not see it: the sheet hides it. A single labeller can't give inter-rater agreement: a 5-episode self-re-label is the stand-in.</dd>
+<dt>Toy reuse</dt><dd>None.</dd>
+<dt>Val plan</dt><dd><b>Planted:</b> a synthetic label file equal to the rule output → precision = recall = 1 and agreement 100%. Shift every label by 11 steps → zero matches. <b>Recompute:</b> one mode's precision by hand.</dd>
+<dt>Effort</dt><dd>1 d (plus 3–4 h labelling <span class="tag need">N4</span>)</dd>
+</dl></div>
+
+<div class="file">
+<h3>experiments/ms_v1_render.py</h3>
+<p class="role">Re-render selected episodes from stored actions (GPU; through prim, impl and <code>d_step.sh</code>).</p>
+<dl>
+<dt>Logic</dt><dd>Read a selection file of <code>{run, row, expect: {rollout_id, perturbation, success, env_steps}}</code>, assert each, replay with <code>visualise_episode_video.replay</code>, and write the MP4 plus <code>fidelity.json</code>. Same as the toy, minus the hard-coded rows.</dd>
+<dt>Known problems</dt><dd>impl's G0c note: an env reused after other envs are deleted renders garbage until the next reset. Solution: a fresh env per episode, as the toy did.</dd>
+<dt>Toy reuse</dt><dd><code>poc_toy_render.py</code>, light change.</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> fidelity on rows 14, 20, 0 and 34 equals the toy's (0.0 / 0.0 / 2.64 / 0.0 mm). <b>Pass:</b> max drift &lt; 10 mm per episode.</dd>
+<dt>Effort</dt><dd>0.25 d plus ~10–15 min GPU <span class="tag need">N10</span></dd>
+</dl></div>
+
+<div class="file">
+<h3>experiments/ms_v1_build_spec.py</h3>
+<p class="role">Event tables → the spec file (one per policy × deployment, D3).</p>
+<dl>
+<dt>Command</dt><dd><code>... ms_v1_build_spec.py --events runs/ms_v1/events/ --labels runs/ms_v1/labels/score.json --out runs/ms_v1/spec/spec.json</code></dd>
+<dt>Logic</dt><dd><ol>
+<li>One <code>failure</code> instance per failed start-pose episode. Root = the designated option (N1), with <code>root_alternatives</code> and all <code>events</code> as evidence.</li>
+<li>One <code>recovery</code> instance per recovered failure event (if N3 says yes).</li>
+<li>Situation from the root event's snapshot; success = the template of the root's phase; terminal from the episode.</li>
+<li>Mark modes below the N5 bar as <code>validation: "unvalidated"</code>.</li>
+<li>Validate (<code>validate.py</code>). Write <code>code_state/</code>.</li>
+</ol></dd>
+<dt>Toy reuse</dt><dd>Rewrite of <code>poc_toy_instance.py</code>.</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> row 14's instance equals §3.5 under the chosen option. <b>Invariants:</b> 112 failure instances (the start-pose failures; 176 only if camera yaw is brought into scope), unique keys, 100% schema-valid.</dd>
+<dt>Effort</dt><dd>1 d</dd>
+</dl></div>
+
+<div class="file">
+<h3>experiments/ms_v1_search.py</h3>
+<p class="role">D14: for each instance, find successful segments from the same situation in the pools.</p>
+<dl>
+<dt>Command</dt><dd><code>... ms_v1_search.py --spec runs/ms_v1/spec/spec.json --events runs/ms_v1/events/ --out runs/ms_v1/search/</code></dd>
+<dt>Logic</dt><dd><ol>
+<li>For each instance, filter the event tables to the same task, the same event phase, and success events of that phase (grasp.ok for grasp roots, place.ok for place roots).</li>
+<li>Exclude the instance's own episode.</li>
+<li>Match each held-fixed field within its tolerance (<code>search.json</code>). Comparisons happen only on fields both sides have (D15). Layout mode per N6.</li>
+<li>Return each hit as a segment: <code>(key, t_from = event t − context frames, t_to = success t)</code>.</li>
+<li>Always write the funnel (per field alone and cumulative) and the tolerance sweep.</li>
+</ol></dd>
+<dt>Known problems</dt><dd>(1) Tolerances decide the result (toy) <span class="tag need">N7</span>; the sweep is mandatory. (2) Near-miss ranking uses offset distance only; a scaled multi-field distance is proposed (each field ÷ its tolerance), not validated.</dd>
+<dt>Toy reuse</dt><dd><code>poc_toy_search.match</code>, the funnel and the sweep, generalised from one task's linear scan to the event tables.</dd>
+<dt>Val plan</dt><dd><b>Anchor:</b> with the toy's tolerances and world layout, row 14's grasp.slip at t=31 returns 0 human-demo hits and 1 rollout hit (row 34) (<code>search.json</code>).
+<b>Null:</b> a success event queried against itself, with self-exclusion off → found at distance 0.
+<b>Planted:</b> a copied event shifted 1 cm → found at ±1.5 cm, not at ±0.5.
+<b>Invariants:</b> the funnel is monotone.</dd>
+<dt>Effort</dt><dd>1–1.5 d</dd>
+</dl></div>
+
+<div class="file" style="border-top-color:var(--need)">
+<h3>experiments/ms_v1_produce.py (stretch, P7b) <span class="tag need">N8</span></h3>
+<p class="role">Produce successes from a root by restoring it and driving a new continuation.</p>
+<dl>
+<dt>Logic</dt><dd>Replay stored actions to the anchor (verified 4/4 on R-047 <span class="tag V">V</span>). Hand over to the policy under N fresh noise seeds (the same-start success shows noise alone can flip this case <span class="tag V">V</span>). Keep the continuations that pass the root phase's criterion, and tag frames as policy or driven.</dd>
+<dt>Needs</dt><dd>A harness change, for impl: start a policy rollout from a replayed prefix. <code>r039_run.py --drive-until</code> does the reverse. GPU through the gate.</dd>
+<dt>Effort</dt><dd>3–5 d plus GPU</dd>
+</dl></div>
+
+<h2 id="fixfirst">5 · Fix-first list</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Fix</th><th>Where</th><th>Status</th></tr>
+<tr><td class="n">1</td><td>Asset remap verified on all 10 demo files; robosuite root derived from the import</td><td>state.py</td><td>design above</td></tr>
+<tr><td class="n">2</td><td>FK model per task, with the per-step 2 mm assert</td><td>state.py</td><td>design above</td></tr>
+<tr><td class="n">3</td><td>Keys are (run, line index) with manifest order asserted; never <code>rollout_id</code></td><td>state.py</td><td>design above</td></tr>
+<tr><td class="n">4</td><td><code>code_state/</code> and a config copy with every output</td><td>all runners</td><td>design above</td></tr>
+<tr><td class="n">5</td><td><code>divergence_point</code>'s LIBERO bug: <b>not on v1's path</b>, because v1 doesn't use it. The fix stays with impl separately.</td><td>vla_harness/mining/phases.py</td><td>out of v1</td></tr>
+<tr><td class="n">6</td><td>Base height at onset, not t=0</td><td>criteria.py</td><td>new (§3.2)</td></tr>
+<tr><td class="n">7</td><td>Drop vs place by separation; goal radius fitted</td><td>events.py, criteria.py</td><td>new (§3.2, §6)</td></tr>
+<tr><td class="n">8</td><td>Toy docs: "drops it" → "set down off the plate"</td><td>MINING_SPEC_TOY, POC_INTERNAL, HANDOFF, instance.json</td><td><span class="tag need">N9</span></td></tr>
+</table></div>
+
+<h2 id="thresholds">6 · Thresholds and where they come from</h2>
+<div class="tw"><table>
+<tr><th>Name</th><th>Starting value</th><th>Origin now</th><th>How it gets fitted</th></tr>
+<tr><td class="id">LIFT_MIN</td><td>1.5 cm</td><td><span class="src">toy</span> (segmenter <code>DEFAULT_LIFT_M</code>, itself a placeholder)</td><td>Labels: the miss/slip boundary that best matches labelled slips</td></tr>
+<tr><td class="id">LIFT_OK</td><td>5 cm</td><td><span class="src">toy</span></td><td><span class="src">fit: demos</span>, the 5th percentile of the max lift within the window over demo grasp.ok events</td></tr>
+<tr><td class="id">W_GRASP</td><td>40 steps</td><td><span class="src">toy</span></td><td><span class="src">fit: demos</span>, the 99th percentile of onset → LIFT_OK time</td></tr>
+<tr><td class="id">R_GOAL</td><td>≤ 3.5 cm</td><td><span class="src">fit: ours</span>, all 544 R-047 successes end ≤ 3.0 cm <span class="tag V">V</span> (the probe used 6 cm)</td><td><span class="src">fit: demos</span>, the 99th percentile of the final target→goal xy, cross-checked on ours</td></tr>
+<tr><td class="id">DZ_MIN/MAX</td><td>0 / 2.6 cm (bowl above plate)</td><td><span class="src">fit: ours</span> <span class="tag V">V</span></td><td><span class="src">fit: demos</span></td></tr>
+<tr><td class="id">SETTLE</td><td>10 steps</td><td><span class="src">placeholder</span> (probe)</td><td>Labels</td></tr>
+<tr><td class="id">SEP_M</td><td>3 cm</td><td><span class="src">placeholder</span></td><td><span class="src">fit: demos</span>, the 99th percentile of eef→target distance change while held</td></tr>
+<tr><td class="id">GRIP_R, FOLLOW_M, K</td><td>6 cm, 5 mm/step, 6</td><td><span class="src">placeholder</span></td><td><span class="src">fit: demos</span> (§3.7)</td></tr>
+<tr><td class="id">V_DESC</td><td>5 mm/step</td><td><span class="src">placeholder</span></td><td>Labels</td></tr>
+<tr><td class="id">COSTLY_FRAC</td><td>0.5</td><td><span class="src">placeholder</span></td><td>Only if option (e)</td></tr>
+<tr><td class="id">Search tolerances</td><td>±1.5 cm/axis, 20°, 3 cm layout</td><td><span class="src">toy</span> (illustrative)</td><td>Not fitted: <span class="tag need">N7</span>, reported with a sweep</td></tr>
+</table></div>
+<p class="small muted">Demo fits are computed by <code>ms_v1_event_table.py</code> on the demo pool and written to <code>runs/ms_v1/fits.json</code>. <code>thresholds.json</code> is then updated by hand with <code>origin: "fit: demos"</code> and the fit's file hash. Fitting on demos and then evaluating on rollouts keeps the fit out of the test set; the hand labels stay separate from both.</p>
+
+<h2 id="labels">7 · Hand-labelling protocol</h2>
+<h3>7.1 · Who <span class="tag need">N4</span></h3>
+<p>One labeller: the user, or a person they name. If only one person labels, they re-label 5 episodes at least a day later, in a shuffled order, as a self-consistency check.</p>
+<h3>7.2 · Which episodes (30, from R-047, stratified, seed recorded)</h3>
+<ul>
+<li><b>20 failures</b>, start-pose axis, stratified by the rules' first-in-time root: ~6 miss, 4 slip, 4 drop, 4 wrong_object, 1 place.off_target, 1 never_reached, spread over at least 6 scenes. Row 14 is always included.</li>
+<li><b>6 successes that fire failure events</b> (recovered candidates): 2 with drop, 2 with miss, 2 with slip.</li>
+<li><b>4 clean successes</b>, as a null.</li>
+</ul>
+<h3>7.3 · What the labeller sees and does</h3>
+<ul>
+<li>Agent and wrist videos side by side with a step counter, rendered on GPU through the gate <span class="tag need">N10</span>. The episode's instruction. No rule output, no success flag.</li>
+<li>For each episode the labeller lists every event as <code>(t_start, mode from the closed list or "other: text", recovered y/n)</code>, then the root under their own judgement (the first thing that went wrong and was never fixed), a confidence of 1–3, and notes.</li>
+<li>A one-page guide with one example clip per mode. Expected ~6–8 min per episode, about 3–4 h in total <span class="tag I">I</span>.</li>
+</ul>
+<h3>7.4 · Scoring</h3>
+<p>A rule event matches a labelled event if the modes are equal and |Δt| ≤ 10 steps (0.5 s). The report gives:</p>
+<ul>
+<li>per-mode precision and recall with Wilson 95% CIs;</li>
+<li>root agreement for each option (a)–(e) against the labeller's root;</li>
+<li>self-consistency on the 5 re-labels.</li>
+</ul>
+<p>With n = 30, the CIs are wide (±15–20 points). The result is a measured order of magnitude, not a certification.</p>
+<h3>7.5 · Acceptance <span class="tag need">N5</span></h3>
+<p>Proposal: the designated root option needs agreement ≥ 80%, and each mode used in roots needs precision ≥ 0.8. A mode below the bar stays in the spec, marked <code>unvalidated</code> wherever it's quoted. A root option below the bar triggers a rule revision before v1 is called done.</p>
+<h3>7.6 · External labels: the podolinsky set <span class="tag need">N12</span></h3>
+<p class="muted">Added by prim, 2026-10-12, after this doc was written. Sources: the dataset card for <code>podolinsky/groot-libero-10-features-v3</code> (read 10-12 <span class="tag V">V</span>), docs/FAILURE_LABEL_DATASETS.html (res21), docs/ROOT_IDENTIFICATION.html.</p>
+<p><b>What it is.</b> 500 rollouts of NVIDIA's <code>GR00T-N1.7-LIBERO</code> (libero_10 checkpoint) on libero_10: 10 tasks × normal and LIBERO-Occ occluded × 25 initial states, seed 7. Each failure (169) carries a Gemini 3.5-flash failure mode (10-way), an onset type and an onset frame refined on a slowed clip. The prompts are published verbatim. Each inference stores K = 10 sampled action chunks, layer-16 backbone features and the executed actions; 115 occluded failures are occlusion-only (the paired normal episode succeeds).</p>
+<p><b>What it can do for v1.</b></p>
+<ul>
+<li>Audit the <b>symptom</b> anchor and our VLM labeller (vlm_label.py, E7) against an independent onset, using FailTime's onset rules for any hand check. A hand-labelled sample of these onsets checks Gemini and our labeller in one pass.</li>
+<li>Map their 10 modes onto our phase × mode list (impl2's phase 1, item 3).</li>
+<li>Give paired normal/occluded failures as extra root-rule test cases.</li>
+</ul>
+<p><b>What it can't do, and why it doesn't change our config.</b></p>
+<ul>
+<li>It is a different checkpoint, suite and execution setup (C = 16 predicted / H = 8 executed vs our C = 40 / H = 16). We use it as an external audit set; our libero_spatial configuration and every earlier result stay as they are. Running v1 itself on libero_10 would be a second configuration added next to ours, a scope change for the user to decide, not a replacement.</li>
+<li><b>No simulator state is stored</b> (no object poses, no raw gripper width). The v1 rules (§3) need object height and gripper state, so they can't run on it directly. Running them needs the sim state rebuilt by replaying the stored actions from the stored initial states, which is impl2's phase 2 (GPU, not approved yet), and replay fidelity is unverified.</li>
+<li>The labels are VLM-made and unchecked by any human, and mark where a failure <i>shows</i>, not where it is decided (UQ1). No licence is stated: internal use only.</li>
+<li>So the ~30-episode set on our own R-047 rollouts (§7.1–7.5) stays; v1's pass test (§7.5) is unchanged.</li>
+</ul>
+
+<h2 id="schema">8 · Schema and index v0</h2>
+<pre>{
+ "schema_version": "ms-1.0", "index_version": "0.1",
+ "spec": {policy, checkpoint, deployment, phase: 0, created, code_state, config_sha256, limitations: [...]},
+ "instances": [{
+   "id", "type": "failure" | "recovery", "unit": "segment",
+   "evidence": {pool, run, row, rollout_id (informational only), env_seed, noise_seed, perturbation, axis},
+   "competence_domain": "in-domain + condition",
+   "task": {suite, task_id, instruction},
+   "events": [{t, phase, mode, kind, recovered, recovered_by_t, cost_steps, measures}],
+   "root": {option, t, phase, mode, index_id},
+   "root_alternatives": {a, b, c, d, e},
+   "anchor": {symptom: {t, index_id}, decision: null, decision_method: "not measured"},
+   "situation": {at_t, observation_window, fields: {name: {value, unit, source, sigma, held_fixed}}, frames},
+   "success": {template, params},
+   "terminal": {termination, env_steps, final_target_to_goal: {xy_cm, dz_cm}, holding_at_end},
+   "mechanism": {status: "untested"},
+   "validation": {mode_status: {mode: validated | unvalidated}, labels_ref},
+   "search": {ref, n_hits, sweep_ref}          // filled by ms_v1_search
+ }]
+}</pre>
+<p><b>Index v0</b> (<code>index_v0.json</code>), with ids <code>&lt;phase&gt;.&lt;mode&gt;</code>:</p>
+<ul>
+<li><code>approach.never_reached</code>;</li>
+<li><code>grasp.miss</code>, <code>grasp.slip</code>, <code>grasp.wrong_object</code>;</li>
+<li><code>transport.drop</code>;</li>
+<li><code>place.off_target</code>;</li>
+<li>success events <code>grasp.ok</code> and <code>place.ok</code>.</li>
+</ul>
+<p>Versioning: append-only within 0.x, and renames keep an alias. The toy's ids (<code>grasp.slip</code>, <code>pick-and-place.bowl-to-plate</code>) map onto these; the task-level id is <code>libero_spatial.&lt;task_id&gt;</code> until piece 1's index exists.</p>
+
+<h2 id="layout">9 · File layout in the v1 worktree</h2>
+<p>Branch <code>feat/mining-spec-v1</code>; prim creates the worktree once this doc is approved.</p>
+<pre>vla_harness/mining_spec/          # new package; the existing vla_harness/mining/ is left untouched
+  __init__.py  state.py  criteria.py  events.py  snapshot.py  validate.py
+  schema/ms_v1.schema.json
+  data/index_v0.json
+configs/mining_spec_v1/tasks.json  thresholds.json  search.json
+experiments/ms_v1_event_table.py  ms_v1_labels.py  ms_v1_render.py
+experiments/ms_v1_build_spec.py   ms_v1_search.py   (ms_v1_produce.py: stretch)
+runs/ms_v1/{events,labels,spec,search,render}/   # each with code_state/ and config/
+</pre>
+<p class="small muted">A new package rather than edits to <code>vla_harness/mining/</code>, because other pipelines (R-059, ROOT_SIGNAL_EXPERIMENTS) import classify.py and phases.py. Changing them would put those pipelines back through val.</p>
+
+<h2 id="effort">10 · Order of work, effort, val handovers</h2>
+<h3>10.1 · Order</h3>
+<ol>
+<li>configs + state.py + criteria.py → <b>val handover 1</b> (anchor: row 14's offsets; invariants over 720 + 500).</li>
+<li>events.py + event_table.py (with demo fits) → <b>val handover 2</b> (anchor: row 14's onsets; null: successes have no unrecovered events; the planted traces).</li>
+<li>labels sample + sheet; render (GPU, N10) → the user labels (N4) → score → revise the rules if needed → <b>val handover 3</b> (scoring code).</li>
+<li>snapshot.py + validate/schema + build_spec.py → <b>val handover 4</b>.</li>
+<li>search.py → <b>val handover 5</b> (anchor: the toy's 0 / 1).</li>
+<li>Report page: plotting only, outside val's scope. Stretch: produce.py.</li>
+</ol>
+<h3>10.2 · Effort per file <span class="tag I">I</span></h3>
+<div class="tw"><table>
+<tr><th>File</th><th class="n">Days</th></tr>
+<tr><td>configs</td><td class="n">0.5</td></tr>
+<tr><td>state.py</td><td class="n">1</td></tr>
+<tr><td>criteria.py</td><td class="n">0.75</td></tr>
+<tr><td>events.py</td><td class="n">2.5–3</td></tr>
+<tr><td>snapshot.py</td><td class="n">1</td></tr>
+<tr><td>validate + schema + index</td><td class="n">1–1.5</td></tr>
+<tr><td>ms_v1_event_table.py (incl. demo fits)</td><td class="n">1–1.5</td></tr>
+<tr><td>ms_v1_labels.py</td><td class="n">1</td></tr>
+<tr><td>ms_v1_render.py</td><td class="n">0.25</td></tr>
+<tr><td>ms_v1_build_spec.py</td><td class="n">1</td></tr>
+<tr><td>ms_v1_search.py</td><td class="n">1–1.5</td></tr>
+<tr><td>Val handovers, answering val, fixes</td><td class="n">1.5–2.5</td></tr>
+<tr><td><b>Core total</b></td><td class="n"><b>12.5–15.5</b></td></tr>
+<tr><td class="muted">+ labelling (user, N4)</td><td class="n muted">3–4 h</td></tr>
+<tr><td class="muted">+ stretch ms_v1_produce.py (N8)</td><td class="n muted">3–5 + GPU</td></tr>
+</table></div>
+<h3>10.3 · Why it grew, and what could be trimmed <span class="tag need">N11</span></h3>
+<p>My port estimate (6.5–9.5 d) assumed the toy's grasp-only root. UQ10 added the full event vocabulary, recovered flags, five root options, the in-gripper check, place vs drop, labelling tooling and five val handovers. Trims, if wanted:</p>
+<ul>
+<li><b>Drop <code>grasp.wrong_object</code> from v1</b>, marking it unvalidated (−0.5 d). It is the least certain rule and depends on the in-gripper fit.</li>
+<li><b>Compute only (a) and (b)</b> after N1 (−0.25 d).</li>
+<li><b>Skip recovery instances</b> (N3; −0.25 d).</li>
+<li><b>Merge val handovers 1–2 and 4–5</b> (−0.5 d), at the cost of larger, slower checks.</li>
+</ul>
+
+<footer>
+Sources:
+<code>docs/MINING_SPEC_DESIGN.html</code> (D1–D15, §6d UQ1/UQ7/UQ10, §7b);
+<code>docs/MINING_SPEC_POC_INTERNAL.html</code>;
+<code>PIPELINE_CHECKS.md</code>;
+toy code <code>experiments/poc_toy_*.py</code> and outputs <code>runs/poc_toy/</code> (3eadd66);
+<code>runs/r047/rollouts.jsonl</code> and manifests;
+<code>vla_harness/mining/{classify,phases,phases_libero}.py</code>;
+prim's probe <code>root_rules_probe_v2.py</code> (scratchpad, UNVERIFIED, re-run read-only 10-09 with identical output).
+Session checks behind the [V] tags on 10-09: row 14 at t=200–280 (gripper aperture, bowl height, distance to plate); final bowl→plate xy and height over the 544 R-047 successes; target and goal bodies in all 10 tasks.
+Written by the PoC session. Not committed; prim commits.
+</footer>
+</main>
+</body>
+</html>

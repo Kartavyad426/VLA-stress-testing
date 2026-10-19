@@ -44,8 +44,8 @@ a{color:var(--accent)}
 <tr><td>S0</td><td>Clean-demo gate</td><td>Replay each human demo's recorded actions from its restored <code>states[0]</code> (test T0 in IDM_VLA_HORIZONS). Drop demos that don't reproduce.</td><td>A whitelist of clean demos. D22 says demo replay is still unverified.</td></tr>
 <tr><td>S1</td><td>Root</td><td>Find the root of each failed rollout using the ROOT_IDENTIFICATION rules ("first unrecovered event"). Store the full sim state at the root.</td><td>Root state, phase × failure mode (D12), timestep.</td></tr>
 <tr><td>S2</td><td>Goal</td><td>Define the end state: the task's success predicate. In practice the target is the end of the matched demo segment, expressed in the target object's frame.</td><td>Goal pose and gripper state per segment.</td></tr>
-<tr><td>S3</td><td>Nearest demo</td><td>Filter to the same task, then the same phase (split at gripper events). Features: relative EEF pose in the target object's frame, gripper width, and optionally nearby obstacles. Match a 5–10 step window ending at the root, with features normalised by their spread across demos. Take the top-k (3–5).</td><td>k (demo, timestep) matches. A root whose nearest match is beyond the distance threshold counts as a coverage gap: log it and use the planner fallback.</td></tr>
-<tr><td>S4</td><td>DMP retarget</td><td>Split the rest of the demo at gripper events and fit one DMP per segment. Position uses a Cartesian DMP with vector-wise scaling (to avoid flip and overscale); orientation uses a quaternion DMP. Gripper events are replayed at the same phase. Set <code>y₀</code> to the root, <code>g</code> to the goal, and choose <code>τ</code> to keep the demo's duration.</td><td>Reference EEF trajectory plus gripper schedule.</td></tr>
+<tr><td>S3</td><td>Nearest demo</td><td>Filter to the same task, then the same phase (split at gripper events). Features: relative EEF pose in the target object's frame, gripper width, and optionally nearby obstacles. Match a 5–10 step window ending at the root, with features normalised by their spread across demos. Take the top-k (3–5). To get more labelled off-distribution states, also restart from small random offsets of each root state (DART-style) and match each one too.</td><td>k (demo, timestep) matches. A root whose nearest match is beyond the distance threshold counts as a coverage gap: log it and use the planner fallback.</td></tr>
+<tr><td>S4</td><td>DMP retarget</td><td>Split the rest of the demo at gripper events and fit one DMP per segment. Position uses a Cartesian DMP with vector-wise scaling (to avoid flip and overscale); orientation uses a quaternion DMP. Gripper events are replayed at the same phase. Set <code>y₀</code> to the root, <code>g</code> to the goal, and choose <code>τ</code> to keep the demo's duration. <b>Velocity-matched join:</b> start the DMP with the policy's position <i>and</i> velocity at the root (<code>z₀ = τ·ẏ_root</code>, from the sim), not from rest, so the join has no jump in position or velocity and no jerk spike in the first chunk.</td><td>Reference EEF trajectory plus gripper schedule.</td></tr>
 <tr><td>S5</td><td>Execute</td><td>Track the reference with LIBERO's OSC controller in closed loop. Record frames and the commanded actions in the policy's relative-EEF convention.</td><td>Frames and exact actions. Nothing is teleported.</td></tr>
 <tr><td>S6</td><td>Filter</td><td>Keep only rollouts that pass the sim's success check. Also reject collisions and excessive speed or jerk.</td><td>Corrective episodes, plus a yield figure for each offset band.</td></tr>
 <tr><td>S7</td><td>Style check (optional)</td><td>Run an IDM trained only on clean demos (T1) over the new episodes and compare its predictions with the recorded actions. Its disagreement should match what it shows on held-out real demos.</td><td>A distribution-shift score. This is a diagnostic only, not a filter, until it is validated.</td></tr>
@@ -78,7 +78,7 @@ a{color:var(--accent)}
 <tr><td><a href="https://arxiv.org/abs/2505.12705">DreamGen</a> (NVIDIA GEAR, 2025)</td><td>Video world model plus IDM produce "neural trajectories".</td><td>Rejected for LIBERO (§1). Only relevant for real robots or video-only data.</td></tr>
 </table></div>
 
-<h2>4a · IntervenGen side by side <span class="tag">method read in the arXiv PDF (v1), §IV B–D</span></h2>
+<h2>4a · IntervenGen side by side <span class="tag">full paper read in the arXiv PDF (v1); website extras not read</span></h2>
 <p>IntervenGen (I-Gen) is the closest prior work, so I read its generation method directly. Its loop: run the base policy in a new scene with a fresh observation corruption until contact detection flags a mistake. Pick a random <i>human intervention</i>, transform its recovery segment to the current object pose, linearly interpolate the EEF to its start, and replay it open-loop. Keep the episode only if the task succeeds, and keep the recovery part, not the mistake, for training. Aggregate with the base data and retrain (BC-RNN, robomimic). The paper's claim, verbatim: "increase policy robustness by up to 39× with only 10 human interventions" (3.5× / 10.7× / 39× over base on Nut Insertion / 2-Piece Assembly / Coffee).</p>
 <div class="tw"><table>
 <tr><th>Step</th><th>IntervenGen</th><th>This proposal</th><th>So what</th></tr>
@@ -90,15 +90,36 @@ a{color:var(--accent)}
 <tr><td>Stated limits</td><td>Quasi-static, rigid objects; assumes valid interventions can be made by transforming source data; delta-pose EEF actions; known subtask sequence</td><td>LIBERO-Spatial satisfies all four</td><td>No blocker.</td></tr>
 </table></div>
 <p><b>Novelty, honestly:</b> this is close to "IntervenGen without human interventions": DMP bridging from nominal demos plus automatic root finding. It is a reasonable engineering variant for our setup, not a new method. If it works, the reportable comparison is against I-Gen-style linear-interpolation bridging on the same roots, which costs one extra arm in the root pilot.</p>
-<p class="meta">The I-Gen paper's own text and table don't quite agree (a summarising fetch read the table as about 4.5× / 11.7× / 40×). Not re-derived here; the paper's verbatim text claim is the one quoted above.</p>
+<p class="meta">The multipliers are relative improvement, (I-Gen − Base) / Base, and they match Table I: (98−22)/22 = 3.45, (70−6)/6 = 10.7, (80−2)/2 = 39. The paper's "% improvements" are absolute percentage points.</p>
+
+<h3>What the paper shows that bears on us</h3>
+<div class="tw"><table>
+<tr><th>Finding (paper)</th><th>Numbers</th><th>Use for us</th></tr>
+<tr><td>Running the policy to generate mistakes beats transforming only the 10 source mistakes (ablation "I-Gen − Policy")</td><td>Table I: 98 / 70 / 80% vs 86 / 52 / 42%, i.e. +12 to +38 pts</td><td>The closest evidence that starting from the policy's own failure states (our roots) is worth it.</td></tr>
+<tr><td>Only the post-mistake part ξ[t:] is kept for training (Alg. 1 l.19); the mistake prefix is dropped</td><td>—</td><td>Points Q4 (§5) to root→goal only.</td></tr>
+<tr><td>Dose: 1,000 synthetic interventions added to 1,000 base demos (1:1)</td><td>2-Pc Assembly: 200 → 34%, 1,000 → 70%, 5,000 → 88%, still rising</td><td>A starting point for Q5. Consistent with R-056's dose being too weak.</td></tr>
+<tr><td>Per sample, synthetic data is worse than human data</td><td>100 I-Gen interventions → 24% vs 100 human interventions → 46% (2-Pc Assembly)</td><td>Synthetic wins only on volume, so plan for volume.</td></tr>
+<tr><td>A simple bridge was enough: linear EEF interpolation plus open-loop SE(3)-transformed replay</td><td>(quasi-static tasks only)</td><td>The DMP has to earn its place against the I-Gen-style arm in the root pilot (§7).</td></tr>
+<tr><td>Test-time <i>demonstrations</i>, which show no recovery, help much less than interventions</td><td>Source Demo 42 / 12 / 12%, MG Demo 64 / 16 / 18% vs I-Gen 98 / 70 / 80%</td><td>Our source is nominal demos. Starting them at the root turns them into recoveries, but this paper doesn't test that case: it is our main risk.</td></tr>
+</table></div>
+
+<h3>Caveats before carrying the numbers over</h3>
+<ul>
+<li><b>Selection:</b> each cell is the best of 40 checkpoints (2,000 epochs, evaluated every 50), at 50 trials each. This inflates every number, most of all the noisy baselines.</li>
+<li><b>Seeds:</b> only Nut Insertion has a seed check (98 / 100 / 98%); everything else is a single seed. The real-robot results rest on 10 trials.</li>
+<li><b>State-based policies:</b> BC-RNN on proprioception plus object poses, with no images. Nothing here shows that image-based VLAs benefit.</li>
+<li><b>Privileged information:</b> the true object pose (or a contact hint, Table III) is given on contact, mistakes are detected by contact, and object poses are known exactly during generation.</li>
+<li><b>Different failure type:</b> theirs is missing information (a corrupted pose belief). Ours is a policy that hasn't seen these states, though the images contain everything it needs. Their Assumption 4 holds trivially for us, but the size of their effect may not transfer.</li>
+<li>Inter-subtask recovery and "offline mode" are on the project website only; not read.</li>
+</ul>
 
 <h2>5 · Undecided questions (for the user / prim)</h2>
 <ol>
 <li><b>Scope vs D21:</b> replace Option A, sit inside it, or be a separate track?</li>
 <li><b>Goal definition:</b> the end of the matched demo segment, or the end of the whole task? (This affects whether one episode covers several phases.)</li>
 <li><b>Match threshold and k:</b> set from the spread of distances between demos (for example the 95th percentile) or fixed by hand?</li>
-<li><b>What to train on:</b> only the root→goal corrective segment, or also the policy's own start→root prefix (for state context, with no action loss on the prefix)?</li>
-<li><b>Dose:</b> the corrective:original ratio, pre-registered from the R-056 / D20 offset-band data.</li>
+<li><b>What to train on:</b> only the root→goal corrective segment, or also the policy's own start→root prefix (for state context, with no action loss on the prefix)? IntervenGen keeps only the post-mistake part (§4a).</li>
+<li><b>Dose:</b> the corrective:original ratio, pre-registered from the R-056 / D20 offset-band data. IntervenGen used 1:1 and was still improving at 5:1 (§4a).</li>
 <li><b>S7:</b> worth building now, or later once T1 passes?</li>
 </ol>
 
@@ -111,7 +132,7 @@ a{color:var(--accent)}
 <h2>7 · Cheapest first tests (in order)</h2>
 <ol>
 <li><b>T0:</b> does demo replay reproduce the demos? If not, S0 and S3 have nothing clean to match against. (CPU, about 2–4 h.)</li>
-<li><b>DMP sanity:</b> retarget a demo to its own start and goal and check it reproduces itself. Then retarget to ±2/8/16 cm offsets and report success yield per band. Compare with R-054's 0.2 beyond 16 cm.</li>
+<li><b>DMP sanity:</b> retarget a demo to its own start and goal and check it reproduces itself. Then retarget to ±2/8/16 cm offsets and report success yield per band. Compare with R-054's 0.2 beyond 16 cm. Also check that jerk in the first steps after the join is within the human demos' range.</li>
 <li><b>Root pilot:</b> 20 roots from one scene, top-3 matches each. Report yield, a visual match check (root frame vs matched demo frame), and coverage-gap rate. Add a second arm that uses I-Gen-style linear-interpolation bridging on the same roots (§4a).</li>
 <li>Only after these, a small S8 co-train with a pre-registered dose and val in the loop.</li>
 </ol>

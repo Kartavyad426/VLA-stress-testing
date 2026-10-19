@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>End-to-End Pipeline</title>
+<style>
+:root{
+  --bg:#fbfaf7; --fg:#1d1d1f; --muted:#5f6368; --line:#d6d3cc; --card:#ffffff; --code:#f1efe9;
+  --accent:#2b5fab;
+  --ok:#2e7d4f; --ok-bg:#dcefe2;
+  --poc:#9a6a00; --poc-bg:#f8eccb;
+  --des:#2b5fab; --des-bg:#dde7f6;
+  --none:#6b6b6b; --none-bg:#ececec;
+  --neg:#b03a2e; --neg-bg:#f6dedb;
+  --box:#ffffff; --arrow:#4a4a4a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --fg:#e6e6e6; --muted:#a0a4ab; --line:#3a3c42; --card:#1f2024; --code:#26282d;
+    --accent:#7fa7e8;
+    --ok:#6cc893; --ok-bg:#1e3a2a;
+    --poc:#e2b54a; --poc-bg:#3d3216;
+    --des:#7fa7e8; --des-bg:#1f2d47;
+    --none:#a8a8a8; --none-bg:#2c2d31;
+    --neg:#ef8a7f; --neg-bg:#45221f;
+    --box:#1f2024; --arrow:#b8b8b8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171a; --fg:#e6e6e6; --muted:#a0a4ab; --line:#3a3c42; --card:#1f2024; --code:#26282d;
+  --accent:#7fa7e8;
+  --ok:#6cc893; --ok-bg:#1e3a2a;
+  --poc:#e2b54a; --poc-bg:#3d3216;
+  --des:#7fa7e8; --des-bg:#1f2d47;
+  --none:#a8a8a8; --none-bg:#2c2d31;
+  --neg:#ef8a7f; --neg-bg:#45221f;
+  --box:#1f2024; --arrow:#b8b8b8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 .3rem;line-height:1.2}
+h2{font-size:1.35rem;margin:2.6rem 0 .6rem;padding-top:.6rem;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:1.6rem 0 .4rem}
+p,li{max-width:76ch}
+.meta{color:var(--muted);font-size:.92rem}
+.note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);padding:10px 14px;border-radius:6px;margin:1rem 0}
+.warn{border-left-color:var(--poc)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em}
+table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.93rem;background:var(--card)}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--code)}
+.tw{overflow-x:auto}
+td.src,th.src{font-size:.82rem;color:var(--muted);min-width:150px}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 7px;border-radius:10px;white-space:nowrap}
+.t-ok{background:var(--ok-bg);color:var(--ok)}
+.t-poc{background:var(--poc-bg);color:var(--poc)}
+.t-des{background:var(--des-bg);color:var(--des)}
+.t-none{background:var(--none-bg);color:var(--none)}
+.t-neg{background:var(--neg-bg);color:var(--neg)}
+.unv{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--poc);border:1px solid var(--poc);border-radius:4px;padding:0 4px;white-space:nowrap}
+figure{margin:1.2rem 0 1.6rem}
+figcaption{color:var(--muted);font-size:.88rem;margin-top:.4rem}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+svg .sub{fill:var(--muted);font-size:11px}
+svg .ttl{font-size:13.5px;font-weight:600}
+svg .bx{fill:var(--box);stroke:var(--line);stroke-width:1.5}
+svg .ar{stroke:var(--arrow);stroke-width:1.6;fill:none}
+svg .arhead{fill:var(--arrow)}
+svg .s-ok{fill:var(--ok-bg);stroke:var(--ok);stroke-width:2}
+svg .s-poc{fill:var(--poc-bg);stroke:var(--poc);stroke-width:2}
+svg .s-des{fill:var(--des-bg);stroke:var(--des);stroke-width:2}
+svg .s-none{fill:var(--none-bg);stroke:var(--none);stroke-width:2;stroke-dasharray:5 4}
+svg .s-neg{fill:var(--neg-bg);stroke:var(--neg);stroke-width:2}
+svg .dash{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:6 4}
+svg .axis{stroke:var(--muted);stroke-width:1.5}
+svg .ev-fail{fill:var(--neg)}
+svg .ev-ok{fill:var(--ok)}
+svg .ev-mk{fill:var(--muted)}
+svg .root{stroke:var(--neg);stroke-width:2.5}
+svg .big{font-size:22px;font-weight:700;fill:var(--muted)}
+.toc{columns:2;font-size:.93rem}
+.toc a{color:var(--accent)}
+dl.gl dt{font-weight:700;margin-top:.6rem}
+dl.gl dd{margin:0 0 0 1.2rem;max-width:76ch}
+.legend span{margin-right:.6rem}
+table.loop td:nth-child(2){width:24%}
+table.loop td:nth-child(3){width:44%}
+table.loop td:nth-child(4){width:11%}
+table.loop td.src{width:13%;word-break:break-word}
+table.blocks td:nth-child(1){width:13%}
+table.blocks td:nth-child(2){width:19%}
+table.blocks td:nth-child(3){width:17%}
+table.blocks td:nth-child(4){width:39%}
+table.blocks td.src{width:12%;word-break:break-word}
+.why,.lim{padding:6px 9px;border-radius:5px;margin:0 0 6px}
+.why{background:var(--des-bg);border-left:4px solid var(--des)}
+.lim{background:var(--poc-bg);border-left:4px solid var(--poc)}
+.lbl{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.why .lbl{color:var(--des)}
+.lim .lbl{color:var(--poc)}
+footer{margin-top:3rem;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+
+<h1>From a robot failure to a better policy: the end-to-end pipeline</h1>
+<p class="meta">2026-10-15 · written by session brain for an engineering team new to the project · draft for the user's review · not committed</p>
+
+<div class="note">
+<strong>How to read this.</strong> The picture comes first (§0). Every term is defined in the glossary (§1). The step-by-step tables give what works today and what does not. Run IDs and doc names are in the grey <em>Sources</em> columns, so the main text stays readable.
+<span class="unv">UNVERIFIED</span> means the number comes from new code that our independent checker session has not yet passed. Treat it as exploratory. Nothing in this doc was re-run for it. Every fact was read from the docs and run files listed in §9.
+</div>
+
+<nav class="toc">
+<a href="#s0">0 · The picture</a><br>
+<a href="#s1">1 · Glossary</a><br>
+<a href="#s2">2 · What a task is</a><br>
+<a href="#s3">3 · The loop, step by step</a><br>
+<a href="#s3b">3b · Scene generation in detail</a><br>
+<a href="#s4">4 · Why the mechanism comes before the fix</a><br>
+<a href="#s5">5 · One worked failure</a><br>
+<a href="#s6">6 · Recommended order</a><br>
+<a href="#s7">7 · Other uses of sim scenes</a><br>
+<a href="#s8">8 · Gaps and open questions</a><br>
+<a href="#s9">9 · Sources</a>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="s0">0 · The picture</h2>
+
+<p>We run a robot policy in simulation, collect the episodes where it fails, and work out <em>where</em> each failure began (the root) and <em>why</em> (the mechanism). Where the mechanism calls for new data, we generate a corrected demonstration from that point. We then retrain and re-test on episodes the training never saw. The loop then repeats with the new policy.</p>
+
+<figure>
+<svg viewBox="0 0 900 290" role="img" aria-labelledby="fa-t">
+<title id="fa-t">The loop: scene, task set, policy runs, failures, root, then mechanism, corrected demo, retrain, held-out re-test, and back to policy runs</title>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arhead"/></marker>
+</defs>
+<!-- top row -->
+<rect class="bx" x="20" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="90" y="64" text-anchor="middle">1 Scene</text>
+<text class="sub" x="90" y="82" text-anchor="middle">a simulated workspace</text>
+<rect class="bx" x="192" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="262" y="64" text-anchor="middle">2 Task set</text>
+<text class="sub" x="262" y="82" text-anchor="middle">what to do in it</text>
+<rect class="bx" x="364" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="434" y="64" text-anchor="middle">3 Policy runs</text>
+<text class="sub" x="434" y="82" text-anchor="middle">many rollouts</text>
+<rect class="bx" x="536" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="606" y="64" text-anchor="middle">4 Failures</text>
+<text class="sub" x="606" y="82" text-anchor="middle">success check says no</text>
+<rect class="bx" x="708" y="40" width="172" height="58" rx="8"/>
+<text class="ttl" x="794" y="64" text-anchor="middle">5 Root</text>
+<text class="sub" x="794" y="82" text-anchor="middle">where it went wrong</text>
+<!-- bottom row -->
+<rect class="bx" x="708" y="196" width="172" height="58" rx="8"/>
+<text class="ttl" x="794" y="220" text-anchor="middle">6 Mechanism</text>
+<text class="sub" x="794" y="238" text-anchor="middle">why, which picks the fix</text>
+<rect class="bx" x="536" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="606" y="220" text-anchor="middle">7 Corrected demo</text>
+<text class="sub" x="606" y="238" text-anchor="middle">root → goal, in sim</text>
+<rect class="bx" x="364" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="434" y="220" text-anchor="middle">8 Retrain</text>
+<text class="sub" x="434" y="238" text-anchor="middle">add the new data</text>
+<rect class="bx" x="192" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="262" y="220" text-anchor="middle">9 Held-out re-test</text>
+<text class="sub" x="262" y="238" text-anchor="middle">unseen episodes</text>
+<!-- arrows -->
+<path class="ar" d="M160 69 H190" marker-end="url(#ah)"/>
+<path class="ar" d="M332 69 H362" marker-end="url(#ah)"/>
+<path class="ar" d="M504 69 H534" marker-end="url(#ah)"/>
+<path class="ar" d="M676 69 H706" marker-end="url(#ah)"/>
+<path class="ar" d="M794 98 V194" marker-end="url(#ah)"/>
+<path class="ar" d="M708 225 H678" marker-end="url(#ah)"/>
+<path class="ar" d="M536 225 H506" marker-end="url(#ah)"/>
+<path class="ar" d="M364 225 H334" marker-end="url(#ah)"/>
+<path class="ar" d="M262 196 V150 H434 V100" marker-end="url(#ah)"/>
+<text class="sub" x="300" y="143">new policy goes back in</text>
+<text class="sub" x="808" y="150">classify first,</text>
+<text class="sub" x="808" y="164">then correct</text>
+<text class="sub" x="40" y="280">The mechanism says which input carries the failure and when it is decided: what a correction must change, and where it must start.</text>
+</svg>
+<figcaption>Diagram (a). The loop. The one design choice that differs from a naive "fail → correct → retrain" loop is step 6: we classify the mechanism <em>before</em> correcting, because the mechanism decides which fix can work (§4).</figcaption>
+</figure>
+
+<p>The loop is not built end to end. Diagram (b) colours each step by how far it has got.</p>
+
+<figure>
+<svg viewBox="0 0 900 330" role="img" aria-labelledby="fb-t">
+<title id="fb-t">The same loop coloured by maturity</title>
+<defs>
+<marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arhead"/></marker>
+</defs>
+<rect class="s-poc" x="20" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="90" y="64" text-anchor="middle">1 Scene</text>
+<text class="sub" x="90" y="82" text-anchor="middle">real-to-sim: PoC</text>
+<rect class="s-none" x="192" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="262" y="64" text-anchor="middle">2 Task set</text>
+<text class="sub" x="262" y="82" text-anchor="middle">real scenes: none</text>
+<rect class="s-ok" x="364" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="434" y="64" text-anchor="middle">3 Policy runs</text>
+<text class="sub" x="434" y="82" text-anchor="middle">works on LIBERO</text>
+<rect class="s-ok" x="536" y="40" width="140" height="58" rx="8"/>
+<text class="ttl" x="606" y="64" text-anchor="middle">4 Failures</text>
+<text class="sub" x="606" y="82" text-anchor="middle">works on LIBERO</text>
+<rect class="s-poc" x="708" y="40" width="172" height="58" rx="8"/>
+<text class="ttl" x="794" y="64" text-anchor="middle">5 Root</text>
+<text class="sub" x="794" y="82" text-anchor="middle">PoC rules; v1 design only</text>
+<rect class="s-ok" x="708" y="196" width="172" height="58" rx="8"/>
+<text class="ttl" x="794" y="220" text-anchor="middle">6 Mechanism</text>
+<text class="sub" x="794" y="238" text-anchor="middle">works on perturbations</text>
+<rect class="s-poc" x="536" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="606" y="220" text-anchor="middle">7 Corrected demo</text>
+<text class="sub" x="606" y="238" text-anchor="middle">DMP PoC, 5 scenarios</text>
+<rect class="s-neg" x="364" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="434" y="220" text-anchor="middle">8 Retrain</text>
+<text class="sub" x="434" y="238" text-anchor="middle">one pilot, negative</text>
+<rect class="s-none" x="192" y="196" width="140" height="58" rx="8"/>
+<text class="ttl" x="262" y="220" text-anchor="middle">9 Held-out re-test</text>
+<text class="sub" x="262" y="238" text-anchor="middle">not designed</text>
+<path class="ar" d="M160 69 H190" marker-end="url(#ah2)"/>
+<path class="ar" d="M332 69 H362" marker-end="url(#ah2)"/>
+<path class="ar" d="M504 69 H534" marker-end="url(#ah2)"/>
+<path class="ar" d="M676 69 H706" marker-end="url(#ah2)"/>
+<path class="ar" d="M794 98 V194" marker-end="url(#ah2)"/>
+<path class="ar" d="M708 225 H678" marker-end="url(#ah2)"/>
+<path class="ar" d="M536 225 H506" marker-end="url(#ah2)"/>
+<path class="ar" d="M364 225 H334" marker-end="url(#ah2)"/>
+<path class="ar" d="M262 196 V150 H434 V100" marker-end="url(#ah2)"/>
+<!-- legend -->
+<rect class="s-ok" x="20" y="285" width="22" height="16" rx="3"/><text class="sub" x="48" y="297">works</text>
+<rect class="s-poc" x="120" y="285" width="22" height="16" rx="3"/><text class="sub" x="148" y="297">PoC, unverified</text>
+<rect class="s-neg" x="270" y="285" width="22" height="16" rx="3"/><text class="sub" x="298" y="297">tried, negative</text>
+<rect class="s-none" x="410" y="285" width="22" height="16" rx="3"/><text class="sub" x="438" y="297">not started</text>
+</svg>
+<figcaption>Diagram (b). Maturity, 2026-10-15. On the LIBERO benchmark, steps 1–2 come ready-made: the scenes and tasks ship with the benchmark. They are "PoC" and "not started" only for scenes rebuilt from real recordings. Detail and sources: §3.</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<h2 id="s1">1 · Glossary</h2>
+<dl class="gl">
+<dt>VLA (vision-language-action model)</dt>
+<dd>A robot policy that takes camera images, a text instruction and the robot's joint state, and outputs robot actions. Most are built on a pretrained vision-language model.</dd>
+<dt>GR00T N1.7</dt>
+<dd>NVIDIA's open VLA, and the policy in all our experiments. We run its LIBERO-Spatial fine-tune (<code>nvidia/gr00t17-lerobot-libero_spatial-640</code>). Each call predicts a 40-step action chunk. Our harness executes 16 steps of it and then calls the model again. LIBERO-MAX's protocol executes 8.</dd>
+<dt>LIBERO</dt>
+<dd>A simulated tabletop benchmark (MuJoCo physics via robosuite, a Franka Panda arm). Tasks are written in BDDL files (§2). It has four suites: Spatial, Object, Goal and LIBERO-10. Each task comes with 50 human demonstrations. We mostly use LIBERO-Spatial: 10 tasks, each "pick up a black bowl and place it on the plate", in different layouts.</dd>
+<dt>LIBERO-Plus</dt>
+<dd>LIBERO tasks with controlled perturbations: camera pose, robot start pose, lighting, texture, layout, language and sensor noise. It also ships a 1,125-object model library.</dd>
+<dt>LIBERO-MAX</dt>
+<dd>A paired benchmark built from LIBERO-Plus and LIBERO-PRO variants. Each case has a <em>Base</em> episode and a <em>Dynamic</em> episode. The two are identical until the gripper comes within 0.18 m of a named object. Then one event fires in the Dynamic episode: the target is moved, the camera shifts, sensor noise starts, and so on (8 event types). The "Lite" set has 800 pairs. Because the event step is known, it is a clean test bed for "where did it go wrong".</dd>
+<dt>Rollout</dt>
+<dd>One episode of the policy acting in simulation, from a start state until the success check fires or the time limit runs out. We log the state and action at every step.</dd>
+<dt>Task</dt>
+<dd>Starting scene + instruction + automatic success check + time limit. See §2.</dd>
+<dt>Root</dt>
+<dd>The step at which we say a failure began. There are two rules, and we keep both because they can disagree on the same episode (§5): <em>first failure</em>, the first failure event in time; and <em>first unrecovered failure</em>, the first failure event that the policy never made good later in the episode.</dd>
+<dt>Mining instance</dt>
+<dd>A structured JSON record of one failure, defined by our "mining spec". It holds the task, the root event, the situation at the root as numeric fields with tolerances, the success test for that phase, and the evidence. It is the input for finding or producing data that fixes that situation.</dd>
+<dt>Mechanism</dt>
+<dd>Why the failure happened, stated so that it picks a fix. Here: which input carries the failure into the action (which camera, image vs state) and at which model call the outcome is decided. Example: a specific input channel (e.g. the wrist camera).</dd>
+<dt>DMP (dynamic movement primitive)</dt>
+<dd>A way to encode a demonstrated motion as a spring-damper system plus a learned "forcing" term. The motion can then be replayed from a new start to a new goal while keeping its shape. We use it to bend a human demo so it starts at a failure's root and ends at the goal.</dd>
+<dt>STAC</dt>
+<dd>Sentinel's temporal action consistency score (Agia et al., CoRL 2024). It samples several action plans per call and measures how much consecutive plans disagree on the steps they share. High disagreement means "erratic". It is a runtime failure detector.</dd>
+<dt>Sim-to-real / real-to-sim</dt>
+<dd><em>Sim-to-real</em>: whether something learned or measured in simulation holds on a real robot. <em>Real-to-sim</em>: rebuilding a real workspace in simulation from camera frames (objects, poses, physics, camera).</dd>
+<dt>Held-out</dt>
+<dd>Episodes, start states or scenes that no training step saw. A fix only counts if it helps there.</dd>
+</dl>
+
+<!-- ============================================================ -->
+<h2 id="s2">2 · What a task is</h2>
+<p>A task is <strong>not</strong> a single golden trajectory. It is a starting scene, an instruction, a check on the end state and a time limit. Any motion that ends with the check true within the limit is a success. A reference demonstration is a separate thing. We need one only to train a policy or to bend into a corrected demo with a DMP.</p>
+
+<figure>
+<svg viewBox="0 0 900 250" role="img" aria-labelledby="fc-t">
+<title id="fc-t">Anatomy of a task</title>
+<rect class="bx" x="10" y="30" width="200" height="120" rx="8"/>
+<text class="ttl" x="110" y="54" text-anchor="middle">Starting scene</text>
+<text class="sub" x="22" y="76">• objects and their poses</text>
+<text class="sub" x="22" y="94">• robot start (joint angles)</text>
+<text class="sub" x="22" y="112">• cameras (pose, intrinsics)</text>
+<text class="sub" x="22" y="130">• lighting, textures</text>
+<text class="big" x="222" y="98">+</text>
+<rect class="bx" x="246" y="30" width="170" height="120" rx="8"/>
+<text class="ttl" x="331" y="54" text-anchor="middle">Instruction</text>
+<text class="sub" x="258" y="80">"pick up the black bowl</text>
+<text class="sub" x="258" y="96">between the plate and the</text>
+<text class="sub" x="258" y="112">ramekin and place it on</text>
+<text class="sub" x="258" y="128">the plate"</text>
+<text class="big" x="428" y="98">+</text>
+<rect class="bx" x="452" y="30" width="190" height="120" rx="8"/>
+<text class="ttl" x="547" y="54" text-anchor="middle">Success check</text>
+<text class="sub" x="464" y="80">a predicate on the state:</text>
+<text class="sub" x="464" y="98">On(bowl_1, plate_1)</text>
+<text class="sub" x="464" y="118">checked every step;</text>
+<text class="sub" x="464" y="134">not a trajectory to copy</text>
+<text class="big" x="654" y="98">+</text>
+<rect class="bx" x="678" y="30" width="210" height="120" rx="8"/>
+<text class="ttl" x="783" y="54" text-anchor="middle">Time limit</text>
+<text class="sub" x="690" y="80">Spatial: 280 steps (ours)</text>
+<text class="sub" x="690" y="98">220 in LIBERO-MAX</text>
+<text class="sub" x="690" y="116">20 Hz control</text>
+<text class="sub" x="690" y="134">timeout = failure</text>
+<rect class="dash" x="160" y="182" width="568" height="56" rx="8"/>
+<text class="ttl" x="444" y="204" text-anchor="middle">Reference demo (optional, separate)</text>
+<text class="sub" x="444" y="224" text-anchor="middle">one example trajectory; needed only as training data or as the shape a DMP bends</text>
+</svg>
+<figcaption>Diagram (c). Anatomy of a task. The top row defines the task. The dashed box is not part of it.</figcaption>
+</figure>
+
+<p>LIBERO writes all of this in a BDDL file (a PDDL-style problem file). Abridged from the Spatial task above:</p>
+<pre style="background:var(--code);padding:10px 12px;border-radius:6px;overflow-x:auto;font-size:.85rem">(define (problem LIBERO_Tabletop_Manipulation)
+  (:language pick the akita black bowl between the plate and the ramekin and place it on the plate)
+  (:regions (between_plate_ramekin_region (:target main_table) (:ranges ((-0.06 0.19 -0.04 0.21)))) ...)
+  (:fixtures main_table - table  wooden_cabinet_1 - wooden_cabinet  flat_stove_1 - flat_stove)
+  (:objects akita_black_bowl_1 akita_black_bowl_2 - akita_black_bowl  plate_1 - plate ...)
+  (:obj_of_interest akita_black_bowl_1 plate_1)
+  (:init (On akita_black_bowl_1 main_table_between_plate_ramekin_region) (On plate_1 main_table_plate_region) ...)
+  (:goal (And (On akita_black_bowl_1 plate_1))))</pre>
+<p>The <code>:init</code> regions are small sampling boxes, and each episode draws a fixed initial state from a list that ships with the benchmark. The robot start, cameras and lighting come from the environment code, not the BDDL. LIBERO-Plus perturbs exactly those. The time limit comes from the harness. The other suites use the same format with other goal predicates: <code>In</code> (basket, drawer), <code>Open</code>/<code>Close</code> and <code>TurnOn</code>. Some LIBERO-10 tasks have two goal stages.</p>
+<p class="meta">Source: <code>third_party/LIBERO-plus/libero/libero/bddl_files/libero_spatial/</code> (a LIBERO-Plus variant of the original LIBERO file; same format). Time limits: <code>vla_harness/envs/libero_env.py</code>, PORTABILITY_LIBERO_MAX §1.</p>
+
+<!-- ============================================================ -->
+<h2 id="s3">3 · The loop, step by step</h2>
+<p>For each step: what it does, how far it has got, who owns it, and the evidence.</p>
+
+<div class="tw"><table class="loop">
+<tr><th>Step</th><th>What it does</th><th>State today</th><th>Owner</th><th class="src">Sources</th></tr>
+
+<tr><td><strong>1 Scene</strong></td>
+<td>Build the simulated workspace. On LIBERO, the benchmark provides it. For a customer deployment, we rebuild it from real camera frames (real-to-sim): detect objects → retrieve or generate meshes → metric depth → place → settle the physics → calibrate the camera and light.</td>
+<td><span class="tag t-poc">PoC</span> <span class="unv">UNVERIFIED</span><br>
+A survey and test design exist, plus exploratory code. Test case: one real-robot episode from the public DROID dataset, rebuilt from its frames (8 blocks, a bowl and two retrieved meshes).
+<ul>
+<li>A camera calibration constrained to a level table cut the table tilt from 13.5° to 0.02°.</li>
+<li>A grasp check still shows about <strong>5 cm of depth-scale error</strong>: the pinch point sits a median 5.1 cm below the cart top.</li>
+<li>A scripted (non-VLA) grasp placed 3/3 blocks in the bowl.</li>
+<li><strong>No VLA has run in a rebuilt scene yet.</strong></li>
+</ul>
+Asset licence: the LIBERO-Plus object library looks like BEHAVIOR-1K assets, which are licensed for non-commercial use only (provenance inferred, not confirmed). Treat them as research-only. CC BY 4.0 candidates (Kitchen-MJCF, a MuJoCo port of Google Scanned Objects) passed a sampled collision check, but every library needs its masses set by hand.</td>
+<td>res31 (scenes); res32 (asset licences)</td>
+<td class="src">REAL_TO_SIM_SCENES.html; SIM_READY_ASSET_LIBRARIES.html §1, §4, §7b; REAL_TO_SIM_ASSETS.html; commits 770dee7…34d22a2; <code>runs/real2sim/ep_c3</code>; data <code>data/real2sim/droid/ep_c3</code></td></tr>
+
+<tr><td><strong>2 Task set</strong></td>
+<td>Define the tasks to run in the scene (§2): instruction, success check, time limit, and the start-state distribution and perturbations.</td>
+<td>On LIBERO: <span class="tag t-ok">ready-made</span>. LIBERO-Plus and LIBERO-MAX vary tasks inside the fixed LIBERO scenes.<br>For rebuilt real scenes: <span class="tag t-none">not started</span>. There are no tasks or success predicates for them yet.</td>
+<td>none for real scenes</td>
+<td class="src">PORTABILITY_LIBERO_MAX §1, §4 (proposed per-task config)</td></tr>
+
+<tr><td><strong>3 Policy runs</strong></td>
+<td>Run the policy many times over a grid of start states and perturbations, logging per-step state, actions and outcome.</td>
+<td><span class="tag t-ok">works</span><br>
+Our start-pose and camera-yaw grid: 720 rollouts over 10 Spatial tasks, 176 failures. Start-pose success falls from 57/60 at radius 0 to 44/60 at 0.2 rad and 23/60 at 0.5 rad. The edge is a slope that depends on the scene.<br>
+LIBERO-MAX pilot, LIBERO-Plus Spatial cases only (133 pairs): Base 86.5% (115/133), Dynamic 61.7% (82/133). <span class="unv">UNVERIFIED</span>. This run recorded success rates only. A run in the agreed richer logging format has passed a 4-case smoke test and is waiting for GPU time.</td>
+<td>prim (GPU gate); impl2 (LIBERO-MAX)</td>
+<td class="src">RESULTS.md R-047; <code>runs/r047/</code>; <code>runs/lmax/pilot_spatial/summary/benchmark_summary.json</code>; PORTABILITY_LIBERO_MAX §5</td></tr>
+
+<tr><td><strong>4 Failures</strong></td>
+<td>The environment's success check marks each rollout pass or fail. Failures, plus their logs, are the raw material.</td>
+<td><span class="tag t-ok">works</span><br>Every failure in our start-pose runs is a timeout. The policy moves smoothly but makes no progress.</td>
+<td>—</td>
+<td class="src">STAC_GROOT_THEORY §0, §1</td></tr>
+
+<tr><td><strong>5 Root</strong></td>
+<td>Turn each failure into a list of events (grasp missed, slipped, wrong object, dropped, placed off target, never reached), each flagged recovered or not. Then pick the root by rule.</td>
+<td><span class="tag t-poc">PoC rules</span> <span class="tag t-des">v1 design only</span><br>
+The user kept two rules: first failure and first unrecovered failure. The rules matter: on our failures, "first in time" and a fixed-precedence rule disagree on 83 of 176 roots. 163 of 544 successes also fire at least one event <span class="unv">UNVERIFIED</span>.<br>
+The v1 design (event vocabulary, recovered flag, thresholds fitted from demos, scoring against ~30 hand-labelled episodes) is written but <strong>not coded</strong>. The DMP PoC uses the exploratory toy rules.<br>A VLM labeller for these events (which object is held, is it on the plate) is weak so far: the user hand-labelled 40 items and decided 26; the user agrees with sim truth on 15 of them, and Cosmos-Reason2-2B agrees with the user on 10. A single still frame is ambiguous even for a human.</td>
+<td>mining-spec PoC session</td>
+<td class="src">MINING_SPEC_V1_DESIGN §0–§3, §7; DMP_POC_METHOD §8 (decision C4); BRAINSTORM §3.2–3.4 (labeller, E7)</td></tr>
+
+<tr><td><strong>6 Mechanism</strong></td>
+<td>Localise why the policy failed by swapping parts of its input for their unperturbed versions, inside the model, and measuring how much of the change in the action each part undoes (image vs state tokens; agent camera vs wrist camera). Then find when the outcome is decided by executing a correct action chunk at call k and seeing whether the episode is rescued.</td>
+<td><span class="tag t-ok">works on perturbations</span><br>
+Runs done, per perturbation type:
+<ul>
+<li>Every perturbation reaches the action through the <strong>image tokens</strong>; the robot-state token is nearly inert.</li>
+<li><strong>Start pose:</strong> carried by the <strong>wrist camera</strong>. Restoring only the wrist image undoes a median 0.88 of the change in the first action; restoring the agent view undoes 0.17. Decided at the <strong>first model call</strong>: the correct first chunk rescues 20 of 24 failures, a plain re-run 0 of 22.</li>
+<li><strong>Camera viewpoint:</strong> agent view (0.98). Decided throughout the episode, so one corrected first chunk is not enough.</li>
+<li><strong>Sensor noise:</strong> a single camera (agent view, 0.97). <strong>Layout:</strong> agent view (0.55); a corrected first chunk does not rescue it.</li>
+<li><strong>Lighting, texture:</strong> both cameras jointly; neither alone reproduces the effect.</li>
+</ul>
+Limits: validated only on perturbation-induced failures; whether it carries to other failure types is untested. It needs the model's weights (it splices internal tokens) and an unperturbed twin episode.</td>
+<td>done; generalisation: res22 is researching failure modes beyond perturbations</td>
+<td class="src">RESULTS.md R-036, R-037, R-039 (pathway); R-041, R-042, R-044 (wrist); R-048, R-049, R-051 (per row); R-050, R-053, R-057 (when decided); PERTURBATION_MAP.html; MINING_SPEC_DESIGN D7</td></tr>
+
+<tr><td><strong>7 Corrected demo</strong></td>
+<td>Restore the sim to the root by replaying the logged actions. Find the 3 nearest human-demo states. Bend each demo's remaining motion from the root to the goal with a DMP, and execute it through the normal controller. Keep it only if the task succeeds and it passes jerk, speed and "nothing else knocked over" checks. Baseline: a linear bridge into the demo.</td>
+<td><span class="tag t-poc">PoC</span> <span class="unv">UNVERIFIED</span><br>
+Restore by replay matched the logs to 0.00 mm. Five scenarios were run, kept out of 3 each:
+<ul>
+<li>DMP: <strong>3, 3, 1, 2, 1</strong></li>
+<li>linear bridge: <strong>3, 2, 1, 0, 1</strong></li>
+</ul>
+Scenarios run from a near root to a far one (the gripper closes 8 cm to 40 cm from the bowl). The sweep over all 176 failures has <strong>not run</strong>.</td>
+<td>impl21; val checks</td>
+<td class="src">DMP_POC_METHOD; DMP_POC_SHOWCASE; worktree <code>VLA-exp-dmp-poc</code> <code>runs/dmp_poc/t3</code></td></tr>
+
+<tr><td><strong>8 Retrain</strong></td>
+<td>Fine-tune the policy on the new data mixed 1:1 with the original demos, then select a checkpoint on a validation set.</td>
+<td><span class="tag t-neg">tried, negative</span><br>
+The one pilot (a LoRA adapter on 100 start-pose demos made by running the policy with a good first chunk, not DMP) scored 59/108 on held-out starts against the base policy's 67/108. The whole drop is one scene at the grasp (12 → 4). Without that scene it is 55 vs 55. By its own pre-registered rule the result is uninterpretable. A LoRA rank sweep (65 / 59 / 64 of 108) shows adapter capacity is not the lever. No retraining on DMP-corrected data has been tried.</td>
+<td>open (SFT ran the pilot)</td>
+<td class="src">RESULTS.md R-054, R-056, R-058; R056_POSTMORTEM.html</td></tr>
+
+<tr><td><strong>9 Held-out re-test</strong></td>
+<td>Re-run the retrained policy on held-out starts or scenes, compare paired with the base policy, and check nominal runs for regressions.</td>
+<td><span class="tag t-none">not designed</span><br>The retraining pilot had its own held-out set. A standing re-test that closes the loop does not exist.</td>
+<td>none</td>
+<td class="src">—</td></tr>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="s3b">3b · Scene generation from a real recording, in detail</h2>
+<p>This expands step 1 of the loop: how one real robot recording becomes a MuJoCo scene that a policy can run in. The test inputs are episodes from DROID, a public real-robot dataset. Each episode has a video from a fixed exterior camera plus the robot's recorded joint angles. Everything here runs on our 8 GB machine, mostly on CPU. All of it is exploratory code from session res31 <span class="unv">UNVERIFIED</span>.</p>
+
+<figure>
+<svg viewBox="0 0 900 600" role="img" aria-labelledby="fe-t">
+<title id="fe-t">Scene generation block diagram: inputs, perception (VLM, Grounding DINO, SAM, MoGe-2), camera calibration and scale anchor, scene assembly, then physics checks, appearance and task generation</title>
+<defs>
+<marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arhead"/></marker>
+</defs>
+<!-- row 1 inputs -->
+<rect class="bx" x="20" y="22" width="300" height="50" rx="8"/>
+<text class="ttl" x="170" y="43" text-anchor="middle">Real video</text>
+<text class="sub" x="170" y="61" text-anchor="middle">one fixed exterior camera</text>
+<rect class="bx" x="380" y="22" width="380" height="50" rx="8"/>
+<text class="ttl" x="570" y="43" text-anchor="middle">Robot log + camera data</text>
+<text class="sub" x="570" y="61" text-anchor="middle">joint angles, gripper; factory intrinsics; rough camera pose</text>
+<!-- row 2 perception -->
+<rect class="dash" x="20" y="112" width="190" height="56" rx="8"/>
+<text class="ttl" x="115" y="134" text-anchor="middle">1 VLM</text>
+<text class="sub" x="115" y="152" text-anchor="middle">object names (candidate)</text>
+<rect class="bx" x="240" y="112" width="190" height="56" rx="8"/>
+<text class="ttl" x="335" y="134" text-anchor="middle">2 Grounding DINO</text>
+<text class="sub" x="335" y="152" text-anchor="middle">name → box</text>
+<rect class="bx" x="460" y="112" width="190" height="56" rx="8"/>
+<text class="ttl" x="555" y="134" text-anchor="middle">3 SAM</text>
+<text class="sub" x="555" y="152" text-anchor="middle">box → pixel mask</text>
+<rect class="bx" x="680" y="112" width="200" height="56" rx="8"/>
+<text class="ttl" x="780" y="134" text-anchor="middle">4 MoGe-2</text>
+<text class="sub" x="780" y="152" text-anchor="middle">pixels → 3-D points (m)</text>
+<!-- row 3 -->
+<rect class="bx" x="20" y="222" width="270" height="56" rx="8"/>
+<text class="ttl" x="155" y="244" text-anchor="middle">5 Camera calibration</text>
+<text class="sub" x="155" y="262" text-anchor="middle">match sim robot outline to real</text>
+<rect class="bx" x="320" y="222" width="260" height="56" rx="8"/>
+<text class="ttl" x="450" y="244" text-anchor="middle">6 Scale anchor</text>
+<text class="sub" x="450" y="262" text-anchor="middle">robot's known size fixes metres</text>
+<rect class="dash" x="610" y="222" width="270" height="56" rx="8"/>
+<text class="ttl" x="745" y="244" text-anchor="middle">Asset library + robot model</text>
+<text class="sub" x="745" y="262" text-anchor="middle">object meshes; FR3 arm + Robotiq gripper</text>
+<!-- row 4 build -->
+<rect class="s-poc" x="120" y="332" width="660" height="62" rx="8"/>
+<text class="ttl" x="450" y="356" text-anchor="middle">7 Build scene</text>
+<text class="sub" x="450" y="376" text-anchor="middle">table, blocks as fitted boxes, known objects retrieved by name, others as ellipsoids; masses from set densities</text>
+<!-- row 5 -->
+<rect class="bx" x="20" y="442" width="270" height="62" rx="8"/>
+<text class="ttl" x="155" y="464" text-anchor="middle">8 Physics checks</text>
+<text class="sub" x="155" y="484" text-anchor="middle">settle, replay real joints, scripted grasp</text>
+<rect class="bx" x="320" y="442" width="260" height="62" rx="8"/>
+<text class="ttl" x="450" y="464" text-anchor="middle">9 Appearance</text>
+<text class="sub" x="450" y="484" text-anchor="middle">fit light; paste sim onto real background</text>
+<rect class="bx" x="610" y="442" width="270" height="62" rx="8"/>
+<text class="ttl" x="745" y="464" text-anchor="middle">10 Task generation</text>
+<text class="sub" x="745" y="484" text-anchor="middle">tasks, variants, scripted expert, records</text>
+<!-- outputs -->
+<text class="sub" x="155" y="530" text-anchor="middle">→ scene passes or fails</text>
+<text class="sub" x="450" y="530" text-anchor="middle">→ sim video that looks like the real one</text>
+<text class="sub" x="745" y="530" text-anchor="middle">→ a task set + recorded episodes</text>
+<text class="sub" x="450" y="568" text-anchor="middle">Not yet: a VLA policy run inside a rebuilt scene.</text>
+<!-- arrows: video bus -->
+<path class="ar" d="M170 72 V92"/>
+<path class="ar" d="M115 92 H780 V110" marker-end="url(#ah5)"/>
+<path class="ar" d="M115 92 V110" marker-end="url(#ah5)"/>
+<path class="ar" d="M335 92 V110" marker-end="url(#ah5)"/>
+<path class="ar" d="M210 140 H238" marker-end="url(#ah5)"/>
+<path class="ar" d="M430 140 H458" marker-end="url(#ah5)"/>
+<text class="sub" x="224" y="186" text-anchor="middle">names</text>
+<text class="sub" x="444" y="186" text-anchor="middle">boxes</text>
+<!-- robot log down to calibration and anchor -->
+<path class="ar" d="M665 72 V100 H665 V200 H155 V220" marker-end="url(#ah5)"/>
+<path class="ar" d="M450 200 V220" marker-end="url(#ah5)"/>
+<!-- calibration to anchor -->
+<path class="ar" d="M290 250 H318" marker-end="url(#ah5)"/>
+<!-- SAM masks and MoGe points down to build -->
+<path class="ar" d="M555 168 V188 H595 V330" marker-end="url(#ah5)"/>
+<path class="ar" d="M780 168 V210 H600" />
+<text class="sub" x="606" y="322">masks, 3-D points</text>
+<!-- row3 to build -->
+<path class="ar" d="M155 278 V330" marker-end="url(#ah5)"/>
+<path class="ar" d="M450 278 V330" marker-end="url(#ah5)"/>
+<path class="ar" d="M745 278 V330" marker-end="url(#ah5)"/>
+<!-- build to row5 -->
+<path class="ar" d="M155 394 V440" marker-end="url(#ah5)"/>
+<path class="ar" d="M450 394 V440" marker-end="url(#ah5)"/>
+<path class="ar" d="M745 394 V440" marker-end="url(#ah5)"/>
+</svg>
+<figcaption>Diagram (e). From a real recording to a sim scene. Dashed boxes are not part of the automatic flow yet: the VLM is being tested as a replacement for hand-written object names, and the asset library and robot model are fixed inputs. Video feeds every perception block; the robot log feeds calibration and scale.</figcaption>
+</figure>
+
+<h3>What each block does</h3>
+<p class="meta">In the fourth column, <span style="color:var(--des);font-weight:700">blue</span> says why the block is there and <span style="color:var(--poc);font-weight:700">amber</span> lists its known limits.</p>
+<div class="tw"><table class="blocks">
+<tr><th>Block</th><th>Takes in</th><th>Gives out</th><th>Why it is there · Known limits</th><th class="src">Code</th></tr>
+
+<tr><td><strong>1 VLM object list</strong><br><span class="tag t-poc">candidate, not wired</span></td>
+<td>One video frame and a fixed prompt: "list every separate physical object on the table … answer only with JSON".</td>
+<td>A JSON list of objects: name, colour, count.</td>
+<td><div class="why"><span class="lbl">Why</span> The detector (block 2) needs a name for each object it should find. A VLM can supply the names for a scene nobody has looked at.</div><div class="lim"><span class="lbl">Limits</span> Not wired in: today the names are written by hand, and the VLM list is only compared against them. On the main test scene, Llama 3.2 11B (via NVIDIA NIM) listed the bowl, apple and cubes but called the radish a "green onion" and repeated one row.</div></td>
+<td class="src"><code>vlm_objects.py</code>; <code>runs/real2sim/ep_c3/vlm_objects_*.json</code></td></tr>
+
+<tr><td><strong>2 Grounding DINO</strong></td>
+<td>The frame plus one text prompt per object, e.g. "black bowl", "toy block".</td>
+<td>A bounding box and a confidence score per prompt. In cluttered scenes, every instance of a prompt.</td>
+<td><div class="why"><span class="lbl">Why</span> An open-vocabulary detector: it finds any object you can name, with no training on our scenes. Each prompt runs on its own, so similar names don't get merged. For repeated objects (8 blocks), overlapping boxes are pruned, and boxes that cover over 15% of the image or contain two other boxes are dropped.</div><div class="lim"><span class="lbl">Limits</span> It finds only the objects it is given names for. Scores can be low (the gripper scored 0.31).</div></td>
+<td class="src"><code>perceive.py</code> (<code>grounding-dino-tiny</code>)</td></tr>
+
+<tr><td><strong>3 SAM</strong></td>
+<td>The frame plus each box from block 2.</td>
+<td>A pixel mask per object.</td>
+<td><div class="why"><span class="lbl">Why</span> A box also contains table and neighbours. The mask gives exactly the object's pixels, which block 7 turns into 3-D points and which also give each object's real colour.</div><div class="lim"><span class="lbl">Limits</span> An object hidden behind another gets a cut-off mask, so its fitted shape is cut off too.</div></td>
+<td class="src"><code>perceive.py</code> (<code>sam-vit-base</code>)</td></tr>
+
+<tr><td><strong>4 MoGe-2</strong></td>
+<td>The same single frame. No depth camera is needed.</td>
+<td>A 3-D point for every pixel, in metres, plus an estimate of the camera's intrinsics.</td>
+<td><div class="why"><span class="lbl">Why</span> This is what makes one RGB image into 3-D geometry, with no depth camera.</div><div class="lim"><span class="lbl">Limits</span> Its overall scale can be well off: on the main test scene the scale anchor (block 6) shrank it by a factor of 0.69.</div></td>
+<td class="src"><code>perceive.py</code> (<code>moge-2-vitl-normal</code>)</td></tr>
+
+<tr><td><strong>5 Camera calibration</strong></td>
+<td>Robot masks (blocks 2–3 run on "robot arm", "robot gripper") in about 7 frames; the recorded joint angles; the camera's factory intrinsics; the dataset's rough camera pose as a start.</td>
+<td>The camera's 6-D pose relative to the robot (<code>calib.json</code>) and an overlay image to check it.</td>
+<td><div class="why"><span class="lbl">Why</span> DROID's recorded camera poses are noisy, and with them the sim arm drew offset from the real one. The fix renders the sim robot at the recorded joint angles and moves the virtual camera until its outline matches the real robot's. For datasets with no camera pose, a coarse search finds a starting pose.</div><div class="lim"><span class="lbl">Limits</span> Outline matching alone left the table tilted 13.5°. An optional level-table cost cut that to 0.02°, while the outline overlap moved from 0.425 to 0.404. That cost assumes the robot base and table are level.</div></td>
+<td class="src"><code>calibrate_cam.py</code>; commit 34d22a2</td></tr>
+
+<tr><td><strong>6 Scale anchor</strong></td>
+<td>The calibrated camera, the joint angles at one frame, and MoGe-2's depth on the robot's pixels.</td>
+<td>One global scale factor for MoGe-2's points (0.69 on the main scene).</td>
+<td><div class="why"><span class="lbl">Why</span> The robot's true size is known exactly, so its depth in the sim render tells us what MoGe-2's depth should be. One factor corrects the whole scene.</div><div class="lim"><span class="lbl">Limits</span> About 5 cm of depth-scale error still remains: in a grasp check the gripper's pinch point sits a median 5.1 cm below the cart top.</div></td>
+<td class="src"><code>build_scene.py</code> (<code>--scale anchor</code>); <code>scene_fit.json</code>; commit 34d22a2</td></tr>
+
+<tr><td><strong>7 Build scene</strong></td>
+<td>Masks and scaled 3-D points per object; the calibration; an asset library (LIBERO and LIBERO-Plus objects, or none); the DROID robot model (Franka FR3 arm + Robotiq 2F-85 gripper, from MuJoCo Menagerie).</td>
+<td>A MuJoCo scene (<code>scene.mjb</code>, <code>scene.xml</code>), a fit report (<code>scene_fit.json</code>) and a projection overlay.</td>
+<td><div class="why"><span class="lbl">Why</span> Turns masks and points into bodies MuJoCo can simulate. The table becomes a box at the fitted height. Blocks become boxes sized from their top-face points, using the 5th–95th percentile so stray points don't inflate them; "block"/"cube" labels are made cubic. The bowl is LIBERO's black bowl scaled to the fitted rim. Other named objects (apple, radish) are retrieved by name from the library.</div><div class="lim"><span class="lbl">Limits</span> Masses come from set densities, because mass can't be seen. Retrieved objects collide as one convex hull, because their hundreds of collision parts overflowed MuJoCo's contact memory, so any cavity is filled. Unrecognised objects are only ellipsoid stand-ins. The LIBERO-Plus assets are research-only (§3 step 1).</div></td>
+<td class="src"><code>build_scene.py</code>; commit 47b46ef</td></tr>
+
+<tr><td><strong>8 Physics checks</strong></td>
+<td>The scene, plus either the recorded joint trajectory or targets computed from the sim's own object poses.</td>
+<td>Metrics and a sim video next to the real one.</td>
+<td><div class="why"><span class="lbl">Why</span> Bad geometry shows up as physics failures, so three checks run: <em>settle</em> (do objects stay put when nothing touches them?), <em>replay</em> (the real joint trajectory played through the sim's position control) and <em>scripted grasp</em> (an inverse-kinematics expert planned in the sim scene).</div><div class="lim"><span class="lbl">Limits</span> Settle moved objects 0–2 cm on the main scene. Replay of the real trajectory fails on the first test episode (cause not established). The scripted grasp put 3 of 3 blocks into the bowl in clutter, but it is a scripted expert, not a VLA.</div></td>
+<td class="src"><code>replay.py</code>, <code>scripted_grasp.py</code>; commits 7e772e0, 770dee7</td></tr>
+
+<tr><td><strong>9 Appearance</strong></td>
+<td>The real video, the calibration, the masks and a sim run.</td>
+<td>A composite video: the sim robot and objects drawn over the real background, with matching shadows and colours. Optionally a Blender (Cycles) render.</td>
+<td><div class="why"><span class="lbl">Why</span> Policies act on pixels, so a sim that looks unlike the real camera can change results by itself. Background: the per-pixel median of the video (a clean plate), with the real objects inpainted away (LaMa). Colours: each sim object gets the real median colour of its mask. Light: a directional light fitted to the real robot's shadow.</div><div class="lim"><span class="lbl">Limits</span> On the main scene the shadows were too faint to fit a light direction (overlap 0.08), so an overhead light is assumed; only the shadow strength (0.89) is measured. The licence of LaMa's training data is unchecked.</div></td>
+<td class="src"><code>calibrate_light.py</code>, <code>composite.py</code>, <code>export_usd.py</code>, <code>blender_render.py</code>; <code>light.json</code></td></tr>
+
+<tr><td><strong>10 Task generation</strong></td>
+<td>The built scene and its object list.</td>
+<td>Language tasks, randomised variants ("cousins": objects jittered in position and yaw), and a scripted-expert episode per variant: video, joint states, actions, instruction, success.</td>
+<td><div class="why"><span class="lbl">Why</span> Turns a scene into a task set (§2) and into training data. Task types: "put the &lt;colour&gt; block in the bowl", "stack … on …", "move … next to …". Success is checked on the sim state. Over 2 scenes it made 21 tasks; the expert succeeded on 89 of 105 variants.</div><div class="lim"><span class="lbl">Limits</span> Radish 0/5 (bad grasp shape); "next to the bowl" 1/5 (lands 8.5–10 cm from the rim against an 8 cm threshold). Only three task types. The episodes come from a scripted expert, not a VLA.</div></td>
+<td class="src"><code>make_tasks.py</code>, <code>tasks_page.py</code>; <code>runs/real2sim/tasks/summary.json</code>; commit ca9da98</td></tr>
+</table></div>
+<p class="meta">Other input sources: <code>lerobot_episode.py</code> converts an episode from a LeRobot-format dataset (e.g. an Open X-Embodiment Franka set) into the same folder layout, so the same blocks run on it. Survey and alternatives (heavier GPU stacks, splats, video world models): REAL_TO_SIM_SCENES.html. Asset licences: SIM_READY_ASSET_LIBRARIES.html.</p>
+
+<!-- ============================================================ -->
+<h2 id="s4">4 · Why the mechanism comes before the fix</h2>
+<p>The obvious loop corrects every failure the same way. Our evidence says the right fix depends on the mechanism, and some fixes cannot work for some mechanisms:</p>
+<div class="tw"><table>
+<tr><th>Failure / mechanism</th><th>Fix that fits</th><th>Fix that cannot work, and why</th><th class="src">Sources</th></tr>
+<tr><td>Grasp slip or near miss; placement off target</td><td>DMP-corrected demo from the root (worked on the near scenarios <span class="unv">UNVERIFIED</span>)</td><td>—</td><td class="src">DMP_POC_SHOWCASE, scenarios A–C</td></tr>
+<tr><td>Bad robot start pose (wrist camera; decided at the first call)</td><td>Correct the start: a good first action chunk rescued 20 of 24 such failures. Corrective data must start at the start state. Re-homing the arm before running is the free baseline.</td><td>A runtime corrector (VLA-Corrector style) cannot fire before ~step 25, after the outcome is decided. A plain re-run rescued 0 of 22.</td><td class="src">RESULTS.md R-042, R-053, R-057; BRAINSTORM §2.1–2.2</td></tr>
+<tr><td>Camera viewpoint (agent view; decided throughout)</td><td>Corrections that span the episode, not just its start</td><td>A single corrected first chunk</td><td class="src">RESULTS.md R-048, R-050, R-057</td></tr>
+<tr><td>Layout (agent view)</td><td>Open</td><td>A corrected first chunk does not rescue it</td><td class="src">RESULTS.md R-049, R-051</td></tr>
+<tr><td>Smooth, no-progress failures (all of ours)</td><td>A progress detector (distance to the target over the first calls) looks promising: AUROC 0.91 by the 4th call <span class="unv">UNVERIFIED</span></td><td>STAC: on GR00T it mostly tracks how fast the arm moves, and failures look <em>more</em> consistent than successes</td><td class="src">STAC_GROOT_THEORY §0, §3–4</td></tr>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="s5">5 · One worked failure</h2>
+<p>A real failed episode from our start-pose grid. The task is the Spatial scene "pick up the black bowl between the plate and the ramekin and place it on the plate", with the robot's start pose perturbed by 0.2 rad. All numbers below come from the logs and the DMP PoC, and are <span class="unv">UNVERIFIED</span>.</p>
+
+<figure>
+<svg viewBox="0 0 900 430" role="img" aria-labelledby="fd-t">
+<title id="fd-t">Worked failure: timeline of events, root at step 31, then restore, match, DMP correction and checks</title>
+<defs>
+<marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arhead"/></marker>
+</defs>
+<text class="ttl" x="20" y="22">The failed rollout (280-step limit, 20 Hz)</text>
+<!-- axis: x = 40 + t*2.9 -->
+<line class="axis" x1="40" y1="90" x2="852" y2="90"/>
+<text class="sub" x="40" y="108" text-anchor="middle">0</text>
+<text class="sub" x="330" y="108" text-anchor="middle">100</text>
+<text class="sub" x="620" y="108" text-anchor="middle">200</text>
+<text class="sub" x="852" y="108" text-anchor="middle">280</text>
+<!-- t=31 root -->
+<line class="root" x1="130" y1="50" x2="130" y2="90"/>
+<circle class="ev-fail" cx="130" cy="90" r="6"/>
+<text class="sub" x="130" y="44" text-anchor="middle">t=31 grasp slip</text>
+<text class="sub" x="130" y="128" text-anchor="middle">ROOT (first failure)</text>
+<!-- regrasps 80,103,128,176 -->
+<circle class="ev-mk" cx="272" cy="90" r="4"/>
+<circle class="ev-mk" cx="339" cy="90" r="4"/>
+<circle class="ev-mk" cx="411" cy="90" r="4"/>
+<circle class="ev-mk" cx="550" cy="90" r="4"/>
+<text class="sub" x="411" y="74" text-anchor="middle">re-grasps at 80, 103, 128, 176 (bowl barely lifts)</text>
+<!-- 201 grasp ok -->
+<circle class="ev-ok" cx="623" cy="90" r="6"/>
+<text class="sub" x="623" y="128" text-anchor="middle">t=201 grasp ok</text>
+<!-- 242 off target -->
+<line class="root" x1="742" y1="50" x2="742" y2="90"/>
+<circle class="ev-fail" cx="742" cy="90" r="6"/>
+<text class="sub" x="742" y="44" text-anchor="middle">t=242 released 5.2 cm off centre</text>
+<text class="sub" x="742" y="128" text-anchor="middle">ROOT (first unrecovered)</text>
+<circle class="ev-mk" cx="852" cy="90" r="5"/>
+<text class="sub" x="852" y="146" text-anchor="end">timeout → failure</text>
+<!-- correction chain from t=31 -->
+<path class="ar" d="M130 136 V176" marker-end="url(#ah4)"/>
+<rect class="bx" x="20" y="180" width="200" height="88" rx="8"/>
+<text class="ttl" x="120" y="202" text-anchor="middle">Restore the root</text>
+<text class="sub" x="32" y="222">replay logged actions 0–30</text>
+<text class="sub" x="32" y="238">match to log: 0.00 mm</text>
+<text class="sub" x="32" y="254">gripper still open</text>
+<path class="ar" d="M220 224 H246" marker-end="url(#ah4)"/>
+<rect class="bx" x="250" y="180" width="200" height="88" rx="8"/>
+<text class="ttl" x="350" y="202" text-anchor="middle">Find nearest demos</text>
+<text class="sub" x="262" y="222">3 of the task's human demos,</text>
+<text class="sub" x="262" y="238">hand pose relative to the bowl</text>
+<text class="sub" x="262" y="254">nearest state 0.73 × spread</text>
+<path class="ar" d="M450 224 H476" marker-end="url(#ah4)"/>
+<rect class="bx" x="480" y="180" width="200" height="88" rx="8"/>
+<text class="ttl" x="580" y="202" text-anchor="middle">Bend with a DMP</text>
+<text class="sub" x="492" y="222">demo's remaining motion,</text>
+<text class="sub" x="492" y="238">start = root, goal = bowl/plate</text>
+<text class="sub" x="492" y="254">run through the controller</text>
+<path class="ar" d="M680 224 H706" marker-end="url(#ah4)"/>
+<rect class="s-ok" x="710" y="180" width="170" height="88" rx="8"/>
+<text class="ttl" x="795" y="202" text-anchor="middle">Kept 3 of 3</text>
+<text class="sub" x="722" y="222">success 111–130 steps on</text>
+<text class="sub" x="722" y="238">jerk, speed, collateral ✓</text>
+<text class="sub" x="722" y="254">fits in the 280-step limit</text>
+<!-- inset second root -->
+<rect class="dash" x="20" y="300" width="860" height="110" rx="8"/>
+<text class="ttl" x="36" y="324">Same episode, the other root rule (t = 242)</text>
+<text class="sub" x="36" y="346">Restore at the step before release, bowl still held. Match demos in the "carry to plate" phase. The nearest demo state is 1.36 × spread,</text>
+<text class="sub" x="36" y="364">so this root sits in a coverage gap. DMP kept 3/3, linear bridge 2/3. Rejections are for knocking another object more than 2 cm.</text>
+<text class="sub" x="36" y="390">Which rule to use is open: the two give different training data from the same failure (an early grasp fix vs a late placement fix).</text>
+</svg>
+<figcaption>Diagram (d). From failure to root to DMP correction. "Spread" is the 95th-percentile distance between the task's own demos. Above 1 means the root is further from any demo than the demos are from each other (a coverage gap).</figcaption>
+</figure>
+
+<p><strong>What happened.</strong> At step 31 the gripper closes 7.9 cm from the bowl's centre. The bowl lifts 2.1 cm and slips back by step 52. The policy re-grasps four times, gets a real lift at step 201, carries the bowl to the plate, and releases it at step 242. The bowl comes to rest 5.2 cm off the plate centre, and every one of the 544 successful runs in this grid ends within 3.0 cm. Two small re-grasps follow, and the episode times out at 280.</p>
+<p><strong>The mechanism.</strong> This is a start-pose failure, the perturbation type whose mechanism is localised (§3 step 6): the wrist camera carries it, and the outcome is decided at the first model call. The visible events at steps 31 and 242 are where the failure <em>shows</em>; the localisation says it was set up by the start. That is why the corrected-start data (a good first chunk) and the root-anchored DMP data are different fixes for the same episode, and which one helps more is not yet measured.</p>
+<p><strong>The fix, as data.</strong> Under the first-failure rule, the corrected demo shows a clean approach and grasp from the bad close at step 31. Under the first-unrecovered rule, it shows a placement correction from step 241. Both are kept by the checks <span class="unv">UNVERIFIED</span>. Neither has been used to retrain anything.</p>
+<p class="meta">Sources: R-047 rollout row 14 (scene 984, joint radius 0.2 rad, direction seed 1); MINING_SPEC_V1_DESIGN §3.5; DMP_POC_SHOWCASE scenarios A and B. Distance at step 31: 7.9 cm is the full 3-D gripper-to-bowl distance from the offset (−6.84, −3.63, +1.31) cm. Elsewhere "6.8 cm short" quotes only its first component.</p>
+
+<!-- ============================================================ -->
+<h2 id="s6">6 · Recommended order</h2>
+<p><strong>Connect the links on LIBERO first.</strong> Scenes, the policy and failure collection already work there, and the true sim state is free, so every later step can be checked against truth. <strong>Add rebuilt real scenes only once a VLA has been shown to run in one.</strong></p>
+<div class="tw"><table>
+<tr><th>#</th><th>Step</th><th>Gate before the next step</th></tr>
+<tr><td>1</td><td>Code the root rules (v1) and score them on ~30 hand-labelled episodes</td><td>Root agreement and per-event precision above the agreed bar; checker pass</td></tr>
+<tr><td>2</td><td>Run the DMP correction over all 176 failures (the sweep)</td><td>Checker pass; the share of failures covered, by failure type and distance from the demos</td></tr>
+<tr><td>3</td><td>Design the retrain on corrected demos and the held-out re-test, using what the negative pilot taught us</td><td>Pre-registered design approved by the user</td></tr>
+<tr><td>4</td><td>Retrain and re-test: the first full turn of the loop</td><td>Paired held-out gain with no nominal regression</td></tr>
+<tr><td>5</td><td>Run a VLA in a rebuilt real scene; give real scenes a task set</td><td>The policy behaves in the rebuilt scene as on LIBERO; depth error and asset licence resolved</td></tr>
+</table></div>
+<p class="meta">LIBERO-MAX numbers count only after the paper's GR00T result reproduces (paper: 69.3% Base vs 50.0% Dynamic on Max, 69.3% vs 51.4% on Lite). Our pilot is a different subset, so it does not test this yet.</p>
+
+<!-- ============================================================ -->
+<h2 id="s7">7 · Other uses of sim scenes</h2>
+<p>A simulated copy of a deployment is useful beyond the loop. What transfers from sim to real is known roughly: the <em>ranking</em> of policies and <em>which</em> perturbation hurts most transfer well (published correlations r ≈ 0.86–0.98). Absolute success rates and the size of each effect do not. So uses that rely on absolute numbers or close appearance need high-fidelity scenes. Uses that need only plausible geometry are less fidelity-bound.</p>
+<div class="tw"><table>
+<tr><th>Use</th><th>What it gives</th><th>Fidelity needed</th></tr>
+<tr><td>Deployment-matched regression tests</td><td>A fixed test set that looks like the customer's cell; run on every new policy version</td><td><span class="tag t-neg">high</span></td></tr>
+<tr><td>Reproducing field failures</td><td>Re-create a reported failure, then restore its saved states to localise it and generate corrections</td><td><span class="tag t-neg">high</span></td></tr>
+<tr><td>Sensitivity maps</td><td>Which conditions break the policy, and in what order. Example: the LIBERO-MAX pilot shows Dynamic events cost 25 points on Spatial <span class="unv">UNVERIFIED</span></td><td><span class="tag t-neg">high</span></td></tr>
+<tr><td>Sales demos</td><td>"Your cell, your failure, fixed", shown side by side with the real video</td><td><span class="tag t-neg">high</span> (appearance matters)</td></tr>
+<tr><td>Site planning</td><td>Reach, clearances and camera placement before installation</td><td><span class="tag t-poc">medium</span> (geometry yes, appearance no; brain's judgement)</td></tr>
+<tr><td>Ground-truth labels for training a labeller</td><td>Unlimited free labels (held, on plate, contact) from sim state</td><td><span class="tag t-ok">lower</span></td></tr>
+<tr><td>Calibrating failure detectors</td><td>Known failure times to set alarm thresholds and false-alarm rates</td><td><span class="tag t-ok">lower</span></td></tr>
+<tr><td>Safety pre-checks</td><td>Collisions, joint limits and workspace violations before a policy touches hardware</td><td><span class="tag t-ok">lower</span></td></tr>
+</table></div>
+<p class="meta">Sources: BRAINSTORM §1.2 (SIMPLER, PolaRiS); REAL_TO_SIM_SCENES §1 (training data needs "plausible plus randomised"; evaluation needs "matched").</p>
+
+<!-- ============================================================ -->
+<h2 id="s8">8 · Gaps and open questions</h2>
+<div class="tw"><table>
+<tr><th>#</th><th>Gap or question</th><th>Suggested owner</th></tr>
+<tr><td>1</td><td>Who defines tasks and success checks for rebuilt real scenes?</td><td>res31, or a new session</td></tr>
+<tr><td>2</td><td>First VLA run inside a rebuilt scene</td><td>res31, through prim's GPU gate</td></tr>
+<tr><td>3</td><td>The ~5 cm depth-scale error in the rebuilt scene</td><td>res31</td></tr>
+<tr><td>4</td><td>Provenance and licence of the LIBERO-Plus object library; licence of the original LIBERO objects</td><td>res32, then ask the LIBERO-Plus authors</td></tr>
+<tr><td>5</td><td>Code the v1 root rules; who hand-labels ~30 episodes (~3–4 h); which root rule is designated</td><td>mining-spec PoC session; labelling and rule choice: the user</td></tr>
+<tr><td>6</td><td>Mechanism localisation beyond perturbation-induced failures (e.g. the grasp and placement failures in §5)</td><td>res22 (researching failure modes beyond perturbations)</td></tr>
+<tr><td>7</td><td>VLM labeller input test (separate, unrotated views; two time points)</td><td>prim to sequence after the E7 report</td></tr>
+<tr><td>8</td><td>DMP sweep over all failures, and the checker pass on the DMP code</td><td>impl21; val</td></tr>
+<tr><td>9</td><td>Retraining design on corrected demos, learning from the negative pilot (scene-specific regression, training starts fitted but not generalised)</td><td>new session (SFT ran the pilot)</td></tr>
+<tr><td>10</td><td>Held-out re-test design: which starts, scenes and events; paired scoring; regression check</td><td>new session</td></tr>
+<tr><td>11</td><td>LIBERO-MAX in the agreed logging format, then the Lite run</td><td>impl2</td></tr>
+<tr><td>12</td><td>Reproduce the paper's GR00T LIBERO-MAX numbers as the gate for any LIBERO-MAX claim; which checkpoint the paper used is unknown</td><td>impl2</td></tr>
+</table></div>
+
+<!-- ============================================================ -->
+<h2 id="s9">9 · Sources</h2>
+<ul>
+<li><code>docs/REAL_TO_SIM_SCENES.html</code> (survey and CPU test design; it predates the exploratory runs). The rebuilt-scene state is from commits <code>770dee7</code> to <code>34d22a2</code> and <code>runs/real2sim/ep_c3/</code>.</li>
+<li><code>docs/SIM_READY_ASSET_LIBRARIES.html</code>, <code>docs/REAL_TO_SIM_ASSETS.html</code></li>
+<li><code>docs/MINING_SPEC_V1_DESIGN.html</code> (root rules, worked episode §3.5)</li>
+<li><code>docs/DMP_POC_METHOD.html</code>, <code>docs/DMP_POC_SHOWCASE.html</code>, worktree <code>../VLA-exp-dmp-poc/runs/dmp_poc/</code></li>
+<li><code>docs/STAC_GROOT_THEORY.html</code></li>
+<li><code>docs/PORTABILITY_LIBERO_MAX.html</code>; <code>runs/lmax/pilot_spatial/summary/benchmark_summary.json</code></li>
+<li><code>docs/PERTURBATION_MAP.html</code>; <code>docs/MINING_SPEC_DESIGN.html</code> D7</li>
+<li><code>docs/BRAINSTORM.html</code> §1.2, §2.1–2.2, §3; <code>docs/ROUGH_ROBOTICS_PRODUCT_DESIGN.html</code> §7</li>
+<li><code>RESULTS.md</code>: R-036, R-037, R-039, R-041, R-042, R-044, R-048–R-051 (mechanism localisation), R-047 (policy-run grid), R-053 (first-chunk rescue), R-054 (demos made with a good first chunk), R-056 (retraining pilot), R-057 (decided at the first call), R-058 (rank sweep); <code>docs/R056_POSTMORTEM.html</code></li>
+<li><code>docs/Decision_28Sep.html</code> (decision history)</li>
+<li>BDDL example: <code>third_party/LIBERO-plus/libero/libero/bddl_files/libero_spatial/</code></li>
+</ul>
+
+<footer>Written by session brain, 2026-10-15, from the documents above. No experiments were run for this page. Not committed; prim commits.</footer>
+</main>
+</body>
+</html>
