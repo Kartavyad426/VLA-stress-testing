@@ -9,15 +9,19 @@ The output is not a leaderboard score. It is a repeatable method for turning mod
 behaviour into a data strategy: what failed, under what conditions, how often, what it
 would cost, and whether more data would fix it at all.
 
-> **Status (2026-10-12): research prototype.** The harness reproduces published LIBERO
+> **Status (2026-10-19): research prototype.** The harness reproduces published LIBERO
 > numbers and runs GR00T N1.7 on LIBERO-Plus. A perturbation → correction map covers
 > all seven LIBERO-Plus perturbation types. The first retraining pilot (R-053 to R-058)
 > did not close the gap. Since 10-06 the work has moved to **finding the root of each
-> failure** (the first event the policy never recovers from) and to a **mining spec**:
-> the format in which failures, their roots and matching data are delivered. Nothing
-> here is client-facing yet. New readers: start with [Reading order](#reading-order).
-> For what is running and open right now, see
-> [`docs/handoffs/HANDOFF_2026-10-12.html`](docs/handoffs/HANDOFF_2026-10-12.html).
+> failure** and to a **mining spec** (the format in which failures, their roots and
+> matching data are delivered). Since 10-14 it has grown into an **end-to-end loop**:
+> scene from a real recording → task set → policy runs → failure root → mechanism →
+> corrected demo → retrain → held-out re-test
+> ([`docs/END_TO_END_PIPELINE.html`](docs/END_TO_END_PIPELINE.html), draft). Steps 1–3
+> and 6 have working proofs of concept; the rest are design only or open. Nothing here
+> is client-facing yet. New readers: start with [Reading order](#reading-order). For
+> what is running and open right now, see
+> [`docs/handoffs/HANDOFF_2026-10-15.html`](docs/handoffs/HANDOFF_2026-10-15.html).
 
 ---
 
@@ -88,6 +92,8 @@ experiments/
   oracle_test.py      the Phase-1 acceptance gate
   phase0/             supply-side coverage + predictions committed before measurement
   repro/              LIBERO reproduction via lerobot-eval, outside vla_harness
+  real2sim/           real recording → MuJoCo scene, tasks, composites, policy rollouts
+  lmax_*.py           LIBERO-MAX GR00T runner and full-state recording
 runs/                 one folder per run: metadata in git, traces, video, weights not
 data/                 minted training demos (LeRobot format)
 .claude/skills/       project skills (e.g. finetune-postmortem)
@@ -187,17 +193,39 @@ Since 10-06 (all exploratory: produced by new code that the pipeline checker,
   design is written and awaits approval; nothing of v1 is coded.
 - **Root identification** ([`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html)).
   Root-signal experiments E1–E7 and R-059 run in the worktree branch `exp/root-signals`.
-  R-059 tests whether STAC-style sampling disagreement (Sentinel, Agia et al., CoRL 2024)
-  rises before failure: in the smoke run it sits about 11× above its noise floor, and
-  the full 240-rollout run (C1) is in progress. E7, VLM answers at event frames, is not
-  usable yet: Nemotron names objects the gripper does not hold, Cosmos-Reason2-2B gives
-  near-constant answers, and an on-plate truth bug was found and is being fixed. A
-  40-frame hand-labelled set is being built first.
+  **R-059 (STAC-style sampling disagreement as an early warning) did not work** on our
+  failures: AUROC 0.18–0.43 at the first four model calls, with failures showing *lower*
+  disagreement; the as-published score (0.97) is explained by episode length. STAC
+  tracks motion size, and our failures are smooth timeouts. A simple progress signal
+  (gripper-to-nearest-object distance) reached AUROC 0.91 by the fourth call
+  ([`docs/STAC_GROOT_THEORY.html`](docs/STAC_GROOT_THEORY.html)). E7, VLM answers at
+  event frames, is not usable yet: on a 40-frame hand-labelled set, Cosmos-Reason2-2B
+  matched the human on 10 of 26 decided questions.
+- **Corrective demos from the root (DMP proof of concept)**
+  ([`docs/DMP_POC_METHOD.html`](docs/DMP_POC_METHOD.html),
+  [`docs/DMP_POC_SHOWCASE.html`](docs/DMP_POC_SHOWCASE.html); code on branch
+  `exp/dmp-poc`). Restoring the failure moment by action replay is exact (0.0 mm) in
+  all five test scenarios; bending the nearest human demos with a DMP kept a correction
+  in every main scenario (10 of 15 attempts, against 7 of 15 for a straight-line
+  bridge). The sweep over all failures has not run.
+- **Real-to-sim scenes** ([`docs/REAL_TO_SIM_SCENES.html`](docs/REAL_TO_SIM_SCENES.html),
+  [`docs/REAL_TO_SIM_LESSONS.html`](docs/REAL_TO_SIM_LESSONS.html),
+  [`docs/REAL_TO_SIM_PREDEPLOY_CHECKLIST.html`](docs/REAL_TO_SIM_PREDEPLOY_CHECKLIST.html);
+  code in `experiments/real2sim/`). Two DROID episodes are rebuilt as MuJoCo scenes, with
+  generated language tasks (a scripted arm solves 91 of 105). GR00T-N1.7-DROID runs in
+  them end to end and reaches the right object but never grasps; stereo depth showed the
+  rebuilt table sits about 6 cm too high, and the scenes are being re-calibrated against
+  a 23-item pre-deploy checklist. Only 1 of 181 public LeRobot datasets ships camera
+  calibration.
+- **LIBERO-MAX** (`third_party/LIBERO-MAX`, a benchmark with a mid-task change in each
+  paired episode). A Spatial-only pilot (133 pairs) gave GR00T 86.5% without the change
+  and 61.7% with it. The full Lite reproduction (800 pairs), recording full sim state for
+  later failure analysis, is about to run.
 - **R-060 (feature-level perturbation pairs):** the camera-pose bug in the paired clean
   frame is fixed (LIBERO-Plus's own camera), and the amended exactness gate G0c passes
   at an 8-pixel tolerance. Whether the fix changes past camera rows (R-039, R-047,
   R-048) is being checked.
-- **Corrective demos from the root** (proposal, nothing run):
+- The design behind the corrective demos is in
   [`docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html`](docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html).
   Papers adopted or rejected since 24 Sep:
   [`docs/PAPERS_SINCE_24SEP.html`](docs/PAPERS_SINCE_24SEP.html).
@@ -235,10 +263,14 @@ and what is happening now. About an hour, in this order:
 | 2 | This README | What the project is for and what it has found |
 | 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
 | 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
-| 5 | [`docs/handoffs/HANDOFF_2026-10-12.html`](docs/handoffs/HANDOFF_2026-10-12.html), [`docs/EXPERIMENTS_2026-10-09.html`](docs/EXPERIMENTS_2026-10-09.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
-| 6 | [`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html) | Which input carries each perturbation to the action, and what corrects it |
-| 7 | [`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html) | The first retraining pilot and why it did not help |
-| 8 | [`docs/MINING_SPEC_DESIGN.html`](docs/MINING_SPEC_DESIGN.html) and [`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html) | The deliverable format, and how the root of a failure is found |
+| 5 | [`docs/END_TO_END_PIPELINE.html`](docs/END_TO_END_PIPELINE.html) (draft) | The whole loop on one page, with diagrams, the state of each step and the gaps |
+| 6 | [`docs/handoffs/HANDOFF_2026-10-15.html`](docs/handoffs/HANDOFF_2026-10-15.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
+| 7 | [`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html) | Which input carries each perturbation to the action, and what corrects it |
+| 8 | [`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html) | The first retraining pilot and why it did not help |
+| 9 | [`docs/MINING_SPEC_DESIGN.html`](docs/MINING_SPEC_DESIGN.html) and [`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html) | The deliverable format, and how the root of a failure is found |
+
+Earlier day summary: [`docs/EXPERIMENTS_2026-10-09.html`](docs/EXPERIMENTS_2026-10-09.html).
+All handoffs: [`docs/handoffs/index.html`](docs/handoffs/index.html).
 
 Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md) and
 [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html).
