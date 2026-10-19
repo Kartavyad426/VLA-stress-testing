@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-to-Sim Eval Validity</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--accent:#2f5d8a;--warn:#8a4b12;--ok:#2d6a3e;--bad:#9b2c2c;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58c8c;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--accent:#8fb5dc;--warn:#e0a26a;--ok:#86c79a;--bad:#e58c8c;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin-bottom:.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.status{background:var(--card);border-left:3px solid var(--warn);padding:8px 12px;margin:12px 0}
+.verdict{background:var(--card);border-left:3px solid var(--ok);padding:8px 12px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem;margin:8px 0}
+.tw{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{background:var(--card);padding:1px 4px;border-radius:3px;font-size:.88em}
+a{color:var(--accent)}
+.v{font-size:.72rem;color:var(--ok);font-weight:700}
+.i{font-size:.72rem;color:var(--warn);font-weight:700}
+.met{color:var(--ok);font-weight:700}.not{color:var(--bad);font-weight:700}.unk{color:var(--warn);font-weight:700}
+</style>
+</head>
+<body><main>
+<h1>Real-to-sim evaluation: is it shown to be valid, and do our scenes qualify?</h1>
+<p class="meta">2026-10-19 · session re412 (res412), brief from prim · outline approved by the user 10-19 · desk research only: no code, no GPU · not committed (prim commits)</p>
+<div class="status"><b>Tags.</b> <span class="v">[V]</span> = I read it in the source this session (paper full text, PDF text, README or dataset metadata). For papers this means "the authors report", not "independently reproduced". <span class="i">[I]</span> = my inference or arithmetic, or a fact taken from one of our own docs or commits without re-checking it. Unless marked peer-reviewed, every paper here is an arXiv preprint. Our own numbers come from res31's exploratory runs and are <b>UNVERIFIED</b> (not val-checked).</div>
+
+<h2>0 · Verdict</h2>
+<div class="verdict">
+<p><b>Is real-to-sim policy evaluation shown to be valid? Partly.</b> It has been shown for one thing: <b>ranking</b> several policies or checkpoints against each other. Ten studies ran learned policies in scenes rebuilt from real captures and on the real robot (§1). Seven report a headline sim–real Pearson r between 0.89 and 0.96; the lowest single task or environment is 0.81. An eighth (YUBI) got 8 of 9 pairwise rankings right <span class="v">[V]</span>. Each compared only 1–6 policies or checkpoints; two of the seven correlate across tasks or training stages of one policy, not across policies.</p>
+<p><b>What it has <u>not</u> been shown to do:</b> predict a policy's absolute success rate, predict whether a single episode succeeds, or reproduce where a policy fails.
+<ul>
+<li><b>Absolute success rates:</b> sim–real gaps of 0–66 points even where rankings hold (SimFoundry: π0 succeeds 100% real vs 34% sim on one task; YUBI: mean absolute error 31 points while 8/9 rankings were right) <span class="v">[V]</span>.</li>
+<li><b>Single episodes:</b> SureSim's per-episode sim–real correlation ranged from 0.70 down to −0.05 <span class="v">[V]</span>.</li>
+<li><b>Failure stages</b> (grasp, carry, release): nobody measures them. Only one paper says qualitatively that failure modes "look similar" <span class="v">[V]</span>.</li>
+</ul></p>
+<p><b>Under what conditions does ranking hold?</b> Six, and the studies that report good correlation meet all six:
+<ol>
+<li>The scene is built from a dedicated multi-view scan or video of the real workspace.</li>
+<li>Every image the policy sees, including the wrist view and the robot itself, looks like the real one. Visual mismatch is the main error source (PolaRiS: sim images cost about 25% success, sim dynamics cost nothing).</li>
+<li>The robot controller is system-identified against real trajectories.</li>
+<li>Object layouts and initial states match the real evaluation.</li>
+<li>Rigid objects, mostly pick-and-place.</li>
+<li>The scores being compared are rankings, not absolute rates.</li>
+</ol>
+Whether the policy needs a light fine-tune on sim data first is disputed. PolaRiS needed it: off-the-shelf DROID VLAs correlated "too low to accurately rank". SimFoundry did not need it.</p>
+<p><b>Do our scenes meet these conditions today? No.</b>
+<ul>
+<li>They are built from <b>one recorded episode</b>, not a dedicated scan. The published method closest to ours, RobotArena∞ (one frame from a fixed camera, LaMa-inpainted background, robot-based camera calibration, DROIDSim), checked against the real robot on <b>one task with three policies</b> and reports no correlation.</li>
+<li>Our robot is a plain sim render, the wrist view is stitched together from other images, and the controller is not system-identified.</li>
+<li>The generated task variants have no real counterpart.</li>
+<li>Above all, <b>there is not one real-robot outcome of any policy on any of our scenes.</b> The real episode was driven by a human operator.</li>
+</ul>
+Our geometry checks (stereo table height, grasp and release positions from forward kinematics) are stronger than what most papers report. The test of GR00T on the real recorded frames (it closes at frame 70 vs the operator's 75 and releases at ~120 vs ~126) is a good sanity check. Neither one makes the eval sets valid.</p>
+<p><b>What would make them count:</b> paired real outcomes. We have no robot cell (user, 10-13). Real outcomes are still available without one: RoboArena publishes its real DROID evaluations (MIT licence; 3,883 sessions and 10,783 policy episodes in the 2026-07-17 snapshot, each with exterior and wrist video, proprioception and success scores) <span class="v">[V]</span>. Rebuilding a set of those scenes with our pipeline, running the same open-source policies, and correlating against the recorded real scores is the minimum experiment (§7). It validates <b>our pipeline</b> with DROID policies. It does not validate GR00T directly, because GR00T is not in RoboArena's policy index <span class="v">[V]</span>.</p>
+<p><b>Until then:</b> label every result from our real-to-sim eval sets "sim-only, not validated against real". Report comparisons and rankings, never absolute success rates.</p>
+</div>
+
+<h2>1 · Inclusion rule and what was screened</h2>
+<p><b>In:</b> work that ran learned policies (VLAs, generalist, BC/diffusion) closed-loop in sim scenes <b>built from real data</b> (video, scans, photos) <b>and</b> ran the same policies, or their direct counterparts, on the real robot. Candidates came from our docs (SIMPLER, ACDC, RialTo, splat evaluation, Real-is-Sim, Re3Sim) plus new searches. Each was checked in the source.</p>
+<div class="tw"><table>
+<tr><th>Work</th><th>Decision</th><th>Why</th></tr>
+<tr><td>SIMPLER (CoRL 2024, peer-reviewed)</td><td>In</td><td>Real policies; green-screened real background plus textures; paired real tables <span class="v">[V]</span></td></tr>
+<tr><td>PolaRiS 2512.16881</td><td>In</td><td>DROID, 4 VLAs, 2DGS scans, 20 real rollouts per policy per environment <span class="v">[V]</span></td></tr>
+<tr><td>SimFoundry 2606.28276</td><td>In</td><td>Single video to twin; DROID + YAM; π0, π0.5, GR00T N1.6/N1.7, DreamZero; real vs sim per task <span class="v">[V]</span></td></tr>
+<tr><td>ReVeal 2609.23910</td><td>In</td><td>Phone-video splat reconstructions; GR00T N1.7, SmolVLA, π0.5 on a humanoid; 50 real + 50 sim per cell <span class="v">[V]</span></td></tr>
+<tr><td>YUBI-Real2Sim 2610.17521</td><td>In</td><td>360° scan to 3DGS in MuJoCo; π0.5-based policies; 20 real / 80 sim <span class="v">[V]</span></td></tr>
+<tr><td>Soft-body splat eval 2511.04665</td><td>In</td><td>PhysTwin + 3DGS; ACT, DP, π0, SmolVLA; deformables <span class="v">[V]</span></td></tr>
+<tr><td>RoboSnap 2607.06699</td><td>In (weak)</td><td>One image to scene; one policy (π0.5) across 10 tasks, so it correlates tasks, not policies <span class="v">[V]</span></td></tr>
+<tr><td>SureSim 2510.04354</td><td>In</td><td>ManiSkill3 real2sim; DP + π0; per-episode pairing; statistical correction <span class="v">[V]</span></td></tr>
+<tr><td>Re3Sim 2502.08645</td><td>In (weak)</td><td>One policy (ACT) over training checkpoints on one task; r = 0.924 vs RialTo 0.710 <span class="v">[V]</span></td></tr>
+<tr><td>RobotArena∞ 2510.23571 (ICLR 2026)</td><td>In (barely)</td><td>The construction closest to ours (one frame, LaMa background, DROIDSim). Real check: one task, three policies, no correlation <span class="v">[V]</span></td></tr>
+<tr><td>R2S-Eval 2609.03276</td><td>Borderline</td><td>Real-to-sim calibrated Isaac scenes, 6 VLAs, 20 real / 200 sim. The sim policies are <b>trained on sim replay data</b>, so it compares training recipes, not the same checkpoints <span class="v">[V]</span></td></tr>
+<tr><td>REALM 2512.19562</td><td>Borderline</td><td>DROID; π0, π0-FAST, GR00T N1.5; about 800 paired rollouts. The sim is a hand-built <b>digital cousin</b> of the lab, not reconstructed from real data <span class="v">[V]</span></td></tr>
+<tr><td>Practical Recipe 2606.10366</td><td>Borderline</td><td>Uses REALM, SIMPLER and VLA-Arena against 9 real DROID tasks, π0/π0.5/GR00T N1.6/N1.7; 1,115 real rollouts <span class="v">[V]</span></td></tr>
+<tr><td>Real-is-Sim 2504.03597</td><td>One line</td><td>The twin is corrected online by real cameras and the policy acts in the twin during real runs. PushT only; no coefficient reported <span class="v">[V]</span></td></tr>
+<tr><td>RialTo 2403.03949, ACDC 2410.07408</td><td>Out</td><td>The twin is used to <b>train</b> (RL / cousins), and the same policies are not compared sim vs real <span class="v">[V]</span> (RialTo); ACDC per REAL_TO_SIM_SCENES <span class="i">[I]</span></td></tr>
+<tr><td>Agentic Real2Sim 2607.19190</td><td>Out</td><td>DROID episode to MuJoCo twin, close to ours, but <b>no policy is evaluated</b>. Replay passes a VLM judge in 37–48 of 100 episodes <span class="v">[V]</span></td></tr>
+<tr><td>Agentic RSR 2610.10479</td><td>Out</td><td>The policies are agent-written programs, not learned; "real success = 80% of sim success" is an aggregate <span class="v">[V]</span> (abstract)</td></tr>
+<tr><td>MetaFine 2605.19986</td><td>One line</td><td>3DGS real2sim + PPI calibration for π0/π0.5 on one grasp task; hardware-only estimates from n = 20 vary 55–75% <span class="v">[V]</span></td></tr>
+<tr><td>World-model evaluators (Ctrl-World, WorldGym)</td><td>Out</td><td>Not physics sims. In PolaRiS's comparison Ctrl-World mis-ranked policies (MMRV 0.22) <span class="v">[V]</span></td></tr>
+</table></div>
+
+<h2>2 · Evidence table</h2>
+<p>MMRV = mean maximum rank violation: how badly sim reorders policies relative to real (0 = same order). Agreement is between sim and real success or progress across the policies or checkpoints listed, unless noted.</p>
+<div class="tw"><table>
+<tr><th>Paper</th><th>Policies (GR00T / π0 / OpenVLA / Octo?)</th><th>Tasks / scenes</th><th>Robot; cameras the policy sees</th><th>Scene construction</th><th>Compared</th><th>Agreement</th><th>Sample</th><th>Released</th></tr>
+<tr><td><b>SIMPLER</b> 2405.05941 (CoRL 2024)</td><td>RT-1 ×3 checkpoints, RT-1-X, RT-2-X, Octo-Base, Octo-Small. No GR00T, π0 or OpenVLA</td><td>Google: Coke can, Move Near, Drawer; Bridge tasks</td><td>Google Robot, WidowX; fixed third-person camera only (green screen "limited to fixed cameras")</td><td>Real first frame inpainted and composited behind sim objects; real textures projected onto objects and robot; control system ID from dataset trajectories</td><td>Success per policy; ranking; robustness to shifts</td><td>Visual matching: r 0.924, MMRV 0.056 (per task 0.855–0.976). Variant aggregation: 0.778 / 0.143. Validation MSE: 0.308 / 0.375</td><td>6 Google policies, 3 Bridge; ~1,500 episodes in total</td><td>Code + assets (MIT assets per REAL_SIM_PAIRED_DATA <span class="i">[I]</span>)</td></tr>
+<tr><td><b>PolaRiS</b> 2512.16881</td><td>π0, π0-FAST, PaliGemma-binning, π0.5 (all DROID). No GR00T</td><td>6 environments, 2 institutions, 1 task each</td><td><b>DROID</b> Franka; exterior ZED + wrist ZED; joint-position actions</td><td>2–5 min phone video; 2DGS + ChArUco scale; mesh from TSDF; robot drawn as Gaussians attached to links; objects from TRELLIS; Isaac Sim</td><td>Progress score per policy; ranking</td><td>Mean r 0.9; worst environment 0.81; r 0.98 vs RoboArena. <b>Without sim co-training: "too low to accurately rank"</b></td><td>20 real per policy per environment; 50 sim</td><td>Tools, environments, co-training data (Figure 1 caption)</td></tr>
+<tr><td><b>SimFoundry</b> 2606.28276</td><td>π0, π0.5, <b>GR00T N1.6</b> (DROID, fine-tuned on 50 real demos), <b>GR00T N1.7</b> and DreamZero (zero-shot)</td><td>7 tasks</td><td><b>DROID</b> (2 exterior ZED-2 + wrist ZED-Mini) and YAM</td><td>One raw RGB video; stereo/monocular depth; Hunyuan meshes + FoundationPose; 3DGS or scanned-mesh background; VLM mass and friction</td><td>Success per policy per task</td><td>Mean r 0.911, MMRV 0.018; per task r 0.810–0.995. Same tasks run in PolaRiS: r −0.396 to 0.822</td><td>25 resets per task (5×5 grid); 3–5 policies per task</td><td>Not stated</td></tr>
+<tr><td><b>ReVeal</b> 2609.23910</td><td><b>GR00T N1.7</b>, SmolVLA, π0.5, task-fine-tuned on 200–300 real demos</td><td>8 tasks</td><td>Dexmate Vega humanoid; two head cameras</td><td>1–3 min phone video; 2DGS / PGSR / PGSR-D meshes; TRELLIS / SAM 3D objects; ArUco alignment; Genesis; controller calibrated by replay</td><td>Success; per-reconstruction agreement</td><td>Best reconstruction r 0.960, MMRV 0.102, MAE 0.050. Worst: 0.773 / 0.235 / 0.246. Fidelity vs agreement: DINOv2 similarity r 0.795, APGF completeness 0.759</td><td>50 real + 50 sim per task–policy</td><td>CC BY paper; code not stated</td></tr>
+<tr><td><b>YUBI-Real2Sim</b> 2610.17521</td><td>Two π0.5-based policies per task (not DROID)</td><td>3 scenes × 3 tasks</td><td>Dual FR3 and TX-G2; two wrist fisheye cameras</td><td>Insta360 scan; Gaussian background; TRELLIS objects; MuJoCo; grasp = contact-attach rule</td><td>Pairwise ranking; MAE</td><td>8/9 rankings correct; MAE 31.4 points. Holes or floaters in the background: 7/9. 30% random coverage loss: 6/9. Image-quality scores could not predict which scenes disagree (best 32/45 vs 35/45 for "always reliable")</td><td>20 real / 80 sim per cell</td><td>"Will release"</td></tr>
+<tr><td><b>Soft-body splat</b> 2511.04665</td><td>ACT, DP, π0, SmolVLA (several checkpoints each); trained on real data only</td><td>3 tasks (toy packing, rope, push-T)</td><td>xArm 7; wrist D405 + fixed D455</td><td>iPhone 3DGS scan; ICP alignment; colour transform; PhysTwin spring-mass physics</td><td>Success per checkpoint</td><td>r 0.944 / 0.901 / 0.915; MMRV 0.076 / 0.174 / 0.108. Without colour alignment: r 0.805 / 0.714 / 0.529</td><td>16–27 fixed initial states per checkpoint</td><td>"Committed to open-sourcing"</td></tr>
+<tr><td><b>RoboSnap</b> 2607.06699</td><td>π0.5 only</td><td>10 tasks</td><td>Not stated in the text read (uses DROID base calibration)</td><td>One image; SAM 3D; VGGT; physics refinement; generated splat background; Isaac Sim</td><td>Success per task (one policy)</td><td>r 0.887 across tasks; mean |gap| 8.4 points (computed <span class="i">[I]</span>); largest +23.3</td><td>30 real per task; sim count not stated</td><td>Not confirmed</td></tr>
+<tr><td><b>SureSim</b> 2510.04354</td><td>Diffusion Policy; fine-tuned π0</td><td>Pick-and-place</td><td>Franka; wrist D405 + third-person C920</td><td>ManiSkill3; real gripper model; scanned background mesh; Meshy objects scaled to real</td><td>Per-episode paired outcomes; mean with confidence interval</td><td>Per-episode ρ: DP 0.70; π0 0.59 and −0.05 (two setups). Combining sim with real saves "over 20–25%" of real trials, and only when sim–real agreement is high enough</td><td>60 paired + 700–2,100 sim</td><td>Project site</td></tr>
+<tr><td><b>Re3Sim</b> 2502.08645</td><td>ACT (training stages × 3 seeds)</td><td>1 task</td><td>Wrist + third-person D435i</td><td>3DGS photoreal real-to-sim</td><td>Success per checkpoint</td><td>r 0.924 (RialTo 0.710)</td><td>Real count "much lower" than sim</td><td>—</td></tr>
+<tr><td><b>RobotArena∞</b> 2510.23571</td><td>Octo, RoboVLM, SpatialVLA, CogAct, X-VLA, π0</td><td>~100 environments (BridgeSim / <b>DROIDSim</b> / RH20TSim)</td><td>Fixed third-person camera only; no wrist</td><td>One frame; Gaussian robot model for camera pose; Hunyuan-3D objects; LaMa background; PD gains by annealing</td><td>VLM scores + human preferences</td><td><b>Real check: one task, three policies; success matched (2 succeed, 1 fails both). No correlation reported</b></td><td>—</td><td>Repo linked</td></tr>
+<tr><td>R2S-Eval 2609.03276</td><td>π0, π0.5, OpenVLA, NORA-Long, SmolVLA, X-VLA</td><td>7 tasks</td><td>Humanoid; head stereo + wrist fisheye</td><td>Calibrated Isaac; reconstructed objects</td><td>Success; ranking (sim policies trained separately on sim data)</td><td>Mean |gap| 2.13 points; max 7.0; same ranking</td><td>20 real / 200 sim per task</td><td>—</td></tr>
+<tr><td>REALM 2512.19562</td><td>π0, π0-FAST (DROID), GR00T N1.5</td><td>7 tasks × 5 perturbations</td><td><b>DROID</b></td><td>Hand-built digital cousin; control system ID (14 parameters, 3 trajectories)</td><td>Task progress</td><td>Overall r 0.92, MMRV 0.118; camera-pose perturbation r 0.89, MMRV 0.253</td><td>~800 pairs</td><td>Project page</td></tr>
+<tr><td>Practical Recipe 2606.10366</td><td>π0, π0-FAST, π0.5, <b>GR00T N1.6, N1.7</b></td><td>9 real DROID tasks</td><td><b>DROID</b></td><td>(compares REALM / SIMPLER / VLA-Arena)</td><td>Ranking; perturbation sensitivity</td><td>Spearman: REALM 0.700, VLA-Arena 0.575, SIMPLER 0.400. REALM after a light fine-tune: 0.875; sensitivity MAE 0.110 → 0.041</td><td>1,115 real; 11,800 sim</td><td>—</td></tr>
+</table></div>
+<p><b>Is GR00T covered?</b> Yes, in four settings, none identical to ours. SimFoundry ran GR00T N1.7 zero-shot on DROID; on four tasks (real/sim %) it scored 40/32, 92/92, 88/88 and 8/28 <span class="v">[V]</span>. ReVeal used task-fine-tuned GR00T N1.7 on a humanoid. The Practical Recipe and REALM ran GR00T N1.5–N1.7 on hand-built DROID scenes. None of them used a scene rebuilt from one DROID episode.</p>
+
+<h2>3 · What makes sim track real</h2>
+<div class="tw"><table>
+<tr><th>Condition</th><th>Evidence</th></tr>
+<tr><td><b>C1 · What the policy sees must match, including the robot and the wrist view.</b> This is the main error source.</td><td>PolaRiS hardware-in-the-loop (π0-FAST, joint position, 3 tasks): real images + sim dynamics gave no drop; sim images + real dynamics gave about a 25% drop. "Visual mismatch is indeed the dominant source of error" <span class="v">[V]</span>. SIMPLER: green screen, object textures and robot textures help only <b>all together</b> (MMRV 0.087 → 0.050); Octo-Base gets 0% in sim with an untuned arm colour vs 29.3% tuned <span class="v">[V]</span>. Soft-body paper: dropping colour alignment cuts r on every task (push-T 0.915 → 0.529) <span class="v">[V]</span>. ReVeal: DINOv2 real-vs-render similarity predicts agreement (r 0.795) <span class="v">[V]</span>. PolaRiS: splats beat ray-traced and untextured renders even after co-training <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C2 · Geometry of the surfaces the task touches</b></td><td>ReVeal: completeness and roughness of task-relevant planes predict agreement (r 0.759 / 0.731) <span class="v">[V]</span>. SIMPLER aligns table edges and the gripper at initialisation <span class="v">[V]</span>. YUBI: background holes and floaters flip 1 of 9 rankings <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C3 · System-identified control; joint-position actions</b></td><td>SIMPLER Table II: system-identified PD gains give MMRV 0.031 vs 0.070 / 0.100 for two hand settings <span class="v">[V]</span>. REALM, ReVeal and RobotArena∞ all calibrate the controller against real trajectories <span class="v">[V]</span>. PolaRiS chose joint-position actions because they "suffer from less accumulating error" in sim <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C4 · Physics matters for contact-rich and deformable tasks</b></td><td>Soft-body paper: without physics identification, rope r falls 0.901 → 0.832 and toy packing 0.944 → 0.694 <span class="v">[V]</span>. SIMPLER: physical parameters move success by up to ~15% but keep rankings <span class="v">[V]</span>. Everyone else is rigid pick-and-place.</td></tr>
+<tr><td><b>C5 · Initial states and the task distribution match the real evaluation</b></td><td>SureSim pairs each real trial with sim runs within 2 × 2 cm of the real object position <span class="v">[V]</span>. YUBI and the soft-body paper use matched initial layouts <span class="v">[V]</span>. ReVeal samples sim initial states inside the real demo ranges <span class="v">[V]</span>. In SureSim, changing which initial conditions were used moved per-episode ρ from 0.59 to −0.05 <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C6 · Policy adaptation to sim (disputed)</b></td><td>PolaRiS: DROID VLAs without sim co-training correlate "too low to accurately rank". About 1k steps on ~350 out-of-domain sim demos fixes it; longer training hurts <span class="v">[V]</span>. Practical Recipe: a light fine-tune raises REALM's Spearman from 0.700 to 0.875 and is non-monotonic in data (10 demos beat 20) <span class="v">[V]</span>. SimFoundry: zero-shot works (r 0.911) <span class="v">[V]</span>. Caveat: a co-trained policy is no longer the checkpoint you deploy. R2S-Eval goes further and evaluates sim-trained counterparts <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C7 · What transfers: rankings, not rates</b></td><td>Every study claims rankings or correlation, not equality. SIMPLER: the goal is "not to obtain a 1:1 reproduction" <span class="v">[V]</span>. PolaRiS "does not entirely replace real-world evaluation" <span class="v">[V]</span>. Mean |sim − real| across SimFoundry Table G.1: 17.2 points over 29 cells, with sim lower than real on most fine-tuned tasks (computed <span class="i">[I]</span>). Perturbation-sensitivity ordering transferred for REALM but not for SIMPLER or VLA-Arena <span class="v">[V]</span>.</td></tr>
+<tr><td><b>C8 · Sample size</b></td><td>The correlations are over 2–6 policies per study (SIMPLER Bridge: 3). An r over 3–6 points has wide uncertainty <span class="i">[I]</span>. SIMPLER itself notes r "does not reflect the range of values it is computed over" (per SIM_TO_REAL_TRANSFER §1.1 <span class="i">[I]</span>). Real-side noise: 20 hardware trials gave 55–75% for the same policy in MetaFine <span class="v">[V]</span>.</td></tr>
+</table></div>
+<h3>Reported cases where sim misled</h3>
+<ul>
+<li><b>Same tasks, different pipeline:</b> SimFoundry's tasks run in PolaRiS gave per-task r from −0.396 (Cup in Bowl) to 0.822, and PolaRiS "consistently underperformed" real <span class="v">[V]</span>. Without co-training, PolaRiS's own correlation was too low to rank <span class="v">[V]</span>.</li>
+<li><b>Big absolute gaps despite correct ranks:</b> SimFoundry: π0 Stack Dishware 100% real vs 34% sim; GR00T N1.6 40% real vs 0% sim <span class="v">[V]</span>. YUBI: MAE 31 points with 8/9 ranks right <span class="v">[V]</span>.</li>
+<li><b>Ranking inversions:</b> YUBI Flat Cup (real 40 vs 35%, sim 37.5 vs 73.75%) <span class="v">[V]</span>. SIMPLER Bridge "light orange" task <span class="v">[V]</span>.</li>
+<li><b>Per-episode prediction failed:</b> SureSim π0, ρ ≈ −0.05 <span class="v">[V]</span>.</li>
+<li><b>Hand-built and video-model simulators rank poorly:</b> Libero scores 90–95% for policies that span the full real range; Ctrl-World MMRV 0.22 (both from PolaRiS) <span class="v">[V]</span>.</li>
+<li><b>Robot appearance alone:</b> Octo-Base 0% in sim with the default arm colour vs 29.3% tuned (SIMPLER) <span class="v">[V]</span>.</li>
+</ul>
+
+<h2>4 · Per-scene validation they did, mapped onto our checklist</h2>
+<p>Our checklist = <code>docs/REAL_TO_SIM_PREDEPLOY_CHECKLIST.html</code> (23 checks); status from res31's commits up to fde6ff4 <span class="i">[I]</span>.</p>
+<div class="tw"><table>
+<tr><th>Validation used in the literature</th><th>Who</th><th>Ours</th><th>Status</th></tr>
+<tr><td><b>Real paired rollouts per scene</b> (the actual validation)</td><td>All "In" papers: 16–50 real rollouts per policy per scene</td><td>None. The episode we rebuild from is a human operator, not a policy</td><td class="not">lack</td></tr>
+<tr><td>Replay real trajectories open-loop in sim</td><td>SIMPLER (system ID), REALM, RoboSnap 5/5, R2S-Eval (replay with perturbation retries), Agentic Real2Sim 37–48/100</td><td>Real-action replay does not lift the block (0.7 cm; LESSONS #21). We use the scripted expert (A2) plus forward-kinematics grasp and release checks (A3/A4)</td><td class="unk">partial</td></tr>
+<tr><td>Controller system ID against real joint trajectories</td><td>SIMPLER, REALM, ReVeal, RobotArena∞</td><td>Not in the checklist. C17 command tracking only detects blocked motion</td><td class="not">lack</td></tr>
+<tr><td>Geometry of task surfaces and object poses</td><td>ReVeal APGF, SimFoundry F1 0.81–0.92, RoboSnap stability, SIMPLER edge alignment</td><td>A1 settle (bowl 0.10 cm), A3 grasp (vertical +1.4 cm, horizontal 1.7 cm: marginal fail), A4 release 4.9 cm from bowl centre, A5 scale 0.907, A6 stereo table −0.19 cm</td><td class="met">ahead of most</td></tr>
+<tr><td>Image fidelity on held-out real views (PSNR/SSIM/LPIPS; DINOv2/SigLIP similarity)</td><td>ReVeal NVMF, RoboSnap, YUBI (weak predictor)</td><td>B9 outline IoU 0.495; B10/B11 reviewed by eye; D21 encoder distance planned, not run</td><td class="not">lack (cheap to add)</td></tr>
+<tr><td>Policy-feature check on real vs sim images</td><td>REALM: π0 attention cosine 0.85 over ~280 frames</td><td>D20 image swap and D21 not run</td><td class="not">lack</td></tr>
+<tr><td>Policy on real observations</td><td>PolaRiS hardware-in-the-loop (real images + sim dynamics: no drop)</td><td>D19 / G1: GR00T on the real frames closes at 70 vs the operator's 75, releases at ~120 vs ~126</td><td class="met">done (open-loop only)</td></tr>
+<tr><td>Physical parameters</td><td>VLM priors everywhere; PhysTwin identification for deformables</td><td>Asset defaults; A8 collision shapes</td><td class="unk">same as most</td></tr>
+<tr><td>Initial states matched to the real evaluation</td><td>SureSim, YUBI, ReVeal</td><td>Generated variants move objects away from the recorded layout; only the original layout has a real counterpart</td><td class="not">lack for variants</td></tr>
+</table></div>
+
+<h2>5 · Gap check: our setup vs the evidence</h2>
+<div class="tw"><table>
+<tr><th>Our setup</th><th>Condition (§3)</th><th>Met?</th><th>Why</th></tr>
+<tr><td>One real DROID episode per scene (fixed exterior ZED 2 + wrist ZED Mini, recorded joints)</td><td>C1/C2: built from a dedicated scan</td><td class="not">not met</td><td>Validated pipelines use a 1–5 min multi-view scan (PolaRiS, ReVeal, YUBI, soft-body) or a dedicated video (SimFoundry). Single-frame methods (RobotArena∞, RoboSnap) have the weakest real validation. Our stereo and forward-kinematics anchors partly make up for this on geometry <span class="i">[I]</span>.</td></tr>
+<tr><td>Composited background (LaMa-cleaned plate) for the exterior view</td><td>C1</td><td class="unk">unknown</td><td>The same family as SIMPLER's green screen, which worked for fixed third-person cameras <span class="v">[V]</span>. Never tested with a DROID VLA.</td></tr>
+<tr><td>Wrist view built by projecting the exterior plate</td><td>C1</td><td class="unk">unknown, risky</td><td>No published method does this. PolaRiS states that green-screen methods cannot supply wrist views <span class="v">[V]</span>. Known seam / doubled table edge (B11).</td></tr>
+<tr><td>Robot and objects as plain MuJoCo renders</td><td>C1</td><td class="not">not met</td><td>Validated pipelines texture or splat the robot (SIMPLER, PolaRiS, soft-body). Arm appearance alone moved Octo 0 → 29% <span class="v">[V]</span>.</td></tr>
+<tr><td>No controller system ID; Menagerie FR3 + Robotiq</td><td>C3</td><td class="not">not met</td><td>C17 rules out blocking (G2: commanded vs achieved 1–3 cm), not response dynamics. DROID episodes carry the joint trajectories needed for an ID <span class="i">[I]</span>.</td></tr>
+<tr><td>Rigid blocks + bowl, pick-and-place</td><td>C4</td><td class="met">met</td><td>The regime where evidence is strongest.</td></tr>
+<tr><td>Generated task variants (34/40 expert-solved on orange)</td><td>C5</td><td class="not">not met</td><td>No real outcome exists for any variant. Validated work evaluates the real task with initial states inside real ranges.</td></tr>
+<tr><td>GR00T-N1.7-DROID off the shelf</td><td>C6</td><td class="unk">unknown</td><td>PolaRiS says un-co-trained DROID VLAs rank poorly; SimFoundry ran GR00T N1.7 zero-shot fine. Both used far better visuals than ours.</td></tr>
+<tr><td>Reporting success per variant</td><td>C7</td><td class="not">not met</td><td>Absolute rates do not transfer. Only rankings across policies or conditions have support.</td></tr>
+<tr><td>Real outcomes to correlate against</td><td>all</td><td class="not">not met</td><td>None. No robot cell (BRAINSTORM, user 10-13).</td></tr>
+</table></div>
+<p><b>Bottom line.</b> Before our eval sets count as valid we need, in order:
+<ol>
+<li><b>Paired real outcomes</b> on scenes built by our pipeline (§7). Nothing replaces this.</li>
+<li>A <b>numeric visual-fidelity gate</b> on held-out real frames for both cameras (D20/D21, DINOv2/SigLIP similarity).</li>
+<li><b>Controller system ID</b> from the episode's own joint trajectories.</li>
+<li><b>Robot appearance</b> matched (texture, or a composited real arm where possible).</li>
+<li><b>Reporting limited to rankings and comparisons.</b></li>
+</ol>
+Items 2–4 are what the evidence says drives agreement. They are cheap and run on CPU, but they are not validation by themselves.</p>
+
+<h2>6 · Our open case: GR00T releases ~13 cm short</h2>
+<p><b>Is a sim-vs-real release or placement bias reported for DROID-trained policies? No.</b> I found none. Searches covered early or premature release, placement and per-stage sim-vs-real comparisons for DROID / π0 / GR00T real-to-sim evaluation. The papers in §2 report success, progress or preferences, not release position. The nearest facts:</p>
+<ul>
+<li><b>Sim is often pessimistic for DROID policies.</b> In SimFoundry most fine-tuned-task cells have sim below real (e.g. GR00T N1.6 Stack Dishware 40 → 0) <span class="v">[V]</span>. PolaRiS policies "consistently underperformed" real (SimFoundry's comparison) <span class="v">[V]</span>. That matches the direction of ours (0/2 in sim) without explaining the mechanism.</li>
+<li><b>Visuals, not dynamics,</b> produced PolaRiS's 25% drop <span class="v">[V]</span>. Our own checks rule out execution lag (commanded vs achieved 1–3 cm), block slip and object misplacement in the exterior image. Joint-head vs hand-head differences of 1.2–1.5 cm cannot explain 13 cm (commit 816e510) <span class="i">[I]</span>.</li>
+<li><b>On real frames the release is right:</b> GR00T releases at ~120 vs the operator's ~126 (G1, df2cc9f) <span class="i">[I]</span>. So the policy can time the release from real images. The short release appears in our sim.</li>
+<li><b>Real robots also fail at release:</b> SureSim's real scoring has a "failed release" grade (0.75) <span class="v">[V]</span>. Release failures happen on real hardware too, so a sim release failure is not automatically an artefact.</li>
+</ul>
+<p><b>Hypotheses, ranked by what the evidence predicts (all <span class="i">[I]</span>):</b></p>
+<ol>
+<li><b>H1 · Visual cue mismatch at the release decision</b> (plain-render robot or bowl, or the stitched wrist view, makes the bowl look closer). This is the literature's main error source. Test: D20 image swap at the release frames of the real episode (real exterior + sim wrist, and the reverse). See whether the predicted gripper-open step moves.</li>
+<li><b>H2 · The variant asks for a longer carry than the policy produces.</b> The rollouts needed 33.4 / 30.9 cm; GR00T carried 24.0 / 18.8 cm; the real operator carried 28.3 cm in the recorded layout (816e510). Test with the running sweep: regress release position on the required carry distance across variants. If release distance stays roughly constant, the policy is not tracking the bowl. Then run the original recorded layout as the control.</li>
+<li><b>H3 · Residual scale error.</b> Check A5 scale 0.907 means about 10% of a ~30 cm carry, i.e. about 3 cm, far below 13 cm. Unlikely to be the main cause.</li>
+</ol>
+
+<h2>7 · Recommended validity protocol for our eval sets</h2>
+<h3>7.0 · Today, on CPU: per-scene gates (necessary, not sufficient)</h3>
+<ul>
+<li>Visual fidelity on held-out real frames, both cameras: frames not used to build the scene, rendered from the recorded pose. Report DINOv2 and SigLIP cosine plus LPIPS (as in ReVeal), and D20/D21.</li>
+<li>Controller system ID from the episode's recorded joint trajectory (as in SIMPLER and REALM).</li>
+<li>Run every rollout on the <b>original recorded layout</b> as well as the variants. It is the only variant with a real reference, even a human one.</li>
+</ul>
+<h3>7.1 · The minimum experiment: paired validation on RoboArena data (no robot needed)</h3>
+<p><b>Why RoboArena.</b> The HF data dumps (<code>RoboArena/DataDump_07-17-2026</code>, MIT) hold real DROID policy rollouts. Each session has one instruction in one real scene, 2+ policies, per-policy <code>binary_success</code> and <code>partial_success</code>, exterior video (left/right "when available"), wrist video and a proprioception/action npz <span class="v">[V]</span>. That is exactly our pipeline's input, plus real outcomes for several policies in the same scene.</p>
+<ol>
+<li><b>Select:</b> ≥10 sessions, rigid pick-and-place, where ≥2 open-source joint-position policies ran. The index marks MolmoAct2-DROID, Cosmos3-Nano-Policy, the floppy_bagel checkpoints and others as open and joint-position <span class="v">[V]</span>. Checkpoint availability and whether each fits the 8 GB GPU are unchecked <span class="i">[I]</span>.</li>
+<li><b>Rebuild</b> each scene from one of its episodes with our unchanged pipeline, and run the §7.0 gates.</li>
+<li><b>Run</b> each policy 20–50 times in sim from the session's initial layout (SureSim-style 2 × 2 cm jitter).</li>
+<li><b>Compare</b>, pre-registered:
+<ul>
+<li>per-policy mean success and progress across sessions: Pearson r and MMRV;</li>
+<li>within-session pairwise ranking agreement (YUBI's metric);</li>
+<li>per-episode paired correlation (SureSim).</li>
+</ul></li>
+<li><b>Pass bar:</b> r ≥ 0.8 and MMRV ≤ 0.12 (the published range, §2), and ≥ 80% pairwise agreement. Below the bar, eval sets stay "sim-only".</li>
+</ol>
+<p><b>Cost.</b> Sample episode files are ~0.4 MB exterior, 1.3–1.6 MB wrist and ~48 KB npz <span class="v">[V]</span>. So 10 sessions × 2–3 policies is well under 1 GB <span class="i">[I]</span>. GPU: 10 scenes × 3 policies × 20 rollouts = 600 rollouts. At G2's pace (~1 min per rollout, inferred from its 13:18–13:20 window) that is ~10 GPU-hours <span class="i">[I]</span>. Scene builds are res31's time. The policy servers for non-GR00T checkpoints are new work.</p>
+<p><b>Limits of this design.</b>
+<ul>
+<li>It validates the <b>pipeline</b>, not GR00T: GR00T is not in RoboArena's index <span class="v">[V]</span>.</li>
+<li>The real side has <b>one rollout per policy per session</b>, so outcomes must be pooled across sessions, which needs more sessions.</li>
+<li>Our stereo depth fix (LESSONS #12) needs the ZED stereo pair. Whether RoboArena's "left/right" videos are stereo pairs or two cameras is unchecked <span class="i">[I]</span>.</li>
+<li>The npz holds pickled objects. I did not load it, so its fields are unchecked. Load it only in an isolated environment.</li>
+<li>Session metadata includes evaluator e-mail addresses: don't copy them into our docs.</li>
+</ul></p>
+<h3>7.2 · Extending to GR00T and to generated variants</h3>
+<ul>
+<li><b>GR00T:</b> no robot-free path to real GR00T outcomes found. Options: (a) evidence by transfer (SimFoundry GR00T N1.7 tracked real within 0–20 points on 4 DROID tasks); (b) a real cell or a partner (the user decides); (c) whether RoboArena accepts external policy submissions is unchecked <span class="i">[I]</span>.</li>
+<li><b>Generated variants:</b> no paper validates layouts outside the real evaluation's range. Claim validity only for variants inside the real scene's object set and layout range; flag the rest as extrapolation.</li>
+</ul>
+<h3>7.3 · Gold standard, if a robot ever becomes available</h3>
+<p>The PolaRiS / ReVeal protocol: ≥4 policies or checkpoints × ≥5 scenes × 20 real rollouts = ≥400 real rollouts, with sim rollouts from matched initial states. Report r, MMRV and MAE, plus SureSim's combined estimate to cut the real budget by 20–25% <span class="v">[V]</span>.</p>
+
+<h2>8 · Sources</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2405.05941">SIMPLER 2405.05941</a> (CoRL 2024): HTML read to ~100k chars (Tables I–III) <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2512.16881">PolaRiS 2512.16881</a>: HTML + PDF text (§4–5, App. D.1) <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2606.28276">SimFoundry 2606.28276</a>: HTML incl. Tables G.1/G.2 <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2609.23910">ReVeal 2609.23910</a>: full PDF text <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2610.17521">YUBI-Real2Sim 2610.17521</a>: HTML <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2511.04665">Soft-body splat eval 2511.04665</a>: HTML to ~100k chars (appendix partly) <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2607.06699">RoboSnap 2607.06699</a>: HTML to ~100k chars <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2510.04354">SureSim 2510.04354</a>: HTML <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2502.08645">Re3Sim 2502.08645</a>: abstract + §IV-D <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2510.23571">RobotArena∞ 2510.23571</a> (ICLR 2026 per proceedings link): HTML <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2609.03276">R2S-Eval 2609.03276</a>: full PDF text <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2512.19562">REALM 2512.19562</a>: HTML + PDF figure text <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2606.10366">A Practical Recipe … 2606.10366</a>: HTML <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2504.03597">Real-is-Sim 2504.03597</a>: HTML <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2403.03949">RialTo 2403.03949</a>: HTML to ~100k chars <span class="v">[V]</span>; <a href="https://arxiv.org/abs/2410.07408">ACDC 2410.07408</a>: from REAL_TO_SIM_SCENES <span class="i">[I]</span></li>
+<li><a href="https://arxiv.org/abs/2607.19190">Agentic Real2Sim 2607.19190</a>: HTML <span class="v">[V]</span>; <a href="https://arxiv.org/abs/2610.10479">Agentic RSR 2610.10479</a>: abstract <span class="v">[V]</span></li>
+<li><a href="https://arxiv.org/abs/2605.19986">MetaFine 2605.19986</a>: PDF text §2.6 <span class="v">[V]</span></li>
+<li><a href="https://huggingface.co/datasets/RoboArena/DataDump_07-17-2026">RoboArena DataDump 07-17-2026</a>: README, global_metadata.yaml, one session's metadata and file listing <span class="v">[V]</span>; paper <a href="https://arxiv.org/abs/2506.18123">2506.18123</a> (CoRL 2025) not re-read <span class="i">[I]</span></li>
+<li>Internal: REAL_TO_SIM_SCENES, SIM_TO_REAL_TRANSFER, REAL_SIM_PAIRED_DATA, LANDSCAPE §4.2, REAL_TO_SIM_LESSONS, REAL_TO_SIM_PREDEPLOY_CHECKLIST, END_TO_END_PIPELINE, NEW_HORIZONS, BRAINSTORM (no robot cell, 10-13); commits df2cc9f, 7469cb2, 816e510, fde6ff4 <span class="i">[I]</span></li>
+</ul>
+</main></body>
+</html>
