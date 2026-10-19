@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Check that LIBERO-MAX rollouts' saved sim states (npz sim_states, written by lmax_obs.py) RESTORE the recorded
-state, and that stepping the recorded action from a restored state reproduces the next recorded state.
+"""Check that LIBERO-MAX rollouts' saved sim states (npz, written by lmax_obs.py) are restorable.
 
-For each sampled step t of a Base arm (or a Dynamic arm before its event, where no model edit is involved):
-  1. rebuild the case env exactly as the shard does, reset, set_init_state(initial state of the case);
-  2. env.set_init_state(sim_states[t]); compare the resulting obs (eef pos/quat, joints, gripper) and every free
-     body's position against steps[t].obs_state  -> restore error;
-  3. step steps[t].action once; compare against steps[t+1].obs_state            -> one-step replay error.
+robosuite samples observations on the first substep of each control step, so two states are saved per step:
+  sim_states[t]      end-of-step physics state;
+  obs_sim_states[t]  the state whose kinematics the policy's observation (cameras, eef) saw.
+For sampled steps t of a Base arm (or a Dynamic arm before its event; post-event restores need the model edits):
+  A. set_init_state(sim_states[t]) -> flattened state must equal sim_states[t]; step steps[t].action once ->
+     compare with sim_states[t+1] (qpos/qvel max |d|)                          -> physics restore + replay;
+  B. set_init_state(obs_sim_states[t]) -> eef_pos/eef_quat and every free body vs steps[t].obs_state, and, at
+     policy queries, sha256 of each camera frame vs steps[t].policy_query.frame_sha  -> view re-render.
 Writes <run_root>/restore_check.json. No policy, no model: simulator + offscreen renderer only (EGL by default).
 
   PYTHONPATH=$PWD/third_party/LIBERO-plus LIBERO_CONFIG_PATH=$PWD/third_party/libero-plus-config MUJOCO_GL=egl \
@@ -35,17 +37,24 @@ from libero_max.substrate import load_case_task  # noqa: E402
 import lmax_obs  # noqa: E402
 from lmax_groot_shard import _create_libero_env  # noqa: E402
 
-KEYS = ("eef_pos", "eef_quat", "gripper_qpos", "joint_pos")
+VIEW_KEYS = ("eef_pos", "eef_quat")
 
 
-def _diff(a: dict, b: dict) -> dict:
-    out = {k: float(np.max(np.abs(np.asarray(a[k]) - np.asarray(b[k])))) for k in KEYS}
+def _view_diff(a: dict, b: dict) -> dict:
+    out = {k: float(np.max(np.abs(np.asarray(a[k]) - np.asarray(b[k])))) for k in VIEW_KEYS}
     sa, sb = a.get("_gt_scene_object_pos") or {}, b.get("_gt_scene_object_pos") or {}
-    common = set(sa) & set(sb)
-    out["scene_pos"] = max((float(np.max(np.abs(np.asarray(sa[n]) - np.asarray(sb[n])))) for n in common),
-                           default=0.0)
+    worst, name = 0.0, None
+    for n in set(sa) & set(sb):
+        d = float(np.max(np.abs(np.asarray(sa[n]) - np.asarray(sb[n]))))
+        if d > worst:
+            worst, name = d, n
+    out["scene_pos"], out["scene_worst_body"] = worst, name
     out["scene_missing"] = sorted(set(sa) ^ set(sb))
     return out
+
+
+def _num(d: dict) -> float:
+    return max(v for k, v in d.items() if isinstance(v, float))
 
 
 def main() -> int:
@@ -67,7 +76,7 @@ def main() -> int:
         case = cases[row["case"]["case_id"]]
         steps = row["steps"]
         z = np.load(row["meta"]["npz"]["predictions"])
-        states = z["sim_states"]
+        states, obs_states = z["sim_states"], z["obs_sim_states"]
         t_hi = len(steps) - 1
         if row["event"] and row["event"].get("t_event") is not None:
             t_hi = min(t_hi, int(row["event"]["t_event"]) - 1)    # restoring post-event needs the model edits
@@ -85,34 +94,53 @@ def main() -> int:
         while not (hasattr(raw, "env") and hasattr(raw.env, "sim")) and hasattr(raw, "_env"):
             raw = raw._env
         rec = lmax_obs.ArmRecorder(raw, "check", 10, event_entities=[])
+        sim = raw.env.sim
+        nq = sim.model.nq
         try:
             env.reset()
             env.set_init_state(init_states[case["init_state_index"]])
             per = []
             for t in ts:
-                obs = env.set_init_state(states[t])
-                restored = rec._state(obs)
-                r_err = _diff(restored, steps[t]["obs_state"])
-                s_err = None
-                if steps[t]["action"] is not None and t + 1 < len(steps) and t + 1 <= t_hi:
-                    obs2, _, _, _ = env.step(steps[t]["action"])
-                    s_err = _diff(rec._state(obs2), steps[t + 1]["obs_state"])
-                per.append({"t": t, "restore": r_err, "one_step": s_err})
+                # A. physics state + one-step replay
+                env.set_init_state(states[t])
+                got = np.asarray(sim.get_state().flatten())
+                phys = float(np.max(np.abs(got - states[t])))
+                step = None
+                if steps[t]["action"] is not None and t + 1 < len(states) and t + 1 <= t_hi:
+                    env.step(steps[t]["action"])         # rec.act(t, a) is logged before the step from state t
+                    nxt = np.asarray(sim.get_state().flatten())
+                    step = {"qpos": float(np.max(np.abs(nxt[1:1 + nq] - states[t + 1][1:1 + nq]))),
+                            "qvel": float(np.max(np.abs(nxt[1 + nq:] - states[t + 1][1 + nq:])))}
+                # B. the policy's view
+                obs = env.set_init_state(obs_states[t])
+                view = _view_diff(rec._state(obs), steps[t]["obs_state"])
+                q = steps[t].get("policy_query")
+                if q and q.get("frame_sha"):
+                    view["frame_sha_match"] = {cn: lmax_obs._sha(lmax_obs._flip(obs[c])) == q["frame_sha"].get(cn)
+                                               for c, cn in zip(lmax_obs.CAMS, lmax_obs.CAM_NAMES)}
+                per.append({"t": t, "phys_restore": phys, "one_step": step, "view": view})
         finally:
             env.close()
-        worst_r = max(max(v for k, v in p["restore"].items() if k != "scene_missing") for p in per)
-        worst_s = max((max(v for k, v in p["one_step"].items() if k != "scene_missing")
-                       for p in per if p["one_step"]), default=None)
+        worst_p = max(p["phys_restore"] for p in per)
+        worst_s = max((max(p["one_step"].values()) for p in per if p["one_step"]), default=None)
+        worst_v = max(_num(p["view"]) for p in per)
+        sha = [v for p in per for v in (p["view"].get("frame_sha_match") or {}).values()]
         report.append({"case_id": case["case_id"], "arm": row["case"]["arm"], "t_checked": ts,
-                       "worst_restore_abs": worst_r, "worst_one_step_abs": worst_s, "per_t": per})
-        print("%s %s restore max|d| %.3g  one-step max|d| %s" % (case["case_id"], row["case"]["arm"], worst_r,
-                                                                 "n/a" if worst_s is None else "%.3g" % worst_s))
+                       "worst_phys_restore": worst_p, "worst_one_step": worst_s, "worst_view": worst_v,
+                       "frames_sha_matched": "%d/%d" % (sum(sha), len(sha)), "per_t": per})
+        print("%s %s phys %.3g  one-step %s  view %.3g  frame sha %d/%d" % (
+            case["case_id"], row["case"]["arm"], worst_p, "n/a" if worst_s is None else "%.3g" % worst_s,
+            worst_v, sum(sha), len(sha)))
+    def worst(k):
+        return max((r[k] for r in report if r[k] is not None), default=None)
     out = {"run_root": str(args.run_root), "rows_checked": len(report), "per_row": report,
-           "worst_restore_abs": max((r["worst_restore_abs"] for r in report), default=None),
-           "worst_one_step_abs": max((r["worst_one_step_abs"] for r in report
-                                      if r["worst_one_step_abs"] is not None), default=None)}
+           "worst_phys_restore": worst("worst_phys_restore"), "worst_one_step": worst("worst_one_step"),
+           "worst_view": worst("worst_view"),
+           "frames_sha_all_match": all(r["frames_sha_matched"].split("/")[0] == r["frames_sha_matched"].split("/")[1]
+                                       for r in report)}
     (args.run_root / "restore_check.json").write_text(json.dumps(out, indent=2) + "\n")
-    print("worst restore %s, worst one-step %s" % (out["worst_restore_abs"], out["worst_one_step_abs"]))
+    print("worst phys %s, one-step %s, view %s, all frame sha match %s" % (
+        out["worst_phys_restore"], out["worst_one_step"], out["worst_view"], out["frames_sha_all_match"]))
     return 0
 
 

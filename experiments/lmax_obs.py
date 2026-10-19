@@ -97,6 +97,39 @@ def _num_vec(state: dict) -> dict[str, np.ndarray]:
     return out
 
 
+SNAP_OBSERVABLES = ("robot0_joint_pos",) + CAMS
+
+
+def _install_obs_snapshot(prob, rec) -> None:
+    """Wrap the sensors of SNAP_OBSERVABLES (once per env) so each real sample stores sim.get_state() into
+    prob._lmax_rec._snap[name]. Re-pointing prob._lmax_rec lets a reused env serve a new recorder."""
+    prob._lmax_rec = rec
+    rec._snap = {}
+    sim = prob.sim
+    # MuJoCo's mj_step runs forward (xpos, site poses, what cameras render) and THEN integrates qpos, so a sample
+    # taken right after a substep sees kinematics of the state BEFORE that substep. Keep that pre-step state.
+    if getattr(sim, "_lmax_orig_step", None) is None:
+        orig_step = sim.step
+
+        def step(*a, _orig=orig_step, _sim=sim, **k):
+            _sim._lmax_pre = _sim.get_state().flatten()
+            return _orig(*a, **k)
+        sim._lmax_orig_step = orig_step
+        sim.step = step
+    for name in SNAP_OBSERVABLES:
+        ob = prob._observables[name]
+        if getattr(ob, "_lmax_orig_sensor", None) is not None:
+            continue
+        orig = ob._sensor
+
+        def sensor(obs_cache, _orig=orig, _name=name, _prob=prob):
+            pre = getattr(_prob.sim, "_lmax_pre", None)
+            _prob._lmax_rec._snap[_name] = None if pre is None else np.asarray(pre, dtype=np.float64)
+            return _orig(obs_cache)
+        ob._lmax_orig_sensor = orig
+        ob._sensor = sensor
+
+
 class ArmRecorder:
     """Collects one arm. Call obs(t, raw_obs) for every observation, act(t, action) for every executed action,
     query(...) for every policy query, then finish(...)."""
@@ -108,6 +141,7 @@ class ArmRecorder:
         self.sim_states: list[np.ndarray] = []
         self.act_P_env, self.feat_mean, self.feat_img_mean = [], [], []
         self.release_t = None
+        self.gt = _GTShim(raw_env)
         # Bodies named by the case's event (moved, inserted, or reference objects). Inserted obstacles/distractors
         # are parked bodies WITHOUT a free joint, so _gt_scene_object_pos misses them; log their pose every step.
         sim = self.gt._sim()
@@ -119,7 +153,14 @@ class ArmRecorder:
             if b:
                 self.event_bodies[n] = sim.model.body_name2id(b)
         self._last_raw = None
-        self.gt = _GTShim(raw_env)
+        # robosuite samples observables (proprio AND cameras) on the FIRST sim substep of each control step, not at
+        # its end, so what the policy saw is NOT sim_states[t]. obs_sim_states[t] = the state whose forward
+        # kinematics the sampled cameras/eef saw (pre-integration state of the sampling substep); restoring it
+        # (set_state + forward) should re-render the policy's view exactly. joint_pos/gripper_qpos read qpos, so
+        # they are one substep (2 ms) later than that.
+        self.obs_sim_states: list[np.ndarray] = []
+        self.obs_snap_mismatch = 0                   # steps where proprio and camera were sampled at different states
+        _install_obs_snapshot(_problem(raw_env), self)
         self.atoms = goal_atoms(raw_env)
         prob = _problem(raw_env)
         self.held_objects = [n for n in prob.objects_dict]
@@ -185,7 +226,17 @@ class ArmRecorder:
         # FULL restorable MuJoCo state (LIBERO's flattened format: time, qpos, qvel), the same layout as the
         # benchmark init_states, so env.set_init_state(sim_states[t]) restores step t (after re-applying the
         # event's model edits for t >= t_event).
-        self.sim_states.append(np.asarray(_problem(self.raw_env).sim.get_state().flatten(), dtype=np.float64))
+        end = np.asarray(_problem(self.raw_env).sim.get_state().flatten(), dtype=np.float64)
+        self.sim_states.append(end)
+        snaps = [self._snap.get(n) for n in SNAP_OBSERVABLES]
+        if t == 0 or any(x is None for x in snaps):
+            # t=0 obs comes from a forced update (reset / set_init_state) at the current state
+            self.obs_sim_states.append(end)
+        else:
+            if any(not np.array_equal(x, snaps[0]) for x in snaps[1:]):
+                self.obs_snap_mismatch += 1
+            self.obs_sim_states.append(snaps[-1])   # the state the cameras were rendered at
+        self._snap.clear()
         self.steps.append({"t": t, "obs_state": st, "action": None, "warmup": t < self.warmup,
                            "policy_query": None})
         if self.grasp_onset_t is None and t >= self.warmup and st["_gt_held"]:
@@ -220,7 +271,7 @@ class ArmRecorder:
         self.steps[t]["policy_query"] = {
             "forward": forward_index, "source": source, "instruction_given": instruction,
             "frame_sha": {k: _sha(v) for k, v in views.items()}}
-        if not self.every_step_px:
+        if not (self.every_step_px and int(self.every_step_px) == self.query_px):   # else every-step frames cover it
             for i, c in enumerate(CAMS):
                 img = _resize(views[CAM_NAMES[i]], self.query_px)
                 (self.f_large if self.query_px == FRAME_PX_LARGE else self.f_small).append((t, i, "query", img))
@@ -260,7 +311,9 @@ class ArmRecorder:
             backbone_mean=(np.stack(self.feat_mean) if self.feat_mean else np.zeros((0, 0), np.float16)),
             backbone_img_mean=(np.stack(self.feat_img_mean) if self.feat_img_mean else np.zeros((0, 0), np.float16)),
             sim_states=(np.stack(self.sim_states) if self.sim_states else np.zeros((0, 0))),
-            sim_state_t=np.arange(len(self.sim_states), dtype=np.int64))
+            sim_state_t=np.arange(len(self.sim_states), dtype=np.int64),
+            obs_sim_states=(np.stack(self.obs_sim_states) if self.obs_sim_states else np.zeros((0, 0))),
+            obs_snap_mismatch=np.int64(self.obs_snap_mismatch))
         fr = npz_dir / (stem + ".frames.npz")
         payload = {}
         for tag, rows in ((str(FRAME_PX_SMALL), self.f_small), (str(FRAME_PX_LARGE), self.f_large)):
