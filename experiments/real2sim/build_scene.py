@@ -161,8 +161,11 @@ def bowl_asset():
     body0 = d.xpos[m.geom_bodyid[0]].copy()
     pts = np.array([p for p, _, _ in boxes]) - body0
     radius = float(np.max(np.linalg.norm(pts[:, :2], axis=1)))
-    zmin = min(p[2] - s.max() for p, _, s in boxes) - body0[2]
-    zmax = max(p[2] + s.max() for p, _, s in boxes) - body0[2]
+    # true lowest/highest corner of each rotated box (10-19: centre -/+ the largest half-size put the bowl ~2 cm too
+    # low in zmin, so the bowl was built floating and dropped 2.2-2.6 cm on load: checklist #1)
+    corners = [p[2] + (R @ (np.array([i, j, k]) * s))[2] for p, R, s in boxes for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)]
+    zmin = min(corners) - body0[2]
+    zmax = max(corners) - body0[2]
     return boxes, body0, radius, float(zmin), float(zmax)
 
 
