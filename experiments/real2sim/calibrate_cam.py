@@ -131,6 +131,13 @@ def main():
     ap.add_argument("--span_deg", type=float, default=15.0)
     ap.add_argument("--span_m", type=float, default=0.25)
     ap.add_argument("--search", type=int, default=2000, help="random camera poses scored before local refinement")
+    # metric anchors (10-16): the robot outline alone left the 3D pose ~6 cm off at the objects (found by stereo)
+    ap.add_argument("--anchors", default=None, help="wrist_anchors.json: metric 3D object points (wrist stereo + FK); "
+                    "each must project onto a perception mask of the same label (nearest instance)")
+    ap.add_argument("--anchor_weight", type=float, default=0.0, help="cost per px (at 1/DOWN res) of mean anchor reprojection error")
+    ap.add_argument("--table_z", type=float, default=None, help="table-top z in the robot frame from an independent source "
+                    "(stereo_depth.py wrist results); the exterior stereo table points must land there")
+    ap.add_argument("--table_weight", type=float, default=0.0, help="cost per cm of |exterior-stereo table z - --table_z|")
     a = ap.parse_args()
     FRAMES = [int(x) for x in a.frames.split(",")]
 
@@ -153,6 +160,46 @@ def main():
         tm = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & per["valid"]
         tp = P[tm]
         n_cam = np.linalg.svd(tp - tp.mean(0), full_matrices=False)[2][-1]
+
+    anchors3d = []  # (label, 3D point in the robot frame)
+    mask_cent = {}  # label -> list of mask centroids (px at 1/DOWN res) in the perception frame
+    if a.anchors and a.anchor_weight > 0:
+        per_a = np.load(os.path.join(a.out, "perception.npz"))
+        for k in per_a.files:
+            if k.startswith("mask/") and per_a[k].any():
+                v_, u_ = np.nonzero(per_a[k])
+                mask_cent.setdefault(k[5:].split("#")[0], []).append([u_.mean() / DOWN, v_.mean() / DOWN])
+        for name, an in json.load(open(a.anchors))["anchors"].items():
+            lab = name.split("#")[0]
+            if lab in mask_cent:
+                anchors3d.append((lab, np.array(an["point"])))
+        print("anchors:", [(l, np.round(p, 3).tolist()) for l, p in anchors3d], flush=True)
+    table_cam = None  # exterior stereo table points, camera frame (metric)
+    if a.table_z is not None and a.table_weight > 0:
+        from stereo_depth import stereo_z, BASELINE_M
+        per_t = np.load(os.path.join(a.out, "perception.npz"))
+        fr = json.load(open(os.path.join(a.out, "perception.json")))["frame"]
+        zs = stereo_z(a.episode, a.cam, fr, K[0, 0], BASELINE_M["ext"])
+        tm = cv2.erode(per_t["mask/wooden table"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & np.isfinite(zs)
+        vv_, uu_ = np.nonzero(tm)
+        zz_ = zs[tm]
+        table_cam = np.stack([(uu_ + 0.5 - K[0, 2]) / K[0, 0] * zz_, (vv_ + 0.5 - K[1, 2]) / K[1, 1] * zz_, zz_], -1)
+        print(f"table term: {len(table_cam)} exterior stereo table points, target z {a.table_z}", flush=True)
+
+    def anchor_err(R, t, Kx):
+        """mean px (1/DOWN res) from each anchor's projection to the nearest same-label mask centroid"""
+        e = []
+        for lab, p in anchors3d:
+            pc = (p - t) @ R
+            if pc[2] <= 0:
+                e.append(200.0)
+                continue
+            uv = pc[:2] / pc[2] * [Kx[0, 0], Kx[1, 1]] + [Kx[0, 2], Kx[1, 2]]
+            e.append(float(np.min(np.linalg.norm(np.array(mask_cent[lab]) - uv, axis=1))))
+        return float(np.mean(e)) if e else 0.0
+
+    def table_err_cm(R, t):
+        return 100 * abs(float(np.median((table_cam @ R.T + t)[:, 2])) - a.table_z)
 
     def tilt_deg(R):
         """angle between the table normal (in the robot frame) and vertical: 0 for a level table"""
@@ -235,7 +282,34 @@ def main():
         c /= len(FRAMES)
         if n_cam is not None:  # assumption: the robot base and the table are both level
             c += a.level_weight * tilt_deg(Rot.from_rotvec(x[:3]).as_matrix() @ R0)
+        c += metric_terms(x)
         return c
+
+    def metric_terms(x):
+        R = Rot.from_rotvec(x[:3]).as_matrix() @ R0
+        t = t0 + x[3:6]
+        Kx = Kd.copy()
+        if len(x) > 6:
+            Kx[:2, :2] *= np.exp(x[6])
+        c = 0.0
+        if anchors3d:
+            c += a.anchor_weight * anchor_err(R, t, Kx)
+        if table_cam is not None:
+            c += a.table_weight * table_err_cm(R, t)
+        return c
+
+    def metric_report(x):
+        R = Rot.from_rotvec(x[:3]).as_matrix() @ R0
+        t = t0 + x[3:6]
+        Kx = Kd.copy()
+        if len(x) > 6:
+            Kx[:2, :2] *= np.exp(x[6])
+        out = {}
+        if anchors3d:
+            out["anchor_err_px_full_res"] = DOWN * anchor_err(R, t, Kx)
+        if table_cam is not None:
+            out["table_err_cm"] = table_err_cm(R, t)
+        return out
 
     def iou(x):
         sm = sim_masks(x)
@@ -295,7 +369,9 @@ def main():
     calib = dict(cam=a.cam, K=K.tolist(), level_weight=a.level_weight, init=a.init, **tilts, R_cam_to_base=R1.tolist(), t_cam_in_base=t1.tolist(),
                  delta_rot_deg=float(np.degrees(np.linalg.norm(res.x[:3]))), delta_trans_m=res.x[3:6].tolist(), focal_scale=float(np.exp(res.x[6])) if a.fit_focal else 1.0,
                  cost_before_px=c0, cost_after_px=c1, iou_before=i0, iou_after=i1, frames=FRAMES,
-                 principal_mode=mode, convention_check_px=errs, nfev=int(res.nfev))
+                 principal_mode=mode, convention_check_px=errs, nfev=int(res.nfev),
+                 anchors=a.anchors, anchor_weight=a.anchor_weight, table_z=a.table_z, table_weight=a.table_weight,
+                 metric_before=metric_report(x0), metric_after=metric_report(res.x))
     json.dump(calib, open(os.path.join(a.out, "calib.json"), "w"), indent=1)
 
     # check image: sim silhouette outline (green) on real frames, before | after
@@ -312,7 +388,7 @@ def main():
         rows.append(np.concatenate(tiles, 1))
     cv2.imwrite(os.path.join(a.out, "calib_check.png"), np.concatenate(rows, 0))
     print(json.dumps({k: (round(v, 3) if isinstance(v, float) else v) for k, v in calib.items()
-                      if k in ("delta_rot_deg", "delta_trans_m", "cost_before_px", "cost_after_px", "iou_before", "iou_after", "nfev")}))
+                      if k in ("delta_rot_deg", "delta_trans_m", "cost_before_px", "cost_after_px", "iou_before", "iou_after", "nfev", "metric_before", "metric_after")}))
 
 
 if __name__ == "__main__":
