@@ -1,0 +1,106 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "green_block",
+  "ref": "black_bowl",
+  "text": "put the green block in the bowl"
+ },
+ "instruction": "put the green block in the bowl",
+ "variant": 0,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 3.26416277885437,
+ "infer_s_median": 0.23914587497711182,
+ "wall_s": 33.60532283782959,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.2816856880187988,
+ "gripper_closed_frac": 0.3022222222222222,
+ "final_target_xyz": [
+  0.6182843469718354,
+  -0.11880159683956502,
+  -0.0803965914523051
+ ],
+ "final_ref_xyz": [
+  0.6465326426242896,
+  -0.3187837118076021,
+  -0.09692527762005175
+ ],
+ "wrist_view": "textured (exterior plate + real wrist frame 0, composite.WristCompositor)",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 30,
+   "closed_at_target": 90,
+   "lifted": 260
+  },
+  "min_dist_to_target_m": 0.004646754162261981,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.037252184394854504,
+  "median_err_m": 0.012730228545323064,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 12,
+    "steps": 16,
+    "mean_err_m": 0.014423306675398026,
+    "mean_dz_cmd_minus_ach_m": -0.005604938758965548
+   },
+   {
+    "start": 49,
+    "steps": 19,
+    "mean_err_m": 0.015803477525487206,
+    "mean_dz_cmd_minus_ach_m": 0.00022815810535746275
+   },
+   {
+    "start": 89,
+    "steps": 16,
+    "mean_err_m": 0.023756982825341673,
+    "mean_dz_cmd_minus_ach_m": 0.016905161874127085
+   },
+   {
+    "start": 256,
+    "steps": 28,
+    "mean_err_m": 0.020783420470401777,
+    "mean_dz_cmd_minus_ach_m": 0.01340259313094894
+   },
+   {
+    "start": 315,
+    "steps": 15,
+    "mean_err_m": 0.026282621626519793,
+    "mean_dz_cmd_minus_ach_m": -0.01693035951072229
+   },
+   {
+    "start": 405,
+    "steps": 32,
+    "mean_err_m": 0.02133673236788145,
+    "mean_dz_cmd_minus_ach_m": 0.014936799183126353
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15
+  }
+ }
+}

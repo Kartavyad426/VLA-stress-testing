@@ -311,6 +311,8 @@ REACH_M = 0.03        # fingertip point within 3 cm of the target's centre
 LIFT_M = 0.02         # target raised >= 2 cm above its start height
 TRACK_M = 0.01        # commanded - achieved fingertip point
 TRACK_SUSTAIN = FPS   # ... for >= 1 s of consecutive steps = "blocked"
+STILL_MPS = 0.01      # ... while the achieved fingertip moves < 1 cm/s (10-19: without this, controller lag in fast
+#                       moves and holding contacts were flagged; G2 medians 1.3-2.0 cm while moving)
 
 
 def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success):
@@ -327,7 +329,8 @@ def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success):
                   min_dist_to_target_m=float(dist.min()), thresholds=dict(reach_m=REACH_M, lift_m=LIFT_M))
     err = cmd - ach
     en = np.linalg.norm(err, axis=1)
-    over = en > TRACK_M
+    speed = np.r_[0.0, np.linalg.norm(np.diff(ach, axis=0), axis=1) * FPS]
+    over = (en > TRACK_M) & (speed < STILL_MPS)
     runs, cur, start = [], 0, 0
     for i, o in enumerate(np.r_[over, False]):
         if o:
@@ -340,7 +343,7 @@ def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success):
                 runs.append(dict(start=start, steps=cur, mean_err_m=float(en[seg].mean()), mean_dz_cmd_minus_ach_m=float(err[seg, 2].mean())))
             cur = 0
     tracking = dict(max_err_m=float(en.max()), median_err_m=float(np.median(en)), blocked=bool(runs), blocked_segments=runs,
-                    thresholds=dict(err_m=TRACK_M, sustain_steps=TRACK_SUSTAIN))
+                    thresholds=dict(err_m=TRACK_M, sustain_steps=TRACK_SUSTAIN, still_mps=STILL_MPS))
     return dict(stages=stages, tracking=tracking)
 
 

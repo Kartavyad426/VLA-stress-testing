@@ -50,7 +50,7 @@ Do these after every change. Don't guess conventions, offsets or units: test the
 <tr><th>#</th><th>Symptom</th><th>Root cause</th><th>Fix / rule</th><th>Where</th></tr>
 <tr><td>10</td><td>MoGe crashed on CPU (Half vs float).</td><td>MoGe defaults to fp16, which is GPU-only.</td><td><code>infer(..., use_fp16=False)</code> on CPU.</td><td><code>perceive.geometry</code></td></tr>
 <tr><td>11</td><td>Scale anchor 0.47 (nonsense: table above the robot base).</td><td>Anchored at frame 0, where the robot was barely visible and its mask was wrong.</td><td>Anchor at a frame where the calibration was verified (sim robot depth vs MoGe on robot pixels); carry to frame 0 through static table pixels.</td><td><code>--anchor_frame</code></td></tr>
-<tr><td>12</td><td>Real recorded grasps land 3.5–5 cm <i>below</i> the rebuilt table.</td><td>MoGe's metric depth is off in a way one global scale can't fix.</td><td>Open. Use real stereo (DROID ships stereo MP4s) or accept it and use sim-planned actions. Check with: pinch height at each recorded grasp vs table.</td><td>open</td></tr>
+<tr><td>12</td><td>Real recorded grasps land 3.5–5 cm <i>below</i> the rebuilt table.</td><td>MoGe's metric depth is off in a way one global scale can't fix.</td><td><b>Fixed 10-16/19.</b> Stereo (ZED 2 120 mm / ZED Mini 63 mm) showed the table 6 cm (orange) / ~8 cm (c3) too high; the robot-anchored scale was ~15% short. Scale MoGe from stereo on the table pixels (<code>--depth stereo</code>), and re-calibrate the camera with metric anchors (row 30).</td><td><code>stereo_depth.py</code>, <code>build_scene --depth stereo</code></td></tr>
 <tr><td>13</td><td>Blocks became 7–10 cm pillars.</td><td>Depth at object edges smears toward the background, so the "top" point is too high.</td><td>Height from the inner (eroded) mask; robust 5–95% extents; cube rule for "block"; clamp to ±50% of the same-label median.</td><td><code>fit_box</code></td></tr>
 <tr><td>14</td><td>Retrieved radish scaled ×25 (40 cm).</td><td>Thin leaves against a far background scatter depth points.</td><td>Size retrieved meshes from mask pixel width × median depth ÷ focal length, not from point spread.</td><td><code>build_scene</code> (asset branch)</td></tr>
 <tr><td>15</td><td>I reported "the bowl mesh is lying on its side". False alarm.</td><td>MuJoCo re-centres each mesh on its principal axes and compensates in the geom pose; <code>mesh_vert</code> axes are not the file's axes.</td><td>Check orientation by rendering or from the source file, never from compiled mesh vertices.</td><td>—</td></tr>
@@ -64,6 +64,8 @@ Do these after every change. Don't guess conventions, offsets or units: test the
 <tr><td>18</td><td>Sim gripper never squeezed the block in the real-action replay.</td><td>Drove the gripper with the <i>observed</i> position (0.52, where the block stopped it) instead of the <i>commanded</i> target (1.0).</td><td>Use <code>action/target_gripper_position</code>.</td><td><code>replay.py</code></td></tr>
 <tr><td>19</td><td>Panda model: compile errors after renaming; gripper opened when told to close.</td><td>MjSpec renames don't update contact-exclude pairs or actuator targets; Menagerie's Panda uses ctrl 255 = <b>open</b> (Robotiq: 255 = closed).</td><td>Update <code>excludes</code> and <code>actuator.target</code> when renaming; invert the Panda gripper (verified: 0 → 4 cm open, 255 → 0 cm).</td><td><code>robot_spec("panda")</code></td></tr>
 <tr><td>20</td><td>Task generator crashed: "max() iterable is empty".</td><td>Retrieved meshes sit on a child body; looking up geoms by the free body's id finds none.</td><td>Use <code>body_rootid</code>.</td><td><code>make_tasks.body_radius</code></td></tr>
+<tr><td>30</td><td>A 6 cm table offset looked perfect in every composite and calibration overlay; GR00T then pushed its fingers into the table and never grasped (10-15).</td><td>One depth scale slides every point along its own camera ray, so the scene still projects to the same pixels in the camera it was estimated from. That camera is blind to the error; the robot-anchored scale and a slightly wrong camera pose also cancelled sideways at the grasp point.</td><td><b>Never validate geometry only from the camera it came from.</b> Check from a second viewpoint (wrist camera: pose from FK, stereo depth) and against real robot coordinates (recorded grasp/release). Calibrate the exterior camera with metric anchors (wrist-stereo object points, stereo table height) besides the robot outline. <code>scene_checks.py</code> runs these after every build.</td><td><code>scene_checks.py</code>, <code>wrist_anchors.py</code>, <code>calibrate_cam --anchors --table_z</code>, <code>wrist_overlay.py</code></td></tr>
+<tr><td>31</td><td>The bowl dropped 2.2–2.6 cm when the scene loaded (settle check failed).</td><td>The bowl's lowest point was taken as box centre − largest half-size, ignoring each collision box's rotation, so the bowl was built floating.</td><td>Use the true rotated box corners.</td><td><code>build_scene.bowl_asset</code></td></tr>
 <tr><td>21</td><td>Replaying the real recorded actions always fails, even with good alignment.</td><td>Real actions only work in a near-perfect copy; centimetre errors break grasps.</td><td>Generate actions in the sim scene (scripted IK expert, DMP, policy) and keep the successes. This works: 89/105 expert episodes over 21 tasks.</td><td><code>make_tasks.py</code></td></tr>
 </table></div>
 
@@ -96,8 +98,7 @@ Do these after every change. Don't guess conventions, offsets or units: test the
 
 <h2>7 · Open items</h2>
 <ul>
-<li>~5 cm depth-scale error (stereo depth not tried).</li>
-<li>Main scenes still use the 0° gripper mount (switch to 90° before any DROID-policy work).</li>
+<li>Depth error fixed on orange (10-19; <code>runs/real2sim/ep_orange_block_stereo</code>); c3 not yet rebuilt.</li>
 <li>Licences: LIBERO-Plus objects research-only; LaMa's training data (Places) unchecked; GR00T-N1.7-DROID licence conflict open with res32.</li>
 <li>Calibration without camera info: parked by the user (not actively worked on).</li>
 </ul>
@@ -108,7 +109,8 @@ Do these after every change. Don't guess conventions, offsets or units: test the
 <li><code>perceive.py</code> with generic category prompts; look at <code>perception_check.png</code>.</li>
 <li><code>build_scene.py --scale raw</code>, then <code>calibrate_cam.py</code> (motion masks, global search, <code>--level_weight 1</code>); <b>look at the overlay</b> (target IoU ≥ 0.4).</li>
 <li><code>build_scene.py --calib ... --anchor_frame &lt;a frame where the robot is clearly visible&gt;</code>; check <code>scene_fit.json</code> sizes and the settle movement (&lt; 2 cm).</li>
-<li>Grasp-height check against the recorded grasps (horizontal and vertical).</li>
+<li><code>wrist_anchors.py</code> (wrist-stereo object points), then <code>calibrate_cam.py --init ... --anchors ... --table_z ...</code>, then <code>build_scene.py --calib ... --depth stereo</code>.</li>
+<li><code>scene_checks.py</code>: settle, real grasp/release, scale, stereo table; <b>look at <code>wrist_overlay.jpg</code></b>. Don't use the scene until it passes (see <code>REAL_TO_SIM_PREDEPLOY_CHECKLIST.html</code>).</li>
 <li><code>scripted_grasp.py</code> / <code>make_tasks.py</code>; then <code>composite.py --inpaint lama --holes frame0+plate</code>; look at frames.</li>
 </ol>
 </main></body></html>

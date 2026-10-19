@@ -1,0 +1,59 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "thresholds": {
+  "settle_m": 0.02,
+  "grasp_m": 0.015,
+  "scale_tol": 0.1,
+  "table_m": 0.01
+ },
+ "checks": {
+  "1_settle": {
+   "pass_": true,
+   "moved_m": {
+    "black_bowl": 0.0010219955088055866,
+    "green_block": 0.00010775542679412886,
+    "orange_block": 0.00010775541606204697,
+    "yellow_block": 0.00010775542679412886
+   }
+  },
+  "3_4_5_grasp_events": [
+   {
+    "close_frame": 75,
+    "open_frame": 126,
+    "object": "orange_block",
+    "horiz_m": 0.016503043613214568,
+    "vert_m": 0.014069674621399172,
+    "pinch_above_table_m": 0.030950120164050923,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.04867168844881294,
+    "rim_radius_m": 0.08485033751528838,
+    "release_pass": true,
+    "scale_ratio": 0.9065168926481797,
+    "scale_pass": true
+   }
+  ],
+  "3_grasp": {
+   "pass_": false,
+   "n_events": 1
+  },
+  "4_release": {
+   "pass_": true
+  },
+  "5_scale": {
+   "pass_": true
+  },
+  "6_stereo_table": {
+   "pass_": true,
+   "stereo_minus_built_m": {
+    "ext_0": -0.0019325595738206858,
+    "wrist_0": -0.0036540920930796805,
+    "wrist_20": 0.0019066341036154122,
+    "wrist_40": 0.0018252352192211219
+   }
+  }
+ },
+ "wrist_overlay": "runs/real2sim/ep_orange_block_stereo/wrist_overlay.jpg",
+ "all_pass": false
+}
