@@ -1,0 +1,429 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "policy": "groot",
+ "light_wrist": {
+  "dir": [
+   -0.11451972269784091,
+   0.041681770298433674,
+   -0.992546151641322
+  ],
+  "azimuth_deg": 340,
+  "elevation_deg": 83,
+  "iou": 0.21433918396495977,
+  "real_shadow_ratio": 0.7545856237411499,
+  "frames": [
+   18,
+   21,
+   24,
+   27,
+   30,
+   33,
+   36,
+   39,
+   42,
+   45,
+   48,
+   51,
+   54,
+   57,
+   60,
+   63,
+   66,
+   69,
+   72
+  ],
+  "exterior_fit": {
+   "azimuth_deg": 200,
+   "elevation_deg": 70,
+   "iou_in_wrist_view": 0.04928221568801133
+  },
+  "top5": [
+   {
+    "az": 340,
+    "el": 83,
+    "iou": 0.21433918396495977
+   },
+   {
+    "az": 335,
+    "el": 83,
+    "iou": 0.21422641382362717
+   },
+   {
+    "az": 335,
+    "el": 85,
+    "iou": 0.20907975931633502
+   },
+   {
+    "az": 330,
+    "el": 83,
+    "iou": 0.2089560282869338
+   },
+   {
+    "az": 340,
+    "el": 85,
+    "iou": 0.20827771647417295
+   }
+  ],
+  "convention": "dir = -(cos el cos az, cos el sin az, sin el), MuJoCo light_dir",
+  "status": "exploratory, UNVERIFIED"
+ },
+ "rows": [
+  {
+   "frame": 45,
+   "real_real": {
+    "min_height_cm": 4.571717301435924,
+    "mean_tilt_deg": 2.7490874858390524
+   },
+   "real_real_rep": {
+    "min_height_cm": 4.108025570630057,
+    "mean_tilt_deg": 2.728915115071838
+   },
+   "sim_old": {
+    "min_height_cm": 0.3946926564660447,
+    "mean_tilt_deg": 1.3447731446335012
+   },
+   "V2_ext": {
+    "min_height_cm": 2.8587693224032025,
+    "mean_tilt_deg": 2.0934785715451842
+   },
+   "V2_wrist": {
+    "min_height_cm": 2.8534014828993968,
+    "mean_tilt_deg": 2.302694585675092
+   },
+   "V2_noshadow": {
+    "min_height_cm": 2.0412982946521248,
+    "mean_tilt_deg": 1.6639746250300333
+   },
+   "V2_L": {
+    "min_height_cm": 3.652192909472776,
+    "mean_tilt_deg": 1.6214403973170384
+   }
+  },
+  {
+   "frame": 48,
+   "real_real": {
+    "min_height_cm": 3.2346895931671673,
+    "mean_tilt_deg": 3.929332861364003
+   },
+   "real_real_rep": {
+    "min_height_cm": 3.5171824892766628,
+    "mean_tilt_deg": 3.747156546139333
+   },
+   "sim_old": {
+    "min_height_cm": -0.15512272936488852,
+    "mean_tilt_deg": 1.3642953229561956
+   },
+   "V2_ext": {
+    "min_height_cm": 0.8580442837294949,
+    "mean_tilt_deg": 2.475585708715245
+   },
+   "V2_wrist": {
+    "min_height_cm": 1.1524569522066055,
+    "mean_tilt_deg": 2.329838263235762
+   },
+   "V2_noshadow": {
+    "min_height_cm": 1.1211746251521966,
+    "mean_tilt_deg": 2.223387467086647
+   },
+   "V2_L": {
+    "min_height_cm": 1.802886039607396,
+    "mean_tilt_deg": 1.6059142021025645
+   }
+  },
+  {
+   "frame": 51,
+   "real_real": {
+    "min_height_cm": 2.3174278962903623,
+    "mean_tilt_deg": 3.9438072807162987
+   },
+   "real_real_rep": {
+    "min_height_cm": 2.6175162521019466,
+    "mean_tilt_deg": 3.9028751544946068
+   },
+   "sim_old": {
+    "min_height_cm": -0.8555623229891979,
+    "mean_tilt_deg": 1.9220364891235888
+   },
+   "V2_ext": {
+    "min_height_cm": 0.5997525508822182,
+    "mean_tilt_deg": 1.8858706231763258
+   },
+   "V2_wrist": {
+    "min_height_cm": 0.8775257696857913,
+    "mean_tilt_deg": 2.4647233531340955
+   },
+   "V2_noshadow": {
+    "min_height_cm": 0.2764840839297067,
+    "mean_tilt_deg": 1.9479377353523804
+   },
+   "V2_L": {
+    "min_height_cm": 1.292736666249339,
+    "mean_tilt_deg": 1.9006082828573745
+   }
+  },
+  {
+   "frame": 54,
+   "real_real": {
+    "min_height_cm": 2.7284436837475945,
+    "mean_tilt_deg": 4.249907780576205
+   },
+   "real_real_rep": {
+    "min_height_cm": 2.98530035120491,
+    "mean_tilt_deg": 4.558869713833181
+   },
+   "sim_old": {
+    "min_height_cm": -1.482841577187763,
+    "mean_tilt_deg": 2.149996783092766
+   },
+   "V2_ext": {
+    "min_height_cm": 0.23734695355504265,
+    "mean_tilt_deg": 1.8800679686041506
+   },
+   "V2_wrist": {
+    "min_height_cm": 1.2871015367033585,
+    "mean_tilt_deg": 1.636414798542318
+   },
+   "V2_noshadow": {
+    "min_height_cm": -0.1551493941270049,
+    "mean_tilt_deg": 2.163724496781126
+   },
+   "V2_L": {
+    "min_height_cm": 0.8432235456992954,
+    "mean_tilt_deg": 1.6889334472963524
+   }
+  },
+  {
+   "frame": 57,
+   "real_real": {
+    "min_height_cm": 2.23102755049034,
+    "mean_tilt_deg": 4.524794671483742
+   },
+   "real_real_rep": {
+    "min_height_cm": 2.5279837432424874,
+    "mean_tilt_deg": 4.353803840900294
+   },
+   "sim_old": {
+    "min_height_cm": -1.3828779825646176,
+    "mean_tilt_deg": 3.627977176887967
+   },
+   "V2_ext": {
+    "min_height_cm": 0.8461265133767881,
+    "mean_tilt_deg": 2.782278288968875
+   },
+   "V2_wrist": {
+    "min_height_cm": 1.159231759825674,
+    "mean_tilt_deg": 3.0663301663707627
+   },
+   "V2_noshadow": {
+    "min_height_cm": 0.16852173956059258,
+    "mean_tilt_deg": 3.6253951657797665
+   },
+   "V2_L": {
+    "min_height_cm": 0.7387806480954079,
+    "mean_tilt_deg": 2.243397554452342
+   }
+  },
+  {
+   "frame": 60,
+   "real_real": {
+    "min_height_cm": 1.5402377638635458,
+    "mean_tilt_deg": 5.427039329327692
+   },
+   "real_real_rep": {
+    "min_height_cm": 1.4255502582846247,
+    "mean_tilt_deg": 5.47147400341541
+   },
+   "sim_old": {
+    "min_height_cm": -2.504336349785609,
+    "mean_tilt_deg": 7.462233647654733
+   },
+   "V2_ext": {
+    "min_height_cm": 0.6794281877608693,
+    "mean_tilt_deg": 6.792679892068582
+   },
+   "V2_wrist": {
+    "min_height_cm": 1.2111549568427389,
+    "mean_tilt_deg": 6.550392998300494
+   },
+   "V2_noshadow": {
+    "min_height_cm": -0.7789851494750116,
+    "mean_tilt_deg": 6.6402838168621825
+   },
+   "V2_L": {
+    "min_height_cm": 0.11322368064175803,
+    "mean_tilt_deg": 5.740889586387965
+   }
+  },
+  {
+   "frame": 63,
+   "real_real": {
+    "min_height_cm": 1.0836564002623033,
+    "mean_tilt_deg": 5.8333114636016985
+   },
+   "real_real_rep": {
+    "min_height_cm": 0.8001980788544416,
+    "mean_tilt_deg": 5.440940099312524
+   },
+   "sim_old": {
+    "min_height_cm": -2.369284705758612,
+    "mean_tilt_deg": 7.818800194763474
+   },
+   "V2_ext": {
+    "min_height_cm": 0.49630667744991197,
+    "mean_tilt_deg": 7.323477051578468
+   },
+   "V2_wrist": {
+    "min_height_cm": 0.9755678186548267,
+    "mean_tilt_deg": 6.879094060382178
+   },
+   "V2_noshadow": {
+    "min_height_cm": -0.06939228174638323,
+    "mean_tilt_deg": 6.890003543133773
+   },
+   "V2_L": {
+    "min_height_cm": 0.8460409755868009,
+    "mean_tilt_deg": 7.344812750578539
+   }
+  },
+  {
+   "frame": 66,
+   "real_real": {
+    "min_height_cm": 1.0412507981556436,
+    "mean_tilt_deg": 5.060564200048656
+   },
+   "real_real_rep": {
+    "min_height_cm": 1.0874411922094984,
+    "mean_tilt_deg": 5.508006478316258
+   },
+   "sim_old": {
+    "min_height_cm": -1.8638041136724515,
+    "mean_tilt_deg": 8.39358458395214
+   },
+   "V2_ext": {
+    "min_height_cm": -0.251750332931025,
+    "mean_tilt_deg": 7.803827882618472
+   },
+   "V2_wrist": {
+    "min_height_cm": 0.6081374891391655,
+    "mean_tilt_deg": 6.970750131383861
+   },
+   "V2_noshadow": {
+    "min_height_cm": -0.9931658574489716,
+    "mean_tilt_deg": 7.480275009076172
+   },
+   "V2_L": {
+    "min_height_cm": 0.275631267008275,
+    "mean_tilt_deg": 7.224098278606218
+   }
+  },
+  {
+   "frame": 69,
+   "real_real": {
+    "min_height_cm": 1.7949889180413305,
+    "mean_tilt_deg": 3.747314329172934
+   },
+   "real_real_rep": {
+    "min_height_cm": 2.3270053944620823,
+    "mean_tilt_deg": 4.450886766381767
+   },
+   "sim_old": {
+    "min_height_cm": -1.8113150949076395,
+    "mean_tilt_deg": 9.341463838956408
+   },
+   "V2_ext": {
+    "min_height_cm": 0.7824575653243598,
+    "mean_tilt_deg": 5.720318000371058
+   },
+   "V2_wrist": {
+    "min_height_cm": 1.1065506877477231,
+    "mean_tilt_deg": 5.752777617259539
+   },
+   "V2_noshadow": {
+    "min_height_cm": 0.4618505355986069,
+    "mean_tilt_deg": 6.065401610235408
+   },
+   "V2_L": {
+    "min_height_cm": 0.3818626628893734,
+    "mean_tilt_deg": 5.78260177124628
+   }
+  },
+  {
+   "frame": 72,
+   "real_real": {
+    "min_height_cm": 3.4743006394349756,
+    "mean_tilt_deg": 3.7841305882266676
+   },
+   "real_real_rep": {
+    "min_height_cm": 4.152137989352813,
+    "mean_tilt_deg": 3.1865633105870623
+   },
+   "sim_old": {
+    "min_height_cm": -2.272151792630778,
+    "mean_tilt_deg": 9.146151266501105
+   },
+   "V2_ext": {
+    "min_height_cm": 0.9354320754004497,
+    "mean_tilt_deg": 5.3101700423770435
+   },
+   "V2_wrist": {
+    "min_height_cm": 0.3972474267653611,
+    "mean_tilt_deg": 5.433695917827205
+   },
+   "V2_noshadow": {
+    "min_height_cm": 1.2435064716041637,
+    "mean_tilt_deg": 5.954563961170581
+   },
+   "V2_L": {
+    "min_height_cm": 0.5820204144730015,
+    "mean_tilt_deg": 5.123848088932337
+   }
+  }
+ ],
+ "summary": {
+  "real_real": {
+   "min_height_cm_mean": 2.401774054488919,
+   "near_grasp_min_height_cm": 1.7868869039515598,
+   "mean_tilt_deg_mean": 4.324928999035695,
+   "near_grasp_tilt_deg": 4.770471982075529
+  },
+  "real_real_rep": {
+   "min_height_cm_mean": 2.554834131961952,
+   "near_grasp_min_height_cm": 1.958466582632692,
+   "mean_tilt_deg_mean": 4.334949102845227,
+   "near_grasp_tilt_deg": 4.811574131602604
+  },
+  "sim_old": {
+   "min_height_cm_mean": -1.4302604012395512,
+   "near_grasp_min_height_cm": -2.164178411351018,
+   "mean_tilt_deg_mean": 5.2571312448521885,
+   "near_grasp_tilt_deg": 8.432446706365573
+  },
+  "V2_ext": {
+   "min_height_cm_mean": 0.8041913796951311,
+   "near_grasp_min_height_cm": 0.5283748346009132,
+   "mean_tilt_deg_mean": 4.4067754030023405,
+   "near_grasp_tilt_deg": 6.590094573802725
+  },
+  "V2_wrist": {
+   "min_height_cm_mean": 1.1628375880470643,
+   "near_grasp_min_height_cm": 0.859731675829963,
+   "mean_tilt_deg_mean": 4.338671189211131,
+   "near_grasp_tilt_deg": 6.317342145030656
+  },
+  "V2_noshadow": {
+   "min_height_cm_mean": 0.331614306770002,
+   "near_grasp_min_height_cm": -0.02723725629351916,
+   "mean_tilt_deg_mean": 4.465494743050806,
+   "near_grasp_tilt_deg": 6.606105588095623
+  },
+  "V2_L": {
+   "min_height_cm_mean": 1.0528598809723424,
+   "near_grasp_min_height_cm": 0.4397558001198417,
+   "mean_tilt_deg_mean": 4.0276544359777,
+   "near_grasp_tilt_deg": 6.243250095150268
+  }
+ },
+ "rerun_noise_cm": 0.32542758903156366,
+ "status": "exploratory, UNVERIFIED"
+}
