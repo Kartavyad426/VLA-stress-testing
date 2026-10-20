@@ -177,6 +177,16 @@
   <h3>State in one paragraph</h3>
   <p>Two commercially usable packs are downloaded: Kitchen-MJCF and Google Scanned Objects (GSO) in MJCF. Our bowl turned out to be a Google Scanned Object already. A retrieval hook is prototyped: a new <code>catalogue.py</code> plus a <b>proposed</b> build_scene change. The change is not applied; prim holds it until the user decides. In tests on both scenes, the pack bowl works as well as the LIBERO one. The only losses come from the apple/radish fallback (ellipsoids). Five decisions are open.</p>
 
+  <h3>Progress against the user's order <span class="small">(added 2026-10-20 at the user's request)</span></h3>
+  <div class="tbl"><table>
+    <tr><th>Stage</th><th>State</th></tr>
+    <tr><td>1 · Download</td><td><b>Done.</b> Kitchen-MJCF (922 models) + GSO (1,030), both CC BY 4.0.</td></tr>
+    <tr><td>2 · Match against existing</td><td><b>Done.</b> Our bowl is a GSO scan; neither pack has an apple or radish.</td></tr>
+    <tr><td>3 · Redundancies</td><td><b>Done on my defaults</b>, not yet confirmed by the user (decision 4).</td></tr>
+    <tr><td>4 · Retrieval</td><td><b>Partly done.</b> Name retrieval works and is tested on both scenes, but it is not live in res31's pipeline (decision 1). The image index the user asked to optimise is <b>not started</b> (decision 5).</td></tr>
+  </table></div>
+  <p>Nothing has gone into res31's scenes yet.</p>
+
   <h3>What I was asked</h3>
   <p>Brief from prim, 10-19: the LIBERO-Plus objects in ep_orange_block / ep_c3 look like BEHAVIOR-1K assets (non-commercial). Find CC-licensed packs that can replace or extend them and plan the adoption. Outline first, in my own terminal.</p>
   <ul class="tight">
@@ -225,11 +235,11 @@
 
   <h3>Open decisions for the user</h3>
   <ul class="tight">
-    <li><b>1. Apply the build_scene change?</b> res31 applies it, via prim.</li>
-    <li><b>2. Bowl mass:</b> keep the default (density 500 × hull volume: 0.24–0.55 kg here), use the LIBERO bowl's mass, or a sourced real-bowl mass?</li>
-    <li><b>3. Apple/radish:</b> (a) cap the ellipsoid height at its width, (b) bring YCB forward (size unchecked), or both?</li>
+    <li><b>1. Apply the build_scene change?</b> res31 applies it, via prim. <i>Recommendation: yes; <code>--assets libero</code> stays byte-identical.</i></li>
+    <li><b>2. Bowl mass:</b> keep the default (density 500 × hull volume: 0.24–0.55 kg here, 5–6× the old bowl; this is what drove orange's 34 → 38/40), use the LIBERO bowl's mass, or a sourced real-bowl mass? <i>Recommendation: a sourced real-bowl mass, so results don't rest on an arbitrary number.</i></li>
+    <li><b>3. Apple/radish:</b> (a) cap the ellipsoid height at its width (quick; probably recovers the apple tasks), (b) bring YCB forward (has an apple, no radish; size unchecked), or both? <i>Recommendation: (a) now, then (b).</i></li>
     <li><b>4. Stage-3 redundancies 1–3:</b> confirm or change the defaults I used.</li>
-    <li><b>5. Stage 4, image index:</b> go? Plan:
+    <li><b>5. Stage 4, image index:</b> go? It retrieves by appearance instead of names (fixes e.g. "apple" → a card game). CPU only, about half a day to a day of work. <i>Recommendation: yes, after 1–3, so it is tested on the final setup.</i> Plan:
       <ul class="tight">
         <li>render ~8 views per pack model on CPU;</li>
         <li>embed with CLIP/DINOv2 (<code>transformers</code>, already in <code>.venvs/real2sim</code>);</li>
