@@ -236,7 +236,8 @@ def wrist_plate(m, out, episode, ext_comp, serial, dilate=25):
     return dict(img=img.astype(np.float32), K=cam_K(m, cid, W, H), R=R, t=t, gain=np.array(meta["ext_to_wrist_gain"], np.float32))
 
 
-def wrist_table_texture(m, out, episode, serial, frames, res=0.0015, dilate=35, obj_dilate=61, near_frac=0.5, obj_margin=0.015):
+def wrist_table_texture(m, out, episode, serial, frames, res=0.0015, dilate=35, obj_dilate=61, near_frac=0.5, obj_margin=0.015,
+                        cache=None):
     """Top-down texture of the table top mosaicked from the REAL wrist video (frames before any object is touched),
     cached as <out>/table_tex_wrist.npz. For each frame the sim is posed at the recorded joints + gripper; every texel
     (x, y, table z) is projected into that wrist frame and sampled if the sim says the camera sees the table there
@@ -250,7 +251,7 @@ def wrist_table_texture(m, out, episode, serial, frames, res=0.0015, dilate=35, 
     next to the sim ones); per frame, robot pixels are dilated by `dilate` px (the sim gripper's outline differs from the
     real one) and object pixels by `obj_dilate` px (a real block's top face, seen at an angle, lands behind its footprint)."""
     import json
-    cache = os.path.join(out, "table_tex_wrist.npz")
+    cache = cache or os.path.join(out, "table_tex_wrist.npz")  # cache=: e.g. a variant camera model (G8)
     if os.path.exists(cache):
         z = np.load(cache)
         return dict(tex=z["tex"].astype(np.float32), valid=z["valid"].astype(np.uint8), x0=float(z["x0"]), y0=float(z["y0"]),

@@ -1,0 +1,23 @@
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/torch/jit/_serialization.py:176: FutureWarning: `torch.jit.load` is deprecated. Please switch to `torch.export`.
+  warnings.warn(
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/1031 [00:00<?, ?it/s]Loading weights:  52%|█████▏    | 538/1031 [00:00<00:00, 1221.33it/s]Loading weights:  65%|██████▌   | 671/1031 [00:00<00:00, 1227.27it/s]Loading weights:  77%|███████▋  | 795/1031 [00:00<00:00, 1082.22it/s]Loading weights:  94%|█████████▍| 974/1031 [00:00<00:00, 1244.45it/s]Loading weights: 100%|██████████| 1031/1031 [00:00<00:00, 1207.10it/s]
+f45: real_real +4.6 real_real_rep +4.4 V2w +2.7 V2w_cam +2.6 V2w_ring +3.8 V2w_obj +4.7 V2w_ring_obj +5.0 V2w_cam_ring_obj +3.9
+f48: real_real +2.8 real_real_rep +3.5 V2w +1.2 V2w_cam +1.3 V2w_ring +1.8 V2w_obj +3.6 V2w_ring_obj +3.0 V2w_cam_ring_obj +3.0
+f51: real_real +2.7 real_real_rep +2.8 V2w +0.9 V2w_cam +1.2 V2w_ring +1.8 V2w_obj +2.5 V2w_ring_obj +1.6 V2w_cam_ring_obj +1.9
+f54: real_real +2.7 real_real_rep +3.0 V2w +1.4 V2w_cam +1.4 V2w_ring +0.7 V2w_obj +1.6 V2w_ring_obj +1.0 V2w_cam_ring_obj +1.2
+f57: real_real +2.3 real_real_rep +2.8 V2w +1.4 V2w_cam +1.6 V2w_ring +1.2 V2w_obj +1.1 V2w_ring_obj +0.1 V2w_cam_ring_obj +0.7
+f60: real_real +1.0 real_real_rep +1.6 V2w +0.8 V2w_cam +0.1 V2w_ring +0.3 V2w_obj +0.2 V2w_ring_obj -0.6 V2w_cam_ring_obj -0.2
+f63: real_real +0.3 real_real_rep +0.7 V2w -0.2 V2w_cam +0.4 V2w_ring -0.6 V2w_obj +0.1 V2w_ring_obj +0.4 V2w_cam_ring_obj -0.4
+f66: real_real +1.1 real_real_rep +1.0 V2w +0.5 V2w_cam +0.4 V2w_ring +0.2 V2w_obj -0.3 V2w_ring_obj -0.2 V2w_cam_ring_obj -0.4
+f69: real_real +2.5 real_real_rep +2.2 V2w +1.3 V2w_cam +1.7 V2w_ring -0.9 V2w_obj -0.6 V2w_ring_obj -0.8 V2w_cam_ring_obj +0.7
+f72: real_real +3.1 real_real_rep +3.9 V2w +1.4 V2w_cam +1.2 V2w_ring -0.4 V2w_obj -1.2 V2w_ring_obj -0.8 V2w_cam_ring_obj +0.2
+re-run noise: 0.43 cm
+SUMMARY real_real         +2.3 cm (near grasp +1.6), tilt 4.4 (near grasp 5.1)
+SUMMARY real_real_rep     +2.6 cm (near grasp +1.9), tilt 4.3 (near grasp 4.9)
+SUMMARY V2w               +1.1 cm (near grasp +0.8), tilt 4.4 (near grasp 6.2)
+SUMMARY V2w_cam           +1.2 cm (near grasp +0.8), tilt 4.5 (near grasp 6.3)
+SUMMARY V2w_ring          +0.8 cm (near grasp -0.3), tilt 3.9 (near grasp 5.7)
+SUMMARY V2w_obj           +1.2 cm (near grasp -0.4), tilt 3.8 (near grasp 5.5)
+SUMMARY V2w_ring_obj      +0.9 cm (near grasp -0.4), tilt 3.8 (near grasp 5.1)
+SUMMARY V2w_cam_ring_obj  +1.1 cm (near grasp -0.0), tilt 4.2 (near grasp 5.6)
