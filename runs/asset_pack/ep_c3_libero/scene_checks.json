@@ -1,0 +1,215 @@
+{
+ "scene": "/tmp/claude-1000/-home-imerit-Documents-Code-VLA/fadab121-7275-4659-8165-7c7a75e14b9d/scratchpad/runs/ep_c3_libero",
+ "episode": "data/real2sim/droid/ep_c3",
+ "thresholds": {
+  "settle_m": 0.02,
+  "grasp_m": 0.015,
+  "scale_tol": 0.1,
+  "table_m": 0.01
+ },
+ "checks": {
+  "1_settle": {
+   "pass_": true,
+   "moved_m": {
+    "apple_1": 0.007579781605304219,
+    "black_bowl": 0.0010219955482354075,
+    "red_radish_1": 0.002435985748542362,
+    "toy_block_1": 0.00010775541606200534,
+    "toy_block_2": 0.00010775541606200534,
+    "toy_block_3": 0.00010775542679411498,
+    "toy_block_4": 0.00010775542679411498,
+    "toy_block_5": 0.00010775541606200534,
+    "toy_block_6": 0.0001077554160620331,
+    "toy_block_7": 0.00010775542679411498,
+    "toy_block_8": 0.00010775542679411498
+   }
+  },
+  "3_4_5_grasp_events": [
+   {
+    "close_frame": 75,
+    "open_frame": 115,
+    "object": "red_radish_1",
+    "horiz_m": 0.05617450544934364,
+    "vert_m": 0.004677592573403722,
+    "pinch_above_table_m": 0.019800996387473485,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.07242050392547852,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 0.6530923332565673,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 221,
+    "open_frame": 288,
+    "object": "toy_block_8",
+    "horiz_m": 0.07830217692978583,
+    "vert_m": -0.08438047692655815,
+    "pinch_above_table_m": -0.06962122096619439,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.142859538231723,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.5443331162010256,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 360,
+    "open_frame": 372,
+    "object": "toy_block_4",
+    "horiz_m": 0.023504033461819552,
+    "vert_m": -0.04647629874781056,
+    "pinch_above_table_m": -0.03314089812825183,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.15093590299377546,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 0.03893471738542724,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 407,
+    "open_frame": 443,
+    "object": "toy_block_8",
+    "horiz_m": 0.003869880582663518,
+    "vert_m": -0.07504829888724251,
+    "pinch_above_table_m": -0.060289042926878755,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.1016066005350437,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.8544744171572582,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 517,
+    "open_frame": 546,
+    "object": "toy_block_8",
+    "horiz_m": 0.060482956076861744,
+    "vert_m": -0.06988579714223994,
+    "pinch_above_table_m": -0.05512654118187618,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.12658332059914862,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.5035969424780808,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 585,
+    "open_frame": 611,
+    "object": "toy_block_3",
+    "horiz_m": 0.04828863776598745,
+    "vert_m": -0.07311424859540841,
+    "pinch_above_table_m": -0.05726289746415811,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.1295345379373793,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 2.096836863800199,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 655,
+    "open_frame": 678,
+    "object": "apple_1",
+    "horiz_m": 0.04573489128869464,
+    "vert_m": -0.08814391027897503,
+    "pinch_above_table_m": -0.061667884069450285,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.11096900913915045,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.186407946606372,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 717,
+    "open_frame": 732,
+    "object": "toy_block_3",
+    "horiz_m": 0.07131571369963044,
+    "vert_m": -0.07811546065520167,
+    "pinch_above_table_m": -0.062264109523951366,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.16241282732995554,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 0.363456723006353,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 749,
+    "open_frame": 779,
+    "object": "toy_block_3",
+    "horiz_m": 0.04152682774065511,
+    "vert_m": -0.07928925205314061,
+    "pinch_above_table_m": -0.0634379009218903,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.12139429317687697,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.7244938448915828,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 825,
+    "open_frame": 857,
+    "object": "toy_block_7",
+    "horiz_m": 0.00864606787236016,
+    "vert_m": -0.08412916826477229,
+    "pinch_above_table_m": -0.06305817582983042,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.12460248309378755,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.770553771665054,
+    "scale_pass": false
+   },
+   {
+    "close_frame": 905,
+    "open_frame": 938,
+    "object": "toy_block_1",
+    "horiz_m": 0.038804467663709534,
+    "vert_m": -0.07697735439286113,
+    "pinch_above_table_m": -0.06410515072856096,
+    "grasp_pass": false,
+    "container": "black_bowl",
+    "release_horiz_m": 0.11049085635873299,
+    "rim_radius_m": 0.06387211945459813,
+    "release_pass": false,
+    "scale_ratio": 1.3208665087979035,
+    "scale_pass": false
+   }
+  ],
+  "3_grasp": {
+   "pass_": false,
+   "n_events": 11
+  },
+  "4_release": {
+   "pass_": false
+  },
+  "5_scale": {
+   "pass_": false
+  },
+  "6_stereo_table": {
+   "pass_": false,
+   "stereo_minus_built_m": {
+    "ext_0": -0.04898794807794796,
+    "wrist_0": -0.08643696159205286,
+    "wrist_20": -0.0909244890369311,
+    "wrist_40": -0.08202795946429128
+   }
+  }
+ },
+ "all_pass": false
+}

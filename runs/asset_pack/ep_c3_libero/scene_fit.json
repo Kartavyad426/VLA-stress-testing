@@ -1,0 +1,524 @@
+{
+ "depth": "mono",
+ "scale_mode": "anchor",
+ "scale": 0.6847538360411747,
+ "scale_anchor": 0.6847538360411747,
+ "anchor_frame": 212,
+ "robot_px": 23760,
+ "s_at_anchor_frame": 0.7560805082321167,
+ "table_px": 202841,
+ "depth_ratio_anchor_over_perception": 0.9056625962257385,
+ "ee_pixel": [
+  1064.5547382033662,
+  -239.27418181134954
+ ],
+ "ee_inside_image": false,
+ "objects": {
+  "apple#1": {
+   "center": [
+    0.5797297391734659,
+    -0.11003513153732997,
+    0.26369951332956937
+   ],
+   "half": [
+    0.02958879840794727,
+    0.02958879840794727,
+    0.07241814840427986
+   ],
+   "yaw": 0.8383813788767928,
+   "n_points": 3223,
+   "kind": "asset",
+   "asset": "apple",
+   "asset_xml": "/home/imerit/Documents/Code/VLA/third_party/LIBERO-plus/libero/libero/assets/new_objects/apple/agveuv/usd/MJCF/agveuv.xml",
+   "asset_scale": 0.6709910221315464,
+   "asset_zmin": -0.037967760177468085,
+   "asset_height_scaled": 0.0513806275353817,
+   "asset_cxy": [
+    0.001954688764969976,
+    0.000463658916519942
+   ],
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "body": "apple_1",
+   "mask": "apple#1",
+   "rgb": [
+    0.8588235294117647,
+    0.3254901960784314,
+    0.011764705882352941
+   ]
+  },
+  "black bowl": {
+   "center": [
+    0.6297355110154446,
+    0.022586761247827547
+   ],
+   "rim_radius": 0.06387211945459813,
+   "height_fit": 0.11706339159615017,
+   "height_asset_scaled": 0.06850483146081594,
+   "asset_scale": 1.3554059661372133,
+   "n_rim": 1757,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "bowl",
+   "body": "black_bowl",
+   "mask": "black bowl",
+   "rgb": [
+    0.13333333333333333,
+    0.11764705882352941,
+    0.07450980392156863
+   ]
+  },
+  "red radish#1": {
+   "center": [
+    0.6633275804741003,
+    0.16048959677419739,
+    0.23783875873978366
+   ],
+   "half": [
+    0.0378080360934816,
+    0.0378080360934816,
+    0.046557393814494155
+   ],
+   "yaw": 2.5093341157415687,
+   "n_points": 6517,
+   "kind": "asset",
+   "asset": "half_radish",
+   "asset_xml": "/home/imerit/Documents/Code/VLA/third_party/LIBERO-plus/libero/libero/assets/new_objects/half_radish/kyujnh/usd/MJCF/kyujnh.xml",
+   "asset_scale": 5.179402941851854,
+   "asset_zmin": -0.0027268401343997512,
+   "asset_height_scaled": 0.08121904613538945,
+   "asset_cxy": [
+    1.5949827454135503e-05,
+    -6.461996159330598e-05
+   ],
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "body": "red_radish_1",
+   "mask": "red radish#1",
+   "rgb": [
+    0.3254901960784314,
+    0.28627450980392155,
+    0.2
+   ]
+  },
+  "toy block#1": {
+   "center": [
+    0.4184859188638554,
+    0.15462301906141546,
+    0.20415356858958966
+   ],
+   "half": [
+    0.01287220366430018,
+    0.01287220366430018,
+    0.01287220366430018
+   ],
+   "yaw": 2.746604163312203,
+   "measured_wdh": [
+    0.02574440732860036,
+    0.025147460665925346,
+    0.037691499329205846
+   ],
+   "n_points": 2515,
+   "n_top": 1476,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_1",
+   "mask": "toy block#1",
+   "rgb": [
+    0.40784313725490196,
+    0.592156862745098,
+    0.45098039215686275
+   ]
+  },
+  "toy block#2": {
+   "center": [
+    0.47169099199115366,
+    0.0025959918759440037,
+    0.2038765639433705
+   ],
+   "half": [
+    0.01259519901808102,
+    0.01259519901808102,
+    0.01259519901808102
+   ],
+   "yaw": 2.2394196221566887,
+   "measured_wdh": [
+    0.02519039803616204,
+    0.020586604729147515,
+    0.08324479044611546
+   ],
+   "n_points": 1516,
+   "n_top": 603,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_2",
+   "mask": "toy block#2",
+   "rgb": [
+    0.8196078431372549,
+    0.19607843137254902,
+    0.0
+   ]
+  },
+  "toy block#3": {
+   "center": [
+    0.510339092206161,
+    0.0024725441207983645,
+    0.2071327160565398
+   ],
+   "half": [
+    0.015851351131250302,
+    0.015851351131250302,
+    0.015851351131250302
+   ],
+   "yaw": 1.359985912520129,
+   "measured_wdh": [
+    0.031702702262500604,
+    0.026100183602547868,
+    0.08401325648635374
+   ],
+   "n_points": 1953,
+   "n_top": 758,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_3",
+   "mask": "toy block#3",
+   "rgb": [
+    0.9058823529411765,
+    0.7333333333333333,
+    0.06666666666666667
+   ]
+  },
+  "toy block#4": {
+   "center": [
+    0.5348743378978157,
+    0.15717682187347543,
+    0.20461676554484823
+   ],
+   "half": [
+    0.013335400619558735,
+    0.013335400619558735,
+    0.013335400619558735
+   ],
+   "yaw": -2.7713430404010313,
+   "measured_wdh": [
+    0.02667080123911747,
+    0.021803253627805805,
+    0.04874288624690021
+   ],
+   "n_points": 2403,
+   "n_top": 915,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_4",
+   "mask": "toy block#4",
+   "rgb": [
+    0.403921568627451,
+    0.5333333333333333,
+    0.3764705882352941
+   ]
+  },
+  "toy block#5": {
+   "center": [
+    0.4209031015939313,
+    0.09585306311286504,
+    0.20682467850956954
+   ],
+   "half": [
+    0.015543313584280058,
+    0.015543313584280058,
+    0.015543313584280058
+   ],
+   "yaw": 1.2891186415632523,
+   "measured_wdh": [
+    0.031086627168560116,
+    0.02064543662021818,
+    0.04437291735146409
+   ],
+   "n_points": 1740,
+   "n_top": 1062,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_5",
+   "mask": "toy block#5",
+   "rgb": [
+    0.9411764705882353,
+    0.3764705882352941,
+    0.043137254901960784
+   ]
+  },
+  "toy block#6": {
+   "center": [
+    0.571964544629263,
+    0.1621303340079831,
+    0.20343790596959946
+   ],
+   "half": [
+    0.012156541044309969,
+    0.012156541044309969,
+    0.012156541044309969
+   ],
+   "yaw": 2.256157936314929,
+   "measured_wdh": [
+    0.024313082088619938,
+    0.019454410972684286,
+    0.040554170020040387
+   ],
+   "n_points": 1351,
+   "n_top": 683,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_6",
+   "mask": "toy block#6",
+   "rgb": [
+    0.8,
+    0.2235294117647059,
+    0.00392156862745098
+   ]
+  },
+  "toy block#7": {
+   "center": [
+    0.4715120128269915,
+    0.07406428266776716,
+    0.21235235736023136
+   ],
+   "half": [
+    0.021070992434941864,
+    0.021070992434941864,
+    0.021070992434941864
+   ],
+   "yaw": 1.9234256088173567,
+   "measured_wdh": [
+    0.046730242980260545,
+    0.02438490893304204,
+    0.05566152365680377
+   ],
+   "n_points": 2432,
+   "n_top": 1109,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_7",
+   "mask": "toy block#7",
+   "rgb": [
+    0.9607843137254902,
+    0.8784313725490196,
+    0.24313725490196078
+   ],
+   "clamped_from_half": 0.023365121490130272
+  },
+  "toy block#8": {
+   "center": [
+    0.5716225562899357,
+    0.12277591609423988,
+    0.20604062088565325
+   ],
+   "half": [
+    0.014759255960363751,
+    0.014759255960363751,
+    0.014759255960363751
+   ],
+   "yaw": -2.9345119815687,
+   "measured_wdh": [
+    0.029518511920727502,
+    0.014744112207598378,
+    0.04781746223773922
+   ],
+   "n_points": 955,
+   "n_top": 629,
+   "props": {
+    "density_kg_m3": 500.0,
+    "friction": [
+     0.95,
+     0.3,
+     0.1
+    ],
+    "scale_mult": 1.0
+   },
+   "props_source": {
+    "density_kg_m3": "default",
+    "friction": "default",
+    "scale_mult": "default"
+   },
+   "kind": "box",
+   "body": "toy_block_8",
+   "mask": "toy block#8",
+   "rgb": [
+    0.056862745098039215,
+    0.4627450980392157,
+    0.28823529411764703
+   ]
+  }
+ },
+ "table": {
+  "z": 0.1912813649252895,
+  "xy_lo": [
+   0.2925126658925553,
+   -0.4635846892853666
+  ],
+  "xy_hi": [
+   0.6888823263990015,
+   0.284250016686467
+  ],
+  "z_spread_iqr": 0.04447395249578068
+ },
+ "wrist_camera": {
+  "serial": "18026681",
+  "gripper_offset": [
+   -0.07739906236136578,
+   0.03832211957848811,
+   0.01933105088601299,
+   -0.40983281676829175,
+   0.021234406464489597,
+   -1.5815610406395406
+  ],
+  "approximate": true,
+  "K": [
+   [
+    732.2020874023438,
+    0.0,
+    640.0441284179688
+   ],
+   [
+    0.0,
+    732.2020874023438,
+    365.7880554199219
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ]
+ },
+ "floor": {
+  "z": -0.5587186350747105,
+  "assumed": true,
+  "below_table_m": 0.75
+ }
+}
