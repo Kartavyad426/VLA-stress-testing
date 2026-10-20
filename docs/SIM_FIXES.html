@@ -28,7 +28,7 @@ ol li,ul li{margin:.2em 0}
 </head>
 <body><main>
 <h1>SIM fixes: how a sim that looked right turned out not to be, and how we found each fault</h1>
-<p class="meta">res31, 10-14 → 10-20 (updated 10-20 with the deployable renderer, G7, D1, G8), internal. Scenes rebuilt from single DROID episodes (FR3 + Robotiq 2F-85, exterior ZED 2 + wrist ZED Mini). Policy under test: GR00T-N1.7-DROID (internal research only; licence open). All numbers exploratory and UNVERIFIED (not through val). Commit hashes in brackets; pages linked at the end.</p>
+<p class="meta">res31, 10-14 → 10-20 (updated 10-20 evening: D2, placement split, seed bug, yellow block, stacking, redaction), internal. Scenes rebuilt from single DROID episodes (FR3 + Robotiq 2F-85, exterior ZED 2 + wrist ZED Mini). Policy under test: GR00T-N1.7-DROID (internal research only; licence open). All numbers exploratory and UNVERIFIED (not through val). Commit hashes in brackets; pages linked at the end.</p>
 
 <div class="box verdict"><b>The short version.</b> The sim passed every check we had: composites matched the real camera, objects settled, a scripted expert succeeded on 91/105 episodes. The first policy run failed, and taking it apart found <b>four separate faults in the sim</b> and <b>one in the policy</b>:
 <ol>
@@ -99,6 +99,16 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 
 <div class="step"><div class="when">10-20<br>G8</div><div><b>Does the correction or anything else close the rest?</b> Camera correction +1.2 (= without, +1.1): GR00T doesn't care, so not applied. Live real pixels around the gripper +0.8, real objects +1.2, both +0.9: none closes the ~1.3 cm left (noise 0.4). Remaining untested candidates: live vs averaged gripper pixels (exposure, motion blur), 640 vs 1280 render (52c716d).</div></div>
 
+<div class="step"><div class="when">10-20<br>D2</div><div><b>The orange batch with the new wrist renderer</b> (same 33 variants as slot A): success 4 → 9, closed at the block 17 → 28, lifted 11 → 24, pushes into the table 17 → 2. <b>The grasp failures were mostly our sim.</b> What remains is mostly placement (4437109).</div></div>
+
+<div class="step"><div class="when">10-20<br>seed bug</div><div><b>My batch script played the wrong layouts</b> for every randomised variant (it passed the expert's full seed as the base seed). Found because a re-simulation didn't reproduce. Fixed; rollouts now record their seed. The expert solves all but one of the layouts actually played, so the comparisons stand (d9bcef0, ed93d48).</div></div>
+
+<div class="step"><div class="when">10-20<br>placement split</div><div><b>15 lifted-but-failed episodes:</b> 7 released away from the goal (4 bowl tasks 11.6–21.9 cm off: GR00T's early release, also on real frames), 6 released over the goal but the block didn't stay, 1 dropped while held, 1 never released (d9bcef0).</div></div>
+
+<div class="step"><div class="when">10-20<br>yellow block</div><div><b>GR00T closes on air next to it:</b> 2.4–3.9 cm from its centre (the expert: 0.3–0.5 cm, 38 N grip). Our "closed at the block" score had counted those as closes (3 cm radius); now it needs both pads on the block for 0.5 s. Our yellow cube also looks undersized (real/sim area in the wrist view 1.76 → ~3.3 vs 2.5 cm; orange 1.07; only 2 frames), and its colour differs (ours pale yellow, real lime). Not settled whether the miss is the policy or our block (38cd20e).</div></div>
+
+<div class="step"><div class="when">10-20<br>stacking</div><div><b>Clean drops stay:</b> green dropped on orange from up to 6.5 cm and 1 cm off-centre stays every time, so the drop physics is fine. In the failed stacks the block was <b>already tumbling at release</b> (18–64 cm/s, spinning 50–940°/s, tilted 17–169°) while the gripper moved slowly: it <b>rotates out of the grasp</b> during the carry. Our finger pads use Menagerie defaults (sliding friction 0.6–0.7, no twist resistance, pyramidal cone, impratio 1). Replaying the recorded actions with firmer grip physics is not a valid test (the actions were reactions to the old physics); that needs a closed-loop batch (38cd20e).</div></div>
+
 <h2>2b · Decision log: who asked what, what we considered, what we chose</h2>
 <p class="meta">The same story as section 2, told as the conversation went: the trigger, the options that were on the table, the decision, and directions opened or set aside. "User" = the project lead in res31's terminal; "prim" = the coordinating session (commits, GPU gate); other sessions by name.</p>
 <style>.log td:first-child{white-space:nowrap;color:var(--muted)}</style>
@@ -136,6 +146,10 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>10-20</td><td>D1: is the wrist camera or our gripper misplaced?</td><td>Fit each alone to the real gripper silhouette.</td><td>—</td><td>Both fit equally (IoU 0.76 → 0.91; camera 8.5 mm/2.4°, gripper 8.7 mm/0.4°); second clues inconclusive (ac41fbd). Decided by GR00T in G8.</td></tr>
 <tr><td>10-20</td><td>AssetPack (at the user's request): review its asset-pack change to build_scene.py with the user.</td><td>—</td><td>Deferred until after D1–D3.</td><td>Open: incl. the user decision on redacting objects the episode manipulates (c3's radish).</td></tr>
 <tr><td>10-20</td><td>User: "run g8 and show me the results; I hope you're updating the sim fixes doc with interactions".</td><td>—</td><td>Ran G8. I launched before prim's reply; prim: "wait for my go next time" (rule saved). The doc had not been updated since the morning; this section is that update.</td><td>Camera correction: no effect (not applied). Ring of live real pixels, real objects: don't close the remaining ~1.3 cm (52c716d).</td></tr>
+<tr><td>10-20</td><td>D2 (approved with D1–D3): orange batch with the new wrist renderer, behind a flag (S5, default unchanged; old run reproduces exactly).</td><td>—</td><td>prim's go, then ran (51 min).</td><td>Success 4 → 9 of 33, closed 17 → 28, lifted 11 → 24, pushes into the table 17 → 2; paired McNemar closed p=0.013, lifted p=0.001, success p=0.13 (061eb7f, 4437109).</td></tr>
+<tr><td>10-20</td><td>AssetPack review (in my terminal): objects no pack has are left out of the scene.</td><td>Keep a stand-in for objects the episode manipulates, or redact anyway.</td><td>User: "I'm more inclined towards scene sanity while VLA runs, thus redact items not in the asset pack, since they can be recreated properly". Then: "how do we generate these meshes? outline research for another agent; redact for now; send the brief to prim".</td><td>Change approved and committed by AssetPack (643c5c1). Brief "object models from DROID video" sent to prim. Follow-ups: wrist textures mask redacted objects; checks skip their grasps (38cd20e).</td></tr>
+<tr><td>10-20</td><td>User: "can you separate placement failures?"</td><td>Re-simulate each episode from its recorded actions and classify the last carry.</td><td>—</td><td><b>Found my bug:</b> only 7/33 episodes reproduced. policy_batch passed the expert json's FULL seed as the base seed, so all randomised variants in slot A and D2 played layouts the expert never saw. Fixed (d9bcef0); the expert solves the played layouts except one, so slot A/D2 recount on 32: 4 vs 9 successes; no re-run needed (ed93d48). Then 33/33 reproduced exactly: of 15 lifted-but-failed, 7 released away (GR00T's early release), 6 released over the goal but the block didn't stay, 1 dropped, 1 never released.</td></tr>
+<tr><td>10-20</td><td>User: "record the observations the same way incl. your script issue; are we set to test GR00T properly? do the tests you proposed and get me results; I see 5 shells open, what is that?"</td><td>—</td><td>Ran the yellow-block and stacking tests; stopped the shells.</td><td><b>Second mistake of mine:</b> five background wait loops (some ~24 h old) never ended: each waited for "no process matching <script>.py", and <code>pgrep -f</code> matched the loop's own command line. Harmless (sleep only), stopped by PID. Rule: never pgrep a string in the loop's own command. Test results: see the timeline (yellow block, stacking).</td></tr>
 </table></div>
 
 <h2>3 · Why the sim could not have been accurate from the start</h2>
@@ -163,6 +177,7 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>G5</td><td>real table pixels vs wrist-video texture, 10 states × 4</td><td>~1 min</td><td class="warn">table confirmed; static texture recovers only 0.8 of 2.5 cm</td><td>250eeae</td></tr>
 <tr><td>G6</td><td>camera + appearance ladder, 10 states × 13</td><td>~1 min</td><td class="ok">gap closed: table + light/shadow + gripper</td><td>ae72101</td></tr>
 <tr><td>G7</td><td>deployable renderer variants, 10 states × 7</td><td>~1 min</td><td class="warn">+1.2 vs real +2.4/+2.6 (2.6 of 3.9 cm)</td><td>4df5f53</td></tr>
+<tr><td>D2</td><td>orange batch, new wrist renderer, 33 variants</td><td>51 min</td><td class="ok">4 → 9 successes; closes 17 → 28; lifts 11 → 24</td><td>4437109</td></tr>
 <tr><td>G8</td><td>camera correction + leftover candidates, 10 states × 8</td><td>~1 min</td><td class="warn">correction no effect; ~1.3 cm still open</td><td>52c716d</td></tr>
 </table></div>
 
@@ -172,7 +187,10 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>1 table height</td><td class="ok">fixed on orange</td><td>c3: rebuild in progress (calibration anchors vs robot outline disagree; IoU 0.40 → 0.35, being checked)</td></tr>
 <tr><td>2 exterior camera pose</td><td class="ok">fixed on orange</td><td>same for c3</td></tr>
 <tr><td>3 floating bowl</td><td class="ok">fixed (all future builds)</td><td>—</td></tr>
-<tr><td>4 wrist render</td><td class="warn">deployable renderer (V2 + wrist light) recovers 2.6 of 3.9 cm; ~1.3 cm open</td><td>D2: orange batch with it (S5 wiring first); then test live-vs-averaged gripper pixels</td></tr>
+<tr><td>4 wrist render</td><td class="warn">new renderer (behind a flag) recovers 2.6 of 3.9 cm; D2: closes/lifts up significantly</td><td>remaining ~1.3 cm: test live vs averaged gripper pixels</td></tr>
+<tr><td>6 batch seed bug (mine)</td><td class="ok">fixed; played layouts checked</td><td>—</td></tr>
+<tr><td>7 yellow block</td><td class="warn">GR00T misses it by 2.4–3.9 cm; our cube likely undersized (~3.3 vs 2.5 cm) and off-colour</td><td>re-fit its size/colour, re-run its tasks</td></tr>
+<tr><td>8 grasp stability</td><td class="warn">blocks rotate out of the grasp during carries; pads use Menagerie defaults</td><td>closed-loop batch with firmer pad contact (twist resistance, elliptic cone, impratio 10)</td></tr>
 <tr><td>5 early release</td><td>policy behaviour</td><td>report as a policy finding; check it across variants once fault 4 is fixed</td></tr>
 <tr><td>robot appearance</td><td class="warn">wrist view: 1.1 cm (G6); exterior view: no effect (G3)</td><td>step 1 below</td></tr>
 </table></div>
