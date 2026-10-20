@@ -33,7 +33,7 @@ ol li,ul li{margin:.25em 0}
 <body><main>
 <h1>Adopting commercially usable asset packs for real-to-sim</h1>
 <p class="meta">2026-10-19 · session AssetPack, brief from prim · outline approved by the user 10-19 · builds on <a href="SIM_READY_ASSET_LIBRARIES.html">SIM_READY_ASSET_LIBRARIES.html</a> (res32) · scenes and <code>experiments/real2sim/</code> owned by res31</p>
-<div class="status"><b>Status (10-20): stages 1–2 done; stage 3 decisions taken on recommended defaults; build_scene hook prototyped and tested in the scratchpad (§5a), proposed to res31 via prim, not applied.</b> Living document, updated at each stage. <span class="v">[V]</span> read in a source file or listing; <span class="mm">[M]</span> measured by me; <span class="i">[I]</span> inferred. All measured numbers are exploratory and UNVERIFIED (session val is not running). Analysis scripts are throwaway, in the session scratchpad, not in the repo (user, 10-19).</div>
+<div class="status"><b>Status (10-20, evening): stages 1–3 done; YCB added; build_scene change reviewed by res31, approved by the user and committed (643c5c1, §7a). Image index on hold. Objects no pack has are redacted; models for them are being built by session ObjGen.</b> Living document, updated at each stage. <span class="v">[V]</span> read in a source file or listing; <span class="mm">[M]</span> measured by me; <span class="i">[I]</span> inferred. All measured numbers are exploratory and UNVERIFIED (session val is not running). Analysis scripts are throwaway, in the session scratchpad, not in the repo (user, 10-19).</div>
 
 <h2>1 · Plan and order (user, 10-19)</h2>
 <ol>
@@ -111,6 +111,7 @@ ol li,ul li{margin:.25em 0}
 <p><b>Before:</b> the packs were on disk but not retrievable: <code>--assets</code> accepted only <code>libero|none</code>, the name match could not read GSO product names or Kitchen's two-level folders, the bowl was hard-coded to LIBERO's akita file, and GSO's XML sets no mass (MuJoCo's default gives a ~10 kg bowl) <span class="v">[V]</span>.</p>
 <p><b>What was built</b> (user go, 10-19 "start on that"):</p>
 <ul>
+<li class="meta">10-19 version, kept as history. Superseded on 10-20: <code>cc</code> removed, YCB added, redaction instead of ellipsoids, committed 643c5c1 (§7a).</li>
 <li><code>experiments/asset_pack/catalogue.py</code> (new, mine): pack catalogues (<code>kitchen</code> 922 models, <code>gso</code> 1,030, <code>cc</code> both = 1,952), a name match, a size check, mass/friction setup that keeps each pack's collision parts, and the property layers below.</li>
 <li><code>experiments/asset_pack/build_scene_assetpack.diff</code>: the proposed change to res31's <code>build_scene.py</code> (not applied; sent via prim). New <code>--assets kitchen|gso|cc</code> and <code>--object_props</code>; <code>libero</code> and <code>none</code> unchanged.</li>
 </ul>
@@ -157,5 +158,51 @@ ol li,ul li{margin:.25em 0}
 <li>10-19 · apple/radish: ellipsoids now (a), YCB later (b; size to check before download).</li>
 <li>10-19 · "start on" making packs retrievable; stage-3 decisions 1–3 taken on my recommendations (GSO copy of duplicate scans, <code>cc</code> without LIBERO-Plus, index all variants) pending the user's explicit answer.</li>
 <li>10-20 · hook prototyped and tested (§5a); diff sent to prim for res31; open: bowl mass default, ellipsoid height.</li>
+<li>10-20 · after a context clear, decisions 1–5 put to the user again (§7a).</li>
 </ul>
+
+<h2>7a · Decision log, 10-20 (after the context clear)</h2>
+<p class="meta">The user first asked for temp files (scratchpad copies of this doc, <code>catalogue.py</code> and <code>build_scene.py</code>); after approval the code was committed (643c5c1) and this section moved into the doc (user: "yes update doc"). Numbers UNVERIFIED.</p>
+<table>
+<tr><th>#</th><th>Question put to the user</th><th>Options</th><th>User's decision</th><th>Outcome / not taken</th></tr>
+<tr><td>1</td><td>Apply the build_scene change (res31 applies, via prim)?</td><td>yes (recommended) / wait</td><td><b>Wait.</b> res31 is busy with other work; make the change later.</td><td>Diff stays held. Work continues in scratchpad copies only.</td></tr>
+<tr><td>2</td><td>Bowl mass</td><td>keep default (density 500 × hull) / LIBERO bowl's mass / sourced real-bowl mass (recommended)</td><td><b>User-set option, default otherwise.</b> Then: the existing <code>--object_props</code> JSON (per label or <code>category:&lt;c&gt;</code>) is enough; no extra <code>--mass</code> flag.</td><td>No code change needed. Not taken: sourced real-bowl mass, LIBERO bowl mass as the default.</td></tr>
+<tr><td>3</td><td>Apple / radish</td><td>(a) cap ellipsoid height (recommended now) / (b) YCB forward / both</td><td><b>(b) YCB forward. Objects no pack has are redacted</b> (left out of the scene) with a warning; confirmed: listed under <code>redacted</code> in <code>scene_fit.json</code>.</td><td>Not taken: ellipsoid stand-ins in pack mode (and so the height cap). Consequence: tasks using a redacted object disappear (c3 radish: YCB has none).</td></tr>
+<tr><td>4</td><td>Stage-3 redundancies 1–3</td><td>my defaults: GSO copy of duplicates, <code>cc</code> without LIBERO-Plus, all variants</td><td><b>Keep all objects for now. LIBERO-Plus stays under <code>--assets libero</code> only. No <code>cc</code> option yet</b> ("still in ideation phase"). Asked what variants are: answered with counts (below).</td><td><code>cc</code> removed from the temp code; <code>--assets</code> now takes one pack or a comma list (e.g. <code>gso,ycb</code>), with no licence-clean claim attached.</td></tr>
+<tr><td>5</td><td>Image index</td><td>go after 1–3 (recommended) / hold</td><td><b>Hold.</b></td><td>Not started.</td></tr>
+<tr><td>—</td><td>Variant list with images?</td><td>render one thumbnail per model on CPU (no pack ships previews)</td><td>First "yes, list them"; then <b>"don't worry about adding that image right now"</b>.</td><td>List without images: scratchpad <code>VARIANTS_temp.html</code>. Kitchen-MJCF 922 models in 69 categories (6–25 each, median 12, every category); GSO 34 products re-scanned, 82 models; YCB 8 lettered sets, 34 models.</td></tr>
+</table>
+<h3>YCB (stage 1 again, 10-20)</h3>
+<ul>
+<li>Licence: CC BY 4.0 per the AWS Open Data registry entry, which links the official site (the official site itself returned HTTP 500 when checked) <span class="v">[V]</span>. Habitat's YCB copy states the same.</li>
+<li>Source: official <code>google_16k</code> meshes (obj + png) from the <code>ycb-benchmarks</code> S3 bucket; 85 archives, 603 MB; each checked against its listed size and md5 (ETag). <code>076_timer</code>'s archive is 45 bytes upstream (empty), so 84 objects. On disk: <code>data/real2sim/asset_packs/ycb/src/</code> (922 MB unpacked, gitignored) <span class="mm">[M]</span>.</li>
+<li>No MJCF ships: the temp <code>catalogue.py</code> writes one per model to <code>ycb/mjcf/</code> (visual mesh + the same mesh as one convex-hull collider). Hull collision fills cavities, so YCB containers (bowl, mug, cups, pitcher) are not offered for the bowl.</li>
+<li>Apple: <code>013_apple</code> is 7.2 × 7.5 × 7.5 cm; the c3 apple's mask width is 5.9 cm, so scale ≈ 0.8, inside the 0.5–2× check <span class="mm">[M]</span>. No radish in YCB.</li>
+</ul>
+<h3>Test results (10-20)</h3>
+<div id="results1020">
+<p>Scratchpad copies, CPU rendering (osmesa) <span class="mm">[M]</span>, UNVERIFIED. Script: scratchpad <code>scripts/run_1020.sh</code>.</p>
+<ul>
+<li><b>Regression:</b> <code>--assets libero</code> vs the original code: <code>scene.xml</code> byte-identical on both scenes. <code>scene_fit.json</code> differs only by the added <code>props</code> / <code>props_source</code> keys per object (equal once those are removed); this was already true of the 10-19 diff.</li>
+<li><b>c3 with <code>--assets gso,ycb</code>:</b> bowl = GSO <code>Now_Designs_Bowl_Akita_Black</code>; apple = YCB <code>013_apple</code>; radish redacted with the warning (printed at the build and repeated at the end of the log). Settle (#1) passes.</li>
+<li><b>Scripted expert (make_tasks, 5 variants each):</b>
+<table>
+<tr><th>Build</th><th>Tasks</th><th>Successes</th><th>Apple → bowl</th><th>Radish tasks</th></tr>
+<tr><td>libero (10-19)</td><td>13</td><td>56/65</td><td>5/5</td><td>2 tasks, 0/5 and 4/5</td></tr>
+<tr><td>cc, ellipsoids (10-19)</td><td>13</td><td>46/65</td><td>0/5</td><td>2 tasks, 0/5 and 0/5</td></tr>
+<tr><td>gso,ycb, radish redacted (10-20)</td><td>12</td><td>57/60</td><td>5/5</td><td>none ("next to the radish" became "next to the red block", 5/5)</td></tr>
+</table>
+The other differences are 1-variant moves either way (e.g. red block → bowl 5/5 → 3/5), within what 5 variants can resolve.</li>
+<li><b>Finding (c), redaction removes an object the operator handles:</b> in ep_c3 the real episode's first grasp (frames 75→115) is the radish (scene_checks on the libero build attribute it to <code>red_radish_1</code>). With the radish redacted, that grasp has no object in the sim (checks attribute it to <code>toy_block_8</code>, 14.2 cm away). Redaction is fine for the scripted tasks, but any replay or check of the real motion on that segment is meaningless. Open: what to do when a redacted object is one the episode manipulates.</li>
+</ul>
+</div>
+
+<h3>Review, approval and commit (10-20)</h3>
+<table>
+<tr><th>Step</th><th>Who / trigger</th><th>Decision</th><th>Outcome</th></tr>
+<tr><td>Review</td><td>User: "send your changes to res31 … get base with me in its own terminal for approval" (sent directly to res31, not via prim, as the user asked)</td><td>res31 reviewed the diff and went through it with the user in its terminal. Notes: applies cleanly to HEAD; libero/none unchanged; pack bowls use the generic placement (no old bowl bug); build_scene now always imports catalogue.py; docstring mentions only LIBERO assets.</td><td><b>User approved</b> (in res31's terminal), "redact for now".</td></tr>
+<tr><td>Finding (c): redacted object the episode handles</td><td>c3 radish, grasped by the operator at frames 75→115</td><td>User (via res31): <b>redact even objects the episode manipulates</b>.</td><td>res31 follow-ups, its own commits: composite masks redacted footprints out of the wrist table texture (else a ghost radish); scene_checks skips grasps whose nearest real object is redacted. Research on models for objects no pack has → new session <b>ObjGen</b> (radish first, from existing footage).</td></tr>
+<tr><td>Commit</td><td>AssetPack applied the reviewed diff onto HEAD (unchanged since base; post-apply diff = reviewed diff; compiles)</td><td>prim commits</td><td><b>643c5c1</b> (build_scene.py + catalogue.py), not pushed.</td></tr>
+<tr><td>Open</td><td>—</td><td>Asked the user, not answered yet: (1) a docstring line about packs in build_scene.py (res31's note); (2) remove or update the stale <code>build_scene_assetpack.diff</code> (10-19 proposal) and <code>tests/*.sh</code> (use <code>cc</code>).</td><td>—</td></tr>
+</table>
 </main></body></html>
