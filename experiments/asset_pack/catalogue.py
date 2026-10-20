@@ -3,9 +3,13 @@
 Packs live under data/real2sim/asset_packs/ (gitignored; download steps in the doc):
   kitchen -> NVIDIA/Lightwheel Kitchen-MJCF objects (CC BY 4.0): objects/<category>/<Model>/model.xml
   gso     -> mujoco_scanned_objects (Google Scanned Objects; meshes CC BY 4.0, XML MIT): src/models/<Name>/model.xml
-  cc      -> both. No LIBERO / LIBERO-Plus models, so a 'cc' scene is licence-clean by construction.
-Both packs ship convex collision parts that keep container cavities open, so callers should keep them
-(collision='shipped'), unlike the LIBERO-Plus meshes build_scene collapses to one hull.
+  ycb     -> YCB object set, google_16k meshes (CC BY 4.0, AWS Open Data registry): src/<NNN_name>/google_16k/
+             textured.obj + texture_map.png; no MJCF ships, so ycb_mjcf() writes one per model under ycb/mjcf/.
+--assets takes one pack or a comma list (e.g. gso,ycb); no combined 'cc' option yet (user, 10-20: ideation phase).
+Kitchen and GSO ship convex collision parts that keep container cavities open, so callers should keep them
+(collision='shipped'), unlike the LIBERO-Plus meshes build_scene collapses to one hull. YCB has none: its
+collision is the visual mesh's convex hull (collision='hull'), which fills a cavity, so YCB containers are not
+offered for the bowl (see CAVITY).
 
 Also: object property defaults + per-scene user overrides (mass / friction / scale), see resolve_props().
 """
@@ -13,8 +17,15 @@ import glob, json, os, re
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PACKS = os.path.join(REPO, "data/real2sim/asset_packs")
-LICENCE = {"kitchen": "CC BY 4.0 (NVIDIA Kitchen-MJCF)", "gso": "CC BY 4.0 meshes + MIT XML (Google Scanned Objects)"}
-SOURCES = {"kitchen": ("kitchen",), "gso": ("gso",), "cc": ("kitchen", "gso")}
+LICENCE = {"kitchen": "CC BY 4.0 (NVIDIA Kitchen-MJCF)", "gso": "CC BY 4.0 meshes + MIT XML (Google Scanned Objects)",
+           "ycb": "CC BY 4.0 (YCB object set, ycbbenchmarks.com)"}
+PACK_NAMES = ("kitchen", "gso", "ycb")
+
+
+def sources(arg):
+    """'gso,ycb' -> ('gso', 'ycb'); None if arg names no pack (libero / none)."""
+    names = tuple(p for p in arg.split(",") if p)
+    return names if names and all(p in PACK_NAMES for p in names) else None
 
 # Defaults (user, 10-19: ours unless the user overrides them per scene). density_kg_m3 is applied to the visual
 # mesh's convex-hull volume, the same density build_scene already uses for retrieved meshes (500), so a pack object
@@ -32,20 +43,60 @@ def _tokens(s):
     return out
 
 
+def ycb_mjcf(obj_dir):
+    """MJCF for one YCB google_16k folder, written once under ycb/mjcf/<name>/model.xml: textured visual mesh plus
+    the same mesh as one colliding geom (MuJoCo collides a mesh as its convex hull)."""
+    name = obj_dir.rstrip("/").split("/")[-2]
+    out = f"{PACKS}/ycb/mjcf/{name}/model.xml"
+    if not os.path.exists(out):
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        with open(out, "w") as f:
+            f.write(f"""<mujoco model="{name}">
+  <asset>
+    <texture type="2d" name="texture" file="{obj_dir}/texture_map.png"/>
+    <material name="material" texture="texture" specular="0.3" shininess="0.3"/>
+    <mesh name="model" file="{obj_dir}/textured.obj"/>
+  </asset>
+  <worldbody>
+    <body name="object">
+      <geom type="mesh" mesh="model" material="material" contype="0" conaffinity="0" group="1"/>
+      <geom type="mesh" mesh="model" group="3" rgba="1 1 1 0"/>
+    </body>
+  </worldbody>
+</mujoco>
+""")
+    return out
+
+
+def _ycb_tokens(name):
+    """'065-a_cups' -> {'cup'}: the set number and letter are not words."""
+    return _tokens(re.sub(r"^\d+(-[a-z])?_", "", name))
+
+
+# YCB models whose convex-hull collision would fill an opening the task needs (bowl, mug, cups, pitcher)
+CAVITY = ("024_bowl", "025_mug", "019_pitcher_base", "065-")
+
+
 def pack_catalogue(source):
-    """name -> entry dict(xml, pack, category, tokens, licence, collision). Sorted, deterministic."""
+    """name -> entry dict(xml, pack, category, tokens, licence, collision). Sorted, deterministic.
+    source: a pack name or a comma list of them (sources())."""
     cat = {}
-    for pack in SOURCES[source]:
+    for pack in sources(source):
         if pack == "kitchen":
             for x in sorted(glob.glob(f"{PACKS}/kitchen_mjcf/objects/*/*/model.xml")):
                 c, name = x.split("/")[-3:-1]
                 cat[f"kitchen/{name}"] = dict(xml=x, pack=pack, category=c, tokens=_tokens(c), licence=LICENCE[pack],
                                               collision="shipped")
-        else:
+        elif pack == "gso":
             for x in sorted(glob.glob(f"{PACKS}/gso_mjcf/src/models/*/model.xml")):
                 name = x.split("/")[-2]
                 cat[f"gso/{name}"] = dict(xml=x, pack=pack, category=None, tokens=_tokens(name), licence=LICENCE[pack],
                                           collision="shipped")
+        elif pack == "ycb":
+            for d in sorted(glob.glob(f"{PACKS}/ycb/src/*/google_16k/")):
+                name = d.split("/")[-3]
+                cat[f"ycb/{name}"] = dict(xml=ycb_mjcf(d), pack=pack, category=None, tokens=_ycb_tokens(name),
+                                          licence=LICENCE[pack], collision="hull", cavity=name.startswith(CAVITY))
     return cat
 
 
