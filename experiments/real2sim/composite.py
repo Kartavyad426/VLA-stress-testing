@@ -483,13 +483,19 @@ class WristRenderV2:
         texture behind it is shown (ray/table-plane intersection);
       - otherwise: the sim gripper with near-layer defocus (blur_sigma px at 1280x720);
     and shrinks to `size` by area averaging, as real frames reach the policy (rendered at work_size first).
-    Light/shadow (G6's largest factor) is NOT modelled here yet (stage S4)."""
+    Light/shadow: optional wrist-fitted light (S4, `light=`); the shadow comes from the sim robot with that light."""
 
     def __init__(self, m, plate, ext_comp, size, plate2, table_tex, grip_lib=None, blur_sigma=8.0, open_tol=0.03, cam="wrist",
-                 work_size=(360, 640)):
+                 work_size=(360, 640), light=None):
         """work_size: resolution rendered before the area downscale to `size` (full 1280x720 took 0.5 s/frame, which
         would add ~4 min per 30 s rollout; 640x360 keeps the averaging-down, at ~1/4 the cost). blur_sigma is in
-        1280x720 pixels and scaled to work_size; the gripper library is resized to work_size."""
+        1280x720 pixels and scaled to work_size; the gripper library is resized to work_size.
+        light: light_wrist.json (light_fit_wrist.py, S4): its direction and shadow darkness are used for the wrist
+        render only (the model's light is restored afterwards, so the exterior composite keeps its own fit)."""
+        self.ext = ext_comp
+        self.light = None
+        if light is not None:
+            self.light = dict(dir=np.asarray(light["dir"], float), real_shadow_ratio=float(light["real_shadow_ratio"]))
         self.m, self.size, self.tt = m, size, table_tex
         self.open_tol = open_tol
         self.cid = m.camera(cam).id
@@ -507,7 +513,17 @@ class WristRenderV2:
         self.drv_q, self.drv_max = drv.qposadr[0], m.jnt_range[drv.id][1]
 
     def __call__(self, d, return_info=False):
-        out, info = self.hi(d, return_info=True)
+        if self.light is not None:  # wrist-fitted light for this render only
+            saved_dir, saved_light = self.m.light_dir[0].copy(), self.ext.light
+            self.m.light_dir[0] = self.light["dir"]
+            self.ext.light = dict(saved_light or {}, real_shadow_ratio=self.light["real_shadow_ratio"])
+            try:
+                out, info = self.hi(d, return_info=True)
+            finally:
+                self.m.light_dir[0] = saved_dir
+                self.ext.light = saved_light
+        else:
+            out, info = self.hi(d, return_info=True)
         seg = info["seg"]
         gm = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], self.grip)
         opening = float(np.clip(d.qpos[self.drv_q] / self.drv_max, 0, 1))

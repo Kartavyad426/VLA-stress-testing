@@ -33,7 +33,9 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--frames", default="0:73:3", help="start:stop:step (default: the approach, before any object moves)")
-    ap.add_argument("--margin", type=int, default=61, help="px exclusion around gripper/objects (real objects sit slightly elsewhere)")
+    ap.add_argument("--margin", type=int, default=61, help="px exclusion around sim objects (real objects sit slightly elsewhere)")
+    ap.add_argument("--grip_margin", type=int, default=9, help="px exclusion around the sim robot (narrow: its shadow is next to it)")
+    ap.add_argument("--black", type=float, default=50.0, help="real pixels darker than this are objects (black bowl, gripper), not shadow")
     ap.add_argument("--sigma", type=float, default=4.0, help="low-pass (px at 640x360) before the ratio")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
@@ -53,6 +55,7 @@ def main():
     arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
     drv_max = m.jnt_range[m.joint("g_right_driver_joint").id][1]
     tbl = m.geom("table").id
+    robot_g = [g for g in range(m.ngeom) if m.body(m.geom_bodyid[g]).name.startswith(("fr3_", "g_"))]
     d = mujoco.MjData(m)
     cap = cv2.VideoCapture(os.path.join(a.episode, f"{ws}.mp4"))
     yy, xx = np.mgrid[0:H, 0:W]
@@ -74,8 +77,16 @@ def main():
         real = cv2.resize(cv2.cvtColor(b, cv2.COLOR_BGR2RGB), (W, H), interpolation=cv2.INTER_AREA).astype(np.float32)
         isg = info["seg"][..., 1] == mujoco.mjtObj.mjOBJ_GEOM
         table = isg & (info["seg"][..., 0] == tbl)
-        other = cv2.dilate((isg & ~table).astype(np.uint8), np.ones((a.margin, a.margin), np.uint8)) > 0  # gripper/objects + margin
-        mask = table & ~other
+        robot_px = isg & np.isin(info["seg"][..., 0], robot_g)
+        objs_px = isg & ~table & ~robot_px
+        # 10-20: the first version used one wide margin for everything; it hid the gripper's own shadow and still let
+        # the real black bowl (bigger in the real view than ours) count as dark table
+        other = (cv2.dilate(objs_px.astype(np.uint8), np.ones((a.margin, a.margin), np.uint8)) > 0) | \
+                (cv2.dilate(robot_px.astype(np.uint8), np.ones((a.grip_margin, a.grip_margin), np.uint8)) > 0)
+        realblack = cv2.dilate((cv2.GaussianBlur(real.mean(-1), (0, 0), 2) < a.black).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+        mask = table & ~other & ~realblack
+        # gripper-relative position of the dark region: distance from the sim gripper silhouette (px at 640x360)
+        dist_to_grip = cv2.distanceTransform((~robot_px).astype(np.uint8), cv2.DIST_L2, 3)
         if mask.sum() < 5000:
             continue
         lr = cv2.GaussianBlur(real.mean(-1), (0, 0), a.sigma)
@@ -92,7 +103,10 @@ def main():
                          lr_mean=float(lr[mask].mean()), dark_frac=float(darkreal.sum() / mask.sum()),
                          dark_centroid=cen(darkreal), simshadow_centroid=cen(simsh_m),
                          dark_in_simshadow=float((darkreal & simsh_m).sum() / max(darkreal.sum(), 1)),
-                         dark_depth=float(np.exp(np.median((logr - gk)[darkreal]))) if darkreal.sum() > 200 else None))
+                         dark_depth=float(np.exp(np.median((logr - gk)[darkreal]))) if darkreal.sum() > 200 else None,
+                         dark_dist_to_gripper_px=float(np.median(dist_to_grip[darkreal])) if darkreal.sum() > 200 else None,
+                         near_grip_ratio=float(np.exp(np.median((logr - gk)[mask & (dist_to_grip < 40)]))) if (mask & (dist_to_grip < 40)).sum() > 200 else None,
+                         far_grip_ratio=float(np.exp(np.median((logr - gk)[mask & (dist_to_grip > 120)]))) if (mask & (dist_to_grip > 120)).sum() > 200 else None))
         if k in (0, 30, 45, 63, 72):
             diag.append((k, real.astype(np.uint8), sim.clip(0, 255).astype(np.uint8), logr, mask, simshadow))
     # (a) exposure
@@ -125,6 +139,7 @@ def main():
                           sim_shadow_frac=float(SH.mean()), real_dark_frac=float(dark.mean()),
                           real_dark_inside_sim_shadow=float((dark & SH).sum() / max(dark.sum(), 1))),
                per_frame_dark=[dict(k=r["k"], dark_frac=r["dark_frac"], dark_depth=r["dark_depth"], dark_centroid_px=r["dark_centroid"],
+                                    dark_dist_to_gripper_px=r["dark_dist_to_gripper_px"], near_grip_ratio=r["near_grip_ratio"], far_grip_ratio=r["far_grip_ratio"],
                                     simshadow_centroid_px=r["simshadow_centroid"], dark_in_simshadow=r["dark_in_simshadow"]) for r in recs],
                status="exploratory, UNVERIFIED")
     json.dump(out, open(os.path.join(a.out, "light_analysis.json"), "w"), indent=1)
@@ -143,7 +158,8 @@ def main():
     cv2.imwrite(os.path.join(a.out, "light_analysis.jpg"), cv2.cvtColor(np.concatenate(tiles, 0), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 85])
     print(json.dumps({k: v for k, v in out.items() if k not in ("exposure_gain_per_frame", "frames", "per_frame_dark")}, indent=1))
     for r in out["per_frame_dark"]:
-        print(f"f{r['k']:3d}: real dark {r['dark_frac']:.2f} of table (depth {r['dark_depth'] and round(r['dark_depth'], 2)}), centroid {r['dark_centroid_px'] and [round(x) for x in r['dark_centroid_px']]} vs sim shadow {r['simshadow_centroid_px'] and [round(x) for x in r['simshadow_centroid_px']]}, overlap {r['dark_in_simshadow']:.2f}")
+        f = lambda x: "-" if x is None else f"{x:.2f}"  # noqa: E731
+        print(f"f{r['k']:3d}: real dark {r['dark_frac']:.2f} of table (depth {f(r['dark_depth'])}), {f(r['dark_dist_to_gripper_px'])} px from the gripper; real/render within 40 px of the gripper {f(r['near_grip_ratio'])}, beyond 120 px {f(r['far_grip_ratio'])}; overlap with sim shadow {r['dark_in_simshadow']:.2f}")
 
 
 if __name__ == "__main__":
