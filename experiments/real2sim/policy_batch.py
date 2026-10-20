@@ -20,6 +20,7 @@ def main():
     ap.add_argument("--scene", required=True, help="<scene out dir>:<episode dir>")
     ap.add_argument("--out", required=True)
     ap.add_argument("--policy", default="groot")
+    ap.add_argument("--wrist_render", choices=["v1", "v2"], default="v1", help="passed to policy_rollout")
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--exclude", action="append", default=[], help="skip tasks whose instruction contains this (e.g. radish)")
     ap.add_argument("--trivial_from", default=None, help="batch_summary.json of a --policy hold run: skip variants a do-nothing "
@@ -51,7 +52,7 @@ def main():
                 t0 = time.time()
                 cmd = [sys.executable, os.path.join(HERE, "policy_rollout.py"), "--scene", a.scene, "--task", t["task"],
                        "--variant", str(v["variant"]), "--seed", str(v.get("seed", 0)), "--out", ep_dir,
-                       "--policy", a.policy, "--seconds", str(a.seconds)]
+                       "--policy", a.policy, "--seconds", str(a.seconds), "--wrist_render", a.wrist_render]
                 p = subprocess.run(cmd, capture_output=True, text=True)
                 if p.returncode != 0:
                     print(f"FAILED to run {t['task']} v{v['variant']}: rc {p.returncode}\n{p.stderr[-1500:]}", flush=True)
@@ -75,7 +76,7 @@ def main():
             bt[k] += int(bool(r["stages"] and r["stages"][k]))
         bt["blocked"] += int(bool(r["blocked"]))
     tot = {k: sum(b[k] for b in by_task.values()) for k in ("n", "success", "reached", "closed_at_target", "lifted", "placed", "blocked", "errors")}
-    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
+    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, wrist_render=a.wrist_render, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
                    status="exploratory, UNVERIFIED"), open(os.path.join(a.out, "batch_summary.json"), "w"), indent=1)
     print("TOTAL", json.dumps(tot))
     for k, b in by_task.items():
