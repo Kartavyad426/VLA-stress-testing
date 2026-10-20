@@ -457,6 +457,86 @@ class WristCompositor:
         self.rend.close()
 
 
+def near_defocus(img, depth, sigma, z_near=0.20):
+    """Defocus of the near layer (the gripper, closer than z_near) with its own alpha, so its edges bleed over the
+    background as real defocus does (G6, 10-19)."""
+    if sigma <= 0:
+        return img
+    a = (depth < z_near).astype(np.float32)
+    f = img.astype(np.float32)
+    ab = cv2.GaussianBlur(a, (0, 0), sigma)
+    fb = cv2.GaussianBlur(f * a[..., None], (0, 0), sigma) / np.maximum(ab[..., None], 1e-3)
+    return ab[..., None] * fb + (1 - ab[..., None]) * f
+
+
+def load_gripper_library(path):
+    z = np.load(path)
+    return dict(rgb=z["rgb"][0].astype(np.float32), alpha=z["alpha"][0].astype(np.float32), open_max=float(z["open_max"][0]))
+
+
+class WristRenderV2:
+    """Wrist view v2 (10-20; opt-in, WristCompositor stays the default). G6 showed GR00T plans like on the real image
+    only when the wrist view matches the real camera in table texture, gripper look and camera blur. This renders at
+    the camera's full 1280x720 with the wrist-video table texture (table_tex), then
+      - open gripper (opening <= library open_max + open_tol): the sim gripper is replaced by the REAL gripper image
+        (gripper_library.py; rigid w.r.t. the camera); where the sim gripper sticks out beyond the real one, the table
+        texture behind it is shown (ray/table-plane intersection);
+      - otherwise: the sim gripper with near-layer defocus (blur_sigma px at 1280x720);
+    and shrinks to `size` by area averaging, as real frames reach the policy (rendered at work_size first).
+    Light/shadow (G6's largest factor) is NOT modelled here yet (stage S4)."""
+
+    def __init__(self, m, plate, ext_comp, size, plate2, table_tex, grip_lib=None, blur_sigma=8.0, open_tol=0.03, cam="wrist",
+                 work_size=(360, 640)):
+        """work_size: resolution rendered before the area downscale to `size` (full 1280x720 took 0.5 s/frame, which
+        would add ~4 min per 30 s rollout; 640x360 keeps the averaging-down, at ~1/4 the cost). blur_sigma is in
+        1280x720 pixels and scaled to work_size; the gripper library is resized to work_size."""
+        self.m, self.size, self.tt = m, size, table_tex
+        self.open_tol = open_tol
+        self.cid = m.camera(cam).id
+        W0, H0 = (int(v) for v in m.cam_sensorsize[self.cid])
+        wh, ww = work_size
+        self.blur_sigma = blur_sigma * ww / W0
+        self.lib = None
+        if grip_lib is not None:
+            self.lib = dict(open_max=grip_lib["open_max"],
+                            rgb=cv2.resize(grip_lib["rgb"], (ww, wh), interpolation=cv2.INTER_AREA),
+                            alpha=cv2.resize(grip_lib["alpha"], (ww, wh), interpolation=cv2.INTER_AREA))
+        self.hi = WristCompositor(m, plate, ext_comp, (wh, ww), cam=cam, plate2=plate2, table_tex=table_tex)
+        self.grip = np.array([g for g in range(m.ngeom) if m.body(m.geom_bodyid[g]).name.startswith(("fr3_", "g_"))])
+        drv = m.joint("g_right_driver_joint")
+        self.drv_q, self.drv_max = drv.qposadr[0], m.jnt_range[drv.id][1]
+
+    def __call__(self, d, return_info=False):
+        out, info = self.hi(d, return_info=True)
+        seg = info["seg"]
+        gm = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], self.grip)
+        opening = float(np.clip(d.qpos[self.drv_q] / self.drv_max, 0, 1))
+        use_lib = self.lib is not None and opening <= self.lib["open_max"] + self.open_tol
+        if use_lib:
+            # table texture behind the sim gripper: intersect each pixel's ray with the table plane
+            R, t = cam_pose(d, self.cid)
+            dirs = self.hi.rays @ R.T
+            s = (self.tt["z"] - t[2]) / np.where(np.abs(dirs[..., 2]) > 1e-6, dirs[..., 2], -1e-6)
+            pw = t + dirs * s[..., None]
+            ix = ((pw[..., 0] - self.tt["x0"]) / self.tt["res"] - 0.5).astype(np.float32)
+            iy = ((pw[..., 1] - self.tt["y0"]) / self.tt["res"] - 0.5).astype(np.float32)
+            behind = cv2.remap(self.tt["tex"], ix, iy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+            fill = gm & (s > 0)
+            out[fill] = behind[fill]
+            a = self.lib["alpha"][..., None]
+            out = a * self.lib["rgb"] + (1 - a) * out
+        else:
+            out = near_defocus(out, info["depth"], self.blur_sigma)
+        H, W = self.size
+        small = cv2.resize(np.clip(out, 0, 255).astype(np.float32), (W, H), interpolation=cv2.INTER_AREA)
+        if return_info:
+            return small, dict(info, used_library=use_lib, opening=opening)
+        return small
+
+    def close(self):
+        self.hi.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episode", required=True)
