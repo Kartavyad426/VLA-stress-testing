@@ -21,6 +21,9 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--policy", default="groot")
     ap.add_argument("--wrist_render", choices=["v1", "v2"], default="v1", help="passed to policy_rollout")
+    ap.add_argument("--tasks_seed", type=int, default=0, help="make_tasks --seed the task set was generated with. 10-20 fix: the "
+                    "per-variant json's 'seed' is the FULL rng seed (seed*1000 + task*100 + variant); passing it as --seed made "
+                    "every variant > 0 a different layout from the one the expert solved (slot A and D2 were affected)")
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--exclude", action="append", default=[], help="skip tasks whose instruction contains this (e.g. radish)")
     ap.add_argument("--trivial_from", default=None, help="batch_summary.json of a --policy hold run: skip variants a do-nothing "
@@ -51,7 +54,7 @@ def main():
             if not os.path.exists(rj):
                 t0 = time.time()
                 cmd = [sys.executable, os.path.join(HERE, "policy_rollout.py"), "--scene", a.scene, "--task", t["task"],
-                       "--variant", str(v["variant"]), "--seed", str(v.get("seed", 0)), "--out", ep_dir,
+                       "--variant", str(v["variant"]), "--seed", str(a.tasks_seed), "--out", ep_dir,
                        "--policy", a.policy, "--seconds", str(a.seconds), "--wrist_render", a.wrist_render]
                 p = subprocess.run(cmd, capture_output=True, text=True)
                 if p.returncode != 0:

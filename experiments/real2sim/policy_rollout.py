@@ -302,7 +302,8 @@ def main():
     acts = np.array(actions)
     diag = rollout_diagnostics(np.array(pinch_cmd), np.array(pinch_ach), np.array(tgt_pos), np.array(grip_cmd), tgt_z0, bool(ok))
     res = dict(scene=os.path.basename(os.path.normpath(sdir)), task=task, instruction=task["text"], variant=a.variant,
-               policy=a.policy, checkpoint=a.ckpt if a.policy == "groot" else None, replay_npz=a.replay_npz, embodiment_tag=TAG, success=bool(ok),
+               policy=a.policy, checkpoint=a.ckpt if a.policy == "groot" else None, replay_npz=a.replay_npz, seed=a.seed,
+               layout_rng_seed=int(a.seed * 1000 + ti * 100 + a.variant), embodiment_tag=TAG, success=bool(ok),
                steps=len(actions), seconds=a.seconds, open_loop=a.open_loop, policy_calls=len(infer_s),
                load_s=pol.ready.get("load_s"), infer_s_median=float(np.median(infer_s)) if infer_s else None,
                wall_s=time.time() - t_start, vram=vram, gpu_used_max_gib=float(np.nanmax(gpu_used)) if gpu_used else None,
