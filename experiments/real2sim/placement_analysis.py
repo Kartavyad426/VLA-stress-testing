@@ -49,12 +49,23 @@ def main():
     ap.add_argument("--scene", required=True)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--batch_seed_from_json", action="store_true", help="batches run before the 10-20 policy_batch seed fix")
+    ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene",
+                    help="firm (10-20 test): finger pads condim 4 + torsional friction 0.02 + sliding 1.0, elliptic cone, impratio 10. "
+                         "The recorded actions are replayed open loop, so this asks: would the same motion have kept the block?")
+    ap.add_argument("--out_name", default="placement_analysis.json")
     ap.add_argument("--tasks", default="runs/real2sim/tasks_stereo/ep_orange_block_stereo", help="make_tasks output for the scene")
     a = ap.parse_args()
     sdir, edir = a.scene.split(":")
     m = mujoco.MjModel.from_binary_path(os.path.join(sdir, "scene.mjb"))
     fit = json.load(open(os.path.join(sdir, "scene_fit.json")))
     tasks = scene_tasks(m, fit)
+    if a.grip_physics == "firm":
+        for g in range(m.ngeom):
+            if "pad" in m.body(m.geom_bodyid[g]).name:
+                m.geom_condim[g] = 4
+                m.geom_friction[g] = [1.0, 0.02, 0.0001]
+        m.opt.cone = mujoco.mjtCone.mjCONE_ELLIPTIC
+        m.opt.impratio = 10.0
     arm_q = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
     arm_u = [m.actuator(f"fr3_joint{k}").id for k in range(1, 8)]
     grip_u = [i for i in range(m.nu) if m.actuator(i).name.startswith("g_")][0]
@@ -103,7 +114,13 @@ def main():
         lifted = tgt[:, 2] - z0 >= LIFT_M
         row = dict(task=r["instruction"], type=task["type"], variant=r["variant"], success=bool(r["success"]),
                    replay_max_err_m=rep_err, reproduced=rep_err < 1e-6)
-        if r["success"]:
+        replay_success = bool(task_success(m, d, fit, task)) if a.grip_physics != "scene" else bool(r["success"])
+        if a.grip_physics != "scene":  # settle as policy_rollout does before judging
+            for _ in range(int(0.8 / m.opt.timestep)):
+                mujoco.mj_step(m, d)
+            replay_success = bool(task_success(m, d, fit, task))
+        row["success"] = replay_success
+        if replay_success:
             row["outcome"] = "success"
         elif not lifted.any():
             row["outcome"] = "not_lifted"
@@ -128,10 +145,10 @@ def main():
                            release_dist_cm=float(dist * 100), goal_limit_cm=float(lim * 100))
             row["carry_steps"] = int(last - s + 1)
         rows.append(row)
-    out = dict(batch=a.batch, rows=rows, counts={}, status="exploratory, UNVERIFIED")
+    out = dict(batch=a.batch, grip_physics=a.grip_physics, rows=rows, counts={}, status="exploratory, UNVERIFIED")
     for rw in rows:
         out["counts"][rw["outcome"]] = out["counts"].get(rw["outcome"], 0) + 1
-    json.dump(out, open(os.path.join(a.batch, "placement_analysis.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(a.batch, a.out_name), "w"), indent=1)
     print("reproduced:", sum(r["reproduced"] for r in rows), "/", len(rows), " max replay error (m):", max(r["replay_max_err_m"] for r in rows))
     print("outcomes:", out["counts"])
     for rw in rows:

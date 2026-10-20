@@ -229,7 +229,9 @@ def main():
     tgt_body = m.body(task["target"]).id
     tgt_z0 = float(d.xpos[tgt_body][2])
     dk = mujoco.MjData(m)  # FK of the commanded joints only
-    pinch_cmd, pinch_ach, tgt_pos, grip_cmd = [], [], [], []
+    pinch_cmd, pinch_ach, tgt_pos, grip_cmd, both_pads = [], [], [], [], []
+    pad_bodies = {b for b in range(m.nbody) if "pad" in m.body(b).name}
+    left_pads = {b for b in pad_bodies if "left" in m.body(b).name}
 
     plate = load_plate(sdir, "lama", "frame0+plate")
     comp = Compositor(m, sdir, plate, size=(H, W), verbose=False)  # first: sets the real object colours + light
@@ -290,6 +292,14 @@ def main():
             pinch_ach.append(d.site_xpos[pinch].copy())
             tgt_pos.append(d.xpos[tgt_body].copy())
             grip_cmd.append(bool(act[9] > 0.5))
+            touching = set()
+            for ci in range(d.ncon):  # which finger pads touch the target (10-20: 'closed at target' needs both)
+                b1, b2 = m.geom_bodyid[d.contact[ci].geom1], m.geom_bodyid[d.contact[ci].geom2]
+                if tgt_body in (b1, b2):
+                    other = b2 if b1 == tgt_body else b1
+                    if other in pad_bodies:
+                        touching.add("L" if other in left_pads else "R")
+            both_pads.append(touching == {"L", "R"})
             states.append(state)
             actions.append(act)
             carts.append(cart)
@@ -300,7 +310,8 @@ def main():
         mujoco.mj_step(m, d)
     ok = task_success(m, d, fit, task)
     acts = np.array(actions)
-    diag = rollout_diagnostics(np.array(pinch_cmd), np.array(pinch_ach), np.array(tgt_pos), np.array(grip_cmd), tgt_z0, bool(ok))
+    diag = rollout_diagnostics(np.array(pinch_cmd), np.array(pinch_ach), np.array(tgt_pos), np.array(grip_cmd), tgt_z0, bool(ok),
+                               both_pads=np.array(both_pads))
     res = dict(scene=os.path.basename(os.path.normpath(sdir)), task=task, instruction=task["text"], variant=a.variant,
                policy=a.policy, checkpoint=a.ckpt if a.policy == "groot" else None, replay_npz=a.replay_npz, seed=a.seed,
                layout_rng_seed=int(a.seed * 1000 + ti * 100 + a.variant), embodiment_tag=TAG, success=bool(ok),
@@ -314,7 +325,8 @@ def main():
                            else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, exterior_view="composite (cleaned real plate + sim)",
                status="exploratory, UNVERIFIED", **diag)
     np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
-                        pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd))
+                        pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd),
+                        both_pads=np.array(both_pads))
     json.dump(res, open(os.path.join(a.out, "rollout.json"), "w"), indent=1)
     print(json.dumps({k: res[k] for k in ("success", "steps", "policy_calls", "infer_s_median", "vram", "gpu_used_max_gib", "wall_s", "stages", "tracking")}), flush=True)
 
@@ -322,22 +334,31 @@ def main():
 # checklist #17 (command tracking) and #23 (stage scoring); thresholds res31's, user-accepted 10-19 (reversible)
 REACH_M = 0.03        # fingertip point within 3 cm of the target's centre
 LIFT_M = 0.02         # target raised >= 2 cm above its start height
+HOLD_STEPS = 8        # 'closed at target' = both pads on it for >= 0.5 s (10-20)
 TRACK_M = 0.01        # commanded - achieved fingertip point
 TRACK_SUSTAIN = FPS   # ... for >= 1 s of consecutive steps = "blocked"
 STILL_MPS = 0.01      # ... while the achieved fingertip moves < 1 cm/s (10-19: without this, controller lag in fast
 #                       moves and holding contacts were flagged; G2 medians 1.3-2.0 cm while moving)
 
 
-def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success):
+def rollout_diagnostics(cmd, ach, tgt, grip_cmd, tgt_z0, success, both_pads=None):
     """Stages reached -> closed -> lifted -> placed, and commanded-vs-achieved tracking (blocked arm = sim/geometry flag)."""
     if len(cmd) == 0:
         return dict(stages={}, tracking={})
     dist = np.linalg.norm(ach - tgt, axis=1)
     reached = dist < REACH_M
-    closed = reached & grip_cmd
+    closed_near = reached & grip_cmd  # pre-10-20 'closed_at_target' (too loose: counted closing on air within 3 cm)
+    if both_pads is not None:  # a real hold: both pads on the target, gripper closed, for >= HOLD_STEPS steps in total
+        closed = closed_near & both_pads
+        if closed.sum() < HOLD_STEPS:
+            closed = np.zeros_like(closed)
+    else:
+        closed = closed_near
     lifted = (tgt[:, 2] - tgt_z0) >= LIFT_M
     first = lambda mask: int(np.argmax(mask)) if mask.any() else None  # noqa: E731
-    stages = dict(reached=bool(reached.any()), closed_at_target=bool(closed.any()), lifted=bool(lifted.any()), placed=bool(success),
+    stages = dict(reached=bool(reached.any()), closed_at_target=bool(closed.any()), closed_near_target=bool(closed_near.any()),
+                  closed_rule=f"both finger pads on the target for >= {HOLD_STEPS} steps" if both_pads is not None else "gripper closed within reach_m (old)",
+                  lifted=bool(lifted.any()), placed=bool(success),
                   first_step=dict(reached=first(reached), closed_at_target=first(closed), lifted=first(lifted)),
                   min_dist_to_target_m=float(dist.min()), thresholds=dict(reach_m=REACH_M, lift_m=LIFT_M))
     err = cmd - ach

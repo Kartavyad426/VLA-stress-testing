@@ -177,6 +177,17 @@ def cam_pose(d, cid):
     return d.cam_xmat[cid].reshape(3, 3) @ np.diag([1, -1, -1]), d.cam_xpos[cid].copy()
 
 
+def redacted_discs(fit, margin=0.0):
+    """Footprints (x, y, radius) of objects left out of the scene (asset-pack mode: fit['redacted'], 10-20). The real
+    object is still in the real frames, so every real-pixel texture source must mask it (else it reappears as a flat
+    ghost on the table)."""
+    out = []
+    for label, r in fit.get("redacted", {}).items():
+        rad = r.get("rim_radius") or r.get("width_m", 0.06) / 2
+        out.append((float(r["center"][0]), float(r["center"][1]), float(rad) + margin, label))
+    return out
+
+
 def wrist_plate(m, out, episode, ext_comp, serial, dilate=25):
     """Second texture source for the wrist view: the real wrist frame at the start of <out>/replay_states.npz
     (sim posed at the recorded joints), robot + object pixels (sim wrist segmentation, dilated) inpainted with LaMa.
@@ -207,6 +218,20 @@ def wrist_plate(m, out, episode, ext_comp, serial, dilate=25):
         seg = rend.render()
         rend.close()
         fg = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], ext_comp.fg_geoms)
+        # redacted objects (not in the sim) are still in the real frame: project a cylinder over each footprint
+        fitj = json.load(open(os.path.join(out, "scene_fit.json")))
+        zt = fitj["table"]["z"]
+        Kw0 = cam_K(m, cid, W, H)
+        for cx, cy, rad, _ in redacted_discs(fitj, 0.02):
+            ang = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+            ring = np.array([[cx + rad * np.cos(t_), cy + rad * np.sin(t_), z_] for t_ in ang for z_ in (zt, zt + 2 * rad)])
+            pc = (ring - t) @ R
+            ok = pc[:, 2] > 0.02
+            if ok.sum() >= 3:
+                uv = (pc[ok, :2] / pc[ok, 2:3] * [Kw0[0, 0], Kw0[1, 1]] + [Kw0[0, 2], Kw0[1, 2]]).astype(np.int32)
+                fg_u8 = fg.astype(np.uint8)
+                cv2.fillConvexPoly(fg_u8, cv2.convexHull(uv), 1)
+                fg = fg_u8 > 0
         hole = cv2.dilate(fg.astype(np.uint8), np.ones((dilate, dilate), np.uint8))
         img = lama_inpaint(real, hole)
         # colour gain exterior -> wrist camera (the policy sees the wrist camera's exposure/white balance): per-channel
@@ -276,6 +301,8 @@ def wrist_table_texture(m, out, episode, serial, frames, res=0.0015, dilate=35, 
             r = max(np.linalg.norm(d0.geom_xpos[g][:2] - d0.xpos[b][:2])
                     + (np.linalg.norm(m.geom_size[g][:2]) if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_BOX else m.geom_rbound[g]) for g in gs)
             keep &= np.linalg.norm(P[:, :2] - d0.xpos[b][:2], axis=1) > r + obj_margin
+    for cx, cy, rad, _ in redacted_discs(fit, obj_margin + 0.03):  # redacted objects: footprint + extra (height unknown)
+        keep &= np.hypot(P[:, 0] - cx, P[:, 1] - cy) > rad
     h = h5py.File(os.path.join(episode, "trajectory.h5"))
     J, G = h["observation/robot_state/joint_positions"][:], h["observation/robot_state/gripper_position"][:]
     arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]

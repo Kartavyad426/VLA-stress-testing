@@ -24,6 +24,7 @@ import h5py
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from composite import redacted_discs  # noqa: E402
 
 # thresholds: res31's, user-accepted 10-19 (reversible)
 SETTLE_M, GRASP_M, SCALE_TOL, TABLE_M = 0.02, 0.015, 0.10, 0.01
@@ -84,6 +85,11 @@ def main():
         p, dk = pinch_at(kc)
         objs = [b for b in free if b not in containers]
         tgt = min(objs, key=lambda b: np.linalg.norm(dk.xpos[b] - p))
+        # a grasp of an object left out of the scene (asset-pack redaction, 10-20) has nothing to compare with
+        red = [(np.hypot(p[0] - cx, p[1] - cy), lab) for cx, cy, _, lab in redacted_discs(fit)]
+        if red and min(red)[0] <= np.linalg.norm((dk.xpos[tgt] - p)[:2]):
+            events.append(dict(close_frame=kc, open_frame=ko, object=min(red)[1], skipped="object redacted (not in the scene)"))
+            continue
         dp = p - dk.xpos[tgt]
         ev = dict(close_frame=kc, open_frame=ko, object=m.body(tgt).name, horiz_m=float(np.linalg.norm(dp[:2])), vert_m=float(dp[2]),
                   pinch_above_table_m=float(p[2] - fit["table"]["z"]))
@@ -100,9 +106,12 @@ def main():
             ev["scale_pass"] = bool(ev["scale_ratio"] and abs(ev["scale_ratio"] - 1) <= SCALE_TOL)
         events.append(ev)
     out["checks"]["3_4_5_grasp_events"] = events
-    out["checks"]["3_grasp"] = dict(pass_=bool(events) and all(e["grasp_pass"] for e in events), n_events=len(events))
-    out["checks"]["4_release"] = dict(pass_=bool(events) and all(e.get("release_pass", False) for e in events))
-    out["checks"]["5_scale"] = dict(pass_=bool(events) and all(e.get("scale_pass", False) for e in events))
+    used = [e for e in events if "skipped" not in e]
+    na = None if not used else False  # no usable grasp event (none recorded, or all on redacted objects): n/a, not FAIL
+    out["checks"]["3_grasp"] = dict(pass_=all(e["grasp_pass"] for e in used) if used else na, n_events=len(used),
+                                    n_skipped_redacted=len(events) - len(used))
+    out["checks"]["4_release"] = dict(pass_=all(e.get("release_pass", False) for e in used) if used else na)
+    out["checks"]["5_scale"] = dict(pass_=all(e.get("scale_pass", False) for e in used) if used else na)
 
     # #6 stereo table height (stereo_depth.py writes <scene>/stereo_table_check.json)
     env = dict(os.environ, MUJOCO_GL=os.environ.get("MUJOCO_GL", "egl"))
@@ -116,12 +125,15 @@ def main():
         subprocess.run([sys.executable, os.path.join(HERE, "wrist_overlay.py"), "--scene", a.scene, "--episode", a.episode,
                         "--frames", a.stereo_frames], check=True, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         out["wrist_overlay"] = os.path.join(a.scene, "wrist_overlay.jpg")
-    out["all_pass"] = all(v["pass_"] for k, v in out["checks"].items() if isinstance(v, dict) and "pass_" in v)
+    out["all_pass"] = all(v["pass_"] for k, v in out["checks"].items() if isinstance(v, dict) and v.get("pass_") is not None)
     json.dump(out, open(os.path.join(a.scene, "scene_checks.json"), "w"), indent=1, default=float)
     for k, v in out["checks"].items():
         if isinstance(v, dict) and "pass_" in v:
-            print(f"{k}: {'PASS' if v['pass_'] else 'FAIL'}")
+            print(f"{k}: {'n/a' if v['pass_'] is None else 'PASS' if v['pass_'] else 'FAIL'}")
     for e in events:
+        if "skipped" in e:
+            print(f"  grasp f{e['close_frame']}->{e['open_frame']} {e['object']}: skipped ({e['skipped']})")
+            continue
         print(f"  grasp f{e['close_frame']}->{e['open_frame']} {e['object']}: horiz {e['horiz_m']*100:.1f} vert {e['vert_m']*100:+.1f} cm"
               + (f"; release {e['release_horiz_m']*100:.1f} cm from {e['container']} (rim {e['rim_radius_m'] and e['rim_radius_m']*100:.1f}); scale {e['scale_ratio']:.3f}" if "container" in e else ""))
     print("ALL PASS" if out["all_pass"] else "NOT ALL PASS")
