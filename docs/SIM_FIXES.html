@@ -28,14 +28,14 @@ ol li,ul li{margin:.2em 0}
 </head>
 <body><main>
 <h1>SIM fixes: how a sim that looked right turned out not to be, and how we found each fault</h1>
-<p class="meta">res31, 10-14 → 10-19 (updated 10-19 evening with G5/G6), internal. Scenes rebuilt from single DROID episodes (FR3 + Robotiq 2F-85, exterior ZED 2 + wrist ZED Mini). Policy under test: GR00T-N1.7-DROID (internal research only; licence open). All numbers exploratory and UNVERIFIED (not through val). Commit hashes in brackets; pages linked at the end.</p>
+<p class="meta">res31, 10-14 → 10-20 (updated 10-20 with the deployable renderer, G7, D1, G8), internal. Scenes rebuilt from single DROID episodes (FR3 + Robotiq 2F-85, exterior ZED 2 + wrist ZED Mini). Policy under test: GR00T-N1.7-DROID (internal research only; licence open). All numbers exploratory and UNVERIFIED (not through val). Commit hashes in brackets; pages linked at the end.</p>
 
 <div class="box verdict"><b>The short version.</b> The sim passed every check we had: composites matched the real camera, objects settled, a scripted expert succeeded on 91/105 episodes. The first policy run failed, and taking it apart found <b>four separate faults in the sim</b> and <b>one in the policy</b>:
 <ol>
 <li><b>Table and objects ~6 cm too high</b> (orange scene; ~8 cm in c3). Fixed with stereo depth.</li>
 <li><b>Exterior camera pose off</b> (~6–7 cm sideways at the objects). The old depth error had hidden it. Fixed with metric anchors from the wrist camera.</li>
 <li><b>Bowl built floating</b> (dropped 2.2–2.6 cm on load). Code bug, fixed.</li>
-<li><b>Wrist-camera image misleads the policy</b>: with our wrist render GR00T plans its grasp ~4 cm lower than with the real image, so it pushes its fingers into the table. <b>Fully explained by G6</b>: three things must match the real wrist camera: the table texture, the light/shadow on the table, and the gripper's look (with camera blur). With all three, GR00T plans exactly as on the real image. Table texture fixed; the other two have a fix planned (section 5).</li>
+<li><b>Wrist-camera image misleads the policy</b>: with our wrist render GR00T plans its grasp ~4 cm lower than with the real image, so it pushes its fingers into the table. <b>Fully explained by G6</b>: three things must match the real wrist camera: the table texture, the light/shadow on the table, and the gripper's look (with camera blur). With all three, GR00T plans exactly as on the real image. <b>10-20:</b> a renderer that needs no real frame (wrist-video table, real gripper image, wrist-fitted light) recovers 2.6 of the 3.9 cm; ~1.3 cm is still open (G7, G8).</li>
 <li><b>Policy:</b> GR00T releases the block ~13 cm short of the bowl, and does the same on real frames, so that one is the policy's own.</li>
 </ol>
 After fixes 1–3: GR00T went from "never grasps" (0 closes) to 4/33 successes on the orange scene, with 32/33 reaching and 17/33 closing at the block.</div>
@@ -89,6 +89,16 @@ After fixes 1–3: GR00T went from "never grasps" (0 closes) to 4/33 successes o
 <tr><td>+ G: real gripper pixels</td><td><b>+3.1</b></td></tr><tr><td>+ O: real blocks = everything</td><td><b>+3.0</b> (= real; tilt 4.9° vs 4.8°)</td></tr></table>
 Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), the real gripper <b>1.1 cm</b>, the camera effects together 0.5 cm (overlapping with the real gripper, whose pixels are already blurred). Compression and block appearance don't matter. <b>Fault 4 is fully explained</b> (ae72101).</div></div>
 
+<div class="step"><div class="when">10-20<br>S1</div><div><b>A renderer that needs no real frame</b> (WristRenderV2, opt-in): renders the wrist view at 640×360 with the wrist-video table texture, replaces our gripper with the <b>real open gripper</b> cut from the wrist video (rigid w.r.t. the camera: the median over open frames is a clean gripper picture; closed openings rejected, held objects baked in), keeps our blurred gripper when closing, and shrinks to 320×180 like real frames (2b8c37e).</div></div>
+
+<div class="step"><div class="when">10-20<br>S3/S4</div><div><b>The light/shadow factor, measured:</b> exposure and vignetting negligible; the real robot shadow is 20–25% darker and converges on the gripper as it descends. A first reading ("shadow on the wrong side") was wrong, a real black bowl counted as shadow; corrected with object-aware masks. Light refitted from the wrist view (near overhead, darker) and used for the wrist render only (54bafb0, e70feeb).</div></div>
+
+<div class="step"><div class="when">10-20<br>G7</div><div><b>Deployable renderer vs real:</b> old render −1.4 cm, V2 +0.8, V2 + wrist light <b>+1.2</b>, real +2.4/+2.6. 2.6 of 3.9 cm recovered without any real frame; real shading on top adds nothing more (4df5f53).</div></div>
+
+<div class="step"><div class="when">10-20<br>D1</div><div><b>Our gripper is drawn ~8.5 mm / 2.4° off</b> relative to the real one in the wrist view (what the user spotted on the progression page). A wrist-camera or a gripper-mount correction both fix the silhouette (IoU 0.76 → 0.91); the data can't tell which (ac41fbd).</div></div>
+
+<div class="step"><div class="when">10-20<br>G8</div><div><b>Does the correction or anything else close the rest?</b> Camera correction +1.2 (= without, +1.1): GR00T doesn't care, so not applied. Live real pixels around the gripper +0.8, real objects +1.2, both +0.9: none closes the ~1.3 cm left (noise 0.4). Remaining untested candidates: live vs averaged gripper pixels (exposure, motion blur), 640 vs 1280 render (52c716d).</div></div>
+
 <h2>2b · Decision log: who asked what, what we considered, what we chose</h2>
 <p class="meta">The same story as section 2, told as the conversation went: the trigger, the options that were on the table, the decision, and directions opened or set aside. "User" = the project lead in res31's terminal; "prim" = the coordinating session (commits, GPU gate); other sessions by name.</p>
 <style>.log td:first-child{white-space:nowrap;color:var(--muted)}</style>
@@ -115,6 +125,17 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>10-19</td><td>User: "does G4 include our composite on the wrist?", "where are we building it from, are we generalising texture across views?"</td><td>Keep the composite but take the table texture from the wrist video, exterior plate as last fallback.</td><td>User: "build wrist from wrist camera ... do it".</td><td>G5: table confirmed; static texture only a third of the way.</td></tr>
 <tr><td>10-19</td><td>User: "is the agent view composited the same way?", "is it because of the moving wrist camera?", "could it be camera intrinsics, e.g. focus: we focus everything, the real camera doesn't".</td><td>Exterior: own real plate (fine, G3). Wrist: moving, close, and what the policy uses for the grasp. Measured sharpness at 320×180.</td><td>User: "redraft G6 with these tests", then "go".</td><td>G6 closed the gap: table texture + light/shadow + gripper look (and blur).</td></tr>
 <tr><td>10-19 eve</td><td>User: "plan all 3, update the doc"; then "the timeline should be more verbose about the interaction".</td><td>—</td><td>Plan written (section 5); this log added.</td><td>—</td></tr>
+<tr><td>10-20 am</td><td>User: "re-explain all the decisions you want my go for".</td><td>Five plan items + two open items + four defaults, each with a recommendation.</td><td>User: "do in stages, make sure it's revertible and committed at each major change".</td><td>Stages S1–S7, each opt-in and committed separately.</td></tr>
+<tr><td>10-20</td><td>S1: build the real-gripper library.</td><td>Per-opening library from both episodes (same robot + wrist camera) vs open-only.</td><td>Mine, after checking by eye: <b>open gripper only, per episode</b>. Partly/fully closed medians had held objects baked in (apple, blocks); pooling the 08-21 and 09-02 episodes doubled edges (a small mount shift).</td><td>WristRenderV2 (opt-in), 0.13 s/frame at 640×360 (full res 0.52 s; outputs differ by 0.2 grey levels) (2b8c37e).</td></tr>
+<tr><td>10-20</td><td>S2: checklist update (approved with the plan).</td><td>—</td><td>Done as its own commit.</td><td>New checks #24–#27; #11 now passes only through an image swap; four blind spots written as rules (c983e16).</td></tr>
+<tr><td>10-20</td><td>S3/S4: what is "light/shadow"?</td><td>Split into exposure, vignetting and robot shadow; fit a light from the wrist view.</td><td>—</td><td><b>My first S3 reading was wrong</b> ("real shadow on the opposite side"): the dark regions were mostly the real black bowl, and a wide margin hid the gripper's own shadow. Corrected in S4: real shadow 20–25% darker, converging as the gripper descends, 30–75% inside our sim shadow; wrist-fitted light near overhead (az 340, el 83), darkness 0.75 (54bafb0, e70feeb).</td></tr>
+<tr><td>10-20</td><td>G7: does the deployable renderer pass?</td><td>—</td><td>Ran (user had approved the plan's GPU checks).</td><td>Recovers 2.6 of 3.9 cm (+1.2 vs real +2.4/+2.6); not within 0.5 cm, so the batch waits (4df5f53).</td></tr>
+<tr><td>10-20</td><td>User: "make a sequential progression of how one wrist frame changes over our fixes".</td><td>—</td><td>Built a page: one frame through 7 stages + real, each with GR00T's measured planned height.</td><td>wrist_progression page (a8d5eed).</td></tr>
+<tr><td>10-20</td><td>User: "are these stages before or after the offset fix? except the latest, the gripper looks to hover far above in sim"; "same frames?"</td><td>—</td><td>Measured instead of answering by eye.</td><td>Same frame; stages 1–2 old scene, 3–7 rebuilt. In the rebuilt scene the block's 3D position matches the real one within ~0.5 cm (wrist stereo); what the user saw is <b>our rendered gripper drawn in the wrong place in the image</b> (silhouette IoU 0.76). Stages 6–7 paste the real gripper, which is why they looked right.</td></tr>
+<tr><td>10-20</td><td>User: "how does this change timing? what is the calibration scenario? can wrist transfer across tasks while agent view is per task? what are my decisions?"</td><td>Timing table; calibration per scene vs per robot; D1–D6.</td><td>User: "do D1 to D3, decide the rest later"; asked how the checklist changes.</td><td>Calibration is per scene/episode, not per generated task; wrist camera, gripper library transfer per robot+mount if an overlay check passes.</td></tr>
+<tr><td>10-20</td><td>D1: is the wrist camera or our gripper misplaced?</td><td>Fit each alone to the real gripper silhouette.</td><td>—</td><td>Both fit equally (IoU 0.76 → 0.91; camera 8.5 mm/2.4°, gripper 8.7 mm/0.4°); second clues inconclusive (ac41fbd). Decided by GR00T in G8.</td></tr>
+<tr><td>10-20</td><td>AssetPack (at the user's request): review its asset-pack change to build_scene.py with the user.</td><td>—</td><td>Deferred until after D1–D3.</td><td>Open: incl. the user decision on redacting objects the episode manipulates (c3's radish).</td></tr>
+<tr><td>10-20</td><td>User: "run g8 and show me the results; I hope you're updating the sim fixes doc with interactions".</td><td>—</td><td>Ran G8. I launched before prim's reply; prim: "wait for my go next time" (rule saved). The doc had not been updated since the morning; this section is that update.</td><td>Camera correction: no effect (not applied). Ring of live real pixels, real objects: don't close the remaining ~1.3 cm (52c716d).</td></tr>
 </table></div>
 
 <h2>3 · Why the sim could not have been accurate from the start</h2>
@@ -141,6 +162,8 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>G4</td><td>wrist-part swaps, 10 states × 7</td><td>~1 min</td><td class="ok">table texture (+ gripper ~1 cm)</td><td>e6f2f5e</td></tr>
 <tr><td>G5</td><td>real table pixels vs wrist-video texture, 10 states × 4</td><td>~1 min</td><td class="warn">table confirmed; static texture recovers only 0.8 of 2.5 cm</td><td>250eeae</td></tr>
 <tr><td>G6</td><td>camera + appearance ladder, 10 states × 13</td><td>~1 min</td><td class="ok">gap closed: table + light/shadow + gripper</td><td>ae72101</td></tr>
+<tr><td>G7</td><td>deployable renderer variants, 10 states × 7</td><td>~1 min</td><td class="warn">+1.2 vs real +2.4/+2.6 (2.6 of 3.9 cm)</td><td>4df5f53</td></tr>
+<tr><td>G8</td><td>camera correction + leftover candidates, 10 states × 8</td><td>~1 min</td><td class="warn">correction no effect; ~1.3 cm still open</td><td>52c716d</td></tr>
 </table></div>
 
 <h2>5 · Where things stand, and what's next</h2>
@@ -149,12 +172,12 @@ Leave one out from "everything": light/shadow is worth <b>2.2 cm</b> (largest), 
 <tr><td>1 table height</td><td class="ok">fixed on orange</td><td>c3: rebuild in progress (calibration anchors vs robot outline disagree; IoU 0.40 → 0.35, being checked)</td></tr>
 <tr><td>2 exterior camera pose</td><td class="ok">fixed on orange</td><td>same for c3</td></tr>
 <tr><td>3 floating bowl</td><td class="ok">fixed (all future builds)</td><td>—</td></tr>
-<tr><td>4 wrist render</td><td class="warn">explained; table texture fixed (G5); light/shadow and gripper look not yet</td><td>plan below</td></tr>
+<tr><td>4 wrist render</td><td class="warn">deployable renderer (V2 + wrist light) recovers 2.6 of 3.9 cm; ~1.3 cm open</td><td>D2: orange batch with it (S5 wiring first); then test live-vs-averaged gripper pixels</td></tr>
 <tr><td>5 early release</td><td>policy behaviour</td><td>report as a policy finding; check it across variants once fault 4 is fixed</td></tr>
 <tr><td>robot appearance</td><td class="warn">wrist view: 1.1 cm (G6); exterior view: no effect (G3)</td><td>step 1 below</td></tr>
 </table></div>
 
-<h3>Plan for the rest of fault 4 (10-19 evening; awaiting the go)</h3>
+<h3>Plan for the rest of fault 4 (written 10-19 evening; status 10-20: steps 1, 2 and 3a done, see G7/G8; 3b = D2, next)</h3>
 <p>Goal: a wrist renderer that uses <b>no real frame from the moment being rendered</b> (a rollout has none), yet makes GR00T plan as on the real image.</p>
 <div class="wrap"><table>
 <tr><th>Step</th><th>What</th><th>How we know it worked</th><th>Cost</th></tr>
