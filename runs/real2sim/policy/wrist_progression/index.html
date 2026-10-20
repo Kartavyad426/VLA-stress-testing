@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrist View Progression</title><style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}.meta{color:var(--muted);font-size:.85rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:14px 0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}figure{margin:0}img{width:100%;image-rendering:pixelated;border-radius:4px;display:block}
+figcaption{font-size:.8rem;color:var(--muted)}h3{margin:.5em 0 .2em;font-size:1.05rem}.card p{margin:.2em 0}.h b{font-size:1.05rem}
+@media (max-width:640px){.pair{grid-template-columns:1fr}}
+</style></head><body><main>
+<h1>One wrist frame through every fix</h1>
+<p class="meta">res31, 10-20, internal. Real episode ep_orange_block, wrist frame 63 (approach, gripper open, ~0.8 s before the operator's grasp). Each stage is shown at GR00T's 320×180 input (pixels enlarged, not smoothed) next to the real frame. "Planned lowest fingertip" = how low GR00T-DROID plans to put its fingertips above the table, averaged over 10 recorded approach states in the image-swap tests (same recorded state, real exterior image, only the wrist image changes); higher = closer to the real image's plan. Exploratory, UNVERIFIED.</p>
+<div class="card"><div class="pair"><figure><img src="plain_old.png" alt="1 · Plain sim render (10-15)"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>1 · Plain sim render (10-15)</h3><p>What GR00T saw in the first smoke test: flat MuJoCo colours, old scene geometry (table ~6 cm too high).</p><p class="h">GR00T's planned lowest fingertip: <b>not measured (old scene); smoke1: reached, hovered, never closed</b></p><p class="meta">commit 4c56957</p></div><div class="card"><div class="pair"><figure><img src="tex_old.png" alt="2 · + projected table texture (10-15)"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>2 · + projected table texture (10-15)</h3><p>Table textured from the exterior camera's background plate; still the old geometry.</p><p class="h">GR00T's planned lowest fingertip: <b>not measured (old scene)</b></p><p class="meta">commit 844466c</p></div><div class="card"><div class="pair"><figure><img src="tex_new.png" alt="3 · + correct geometry (10-16/19)"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>3 · + correct geometry (10-16/19)</h3><p>Same render, rebuilt scene: table height from stereo, camera calibrated with metric anchors, bowl fix.</p><p class="h">GR00T's planned lowest fingertip: <b>−1.4 cm (G7; G3–G6: −1.2…−1.5)</b></p><p class="meta">commit df2cc9f</p></div><div class="card"><div class="pair"><figure><img src="T.png" alt="4 · + table texture from the wrist video (G5)"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>4 · + table texture from the wrist video (G5)</h3><p>Table mosaicked from the real wrist frames instead of the exterior camera: sharp real grain and colour.</p><p class="h">GR00T's planned lowest fingertip: <b>−0.7 cm (G5, G6)</b></p><p class="meta">commit 250eeae</p></div><div class="card"><div class="pair"><figure><img src="TS.png" alt="5 · + rendered larger and shrunk like real frames"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>5 · + rendered larger and shrunk like real frames</h3><p>Rendered at 640×360 and area-averaged to 320×180 (no jagged edges).</p><p class="h">GR00T's planned lowest fingertip: <b>−0.5 cm (G6, at 1280×720)</b></p><p class="meta">commit ae72101</p></div><div class="card"><div class="pair"><figure><img src="V2.png" alt="6 · + real gripper (WristRenderV2)"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>6 · + real gripper (WristRenderV2)</h3><p>Our gripper replaced by the real gripper image cut from the wrist video (real colour, focus blur, bolts).</p><p class="h">GR00T's planned lowest fingertip: <b>+0.8 cm (G7)</b></p><p class="meta">commit 2b8c37e</p></div><div class="card"><div class="pair"><figure><img src="V2_wrist.png" alt="7 · + light fitted in the wrist view"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>7 · + light fitted in the wrist view</h3><p>Robot shadow from a light fitted to the real shadows seen by the wrist camera (near overhead, darker).</p><p class="h">GR00T's planned lowest fingertip: <b>+1.2 cm (G7) — current best that needs no real frame</b></p><p class="meta">commit e70feeb</p></div><div class="card"><div class="pair"><figure><img src="real.png" alt="Real wrist frame"><figcaption>this stage</figcaption></figure>
+<figure><img src="real.png" alt="real"><figcaption>real</figcaption></figure></div>
+<h3>Real wrist frame</h3><p>The real ZED Mini image at the same moment.</p><p class="h">GR00T's planned lowest fingertip: <b>+2.4 / +2.6 cm (same image twice; noise 0.3 cm)</b></p><p class="meta">commit —</p></div>
+<p class="meta">Remaining gap at stage 7: ~1.3 cm (≈1 cm near the grasp). Candidates: the live real lighting right around the gripper, compression, the sim objects. Script: experiments/real2sim/wrist_progression.py.</p>
+</main></body></html>
