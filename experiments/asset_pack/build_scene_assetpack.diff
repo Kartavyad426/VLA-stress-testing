@@ -1,0 +1,166 @@
+--- a/experiments/real2sim/build_scene.py	2026-10-19 15:12:05.907283588 +0530
++++ b/experiments/real2sim/build_scene.py	2026-10-19 17:40:28.875802674 +0530
+@@ -13,7 +13,7 @@
+     .venvs/real2sim/bin/python experiments/real2sim/build_scene.py \
+         --episode data/real2sim/droid/ep_orange_block --cam 22008760 --out runs/real2sim/ep_orange_block
+ """
+-import argparse, json, os
++import argparse, json, os, sys
+ import numpy as np
+ import cv2
+ import h5py
+@@ -27,6 +27,8 @@
+ NOT_OBJECTS = ("table", "gripper", "robot")
+ COLOURS = {"red", "orange", "yellow", "green", "blue", "black", "white", "brown", "purple", "pink", "grey", "gray", "toy", "small", "large"}
+ LIBERO_ASSETS = os.path.join(REPO, "third_party/LIBERO-plus/libero/libero/assets")
++sys.path.insert(0, os.path.join(REPO, "experiments/asset_pack"))
++import catalogue as packs  # CC BY asset packs (--assets kitchen|gso|cc): docs/ASSET_PACK_ADOPTION.html
+ 
+ 
+ def asset_catalogue(source):
+@@ -260,8 +262,11 @@
+     ap.add_argument("--grip_yaw_deg", type=float, default=90.0, help="Robotiq mount rotation about the flange z axis")
+     ap.add_argument("--calib", default=None, help="calib.json from calibrate_cam.py (camera pose + ZED intrinsics); "
+                     "default: DROID's recorded extrinsics + MoGe's intrinsics")
+-    ap.add_argument("--assets", choices=["libero", "none"], default="libero",
+-                    help="mesh source for named non-block objects; 'none' = fitted ellipsoids only")
++    ap.add_argument("--assets", choices=["libero", "none", "kitchen", "gso", "cc"], default="libero",
++                    help="mesh source for named non-block objects; 'none' = fitted ellipsoids only; kitchen/gso/cc = "
++                    "CC BY packs (cc = both), which also supply the bowl and keep their own collision parts")
++    ap.add_argument("--object_props", default=None, help="JSON of per-label / 'category:<c>' overrides "
++                    "(mass kg, friction [3], scale_mult); see experiments/asset_pack/catalogue.py")
+     ap.add_argument("--robot", choices=["fr3_robotiq", "panda"], default="fr3_robotiq")
+     ap.add_argument("--floor_below", type=float, default=0.75, help="ASSUMED floor depth under the table top (m)")
+     ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
+@@ -342,7 +347,19 @@
+     fit["table"] = dict(z=z_table, xy_lo=lo.tolist(), xy_hi=hi.tolist(), z_spread_iqr=float(np.subtract(*np.percentile(tb[:, 2], [75, 25]))))
+ 
+     boxes, body0, r_asset, zmin_a, zmax_a = bowl_asset()
+-    cat = asset_catalogue(a.assets) if a.assets != "none" else {}
++    pack = a.assets in packs.SOURCES
++    cat = packs.pack_catalogue(a.assets) if pack else asset_catalogue(a.assets) if a.assets != "none" else {}
++    props = packs.load_props(a.object_props)
++
++    def pack_pick(label, size_m):
++        """First name-matched pack model whose fitted scale (size_m / its largest x/y half-extent) is plausible."""
++        for name in packs.match(label, cat, COLOURS)[:20]:
++            half_xy, zmin, zmax, cxy = asset_footprint(cat[name]["xml"])
++            k = float(size_m / max(half_xy))
++            if packs.SCALE_RANGE[0] <= k <= packs.SCALE_RANGE[1]:
++                return name, k, zmin, zmax, cxy
++        return None
++
+     for key in sorted(k for k in per if k.startswith("mask/")):
+         label = key[5:]
+         kind = object_kind(label)
+@@ -358,7 +375,26 @@
+             o = fit_box(pts, z_table, inner, cube=any(w in label.lower() for w in ("block", "cube")))
+         elif kind == "ellipsoid":
+             o = fit_ellipsoid(pts, z_table)
+-            name = match_asset(label, cat)
++            name = None if pack else match_asset(label, cat)
++            if pack:
++                cols = np.flatnonzero(per[key].any(0))
++                z_med = float(np.median(s * per["depth"][per[key] & per["valid"]]))
++                width_m = (np.percentile(cols, 95) - np.percentile(cols, 5)) * z_med / K[0, 0]
++                hit = pack_pick(label, width_m / 2)
++                if hit:
++                    name, k, zmin, zmax, cxy = hit
++                    o["half"] = [width_m / 2, width_m / 2, o["half"][2]]
++                    # asset = category noun (make_tasks words instructions with it); asset_key = the pack model
++                    o.update(kind="asset", asset=cat[name]["category"] or label.split("#")[0].split()[-1], asset_key=name,
++                             asset_xml=cat[name]["xml"], asset_scale=k, asset_zmin=zmin,
++                             asset_height_scaled=k * (zmax - zmin), asset_cxy=cxy.tolist(), asset_pack=cat[name]["pack"],
++                             asset_licence=cat[name]["licence"])
++                    kind = "asset"
++                else:  # no plausible pack mesh: ellipsoid, but its footprint from the mask width too (the point
++                    # spread of thin parts like radish leaves scatters: lesson 14; c3 radish 0.38 m long otherwise)
++                    o["half"] = [width_m / 2, width_m / 2, o["half"][2]]
++                    o["half_from"] = "mask_width"
++                name = None
+             if name:  # retrieved mesh, uniformly scaled so its footprint matches the fitted one
+                 half_xy, zmin, zmax, cxy = asset_footprint(cat[name])
+                 cols = np.flatnonzero(per[key].any(0))
+@@ -369,13 +405,28 @@
+                 o.update(kind="asset", asset=name, asset_xml=cat[name], asset_scale=k, asset_zmin=zmin,
+                          asset_height_scaled=k * (zmax - zmin), asset_cxy=cxy.tolist())
+                 kind = "asset"
+-        else:  # bowl: LIBERO's akita_black_bowl, uniformly scaled to the fitted rim
++        else:  # bowl: a pack bowl (--assets kitchen|gso|cc) or LIBERO's akita_black_bowl, scaled to the fitted rim
+             z_top = float(np.percentile(pts[:, 2], 98))
+             rim = pts[pts[:, 2] > z_top - 0.012]
+             c, r = fit_circle(rim[:, :2])
+-            k = r / r_asset
+-            o = dict(center=[float(c[0]), float(c[1])], rim_radius=r, height_fit=z_top - z_table,
+-                     height_asset_scaled=k * (zmax_a - zmin_a), asset_scale=k, n_rim=int(len(rim)))
++            hit = pack_pick(label, r) if pack else None
++            if hit:  # a pack bowl, uniformly scaled so its outer radius matches the fitted rim
++                name, k, zmin, zmax, cxy = hit
++                o = dict(center=[float(c[0]), float(c[1]), z_table + k * (zmax - zmin) / 2], rim_radius=r, height_fit=z_top - z_table,
++                         height_asset_scaled=k * (zmax - zmin), n_rim=int(len(rim)),
++                         asset="bowl", asset_key=name, asset_xml=cat[name]["xml"], asset_scale=k, asset_zmin=zmin,
++                         asset_height_scaled=k * (zmax - zmin), asset_cxy=cxy.tolist(), asset_pack=cat[name]["pack"],
++                         asset_licence=cat[name]["licence"])  # kind stays "bowl": replay/make_tasks look for it
++            else:
++                k = r / r_asset
++                o = dict(center=[float(c[0]), float(c[1])], rim_radius=r, height_fit=z_top - z_table,
++                         height_asset_scaled=k * (zmax_a - zmin_a), asset_scale=k, n_rim=int(len(rim)))
++        words = [w for w in label.split("#")[0].lower().split() if w not in COLOURS]
++        o["props"], o["props_source"] = packs.resolve_props(label, words[-1] if words else None, props)
++        if "asset_scale" in o and o["props"]["scale_mult"] != 1.0:
++            for f_ in ("asset_scale", "asset_height_scaled", "height_asset_scaled"):
++                if f_ in o:
++                    o[f_] *= o["props"]["scale_mult"]
+         o.update(kind=kind, body=body, mask=label, rgb=rgb)
+         fit["objects"][label] = o
+ 
+@@ -421,7 +472,7 @@
+                 pos=[*ctr, z_table - th], rgba=[0.80, 0.60, 0.38, 1], friction=[1.0, 0.005, 0.0001])
+     n_bowl = 0
+     for label, o in fit["objects"].items():
+-        if o["kind"] == "bowl":
++        if o["kind"] == "bowl" and not o.get("asset_pack"):
+             k = o["asset_scale"]
+             b = wb.add_body(name=o["body"], pos=[*o["center"], z_table - k * zmin_a + 0.001])
+             b.add_freejoint()
+@@ -429,15 +480,24 @@
+             n_bowl += 1
+             spec.add_mesh(name=mesh, file=os.path.join(BOWL_DIR, "akita_black_bowl.obj"), scale=[BOWL_ASSET_SCALE * k] * 3)
+             b.add_geom(type=mujoco.mjtGeom.mjGEOM_MESH, meshname=mesh, contype=0, conaffinity=0, rgba=[0.08, 0.08, 0.08, 1], mass=0)
++            pr, src = o["props"], o["props_source"]
++            dens = 300 if "mass" not in pr else pr["mass"] / sum(8 * np.prod(k * sz) for _, _, sz in boxes)
++            fr_ = pr["friction"] if src["friction"] != "default" else [0.95, 0.3, 0.1]
+             for p, M, sz in boxes:
+-                b.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, pos=k * (p - body0), size=k * sz, density=300,
+-                           quat=Rot.from_matrix(M).as_quat(scalar_first=True), rgba=[0.1, 0.1, 0.1, 0], friction=[0.95, 0.3, 0.1])
++                b.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, pos=k * (p - body0), size=k * sz, density=dens,
++                           quat=Rot.from_matrix(M).as_quat(scalar_first=True), rgba=[0.1, 0.1, 0.1, 0], friction=fr_)
+             continue
+         b = wb.add_body(name=o["body"], pos=o["center"], quat=Rot.from_euler("z", o.get("yaw", 0.0)).as_quat(scalar_first=True))
+         b.add_freejoint()
+-        if o["kind"] == "asset":
++        if o["kind"] == "asset" or o.get("asset_pack"):
+             k = o["asset_scale"]
+             b.pos = [o["center"][0], o["center"][1], z_table - k * o["asset_zmin"] + 0.001]
++            if o.get("asset_pack"):  # CC BY pack: keep its collision parts; mass/friction from defaults/overrides
++                child, info = packs.prepare_child(o["asset_xml"], k, o["props"])
++                o.update(info)
++                fr = b.add_frame(pos=[-k * o["asset_cxy"][0], -k * o["asset_cxy"][1], 0])
++                spec.attach(child, frame=fr, prefix=o["body"] + "_")
++                continue
+             child = mujoco.MjSpec.from_file(o["asset_xml"])
+             for lt in list(child.lights):
+                 child.delete(lt)
+@@ -460,7 +520,11 @@
+             spec.attach(child, frame=fr, prefix=o["body"] + "_")
+             continue
+         gtype = mujoco.mjtGeom.mjGEOM_BOX if o["kind"] == "box" else mujoco.mjtGeom.mjGEOM_ELLIPSOID
+-        b.add_geom(type=gtype, size=o["half"], rgba=[*o["rgb"], 1], density=600, friction=[1.0, 0.005, 0.0001])
++        pr, src = o["props"], o["props_source"]
++        g = b.add_geom(type=gtype, size=o["half"], rgba=[*o["rgb"], 1], density=600,
++                       friction=pr["friction"] if src["friction"] != "default" else [1.0, 0.005, 0.0001])
++        if "mass" in pr:
++            g.mass = pr["mass"]
+     # camera: MuJoCo looks down -z with +y up; OpenCV looks down +z with +y down
+     wb.add_camera(name="ext", pos=t, quat=Rot.from_matrix(R @ np.diag([1, -1, -1])).as_quat(scalar_first=True),
+                   fovy=float(np.degrees(2 * np.arctan(H / (2 * K[1, 1])))))

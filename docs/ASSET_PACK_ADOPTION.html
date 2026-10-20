@@ -33,7 +33,7 @@ ol li,ul li{margin:.25em 0}
 <body><main>
 <h1>Adopting commercially usable asset packs for real-to-sim</h1>
 <p class="meta">2026-10-19 · session AssetPack, brief from prim · outline approved by the user 10-19 · builds on <a href="SIM_READY_ASSET_LIBRARIES.html">SIM_READY_ASSET_LIBRARIES.html</a> (res32) · scenes and <code>experiments/real2sim/</code> owned by res31</p>
-<div class="status"><b>Status: stage 1 (download) done; stage 2 (matching) done; stage 3 (redundancies) awaiting the user's decisions.</b> Living document, updated at each stage. <span class="v">[V]</span> read in a source file or listing; <span class="mm">[M]</span> measured by me; <span class="i">[I]</span> inferred. All measured numbers are exploratory and UNVERIFIED (session val is not running). Analysis scripts are throwaway, in the session scratchpad, not in the repo (user, 10-19).</div>
+<div class="status"><b>Status (10-20): stages 1–2 done; stage 3 decisions taken on recommended defaults; build_scene hook prototyped and tested in the scratchpad (§5a), proposed to res31 via prim, not applied.</b> Living document, updated at each stage. <span class="v">[V]</span> read in a source file or listing; <span class="mm">[M]</span> measured by me; <span class="i">[I]</span> inferred. All measured numbers are exploratory and UNVERIFIED (session val is not running). Analysis scripts are throwaway, in the session scratchpad, not in the repo (user, 10-19).</div>
 
 <h2>1 · Plan and order (user, 10-19)</h2>
 <ol>
@@ -107,6 +107,43 @@ ol li,ul li{margin:.25em 0}
 <li><b>Variants inside a pack:</b> Kitchen-MJCF has 6–25 models per category (922 total); GSO has some near-duplicate product entries (e.g. <code>Granimals_20_Wooden_ABC_Blocks_Wagon</code> three times with id suffixes). Retrieval needs either all variants (more choice) or one per category (faster index).</li>
 </ol>
 
+<h2>5a · Making the packs retrievable: build_scene hook (prototype)</h2>
+<p><b>Before:</b> the packs were on disk but not retrievable: <code>--assets</code> accepted only <code>libero|none</code>, the name match could not read GSO product names or Kitchen's two-level folders, the bowl was hard-coded to LIBERO's akita file, and GSO's XML sets no mass (MuJoCo's default gives a ~10 kg bowl) <span class="v">[V]</span>.</p>
+<p><b>What was built</b> (user go, 10-19 "start on that"):</p>
+<ul>
+<li><code>experiments/asset_pack/catalogue.py</code> (new, mine): pack catalogues (<code>kitchen</code> 922 models, <code>gso</code> 1,030, <code>cc</code> both = 1,952), a name match, a size check, mass/friction setup that keeps each pack's collision parts, and the property layers below.</li>
+<li><code>experiments/asset_pack/build_scene_assetpack.diff</code>: the proposed change to res31's <code>build_scene.py</code> (not applied; sent via prim). New <code>--assets kitchen|gso|cc</code> and <code>--object_props</code>; <code>libero</code> and <code>none</code> unchanged.</li>
+</ul>
+<h3>How a pack object is built</h3>
+<ul>
+<li><b>Match:</b> head noun of the detected label against Kitchen categories / GSO name words; candidates sharing the label's other words (e.g. "black") first. Weak by design until stage 4: "apple" name-matches a card game box.</li>
+<li><b>Size check:</b> both packs are metric, so a candidate needing a rescale outside 0.5–2× is the wrong object and is skipped. That is what rejects the card game for the apple.</li>
+<li><b>Bowl:</b> retrieved from the pack and scaled to the fitted rim; it keeps <code>kind="bowl"</code> so replay, make_tasks and scene_checks still find it.</li>
+<li><b>Collision:</b> the pack's own convex parts are kept (cavity stays open); visual and Kitchen "region" geoms are made massless.</li>
+<li><b>Mass/friction/scale:</b> label override &gt; <code>category:&lt;noun&gt;</code> override &gt; category default (empty until sourced) &gt; default. Default = density 500 kg/m³ × the visual mesh's convex-hull volume (build_scene's existing density for retrieved meshes), friction [0.95, 0.3, 0.1]. Every object's values and their source layer are written into <code>scene_fit.json</code>.</li>
+<li><b>No plausible mesh</b> (apple, radish; user decision 4a): fitted ellipsoid, with its footprint from the mask width (lesson 14) instead of the point spread, which made the c3 radish 0.38 m long.</li>
+</ul>
+
+<h3>Tests (scratchpad copies, CPU rendering; paired: same inputs, only <code>--assets</code> differs) <span class="mm">[M]</span></h3>
+<div class="tw"><table>
+<tr><th>Test</th><th>ep_orange_block_stereo</th><th>ep_c3 (anchor frame 212)</th></tr>
+<tr><td>Regression: patched code with <code>--assets libero</code> vs original code</td><td><code>scene.xml</code> byte-identical; original code reproduces res31's committed <code>scene_fit.json</code> exactly</td><td>—(committed c3 was built by older code; frame 212 reproduces its scale to 0.1%)</td></tr>
+<tr><td>Bowl retrieved under <code>cc</code></td><td>GSO <code>Now_Designs_Bowl_Akita_Black</code> (same scan), scale 1.06, 32 parts, 0.55 kg</td><td>same model, scale 0.80, 0.24 kg</td></tr>
+<tr><td>Apple / radish under <code>cc</code></td><td>—</td><td>no plausible pack mesh → ellipsoids</td></tr>
+<tr><td>#1 settle</td><td>PASS both (bowl 1.0 mm libero / 1.9 mm cc)</td><td>PASS both</td></tr>
+<tr><td>#3–#6</td><td>identical in both: #3 FAIL (horizontal 1.7 cm vs 1.5; res31's known marginal fail), #4–#6 PASS</td><td>FAIL in both, identically except the radish grasp height; this old c3 build predates res31's geometry fixes (rebuild in progress), so not asset-related</td></tr>
+<tr><td>#8 cavity (fixed bowl, 1 cm ball dropped at the centre; reached ÷ true depth)</td><td>open both: 1.08 libero / 1.05 cc</td><td>open both: 1.10 / 1.07</td></tr>
+<tr><td>#2 scripted expert (<code>make_tasks --variants 5</code>)</td><td><b>34/40 libero → 38/40 cc</b></td><td><b>56/65 libero → 46/65 cc</b></td></tr>
+</table></div>
+<h3>What the expert numbers mean</h3>
+<ul>
+<li><b>Bowl tasks are equal or better.</b> c3 "put the … block in the bowl": 24/25 in both. orange: all bowl tasks equal except "move the yellow block next to the bowl" 0/5 → 4/5.</li>
+<li><b>That gain is mass, not shape.</b> In both versions the expert bumps the bowl during that task; in variant 0 it moved ~9.6 cm (0.098 kg LIBERO bowl) vs ~6.8 cm (0.55 kg GSO bowl), so the heavier bowl stays within the 8 cm "next to" gap more often. Not evidence the asset is better.</li>
+<li><b>The c3 loss is entirely the apple and radish ellipsoids</b> (decision 4a): apple 5/5 → 0/5, "next to the radish" 4/5 → 0/5, "next to the apple" 5/5 → 4/5; radish was 0/5 already. The apple ellipsoid is 14.4 cm tall (height from the point spread), where the LIBERO mesh was 5.1 cm. Blocks-only tasks are within ±1.</li>
+<li><b>Mass default is a real choice:</b> "density 500 × hull volume" makes the bowls 5–6× heavier than the LIBERO bowl at the same scale. Neither number is sourced from a real bowl.</li>
+</ul>
+<p class="meta">A first <code>cc</code> run on c3 scored 10/65: only variant 0 of each task ran, because the 0.38 m radish ellipsoid left no overlap-free layout for make_tasks' randomiser. Fixed by the mask-width footprint above; <code>--assets none</code> has the same defect (not changed; for res31). Early runs used EGL (GPU) rendering for build/replay before I switched everything to osmesa (CPU). Scripts: <code>scripts/run_scene.sh</code>, <code>run_all.sh</code>, <code>run_c3.sh</code>, <code>cavity_check.py</code>; outputs under <code>runs/</code> in the scratchpad. UNVERIFIED.</p>
+
 <h2>6 · Stage 4: retrieval</h2>
 <p class="nc">Not started.</p>
 
@@ -116,6 +153,9 @@ ol li,ul li{margin:.25em 0}
 <li>10-19 · mass/friction/scale: our category defaults, user-overridable per scene (label beats category beats default), recorded in <code>scene_fit.json</code>.</li>
 <li>10-19 · Kitchen-MJCF objects (0.79 GB) and full GSO-MJCF (1.95 GB) downloads approved.</li>
 <li>10-19 · throwaway analysis scripts in the scratchpad are fine; repo code still needs a go.</li>
-<li>10-19 · stages 1–2 done; stage 3 decisions pending with the user.</li>
+<li>10-19 · stages 1–2 done (commit 539d436).</li>
+<li>10-19 · apple/radish: ellipsoids now (a), YCB later (b; size to check before download).</li>
+<li>10-19 · "start on" making packs retrievable; stage-3 decisions 1–3 taken on my recommendations (GSO copy of duplicate scans, <code>cc</code> without LIBERO-Plus, index all variants) pending the user's explicit answer.</li>
+<li>10-20 · hook prototyped and tested (§5a); diff sent to prim for res31; open: bowl mass default, ellipsoid height.</li>
 </ul>
 </main></body></html>
