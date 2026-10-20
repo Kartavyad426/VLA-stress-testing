@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Handoff 20 Oct</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 20 October</h1>
+  <p class="stand">Covers 16–20 Oct (almost all the work is from 10-19). Writers: <b>prim</b> (state at a glance and the prim section) and <b>AssetPack</b> (its own section). Other sessions' work is summarised by prim from commits and messages. Internal doc, so it is written as a decision log (user preference, 10-19). Previous: <a href="HANDOFF_2026-10-15.html">HANDOFF_2026-10-15.html</a>. Live trackers: <a href="../Decision_28Sep.html">Decision_28Sep</a>, <a href="../../PIPELINE_CHECKS.md">PIPELINE_CHECKS.md</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-20</span><span>HEAD at creation: <code>6325f2b</code> (main) · <code>dae447a</code> (exp/dmp-poc) · <code>7fe5c00</code> (exp/root-signals) · <code>d2d8a49</code> (exp/scripted-expert)</span></div>
+</header>
+
+<section class="check" id="state">
+  <h2>State at a glance <span class="small">(filled 2026-10-20 by prim)</span></h2>
+  <ul>
+    <li><span class="box">·</span><span><b>Power and disk:</b> AC on. GPU idle (only vst, 86 MiB). Disk 229 GB free.</span><span class="who">prim</span></li>
+    <li><span class="box">·</span><span><b>LIBERO-MAX smoke4 FAILED (10-20 ~11:30):</b> every rollout in the 4 units errored with <code>'function' object has no attribute '__modality__'</code>. The two restore-check units then found no <code>rollouts.jsonl</code>. impl2 has not reported it yet. <b>Lite is not launched</b> and stays on hold.</span><span class="who">impl2 · prim</span></li>
+    <li><span class="box">·</span><span><b>Git:</b> main has <b>23 unpushed commits</b> (origin at ab238e5). exp/dmp-poc (dae447a) is not pushed either. The user pushes.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>No checker is running.</b> Every new number below is UNVERIFIED. The user plans a checker session (restart val or a new one) for the retraining work.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>prim:</b> housekeeping only (routing, commits, GPU gate, status, decisions). It also holds the tasks of ended sessions until the user hands them on (prim §5).</span><span class="who">prim</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#assetpack">AssetPack</a></li></ol></nav>
+
+<section class="sess" id="prim">
+  <h2>prim <span class="small">(filled 2026-10-20 by prim)</span></h2>
+  <p class="lead"><span class="owner">owner: prim</span> · Orchestrator and housekeeping: routing between sessions, all commits (never push), the GPU gate, status, decision tracking.</p>
+
+  <h3>1 · Rules in force (new since 10-15 in bold)</h3>
+  <ul class="tight">
+    <li>prim owns commits; run commits are metadata only (json/log/html/py, small jpg; never npz/mp4); never push. Ask the user before doc or code changes. impl-type sessions implement; prim doesn't edit code. No subagents. Deliverables are local HTML, never published.</li>
+    <li>New numeric code is checked by a checker session; its numbers are UNVERIFIED until it passes them. Never be cryptic. No guessing: check first.</li>
+    <li><b>Every run pre-registration and GPU request states the disk: needed, free now, left after</b> (user, 10-19).</li>
+    <li><b>Each session presents its outline to the user in its own terminal and waits for approval there.</b></li>
+    <li><b>Internal docs are written as decision logs</b> (trigger, options, the user's decision, outcome, directions opened) (user, 10-19, via res31).</li>
+    <li><b>prim is the temporary owner of ended sessions' tasks</b> until the user hands them on (user, 10-19).</li>
+    <li>Kept local, never committed: <code>docs/R042_WRIST_MATHS.pdf</code>; the user's <code>tmp.json</code> line in .gitignore.</li>
+  </ul>
+
+  <h3>2 · Sessions</h3>
+  <div class="tbl"><table>
+    <tr><th>Session</th><th>Task</th><th>State 10-20</th></tr>
+    <tr><td>res31</td><td>Real-to-sim (DROID episodes → MuJoCo scenes, GR00T-DROID in sim).</td><td>Wrist-render fault fully explained (§3). Plan for a deployable fix awaits the user's go; its GPU parts run after Lite.</td></tr>
+    <tr><td>impl2</td><td>LIBERO-MAX (Lite run: 800 pairs, 4 suites, Plus + PRO).</td><td>smoke4 failed (state above). Lite on hold.</td></tr>
+    <tr><td>AssetPack</td><td>Adopting CC BY asset packs (Kitchen-MJCF, GSO) into real2sim scenes.</td><td>Retrieval prototype committed (6325f2b); build_scene diff held for the user. Writes its own section below.</td></tr>
+    <tr><td>DMP</td><td>DMP corrective-demo PoC, taken over from impl21 (worktree <code>../VLA-exp-dmp-poc</code>).</td><td>Code on exp/dmp-poc (dae447a). Waiting on user decisions a–d (§4).</td></tr>
+    <tr><td>scripted</td><td>Scripted-expert source of corrective demos, kept separate from DMP for comparison (worktree <code>../VLA-exp-scripted</code>).</td><td>Outline presented; waiting on user decisions D1–D8.</td></tr>
+    <tr><td>NH</td><td>New horizons survey (docs/NEW_HORIZONS.html, 6a264f6) and review of the training code.</td><td>Done; the retraining scope it proposed is approved and needs two new sessions (§4).</td></tr>
+    <tr><td>re412</td><td>10-19: REAL_TO_SIM_EVAL_VALIDITY (370fd46). 10-20: broad lit review on VLM + telemetry labelling.</td><td>Brief sent 10-20; outline to the user next.</td></tr>
+    <tr><td>vla-cd</td><td>Unknown to prim.</td><td>Role not recorded; asked the user.</td></tr>
+    <tr><td>Ended</td><td>impl, impl21, res, res21, res32, brain, papers, runtime, val.</td><td>Held items in §5.</td></tr>
+  </table></div>
+
+  <h3>3 · Decision log, 16–20 Oct</h3>
+  <div class="tbl"><table>
+    <tr><th>When</th><th>Trigger</th><th>Decision</th><th>Outcome</th></tr>
+    <tr><td>10-19</td><td>res31 outline P0–P7</td><td>User approved; then "G2 first" (order P1 → P6 → G2 → P2–P5). prim's reversible defaults: keep *_stereo dirs, radish out of the eval set, res31's thresholds (1.5 cm grasp, 2 cm settle, 1 cm tracking).</td><td>P0, P1, P6, P2, P4 committed (b783f5f, df2cc9f, 18dcde5, 7469cb2, fde6ff4).</td></tr>
+    <tr><td>10-19</td><td>Does GR00T-DROID work in our sim?</td><td>GPU runs G1, G2, slot A approved.</td><td>G1: interface fine. G2: grasps and lifts, 0/2 placed. Slot A: 4/33 success (reached 32, closed 17, lifted 11, placed 4). Early release is the policy's own (also on real frames; 816e510).</td></tr>
+    <tr><td>10-19</td><td>Why does GR00T approach low and tilted in sim?</td><td>Grasp comparison, then image swaps G3 and G4.</td><td>fae4e50, fd011a2, e6f2f5e: the sim wrist render makes GR00T plan ~4 cm lower; the projected table texture drives most of it.</td></tr>
+    <tr><td>10-19 eve</td><td>User: "build wrist from wrist camera"</td><td>G5 approved.</td><td>250eeae: real table pixels recover 2.5 of 3.9 cm; the static texture from the wrist video only 0.8 cm.</td></tr>
+    <tr><td>10-19 eve</td><td>User: "go with g6"</td><td>G6 ladder approved.</td><td>ae72101: gap fully explained: light/shadow on the table 2.2 cm, gripper look 1.1 cm, camera effects 0.5 cm; objects and compression none. Root cause: the sim camera is an ideal pinhole. Write-up: docs/SIM_FIXES.html (ba57d92, 0abf0eb, c6076de).</td></tr>
+    <tr><td>10-19</td><td>c3 scene calibration</td><td>Anchor fix tried.</td><td>a36c6eb: table error 5.4 → 0.08 cm but robot-outline IoU 0.40 → 0.35; not accepted.</td></tr>
+    <tr><td>10-19</td><td>LIBERO-MAX smoke3 restore check FAILED</td><td>Fix (obs_sim_states; robosuite samples obs at substep 1 of 25). User approved A (--query-px 360) and B (--every-step-px 256). Lite overnight only, on prim's go; deletion mechanism deferred to launch time.</td><td>adf6347 (fixes, not run). smoke4 run 10-20 failed (state above).</td></tr>
+    <tr><td>10-19</td><td>NH review of the training code (b476c19)</td><td>User approved the retraining-generalisation scope: 1 checker pass; 2 config; 3 LoRA scopes; 4 converters (after DMP/scripted formats settle); 5 recipe switches; 6 eval improvements; 7 tests. Order 1 → 2+3 → 5+6 → 4.</td><td>Needs an implementer and a checker session (§4).</td></tr>
+    <tr><td>10-19</td><td>re412: is real-to-sim eval valid?</td><td>—</td><td>370fd46: rankings only, under scan/visual/sysid/matched-init conditions; our scenes don't qualify. RoboArena-paired validation proposed (open).</td></tr>
+    <tr><td>10-19</td><td>Docs left uncommitted</td><td>User: commit any docs left.</td><td>860bee6 (unreviewed drafts), d2d8a49 (README to 10-19).</td></tr>
+    <tr><td>10-19/20</td><td>AssetPack stages</td><td>Order download → match → redundancies → retrieval.</td><td>539d436, 6325f2b. Details in AssetPack's section.</td></tr>
+    <tr><td>10-20</td><td>VLM + telemetry labeller (E7 had no usable result)</td><td>User: "lit review mostly, broader ones maybe we can take elements from some of them".</td><td>Brief sent to re412: research only, ranked "elements to adopt".</td></tr>
+  </table></div>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>Retraining sessions:</b> names for the implementer (steps 2–7) and the checker (step 1).</li>
+    <li><b>LIBERO-MAX:</b> smoke4 failure to be diagnosed by impl2; then the deletion question at Lite launch.</li>
+    <li><b>DMP a–d:</b> (a) order (prim: read the code, then T4); (b) roots (prim: both); (c) workers (prim: 8, or 4 if overlapping Lite); (d) the user's "clever trick" for demo search.</li>
+    <li><b>scripted D1–D8</b> (prim on D3: import DMP code pinned at dae447a, no cherry-pick onto main).</li>
+    <li><b>res31:</b> the deployable wrist-fix plan (real-gripper library, render the light/shadow, then the orange batch re-run); slot B (c3 sweep ~50 min). GPU after Lite.</li>
+    <li><b>AssetPack:</b> send the build_scene diff and bugs (a) radish 0.38 m, (b) replay.py default target on c3 to res31? Stage 3 redundancies.</li>
+    <li><b>re412:</b> RoboArena-paired validation.</li>
+    <li><b>NH:</b> owners for the §1 cut-rule replay and §3 audit backtest (CPU ~2–3 days each).</li>
+    <li>vla-cd's role. The push (23 commits on main, plus exp/dmp-poc).</li>
+  </ul>
+
+  <h3>5 · Held by prim for ended sessions</h3>
+  <ul class="tight">
+    <li>res32's licence audit: LICENCE_AUDIT_COMMERCIAL.html was never written (incl. GR00T N1.7 weights vs code licence).</li>
+    <li>impl's root-signals worktree (<code>../VLA-exp-rootsignals</code>): ~480 uncommitted entries, held for a checker.</li>
+    <li>val's checks: everything since 10-09 is UNVERIFIED.</li>
+  </ul>
+
+  <h3>6 · Incidents and lessons</h3>
+  <ul class="tight">
+    <li>dae447a's message says "D_backup kept 0"; t3/results.json says 1/3 in every arm (totals DMP 10/15, linear 7/15). Left unamended; noted here.</li>
+    <li>AssetPack's first two scene builds rendered on the GPU (EGL) outside the flock for a few minutes; no clash. Told: any GPU use comes to prim first.</li>
+  </ul>
+</section>
+
+<section class="sess" id="assetpack">
+  <h2>AssetPack <span class="small">(filled 2026-10-20 11:39 by AssetPack)</span></h2>
+  <p class="lead"><span class="owner">owner: AssetPack</span> · Which open, commercially usable sim-ready asset packs can enhance res31's real-to-sim scenes, and how to adopt them. Main doc: <a href="../ASSET_PACK_ADOPTION.html">ASSET_PACK_ADOPTION.html</a>; builds on <a href="../SIM_READY_ASSET_LIBRARIES.html">SIM_READY_ASSET_LIBRARIES.html</a> (res32). All measured numbers are <b>UNVERIFIED</b> (val not running).</p>
+
+  <h3>State in one paragraph</h3>
+  <p>Two commercially usable packs are downloaded: Kitchen-MJCF and Google Scanned Objects (GSO) in MJCF. Our bowl turned out to be a Google Scanned Object already. A retrieval hook is prototyped: a new <code>catalogue.py</code> plus a <b>proposed</b> build_scene change. The change is not applied; prim holds it until the user decides. In tests on both scenes, the pack bowl works as well as the LIBERO one. The only losses come from the apple/radish fallback (ellipsoids). Five decisions are open.</p>
+
+  <h3>What I was asked</h3>
+  <p>Brief from prim, 10-19: the LIBERO-Plus objects in ep_orange_block / ep_c3 look like BEHAVIOR-1K assets (non-commercial). Find CC-licensed packs that can replace or extend them and plan the adoption. Outline first, in my own terminal.</p>
+  <ul class="tight">
+    <li>Ask before any code/doc change or download; anything over 1 GB needs explicit approval.</li>
+    <li>res31's files only through prim; prim commits.</li>
+    <li>Any EGL/GPU use goes to prim first (prim, 10-20).</li>
+    <li>No subagents.</li>
+  </ul>
+
+  <h3>Decision log</h3>
+  <div class="tbl"><table>
+    <tr><th>Stage</th><th>Options put to the user</th><th>User's decision</th><th>Outcome</th></tr>
+    <tr><td>0 · Outline (10-19)</td><td>Adopt Kitchen-MJCF + GSO first; plug in via a new <code>--assets</code> value; name match first, image index later; mass/friction/scale defaults; replace bowl/apple/radish; verify with checklist #1, #2, #8.</td><td>"Approved for most part"; order <b>download → match → redundancies → retrieval (optimise)</b>; ask before code or permanent changes; keep it revertible; prim commits at each stage. Mass etc. user-adjustable, our defaults otherwise.</td><td>Property layers: label &gt; category override &gt; category default &gt; default, recorded in <code>scene_fit.json</code>.</td></tr>
+    <tr><td>1 · Download</td><td>Kitchen-MJCF objects 0.79 GB. GSO-MJCF 1.95 GB (over the limit): (a) all, (b) ~60 relevant models.</td><td>"download all"; throwaway scratchpad scripts OK without asking; keep the asset-pack HTML updated.</td><td>Both in <code>data/real2sim/asset_packs/</code> (gitignored, 4.1 GB). Licences re-read in the packs' own files: Kitchen CC BY 4.0; GSO meshes CC BY 4.0, XML MIT.</td></tr>
+    <tr><td>2 · Match against existing</td><td>—</td><td>—</td><td><b>8 of LIBERO's 10 "scanned objects" are GSO scans</b>, including the <code>akita_black_bowl</code> both scenes use (same texture, same size to 0.1 mm), so its mesh is CC BY 4.0. Up to 276 of 416 LIBERO-Plus categories have a pack counterpart (crude upper bound). Neither pack has an apple or radish. <code>539d436</code>.</td></tr>
+    <tr><td>3 · Redundancies</td><td>(1) GSO vs LIBERO copy of the 8 duplicates; (2) <code>cc</code> without LIBERO-Plus; (3) index all variants or one per category; (4) apple/radish: (a) ellipsoids, (b) YCB, (c) GSO toy-food sets.</td><td>"a and b" (read as 4: ellipsoids now, YCB later after a size check). Then "start on" making the packs retrievable. 1–3 not answered; <b>my recommendations used as defaults</b>: GSO copy, <code>cc</code> without LIBERO-Plus, all variants.</td><td>Retrieval hook (next row).</td></tr>
+    <tr><td>3a · Retrieval hook</td><td>—</td><td>"start on that"</td><td><code>experiments/asset_pack/catalogue.py</code> + proposed <code>build_scene_assetpack.diff</code>, tested in scratchpad copies on CPU. <code>6325f2b</code>.</td></tr>
+  </table></div>
+
+  <h3>Results of the hook <span class="small">(UNVERIFIED; paired builds, only <code>--assets libero</code> vs <code>cc</code> differ)</span></h3>
+  <ul class="tight">
+    <li><b>Regression:</b> with <code>--assets libero</code>, scene.xml is byte-identical to the original code. The original code reproduces res31's committed ep_orange_block_stereo <code>scene_fit.json</code> exactly.</li>
+    <li><b>Bowl under <code>cc</code>:</b> GSO <code>Now_Designs_Bowl_Akita_Black</code> (the same scan), 32 collision parts.</li>
+    <li><b>#1 settle:</b> passes in both versions.</li>
+    <li><b>#8 cavity:</b> open in both (ball depth ÷ true depth 1.05–1.10).</li>
+    <li><b>#3–#6:</b> identical between the two versions.</li>
+    <li><b>#2 scripted expert:</b>
+      <ul class="tight">
+        <li>orange <b>34/40 → 38/40</b>. This is a bowl-mass effect (0.55 vs 0.098 kg: the bumped bowl moves less), not asset quality.</li>
+        <li>c3 <b>56/65 → 46/65</b>. All of the loss is the apple/radish ellipsoids (apple ellipsoid 14.4 cm tall vs mesh 5.1 cm). Bowl tasks are equal, 24/25.</li>
+      </ul></li>
+    <li><b>Bug found:</b> the ellipsoid fallback sized from the point spread made the c3 radish 0.38 m long, which blocked make_tasks' randomiser (first run 10/65). Fixed in pack mode; <code>--assets none</code> still has it (finding a).</li>
+  </ul>
+
+  <h3>Committed, held, and where things live</h3>
+  <div class="tbl"><table>
+    <tr><th>Item</th><th>Where</th><th>State</th></tr>
+    <tr><td>Asset packs (4.1 GB)</td><td><code>data/real2sim/asset_packs/kitchen_mjcf/</code>, <code>data/real2sim/asset_packs/gso_mjcf/src/</code></td><td>gitignored; delete the folder to revert</td></tr>
+    <tr><td>Main doc, stages 1–2</td><td><code>docs/ASSET_PACK_ADOPTION.html</code></td><td><code>539d436</code></td></tr>
+    <tr><td>Doc §5a + catalogue + proposed diff</td><td><code>experiments/asset_pack/catalogue.py</code>, <code>experiments/asset_pack/build_scene_assetpack.diff</code></td><td><code>6325f2b</code></td></tr>
+    <tr><td>Test scripts + small results</td><td><code>experiments/asset_pack/tests/</code> (matching, <code>run_scene.sh</code>/<code>run_all.sh</code>/<code>run_c3.sh</code>, <code>cavity_check.py</code>); <code>runs/asset_pack/</code> (scene_fit, scene_checks, replay_metrics, cavity_check, tasks_summary, logs; 296 KB)</td><td><code>f19636c</code></td></tr>
+    <tr><td><b>Held:</b> applying the build_scene diff</td><td>prim, for res31</td><td>waits on the user (decision 1)</td></tr>
+    <tr><td><b>Held:</b> finding (a) <code>--assets none</code> ellipsoid sizing; (b) replay.py default <code>--target orange_block</code> fails on c3</td><td>prim, for res31</td><td>waits on the user</td></tr>
+    <tr><td>Not kept</td><td>scratchpad: 613 MB of scene builds, replay/expert videos and states</td><td>gone with the session; regenerate with the scripts</td></tr>
+  </table></div>
+
+  <h3>Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>1. Apply the build_scene change?</b> res31 applies it, via prim.</li>
+    <li><b>2. Bowl mass:</b> keep the default (density 500 × hull volume: 0.24–0.55 kg here), use the LIBERO bowl's mass, or a sourced real-bowl mass?</li>
+    <li><b>3. Apple/radish:</b> (a) cap the ellipsoid height at its width, (b) bring YCB forward (size unchecked), or both?</li>
+    <li><b>4. Stage-3 redundancies 1–3:</b> confirm or change the defaults I used.</li>
+    <li><b>5. Stage 4, image index:</b> go? Plan:
+      <ul class="tight">
+        <li>render ~8 views per pack model on CPU;</li>
+        <li>embed with CLIP/DINOv2 (<code>transformers</code>, already in <code>.venvs/real2sim</code>);</li>
+        <li>query with the perception mask crop, combined with the label match and the metric size check;</li>
+        <li>optimise: dedupe variants, cache embeddings, pre-filter by size.</li>
+      </ul></li>
+    <li><b>Also open:</b> Kitchen-MJCF fixtures (0.53 GB) not downloaded. Licences of LIBERO's own collision boxes, HOPE and TurboSquid objects not checked. The full commercial licence audit was not taken on.</li>
+  </ul>
+
+  <h3>How a new session resumes</h3>
+  <ul class="tight">
+    <li>Read <a href="../ASSET_PACK_ADOPTION.html">ASSET_PACK_ADOPTION.html</a> §5a and this section; ask prim which decisions the user has taken.</li>
+    <li>Recreate the test copy: copy <code>experiments/real2sim/build_scene.py</code> to a scratch <code>patch/build_scene_orig.py</code> and apply <code>build_scene_assetpack.diff</code> to get <code>build_scene.py</code>. Then make <code>build_scene_test.py</code> from it by replacing the <code>REPO = …</code> line with the repo path and adding <code>experiments/real2sim</code> to <code>sys.path</code>. Rebase the diff if res31 changed build_scene after <code>6325f2b</code>.</li>
+    <li>Repoint <code>S=</code> in <code>experiments/asset_pack/tests/*.sh</code> and the paths in <code>cavity_check.py</code> to the new scratchpad.</li>
+    <li>Run <code>run_scene.sh &lt;ep_orange_block_stereo|ep_c3&gt; &lt;libero|cc&gt; [build args]</code>, then <code>make_tasks.py --scene &lt;dir&gt;:data/real2sim/droid/&lt;ep&gt; --variants 5</code>.
+      <ul class="tight">
+        <li>orange: <code>--depth stereo</code>.</li>
+        <li>c3: <code>--anchor_frame 212</code> and <code>REPLAY_TARGET=toy_block_2</code> (res31's rebuild may change both).</li>
+        <li>About 10–15 min per scene and variant on CPU.</li>
+      </ul></li>
+    <li><b>Always <code>MUJOCO_GL=osmesa PYOPENGL_PLATFORM=osmesa</code>.</b> EGL is GPU and needs prim's gate.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>
