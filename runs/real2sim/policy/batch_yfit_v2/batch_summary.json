@@ -1,0 +1,174 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo_yfit:data/real2sim/droid/ep_orange_block",
+ "tasks": "runs/real2sim/tasks_stereo_yfit",
+ "policy": "groot",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "layouts_from": "runs/real2sim/policy/batch_orange_stereo_v2",
+ "only": [],
+ "seconds": 30.0,
+ "trivial_excluded": [],
+ "total": {
+  "n": 9,
+  "success": 3,
+  "reached": 9,
+  "closed_at_target": 8,
+  "lifted": 8,
+  "placed": 3,
+  "blocked": 1,
+  "errors": 0
+ },
+ "by_task": {
+  "put the yellow block in the bowl": {
+   "type": "put_in_bowl",
+   "n": 4,
+   "success": 3,
+   "reached": 4,
+   "closed_at_target": 3,
+   "lifted": 3,
+   "placed": 3,
+   "blocked": 1,
+   "errors": 0
+  },
+  "stack the orange block on the yellow block": {
+   "type": "stack",
+   "n": 5,
+   "success": 0,
+   "reached": 5,
+   "closed_at_target": 5,
+   "lifted": 5,
+   "placed": 0,
+   "blocked": 0,
+   "errors": 0
+  }
+ },
+ "episodes": [
+  {
+   "task": "put the yellow block in the bowl",
+   "type": "put_in_bowl",
+   "variant": 0,
+   "success": true,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": true
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.24666666666666667
+  },
+  {
+   "task": "put the yellow block in the bowl",
+   "type": "put_in_bowl",
+   "variant": 1,
+   "success": true,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": true
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.16444444444444445
+  },
+  {
+   "task": "put the yellow block in the bowl",
+   "type": "put_in_bowl",
+   "variant": 2,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": false,
+    "lifted": false,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.10666666666666667
+  },
+  {
+   "task": "put the yellow block in the bowl",
+   "type": "put_in_bowl",
+   "variant": 3,
+   "success": true,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": true
+   },
+   "blocked": true,
+   "gripper_closed_frac": 0.10888888888888888
+  },
+  {
+   "task": "stack the orange block on the yellow block",
+   "type": "stack",
+   "variant": 0,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.4444444444444444
+  },
+  {
+   "task": "stack the orange block on the yellow block",
+   "type": "stack",
+   "variant": 1,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.28444444444444444
+  },
+  {
+   "task": "stack the orange block on the yellow block",
+   "type": "stack",
+   "variant": 2,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.14
+  },
+  {
+   "task": "stack the orange block on the yellow block",
+   "type": "stack",
+   "variant": 3,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.27111111111111114
+  },
+  {
+   "task": "stack the orange block on the yellow block",
+   "type": "stack",
+   "variant": 4,
+   "success": false,
+   "stages": {
+    "reached": true,
+    "closed_at_target": true,
+    "lifted": true,
+    "placed": false
+   },
+   "blocked": false,
+   "gripper_closed_frac": 0.36444444444444446
+  }
+ ],
+ "status": "exploratory, UNVERIFIED"
+}

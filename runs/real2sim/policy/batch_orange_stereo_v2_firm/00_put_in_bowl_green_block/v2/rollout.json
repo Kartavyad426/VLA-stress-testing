@@ -1,0 +1,83 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "green_block",
+  "ref": "black_bowl",
+  "text": "put the green block in the bowl"
+ },
+ "instruction": "put the green block in the bowl",
+ "variant": 2,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 2,
+ "layout_rng_seed": 2002,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": true,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 7.4049272537231445,
+ "infer_s_median": 0.40581440925598145,
+ "wall_s": 119.54221153259277,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.27477743015289313,
+ "gripper_closed_frac": 0.28888888888888886,
+ "final_target_xyz": [
+  0.6233822384312909,
+  -0.24996057508233907,
+  -0.06653447035710286
+ ],
+ "final_ref_xyz": [
+  0.6399765053302219,
+  -0.2956461942095468,
+  -0.09692844266839232
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "firm",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": true,
+  "first_step": {
+   "reached": 38,
+   "closed_at_target": 79,
+   "lifted": 85
+  },
+  "min_dist_to_target_m": 0.017360526379582134,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.08613368008754581,
+  "median_err_m": 0.015993004973084562,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 378,
+    "steps": 28,
+    "mean_err_m": 0.03696446394881842,
+    "mean_dz_cmd_minus_ach_m": -0.01731827645255014
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

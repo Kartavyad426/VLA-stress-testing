@@ -112,6 +112,12 @@ class Compositor:
             for g in range(m.ngeom):
                 if m.body(m.geom_bodyid[g]).name == body and m.geom_rgba[g, 3] > 0:
                     m.geom_rgba[g, :3] = rgb
+        # per-body render colours set by hand (refit_block.py --render_rgb, 10-23), applied over the real medians
+        ov = os.path.join(out, "render_colour_overrides.json")
+        for body, rgb in (json.load(open(ov)).items() if os.path.exists(ov) else ()):
+            for g in range(m.ngeom):
+                if m.body(m.geom_bodyid[g]).name == body and m.geom_rgba[g, 3] > 0:
+                    m.geom_rgba[g, :3] = rgb
         # light fitted to the real robot's shadow (calibrate_light.py), if available
         self.light = None
         if os.path.exists(os.path.join(out, "light.json")):

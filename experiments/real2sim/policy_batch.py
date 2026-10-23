@@ -24,6 +24,10 @@ def main():
     ap.add_argument("--tasks_seed", type=int, default=0, help="make_tasks --seed the task set was generated with. 10-20 fix: the "
                     "per-variant json's 'seed' is the FULL rng seed (seed*1000 + task*100 + variant); passing it as --seed made "
                     "every variant > 0 a different layout from the one the expert solved (slot A and D2 were affected)")
+    ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene", help="passed to policy_rollout")
+    ap.add_argument("--layouts_from", default=None, help="batch dir whose episodes' recorded --seed is reused per episode, so a "
+                    "new batch plays exactly the layouts of that one (10-23: pairs a firm-grip batch with the pre-fix D2 batch)")
+    ap.add_argument("--only", action="append", default=[], help="run only tasks whose instruction contains this (repeatable)")
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--exclude", action="append", default=[], help="skip tasks whose instruction contains this (e.g. radish)")
     ap.add_argument("--trivial_from", default=None, help="batch_summary.json of a --policy hold run: skip variants a do-nothing "
@@ -40,7 +44,7 @@ def main():
         trivial = {(e["task"], e["variant"]) for e in json.load(open(a.trivial_from))["episodes"] if e.get("success")}
     rows = []
     for t in summary:
-        if any(x in t["task"] for x in a.exclude):
+        if any(x in t["task"] for x in a.exclude) or (a.only and not any(x in t["task"] for x in a.only)):
             continue
         for vf in sorted(glob.glob(os.path.join(a.tasks, t["dir"], "v*.json"))):
             v = json.load(open(vf))
@@ -51,11 +55,19 @@ def main():
                 continue
             ep_dir = os.path.join(a.out, os.path.basename(t["dir"]), f"v{v['variant']}")
             rj = os.path.join(ep_dir, "rollout.json")
+            seed = a.tasks_seed
+            if a.layouts_from:
+                src = os.path.join(a.layouts_from, os.path.basename(t["dir"]), f"v{v['variant']}", "rollout.json")
+                if not os.path.exists(src):
+                    print(f"skip {t['task']} v{v['variant']}: not in {a.layouts_from}", flush=True)
+                    continue
+                seed = json.load(open(src)).get("seed", v.get("seed", 0))  # pre-fix batches (slot A, D2) passed the json's seed
             if not os.path.exists(rj):
                 t0 = time.time()
                 cmd = [sys.executable, os.path.join(HERE, "policy_rollout.py"), "--scene", a.scene, "--task", t["task"],
-                       "--variant", str(v["variant"]), "--seed", str(a.tasks_seed), "--out", ep_dir,
-                       "--policy", a.policy, "--seconds", str(a.seconds), "--wrist_render", a.wrist_render]
+                       "--variant", str(v["variant"]), "--seed", str(seed), "--out", ep_dir,
+                       "--policy", a.policy, "--seconds", str(a.seconds), "--wrist_render", a.wrist_render,
+                       "--grip_physics", a.grip_physics]
                 p = subprocess.run(cmd, capture_output=True, text=True)
                 if p.returncode != 0:
                     print(f"FAILED to run {t['task']} v{v['variant']}: rc {p.returncode}\n{p.stderr[-1500:]}", flush=True)
@@ -79,7 +91,7 @@ def main():
             bt[k] += int(bool(r["stages"] and r["stages"][k]))
         bt["blocked"] += int(bool(r["blocked"]))
     tot = {k: sum(b[k] for b in by_task.values()) for k in ("n", "success", "reached", "closed_at_target", "lifted", "placed", "blocked", "errors")}
-    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, wrist_render=a.wrist_render, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
+    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, wrist_render=a.wrist_render, grip_physics=a.grip_physics, layouts_from=a.layouts_from, only=a.only, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
                    status="exploratory, UNVERIFIED"), open(os.path.join(a.out, "batch_summary.json"), "w"), indent=1)
     print("TOTAL", json.dumps(tot))
     for k, b in by_task.items():

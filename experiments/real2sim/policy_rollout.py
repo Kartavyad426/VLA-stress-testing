@@ -180,6 +180,9 @@ def main():
     ap.add_argument("--wrist_render", choices=["v1", "v2"], default="v1",
                     help="v1: WristCompositor (default, as all runs before 10-20); v2: WristRenderV2 = wrist-video table texture "
                          "+ real-gripper library + render-and-shrink + wrist-fitted light (needs <scene>/gripper_lib, light_wrist.json)")
+    ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene",
+                    help="firm (10-23, the closed-loop version of placement_analysis --grip_physics firm): finger pads condim 4 + "
+                         "torsional friction 0.02 + sliding 1.0, elliptic cone, impratio 10; scene = Menagerie defaults as built")
     a = ap.parse_args()
     if a.serve:
         return serve(a.ckpt, a.device)
@@ -193,6 +196,13 @@ def main():
 
     sdir, edir = a.scene.split(":")
     m = mujoco.MjModel.from_binary_path(os.path.join(sdir, "scene.mjb"))
+    if a.grip_physics == "firm":  # same settings as placement_analysis.py --grip_physics firm
+        for g in range(m.ngeom):
+            if "pad" in m.body(m.geom_bodyid[g]).name:
+                m.geom_condim[g] = 4
+                m.geom_friction[g] = [1.0, 0.02, 0.0001]
+        m.opt.cone = mujoco.mjtCone.mjCONE_ELLIPTIC
+        m.opt.impratio = 10.0
     fit = json.load(open(os.path.join(sdir, "scene_fit.json")))
     tasks = scene_tasks(m, fit)
     hits = [i for i, t in enumerate(tasks) if a.task in t["text"]]
@@ -322,7 +332,7 @@ def main():
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                final_target_xyz=d.xpos[m.body(task["target"]).id].tolist(), final_ref_xyz=d.xpos[m.body(task["ref"]).id].tolist(),
                wrist_view=("WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)" if a.wrist_render == "v2"
-                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, exterior_view="composite (cleaned real plate + sim)",
+                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, grip_physics=a.grip_physics, exterior_view="composite (cleaned real plate + sim)",
                status="exploratory, UNVERIFIED", **diag)
     np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
                         pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd),

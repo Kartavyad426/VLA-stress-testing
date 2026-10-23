@@ -1,0 +1,25 @@
+{
+ "scene": "ep_orange_block_stereo_yfit",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "yellow_block",
+  "ref": "black_bowl",
+  "text": "put the yellow block in the bowl"
+ },
+ "instruction": "put the yellow block in the bowl",
+ "variant": 3,
+ "seed": 203,
+ "success": true,
+ "steps": 164,
+ "final_target_xyz": [
+  0.6652804404038537,
+  -0.2907352773180103,
+  -0.072496939174928
+ ],
+ "final_ref_xyz": [
+  0.6667612124380928,
+  -0.28712755382654426,
+  -0.09692730674662506
+ ],
+ "note": "10-23: v json of runs/real2sim/tasks_stereo (its 'seed' is what D2's pre-fix batch passed); success = scripted expert on that played layout in ep_orange_block_stereo_yfit (runs/real2sim/tasks_stereo_yfit_played/seed203)"
+}

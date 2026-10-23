@@ -1,0 +1,25 @@
+{
+ "scene": "ep_orange_block_stereo_yfit",
+ "task": {
+  "type": "stack",
+  "target": "orange_block",
+  "ref": "yellow_block",
+  "text": "stack the orange block on the yellow block"
+ },
+ "instruction": "stack the orange block on the yellow block",
+ "variant": 0,
+ "seed": 400,
+ "success": true,
+ "steps": 164,
+ "final_target_xyz": [
+  0.5715364104046151,
+  0.0247368198508553,
+  -0.053053245526902514
+ ],
+ "final_ref_xyz": [
+  0.5738817666524201,
+  0.028481602934843343,
+  -0.0819754454135613
+ ],
+ "note": "10-23: v json of runs/real2sim/tasks_stereo (its 'seed' is what D2's pre-fix batch passed); success = scripted expert on that played layout in ep_orange_block_stereo_yfit (runs/real2sim/tasks_stereo_yfit_played/seed400)"
+}

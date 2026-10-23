@@ -1,0 +1,101 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "stack",
+  "target": "orange_block",
+  "ref": "yellow_block",
+  "text": "stack the orange block on the yellow block"
+ },
+ "instruction": "stack the orange block on the yellow block",
+ "variant": 3,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 403,
+ "layout_rng_seed": 403403,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.765185832977295,
+ "infer_s_median": 0.18602967262268066,
+ "wall_s": 84.83756804466248,
+ "vram": {
+  "vram_alloc_gib": 6.017563343048096,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.27499653682708747,
+ "gripper_closed_frac": 0.06666666666666667,
+ "final_target_xyz": [
+  0.6714985715327911,
+  0.00738086083864855,
+  -0.07095624146347425
+ ],
+ "final_ref_xyz": [
+  0.557094834219032,
+  0.03354347580561352,
+  -0.08175453321480176
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "firm",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": 164,
+   "closed_at_target": 173,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.003518224951704249,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.07857887204217952,
+  "median_err_m": 0.026783220081163,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 61,
+    "steps": 20,
+    "mean_err_m": 0.04449399993349688,
+    "mean_dz_cmd_minus_ach_m": -0.03811056655219467
+   },
+   {
+    "start": 90,
+    "steps": 17,
+    "mean_err_m": 0.038599946847704764,
+    "mean_dz_cmd_minus_ach_m": -0.02546235284840273
+   },
+   {
+    "start": 284,
+    "steps": 85,
+    "mean_err_m": 0.03363502789606173,
+    "mean_dz_cmd_minus_ach_m": -0.02862588969899006
+   },
+   {
+    "start": 370,
+    "steps": 64,
+    "mean_err_m": 0.03709637865225683,
+    "mean_dz_cmd_minus_ach_m": -0.03087258858040277
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

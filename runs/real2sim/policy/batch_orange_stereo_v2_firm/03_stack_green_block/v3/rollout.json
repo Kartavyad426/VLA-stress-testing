@@ -1,0 +1,76 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "stack",
+  "target": "green_block",
+  "ref": "orange_block",
+  "text": "stack the green block on the orange block"
+ },
+ "instruction": "stack the green block on the orange block",
+ "variant": 3,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 303,
+ "layout_rng_seed": 303303,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.936492681503296,
+ "infer_s_median": 0.24243438243865967,
+ "wall_s": 84.07856845855713,
+ "vram": {
+  "vram_alloc_gib": 6.017563343048096,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.3183530349731445,
+ "gripper_closed_frac": 0.33111111111111113,
+ "final_target_xyz": [
+  0.6324878004175816,
+  0.08707143643584371,
+  -0.08039659145233424
+ ],
+ "final_ref_xyz": [
+  0.6172836490135599,
+  0.019616435354597398,
+  -0.07726767525489715
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "firm",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 238,
+   "closed_at_target": 285,
+   "lifted": 291
+  },
+  "min_dist_to_target_m": 0.0011425035511573617,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.035800711109404415,
+  "median_err_m": 0.011237965837056168,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}
