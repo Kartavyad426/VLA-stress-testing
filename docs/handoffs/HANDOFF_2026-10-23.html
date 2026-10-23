@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Handoff 23 Oct</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4;
+    --ink:#14181D; --muted:#5B636E; --faint:#8A929D;
+    --rule:#D7DDE5; --rule-soft:#E6EAEF;
+    --accent:#2F4A9E; --you:#A8481B; --ok:#1B6B4F; --warn:#8A6A12; --bad:#9B2C2C;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+      --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+      --rule:#262D37; --rule-soft:#1F2630;
+      --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#151A21; --surface-2:#1B212A;
+    --ink:#E5EAF1; --muted:#9AA3AF; --faint:#77808C;
+    --rule:#262D37; --rule-soft:#1F2630;
+    --accent:#93A9F0; --you:#E5905E; --ok:#5DC79B; --warn:#D9B85C; --bad:#E07A7A;
+  }
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.55;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 16px 96px;}
+  header{border-bottom:1px solid var(--rule); padding:44px 0 24px; margin-bottom:28px;}
+  .eyebrow{font-size:.72rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--you); margin:0 0 10px;}
+  h1{font-size:clamp(1.8rem,5vw,2.5rem); margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .stand{color:var(--muted); max-width:70ch; margin:14px 0 0;}
+  .meta{font-size:.8rem; color:var(--faint); margin-top:16px; display:flex; flex-wrap:wrap; gap:4px 18px;}
+  nav{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:12px 16px; margin-bottom:32px; font-size:.9rem;}
+  nav ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  @media (max-width:640px){ nav ol{columns:1;} }
+  a{color:var(--accent); text-underline-offset:2px;}
+  section{margin:0 0 44px;}
+  h2{font-size:1.3rem; margin:0 0 6px; letter-spacing:-.01em;}
+  h3{font-size:1rem; margin:22px 0 8px;}
+  .lead{color:var(--muted); margin:0 0 14px; max-width:78ch;}
+  code{font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:.08em .32em; border-radius:3px; overflow-wrap:anywhere;}
+  .tbl{overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.88rem;}
+  th,td{text-align:left; vertical-align:top; padding:9px 11px; border-bottom:1px solid var(--rule-soft);}
+  th{font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); font-weight:600;}
+  tr:last-child td{border-bottom:0;}
+  td.id{font-family:var(--mono); font-size:.8rem; white-space:nowrap; color:var(--muted);}
+  .pill{display:inline-block; font-size:.7rem; font-weight:600; letter-spacing:.04em; padding:1px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap;}
+  .p-run{color:var(--accent);} .p-pre{color:var(--warn);} .p-blk{color:var(--bad);}
+  .p-ok{color:var(--ok);} .p-idea{color:var(--you);} .p-def{color:var(--faint);}
+  .rec{color:var(--ok); font-weight:500;}
+  .callout{border-left:3px solid var(--you); background:var(--surface); padding:12px 16px; border-radius:0 8px 8px 0; margin:0 0 18px;}
+  .small{font-size:.82rem; color:var(--muted);}
+  ul.tight{margin:6px 0 0; padding-left:18px;} ul.tight li{margin:2px 0;}
+  .check{background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:14px 16px; margin-bottom:24px;}
+  .check h2{font-size:1.05rem; margin:0 0 8px;}
+  .check ul{list-style:none; margin:0; padding:0;}
+  .check li{display:grid; grid-template-columns:22px 1fr auto; gap:4px 8px; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:.9rem;}
+  .check li:last-child{border-bottom:0;}
+  .check .box{font-family:var(--mono); color:var(--ok); font-weight:600;}
+  .check li.wip .box{color:var(--warn);}
+  .check .who{font-size:.76rem; color:var(--faint); white-space:nowrap;}
+  @media (max-width:640px){ .check li{grid-template-columns:22px 1fr;} .check .who{grid-column:2;} }
+  .slot{border:1px dashed var(--rule); border-radius:8px; padding:14px 16px; color:var(--faint); background:var(--surface);}
+  section.sess{border-top:1px solid var(--rule); padding-top:20px;}
+  .owner{font-family:var(--mono); font-size:.8rem; color:var(--you);}
+</style>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Session handoff · VLA perturbation programme</p>
+  <h1>Handoff, 23 October</h1>
+  <p class="stand">Written after the machine restart on 10-23 (11:26). Covers 20 Oct afternoon to 23 Oct; no work was done between 10-20 16:16 and the restart. Writers: <b>prim</b> (state at a glance and the prim section), <b>res31</b>, <b>ObjGen</b>, <b>scripted</b> and <b>res</b> (each its own section, stamped with the time it was filled). Internal doc: decision-log style. Each session re-onboards from its own section. Previous: <a href="HANDOFF_2026-10-20.html">HANDOFF_2026-10-20.html</a>.</p>
+  <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-23</span><span>HEAD at creation: <code>4fd63fe</code> (main) · <code>dae447a</code> (exp/dmp-poc) · <code>d2d8a49</code> (exp/scripted-expert, code uncommitted)</span></div>
+</header>
+
+<section class="check" id="state">
+  <h2>State at a glance <span class="small">(filled 2026-10-23 by prim)</span></h2>
+  <ul>
+    <li><span class="box">·</span><span><b>Machine:</b> restarted 10-23 11:26; every session ended. AC on, GPU idle (only vst), disk 230 GB free.</span><span class="who">prim</span></li>
+    <li><span class="box">·</span><span><b>Running again:</b> res31, ObjGen, scripted (with their context) and res (new name; holds re412's and resTmp's work). <b>Not running:</b> impl2, DMP, NH, AssetPack, re412, resTmp, vla-cd.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>LIBERO-MAX smoke4 FAILED (10-20):</b> every rollout errored with <code>'function' object has no attribute '__modality__'</code>; the restore checks then found no rollouts.jsonl. Not diagnosed (impl2 not running). Lite never launched.</span><span class="who">impl2 · user</span></li>
+    <li><span class="box">·</span><span><b>Git:</b> main has <b>43 unpushed commits</b> (origin at ab238e5); exp/dmp-poc not pushed. The user pushes.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>No checker is running:</b> every number since 10-09 is UNVERIFIED.</span><span class="who">user</span></li>
+  </ul>
+</section>
+
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#res31">res31</a></li><li><a href="#objgen">ObjGen</a></li><li><a href="#scripted">scripted</a></li><li><a href="#res">res</a></li></ol></nav>
+
+<section class="sess" id="prim">
+  <h2>prim <span class="small">(filled 2026-10-23 by prim)</span></h2>
+  <p class="lead"><span class="owner">owner: prim</span> · Orchestrator and housekeeping: routing, all commits (never push), the GPU gate, status, decisions. Temporary owner of ended sessions' tasks until the user hands them on.</p>
+
+  <h3>1 · Rules in force</h3>
+  <ul class="tight">
+    <li>prim commits; run commits are metadata only (json/log/html/py, small jpg; never npz/mp4); never push. Ask the user before doc or code changes. No subagents. Local HTML only. Never be cryptic; no guessing.</li>
+    <li>GPU: request to prim with the disk line (needed / free now / left after) and the user's approval; <b>wait for prim's explicit go before launching</b> (10-20). Run under <code>d_step.sh --gpu</code> (flock, AC check). EGL rendering counts as GPU.</li>
+    <li>Each session presents outlines and proposals to the user in its own terminal. Internal docs are decision logs.</li>
+    <li>Kept local, never committed: <code>docs/R042_WRIST_MATHS.pdf</code>; the user's <code>tmp.json</code> line in .gitignore.</li>
+  </ul>
+
+  <h3>2 · Decision log, 20 Oct afternoon</h3>
+  <div class="tbl"><table>
+    <tr><th>When</th><th>Trigger</th><th>Decision</th><th>Outcome</th></tr>
+    <tr><td>10-20</td><td>res31 staged plan (S1–S5, G7, G8, D1–D3)</td><td>User approved: in stages, revertible, committed at each major change.</td><td>WristRenderV2 recovers 2.6 of 3.9 cm; D2 orange batch 4 → 9 successes, closes 17 → 28, lifts 11 → 24 (4437109). Seed bug found and fixed (d9bcef0); expert solves 27/32 played layouts, no re-run (ed93d48). Details in res31's section.</td></tr>
+    <tr><td>10-20</td><td>AssetPack build_scene change</td><td>User: "redact for now"; reviewed by res31.</td><td>643c5c1, 7373032. Objects no pack has are left out ("redacted").</td></tr>
+    <tr><td>10-20</td><td>How to bring redacted objects back</td><td>New session ObjGen. User: no capture hardware; appearance first; physics required, mass/friction set after the mesh; replica first when generating, lookalikes OK; methodology first, PoC needs its own go.</td><td>docs/OBJECT_MODELS_FROM_VIDEO.html written 10-20, uncommitted.</td></tr>
+    <tr><td>10-20</td><td>VLM + telemetry labelling</td><td>User: "lit review mostly, broader ones maybe we can take elements from some of them".</td><td>re412's VLM_TELEMETRY_LABELLING_REVIEW and resTmp's VLM_PAPERS_WORKING_NOTES, both uncommitted. Held by res from 10-23.</td></tr>
+    <tr><td>10-20</td><td>Handoff request</td><td>prim writes, AssetPack fills its section.</td><td>HANDOFF_2026-10-20 (8775ed9, cc23da7).</td></tr>
+  </table></div>
+
+  <h3>3 · Sessions not running, and what they left</h3>
+  <div class="tbl"><table>
+    <tr><th>Session</th><th>Was doing</th><th>Left behind</th></tr>
+    <tr><td>impl2</td><td>LIBERO-MAX smoke4 → Lite overnight.</td><td>smoke4 failed, undiagnosed; smoke4 logs uncommitted; the deletion question for the user still open.</td></tr>
+    <tr><td>DMP</td><td>DMP corrective-demo PoC (worktree ../VLA-exp-dmp-poc).</td><td>User decisions a–d open; worktree holds only uncommitted run outputs.</td></tr>
+    <tr><td>AssetPack</td><td>Asset packs in res31's scenes.</td><td>All committed; two small items wait on the user (a docstring; remove or update the stale diff and tests). Its section in HANDOFF_2026-10-20 is the resume point.</td></tr>
+    <tr><td>NH</td><td>NEW_HORIZONS (6a264f6) and the training-code review.</td><td>Retraining scope approved; implementer and checker sessions never created; two follow-up studies need owners.</td></tr>
+    <tr><td>re412, resTmp</td><td>Labelling review; paper-by-paper notes.</td><td>Handed to res (10-23).</td></tr>
+    <tr><td>vla-cd</td><td>Unknown to prim.</td><td>—</td></tr>
+  </table></div>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li>Restart impl2 to diagnose smoke4; then Lite and the deletion question.</li>
+    <li>Approve and commit: OBJECT_MODELS_FROM_VIDEO (ObjGen), VLM_TELEMETRY_LABELLING_REVIEW and VLM_PAPERS_WORKING_NOTES (res); scripted's uncommitted code in its worktree.</li>
+    <li>res31's closed-loop firm-grip GPU batch.</li>
+    <li>DMP a–d; scripted D1–D8; names for the retraining implementer and checker; restart a checker.</li>
+    <li>The push.</li>
+  </ul>
+
+  <h3>5 · Held by prim for ended sessions</h3>
+  <ul class="tight">
+    <li>res32's licence audit (never written).</li>
+    <li>impl's root-signals worktree (~480 uncommitted entries), held for a checker.</li>
+    <li>impl2's smoke4 failure and LIBERO-MAX state; DMP's worktree; AssetPack's two small items.</li>
+  </ul>
+</section>
+
+<section class="sess" id="res31">
+  <h2>res31 <span class="small">(filled 2026-10-23 11:45 by res31)</span></h2>
+  <p class="lead"><span class="owner">owner: res31</span> · Real-to-sim: rebuild DROID episodes as MuJoCo scenes (code in <code>experiments/real2sim/</code>) and run GR00T-DROID in them; find and fix where the sim differs from the real episode. Started 10-14 from prim's brief. Owns the real2sim code (AssetPack and ObjGen feed into it). <b>All numbers below are exploratory and UNVERIFIED</b> (no checker since 10-09).</p>
+
+  <h3>1 · Decision log, 10-20 (no work 10-21 to 10-23)</h3>
+  <p>Full step-by-step record with every decision: <a href="../SIM_FIXES.html">docs/SIM_FIXES.html</a> (decision log, timeline, GPU table, status; last update 4fd63fe). Summary:</p>
+  <div class="tbl"><table>
+    <tr><th>Trigger</th><th>Options / decision</th><th>Outcome</th><th>Commit</th></tr>
+    <tr><td>User approved my staged plan S1–S5, G7, G8, D1–D3: "in stages, revertible, commit at each major change".</td><td>Build a deployable wrist renderer behind a flag; keep the old one as default.</td><td><code>WristRenderV2</code> (composite.py; <code>policy_rollout --wrist_render v2</code>): wrist-video table texture, real open-gripper library, render 640×360 then area-downscale, wrist-fitted light. Image-swap G7: recovers 2.6 of the 3.9 cm "plans too low" gap; ~1.3 cm left. G8: D1 camera correction, live real ring pixels, real objects make no difference.</td><td>2b8c37e, c983e16, 54bafb0, e70feeb, 4df5f53, a8d5eed, ac41fbd, 52c716d, 69cd25a, 061eb7f</td></tr>
+    <tr><td>D2 (approved with D1–D3; prim's GPU go): orange batch, 33 variants, v2 vs v1.</td><td>—</td><td>success 4 → 9, closed at block 17 → 28, lifted 11 → 24, blocked 17 → 2; paired McNemar closed p=0.013, lifted p=0.001, success p=0.13.</td><td>4437109</td></tr>
+    <tr><td>User: "can you separate placement failures?"</td><td>Re-simulate each episode from its recorded actions.</td><td><b>Found my bug:</b> policy_batch passed the expert json's full seed, so every variant &gt; 0 in slot A and D2 played a layout the expert never solved. Fixed (<code>--tasks_seed</code>; rollout.json now records <code>seed</code>, <code>layout_rng_seed</code>). Expert solves 27/32 played layouts (only "yellow block in the bowl" v3 of the 33 episodes is unsolved): comparisons stand, no re-run. Split of 15 lifted-but-failed: 7 released away (bowl early release 11.6–21.9 cm off, GR00T's own, also on real frames), 6 released over goal but didn't stay, 1 dropped, 1 never released.</td><td>d9bcef0, ed93d48</td></tr>
+    <tr><td>AssetPack's build_scene change; user: "redact for now", scene sanity first.</td><td>Stand-ins vs redaction → redact. Brief for mesh generation sent to prim (became ObjGen).</td><td>Follow-ups by me: wrist textures mask redacted objects; scene_checks reports n/a for grasps of redacted objects; stricter <code>closed_at_target</code> (both pads on target ≥ 0.5 s; old rule kept as <code>closed_near_target</code>).</td><td>643c5c1 (AssetPack), 38cd20e</td></tr>
+    <tr><td>User: "are we set to test GR00T properly? do the tests you propose; record observations incl. your script issue; 5 shells open?"</td><td>CPU tests only.</td><td><b>Not yet set</b> (see §2). Yellow block: GR00T closes 2.4–3.9 cm off centre on air (expert 0.3–0.5 cm, holds 38 N); our cube looks undersized (real/sim wrist area 1.76, ~3.3 vs 2.5 cm, 2 frames) and pale yellow vs real lime. Stacking: clean drops of green on orange stay (≤ 6.5 cm, ≤ 1 cm off). <b>Second mistake of mine:</b> 5 background wait loops never ended (<code>pgrep -f</code> matched their own command line); killed. Never pgrep a string in the loop's own command.</td><td>38cd20e, 4fd63fe</td></tr>
+    <tr><td>User: "is it an issue with collision mesh of gripper or vision?"</td><td>Measured grip offset (0.5 s after the close that starts the last held carry) and block spin for all 24 lifted episodes.</td><td>Answer given: <b>neither cleanly; not the collision shape.</b> Yellow = aim (vision or policy), gripper never touches it. Stacks: 2 of 4 failed green-on-orange were gripped 0.5/0.7 cm from centre (as good as the expert) and still failed; offsets overlap (successes 0.7–2.3, failures 0.5–5.6 cm); spin is high even in successes (peaks to ~1170°/s, may be contact jitter, unchecked); GR00T's first holding closes squeeze 117–127 N vs expert 17–33 N (effect untested). Expert uses the same pads and solves all 8 stack variants → suspect contact settings (friction, torsion, softness), not the shape. Real pad size not compared. Earlier "tumbling at release" numbers are therefore not by themselves proof.</td><td>not committed (see §3)</td></tr>
+    <tr><td>ObjGen (FYI): could SUPRA-Tex texturing close the 1.3 cm wrist gap?</td><td>My call: no.</td><td>v2 already pastes real gripper pixels; G8 showed real pixels around the gripper don't close the gap; MuJoCo drops PBR. Replied to ObjGen.</td><td>—</td></tr>
+  </table></div>
+
+  <h3>2 · Current state of the real-to-sim work</h3>
+  <ul class="tight">
+    <li><b>Orange scene</b> <code>runs/real2sim/ep_orange_block_stereo</code> (episode <code>data/real2sim/droid/ep_orange_block</code>): usable for <b>relative</b> comparisons (v1 vs v2), not for an absolute GR00T success rate. Geometry checks pass except real-grasp horizontal 1.7 vs 1.5 cm.</li>
+    <li><b>Open sim issues:</b> (1) grip stability / pad contact (Menagerie defaults: condim 3, friction 0.6–0.7, torsional 0.005, pyramidal cone, impratio 1); (2) yellow block size/colour; (3) wrist look gap ~1.3 cm (untested guesses: live vs averaged gripper pixels, 640 vs 1280 render); (4) only one scene: c3 not rebuilt (anchored calib: table 0.08 cm, anchor 17 px, but robot IoU 0.40 → 0.35, a36c6eb); (5) controller not system-identified; (6) checklist #11 not passing; GR00T licence open; no checker.</li>
+    <li><b>D1:</b> sim gripper drawn ~8.5 mm / 2.4° off in the wrist view; correcting camera or gripper gives IoU 0.76 → 0.91; data can't tell which; not applied.</li>
+    <li><b>Parked decisions:</b> D4 make v2 the default renderer (not yet); D5 c3 after orange; D6 keep two separate light fits. Presentation still uses old composites (dated snapshot). DMP bending deferred; calibration without camera info parked.</li>
+    <li><b>Checklist additions owed</b> (from 10-20, not written): wrist camera↔gripper placement; per-robot vs per-scene calibration transfer; light per view; #11/#26 status; #12 split into appearance and placement; redaction entry; stricter closed rule.</li>
+  </ul>
+
+  <h3>3 · Uncommitted or local only</h3>
+  <ul class="tight">
+    <li><code>runs/real2sim/policy/batch_orange_stereo_v2/grasp_debug_green_block.json</code>, <code>grasp_debug_orange_block.json</code> (small json, 10-20, from <code>grasp_debug.py</code> on the two stack tasks): commit candidates.</li>
+    <li>The carry-offset script (<code>carry_grasp.py</code>) lived in the session scratchpad and was <b>lost in the restart</b>; its results exist only in §1 above. It's ~40 lines on top of <code>placement_analysis.py</code>'s replay; rewrite into <code>experiments/real2sim/</code> if the result is to travel.</li>
+    <li>Older untracked files in <code>runs/real2sim/ep_*_stereo/</code> (build/calibrate logs, perception.json, intermediate calibs, <code>v1_droid_calib/</code>) and <code>runs/real2sim/policy/hold_test_wristtex/</code> predate 10-20; not reviewed in this handoff. npz/mp4 never committed.</li>
+  </ul>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>(a) Closed-loop firm-grip batch</b> (~55 min GPU): GR00T on the 33 orange variants with firmer pad contact (pads condim 4, friction [1.0, 0.02, 0.0001], elliptic cone, impratio 10). Tests the contact-physics explanation. <b>Needs code first:</b> <code>policy_rollout.py</code>/<code>policy_batch.py</code> have no grip-physics flag yet (the open-loop <code>placement_analysis.py --grip_physics firm</code> exists but is not a valid test). Then user OK + disk line + prim's go.</li>
+    <li><b>(b) Yellow block re-fit</b> (~15 min GPU): fix its size (~3.3 cm?, measure on more frames first) and colour (lime), re-run its 8 episodes. Tests the vision explanation.</li>
+    <li>D4 (v2 as default), checklist additions, the two jsons in §3.</li>
+  </ul>
+
+  <h3>5 · How a fresh res31 resumes</h3>
+  <ul class="tight">
+    <li>Read: this section; prim's section (rules); <code>docs/SIM_FIXES.html</code>; memory <code>res31-real-to-sim-role.md</code>; module docstrings of <code>composite.py</code> (WristRenderV2), <code>policy_rollout.py</code>, <code>policy_batch.py</code>, <code>placement_analysis.py</code>, <code>grasp_debug.py</code>, <code>stack_drop_test.py</code>, <code>scene_checks.py</code>.</li>
+    <li>Venv <code>.venvs/real2sim</code>; prefix <code>MUJOCO_GL=egl</code> (EGL counts as GPU: CPU replays without rendering are fine).</li>
+    <li>D2 command (as launched 10-20 13:09 via d_step, queue.log): <code>policy_batch.py --tasks runs/real2sim/tasks_stereo --scene runs/real2sim/ep_orange_block_stereo:data/real2sim/droid/ep_orange_block --out runs/real2sim/policy/batch_orange_stereo_v2 --trivial_from runs/real2sim/policy/batch_orange_stereo_hold/batch_summary.json --wrist_render v2</code> (resumable: finished episodes are skipped). Run GPU work only through <code>bash experiments/d_step.sh &lt;unit&gt; --gpu ...</code> after prim's go.</li>
+    <li>CPU analysis of D2: <code>placement_analysis.py --batch runs/real2sim/policy/batch_orange_stereo_v2 --scene runs/real2sim/ep_orange_block_stereo:data/real2sim/droid/ep_orange_block --batch_seed_from_json</code> (pre-fix batches need that flag); <code>grasp_debug.py --batch ... --task "&lt;instruction&gt;" --batch_seed_from_json</code>.</li>
+    <li>First step on return: present (a)/(b) to the user and wait; nothing is running.</li>
+  </ul>
+</section>
+
+<section class="sess" id="objgen">
+  <h2>ObjGen <span class="small">(filled 2026-10-23 11:45 by ObjGen)</span></h2>
+  <p class="lead"><span class="owner">owner: ObjGen</span> · Research session: how to build sim-ready models (visual mesh + texture, collision, metric scale) for objects no CC BY pack has, from <b>existing footage only</b>. First case: the ep_c3 radish, redacted by AssetPack mode although the operator grasps it (frames 75→115). Deliverable: <code>docs/OBJECT_MODELS_FROM_VIDEO.html</code>, written 10-20, <b>uncommitted, not yet approved by the user</b>. Nothing run on our data, nothing downloaded, no GPU used. Tags: [V] read in a source, [M] measured from existing files, [I] inference; all paper numbers are the authors' own claims, UNVERIFIED.</p>
+
+  <h3>1 · Brief and binding rules (prim/res31 brief + user, 10-20)</h3>
+  <ul class="tight">
+    <li>User's priorities, in order: (1) <b>appearance</b> in the exterior and wrist views (colour, pattern, shine, reflections, translucency); this is the main axis for comparing methods. (2) <b>Physics is a must</b>: every model loads with usable collision (watertight mesh → convex decomposition). Mass and friction are set <i>after</i> the mesh via AssetPack's <code>--object_props</code>, and are not ranked. (3) Everything else (grasp tests, cost, timing) later.</li>
+    <li><b>No capture hardware</b>: only our DROID episode video or material online. A 360° approach is OK only from footage found online. Replica of the specific object first; lookalikes acceptable.</li>
+    <li>Order (user via prim): outline → doc → <b>PoC as its own proposal</b> (object, method, inputs, CPU/GPU, disk line). The doc's approval does not cover the PoC.</li>
+    <li>Ask the user before any code/doc change or download (over 1 GB needs explicit approval). prim commits. GPU only with prim's explicit go plus the user's approval, with the disk line. <code>MUJOCO_GL=osmesa</code> otherwise. Don't edit <code>build_scene.py</code>, <code>composite.py</code> or <code>catalogue.py</code>; integration ideas go to res31/AssetPack via prim. No subagents.</li>
+  </ul>
+
+  <h3>2 · Decision log (10-20)</h3>
+  <div class="tbl"><table>
+    <tr><th>Trigger</th><th>Decision / answer</th><th>Outcome</th></tr>
+    <tr><td>Outline presented (methods A reconstruction, B image-to-3D, C retrieval, D online 360°, E primitives, plus hybrids)</td><td>User: "yes go ahead". I read this as yes to online reading (no downloads) and to hybrids as their own options [I].</td><td>Doc written.</td></tr>
+    <tr><td>User mid-task: "primary goal is broader research about methodologies already present so we can combine them or use them as it is"</td><td>Doc organised as existing systems → building blocks per stage → combinations.</td><td>§4.1–4.6, §6.</td></tr>
+    <tr><td>User: "what is the basic pipeline? meshes first then texture?"</td><td>S1 identify and cut out → S2 shape → S3 size and placement on our stereo points → S4 texture projected from our frames (must follow S3) → S5 CoACD collision → S6 mass/friction via <code>--object_props</code> → checks.</td><td>Doc §6.</td></tr>
+    <tr><td>User proposal: two modes, a person looks, names the object and describes its shape, vs fully automated</td><td>One pipeline with a switch and five decision points D1–D5 (label, view, shape pick among 3–4 candidates, size, final look). User: the hybrid should expose and help fix gaps in the automated mode → yes, if each point logs the automatic pick next to the person's (override log → tally by step → fix by step → regression set). Caveats: score both models; automatic picks first; small numbers.</td><td>Doc §6a (design only, not built). User: "yes add it to the doc".</td></tr>
+    <tr><td>User asked about SUPRA-Tex (arXiv 2610.22352, 15 Oct 2026)</td><td>Texturing only: no physics, no scene generation. Its "Real2Sim" section is an undocumented demo video. The shape comes from TRELLIS.2/Pixal3D; only the texture side is new. Tested on 24 GB; material adapter non-commercial (Qwen Research Licence) [V].</td><td>Doc §4.2b, as an S4 candidate. User: "yes add to docs".</td></tr>
+    <tr><td>User: "loop res31 in, if this will help in fixing the gripper issue"</td><td>res31: <b>not useful for the wrist gap</b>. The v2 wrist render already pastes real gripper pixels; G8 showed real pixels don't close the ~1.3 cm; MuJoCo drops metallic/roughness. Remaining suspects: live vs averaged gripper pixels, 640 vs 1280 rendering. "Might matter for objects once a mesh exists."</td><td>Logged in doc §1 and §4.2b. No test proposed.</td></tr>
+  </table></div>
+
+  <h3>3 · Findings and current recommendation</h3>
+  <ul class="tight">
+    <li><b>No tool does this as is.</b> The closest is EmbodiedGen (Apache 2.0; image → 3D → MJCF, with VLM-estimated scale, mass and friction) [V], but it gives a lookalike from one image, and its local backbones need ≥16 GB.</li>
+    <li><b>Shared recipe of the best-scoring real-to-sim systems</b> (PolaRiS r≈0.9 on DROID, SimFoundry r≈0.91) [V]: segment → generate the full shape (TRELLIS) → mesh for physics → camera appearance handled separately (splats or baked real views).</li>
+    <li><b>GPU limit:</b> our RTX PRO 1000 laptop GPU has 8 GB [M]. TRELLIS needs ≥16 GB, TRELLIS.2 ≥24, SAM 3D Objects ≥32 [V]. Fits: TripoSR (MIT), Stable Fast 3D (Stability Community Licence), Hunyuan3D-2 shape-only (licence excludes EU/UK/South Korea), each ~6 GB [V].</li>
+    <li><b>MuJoCo's native renderer ignores PBR</b>; only texture, scalar specular/shininess, reflectance on planes and boxes [V]. Fuller materials only via the Blender path (<code>blender_render.py</code>).</li>
+    <li><b>Recommendation, C1 [I]:</b> generate the shape (≤8 GB model), scale and ICP-align it to our stereo points, texture every seen side by projecting our wrist and exterior frames (Open3D colour map optimisation, MIT), keep generated texture only on the unseen side → CoACD → <code>--object_props</code>. Lookalike fallback: uCO3D (CC BY 4.0, ~170k 360° videos, has a <code>vegetables_and_legumes</code> super-category [V]; a radish category is unchecked).</li>
+    <li><b>Ground-truth caveats:</b> the c3 apple is probably <b>not</b> YCB <code>013_apple</code>: the mask is 5.9 cm wide vs YCB's 7.2–7.5 cm (AssetPack's measurement) [V]. Whether the real bowl is the GSO Akita product is unchecked. The radish is detected in only 1 of 5 sampled wrist frames (f45) in <code>runs/real2sim/ep_c3_stereo/wrist_anchors.json</code> [M]. Full coverage still to measure (moved into the PoC).</li>
+  </ul>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>Approve the doc</b> → then send prim a separate commit request for <code>docs/OBJECT_MODELS_FROM_VIDEO.html</code> only.</li>
+    <li>Q1 GPU: stay ≤8 GB (my default) / a rented larger GPU / hosted services (send our frames outside).</li>
+    <li>Q2: may the PoC use research-only tools, flagged (BundleSDF, nvdiffrast, Inria GS, the SUPRA-Tex material adapter)?</li>
+    <li>Q3: small metadata downloads (uCO3D, Objaverse category lists) to check for a radish?</li>
+    <li>Q4: the PoC proposal itself. Not yet written; it must state object, method, inputs, CPU/GPU and the disk line, and wait for its own go.</li>
+  </ul>
+
+  <h3>5 · How a fresh session resumes</h3>
+  <ul class="tight">
+    <li>Read this section, the prim section above, then <code>docs/OBJECT_MODELS_FROM_VIDEO.html</code> (§1 decision log, §6 pipeline + combinations, §6a two modes, §9 open questions). Context: <code>docs/SIM_FIXES.html</code> (wrist look moved GR00T's grasp ~4 cm), <code>docs/ASSET_PACK_ADOPTION.html</code> §7 (redaction, YCB).</li>
+    <li>Memory: <code>objgen-session-role.md</code>.</li>
+    <li>Next step: get the user's verdict on the doc and Q1–Q3, then draft the PoC proposal in the ObjGen terminal. Likely C1 on CPU or ≤8 GB GPU for one object; check the GPU is free first (6.9 of 8 GB was in use on 10-20).</li>
+    <li>Contacts: res31 (cameras, image swap, wrist render), AssetPack (packs, <code>--object_props</code>, redaction), prim (commits, GPU gate).</li>
+  </ul>
+</section>
+
+<section class="sess" id="scripted">
+  <h2>scripted <span class="small">(filled 2026-10-23 by scripted)</span></h2>
+  <p class="lead"><span class="owner">owner: scripted</span> · A <b>scripted-expert source of corrective demos</b> for GR00T N1.7 failures on LIBERO-Spatial: from a failure root, a hand-written planner finishes the task. Kept separate from DMP (which bends the nearest human demo) so the two can be compared on the same roots and the same keep checks. Worktree <code>../VLA-exp-scripted</code>, branch <code>exp/scripted-expert</code> off main <code>d2d8a49</code>; <b>everything uncommitted</b>. All numbers below are <b>UNVERIFIED</b> (no checker running) and the 5 scenarios are <b>tuned-on</b>, not held out.</p>
+
+  <h3>1 · Rules (prim's brief)</h3>
+  <ul class="tight">
+    <li>Ask the user before any code or doc change. No subagents. CPU only so far (osmesa); GPU needs the user's go + prim's gate. prim commits, never push; npz/mp4 never committed. Local HTML deliverables.</li>
+    <li>Don't edit DMP's files (<code>../VLA-exp-dmp-poc</code>, <code>exp/dmp-poc</code>, pinned <code>dae447a</code>); ask prim if DMP needs a change.</li>
+  </ul>
+
+  <h3>2 · Decision log (outline D1–D8, user answers)</h3>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>Question</th><th>Decision</th><th>State</th></tr>
+    <tr><td>D1</td><td>Port res31's real2sim expert or write new?</td><td>New LIBERO planner; only the waypoint idea carries over (res31's is raw MuJoCo FR3 + own IK; LIBERO is robosuite Panda OSC_POSE).</td><td>Approved with the outline.</td></tr>
+    <tr><td>D2</td><td>Location</td><td>Worktree <code>../VLA-exp-scripted</code>, branch <code>exp/scripted-expert</code>.</td><td>Approved; done.</td></tr>
+    <tr><td>D3</td><td>Reuse DMP's restore/roots/execute</td><td>User: "use from DMP" (will change later anyway). Imported read-only, pinned at <code>dae447a</code> by <code>dmp_link.py</code>.</td><td>Done. Cherry-pick to main not chosen.</td></tr>
+    <tr><td>D4</td><td>Grasp pose source</td><td>Human demos (per rim side, median offset + mean quaternion).</td><td>Approved; done.</td></tr>
+    <tr><td>D5</td><td>Wrong-object roots (21)</td><td>User: "not a priority … roots are not accurate, will need a better mechanism later". No special handling; report separately.</td><td>Decided; root mechanism parked.</td></tr>
+    <tr><td>D6</td><td>Regrasp</td><td>One regrasp allowed; kept reported with and without it.</td><td>Approved; built. No run in t1 used it (kept = kept_without_retry everywhere).</td></tr>
+    <tr><td>D7</td><td>3 variants</td><td>Approved as default / slow / nearest. <b>Changed by me</b> while matching human speed: "slow" replaced by <code>minjerk</code> (the old expert as an ablation). Needs the user's OK.</td><td>Open (confirm the swap).</td></tr>
+    <tr><td>D8</td><td>Which root per failure in the sweep</td><td>User: "use the same root DMP used" → both rules (first failure and first unrecovered): 186 distinct roots for 176 failures (166 coincide).</td><td>Decided; sweep not run.</td></tr>
+    <tr><td>—</td><td>Style gap to human demos (outline §7)</td><td>User: "discuss more on style gap later".</td><td>Parked.</td></tr>
+    <tr><td>—</td><td>Scenario D failed 3/3 at first</td><td>User: "try fixing D", then phase timing without a step limit, then "try to match human speeds". Cause: my expert ran at 60–70 % of human speed and ran out of the 200-step budget (D's root is mislabelled "grasp.miss" — really never reached — but that is not why it failed). Fix: human speed law + human action range.</td><td>Done; D now kept 2/3.</td></tr>
+    <tr><td>—</td><td>Task templates</td><td>User asked if other templates need new rules. Answer: rules per BDDL predicate (On/In/Open/Close/Turnon cover LIBERO-Goal/10), grasp per object from demos; Spatial built as general pick/place driven by the BDDL goal.</td><td>Info only; only <code>('on', obj, support)</code> implemented.</td></tr>
+  </table></div>
+
+  <h3>3 · What is built (uncommitted, <code>experiments/scripted_expert/</code>)</h3>
+  <ul class="tight">
+    <li><code>dmp_link.py</code>: imports DMP's restore, roots, execute, demos, dmp read-only; refuses to run if they differ from <code>dae447a</code> (checked OK 10-23).</li>
+    <li><code>demo_params.py</code> → <code>runs/scripted_expert/demo_params.json</code> from the 482 usable demos: grasp offsets per rim side (+y n=341, −y n=141), pregrasp 8.45 cm, lift 12.9 cm, tilt p95 30.5°, speed med/p90/p99 0.203/0.259/0.306 m/s, action range 0.9375 (teleop limit), per-task approach/carry speed and close-hold.</li>
+    <li><code>paths.py</code>: minimum-jerk legs with start velocity; <code>HumanLaw</code> (speed-up/cruise/slow-down at human speeds, jerk cap, start-velocity bump). <code>test_paths.py</code>: 10 tests, pass (re-run 10-23).</li>
+    <li><code>expert.py</code>: pick / carry / place / let_go; held+upright → carry, held+tilted → regrasp, else pick; goal from the BDDL; actions kept inside the human action range, reference waits when limited. Variants <code>default</code> (human law), <code>minjerk</code>, <code>nearest</code> (nearest-demo grasp).</li>
+    <li><code>driver.py t1</code> (5 scenarios × variants; <code>--only</code>, <code>--variants</code>); <code>phase_timing.py</code> (per-phase steps vs human demos and DMP t3, budget 600).</li>
+  </ul>
+
+  <h3>4 · Results (UNVERIFIED, tuned on these 5 scenarios)</h3>
+  <p>First test t1 (current = v7, <code>runs/scripted_expert/t1/results.json</code>; v1–v6 kept as history): <b>13/15 kept</b>, saturation 0 everywhere. DMP on the same scenarios: DMP 10/15, linear 7/15 (<code>runs/dmp_poc/t3</code>).</p>
+  <div class="tbl"><table>
+    <tr><th>Scenario (row, t)</th><th>default</th><th>minjerk</th><th>nearest</th><th>DMP / linear kept</th></tr>
+    <tr><td>A (14, 31) grasp.slip</td><td>✓ 98</td><td>✓ 96</td><td>✓ 101</td><td>3 / 3</td></tr>
+    <tr><td>B (14, 242) place.off_target</td><td>✓ 36</td><td>✓ 42 (not within 280)</td><td>✓ 36</td><td>3 / 2</td></tr>
+    <tr><td>C (186, 28)</td><td>✓ 109</td><td>✓ 118</td><td>✗ 200 steps, no success</td><td>1 / 1</td></tr>
+    <tr><td>D (440, 18)</td><td>✓ 158</td><td>✗ 200 steps</td><td>✓ 162</td><td>2 / 0</td></tr>
+    <tr><td>D_backup (224, 21)</td><td>✓ 124</td><td>✓ 131</td><td>✓ 128</td><td>1 / 1</td></tr>
+  </table></div>
+  <p class="small">Numbers = steps to success after the root (budget 200). Phase timing, default vs human median total: D 158 vs 136, C 109 vs 116, A 98 vs 92, D_backup 124 vs 98. Short approaches still run ~0.13–0.14 m/s vs human 0.18–0.23 (not like for like: human approaches start from the start pose).</p>
+
+  <h3>5 · Commit request (sent to prim)</h3>
+  <ul class="tight">
+    <li>Code: <code>experiments/scripted_expert/*.py</code> (7 files, no <code>__pycache__</code>).</li>
+    <li>Runs, metadata only: <code>runs/scripted_expert/demo_params.json</code>, <code>t1/results.json</code>, <code>t1_run.log</code>, <code>t1_v1..v6/results.json</code> + <code>t1_v*_run.log</code>, <code>phase_timing*.json/.log</code>. Never the 105 npz files.</li>
+  </ul>
+
+  <h3>6 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li>D7: confirm "slow" → <code>minjerk</code> variant swap.</li>
+    <li>Go for the look into C/nearest's failure (~5 min CPU; bowl moved only 2 cm in 200 steps).</li>
+    <li>Go for the sweep: 186 roots × 3 variants ≈ 560 runs, CPU, ~1 h single process or ~20 min with 3 processes. A fair comparison needs DMP on the same roots: DMP/prim's call.</li>
+    <li>Write <code>docs/SCRIPTED_EXPERT_METHOD.html</code> (method, demo parameters, t1 vs DMP, the D story, open items); not drafted yet, show before saving.</li>
+    <li>Style-gap discussion (parked by the user); the better root mechanism (D5, parked).</li>
+  </ul>
+
+  <h3>7 · How a fresh session resumes</h3>
+  <ul class="tight">
+    <li>Read this section, prim's section, DMP's method (<code>docs/DMP_POC_METHOD.html</code>) and the code in the worktree. Nothing is running.</li>
+    <li>Run (from the worktree): <code>M=/home/imerit/Documents/Code/VLA; CUDA_VISIBLE_DEVICES= MUJOCO_GL=osmesa PYTHONPATH=$M/third_party/LIBERO-plus LIBERO_CONFIG_PATH=$M/third_party/libero-plus-config $M/.venvs/libero-plus/bin/python experiments/scripted_expert/driver.py t1</code> (~5 min CPU). Tests: same python <code>-m pytest experiments/scripted_expert/test_paths.py</code>.</li>
+    <li>Before new runs: move <code>t1/</code> aside (v1–v6 pattern) so history isn't overwritten; give a disk line in any pre-registration.</li>
+    <li>Next step after the user's go: the sweep driver (both root rules, per D8), then the method doc.</li>
+  </ul>
+</section>
+
+<section class="sess" id="res">
+  <h2>res <span class="small">(filled 2026-10-23 11:45 by res)</span></h2>
+  <p class="lead"><span class="owner">owner: res</span> · VLM + telemetry labelling of robot attempts. Holds re412's literature review and resTmp's paper-by-paper notes; both sessions ended in the 10-23 restart, and prim onboarded res on 10-23 after the restart. Research only: no code, no GPU, no edits to the E7 worktree (../VLA-exp-rootsignals); experiments go to the user as proposals; prim commits.</p>
+
+  <h3>1 · Rules in force for res</h3>
+  <ul class="tight">
+    <li>Present understanding and the next step to the user in res's own terminal and wait for a go. Show proposed edits to the review before changing it.</li>
+    <li>Re-read a paper before quoting a number; fix claim tags ([C] checked, [A] author-claimed, [U] unchecked, [I] inference); flag errors in the doc. Every E7 number is exploratory and UNVERIFIED.</li>
+    <li>No guessing, no subagents, never cryptic, local HTML only. Once the user approves a doc, send prim a commit request.</li>
+  </ul>
+
+  <h3>2 · Decision log</h3>
+  <div class="tbl"><table>
+    <tr><th>When</th><th>Trigger</th><th>Decision</th><th>Outcome</th></tr>
+    <tr><td>10-14</td><td>user ↔ brain, BRAINSTORM §3.2–3.4</td><td>The labeller idea (humans adjudicate some items, then VLM + telemetry takes over); brain proposed an input-format ablation → a small fusion model → a GR00T-feature probe as an upper bound. prim sequenced it after the E7 hand review.</td><td>None of it started.</td></tr>
+    <tr><td>10-20</td><td>user → prim → re412</td><td>Broad lit review. User: "lit review mostly, broader ones maybe we can take elements from some of them". Outline approved as proposed (~40–60 papers, ~15 in depth, 2023–Oct 2026), plus the user's addition: "add relevancy tier along with the sources" (T1 act now on an E7 mode · T2 later step · T3 context).</td><td><code>docs/VLM_TELEMETRY_LABELLING_REVIEW.html</code> written 10-20 (~55 KB, 43 source rows: 9 T1, 19 T2, 15 T3). <b>Uncommitted</b>, awaiting the user's approval.</td></tr>
+    <tr><td>10-20</td><td>user, via re412</td><td>Discuss the papers one by one in a new session; log each on a separate page (not PAPERS_WORKING_NOTES, which belongs to the 10-12 papers session).</td><td>re412 set up <code>docs/VLM_PAPERS_WORKING_NOTES.html</code>; resTmp filled it. <b>Uncommitted.</b></td></tr>
+    <tr><td>10-20</td><td>user ↔ resTmp, ProTracer (T1)</td><td>Status chip <b>borrow part</b>. Options S0–S3 proposed (below); none chosen.</td><td>Logged on the notes page with the user's questions and answers.</td></tr>
+    <tr><td>10-23</td><td>restart; user → prim → res</td><td>res takes over both docs and the per-paper discussion.</td><td>This section.</td></tr>
+  </table></div>
+
+  <h3>3 · The review (re412): what it says</h3>
+  <p class="small">Sections: §0 decision log · §1 E7's failure modes F1–F7 · §2–§8 literature (failure detection, success/reward models, multi-view/multi-frame input, telemetry fusion, human routing, datasets, adjacent fields) · §9 take/leave · §10 ranked elements + P1–P3 · §11 sources with tier and check status.</p>
+  <ul class="tight">
+    <li><b>E7's failure modes (§1):</b> F1 no-answers (Nemotron-nano: 1,443 of 1,500 scored items no-answer) · F2 constant answers (Cosmos-2B said "no" to every yes/no) · F3 one still is ambiguous even for a human · F4 stitched, 180°-rotated, half-scale input · F5 no telemetry facts in the prompt · F6 scoring gaps (controls can't catch a constant answer; bare-letter rescue doubles a score) · F7 sim only, no routing rule, no real video or human truth.</li>
+    <li><b>Short answer:</b> the literature explains most of what went wrong and nearly all fixes are cheap. One still → constant answers (Sentinel GPT-4o TNR 0.00 on images vs 0.91 on video [A]); separate views beat a stitched one (Guardian 0.83 vs 0.74 [A]); telemetry works best as rule-made text + keyframe choice (ProTracer onset acc@0.5 s 28% → 71%, zero-shot [A]); failure-specialist fine-tunes lose to general VLMs and some answer "failure" regardless (FailBench [A]); PhAIL's routing (telemetry classifier proposes, humans review only disagreements) is the closest working pattern [C]; two CC-BY-4.0 real datasets with telemetry + human event labels exist: FailTime-Long and PhAIL (incl. GR00T N1.6 rollouts) [C].</li>
+    <li><b>Top elements (§10, of 11):</b> (1) fix the scoring protocol: balanced accuracy, per-class recall, yes-rate, always-"no"/majority baselines, abstentions separate, strict JSON with "unsure"; (2) motion: before/after frames or a short clip; (3) separate, labelled, upright views; (4) rule-made robot-side telemetry narrative + contact token; (5) real-video test set (FailTime-Long, then PhAIL sample); (6) disagreement routing with a calibrated threshold. Then 7 end-state-first + future context, 8 crop agent view, 9 bigger general VLM as ceiling, 10 GVL shuffle / Robometer vote, 11 learned heads (GPU, only if 1–4 leave accuracy low).</li>
+    <li><b>Proposed experiments (none approved, none started):</b> <b>P1</b> re-score the existing E7 answers with element 1, CPU only, no new calls. <b>P2</b> input ablation on the 40 hand-review items + a stratified sample, one change at a time (separate+upright, before/after, telemetry narrative, crop, strict JSON); backends one NIM model + Cosmos-2B; NIM calls cost money/quota. <b>P3</b> best P2 config on FailTime-Long (6.1 GB; bar = ProTracer's 40% onset acc@0.5 s) and the PhAIL sample (0.69 GB); ~6.8 GB needed, 228 GB free on 10-20, ~221 GB left after.</li>
+  </ul>
+
+  <h3>4 · The paper notes (resTmp): what was discussed</h3>
+  <div class="tbl"><table>
+    <tr><th>Paper</th><th>Tier · chip</th><th>User's questions (10-20)</th><th>State</th></tr>
+    <tr><td>ProTracer + FailTime (2609.21369v2)</td><td>T1 · borrow part</td><td>Hypothesis and argument; is it inference only (training is hard on our time budget) → yes, training routes stay parked; "how do they localise failure, do they use VLM for evidence?" → change points propose, the VLM decides onset in round 2 using per-type onset rules, sensor treated as authoritative; the maths; how to feed proprio (none / raw CSV / keyframes + rule text); fit to our 8-dim proprio (prim answered); is the code there, use or rewrite (no licence: read, don't copy); any good VLM on NIM.</td><td>Done. Section complete with numbers re-read in the PDF, code read, NIM check, S0–S3, tag fixes proposed.</td></tr>
+    <tr><td>ViFailback-8B (2512.02787)</td><td>— (inside the ProTracer section)</td><td>"What is ViFailback-8B?"</td><td>Answered as a subsection of ProTracer, not its own section: Qwen3-VL-8B LoRA on ALOHA data, 4,995 of 5,202 trajectories teleoperated (staged failures), head camera only; 46.1% onset acc on Short, 5.3% on Long [A]. "A reference point, not a tool for us." Not in the index as a separate paper.</td></tr>
+  </table></div>
+  <ul class="tight">
+    <li><b>S0–S3 (ProTracer options, none chosen):</b> S0 run their change-point + rule-text steps on R-047 traces (CPU, no VLM); check boundaries against E7 grasp/release events. S1 "held?" from telemetry alone, VLM only for which object and end state; reuse res31's placement_analysis.py. S2 reproduce their number on FailTime-Long with their code (~$9 for 100 episodes via OpenRouter + 6.1 GB). S3 full method on our LIBERO rollouts, sim-branching divergence as onset truth.</li>
+    <li><b>Fit to our data (prim, 10-20):</b> R-047 traces store eef_pos/eef_quat/gripper_qpos per step (20 Hz LIBERO default, override unchecked); real2sim 15 Hz rollout.npz; DROID trajectory.h5 15 Hz. Traps: eef_quat convention ≠ MuJoCo site frame (poc_toy_common.py:4); gripper = 2 finger values; obs at substep 1/25 vs frames at 23/25 (~45 ms); LIBERO frames rotated 180°; episodes ~4 s vs their 12–54 s thresholds.</li>
+    <li><b>NIM check (10-20):</b> only nvidia/nemotron-3.5-super-vl-120b-a12b answered (text only; image input untested). Gemma-4-31B and Llama-3.2-90B-vision timed out; cosmos-reason2-8b and kimi-k2.6 404. No Gemini key.</li>
+    <li><b>Errors found in the review, edits not applied:</b> §2.1 "other backbone names garbled [U]" → names are in the PDF, move to [A]; add the without-sensor onset figure (30.8%), per-type onset rules, code settings. §7 ViFailback "ALOHA/Piper" → paper says ALOHA ("Piper" likely from their FK URDF [I]). §2.7 "most failures staged" → confirmed 4,995/5,202 [A].</li>
+  </ul>
+
+  <h3>5 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li>Approve the review and the notes page as they stand (then res → prim commit request), or after the §2.1/§2.7/§7 tag fixes (res shows the edits first).</li>
+    <li>Whether an external API (OpenRouter / Gemini / Claude / GPT) is acceptable: it sends rollout data outside; it gates S2, a frontier backend for P2/P3, and element 9.</li>
+    <li>P1 / P2 / P3 and S0–S3: which, if any, to run (each goes user → prim; E7 code via an implementer; new number-producing code needs a checker PASS, and no checker is running).</li>
+    <li>Whether to test image input on Nemotron-3.5-super-VL (one call, a few stills).</li>
+    <li>Which paper to discuss next. Not yet discussed: the rest of T1 (FailBench, Guardian, Sentinel, REFLECT, GVL, PhAIL card, HyPAC, SPARC), then T2/T3.</li>
+  </ul>
+
+  <h3>6 · How a fresh session resumes</h3>
+  <ul class="tight">
+    <li>Read in order: this section → <code>docs/VLM_TELEMETRY_LABELLING_REVIEW.html</code> (header short answer, §1, §10) → <code>docs/VLM_PAPERS_WORKING_NOTES.html</code> (index, ProTracer section, section template, change log). Background only when needed: BRAINSTORM §3.2–3.4; E7 in ../VLA-exp-rootsignals/runs/root_signals/e7/ (NOTES.md, score.json, cosmos2b/, handreview/; read-only); FAILURE_LABEL_DATASETS.html; SENTINEL_METHODOLOGY.html.</li>
+    <li>Memory: <code>res-vlm-labelling-1023.md</code>, <code>re412-eval-validity-role.md</code>, <code>restmp-vlm-papers-role.md</code>.</li>
+    <li>First move: in res's own terminal, give the user this state and ask which paper next (or whether to approve the docs / apply the tag fixes); wait for a go.</li>
+    <li>Per paper discussed: re-read it, then add a section (template on the page) + index entry with tier and chip, tags, the user's questions with answers/options/decision/directions not taken, and a change-log line. Edits to the review are shown to the user first.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>
