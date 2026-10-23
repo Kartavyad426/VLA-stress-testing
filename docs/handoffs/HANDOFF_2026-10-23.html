@@ -80,7 +80,7 @@
 <header>
   <p class="eyebrow">Session handoff · VLA perturbation programme</p>
   <h1>Handoff, 23 October</h1>
-  <p class="stand">Written after the machine restart on 10-23 (11:26). Covers 20 Oct afternoon to 23 Oct; no work was done between 10-20 16:16 and the restart. Writers: <b>prim</b> (state at a glance and the prim section), <b>res31</b>, <b>ObjGen</b>, <b>scripted</b> and <b>res</b> (each its own section, stamped with the time it was filled). Internal doc: decision-log style. Each session re-onboards from its own section. Previous: <a href="HANDOFF_2026-10-20.html">HANDOFF_2026-10-20.html</a>.</p>
+  <p class="stand">Written after the machine restart on 10-23 (11:26). Covers 20 Oct afternoon to 23 Oct; no work was done between 10-20 16:16 and the restart. Writers: <b>prim</b> (state at a glance and the prim section), <b>res31</b>, <b>ObjGen</b>, <b>scripted</b> <b>res</b>, <b>impl2</b> and <b>DMP</b> (each its own section, stamped with the time it was filled). Internal doc: decision-log style. Each session re-onboards from its own section. Previous: <a href="HANDOFF_2026-10-20.html">HANDOFF_2026-10-20.html</a>.</p>
   <div class="meta"><span>Compiled by <code>prim</code></span><span>Created 2026-10-23</span><span>HEAD at creation: <code>4fd63fe</code> (main) · <code>dae447a</code> (exp/dmp-poc) · <code>d2d8a49</code> (exp/scripted-expert, code uncommitted)</span></div>
 </header>
 
@@ -88,14 +88,14 @@
   <h2>State at a glance <span class="small">(filled 2026-10-23 by prim)</span></h2>
   <ul>
     <li><span class="box">·</span><span><b>Machine:</b> restarted 10-23 11:26; every session ended. AC on, GPU idle (only vst), disk 230 GB free.</span><span class="who">prim</span></li>
-    <li><span class="box">·</span><span><b>Running again:</b> res31, ObjGen, scripted (with their context) and res (new name; holds re412's and resTmp's work). <b>Not running:</b> impl2, DMP, NH, AssetPack, re412, resTmp, vla-cd.</span><span class="who">user</span></li>
-    <li><span class="box">·</span><span><b>LIBERO-MAX smoke4 FAILED (10-20):</b> every rollout errored with <code>'function' object has no attribute '__modality__'</code>; the restore checks then found no rollouts.jsonl. Not diagnosed (impl2 not running). Lite never launched.</span><span class="who">impl2 · user</span></li>
+    <li><span class="box">·</span><span><b>Running again:</b> res31, ObjGen, scripted (with their context) and res (new name; holds re412's and resTmp's work). <b>Not running:</b> NH, AssetPack, re412, resTmp, vla-cd.</span><span class="who">user</span></li>
+    <li><span class="box">·</span><span><b>LIBERO-MAX smoke4 FAILED (10-20):</b> every rollout errored with <code>'function' object has no attribute '__modality__'</code>; the restore checks then found no rollouts.jsonl. Diagnosed by impl2 on 10-23: its obs-snapshot sensor wrapper in lmax_obs.py drops robosuite's <code>__modality__</code> attribute; one-line fix identified, NOT applied (impl2 section). Lite never launched.</span><span class="who">impl2 · user</span></li>
     <li><span class="box">·</span><span><b>Git:</b> main has <b>43 unpushed commits</b> (origin at ab238e5); exp/dmp-poc not pushed. The user pushes.</span><span class="who">user</span></li>
     <li><span class="box">·</span><span><b>No checker is running:</b> every number since 10-09 is UNVERIFIED.</span><span class="who">user</span></li>
   </ul>
 </section>
 
-<nav><ol><li><a href="#prim">prim</a></li><li><a href="#res31">res31</a></li><li><a href="#objgen">ObjGen</a></li><li><a href="#scripted">scripted</a></li><li><a href="#res">res</a></li></ol></nav>
+<nav><ol><li><a href="#prim">prim</a></li><li><a href="#res31">res31</a></li><li><a href="#objgen">ObjGen</a></li><li><a href="#scripted">scripted</a></li><li><a href="#res">res</a></li><li><a href="#impl2">impl2</a></li><li><a href="#dmp">DMP</a></li></ol></nav>
 
 <section class="sess" id="prim">
   <h2>prim <span class="small">(filled 2026-10-23 by prim)</span></h2>
@@ -377,6 +377,148 @@
     <li>Memory: <code>res-vlm-labelling-1023.md</code>, <code>re412-eval-validity-role.md</code>, <code>restmp-vlm-papers-role.md</code>.</li>
     <li>First move: in res's own terminal, give the user this state and ask which paper next (or whether to approve the docs / apply the tag fixes); wait for a go.</li>
     <li>Per paper discussed: re-read it, then add a section (template on the page) + index entry with tier and chip, tags, the user's questions with answers/options/decision/directions not taken, and a change-log line. Edits to the review are shown to the user first.</li>
+  </ul>
+</section>
+
+<section class="sess" id="impl2">
+  <h2>impl2 <span class="small">(filled 2026-10-23 11:48 by impl2)</span></h2>
+  <p class="lead"><span class="owner">owner: impl2</span> · LIBERO-MAX (arXiv 2609.36518): reproduce the paper's GR00T N1.7 numbers on <b>Lite</b> (800 paired cases, target 69.3% Base / 51.4% Dynamic, pass = Base, Dynamic and gap each within ±5 pt) and record every rollout in the agreed observability format. Started 10-14 from brain's scoping request (user-approved). Original scope (podolinsky LIBERO-10 v3) is still blocked on HF access. <b>Verdict now: Lite is NOT ready.</b> smoke4 (10-20) failed on a bug of mine: one missing attribute line, diagnosed below, not fixed. <b>All numbers are UNVERIFIED</b>: val hasn't checked lmax_groot_shard.py / lmax_obs.py / lmax_restore_check.py.</p>
+
+  <h3>1 · Decision log</h3>
+  <div class="tbl"><table>
+    <tr><th>When / trigger</th><th>Options / decision</th><th>Outcome</th><th>Commit</th></tr>
+    <tr><td>10-14, user via brain: scope the repro; "see if they have code… fork or submodule… reuse adjacent code".</td><td>Submodule (repo has no licence, so no fork) + our own GR00T shard reusing <code>vla_harness/policies/lerobot_policy.py</code>; their event wrapper and aggregator unchanged.</td><td><code>third_party/LIBERO-MAX</code> @01625e2. Checkpoints = our LeRobot <code>-640</code> ports (spatial 32a6ec7, object 1499db3, goal 436c57c, libero_10 5ee08ab). The paper's checkpoint is probably Isaac-GR00T <code>nvidia/GR00T-N1.7-LIBERO</code>, not downloaded (not approved).</td><td>f76837b</td></tr>
+    <tr><td>10-14, user via prim: rollout format.</td><td>docs/PORTABILITY_LIBERO_MAX.html §5 + my amendments [A1]–[A7]; frames stored as the policy saw them.</td><td>Agreed.</td><td>—</td></tr>
+    <tr><td>10-14, user: "run the spatial pilot".</td><td>133 libero_spatial Plus Lite pairs, native LIBERO-MAX output only.</td><td><b>UNVERIFIED</b>: Base 86.5% [79.6, 91.3], Dynamic 61.7% [53.2, 69.5], gap −24.8 pp; 35 pairs regressed, 2 improved; McNemar p&lt;1e-8. Success rates only (no observability). Not comparable to the all-suite paper number.</td><td>ab238e5 (metadata)</td></tr>
+    <tr><td>10-14/15, user: "build observability"; "nothing we'd later need forces a re-run". No B=32/STAC in this run.</td><td>Build schema-v3 output at run time.</td><td><code>lmax_obs.py</code>: sim state every step, act_P + act_P_env per model call, per-step poses/quats/contacts/predicates/held/success, event-body poses, frames npz, pooled backbone features, provenance. smoke2 (4 pairs) OK. LIBERO-PRO set up (<code>third_party/LIBERO-PRO</code> @2b910b5, data @c86fc3b).</td><td>8b96df2</td></tr>
+    <tr><td>10-19, user via prim: approved frames <b>A</b> <code>--query-px 360</code> and <b>B</b> <code>--every-step-px 256</code>; Lite <b>overnight only, on prim's go</b>, after res31's G2.</td><td>Re-smoke first (smoke3) with the restore check.</td><td>smoke3: 4/4 pairs rc 0, but the <b>restore check FAILED</b>. Cause (checked in robosuite source): observations (proprio AND cameras) are sampled on the <b>first of 25 substeps</b>, so the end-of-step <code>sim_states[t]</code> is not what the policy saw (~2 mm / ~9 mrad off). Separately, one PRO case (obstacle_insertion) had one scene body off by a constant <b>0.17 m</b>, undiagnosed.</td><td>—</td></tr>
+    <tr><td>10-19, my fix.</td><td>Also save <code>obs_sim_states[t]</code> (pre-integration state at the sampling substep, via wrapped <code>sim.step</code> + wrapped observable sensors). Also fixed: <code>self.gt</code> used before init (would crash every case), 360 query frames dropped under A+B. Restore check rewritten: (A) physics restore + one-step replay; (B) view restore vs recorded eef pose and frame SHA; names the worst scene body.</td><td>Code compiled, not run.</td><td>adf6347</td></tr>
+    <tr><td>10-19, user: deletion mechanism after results are absorbed.</td><td>Outline sent (§4). User: "ask me again in the evening when we start the overnight run"; "don't pre-register right now"; every pre-registration must state disk needed / free now / left after.</td><td>Deferred. No prune code written.</td><td>—</td></tr>
+    <tr><td>10-20 11:30, prim's go for smoke4.</td><td>Same 4 pairs, A+B, then restore check (A)+(B).</td><td><b>FAILED, and I never reported it</b>: the run ended at 11:31, but its completion notice never reached my session before work stopped. All 4 cases errored <code>'function' object has no attribute '__modality__'</code>; both restore-check units then failed (no <code>rollouts.jsonl</code>). <b>Cause (diagnosed 10-23 from the log + robosuite source):</b> robosuite reads <code>self._sensor.__modality__</code> (<code>robosuite/utils/observables.py:403</code>); my sensor wrapper in <code>_install_obs_snapshot</code> (lmax_obs.py) doesn't copy it. <b>Fix (not applied):</b> add <code>sensor.__modality__ = orig.__modality__</code> before <code>ob._sensor = sensor</code>. GPU peaks 6.1–7.1 GiB, &lt;1 min per unit.</td><td>not committed (§3)</td></tr>
+  </table></div>
+
+  <h3>2 · Lite plan (ready apart from the bug above)</h3>
+  <ul class="tight">
+    <li><b>Command</b> (only after smoke4 passes, the user answers the deletion question, and prim gives the go): <code>systemd-inhibit --what=sleep:idle --why="LIBERO-MAX Lite" bash experiments/run_lmax_lite.sh lite_v1 --every-step-px 256 --query-px 360</code>. 8 d_step units (4 suites × Plus/PRO), <code>--resume</code> safe, writes a README (no B=32/STAC by design), scores with their aggregator at the end.</li>
+    <li><b>ETA ≈ 8–9 h</b> (pilot pace 7–8 h + 10–15% for every-step frames). Peaks in smokes: GPU ≤7.3 GiB, RSS ≤19.1 GiB.</li>
+    <li><b>Disk line</b> (smoke3 measurement scaled to ~345–410k steps; UNVERIFIED estimate): needs ~60–70 GB. Free now 228 GB (10-23), so ~160 GB left after. Per tier: every-step 256 frames ~47–55 GB; 360 query frames ~10–12 GB; 360 event/grasp/release/final ~1 GB; pooled features ~0.3 GB; states + action chunks ~0.5 GB; jsonl + case files ~2 GB. Re-measure with <code>df</code> before launch.</li>
+    <li>Lite case counts: object 253, libero_10 186, spatial 182, goal 179.</li>
+  </ul>
+
+  <h3>3 · Uncommitted or local only</h3>
+  <ul class="tight">
+    <li><b>Commit candidates (metadata):</b> <code>runs/overnight/lmax_smoke4_{plus,pro,rc_plus,rc_pro}.log</code> + <code>.peaks.json</code>; <code>runs/overnight/lmax_smoke3_{plus,pro,rc_plus,rc_pro}.peaks.json</code>; <code>runs/lmax/smoke4/*/run_config.json</code> and <code>runs/lmax/smoke4/*/cases/*/{status,scenario}.json</code> (+ empty FAILED markers); the queue.log lines for lmax_smoke4_*.</li>
+    <li>Never committed (bulk): <code>runs/lmax/smoke3/*/npz/</code>, <code>cases/</code>, <code>rollouts.jsonl</code> (447 MB); <code>runs/lmax/pilot_spatial/</code> (56 MB), <code>smoke1/</code>, <code>smoke2/</code>.</li>
+    <li>Code is all committed (adf6347). The smoke4 fix above is not written.</li>
+  </ul>
+
+  <h3>4 · Open decisions for the user</h3>
+  <ul class="tight">
+    <li><b>(a) Deletion mechanism</b> (ask when the overnight run starts; no code until approved). <code>experiments/lmax_prune.py &lt;run_dir&gt;</code>: dry run by default (per tier, GB freed).
+      <ul class="tight">
+        <li>Tiers, each deleted only when named: T1 every-step 256 frames (~50 GB), T2 360 query frames = the exact images GR00T saw (~11 GB), T3 360 event/grasp frames (~1 GB), T4 pooled features (~0.3 GB).</li>
+        <li>Never deleted: sim_states, obs_sim_states, act_P(+_env), rollouts.jsonl, cases/, run_config, summary/.</li>
+        <li>Refuses unless: an <code>ABSORBED</code> marker exists, written on the user's OK; restore check (A)+(B) passed; a re-render self-test reproduces the frames about to go, byte-exact.</li>
+        <li>Writes <code>DELETION_MANIFEST.json</code> (committed).</li>
+        <li>Companion <code>lmax_rerender.py</code>: before the event, restore <code>obs_sim_states</code>; after it, replay the recorded actions through the case wrapper and check against the stored frame SHAs.</li>
+        <li><b>Question:</b> may T2 ever be deleted? My recommendation: no, keep T2+T3 (~12 GB) and allow only T1/T4.</li>
+      </ul></li>
+    <li><b>(b)</b> The 0.17 m PRO obstacle body: diagnose, or accept as a named exception if restore check (B) still flags it.</li>
+    <li><b>(c)</b> Still not approved: the Isaac-GR00T checkpoint download, a GitHub issue to the authors, a separate STAC/B=32 run.</li>
+  </ul>
+
+  <h3>5 · How a fresh impl2 resumes</h3>
+  <ul class="tight">
+    <li><b>Read:</b> this section; prim's section (rules); memory <code>impl2-libero-max.md</code>, <code>preregister-disk-budget.md</code>; docstrings of <code>experiments/lmax_groot_shard.py</code>, <code>lmax_obs.py</code>, <code>lmax_restore_check.py</code>, <code>run_lmax_lite.sh</code>; docs/PORTABILITY_LIBERO_MAX.html §5.</li>
+    <li><b>Rules:</b> GPU only via <code>bash experiments/d_step.sh &lt;unit&gt; --gpu …</code> after prim's go; check the flock, AC and RAM, then announce to prim. prim commits (metadata only). No subagents.</li>
+    <li><b>First step:</b> apply the one-line <code>__modality__</code> fix in <code>_install_obs_snapshot</code> (show it to the user/prim first), then, on prim's go, re-run smoke4. The script is in queue.log: two shard units (<code>--suite libero_spatial --source plus</code> with case ids <code>libero_spatial-t0276-target_relocation-d1-p195</code>, <code>libero_spatial-t0204-receptacle_relocation-d1-p195</code>; <code>--suite libero_10 --source pro</code> with <code>pro-camera-view-angle-10-t01-i06-distractor_burst-d0-p195</code>, <code>pro-initial-pose-position-angle-10-t03-i09-obstacle_insertion-d0-p195</code>; PRO needs <code>PYTHONPATH=$PWD/third_party/LIBERO-PRO LIBERO_CONFIG_PATH=$PWD/third_party/libero-pro-config</code>), all with <code>--query-px 360 --every-step-px 256</code> and <code>--output-root runs/lmax/smoke4/&lt;root&gt;</code>; then <code>MUJOCO_GL=egl … lmax_restore_check.py third_party/LIBERO-MAX/benchmark/lite/libero_max_lite.json runs/lmax/smoke4/&lt;root&gt;</code> per root.</li>
+    <li><b>Pass bar:</b> (A) phys restore ≈ 0 and one-step replay small; (B) eef pose ≈ 0 and all frame SHAs match. Also check that <code>obs_snap_mismatch</code> = 0 in the npz.</li>
+    <li><b>Then:</b> report to prim → ask the user (a) → pre-registration with the disk line → prim's go → Lite overnight.</li>
+    <li><b>Reminder owed to the user:</b> no Lite data exists yet in the observability format; the spatial pilot is success rates only.</li>
+  </ul>
+</section>
+
+<section class="sess" id="dmp">
+  <h2>DMP <span class="small">(filled 2026-10-23 11:50 by DMP)</span></h2>
+  <p class="lead"><span class="owner">owner: DMP</span> · DMP corrective-demo proof of concept, taken over from impl21 (gone since 10-14) via prim on 10-19. No new code or runs since the handover. The code is committed; every number is UNVERIFIED (val has checked none of it).</p>
+
+  <h3>1 · What the PoC is</h3>
+  <ul class="tight">
+    <li>GR00T N1.7 fails a LIBERO-Spatial episode (R-047). We find the failure's root step, restore the sim there exactly (reset, then replay the logged actions; ≤ 1 mm check at every step), find the 3 nearest human demos, bend each one's remaining motion with a DMP (Hoffmann/Pastor 2009, absolute-units forcing term; goal in the object frame), execute it with the OSC controller, and keep it only if it passes four checks: success, jerk, speed/saturation and collateral (no other object moved &gt; 2 cm). The kept rollouts are corrective training data. Origin: the user's idea in <code>docs/ROOT_TO_GOAL_CORRECTIVE_DEMOS.html</code>.</li>
+    <li>Arms compared on the same matches: <code>dmp</code>, <code>dmp_vector</code> (vector-wise scaling), <code>dmp_rest</code> (starts from zero velocity) and <code>linear</code> (IntervenGen-style 20-step straight bridge, then the demo replayed rigidly).</li>
+    <li><b>Demo search (<code>match.py</code>):</b> a single snapshot plus velocity, nearest neighbour. Candidates are the human demos of the same task, at steps in the same phase (A approach / B carry). Features are object-relative and taken from the exact sim state:
+      <ul class="tight">
+        <li>A, 10 numbers: hand − bowl (3), hand rotation vs the demos' mean rotation (3), velocity (3, weight 0.5), finger gap (1).</li>
+        <li>B adds hand − plate and bowl − hand.</li>
+      </ul>
+      Each feature is divided by its standard deviation over the demos. For each demo the closest step leaving ≥ 20 steps of the phase is taken; the top 3 demos are used. Coverage = distance / d_gap (95th percentile of the leave-one-demo-out nearest-neighbour distance between demos).</li>
+    <li><b>Phases:</b>
+      <ul class="tight">
+        <li>Demos are cut at gripper-command changes (blips of 1–2 steps absorbed). The "final grasp" is the last close that lifts the bowl ≥ 5 cm and is followed by a release; earlier attempts are only tagged (regrasp, replace, …).</li>
+        <li>The root's phase comes from its event type: miss, slip, wrong object, never reached and drop → A; off-target place → B. Restore points are chosen before the gripper action takes effect.</li>
+      </ul></li>
+    <li><b>Explained to the user 10-19:</b> the search uses privileged sim state (exact object poses, target identity from the BDDL). This is fine for generating sim data; it matters for real-robot use.</li>
+  </ul>
+
+  <h3>2 · Where things are</h3>
+  <ul class="tight">
+    <li>Code: worktree <code>../VLA-exp-dmp-poc</code>, branch <code>exp/dmp-poc</code>, commit <b>dae447a</b> (21 files: <code>experiments/dmp_poc/*.py</code>, 10 files, plus run metadata in <code>runs/dmp_poc</code>). Not pushed, not merged to main. The command is in <code>run.py</code>'s docstring (CPU, <code>MUJOCO_GL=osmesa</code>, the libero-plus venv, <code>PYTHONPATH=third_party/LIBERO-plus</code>). Subcommands: <code>b1</code>, <code>match</code>, <code>t3</code>.</li>
+    <li>Docs (main repo, committed): <code>docs/DMP_POC_METHOD.html</code> (method and maths, §9a = the 10-file plan), <code>docs/DMP_POC_METHOD_internal.html</code> (pros and cons), <code>docs/DMP_POC_SHOWCASE.html</code> (videos; committed in 860bee6).</li>
+    <li>Uncommitted in the worktree, all data, kept out on purpose: <code>runs/dmp_poc/demos/*.npz</code> (5.8 MB, demo cache, regenerable), <code>runs/dmp_poc/t3/*.npz</code> (rollouts), <code>runs/dmp_poc/videos/</code> including <code>web/</code> (mp4, 35 MB). Nothing worth committing is left.</li>
+  </ul>
+
+  <h3>3 · Results (all UNVERIFIED)</h3>
+  <div class="tbl"><table>
+    <tr><th>Scenario (R-047)</th><th>DMP kept</th><th>Linear kept</th><th>Match distance / d_gap</th></tr>
+    <tr><td>A slip, row 14, t = 31</td><td>3/3</td><td>3/3</td><td>1.8–2.0</td></tr>
+    <tr><td>B off-target place, row 14, t = 242</td><td>3/3</td><td>2/3</td><td>1.9–2.4</td></tr>
+    <tr><td>C miss, row 186, t = 28</td><td>1/3</td><td>1/3</td><td>2.7</td></tr>
+    <tr><td>D far miss, row 440, t = 18</td><td>2/3</td><td>0/3</td><td>2.9–3.1</td></tr>
+    <tr><td>D_backup, row 224, t = 21</td><td>1/3</td><td>1/3</td><td>3.1–3.2</td></tr>
+    <tr><td><b>Total</b></td><td><b>10/15</b></td><td><b>7/15</b></td><td></td></tr>
+  </table></div>
+  <ul class="tight">
+    <li>B1: all 5 scenarios restore exactly (0.0 mm). Rewinding the flattened sim state was not deterministic; action replay is.</li>
+    <li><b>Correction:</b> dae447a's commit message says "D_backup kept 0". Per <code>t3/results.json</code> it kept 1/3 in every arm. prim confirmed this; the message was not amended.</li>
+    <li>Every phase-A rollout used the clearance lift, an addition from impl21's build: if the root is &gt; 3 cm below the matched demo point, the hand first goes straight up, here by 15–23 cm. A large part of each A correction is therefore that vertical lift.</li>
+    <li>Every match is 1.8–3.2 × d_gap, so by the method page's definition every scenario is a coverage gap, yet most succeed: the threshold of 1 is miscalibrated.</li>
+    <li>The DMP clearly beats the linear bridge only on D. Rejected rollouts mostly fail the success check, not jerk.</li>
+    <li><code>LOOKAHEAD = 1</code> in <code>execute.py</code> was meant to be tuned in T2, which never ran, so T3 used an untuned value.</li>
+    <li><b>Comparison with scripted</b> (branch <code>exp/scripted-expert</code>, 216d6c3, which imports DMP's restore/execute/judge read-only at dae447a): 13/15 kept on the same 5 scenarios (default 5/5, minjerk 4/5, nearest 4/5) vs DMP 10/15. UNVERIFIED, and tuned on these same 5 scenarios, so it is not a held-out comparison. I read only its commit message, not its code.</li>
+  </ul>
+
+  <h3>4 · Decision log</h3>
+  <div class="tbl"><table>
+    <tr><th>When</th><th>Trigger</th><th>Decision</th><th>Outcome</th></tr>
+    <tr><td>10-14</td><td>impl21 method page</td><td>User approved C0–C5: build the 10-file plan; Hoffmann/Pastor DMP plus a vector-wise arm; success = full task; 200 steps after the root, uncapped at 280; reuse the exploratory root rules (more robust selection later, UQ4, no owner); scenarios A–D plus a backup.</td><td>Code built, T3 run (impl21).</td></tr>
+    <tr><td>10-19</td><td>prim handover to DMP</td><td>Commit the code plus small results; no npz/mp4.</td><td>dae447a.</td></tr>
+    <tr><td>10-19</td><td>Session "scripted" created by the user</td><td>Kept separate and compared later. It reuses <code>restore.py</code>, <code>roots.jsonl</code> and <code>judge()</code> read-only. <b>DMP must tell prim before changing their interfaces.</b></td><td>scripted reports 13/15 (216d6c3).</td></tr>
+    <tr><td>10-19</td><td>User: "first, understand the mechanism"</td><td>DMP read the method page and dmp/match/execute/restore/demos (not report/render, nor the body of roots.py), then explained the mechanism, the search, the privileged-state use and the phase rules.</td><td>Explanation given in the terminal; no changes made.</td></tr>
+  </table></div>
+
+  <h3>5 · Open decisions for the user (none answered yet)</h3>
+  <ul class="tight">
+    <li>(a) Order of the next steps. DMP recommends T2 first: it tunes LOOKAHEAD, which every later number depends on; about ½ day of code plus minutes of CPU. Then T4.</li>
+    <li>(b) T4 roots: both roots per failure (first event and first unrecovered; up to 352), or only the first.</li>
+    <li>(c) T4 CPU workers. Suggested 8 of 16. Rough estimate, from file timestamps, not measured: about 8 s per rollout, about 4,200 rollouts, about 1.5–2 h on 8 workers; 18 GB RAM was free on 10-19. The pre-registration also needs the disk line (needed / free now / left after).</li>
+    <li>(d) The user's "clever trick" for demo search: never stated. Ask. It would replace <code>match.py</code> steps 2–5, the part scripted does not share.</li>
+    <li>(e) Clearance lift: keep it as part of the method, or fix it first.</li>
+  </ul>
+
+  <h3>6 · What's left</h3>
+  <ul class="tight">
+    <li>No code yet for: T2 (self-reproduction and 2/8/16 cm offsets), T4 (sweep over the 176 R-047 failures; all 176 have roots in <code>runs/dmp_poc/roots.jsonl</code>, 720 rows), the §8 tables in report.py, DART offsets (5 per root, 1–3 cm).</li>
+    <li>Not confirmed: whether <code>test_dmp.py</code> (T1) was run and passes; whether matched demos had their full replay checked (method §10).</li>
+    <li>val check of restore, dmp, demos, roots, match, execute and report. val is not running.</li>
+    <li>Later: LIBERO-MAX failures, blocked on impl2's Lite run.</li>
+    <li>Root rules: most thresholds are V1 §6 placeholders. GR00T carries below the 5 cm LIFT_OK, so some carries are called slips (documented in <code>roots.py</code>).</li>
+  </ul>
+
+  <h3>7 · How a fresh session resumes</h3>
+  <ul class="tight">
+    <li>Read this section, then <code>docs/DMP_POC_METHOD.html</code> §1–§9a, then in the worktree read the docstrings of <code>run.py</code>, <code>execute.py</code>, <code>match.py</code> and <code>roots.py</code>. Memory notes: <code>dmp-session-role.md</code>, <code>impl21-dmp-poc.md</code>.</li>
+    <li>Ask the user (a)–(e) in the terminal. Outline any code change and wait for a go. No commits (send prim a commit request: metadata only). CPU only: no GPU is needed except for renders, which go through prim's gate.</li>
+    <li>Rules: do not edit <code>docs/drafts/prim_probes/root_rules_probe_v2.py</code>, <code>poc_toy_*.py</code> or <code>vla_harness/mining/*</code> (except divergence_point). Keep the restore/roots/judge interfaces stable for scripted. Tag every new number UNVERIFIED.</li>
   </ul>
 </section>
 
