@@ -1,0 +1,132 @@
+{
+  "base_task_id": "libero-pro/camera_view_angle/libero_10/task_1",
+  "change": {
+    "distractor_count": 5,
+    "operation": "insert_distractors",
+    "placements": [
+      {
+        "object": "orange_juice_1",
+        "offset_m": [
+          -0.11679855,
+          0.01490143,
+          0.0
+        ],
+        "preserve_initial_z": true,
+        "relative_to": "cream_cheese_1",
+        "support_entity": "living_room_table"
+      },
+      {
+        "object": "tomato_sauce_1",
+        "offset_m": [
+          -0.06492899,
+          -0.13754064,
+          0.0
+        ],
+        "preserve_initial_z": true,
+        "relative_to": "cream_cheese_1",
+        "support_entity": "living_room_table"
+      },
+      {
+        "object": "ketchup_1",
+        "offset_m": [
+          0.11946005,
+          -0.11245798,
+          0.0
+        ],
+        "preserve_initial_z": true,
+        "relative_to": "cream_cheese_1",
+        "support_entity": "living_room_table"
+      },
+      {
+        "object": "alphabet_soup_1",
+        "offset_m": [
+          0.12601603,
+          0.06907569,
+          0.0
+        ],
+        "preserve_initial_z": true,
+        "relative_to": "cream_cheese_1",
+        "support_entity": "living_room_table"
+      },
+      {
+        "object": "milk_1",
+        "offset_m": [
+          -0.02315475,
+          0.12219989,
+          0.0
+        ],
+        "preserve_initial_z": true,
+        "relative_to": "cream_cheese_1",
+        "support_entity": "living_room_table"
+      }
+    ]
+  },
+  "change_family": "CLUTTER",
+  "change_type": "distractor_burst",
+  "expected_response_mode": "continue",
+  "randomization": {
+    "draw_id": 0,
+    "sampler": "libero-max-pro-hard-v1.0",
+    "seed": 318522221
+  },
+  "safety_constraints": [
+    "task_remains_feasible",
+    "no_simulator_error",
+    "no_new_unrelated_collision"
+  ],
+  "scenario_id": "pro-camera-view-angle-10-t01-i06-distractor_burst-d0",
+  "seed": 318522221,
+  "setup": [
+    {
+      "object": "orange_juice_1",
+      "offworld_position_m": [
+        -2.0,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    },
+    {
+      "object": "tomato_sauce_1",
+      "offworld_position_m": [
+        -2.2,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    },
+    {
+      "object": "ketchup_1",
+      "offworld_position_m": [
+        -2.4,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    },
+    {
+      "object": "alphabet_soup_1",
+      "offworld_position_m": [
+        -2.6,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    },
+    {
+      "object": "milk_1",
+      "offworld_position_m": [
+        -2.8,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    }
+  ],
+  "severity": "high",
+  "trigger": {
+    "distance_m": 0.18,
+    "type": "on_proximity",
+    "value": "cream_cheese_1"
+  }
+}

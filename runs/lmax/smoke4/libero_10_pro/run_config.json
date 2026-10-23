@@ -1,0 +1,44 @@
+{
+  "checkpoint": "nvidia/gr00t17-lerobot-libero_10-640",
+  "checkpoint_revision": "5ee08ab09fac5c5ef2388a14c882ea825ac861db",
+  "control": "relative (delta) throughout",
+  "libero_max_commit": "01625e290b1aa07511bdc820781e635e851353cc",
+  "libero_pro_commit": "2b910b5b5f53016bef9907632f6f840f1ce2229c",
+  "libero_source": null,
+  "manifest": "third_party/LIBERO-MAX/benchmark/lite/libero_max_lite.json",
+  "max_policy_steps": 520,
+  "mujoco": "3.3.2",
+  "n_cases": 2,
+  "not_in_this_run": "multi-draw B=32 / STAC: it changes the serving noise path, so it gets its own run",
+  "observability": {
+    "every_step_px": 256,
+    "format": "PORTABILITY_LIBERO_MAX.html \u00a75 + A1-A7",
+    "query_px": 360
+  },
+  "policy_id": "lerobot:nvidia/gr00t17-lerobot-libero_10-640@dd0ffb70",
+  "policy_seed": 195,
+  "query_interval": 8,
+  "repo_commit": "c6076defaf387b62f4b4b6034deb242be5269e05",
+  "resolution": 360,
+  "resolved_policy_config": {
+    "checkpoint": "nvidia/gr00t17-lerobot-libero_10-640",
+    "chunk_size": 16,
+    "device": "cuda",
+    "dtype": "bfloat16",
+    "n_action_steps": 8,
+    "policy_overrides": {
+      "base_model_path": "nvidia/GR00T-N1.7-3B",
+      "embodiment_tag": "libero_sim"
+    },
+    "preprocessor_overrides": {},
+    "requested_n_action_steps": 8,
+    "type": "groot"
+  },
+  "robosuite": "1.4.1",
+  "runner": "experiments/lmax_groot_shard.py",
+  "source": "pro",
+  "started": "2026-10-20 11:31:14",
+  "suite": "libero_10",
+  "torch": "2.11.0+cu128",
+  "warmup_steps": 10
+}
