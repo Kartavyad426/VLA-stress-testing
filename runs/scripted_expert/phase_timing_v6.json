@@ -1,0 +1,1319 @@
+{
+ "tag": "UNVERIFIED",
+ "budget": 600,
+ "liftoff_m": 0.01,
+ "expert": [
+  {
+   "scenario": "A",
+   "variant": "default",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 97,
+   "branch": "pick",
+   "approach": {
+    "steps": 38,
+    "path_m": 0.2526209368936934,
+    "speed": 0.132958387838786
+   },
+   "close": {
+    "steps": 22,
+    "path_m": 0.02748340025226192,
+    "speed": 0.02498490932023811
+   },
+   "carry": {
+    "steps": 37,
+    "path_m": 0.2825194223350113,
+    "speed": 0.15271320126216828
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 97
+  },
+  {
+   "scenario": "A",
+   "variant": "minjerk",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 96,
+   "branch": "pick",
+   "approach": {
+    "steps": 38,
+    "path_m": 0.2473785120564729,
+    "speed": 0.13019921687182784
+   },
+   "close": {
+    "steps": 20,
+    "path_m": 0.02789941559133637,
+    "speed": 0.02789941559133637
+   },
+   "carry": {
+    "steps": 38,
+    "path_m": 0.2817155561589571,
+    "speed": 0.14827134534681952
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 96
+  },
+  {
+   "scenario": "A",
+   "variant": "nearest",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 103,
+   "branch": "pick",
+   "approach": {
+    "steps": 48,
+    "path_m": 0.17480614925143131,
+    "speed": 0.0728358955214297
+   },
+   "close": {
+    "steps": 21,
+    "path_m": 0.02957779632007232,
+    "speed": 0.028169329828640302
+   },
+   "carry": {
+    "steps": 34,
+    "path_m": 0.26116282881385366,
+    "speed": 0.1536251934199139
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 103
+  },
+  {
+   "scenario": "B",
+   "variant": "default",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 39,
+   "branch": "carry",
+   "approach": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "close": {
+    "steps": 4,
+    "path_m": 0.013056115883977832,
+    "speed": 0.06528057941988916
+   },
+   "carry": {
+    "steps": 31,
+    "path_m": 0.1925821396396057,
+    "speed": 0.1242465417029714
+   },
+   "finish": {
+    "steps": 4,
+    "path_m": 0.0005542416060203038,
+    "speed": 0.002771208030101519
+   },
+   "total_steps": 39
+  },
+  {
+   "scenario": "B",
+   "variant": "minjerk",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 42,
+   "branch": "carry",
+   "approach": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "close": {
+    "steps": 6,
+    "path_m": 0.015684912008045657,
+    "speed": 0.05228304002681885
+   },
+   "carry": {
+    "steps": 32,
+    "path_m": 0.1897685749464023,
+    "speed": 0.11860535934150145
+   },
+   "finish": {
+    "steps": 4,
+    "path_m": 0.0006010746788434015,
+    "speed": 0.003005373394217007
+   },
+   "total_steps": 42
+  },
+  {
+   "scenario": "B",
+   "variant": "nearest",
+   "task": "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate",
+   "success_step": 39,
+   "branch": "carry",
+   "approach": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "close": {
+    "steps": 4,
+    "path_m": 0.013056115883977832,
+    "speed": 0.06528057941988916
+   },
+   "carry": {
+    "steps": 31,
+    "path_m": 0.1925821396396057,
+    "speed": 0.1242465417029714
+   },
+   "finish": {
+    "steps": 4,
+    "path_m": 0.0005542416060203038,
+    "speed": 0.002771208030101519
+   },
+   "total_steps": 39
+  },
+  {
+   "scenario": "C",
+   "variant": "default",
+   "task": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate",
+   "success_step": 115,
+   "branch": "pick",
+   "approach": {
+    "steps": 41,
+    "path_m": 0.24823910327642923,
+    "speed": 0.12109224550069717
+   },
+   "close": {
+    "steps": 22,
+    "path_m": 0.031823753417768295,
+    "speed": 0.028930684925243904
+   },
+   "carry": {
+    "steps": 52,
+    "path_m": 0.42513652275822716,
+    "speed": 0.16351404721470275
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 115
+  },
+  {
+   "scenario": "C",
+   "variant": "minjerk",
+   "task": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate",
+   "success_step": 118,
+   "branch": "pick",
+   "approach": {
+    "steps": 41,
+    "path_m": 0.2464324358059149,
+    "speed": 0.12021094429556822
+   },
+   "close": {
+    "steps": 20,
+    "path_m": 0.028111549419710127,
+    "speed": 0.028111549419710127
+   },
+   "carry": {
+    "steps": 57,
+    "path_m": 0.42591041977134314,
+    "speed": 0.14944225255134846
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 118
+  },
+  {
+   "scenario": "C",
+   "variant": "nearest",
+   "task": "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate",
+   "success_step": 112,
+   "branch": "pick",
+   "approach": {
+    "steps": 40,
+    "path_m": 0.21090366992493298,
+    "speed": 0.10545183496246649
+   },
+   "close": {
+    "steps": 20,
+    "path_m": 0.014040877294671156,
+    "speed": 0.014040877294671156
+   },
+   "carry": {
+    "steps": 52,
+    "path_m": 0.4387871388922343,
+    "speed": 0.16876428418932088
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 112
+  },
+  {
+   "scenario": "D",
+   "variant": "default",
+   "task": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate",
+   "success_step": 172,
+   "branch": "pick",
+   "approach": {
+    "steps": 93,
+    "path_m": 0.7036563200051149,
+    "speed": 0.15132393978604622
+   },
+   "close": {
+    "steps": 15,
+    "path_m": 0.029186979633536853,
+    "speed": 0.038915972844715804
+   },
+   "carry": {
+    "steps": 64,
+    "path_m": 0.6894674491043448,
+    "speed": 0.21545857784510772
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 172
+  },
+  {
+   "scenario": "D",
+   "variant": "minjerk",
+   "task": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate",
+   "success_step": 221,
+   "branch": "pick",
+   "approach": {
+    "steps": 102,
+    "path_m": 0.709294867217311,
+    "speed": 0.1390774249445708
+   },
+   "close": {
+    "steps": 24,
+    "path_m": 0.021967924797825472,
+    "speed": 0.01830660399818789
+   },
+   "carry": {
+    "steps": 94,
+    "path_m": 0.7373248231736172,
+    "speed": 0.15687762195183344
+   },
+   "finish": {
+    "steps": 1,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 221
+  },
+  {
+   "scenario": "D",
+   "variant": "nearest",
+   "task": "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate",
+   "success_step": null,
+   "branch": "pick",
+   "approach": {
+    "steps": 79,
+    "path_m": 0.6206453585043696,
+    "speed": 0.15712540721629611
+   },
+   "close": {
+    "steps": 15,
+    "path_m": 0.0216321088405661,
+    "speed": 0.028842811787421468
+   },
+   "carry": {
+    "steps": 66,
+    "path_m": 0.698546041754018,
+    "speed": 0.21168061871333876
+   },
+   "finish": {
+    "steps": 440,
+    "path_m": 0.08935984280676017,
+    "speed": 0.0040618110366709165
+   },
+   "total_steps": 600
+  },
+  {
+   "scenario": "D_backup",
+   "variant": "default",
+   "task": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate",
+   "success_step": 130,
+   "branch": "pick",
+   "approach": {
+    "steps": 71,
+    "path_m": 0.4882959597261172,
+    "speed": 0.1375481576693288
+   },
+   "close": {
+    "steps": 19,
+    "path_m": 0.027878320485893494,
+    "speed": 0.029345600511466834
+   },
+   "carry": {
+    "steps": 40,
+    "path_m": 0.3224095215803355,
+    "speed": 0.16120476079016774
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 130
+  },
+  {
+   "scenario": "D_backup",
+   "variant": "minjerk",
+   "task": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate",
+   "success_step": 131,
+   "branch": "pick",
+   "approach": {
+    "steps": 70,
+    "path_m": 0.4575776831202378,
+    "speed": 0.1307364808914965
+   },
+   "close": {
+    "steps": 20,
+    "path_m": 0.027124851669157644,
+    "speed": 0.027124851669157644
+   },
+   "carry": {
+    "steps": 41,
+    "path_m": 0.32878748690142473,
+    "speed": 0.16038413995191447
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 131
+  },
+  {
+   "scenario": "D_backup",
+   "variant": "nearest",
+   "task": "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate",
+   "success_step": 134,
+   "branch": "pick",
+   "approach": {
+    "steps": 73,
+    "path_m": 0.49582903720037713,
+    "speed": 0.13584357183571974
+   },
+   "close": {
+    "steps": 19,
+    "path_m": 0.02720293182192756,
+    "speed": 0.02863466507571322
+   },
+   "carry": {
+    "steps": 42,
+    "path_m": 0.3281412507013147,
+    "speed": 0.1562577384291975
+   },
+   "finish": {
+    "steps": 0,
+    "path_m": 0.0,
+    "speed": 0.0
+   },
+   "total_steps": 134
+  }
+ ],
+ "humans_by_task": {
+  "pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate": {
+   "approach": {
+    "steps_med": 36.0,
+    "steps_p10": 29.8,
+    "steps_p90": 43.0,
+    "speed_med": 0.23331883080845298
+   },
+   "close": {
+    "steps_med": 14.0,
+    "steps_p10": 12.0,
+    "steps_p90": 16.0,
+    "speed_med": 0.09733959256321198
+   },
+   "carry": {
+    "steps_med": 30.0,
+    "steps_p10": 24.4,
+    "steps_p90": 42.800000000000004,
+    "speed_med": 0.19078212807780473
+   },
+   "finish": {
+    "steps_med": 13.0,
+    "steps_p10": 9.0,
+    "steps_p90": 15.600000000000001,
+    "speed_med": 0.11565001582084167
+   },
+   "total_med": 92.0
+  },
+  "pick_up_the_black_bowl_from_table_center_and_place_it_on_the_plate": {
+   "approach": {
+    "steps_med": 39.0,
+    "steps_p10": 33.0,
+    "steps_p90": 50.90000000000001,
+    "speed_med": 0.17608797428540218
+   },
+   "close": {
+    "steps_med": 15.0,
+    "steps_p10": 13.0,
+    "steps_p90": 18.0,
+    "speed_med": 0.06468834840010673
+   },
+   "carry": {
+    "steps_med": 49.0,
+    "steps_p10": 41.0,
+    "steps_p90": 61.0,
+    "speed_med": 0.1757405319560842
+   },
+   "finish": {
+    "steps_med": 10.0,
+    "steps_p10": 3.7,
+    "steps_p90": 14.0,
+    "speed_med": 0.028161337242039314
+   },
+   "total_med": 116.0
+  },
+  "pick_up_the_black_bowl_on_the_cookie_box_and_place_it_on_the_plate": {
+   "approach": {
+    "steps_med": 42.0,
+    "steps_p10": 38.9,
+    "steps_p90": 46.1,
+    "speed_med": 0.22099378632961308
+   },
+   "close": {
+    "steps_med": 13.0,
+    "steps_p10": 11.0,
+    "steps_p90": 15.0,
+    "speed_med": 0.08152083976529506
+   },
+   "carry": {
+    "steps_med": 31.0,
+    "steps_p10": 27.0,
+    "steps_p90": 37.400000000000006,
+    "speed_med": 0.20778413595818923
+   },
+   "finish": {
+    "steps_med": 11.0,
+    "steps_p10": 7.0,
+    "steps_p90": 15.100000000000001,
+    "speed_med": 0.07225582677919401
+   },
+   "total_med": 97.5
+  },
+  "pick_up_the_black_bowl_on_the_wooden_cabinet_and_place_it_on_the_plate": {
+   "approach": {
+    "steps_med": 45.5,
+    "steps_p10": 39.0,
+    "steps_p90": 52.0,
+    "speed_med": 0.20606985131333716
+   },
+   "close": {
+    "steps_med": 13.0,
+    "steps_p10": 11.0,
+    "steps_p90": 15.0,
+    "speed_med": 0.07898498218942387
+   },
+   "carry": {
+    "steps_med": 62.0,
+    "steps_p10": 56.0,
+    "steps_p90": 73.1,
+    "speed_med": 0.2357535195641321
+   },
+   "finish": {
+    "steps_med": 13.0,
+    "steps_p10": 8.9,
+    "steps_p90": 17.0,
+    "speed_med": 0.08713945528194483
+   },
+   "total_med": 136.0
+  }
+ },
+ "dmp_t3": [
+  {
+   "scenario": "A",
+   "arm": "dmp",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 56,
+   "close_carry": 59,
+   "finish": 0,
+   "total_steps": 115,
+   "success_step": 115,
+   "approach_speed": 0.15394797558060533,
+   "close_carry_speed": 0.09385490775521534
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_vector",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 63,
+   "close_carry": 59,
+   "finish": 0,
+   "total_steps": 122,
+   "success_step": 122,
+   "approach_speed": 0.13506734074665308,
+   "close_carry_speed": 0.10510882149873545
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_rest",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 56,
+   "close_carry": 59,
+   "finish": 0,
+   "total_steps": 115,
+   "success_step": 115,
+   "approach_speed": 0.15386881376044959,
+   "close_carry_speed": 0.09385602206383341
+  },
+  {
+   "scenario": "A",
+   "arm": "linear",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 76,
+   "close_carry": 70,
+   "finish": 0,
+   "total_steps": 146,
+   "success_step": 146,
+   "approach_speed": 0.1258006535228931,
+   "close_carry_speed": 0.08039814271870713
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 53,
+   "close_carry": 58,
+   "finish": 0,
+   "total_steps": 111,
+   "success_step": 111,
+   "approach_speed": 0.14041147913505497,
+   "close_carry_speed": 0.08474258746233196
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_vector",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 53,
+   "close_carry": 57,
+   "finish": 0,
+   "total_steps": 110,
+   "success_step": 110,
+   "approach_speed": 0.14078414324064492,
+   "close_carry_speed": 0.08837604400935548
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_rest",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 53,
+   "close_carry": 57,
+   "finish": 0,
+   "total_steps": 110,
+   "success_step": 110,
+   "approach_speed": 0.14031749450696554,
+   "close_carry_speed": 0.08543232796511559
+  },
+  {
+   "scenario": "A",
+   "arm": "linear",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 76,
+   "close_carry": 67,
+   "finish": 0,
+   "total_steps": 143,
+   "success_step": 143,
+   "approach_speed": 0.1316449279121318,
+   "close_carry_speed": 0.07398601849539764
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 66,
+   "close_carry": 62,
+   "finish": 2,
+   "total_steps": 130,
+   "success_step": 130,
+   "approach_speed": 0.14783721563632535,
+   "close_carry_speed": 0.07248796923982478
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_vector",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 60,
+   "close_carry": 61,
+   "finish": 0,
+   "total_steps": 121,
+   "success_step": 121,
+   "approach_speed": 0.14747693910250093,
+   "close_carry_speed": 0.07206329974142205
+  },
+  {
+   "scenario": "A",
+   "arm": "dmp_rest",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 66,
+   "close_carry": 62,
+   "finish": 2,
+   "total_steps": 130,
+   "success_step": 130,
+   "approach_speed": 0.14798538950851334,
+   "close_carry_speed": 0.0725037792178038
+  },
+  {
+   "scenario": "A",
+   "arm": "linear",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 90,
+   "close_carry": 70,
+   "finish": 0,
+   "total_steps": 160,
+   "success_step": 160,
+   "approach_speed": 0.13548937097208974,
+   "close_carry_speed": 0.06217057814264902
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 30,
+   "finish": 0,
+   "total_steps": 30,
+   "success_step": 30,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.12329470623127686
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_vector",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 0,
+   "close_carry": 71,
+   "finish": 129,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.07873023122132049
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_rest",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 30,
+   "finish": 0,
+   "total_steps": 30,
+   "success_step": 30,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.12313030641538299
+  },
+  {
+   "scenario": "B",
+   "arm": "linear",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 0,
+   "close_carry": 89,
+   "finish": 111,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.06810045871485901
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 30,
+   "finish": 0,
+   "total_steps": 30,
+   "success_step": 30,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.09343017546358606
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_vector",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 28,
+   "finish": 2,
+   "total_steps": 30,
+   "success_step": 30,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.05205536705786678
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_rest",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 31,
+   "finish": 0,
+   "total_steps": 31,
+   "success_step": 31,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.09235361919480532
+  },
+  {
+   "scenario": "B",
+   "arm": "linear",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 50,
+   "finish": 0,
+   "total_steps": 50,
+   "success_step": 50,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.09172700528346826
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 31,
+   "finish": 0,
+   "total_steps": 31,
+   "success_step": 31,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.11136976624733387
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_vector",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 26,
+   "finish": 0,
+   "total_steps": 26,
+   "success_step": 26,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.06380257185640036
+  },
+  {
+   "scenario": "B",
+   "arm": "dmp_rest",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 31,
+   "finish": 0,
+   "total_steps": 31,
+   "success_step": 31,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.11117829791415908
+  },
+  {
+   "scenario": "B",
+   "arm": "linear",
+   "match_rank": 2,
+   "kept": true,
+   "approach": 0,
+   "close_carry": 52,
+   "finish": 0,
+   "total_steps": 52,
+   "success_step": 52,
+   "approach_speed": 0.0,
+   "close_carry_speed": 0.11235937655249004
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 77,
+   "close_carry": 84,
+   "finish": 39,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13716363581641916,
+   "close_carry_speed": 0.10414169920914298
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_vector",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 76,
+   "close_carry": 84,
+   "finish": 40,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13803264886500236,
+   "close_carry_speed": 0.09239600286078631
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_rest",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 77,
+   "close_carry": 84,
+   "finish": 39,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.1367933124515293,
+   "close_carry_speed": 0.10414052106490425
+  },
+  {
+   "scenario": "C",
+   "arm": "linear",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 97,
+   "close_carry": 94,
+   "finish": 9,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.12808426924384592,
+   "close_carry_speed": 0.10959152869691716
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 51,
+   "close_carry": 65,
+   "finish": 0,
+   "total_steps": 116,
+   "success_step": 116,
+   "approach_speed": 0.1323719450109872,
+   "close_carry_speed": 0.1288849270041189
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_vector",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 50,
+   "close_carry": 68,
+   "finish": 2,
+   "total_steps": 120,
+   "success_step": 120,
+   "approach_speed": 0.13240915817059148,
+   "close_carry_speed": 0.1186891946973591
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_rest",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 51,
+   "close_carry": 65,
+   "finish": 0,
+   "total_steps": 116,
+   "success_step": 116,
+   "approach_speed": 0.13232977039528904,
+   "close_carry_speed": 0.12889085281668175
+  },
+  {
+   "scenario": "C",
+   "arm": "linear",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 68,
+   "close_carry": 75,
+   "finish": 0,
+   "total_steps": 143,
+   "success_step": 143,
+   "approach_speed": 0.11274684386501402,
+   "close_carry_speed": 0.1209912154602546
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 73,
+   "close_carry": 108,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13596611847529722,
+   "close_carry_speed": 0.07907583313810809
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_vector",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 73,
+   "close_carry": 108,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13693111570001337,
+   "close_carry_speed": 0.07746650046018619
+  },
+  {
+   "scenario": "C",
+   "arm": "dmp_rest",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 73,
+   "close_carry": 108,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13552006156626684,
+   "close_carry_speed": 0.07907661139497862
+  },
+  {
+   "scenario": "C",
+   "arm": "linear",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 93,
+   "close_carry": 107,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.126766457728694,
+   "close_carry_speed": 0.08279148133523
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 79,
+   "close_carry": 98,
+   "finish": 0,
+   "total_steps": 177,
+   "success_step": 177,
+   "approach_speed": 0.1659833660074505,
+   "close_carry_speed": 0.1569973068007205
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_vector",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 80,
+   "close_carry": 100,
+   "finish": 0,
+   "total_steps": 180,
+   "success_step": 180,
+   "approach_speed": 0.17159770285284268,
+   "close_carry_speed": 0.15634356785949535
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_rest",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 79,
+   "close_carry": 97,
+   "finish": 0,
+   "total_steps": 176,
+   "success_step": 176,
+   "approach_speed": 0.16574900207535606,
+   "close_carry_speed": 0.1580086095782165
+  },
+  {
+   "scenario": "D",
+   "arm": "linear",
+   "match_rank": 0,
+   "kept": false,
+   "approach": 99,
+   "close_carry": 98,
+   "finish": 0,
+   "total_steps": 197,
+   "success_step": 197,
+   "approach_speed": 0.143513249167661,
+   "close_carry_speed": 0.16197945954455897
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 85,
+   "close_carry": 87,
+   "finish": 0,
+   "total_steps": 172,
+   "success_step": 172,
+   "approach_speed": 0.1587966297443365,
+   "close_carry_speed": 0.16477724214128958
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_vector",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 86,
+   "close_carry": 87,
+   "finish": 0,
+   "total_steps": 173,
+   "success_step": 173,
+   "approach_speed": 0.16486962117745022,
+   "close_carry_speed": 0.1685527307903512
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_rest",
+   "match_rank": 1,
+   "kept": true,
+   "approach": 85,
+   "close_carry": 87,
+   "finish": 0,
+   "total_steps": 172,
+   "success_step": 172,
+   "approach_speed": 0.15854543327587278,
+   "close_carry_speed": 0.16477451900322768
+  },
+  {
+   "scenario": "D",
+   "arm": "linear",
+   "match_rank": 1,
+   "kept": false,
+   "approach": 105,
+   "close_carry": 92,
+   "finish": 0,
+   "total_steps": 197,
+   "success_step": 197,
+   "approach_speed": 0.13509409357979937,
+   "close_carry_speed": 0.1573240214271183
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 110,
+   "close_carry": 90,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13193225335857123,
+   "close_carry_speed": 0.1602131627082098
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_vector",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 109,
+   "close_carry": 91,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.14143404519616581,
+   "close_carry_speed": 0.15652994293754477
+  },
+  {
+   "scenario": "D",
+   "arm": "dmp_rest",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 111,
+   "close_carry": 89,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.13101117782116792,
+   "close_carry_speed": 0.1597439558814482
+  },
+  {
+   "scenario": "D",
+   "arm": "linear",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 125,
+   "close_carry": 75,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.12316925868956319,
+   "close_carry_speed": 0.14930817582522377
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 86,
+   "close_carry": 91,
+   "finish": 4,
+   "total_steps": 181,
+   "success_step": 181,
+   "approach_speed": 0.16034453367487714,
+   "close_carry_speed": 0.08554662386608362
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_vector",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 86,
+   "close_carry": 69,
+   "finish": 0,
+   "total_steps": 155,
+   "success_step": 155,
+   "approach_speed": 0.1599946418523743,
+   "close_carry_speed": 0.10359535394329497
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_rest",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 86,
+   "close_carry": 91,
+   "finish": 4,
+   "total_steps": 181,
+   "success_step": 181,
+   "approach_speed": 0.16023930942796422,
+   "close_carry_speed": 0.08554187021063782
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "linear",
+   "match_rank": 0,
+   "kept": true,
+   "approach": 106,
+   "close_carry": 80,
+   "finish": 0,
+   "total_steps": 186,
+   "success_step": 186,
+   "approach_speed": 0.1396698887529856,
+   "close_carry_speed": 0.09880846358019907
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp",
+   "match_rank": 1,
+   "kept": false,
+   "approach": 77,
+   "close_carry": 59,
+   "finish": 0,
+   "total_steps": 136,
+   "success_step": 136,
+   "approach_speed": 0.175662307938808,
+   "close_carry_speed": 0.11830331863321578
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_vector",
+   "match_rank": 1,
+   "kept": false,
+   "approach": 77,
+   "close_carry": 61,
+   "finish": 0,
+   "total_steps": 138,
+   "success_step": 138,
+   "approach_speed": 0.1773256349137909,
+   "close_carry_speed": 0.1074436814639769
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_rest",
+   "match_rank": 1,
+   "kept": false,
+   "approach": 77,
+   "close_carry": 58,
+   "finish": 0,
+   "total_steps": 135,
+   "success_step": 135,
+   "approach_speed": 0.175527082703599,
+   "close_carry_speed": 0.11769756848351218
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "linear",
+   "match_rank": 1,
+   "kept": false,
+   "approach": 96,
+   "close_carry": 71,
+   "finish": 0,
+   "total_steps": 167,
+   "success_step": 167,
+   "approach_speed": 0.14472809687649127,
+   "close_carry_speed": 0.111264863617816
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 81,
+   "close_carry": 100,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.16879890493760044,
+   "close_carry_speed": 0.06915325969793047
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_vector",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 81,
+   "close_carry": 100,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.1684570135535826,
+   "close_carry_speed": 0.06928603920866687
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "dmp_rest",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 81,
+   "close_carry": 100,
+   "finish": 19,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.16865764363456207,
+   "close_carry_speed": 0.06916928649101195
+  },
+  {
+   "scenario": "D_backup",
+   "arm": "linear",
+   "match_rank": 2,
+   "kept": false,
+   "approach": 101,
+   "close_carry": 99,
+   "finish": 0,
+   "total_steps": 200,
+   "success_step": null,
+   "approach_speed": 0.14801636780628655,
+   "close_carry_speed": 0.07200587567067358
+  }
+ ]
+}

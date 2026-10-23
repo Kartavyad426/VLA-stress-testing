@@ -1,0 +1,1279 @@
+{
+ "tag": "UNVERIFIED",
+ "dmp_pin": "dae447a",
+ "rows": [
+  {
+   "row": 14,
+   "t_root": 31,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 97,
+   "success_step": 97,
+   "fits_in_280": true,
+   "jerk_max": 48.05005649553602,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.2388862345750523,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.004292225287077502
+   },
+   "arm": "scripted_default",
+   "plan": {
+    "variant": "default",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.057841558513348657,
+       0.1563265209035376,
+       1.022437123443662
+      ],
+      "steps": 20,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "descend",
+      "start_step": 22,
+      "goal": [
+       -0.05784155851334865,
+       0.1563265209035376,
+       0.9379543894008568
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "carry",
+      "start_step": 53,
+      "goal": [
+       0.05739877073077024,
+       0.15238021806371319,
+       1.0374676145838782
+      ],
+      "steps": 25,
+      "waits": 1,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 81,
+      "goal": [
+       0.05739877073077024,
+       0.15238021806371316,
+       0.952984880541073
+      ],
+      "steps": 15,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 4.173528202862704,
+    "branch": "pick",
+    "grasp_side": "-y",
+    "lift_m": 0.09438174028399826,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "A",
+   "mode": "grasp.slip",
+   "phase": "A",
+   "seconds": 13.5
+  },
+  {
+   "row": 14,
+   "t_root": 31,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 96,
+   "success_step": 96,
+   "fits_in_280": true,
+   "jerk_max": 48.06122338238946,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.22845369171007512,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.0031265638435346104
+   },
+   "arm": "scripted_minjerk",
+   "plan": {
+    "variant": "minjerk",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.057841558513348434,
+       0.1563265209035376,
+       1.022437123443662
+      ],
+      "steps": 21,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "descend",
+      "start_step": 23,
+      "goal": [
+       -0.0578415585133486,
+       0.1563265209035376,
+       0.9379543894008567
+      ],
+      "steps": 12,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 51,
+      "goal": [
+       0.05714368690010441,
+       0.15230113965923708,
+       1.0370571641821917
+      ],
+      "steps": 26,
+      "waits": 1,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 80,
+      "goal": [
+       0.05714368690010441,
+       0.1523011396592371,
+       0.9525744301393867
+      ],
+      "steps": 14,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 4.173528202862704,
+    "branch": "pick",
+    "grasp_side": "-y",
+    "lift_m": 0.09556469458589001,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "A",
+   "mode": "grasp.slip",
+   "phase": "A",
+   "seconds": 4.7
+  },
+  {
+   "row": 14,
+   "t_root": 31,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 103,
+   "success_step": 103,
+   "fits_in_280": true,
+   "jerk_max": 48.01225340681733,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.25645129419963375,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0007198944760991005,
+    "plate_1_main": 0.0004493350179824998
+   },
+   "arm": "scripted_nearest",
+   "plan": {
+    "variant": "nearest",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.10822681073093962,
+       0.16031837108760255,
+       0.9904194595267182
+      ],
+      "steps": 33,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "descend",
+      "start_step": 35,
+      "goal": [
+       -0.10822681073093962,
+       0.16031837108760258,
+       0.9059367254839129
+      ],
+      "steps": 10,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 63,
+      "goal": [
+       0.021082947127765872,
+       0.15756414015491704,
+       1.0059399686293269
+      ],
+      "steps": 23,
+      "waits": 1,
+      "held_steps": 7
+     },
+     {
+      "name": "lower",
+      "start_step": 94,
+      "goal": [
+       0.021082947127765872,
+       0.15756414015491707,
+       0.9214572345865216
+      ],
+      "steps": 10
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 4.173528202862704,
+    "branch": "pick",
+    "nearest_demo": 34,
+    "grasp_side": "-y",
+    "lift_m": 0.09438180243895089,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "A",
+   "mode": "grasp.slip",
+   "phase": "A",
+   "seconds": 4.8
+  },
+  {
+   "row": 14,
+   "t_root": 241,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 39,
+   "success_step": 39,
+   "fits_in_280": true,
+   "jerk_max": 10.677302775188515,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.22665246686679077,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.015754959913449357
+   },
+   "arm": "scripted_default",
+   "plan": {
+    "variant": "default",
+    "legs": [
+     {
+      "name": "carry",
+      "start_step": 0,
+      "goal": [
+       0.09858897602667116,
+       0.2017950933630482,
+       1.0360083273670262
+      ],
+      "steps": 13,
+      "waits": 0,
+      "held_steps": 4
+     },
+     {
+      "name": "lower",
+      "start_step": 17,
+      "goal": [
+       0.09858897602667116,
+       0.2017950933630482,
+       0.9515255933242208
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 4
+     }
+    ],
+    "retries": 0,
+    "held_at_root": true,
+    "tilt_at_root_deg": 10.802457186749637,
+    "branch": "carry"
+   },
+   "kept_without_retry": true,
+   "scenario": "B",
+   "mode": "place.off_target",
+   "phase": "B",
+   "seconds": 6.7
+  },
+  {
+   "row": 14,
+   "t_root": 241,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 42,
+   "success_step": 42,
+   "fits_in_280": false,
+   "jerk_max": 10.677302775188515,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.20945940788023146,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.015815083319117854
+   },
+   "arm": "scripted_minjerk",
+   "plan": {
+    "variant": "minjerk",
+    "legs": [
+     {
+      "name": "carry",
+      "start_step": 0,
+      "goal": [
+       0.09858897602667144,
+       0.20179509336304827,
+       1.0360083273670266
+      ],
+      "steps": 17,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "lower",
+      "start_step": 20,
+      "goal": [
+       0.09858897602667123,
+       0.2017950933630482,
+       0.951525593324221
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 4
+     }
+    ],
+    "retries": 0,
+    "held_at_root": true,
+    "tilt_at_root_deg": 10.802457186749637,
+    "branch": "carry"
+   },
+   "kept_without_retry": true,
+   "scenario": "B",
+   "mode": "place.off_target",
+   "phase": "B",
+   "seconds": 6.6
+  },
+  {
+   "row": 14,
+   "t_root": 241,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 39,
+   "success_step": 39,
+   "fits_in_280": true,
+   "jerk_max": 10.677302775188515,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.22665246686679077,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.015754959913449357
+   },
+   "arm": "scripted_nearest",
+   "plan": {
+    "variant": "nearest",
+    "legs": [
+     {
+      "name": "carry",
+      "start_step": 0,
+      "goal": [
+       0.09858897602667116,
+       0.2017950933630482,
+       1.0360083273670262
+      ],
+      "steps": 13,
+      "waits": 0,
+      "held_steps": 4
+     },
+     {
+      "name": "lower",
+      "start_step": 17,
+      "goal": [
+       0.09858897602667116,
+       0.2017950933630482,
+       0.9515255933242208
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 4
+     }
+    ],
+    "retries": 0,
+    "held_at_root": true,
+    "tilt_at_root_deg": 10.802457186749637,
+    "branch": "carry"
+   },
+   "kept_without_retry": true,
+   "scenario": "B",
+   "mode": "place.off_target",
+   "phase": "B",
+   "seconds": 6.5
+  },
+  {
+   "row": 186,
+   "t_root": 28,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 115,
+   "success_step": 115,
+   "fits_in_280": true,
+   "jerk_max": 18.7013816581192,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.266348590731347,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.014856888587951528,
+    "plate_1_main": 0.00010441133245492626
+   },
+   "arm": "scripted_default",
+   "plan": {
+    "variant": "default",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.08232483372954802,
+       0.05432225169056436,
+       1.015289052436135
+      ],
+      "steps": 24,
+      "waits": 0,
+      "held_steps": 1
+     },
+     {
+      "name": "descend",
+      "start_step": 25,
+      "goal": [
+       -0.082324833729548,
+       0.05432225169056436,
+       0.93080631839333
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "carry",
+      "start_step": 57,
+      "goal": [
+       0.06745940328703237,
+       0.24304996113773453,
+       1.030240655408351
+      ],
+      "steps": 36,
+      "waits": 1,
+      "held_steps": 1
+     },
+     {
+      "name": "lower",
+      "start_step": 95,
+      "goal": [
+       0.06745940328703239,
+       0.24304996113773453,
+       0.945757921365546
+      ],
+      "steps": 15,
+      "waits": 1
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.003203408895890598,
+    "branch": "pick",
+    "grasp_side": "+y",
+    "lift_m": 0.10797870851381786,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "C",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 7.4
+  },
+  {
+   "row": 186,
+   "t_root": 28,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 118,
+   "success_step": 118,
+   "fits_in_280": true,
+   "jerk_max": 18.84524947511882,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.2603297307265002,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.014833223233478108,
+    "plate_1_main": 9.516868546243054e-05
+   },
+   "arm": "scripted_minjerk",
+   "plan": {
+    "variant": "minjerk",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.08232483372954807,
+       0.05432225169056444,
+       1.0152890524361347
+      ],
+      "steps": 25,
+      "waits": 0,
+      "held_steps": 1
+     },
+     {
+      "name": "descend",
+      "start_step": 26,
+      "goal": [
+       -0.082324833729548,
+       0.05432225169056436,
+       0.9308063183933295
+      ],
+      "steps": 12,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 54,
+      "goal": [
+       0.06660029468544859,
+       0.24271700402034302,
+       1.0295084285369103
+      ],
+      "steps": 43,
+      "waits": 0,
+      "held_steps": 6
+     },
+     {
+      "name": "lower",
+      "start_step": 103,
+      "goal": [
+       0.06660029468544838,
+       0.2427170040203432,
+       0.9450256944941057
+      ],
+      "steps": 13,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.003203408895890598,
+    "branch": "pick",
+    "grasp_side": "+y",
+    "lift_m": 0.11092160100984383,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "C",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 4.8
+  },
+  {
+   "row": 186,
+   "t_root": 28,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 112,
+   "success_step": 112,
+   "fits_in_280": true,
+   "jerk_max": 18.76842846960016,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.266645005718336,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.014813643657987005,
+    "plate_1_main": 0.0
+   },
+   "arm": "scripted_nearest",
+   "plan": {
+    "variant": "nearest",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.10478437230872556,
+       0.05971689609576965,
+       0.996664735674016
+      ],
+      "steps": 26,
+      "waits": 0,
+      "held_steps": 1
+     },
+     {
+      "name": "descend",
+      "start_step": 27,
+      "goal": [
+       -0.10478437230872555,
+       0.05971689609576965,
+       0.9121820016312108
+      ],
+      "steps": 10,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 56,
+      "goal": [
+       0.0463582860981758,
+       0.23467838525820833,
+       1.0110629591541547
+      ],
+      "steps": 35,
+      "waits": 1,
+      "held_steps": 1
+     },
+     {
+      "name": "lower",
+      "start_step": 93,
+      "goal": [
+       0.04635828609817581,
+       0.23467838525820836,
+       0.9265802251113494
+      ],
+      "steps": 15,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.003203408895890598,
+    "branch": "pick",
+    "nearest_demo": 7,
+    "grasp_side": "+y",
+    "lift_m": 0.11842416604855965,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "C",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 4.9
+  },
+  {
+   "row": 440,
+   "t_root": 18,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 172,
+   "success_step": 172,
+   "fits_in_280": true,
+   "jerk_max": 25.09097958796092,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.2746015921128914,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.002828353375093427,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 1.284211827041648e-05
+   },
+   "arm": "scripted_default",
+   "plan": {
+    "variant": "default",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       0.031628282682456765,
+       -0.22581872327701186,
+       1.2432848706419142
+      ],
+      "steps": 70,
+      "waits": 0,
+      "held_steps": 5
+     },
+     {
+      "name": "descend",
+      "start_step": 75,
+      "goal": [
+       0.03162828268245676,
+       -0.22581872327701186,
+       1.158802136599109
+      ],
+      "steps": 15,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 103,
+      "goal": [
+       0.04258512688252333,
+       0.2568335041506916,
+       1.0253876966710342
+      ],
+      "steps": 55,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 160,
+      "goal": [
+       0.04258512688252333,
+       0.2568335041506916,
+       0.9409049626282293
+      ],
+      "steps": 10,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 1.7308668332453254e-05,
+    "branch": "pick",
+    "grasp_side": "+y",
+    "lift_m": 0.0923810122652593,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "D",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 8.1
+  },
+  {
+   "row": 440,
+   "t_root": 18,
+   "kept": false,
+   "checks": {
+    "success": false,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 200,
+   "success_step": null,
+   "fits_in_280": false,
+   "jerk_max": 25.124860027077307,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.27546490702684917,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 1.7398355906918878e-05,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.0
+   },
+   "arm": "scripted_minjerk",
+   "plan": {
+    "variant": "minjerk",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       0.03162828268245654,
+       -0.22581872327701186,
+       1.2432848706419142
+      ],
+      "steps": 82,
+      "waits": 1,
+      "held_steps": 2
+     },
+     {
+      "name": "descend",
+      "start_step": 85,
+      "goal": [
+       0.03162828268245678,
+       -0.22581872327701186,
+       1.158802136599109
+      ],
+      "steps": 13,
+      "waits": 0,
+      "held_steps": 4
+     },
+     {
+      "name": "carry",
+      "start_step": 121,
+      "goal": [
+       0.04821315467945822,
+       0.25506116485184016,
+       1.0284497111898554
+      ],
+      "steps": 84
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 1.7308668332453254e-05,
+    "branch": "pick",
+    "grasp_side": "+y"
+   },
+   "kept_without_retry": false,
+   "scenario": "D",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 5.6
+  },
+  {
+   "row": 440,
+   "t_root": 18,
+   "kept": false,
+   "checks": {
+    "success": false,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 200,
+   "success_step": null,
+   "fits_in_280": false,
+   "jerk_max": 25.095367031459947,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.2778669782032825,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.001282028583708466,
+    "cookies_1_main": 0.0,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.004165935216355725
+   },
+   "arm": "scripted_nearest",
+   "plan": {
+    "variant": "nearest",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       -0.008305370698421244,
+       -0.22809469327757875,
+       1.2161728319320382
+      ],
+      "steps": 62,
+      "waits": 0,
+      "held_steps": 0
+     },
+     {
+      "name": "descend",
+      "start_step": 62,
+      "goal": [
+       -0.008305370698421223,
+       -0.22809469327757873,
+       1.131690097889233
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 89,
+      "goal": [
+       0.013608530480260311,
+       0.24132664091889894,
+       1.004248599214459
+      ],
+      "steps": 55,
+      "waits": 1,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 147,
+      "goal": [
+       0.013608530480260311,
+       0.24132664091889894,
+       0.9197658651716536
+      ],
+      "steps": 10,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "retreat",
+      "start_step": 177,
+      "goal": [
+       0.012070515730655252,
+       0.24288151464950195,
+       1.0079917157877791
+      ],
+      "steps": 10,
+      "waits": 0,
+      "held_steps": 4
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 1.7308668332453254e-05,
+    "branch": "pick",
+    "nearest_demo": 36,
+    "grasp_side": "+y",
+    "lift_m": 0.09845933527499784,
+    "lift_ok": true
+   },
+   "kept_without_retry": false,
+   "scenario": "D",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 5.7
+  },
+  {
+   "row": 224,
+   "t_root": 21,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 130,
+   "success_step": 130,
+   "fits_in_280": true,
+   "jerk_max": 22.260211046766372,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.24047679144857012,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 5.134891613049376e-05,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 9.886572931552543e-05
+   },
+   "arm": "scripted_default",
+   "plan": {
+    "variant": "default",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       0.060546006550468656,
+       0.06309639854543136,
+       1.0340489874567242
+      ],
+      "steps": 51,
+      "waits": 3,
+      "held_steps": 0
+     },
+     {
+      "name": "descend",
+      "start_step": 54,
+      "goal": [
+       0.06054600655046867,
+       0.06309639854543136,
+       0.9495662534139189
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 84,
+      "goal": [
+       0.06620313597515973,
+       0.2327737898468794,
+       1.0294290754280786
+      ],
+      "steps": 27,
+      "waits": 2,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 115,
+      "goal": [
+       0.06620313597515973,
+       0.2327737898468794,
+       0.9449463413852732
+      ],
+      "steps": 14,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.0021483430445785193,
+    "branch": "pick",
+    "grasp_side": "+y",
+    "lift_m": 0.09528987578557957,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "D_backup",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 7.7
+  },
+  {
+   "row": 224,
+   "t_root": 21,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 131,
+   "success_step": 131,
+   "fits_in_280": true,
+   "jerk_max": 22.49946324870706,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.23313836194014137,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 8.773964042392264e-05,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 0.0
+   },
+   "arm": "scripted_minjerk",
+   "plan": {
+    "variant": "minjerk",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       0.06054600655046971,
+       0.06309639854543131,
+       1.0340489874567234
+      ],
+      "steps": 55,
+      "waits": 0,
+      "held_steps": 0
+     },
+     {
+      "name": "descend",
+      "start_step": 55,
+      "goal": [
+       0.060546006550468684,
+       0.06309639854543136,
+       0.9495662534139184
+      ],
+      "steps": 12,
+      "waits": 0,
+      "held_steps": 3
+     },
+     {
+      "name": "carry",
+      "start_step": 83,
+      "goal": [
+       0.06559753914221927,
+       0.23287899068072226,
+       1.0305153880224598
+      ],
+      "steps": 34,
+      "waits": 1,
+      "held_steps": 0
+     },
+     {
+      "name": "lower",
+      "start_step": 118,
+      "goal": [
+       0.06559753914221926,
+       0.23287899068072115,
+       0.9460326539796549
+      ],
+      "steps": 12,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.0021483430445785193,
+    "branch": "pick",
+    "grasp_side": "+y",
+    "lift_m": 0.10273825226864375,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "D_backup",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 5.6
+  },
+  {
+   "row": 224,
+   "t_root": 21,
+   "kept": true,
+   "checks": {
+    "success": true,
+    "jerk_ok": true,
+    "speed_ok": true,
+    "collateral_ok": true
+   },
+   "steps": 134,
+   "success_step": 134,
+   "fits_in_280": true,
+   "jerk_max": 22.250500627662664,
+   "jerk_limit": 71.4895895325436,
+   "speed_max": 0.24144714864500372,
+   "speed_limit": 0.3054754167054817,
+   "saturated_frac": 0.0,
+   "moved_m": {
+    "akita_black_bowl_2_main": 0.0,
+    "cookies_1_main": 5.912830785573001e-05,
+    "glazed_rim_porcelain_ramekin_1_main": 0.0,
+    "plate_1_main": 6.166387922639576e-05
+   },
+   "arm": "scripted_nearest",
+   "plan": {
+    "variant": "nearest",
+    "legs": [
+     {
+      "name": "approach",
+      "start_step": 0,
+      "goal": [
+       0.06002670872264931,
+       0.06368650535726186,
+       1.0414035895881686
+      ],
+      "steps": 55,
+      "waits": 2,
+      "held_steps": 0
+     },
+     {
+      "name": "descend",
+      "start_step": 57,
+      "goal": [
+       0.0600267087226493,
+       0.06368650535726186,
+       0.9569208555453633
+      ],
+      "steps": 14,
+      "waits": 0,
+      "held_steps": 2
+     },
+     {
+      "name": "carry",
+      "start_step": 86,
+      "goal": [
+       0.06647494209601691,
+       0.23446664954937535,
+       1.0379430722089735
+      ],
+      "steps": 27,
+      "waits": 2,
+      "held_steps": 2
+     },
+     {
+      "name": "lower",
+      "start_step": 117,
+      "goal": [
+       0.06647494209601691,
+       0.23446664954937535,
+       0.9534603381661683
+      ],
+      "steps": 14,
+      "waits": 0
+     }
+    ],
+    "retries": 0,
+    "held_at_root": false,
+    "tilt_at_root_deg": 0.0021483430445785193,
+    "branch": "pick",
+    "nearest_demo": 28,
+    "grasp_side": "+y",
+    "lift_m": 0.097900063189448,
+    "lift_ok": true
+   },
+   "kept_without_retry": true,
+   "scenario": "D_backup",
+   "mode": "grasp.miss",
+   "phase": "A",
+   "seconds": 4.8
+  }
+ ]
+}
