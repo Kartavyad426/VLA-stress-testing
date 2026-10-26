@@ -127,6 +127,7 @@ def _install_obs_snapshot(prob, rec) -> None:
             _prob._lmax_rec._snap[_name] = None if pre is None else np.asarray(pre, dtype=np.float64)
             return _orig(obs_cache)
         ob._lmax_orig_sensor = orig
+        sensor.__modality__ = orig.__modality__   # robosuite reads ob._sensor.__modality__ (observables.py:403)
         ob._sensor = sensor
 
 
