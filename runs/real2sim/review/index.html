@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Real2sim Review</title><style>:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--a:#2a6fb0;--b:#c0661d;--ok:#2c6e3a;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--a:#6aa7e0;--b:#e29a5a;--ok:#7fc98d;--bad:#ee8a76}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--a:#6aa7e0;--b:#e29a5a;--ok:#7fc98d;--bad:#ee8a76}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin-top:1.6em}.meta{color:var(--muted);font-size:.85rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 0}
+img{width:100%;border-radius:4px;display:block}figure{margin:0}figcaption{font-size:.8rem;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.small{max-width:420px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}a{color:var(--a)}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left}th{background:var(--card)}
+svg text{fill:var(--muted);font-size:11px}</style></head><body><main>
+<h1>Real-to-sim review pages</h1>
+<p class="meta">res31, internal. Scene pages: the real episode replayed in our scene, real vs ours with outlines, distances and the issue list. Rollout pages: what the policy saw at each key moment of one episode. Exploratory, UNVERIFIED.</p><h2>Scenes</h2><ul>
+<li><a href="../scene_review/ep_orange_block_stereo/index.html">runs/real2sim/scene_review/ep_orange_block_stereo</a></li>
+<li><a href="../scene_review/ep_orange_block_stereo_blurfix/index.html">runs/real2sim/scene_review/ep_orange_block_stereo_blurfix</a></li>
+</ul><h2>Rollouts</h2><div class="card" style="overflow-x:auto"><table><tr><th>Result</th><th>Task</th><th>Batch</th><th>Wrist render</th><th>Grip physics</th><th>Scene</th></tr>
+<tr><td class="ok">success</td><td><a href="batch_orange_stereo_v2__00_put_in_bowl_green_block__v0/index.html">put the green block in the bowl · v0</a></td><td>batch_orange_stereo_v2</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo</td></tr>
+<tr><td class="ok">success</td><td><a href="batch_orange_stereo_v2_noshadow__00_put_in_bowl_green_block__v2/index.html">put the green block in the bowl · v2</a></td><td>batch_orange_stereo_v2_noshadow</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo</td></tr>
+<tr><td class="ok">success</td><td><a href="batch_yfit_v2__02_put_in_bowl_yellow_block__v0/index.html">put the yellow block in the bowl · v0</a></td><td>batch_yfit_v2</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo_yfit</td></tr>
+<tr><td class="bad">failed</td><td><a href="batch_orange_stereo_v2_noshadow__00_put_in_bowl_green_block__v0/index.html">put the green block in the bowl · v0</a></td><td>batch_orange_stereo_v2_noshadow</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo</td></tr>
+<tr><td class="bad">failed</td><td><a href="batch_orange_stereo_v2__03_stack_green_block__v1/index.html">stack the green block on the orange block · v1</a></td><td>batch_orange_stereo_v2</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo</td></tr>
+<tr><td class="bad">failed</td><td><a href="batch_yfit_v2__04_stack_orange_block__v3/index.html">stack the orange block on the yellow block · v3</a></td><td>batch_yfit_v2</td><td>v2</td><td>scene</td><td>ep_orange_block_stereo_yfit</td></tr>
+</table></div></main></body></html>

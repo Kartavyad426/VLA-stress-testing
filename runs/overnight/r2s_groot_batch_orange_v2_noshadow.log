@@ -1,0 +1,23 @@
+put the green block in the bowl v0: done in 80 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+put the green block in the bowl v1: done in 81 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the green block in the bowl v2: done in 83 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the green block in the bowl v3: done in 81 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the green block in the bowl v4: done in 82 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the orange block in the bowl v0: done in 83 s
+  -> success False stages {'reached': True, 'closed_at_target': False, 'lifted': False, 'placed': False} blocked True
+put the orange block in the bowl v1: done in 81 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the orange block in the bowl v2: done in 82 s
+  -> success True stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': True} blocked False
+put the orange block in the bowl v3: done in 83 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+put the orange block in the bowl v4: done in 84 s
+  -> success False stages {'reached': True, 'closed_at_target': True, 'lifted': True, 'placed': False} blocked False
+TOTAL {"n": 10, "success": 6, "reached": 10, "closed_at_target": 9, "lifted": 9, "placed": 6, "blocked": 1, "errors": 0}
+  4/5 put the green block in the bowl  (reached 5, closed 5, lifted 5, placed 4, blocked 0)
+  2/5 put the orange block in the bowl  (reached 5, closed 4, lifted 4, placed 2, blocked 1)

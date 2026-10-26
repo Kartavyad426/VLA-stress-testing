@@ -491,12 +491,14 @@ class WristCompositor:
         self.rend.close()
 
 
-def near_defocus(img, depth, sigma, z_near=0.20):
+def near_defocus(img, depth, sigma, z_near=0.20, mask=None):
     """Defocus of the near layer (the gripper, closer than z_near) with its own alpha, so its edges bleed over the
-    background as real defocus does (G6, 10-19)."""
+    background as real defocus does (G6, 10-19). mask (10-23): the near layer given directly (the gripper's pixels)
+    instead of by depth; the depth rule also caught the table and blocks once the hand was within 20 cm of them (grasp
+    and place), blurring the whole wrist image there (review page issue #7)."""
     if sigma <= 0:
         return img
-    a = (depth < z_near).astype(np.float32)
+    a = (mask if mask is not None else depth < z_near).astype(np.float32)
     f = img.astype(np.float32)
     ab = cv2.GaussianBlur(a, (0, 0), sigma)
     fb = cv2.GaussianBlur(f * a[..., None], (0, 0), sigma) / np.maximum(ab[..., None], 1e-3)
@@ -520,12 +522,15 @@ class WristRenderV2:
     Light/shadow: optional wrist-fitted light (S4, `light=`); the shadow comes from the sim robot with that light."""
 
     def __init__(self, m, plate, ext_comp, size, plate2, table_tex, grip_lib=None, blur_sigma=8.0, open_tol=0.03, cam="wrist",
-                 work_size=(360, 640), light=None):
+                 work_size=(360, 640), light=None, near="depth"):
         """work_size: resolution rendered before the area downscale to `size` (full 1280x720 took 0.5 s/frame, which
         would add ~4 min per 30 s rollout; 640x360 keeps the averaging-down, at ~1/4 the cost). blur_sigma is in
         1280x720 pixels and scaled to work_size; the gripper library is resized to work_size.
         light: light_wrist.json (light_fit_wrist.py, S4): its direction and shadow darkness are used for the wrist
-        render only (the model's light is restored afterwards, so the exterior composite keeps its own fit)."""
+        render only (the model's light is restored afterwards, so the exterior composite keeps its own fit).
+        near: what the closed-gripper defocus blurs: "depth" = everything closer than 20 cm (all runs up to 10-23; blurs
+        the whole image near the table), "gripper" = the gripper's own pixels only (10-23 fix, opt-in)."""
+        self.near = near
         self.ext = ext_comp
         self.light = None
         if light is not None:
@@ -576,7 +581,7 @@ class WristRenderV2:
             a = self.lib["alpha"][..., None]
             out = a * self.lib["rgb"] + (1 - a) * out
         else:
-            out = near_defocus(out, info["depth"], self.blur_sigma)
+            out = near_defocus(out, info["depth"], self.blur_sigma, mask=gm if self.near == "gripper" else None)
         H, W = self.size
         small = cv2.resize(np.clip(out, 0, 255).astype(np.float32), (W, H), interpolation=cv2.INTER_AREA)
         if return_info:

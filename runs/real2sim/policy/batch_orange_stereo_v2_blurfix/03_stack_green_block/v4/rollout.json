@@ -1,0 +1,78 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "stack",
+  "target": "green_block",
+  "ref": "orange_block",
+  "text": "stack the green block on the orange block"
+ },
+ "instruction": "stack the green block on the orange block",
+ "variant": 4,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 304,
+ "layout_rng_seed": 304304,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 3.2775585651397705,
+ "infer_s_median": 0.24270093441009521,
+ "wall_s": 240576.8999800682,
+ "vram": {
+  "vram_alloc_gib": 6.017563343048096,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.31631527137756343,
+ "gripper_closed_frac": 0.36444444444444446,
+ "final_target_xyz": [
+  0.6227788303049061,
+  0.09776402559206299,
+  -0.08039659145239215
+ ],
+ "final_ref_xyz": [
+  0.6288624287250284,
+  0.058885150920173025,
+  -0.07726767525494052
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "shadows": true,
+ "wrist_blur": "gripper",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 279,
+   "closed_at_target": 386,
+   "lifted": 394
+  },
+  "min_dist_to_target_m": 0.012268781458231981,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.05586682366647381,
+  "median_err_m": 0.012938193617236847,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

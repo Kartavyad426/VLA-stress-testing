@@ -183,6 +183,10 @@ def main():
     ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene",
                     help="firm (10-23, the closed-loop version of placement_analysis --grip_physics firm): finger pads condim 4 + "
                          "torsional friction 0.02 + sliding 1.0, elliptic cone, impratio 10; scene = Menagerie defaults as built")
+    ap.add_argument("--wrist_blur", choices=["depth", "gripper"], default="gripper", help="v2 closed-gripper defocus: depth = everything "
+                    "closer than 20 cm (all runs up to 10-23; blurs the whole image near the table), gripper = the gripper only (10-23 fix; default from 10-23, user-checked)")
+    ap.add_argument("--no_shadows", action="store_true", help="10-23: no sim shadow darkening in either camera (as g7_v2's V2_noshadow): "
+                    "closed-loop check of the image-swap prediction (G7: plan +1.2 -> +0.3 cm without shadows)")
     a = ap.parse_args()
     if a.serve:
         return serve(a.ckpt, a.device)
@@ -244,14 +248,14 @@ def main():
     left_pads = {b for b in pad_bodies if "left" in m.body(b).name}
 
     plate = load_plate(sdir, "lama", "frame0+plate")
-    comp = Compositor(m, sdir, plate, size=(H, W), verbose=False)  # first: sets the real object colours + light
+    comp = Compositor(m, sdir, plate, shadows=not a.no_shadows, size=(H, W), verbose=False)  # first: sets the real object colours + light
     wp = wrist_plate(m, sdir, edir, comp, fit["wrist_camera"]["serial"])
     if a.wrist_render == "v2":
         g_rec = h5py.File(os.path.join(edir, "trajectory.h5"))["observation/robot_state/gripper_position"][:]
         k_close = int(np.argmax(g_rec > 0.5))  # mosaic from the frames before the first real grasp (as built in G5)
         tt = wrist_table_texture(m, sdir, edir, fit["wrist_camera"]["serial"], list(range(0, k_close - 2, 2)))
         wcomp = WristRenderV2(m, plate, comp, (H, W), wp, tt, load_gripper_library(os.path.join(sdir, "gripper_lib", "gripper_library.npz")),
-                              light=json.load(open(os.path.join(sdir, "light_wrist.json"))))
+                              light=json.load(open(os.path.join(sdir, "light_wrist.json"))), near=a.wrist_blur)
     else:
         wcomp = WristCompositor(m, plate, comp, (H, W), plate2=wp)
 
@@ -332,7 +336,7 @@ def main():
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                final_target_xyz=d.xpos[m.body(task["target"]).id].tolist(), final_ref_xyz=d.xpos[m.body(task["ref"]).id].tolist(),
                wrist_view=("WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)" if a.wrist_render == "v2"
-                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, grip_physics=a.grip_physics, exterior_view="composite (cleaned real plate + sim)",
+                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, grip_physics=a.grip_physics, shadows=not a.no_shadows, wrist_blur=a.wrist_blur if a.wrist_render == "v2" else None, exterior_view="composite (cleaned real plate + sim)",
                status="exploratory, UNVERIFIED", **diag)
     np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
                         pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd),

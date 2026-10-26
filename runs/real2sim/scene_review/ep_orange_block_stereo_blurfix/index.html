@@ -1,0 +1,141 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Scene Review</title><style>:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--bad:#a3321f;--ok:#2c6e3a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--bad:#ee8a76;--ok:#7fc98d}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--bad:#ee8a76;--ok:#7fc98d}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px 16px}main{max-width:1300px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin-top:1.6em}.meta{color:var(--muted);font-size:.85rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:14px 0}
+.tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}figure{margin:0}img{width:100%;border-radius:4px;display:block}
+figcaption{font-size:.8rem;color:var(--muted)}table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left}th{background:var(--card)}
+.bad{color:var(--bad);font-weight:600}.ok{color:var(--ok);font-weight:600}.wrap{overflow-x:auto}
+@media (max-width:760px){.tri{grid-template-columns:1fr}}</style></head><body><main>
+<h1>Scene review: ep_orange_block_stereo, wrist blur fix (gripper-only blur, 10-23)</h1>
+<p class="meta">res31, internal. Scene <code>runs/real2sim/ep_orange_block_stereo</code>, episode <code>data/real2sim/droid/ep_orange_block</code>. Each row: real camera frame | our render of the same moment (sim posed at the recorded joints; exterior = composite on the cleaned real plate, wrist = WristRenderV2) | the real frame with our robot outlined in cyan and our objects in white. If the scene is right, the outlines sit on the real robot and objects. Shown at 1280×720, the real cameras’ resolution (GR00T sees 320×180). Exploratory, UNVERIFIED.</p>
+<h2>Distances</h2><p class="meta">Robot base frame, cm. Absolute = where things are relative to the robot; relative = object to object. Wrist-stereo anchors are points on the visible surface, so up to ~half an object's size is expected there.</p>
+<div class="wrap"><table><tr><th>Absolute</th><th>ours</th><th>real</th><th>difference (cm)</th><th>limit</th></tr>
+<tr><td>table top (ext stereo, frame 0)</td><td>-9.4</td><td>-9.6</td><td class='ok'>-0.2</td><td>1.0</td></tr>
+<tr><td>table top (wrist stereo, frame 0)</td><td>-9.4</td><td>-9.8</td><td class='ok'>-0.4</td><td>1.0</td></tr>
+<tr><td>table top (wrist stereo, frame 20)</td><td>-9.4</td><td>-9.2</td><td class='ok'>+0.2</td><td>1.0</td></tr>
+<tr><td>table top (wrist stereo, frame 40)</td><td>-9.4</td><td>-9.2</td><td class='ok'>+0.2</td><td>1.0</td></tr>
+<tr><td>green block: horizontal, built centre vs wrist-stereo anchor</td><td>(50.2, -4.5)</td><td>(50.0, -3.3)</td><td class='ok'>+1.2</td><td>1.5</td></tr>
+<tr><td>yellow block: horizontal, built centre vs wrist-stereo anchor</td><td>(57.4, 2.9)</td><td>(57.0, 3.6)</td><td class='ok'>+0.9</td><td>1.5</td></tr>
+<tr><td>orange block: horizontal, built centre vs wrist-stereo anchor</td><td>(64.3, 3.1)</td><td>(64.8, 3.6)</td><td class='ok'>+0.7</td><td>1.5</td></tr>
+<tr><td>real grasp (frame 75) vs sim orange_block: horizontal</td><td></td><td></td><td class='bad'>+1.7</td><td>1.5</td></tr>
+<tr><td>real grasp (frame 75) vs sim orange_block: vertical</td><td></td><td></td><td class='ok'>+1.4</td><td>1.5</td></tr>
+</table></div>
+<div class="wrap"><table><tr><th>Relative (object pair)</th><th>ours</th><th>real (anchors)</th><th>difference (cm)</th></tr>
+<tr><td>green block ↔ orange block</td><td>16.1</td><td>16.3</td><td class='ok'>-0.2</td></tr>
+<tr><td>green block ↔ yellow block</td><td>10.3</td><td>9.8</td><td class='ok'>+0.5</td></tr>
+<tr><td>orange block ↔ yellow block</td><td>6.9</td><td>7.8</td><td class='ok'>-0.9</td></tr>
+</table></div>
+<h2>Issues</h2><p class="meta">What looks wrong, frame by frame: raised → cause found → fix agreed → fixed (checked by the user). Kept in <code>issues.json</code> next to this page.</p><div class="wrap"><table><tr><th>#</th><th>Frame</th><th>Camera</th><th>Seen</th><th>Cause</th><th>Fix</th><th>Status</th></tr>
+<tr><td>1</td><td>0</td><td>exterior</td><td>ghost inpaint (grey smear, upper right background)</td><td>background plate = per-pixel median over ~150 frames; only objects are cut out, not the robot, so where the arm is in about half the frames or more its smeared trace stays in the plate (composite.py clean_plate). Baked in: shows in every exterior frame where our robot doesn&#x27;t cover it.</td><td>proposed: median per pixel only over frames without the robot there (robot masks with a margin), inpaint what&#x27;s left; new plate next to the old one, opt-in</td><td>cause found</td></tr>
+<tr><td>2</td><td>all</td><td>wrist</td><td>shadow under the bowl should be darker</td><td>every shadowed table pixel gets the same darkening (x0.75), so a contact shadow can&#x27;t be darker than a far cast shadow (composite.py WristCompositor shadow ratio)</td><td>proposed: contact darkening that fades with distance from where an object touches the table, strength measured from the real frames</td><td>cause found</td></tr>
+<tr><td>3</td><td>all</td><td>wrist</td><td>shadows around the two blocks should be softer</td><td>one small blur (3 px) for every shadow edge; real edges soften with the caster&#x27;s height above the table</td><td>proposed: edge blur growing with caster height, amount measured from the real block shadows</td><td>cause found</td></tr>
+<tr><td>4</td><td>63</td><td>wrist</td><td>shape of the shadow is different</td><td></td><td></td><td>raised</td></tr>
+<tr><td>5</td><td>0, 40, 126</td><td>wrist</td><td>robot shadow on the table too dark, too big, hard-edged (two blobs at frame 0)</td><td>possibly the wrist light fit (direction fitted with overlap 0.21 only) plus the same x0.75 / 3 px rule as 2-3; unchecked</td><td></td><td>raised</td></tr>
+<tr><td>6</td><td>0</td><td>wrist</td><td>pale see-through patch with pinkish edges on the table; in GR00T rollouts a hard diagonal seam on the table at most moments (review/batch_yfit_v2 yellow v0)</td><td>probably the boundary of the wrist table-texture mosaic (built from the wrist frames before the grasp); beyond it a paler texture takes over; unchecked</td><td></td><td>raised</td></tr>
+<tr><td>7</td><td>73, 75</td><td>wrist</td><td>whole wrist image blurred near the grasp (gripper, table, blocks); real is sharp; confirmed in GR00T rollouts: wrist image fully blurred at the grasp and lift (review/batch_yfit_v2 yellow v0, steps 44-45)</td><td>bug (res31): near_defocus blurs everything closer than 20 cm to the camera (composite.py:494), meant for the gripper only; near the grasp the table and blocks are that close too. GR00T sees this blur at grasp time in every V2 rollout</td><td>blur only the gripper&#x27;s own pixels (sim segmentation) instead of everything within 20 cm: composite.WristRenderV2(near=&#x27;gripper&#x27;), policy_rollout/policy_batch/scene_review --wrist_blur gripper; opt-in, default unchanged so past runs stay reproducible. Sharpness away from the gripper at 320x180, frames 73/75: old 3, fixed 174-186, real 63-65. Before/after: scene_review/ep_orange_block_stereo_blurfix</td><td>fixed (opt-in), awaiting user check</td></tr>
+<tr><td>8</td><td>0, 75, 126</td><td>exterior</td><td>robot drawn off: gripper right/below at frame 0, elbow and upper arm right/higher at 75 and 126</td><td>exterior calibration: robot-outline overlap only 0.49 with both calibrations; suspects intrinsics, lens distortion, real-robot masks; unchecked</td><td></td><td>raised</td></tr>
+<tr><td>9</td><td>73</td><td>exterior</td><td>real robot shadow on the table is not that sharp; ours is sharper</td><td>same shadow rule as #2-3 (one darkness, 3 px edge blur) in the exterior composite</td><td></td><td>cause found</td></tr>
+<tr><td>10</td><td>100</td><td>wrist</td><td>orange block missing from the gripper (&#x27;something vanished&#x27;)</td><td>not a scene fault: this page replays the operator&#x27;s recorded joints, and in our physics that motion does not pick the block up, so it stays on the table (known: replay is not a grasp criterion)</td><td>none needed; could pose the block in the hand for display only</td><td>cause found</td></tr>
+<tr><td>11</td><td>100</td><td>wrist</td><td>gripper looks rotated / wrong, jagged dark edge</td><td>the real-gripper library has only OPEN gripper images; a closed gripper falls back to our plain render (dark, blurred, no detail). Not rotated: the cyan outline sits on the real gripper</td><td></td><td>cause found</td></tr>
+<tr><td>12</td><td>73, 100</td><td>wrist</td><td>bowl outline bigger than the real bowl and offset</td><td>unchecked: the bowl&#x27;s size/position were never measured from the wrist view (block_size_check covers blocks only)</td><td></td><td>raised</td></tr>
+<tr><td>13</td><td>73</td><td>wrist</td><td>yellow block smaller and displaced (outline off the real block)</td><td>this page shows the original scene; yellow is 2.48 cm here, fixed (3.27 cm) only in ep_orange_block_stereo_yfit</td><td>show the yfit scene</td><td>cause found</td></tr>
+<tr><td>14</td><td>rollouts</td><td>wrist</td><td>re-fitted yellow block looks olive/dull in the shaded wrist view</td><td>render-colour override fitted on 4 frames only (lime x0.55); likely too dark in shade; unchecked</td><td></td><td>raised</td></tr>
+<tr><td>15</td><td>rollouts</td><td>both</td><td>after success the arm keeps moving for the rest of the 30 s and ends stretched out low</td><td>policy behaviour + fixed 30 s episode (no end-on-success): parked question D26; not a scene fault</td><td></td><td>cause found</td></tr>
+<tr><td>16</td><td>all</td><td>wrist</td><td>our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76)</td><td>unchecked; candidates: hard shadow edges (#3, #9), the table seam (#6), no motion blur or video compression in our render (the real camera has both)</td><td></td><td>raised</td></tr>
+</table></div>
+<h2>Frames</h2>
+<div class="card"><b>Frame 0</b>
+<p class="meta">Issues here: #1 (exterior) ghost inpaint (grey smear, upper right background) [cause found]; #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #5 (wrist) robot shadow on the table too dark, too big, hard-edged (two blobs at frame 0) [raised]; #6 (wrist) pale see-through patch with pinkish edges on the table; in GR00T rollouts a hard diagonal seam on the table at most moments (review/batch_yfit_v2 yellow v0) [raised]; #8 (exterior) robot drawn off: gripper right/below at frame 0, elbow and upper arm right/higher at 75 and 126 [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f000_ext_real.jpg"><img src="f000_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f000_ext_ours.jpg"><img src="f000_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f000_ext_overlay.jpg"><img src="f000_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f000_wrist_real.jpg"><img src="f000_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f000_wrist_ours.jpg"><img src="f000_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f000_wrist_overlay.jpg"><img src="f000_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 40</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #5 (wrist) robot shadow on the table too dark, too big, hard-edged (two blobs at frame 0) [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f040_ext_real.jpg"><img src="f040_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f040_ext_ours.jpg"><img src="f040_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f040_ext_overlay.jpg"><img src="f040_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f040_wrist_real.jpg"><img src="f040_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f040_wrist_ours.jpg"><img src="f040_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f040_wrist_overlay.jpg"><img src="f040_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 63</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #4 (wrist) shape of the shadow is different [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f063_ext_real.jpg"><img src="f063_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f063_ext_ours.jpg"><img src="f063_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f063_ext_overlay.jpg"><img src="f063_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f063_wrist_real.jpg"><img src="f063_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f063_wrist_ours.jpg"><img src="f063_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f063_wrist_overlay.jpg"><img src="f063_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 73</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #7 (wrist) whole wrist image blurred near the grasp (gripper, table, blocks); real is sharp; confirmed in GR00T rollouts: wrist image fully blurred at the grasp and lift (review/batch_yfit_v2 yellow v0, steps 44-45) [fixed (opt-in), awaiting user check]; #9 (exterior) real robot shadow on the table is not that sharp; ours is sharper [cause found]; #12 (wrist) bowl outline bigger than the real bowl and offset [raised]; #13 (wrist) yellow block smaller and displaced (outline off the real block) [cause found]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f073_ext_real.jpg"><img src="f073_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f073_ext_ours.jpg"><img src="f073_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f073_ext_overlay.jpg"><img src="f073_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f073_wrist_real.jpg"><img src="f073_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f073_wrist_ours.jpg"><img src="f073_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f073_wrist_overlay.jpg"><img src="f073_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 75</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #7 (wrist) whole wrist image blurred near the grasp (gripper, table, blocks); real is sharp; confirmed in GR00T rollouts: wrist image fully blurred at the grasp and lift (review/batch_yfit_v2 yellow v0, steps 44-45) [fixed (opt-in), awaiting user check]; #8 (exterior) robot drawn off: gripper right/below at frame 0, elbow and upper arm right/higher at 75 and 126 [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f075_ext_real.jpg"><img src="f075_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f075_ext_ours.jpg"><img src="f075_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f075_ext_overlay.jpg"><img src="f075_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f075_wrist_real.jpg"><img src="f075_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f075_wrist_ours.jpg"><img src="f075_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f075_wrist_overlay.jpg"><img src="f075_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 100</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #10 (wrist) orange block missing from the gripper (&#x27;something vanished&#x27;) [cause found]; #11 (wrist) gripper looks rotated / wrong, jagged dark edge [cause found]; #12 (wrist) bowl outline bigger than the real bowl and offset [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f100_ext_real.jpg"><img src="f100_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f100_ext_ours.jpg"><img src="f100_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f100_ext_overlay.jpg"><img src="f100_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f100_wrist_real.jpg"><img src="f100_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f100_wrist_ours.jpg"><img src="f100_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f100_wrist_overlay.jpg"><img src="f100_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+<div class="card"><b>Frame 126</b>
+<p class="meta">Issues here: #2 (wrist) shadow under the bowl should be darker [cause found]; #3 (wrist) shadows around the two blocks should be softer [cause found]; #5 (wrist) robot shadow on the table too dark, too big, hard-edged (two blobs at frame 0) [raised]; #8 (exterior) robot drawn off: gripper right/below at frame 0, elbow and upper arm right/higher at 75 and 126 [raised]; #16 (wrist) our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76) [raised]</p>
+<p class="meta">exterior camera</p><div class="tri">
+<figure><a href="f126_ext_real.jpg"><img src="f126_ext_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f126_ext_ours.jpg"><img src="f126_ext_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f126_ext_overlay.jpg"><img src="f126_ext_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+<p class="meta">wrist camera</p><div class="tri">
+<figure><a href="f126_wrist_real.jpg"><img src="f126_wrist_real.jpg" alt="real" loading="lazy"></a><figcaption>real</figcaption></figure>
+<figure><a href="f126_wrist_ours.jpg"><img src="f126_wrist_ours.jpg" alt="ours" loading="lazy"></a><figcaption>ours</figcaption></figure>
+<figure><a href="f126_wrist_overlay.jpg"><img src="f126_wrist_overlay.jpg" alt="real + our outlines" loading="lazy"></a><figcaption>real + our outlines</figcaption></figure>
+</div>
+</div>
+</main></body></html>

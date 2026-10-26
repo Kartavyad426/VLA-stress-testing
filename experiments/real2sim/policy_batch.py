@@ -25,6 +25,8 @@ def main():
                     "per-variant json's 'seed' is the FULL rng seed (seed*1000 + task*100 + variant); passing it as --seed made "
                     "every variant > 0 a different layout from the one the expert solved (slot A and D2 were affected)")
     ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene", help="passed to policy_rollout")
+    ap.add_argument("--no_shadows", action="store_true", help="passed to policy_rollout")
+    ap.add_argument("--wrist_blur", choices=["depth", "gripper"], default="gripper", help="passed to policy_rollout")
     ap.add_argument("--layouts_from", default=None, help="batch dir whose episodes' recorded --seed is reused per episode, so a "
                     "new batch plays exactly the layouts of that one (10-23: pairs a firm-grip batch with the pre-fix D2 batch)")
     ap.add_argument("--only", action="append", default=[], help="run only tasks whose instruction contains this (repeatable)")
@@ -67,7 +69,7 @@ def main():
                 cmd = [sys.executable, os.path.join(HERE, "policy_rollout.py"), "--scene", a.scene, "--task", t["task"],
                        "--variant", str(v["variant"]), "--seed", str(seed), "--out", ep_dir,
                        "--policy", a.policy, "--seconds", str(a.seconds), "--wrist_render", a.wrist_render,
-                       "--grip_physics", a.grip_physics]
+                       "--grip_physics", a.grip_physics] + (["--no_shadows"] if a.no_shadows else []) + ["--wrist_blur", a.wrist_blur]
                 p = subprocess.run(cmd, capture_output=True, text=True)
                 if p.returncode != 0:
                     print(f"FAILED to run {t['task']} v{v['variant']}: rc {p.returncode}\n{p.stderr[-1500:]}", flush=True)
@@ -91,7 +93,7 @@ def main():
             bt[k] += int(bool(r["stages"] and r["stages"][k]))
         bt["blocked"] += int(bool(r["blocked"]))
     tot = {k: sum(b[k] for b in by_task.values()) for k in ("n", "success", "reached", "closed_at_target", "lifted", "placed", "blocked", "errors")}
-    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, wrist_render=a.wrist_render, grip_physics=a.grip_physics, layouts_from=a.layouts_from, only=a.only, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
+    json.dump(dict(scene=a.scene, tasks=a.tasks, policy=a.policy, wrist_render=a.wrist_render, grip_physics=a.grip_physics, shadows=not a.no_shadows, wrist_blur=a.wrist_blur, layouts_from=a.layouts_from, only=a.only, seconds=a.seconds, trivial_excluded=sorted(trivial), total=tot, by_task=by_task, episodes=rows,
                    status="exploratory, UNVERIFIED"), open(os.path.join(a.out, "batch_summary.json"), "w"), indent=1)
     print("TOTAL", json.dumps(tot))
     for k, b in by_task.items():

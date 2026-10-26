@@ -1,0 +1,78 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "orange_block",
+  "ref": "black_bowl",
+  "text": "put the orange block in the bowl"
+ },
+ "instruction": "put the orange block in the bowl",
+ "variant": 3,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 103,
+ "layout_rng_seed": 103103,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.311333417892456,
+ "infer_s_median": 0.22200584411621094,
+ "wall_s": 84.14198207855225,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.2412427841186524,
+ "gripper_closed_frac": 0.08888888888888889,
+ "final_target_xyz": [
+  0.702778947712663,
+  0.07561560734401426,
+  -0.07726767525491525
+ ],
+ "final_ref_xyz": [
+  0.6568359811259685,
+  -0.2733564414216738,
+  -0.09692527762189815
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "shadows": true,
+ "wrist_blur": "gripper",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": false,
+  "closed_near_target": false,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": 38,
+   "closed_at_target": null,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.020845543042064058,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.10075749928772433,
+  "median_err_m": 0.026426255812215103,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

@@ -20,78 +20,141 @@ th{background:var(--card)}
 .P{color:var(--pass);font-weight:600}.F{color:var(--fail);font-weight:600}.T{color:var(--todo);font-weight:600}
 .new{font-size:.75rem;border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--muted)}
 code{font-size:.85em}
+ol li{margin:.3em 0}
 </style>
 </head>
 <body><main>
 <h1>Real-to-sim: checklist before deploying a policy</h1>
-<p class="meta">res31. Made 10-15 after the first failed GR00T run (5db8dcf); <b>updated 10-20</b> with everything measured 10-16 → 10-19 and with four blind spots the first version had. Run every check on every scene before trusting a VLA rollout in it. Status cells hold only what has been measured; <span class="T">not run</span> means unknown, not passed. Exploratory, numbers UNVERIFIED (val is down). The story behind each change: <a href="SIM_FIXES.html">SIM_FIXES.html</a>.</p>
+<p class="meta">res31. Made 10-15 after the first failed GR00T run (5db8dcf); updated 10-20 (c983e16); <b>redesigned 10-23</b> as ordered gates, with what 10-20 → 10-23 taught (object size, rendered colour, scene edits, layout seeds, physics settings). Status cells hold only what has been measured; <span class="T">not run</span> means unknown, not passed. Exploratory, numbers UNVERIFIED (no checker since 10-09). The story behind each change: <a href="SIM_FIXES.html">SIM_FIXES.html</a>. Old check numbers in brackets, e.g. 1.1 (#6); full map in section I.</p>
 
-<div class="box"><b>Where things stand (10-20).</b> The orange scene has been rebuilt (<code>runs/real2sim/ep_orange_block_stereo</code>: stereo depth scale, camera calibrated with metric anchors, bowl bug fixed) and passes the geometry checks except the real-grasp horizontal check by 0.2 cm. Its wrist view does <b>not</b> pass yet: G6 showed GR00T plans its grasp ~4 cm too low with our wrist render and exactly right once the table texture, the light/shadow on the table and the gripper's look (with camera blur) match the real camera; table texture and gripper are done (S1), light/shadow is in progress. c3 is not rebuilt (its anchored calibration worsened the robot-outline fit, 0.40 → 0.35, under investigation); its column shows the old scene.</div>
+<div class="box"><b>Where things stand (10-23).</b> Orange scene (<code>ep_orange_block_stereo</code>): Gates 1–3 pass except the real-grasp horizontal check (1.7 vs 1.5 cm) and the green block's size in the wrist view (0.88, far frames only, to re-check); the yellow block failed the new size check (1.32× too small) and is fixed in the copy <code>ep_orange_block_stereo_yfit</code> (1.00). Gate 4 does not pass: the wrist render still leaves ~1.3 cm of the 3.9 cm planning gap (4.2), and objects in shadow render too dark (4.6). Controller not matched (5.3). So <b>no orange failure is fully attributable to the policy yet</b> (section G); the early release is attributed through 6.1. c3: old 10-15 scene, not rebuilt (its anchored calibration worsens the robot outline, 1.2); every gate open.</div>
 
-<h2>A. Geometry and physics</h2>
-<p class="meta">#1, #3–#6 run automatically: <code>experiments/real2sim/scene_checks.py --scene … --episode …</code> (writes <code>scene_checks.json</code> + <code>wrist_overlay.jpg</code>).</p>
-<div class="wrap"><table>
-<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>orange, rebuilt (10-19)</th><th>orange, old scene (10-15)</th><th>c3 (old scene)</th></tr>
-<tr><td>1</td><td>Objects settle</td><td>every free body moves &lt; 2 cm in the first 0.5 s, robot held at its frame-0 joints. <b>A failure is a bug until shown otherwise</b> (blind spot 4)</td><td class="P">bowl 0.10 cm</td><td class="F">bowl 2.18 cm (bug: bowl built floating; fixed in build_scene)</td><td class="P">bowl 1.95 cm</td></tr>
-<tr><td>2</td><td>Scripted expert solves the tasks</td><td>make_tasks; only variants the expert solves enter the eval set</td><td class="P">34/40</td><td class="P">34/40</td><td class="P">57/65 (radish 0/5, excluded)</td></tr>
-<tr><td>3</td><td>Real grasp position</td><td>at each real gripper close, sim fingertip point (FK of recorded joints) vs the nearest sim object: |vertical| ≤ 1.5 cm and horizontal ≤ 1.5 cm</td><td class="F">vertical +1.4, horizontal 1.7 cm (0.2 over)</td><td class="F">vertical −5.0, horizontal 0.7 cm</td><td class="F">grasps ~5 cm below the rebuilt cart top</td></tr>
-<tr><td>4</td><td>Real place point</td><td>at each real release, fingertip point inside the sim container's rim</td><td class="P">4.9 cm from centre (rim 8.5)</td><td class="P">2.8 cm (rim 7.2)</td><td class="T">not run</td></tr>
-<tr><td>5</td><td>Horizontal scale</td><td>real grasp→release vs sim object→container distance, ratio within ±10%</td><td class="P">0.907</td><td class="P">1.078</td><td class="T">not run</td></tr>
-<tr><td>6</td><td>Table height from stereo</td><td>DROID stereo video (ZED 2 120 mm exterior, ZED Mini 63 mm wrist); table-top z vs the built table, ≤ 1 cm (<code>stereo_depth.py</code>)</td><td class="P">−0.2 (ext), −0.4…+0.2 cm (wrist)</td><td class="F">5.7 / 6.3 cm too high</td><td class="F">~8 cm too high (wrist)</td></tr>
-<tr><td>7</td><td>Gripper mount and length</td><td>mount yaw matches the real wrist video; sim finger pads overlay the real ones (a 4.5 cm length error moves them 144–184 px)</td><td class="P">yaw 90; length OK</td><td class="P">same robot model</td><td class="P">same robot model</td></tr>
-<tr><td>8</td><td>Collision shapes</td><td>containers keep their cavity; no oversized "fillable" parts; graspable shapes</td><td class="P">bowl = LIBERO asset</td><td class="P">same</td><td>radish grasp <span class="F">fails</span> (excluded)</td></tr>
-<tr><td>24 <span class="new">new</span></td><td><b>Object positions from a second viewpoint</b></td><td>wrist camera (pose from the robot's joints, independent of the exterior calibration): sim object outlines overlay the real objects (<code>wrist_overlay.jpg</code>), and wrist-stereo object points agree with the built objects within ~1.5 cm (<code>wrist_anchors.py</code>). Blind spot 3.</td><td class="P">blocks 0.7–1.2 cm from wrist anchors; overlay matches</td><td class="F">blocks too big in the wrist view (too close to the camera)</td><td class="T">anchors built (8 blocks), scene not rebuilt</td></tr>
-<tr><td>25 <span class="new">new</span></td><td><b>No trivial task variants</b></td><td>run a do-nothing policy on every variant (<code>policy_batch.py --policy hold</code>); exclude any it "solves" (<code>--trivial_from</code>). Blind spot 2.</td><td class="P">1/34 excluded (orange next to green v1)</td><td>—</td><td class="T">not run</td></tr>
-</table></div>
-
-<h2>B. Cameras and visuals</h2>
-<div class="wrap"><table>
-<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>orange, rebuilt</th><th>orange, old</th><th>c3 (old)</th></tr>
-<tr><td>9</td><td>Exterior camera calibration</td><td>robot-outline IoU (not worse than the outline-only fit) <b>and</b> metric anchors: wrist-stereo object points reproject onto their objects, stereo table at the measured height (<code>calibrate_cam.py --anchors --table_z</code>)</td><td class="P">IoU 0.495; anchors 4.9 px; table 0 cm</td><td>IoU 0.47 (outline only)</td><td class="F">anchored: IoU 0.40 → 0.35 (conflict, open)</td></tr>
-<tr><td>10</td><td>Exterior composite</td><td>no ghosts of moved real objects; an image swap with the real exterior image changes nothing (#20)</td><td class="P">G3: exterior composite = real exterior (+2.4 cm both)</td><td class="P">reviewed</td><td class="P">reviewed</td></tr>
-<tr><td>11</td><td><b>Wrist view</b> (rule changed 10-20)</td><td><b>Pass rule: image swap (#20), not a look by eye</b> (blind spot 1). With the real exterior image and the recorded state, the policy's planned grasp height and tilt with our wrist image must be within ~0.5 cm / ~1° of those with the real wrist image, at recorded approach states. Coverage by eye is necessary but not enough.</td><td class="F">not yet: old render −1.2…−1.5 cm vs real +2.3…+2.6 (G3–G6); with table + light/shadow + gripper all real: +3.0 (matches). Deployable renderer in progress (S1 done: table texture + real gripper; S4: light/shadow)</td><td class="F">same render, scene geometry wrong too</td><td class="T">not run</td></tr>
-<tr><td>12</td><td>Robot appearance</td><td>wrist view: covered by #11 (G6: gripper look worth ~1.1 cm); exterior view: covered by #10</td><td>wrist: real gripper library (S1); exterior: no effect measured</td><td class="T">—</td><td class="T">not run</td></tr>
-<tr><td>13</td><td>Images as the policy's client prepares them</td><td>size, padding, colour order, one frame per camera</td><td class="P">as NVIDIA's DROID client</td><td class="P">same</td><td>same code</td></tr>
-<tr><td>26 <span class="new">new</span></td><td><b>Camera model</b></td><td>at the policy's input size, sharpness of the gripper outline, inside the gripper and on the table vs the real image; render above the policy size and shrink by area averaging like the real frames; focus blur on near objects. Found 10-19: our gripper outline was ~6× too sharp (65 vs 10)</td><td>WristRenderV2: 640×360 render + area downscale; real gripper pixels (blur included)</td><td class="F">ideal pinhole</td><td class="T">not run</td></tr>
-</table></div>
-
-<h2>C. Interface (state, action, control)</h2>
-<div class="wrap"><table>
-<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>orange, rebuilt</th><th>orange, old</th><th>c3 (old)</th></tr>
-<tr><td>14</td><td>End-effector frame</td><td>FK of recorded joints = recorded cartesian_position (0 mm / 0°); state computed in sim = recorded state</td><td class="P">identical (max diff 0.0000 at 10 approach states, G3)</td><td class="P">impl: 0 mm</td><td class="T">not run</td></tr>
-<tr><td>15</td><td>State inside training range</td><td>every state dim inside the checkpoint's q01–q99</td><td class="P">impl</td><td class="P">impl</td><td class="T">not run</td></tr>
-<tr><td>16</td><td>Gripper convention</td><td>state 0 open → 1 closed; a "close" action closes the sim gripper on a block</td><td>indirect <span class="P">yes</span>: G2/slot A closed on and lifted blocks; scripted end-to-end test not run</td><td class="T">—</td><td class="T">not run</td></tr>
-<tr><td>17</td><td>Command tracking</td><td>commanded vs achieved fingertip; blocked = error &gt; 1 cm for ≥ 1 s <b>while the arm is (nearly) still</b> (&lt; 1 cm/s; rule refined 10-19 so controller lag in fast moves isn't flagged). Logged by <code>policy_rollout.py</code></td><td class="F">17/33 episodes push ~2.6 cm into the table (slot A) — traced to the wrist render (#11)</td><td class="F">smoke1: 3.6 cm for 314 steps</td><td class="T">not run</td></tr>
-<tr><td>18</td><td>Dry run without the policy</td><td><code>--policy hold</code> on CPU, end to end</td><td class="P">tracking 0.5 cm, not blocked</td><td class="P">impl</td><td class="T">not run</td></tr>
-<tr><td>27 <span class="new">new</span></td><td>Controller</td><td>the sim arm should follow commands like DROID's real controller (system identification). The eval-validity review (re412) names it a condition for valid sim-to-real ranking</td><td class="T">not done (MuJoCo position actuators)</td><td class="T">—</td><td class="T">—</td></tr>
-</table></div>
-
-<h2>D. Policy sanity (per policy, before counting failures)</h2>
-<div class="wrap"><table>
-<tr><th>#</th><th>Check</th><th>What it answers</th><th>Status (GR00T-N1.7-DROID, orange)</th></tr>
-<tr><td>19</td><td>Real-data check: policy on the real episode's frames + recorded state</td><td>does it close/release and move as the operator did?</td><td class="P">yes: close at frame 70 vs 75, release ~120 vs ~126, path within 2–3.4 cm (G1); its early release (~13 cm short) also shows on real frames → policy behaviour</td></tr>
-<tr><td>20</td><td>Image swap at recorded states</td><td>how far our images alone move the plan; one camera / one image part at a time</td><td class="P">done (G3–G6): exterior composite no effect; wrist render ~4 cm; split into table texture, light/shadow (2.2 cm), gripper (1.1 cm); run-to-run noise 0.3 cm</td></tr>
-<tr><td>21</td><td>Encoder distance</td><td>do our images fall among real DROID frames?</td><td class="T">not run</td></tr>
-<tr><td>22</td><td>Instruction swap</td><td>does the target follow the instruction?</td><td class="P">yes in sim (G2: each run grasped its own block)</td></tr>
-<tr><td>23</td><td>Stage scoring</td><td>reached / closed / lifted / placed per rollout</td><td class="P">in <code>policy_rollout.py</code>; slot A: 32 / 17 / 11 / 4 of 33</td></tr>
-</table></div>
-
-<h2>E. Counting rule</h2>
-<p>A rollout failure counts as a <b>policy failure</b> only if: the expert solves that variant (#2) and a do-nothing policy doesn't (#25); the scene passes A (#3–#6, #24) and the wrist-view swap (#11); there is no sustained blocked command (#17); and #19–#20 show the policy behaves on real frames and our images don't move its plan. Anything else is <b>unattributed</b>. Today no orange failure is fully attributable, because #11 does not pass yet; the early release is attributed to the policy through #19 (it shows on real frames).</p>
-
-<h2>F. Blind spots of the 10-15 version (now rules)</h2>
+<h2>A. How a scene goes through the gates</h2>
 <ol>
-<li><b>The wrist view was judged by eye</b> (#11 passed on coverage); the image swap showed it moves the plan by ~4 cm. Rule: visuals pass only through an image swap.</li>
-<li><b>No check for trivial variants:</b> a do-nothing policy "solved" one. Rule: #25.</li>
-<li><b>Camera pose was checked only by robot-outline overlap,</b> which is blind along the camera's rays (a 6 cm table offset looked perfect). Rule: geometry is validated from a second viewpoint and against real robot coordinates (#3, #6, #24).</li>
-<li><b>The bowl's 2.18 cm settle failure was read as "borderline";</b> it was a placement bug. Rule: a failed check is a bug until shown otherwise.</li>
+<li><b>Gate 0 once per robot + camera rig</b> (same robot, gripper, cameras, policy client): reused by every scene from that rig.</li>
+<li><b>Then per scene, in order: Gate 1 → 2 → 3 → 4 → 5.</b> A failed check is fixed (or the scene is dropped) before the next gate. The order matters because one error hides another: the 6 cm table error hid a 6–7 cm camera-pose error (SIM_FIXES faults 1–2), and both made every visual check look fine.</li>
+<li><b>Gate 6 per policy</b>, on a scene that passed 1–5.</li>
+<li><b>Count</b> rollout failures only under the counting rule (G). Everything else is "unattributed".</li>
+<li>Any later edit to a scene (size, colour, physics) re-runs the gate it touches and everything after it (2.3).</li>
 </ol>
+<p class="meta">Automated today: <code>scene_checks.py</code> (1.1, 1.3, 1.5–1.7, 2.1), <code>block_size_check.py</code> (1.4, 4.6 colour part), <code>stack_drop_test.py</code> (2.4), <code>replay_probe.py</code> (3.3, 2.5, 5.2 physics breakdown), <code>policy_batch.py --policy hold</code> (3.2, 5.1), <code>image_swap.py</code> / <code>g6_wrist.py</code> (4.x).</p>
 
-<h2>Changes 10-15 → 10-20</h2>
-<ul>
-<li>Status columns: rebuilt orange scene added; 10-15 values kept in their own column.</li>
-<li>New checks #24 (second-viewpoint object positions), #25 (trivial variants), #26 (camera model), #27 (controller).</li>
-<li>#11 pass rule changed to the image swap; #9 now requires metric anchors; #17 rule refined (stillness gate); #1 "failure = bug" rule.</li>
-<li>Counting rule extended (#25, #24, #11).</li>
-</ul>
+<h2>B. Gate 0 · Rig and inputs (once per rig)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange rig (FR3 + 2F-85, ZED 2 / ZED Mini)</th></tr>
+<tr><td>0.1 (#14)</td><td>End-effector frame</td><td>FK of recorded joints = recorded cartesian_position (0 mm / 0°); state computed in sim = recorded state</td><td>wrong state fed to the policy</td><td class="P">identical (max diff 0.0000 at 10 approach states, G3)</td></tr>
+<tr><td>0.2 (#15)</td><td>State inside training range</td><td>every state dim inside the checkpoint's q01–q99</td><td>out-of-range inputs</td><td class="P">yes (impl)</td></tr>
+<tr><td>0.3 (#16)</td><td>Gripper convention</td><td>state 0 open → 1 closed; a "close" action closes the sim gripper on a block</td><td>inverted gripper</td><td class="P">indirect yes (closes and lifts blocks in every batch); scripted end-to-end test not run</td></tr>
+<tr><td>0.4 (#13)</td><td>Images as the policy's client prepares them</td><td>size, padding, colour order, one frame per camera</td><td>input-format bugs</td><td class="P">as NVIDIA's DROID client</td></tr>
+<tr><td>0.5 (#7)</td><td>Gripper mount and length</td><td>mount yaw matches the real wrist video; sim finger pads overlay the real ones (a 4.5 cm length error moves them 144–184 px)</td><td>gripper too long/short or rotated</td><td class="P">yaw 90, length OK</td></tr>
+<tr><td>0.6 <span class="new">new</span></td><td>Wrist camera ↔ gripper placement</td><td>sim gripper silhouette vs real in the wrist frames (<code>fit_wrist_gripper.py</code>): IoU ≥ 0.85. <b>Informational</b>: report, don't block, unless an image swap shows it moves the plan</td><td>gripper drawn in the wrong place in the wrist view</td><td class="T">0.76 (drawn ~8.5 mm / 2.4° off; corrected 0.91 either by camera or by mount, data can't tell which, D1); GR00T's plan unaffected (G8): not applied</td></tr>
+<tr><td>0.7 <span class="new">new</span></td><td>Mount sign</td><td>±90° Robotiq mount sign confirmed from the wrist video</td><td>mirrored gripper</td><td class="T">open (symmetric gripper, low impact so far)</td></tr>
+<tr><td>0.8 <span class="new">new</span></td><td>Calibration transfer</td><td>does a camera calibration fitted on one scene of the rig hold on another (anchors + outline)? If yes, calibrate per rig; if not, per scene</td><td>re-fitting cameras that don't move; or trusting one that did</td><td class="T">not run (c3's anchored calibration conflicts, 1.2)</td></tr>
+<tr><td>0.9 <span class="new">new</span></td><td>Contact-parameter record</td><td>every scene and every run records the contact settings in force: friction (sliding, twist, rolling) of pads, table and objects, contact dimension, friction cone, impratio. Note: MuJoCo uses the <b>larger</b> friction of the two touching surfaces, so a pad's own value can be irrelevant. Any change says whether it is local (pads) or scene-wide (cone, impratio)</td><td>silent physics changes; misread settings (10-23: "pads at 0.6–0.7" was in effect 1.0)</td><td class="P">recorded: effective sliding 1.0 (table/blocks), twist 0.005, pyramidal cone, impratio 1; runs record <code>grip_physics</code></td></tr>
+</table></div>
+
+<h2>C. Gate 1 · Geometry, checked from a second independent view (per scene)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange, rebuilt</th><th>orange, old (10-15)</th><th>c3 (old)</th></tr>
+<tr><td>1.1 (#6)</td><td>Table height from stereo</td><td>DROID stereo video (ZED 2 120 mm, ZED Mini 63 mm); table-top z vs the built table, ≤ 1 cm (<code>stereo_depth.py</code>)</td><td>fault 1 (depth scale)</td><td class="P">−0.2 (ext), −0.4…+0.2 cm (wrist)</td><td class="F">5.7 / 6.3 cm too high</td><td class="F">~8 cm too high (wrist)</td></tr>
+<tr><td>1.2 (#9)</td><td>Exterior camera calibration</td><td>robot-outline IoU not worse than the outline-only fit, <b>and</b> metric anchors: wrist-stereo object points reproject onto their objects, stereo table at the measured height (<code>calibrate_cam.py --anchors --table_z</code>)</td><td>fault 2 (camera pose, invisible along the camera's rays)</td><td class="P">IoU 0.495; anchors 4.9 px; table 0 cm</td><td class="F">IoU 0.47 (outline only)</td><td class="F">anchored: table 0.08 cm, anchors 17 px, but IoU 0.40 → 0.35 (conflict, not accepted)</td></tr>
+<tr><td>1.3 (#24)</td><td>Object positions from the wrist camera</td><td>wrist-stereo object points (pose from the robot's joints) agree with the built objects within ~1.5 cm; outlines overlay in <code>wrist_overlay.jpg</code></td><td>objects misplaced while the exterior view looks right</td><td class="P">blocks 0.7–1.2 cm</td><td class="F">blocks too big/close in the wrist view</td><td class="T">anchors built, scene not rebuilt</td></tr>
+<tr><td>1.4 <span class="new">new</span></td><td><b>Object size in the wrist view</b></td><td>linear size ratio real/sim = √(real px / sim px) per object, median over ≥ 5 frames where the object is whole and unoccluded, sim posed at the recorded joints (<code>block_size_check.py</code>): within ±10%. A known-good object is the control</td><td>wrong object size (10-23: yellow 2.48 cm vs ~3.3 real; GR00T closed on air next to it)</td><td class="F">orange 1.00 (17 frames, control); yellow 1.32 → re-fit to 3.27 cm in <code>_yfit</code>: 1.00; green 0.88 (16 far frames only, low confidence: re-check)</td><td class="T">not run</td><td class="T">not run</td></tr>
+<tr><td>1.5 (#3)</td><td>Real grasp position</td><td>at each real gripper close, sim fingertip point (FK of recorded joints) vs the nearest sim object: |vertical| ≤ 1.5 cm, horizontal ≤ 1.5 cm</td><td>offsets between the real and sim scene</td><td class="F">vertical +1.4, horizontal 1.7 cm (0.2 over)</td><td class="F">vertical −5.0, horizontal 0.7</td><td class="F">~5 cm below the cart top</td></tr>
+<tr><td>1.6 (#4)</td><td>Real place point</td><td>at each real release, fingertip point inside the sim container's rim</td><td>misplaced container</td><td class="P">4.9 cm from centre (rim 8.5)</td><td class="P">2.8 (rim 7.2)</td><td class="T">not run</td></tr>
+<tr><td>1.7 (#5)</td><td>Horizontal scale</td><td>real grasp→release vs sim object→container distance, ratio within ±10%</td><td>scale errors</td><td class="P">0.907</td><td class="P">1.078</td><td class="T">not run</td></tr>
+</table></div>
+
+<h2>D. Gate 2 · Physics (per scene)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange, rebuilt</th><th>c3 (old)</th></tr>
+<tr><td>2.1 (#1)</td><td>Objects settle</td><td>every free body moves &lt; 2 cm in the first 0.5 s, robot held at its frame-0 joints. <b>A failure is a bug until shown otherwise</b></td><td>fault 3 (floating bowl)</td><td class="P">bowl 0.10 cm; yfit yellow 0.011 cm</td><td class="P">bowl 1.95 cm</td></tr>
+<tr><td>2.2 (#8)</td><td>Collision shapes</td><td>containers keep their cavity; no oversized "fillable" parts; graspable shapes; pads collide through their boxes, not the visual meshes</td><td>untestable tasks</td><td class="P">bowl = LIBERO asset</td><td class="F">radish grasp fails (excluded)</td></tr>
+<tr><td>2.3 <span class="new">new</span></td><td><b>Scene edits keep derived data consistent</b></td><td>after any edit of a built scene (size, mass, position): the edited object's resting contact depth equals an unedited object's (≈ 0.01 cm) and 2.1 passes. Prefer edits applied at build time (planned scene overrides) over patching the compiled .mjb</td><td>10-23: resizing the yellow block in the .mjb left the body's collision bounds (BVH) at the old size; collisions were dropped and the block sank 0.4 cm (fixed in <code>refit_block.py</code>)</td><td class="P">yfit: contact depth 0.011 cm, same as the other blocks</td><td class="T">—</td></tr>
+<tr><td>2.4 <span class="new">new</span></td><td>Clean drop and stack</td><td><code>stack_drop_test.py</code>: the target dropped on the lower object from ≤ 6.5 cm, ≤ 1 cm off-centre, stays</td><td>contact settings that make stacking impossible</td><td class="P">green on orange: stays every time</td><td class="T">not run</td></tr>
+<tr><td>2.5 <span class="new">new</span></td><td>Grasp hold during a carry <span class="T">provisional</span></td><td>for each graspable object, the scripted expert's carry: block rotation relative to the hand and slip, recorded next to the policy's (<code>replay_probe.py --mode stack</code>). No pass bar yet</td><td>blocks turning out of the grasp because of contact settings</td><td class="T">expert green-on-orange turns 2–26° in the hand and still succeeds; orange-on-yellow 1–3°. Firm pad contact (10-23) did not fix GR00T's stacking (0/15 across three batches), so no bar is set</td><td class="T">not run</td></tr>
+</table></div>
+
+<h2>E. Gate 3 · Tasks (per scene)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange, rebuilt</th><th>c3 (old)</th></tr>
+<tr><td>3.1 (#2)</td><td>Scripted expert solves the variant</td><td>make_tasks; only variants the expert solves enter the eval set</td><td>impossible tasks</td><td class="P">34/40; yfit yellow tasks 9/9 played layouts</td><td class="P">57/65 (radish excluded)</td></tr>
+<tr><td>3.2 (#25)</td><td>No trivial variants</td><td>a do-nothing policy (<code>--policy hold</code>) must not "solve" it; exclude those (<code>--trivial_from</code>)</td><td>free successes</td><td class="P">1/34 excluded</td><td class="T">not run</td></tr>
+<tr><td>3.3 <span class="new">new</span></td><td><b>Layouts reproducible</b></td><td>every rollout records its seed and layout rng seed; re-simulating its recorded actions reproduces the recorded fingertip track (error 0); the expert solves the layout that was actually played. Batches that must be compared reuse each other's layouts (<code>--layouts_from</code>)</td><td>10-20 seed bug: the batch played layouts the expert never solved</td><td class="P">fixed (d9bcef0); 10-23 replays: error 0.0 on all replayed episodes; D2 played layouts: expert 27/32</td><td class="T">not run</td></tr>
+<tr><td>3.4 <span class="new">new</span></td><td>Object inventory</td><td>every detected object is built (fitted, pack mesh, generated) or listed as redacted; tasks touching a redacted object are excluded; texture sources mask it</td><td>ghost objects in the images; tasks about missing objects</td><td class="P">none redacted (LIBERO assets)</td><td class="P">none redacted</td></tr>
+</table></div>
+<p class="meta">Redaction today (asset-pack builds only): blocks/cubes/boxes become fitted boxes; bowls get a pack bowl or are redacted; every other label, including balls and cans, is redacted when no pack matches. Proposed: fitted spheres/cylinders before any pack lookup (SIM_FIXES §6, awaiting the user's go).</p>
+
+<h2>F. Gate 4 · Visuals, passed only by image swap (per scene, per camera)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange, rebuilt</th><th>c3 (old)</th></tr>
+<tr><td>4.1 (#10)</td><td>Exterior view</td><td>no ghosts of moved real objects; image swap with the real exterior image changes the plan by no more than noise (~0.3 cm)</td><td>misleading exterior composite</td><td class="P">G3: no effect</td><td class="T">reviewed by eye only</td></tr>
+<tr><td>4.2 (#11)</td><td><b>Wrist view</b></td><td>image swap at recorded approach states, real exterior image and recorded state: the policy's planned grasp height and tilt with our wrist image within ~0.5 cm / ~1° of those with the real wrist image. Diagnostics when it fails (former #26 camera model, former #12 robot look): sharpness of gripper outline, gripper interior and table at the policy's input size; render above input size and shrink by area like the real frames; focus blur; real-gripper pixels</td><td>fault 4 (wrist render; GR00T planned ~4 cm low)</td><td class="F">WristRenderV2 +1.2 cm vs real +2.4/+2.6: 2.6 of 3.9 cm recovered, ~1.3 open (untested: live vs averaged gripper pixels, 640 vs 1280 render)</td><td class="T">not run</td></tr>
+<tr><td>4.3 <span class="new">new</span></td><td>Light per view</td><td>each camera's light is fitted on its own view (exterior: the robot's shadow in the exterior frames; wrist: table shading in the wrist frames); one fit is not reused for the other</td><td>the wrist view lit like the exterior one</td><td class="P">two fits (light.json, light_wrist.json; D6)</td><td class="T">exterior only</td></tr>
+<tr><td>4.4 <span class="new">new</span></td><td><b>Objects as rendered</b></td><td>per object, the median rendered pixel colour in the policy's view vs the real one at the same frames (<code>block_size_check.py</code> real colour + a render of the deployed renderer): no channel clipped, mean error ≤ ~0.05 per channel, lit and shadowed frames checked separately. The material colour alone is not enough: it is multiplied by the light</td><td>10-23: yellow material matched real (0.91/0.90/0.42 vs 0.90/0.93/0.39) yet rendered clipped flat bright yellow</td><td class="F">yellow: fixed in yfit (render override, mean error ≈ 0, 4 frames); orange in shadow too dark (0.34–0.36 vs 0.44–0.53 red), open; green not checked</td><td class="T">not run</td></tr>
+</table></div>
+
+<h2>G. Gate 5 · Control (per scene)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / pass rule</th><th>Guards against</th><th>orange, rebuilt</th><th>c3 (old)</th></tr>
+<tr><td>5.1 (#18)</td><td>Dry run without the policy</td><td><code>--policy hold</code> on CPU, end to end</td><td>pipeline bugs</td><td class="P">tracking 0.5 cm, not blocked; also with firm pads</td><td class="T">not run</td></tr>
+<tr><td>5.2 (#17)</td><td>Command tracking</td><td>commanded vs achieved fingertip: blocked = error &gt; 1 cm for ≥ 1 s while the arm is nearly still (&lt; 1 cm/s). Logged per rollout. <b>Read with the physics settings (0.9)</b>: a scene-wide setting can create blocks of its own</td><td>arm held back by geometry or physics</td><td class="P">D2 2/33. 10-23 firm run 18/33: open pads stuck on the table; replays per setting (blocked steps over 18 episodes): firm 1732, elliptic cone + impratio 1249, elliptic alone 1097, impratio alone 363, twist resistance alone 54, as built 151</td><td class="T">not run</td></tr>
+<tr><td>5.3 (#27)</td><td>Controller</td><td>the sim arm follows commands like DROID's real controller (system identification)</td><td>re412: needed for valid sim-to-real ranking</td><td class="F">not done (MuJoCo position actuators)</td><td class="T">—</td></tr>
+</table></div>
+
+<h2>H. Gate 6 · Policy sanity (per policy) and the counting rule</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>What it answers</th><th>GR00T-N1.7-DROID, orange</th></tr>
+<tr><td>6.1 (#19)</td><td>Real-data check</td><td>on the real episode's frames + recorded state, does the policy close/release and move as the operator did?</td><td class="P">close at frame 70 vs 75, release ~120 vs ~126, path within 2–3.4 cm (G1); early release also on real frames → policy behaviour</td></tr>
+<tr><td>6.2 (#20)</td><td>Image swap at recorded states</td><td>the method behind 4.1/4.2: how far our images alone move the plan; one camera / one image part at a time</td><td class="P">done G3–G8; run-to-run noise 0.3 cm</td></tr>
+<tr><td>6.3 (#21)</td><td>Encoder distance</td><td>do our images fall among real DROID frames?</td><td class="T">not run</td></tr>
+<tr><td>6.4 (#22)</td><td>Instruction swap</td><td>does the target follow the instruction?</td><td class="P">yes (each run grasped its own block)</td></tr>
+<tr><td>6.5 (#23)</td><td>Stage scoring</td><td>reached / closed / lifted / placed per rollout. "Closed" = both pads on the target ≥ 0.5 s (from 10-20; earlier batches used "closed within 3 cm" and are not comparable on that stage)</td><td class="P">D2 9/33; firm pads 13/33 (confounded, 5.2); yfit yellow into bowl 3/4, orange onto yellow 0/5</td></tr>
+<tr><td>6.6 <span class="new">new</span></td><td>Run-to-run noise</td><td>the same batch twice (GR00T is not seeded in our rollouts): how many episodes flip by chance? Needed before reading per-episode differences between batches</td><td class="T">not run (~50 min GPU)</td></tr>
+</table></div>
+<div class="box"><b>Counting rule.</b> A rollout failure counts as the policy's only if: the rig passes Gate 0; the scene passes Gates 1–5 (including 1.4 object size, 3.3 the played layout is the expert-solved one, 4.2 the wrist swap and 4.4 rendered objects); the expert solves that played layout (3.1) and a do-nothing policy doesn't (3.2); there is no sustained blocked command (5.2) under the recorded physics settings (0.9); and 6.1/6.2 show the policy behaves on real frames and our images don't move its plan. Everything else is "unattributed". Per-episode differences between two batches are read only against the noise of 6.6. Today: nothing on orange is fully attributable (4.2, 4.4, 5.3 open); the early release is attributed to the policy through 6.1.</div>
+
+<h2>I. Blind spots found, and the rule each became</h2>
+<div class="wrap"><table>
+<tr><th>Version</th><th>Blind spot</th><th>Rule now</th></tr>
+<tr><td>10-15</td><td>The wrist view was judged by eye; an image swap showed it moved the plan ~4 cm</td><td>visuals pass only by image swap (4.x)</td></tr>
+<tr><td>10-15</td><td>No check for trivial variants; a do-nothing policy "solved" one</td><td>3.2</td></tr>
+<tr><td>10-15</td><td>Camera pose checked only by robot outline, blind along the camera's rays</td><td>geometry from a second viewpoint and real robot coordinates (Gate 1)</td></tr>
+<tr><td>10-15</td><td>The bowl's 2.18 cm settle was read as "borderline"; it was a placement bug</td><td>a failed check is a bug until shown otherwise (2.1)</td></tr>
+<tr><td>10-20</td><td>Object size never compared with the real view; the yellow block was 1.32× too small</td><td>1.4</td></tr>
+<tr><td>10-20</td><td>Colour checked as the material, not as rendered; the yellow clipped</td><td>4.4</td></tr>
+<tr><td>10-20</td><td>Layout seeds not recorded; batches played layouts the expert never solved</td><td>3.3</td></tr>
+<tr><td>10-20</td><td>Physics settings read from one geom, not the pair; a scene-wide change confounded tracking</td><td>0.9, 5.2</td></tr>
+<tr><td>10-23</td><td>A hand edit of a compiled scene silently broke collisions</td><td>2.3</td></tr>
+</table></div>
+
+<h2>J. Old → new numbers</h2>
+<div class="wrap"><table>
+<tr><th>Old</th><th>New</th><th>Change</th></tr>
+<tr><td>#1</td><td>2.1</td><td>kept</td></tr>
+<tr><td>#2</td><td>3.1</td><td>kept</td></tr>
+<tr><td>#3, #4, #5</td><td>1.5, 1.6, 1.7</td><td>kept, moved after the independent-view checks</td></tr>
+<tr><td>#6</td><td>1.1</td><td>kept, first in Gate 1</td></tr>
+<tr><td>#7</td><td>0.5 (+ 0.7 mount sign split out)</td><td>moved to the rig gate</td></tr>
+<tr><td>#8</td><td>2.2</td><td>kept; pads' collision boxes noted</td></tr>
+<tr><td>#9</td><td>1.2</td><td>kept</td></tr>
+<tr><td>#10, #11</td><td>4.1, 4.2</td><td>kept</td></tr>
+<tr><td>#12</td><td>4.2 (look) + 0.6 (placement)</td><td>split</td></tr>
+<tr><td>#13–#16</td><td>0.4, 0.1, 0.2, 0.3</td><td>moved to the rig gate</td></tr>
+<tr><td>#17, #18</td><td>5.2, 5.1</td><td>kept; 5.2 read with 0.9</td></tr>
+<tr><td>#19–#23</td><td>6.1–6.5</td><td>kept; 6.5 notes the stricter closed rule</td></tr>
+<tr><td>#24, #25</td><td>1.3, 3.2</td><td>kept</td></tr>
+<tr><td>#26</td><td>4.2 diagnostics</td><td>merged: a diagnostic when the wrist swap fails, not a pass/fail of its own</td></tr>
+<tr><td>#27</td><td>5.3</td><td>kept</td></tr>
+<tr><td>—</td><td>0.6, 0.7, 0.8, 0.9, 1.4, 2.3, 2.4, 2.5, 3.3, 3.4, 4.3, 4.4, 6.6</td><td>new</td></tr>
+</table></div>
+
+<h2>K. Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Trigger</th><th>Options</th><th>Decision</th><th>Outcome</th></tr>
+<tr><td>10-15</td><td>User: "make a checklist from what you and I suggested, to check before deploying a policy"</td><td>—</td><td>23 checks + counting rule</td><td>5db8dcf</td></tr>
+<tr><td>10-19/20</td><td>User: "were the 23 checks made and tested after our first iteration?"</td><td>update with measured results, four blind spots</td><td>user approved the S2 update</td><td>c983e16: #24–#27, image-swap rule for #11</td></tr>
+<tr><td>10-23</td><td>prim relayed the user's task: write up what the new checklist should look like, review it with the user, outline first</td><td>res31's outline: ordered gates, what each guards against, old → new map; open questions: rewrite in place or new file; bars for the new checks</td><td>User: "run a and b then lets revisit checklist again", then "1 and 2 and update sim checks after that". The two open questions were not answered; res31 took its recommended defaults: rewrite in place with this map; bars as proposed (object size ±10%, gripper placement IoU ≥ 0.85 informational, grasp hold provisional)</td><td>this version; findings of the firm-grip batch, yellow re-fit, physics breakdown and stacking-release analysis folded in</td></tr>
+<tr><td>10-23</td><td>Directions not taken</td><td>replay of the real operator's motion as a criterion; judging visuals by eye; the camera model as its own pass/fail</td><td>rejected (user, 10-15: "a digital cousin can't reproduce exact motions"); rejected (blind spot 1); merged into 4.2 as diagnostics</td><td>—</td></tr>
+</table></div>
 </main></body></html>

@@ -1,0 +1,78 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "put_in_bowl",
+  "target": "green_block",
+  "ref": "black_bowl",
+  "text": "put the green block in the bowl"
+ },
+ "instruction": "put the green block in the bowl",
+ "variant": 3,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 3,
+ "layout_rng_seed": 3003,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": true,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 2.618837833404541,
+ "infer_s_median": 0.23633325099945068,
+ "wall_s": 85.55046725273132,
+ "vram": {
+  "vram_alloc_gib": 6.017433166503906,
+  "vram_reserved_gib": 6.11328125
+ },
+ "gpu_used_max_gib": 6.7275390625,
+ "joint_target_minus_ctrlrange_max": -0.25220288619995124,
+ "gripper_closed_frac": 0.2866666666666667,
+ "final_target_xyz": [
+  0.6393251587148269,
+  -0.24867535263271684,
+  -0.07108916838138779
+ ],
+ "final_ref_xyz": [
+  0.6408666912242253,
+  -0.2676489961713744,
+  -0.09693112895146642
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "shadows": true,
+ "wrist_blur": "gripper",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": true,
+  "first_step": {
+   "reached": 31,
+   "closed_at_target": 45,
+   "lifted": 47
+  },
+  "min_dist_to_target_m": 0.005931662682870883,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.04391331965052632,
+  "median_err_m": 0.014434662808109695,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

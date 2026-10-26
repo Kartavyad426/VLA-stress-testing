@@ -1,0 +1,85 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "next_to",
+  "target": "orange_block",
+  "ref": "green_block",
+  "text": "move the orange block next to the green block"
+ },
+ "instruction": "move the orange block next to the green block",
+ "variant": 2,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 602,
+ "layout_rng_seed": 602602,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 3.2364425659179688,
+ "infer_s_median": 0.24258005619049072,
+ "wall_s": 86.27995681762695,
+ "vram": {
+  "vram_alloc_gib": 6.017820358276367,
+  "vram_reserved_gib": 6.115234375
+ },
+ "gpu_used_max_gib": 6.7294921875,
+ "joint_target_minus_ctrlrange_max": -0.24461795673370368,
+ "gripper_closed_frac": 0.18222222222222223,
+ "final_target_xyz": [
+  0.6370345855069686,
+  -0.011621190494296335,
+  -0.0772676752586687
+ ],
+ "final_ref_xyz": [
+  0.47662429903793757,
+  -0.022945672907157013,
+  -0.08039659145234516
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "shadows": true,
+ "wrist_blur": "gripper",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 37,
+   "closed_at_target": 210,
+   "lifted": 213
+  },
+  "min_dist_to_target_m": 0.00289269264618317,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.12393631424713603,
+  "median_err_m": 0.01644885229706842,
+  "blocked": true,
+  "blocked_segments": [
+   {
+    "start": 361,
+    "steps": 22,
+    "mean_err_m": 0.038033589120147475,
+    "mean_dz_cmd_minus_ach_m": -0.031274837207824896
+   }
+  ],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

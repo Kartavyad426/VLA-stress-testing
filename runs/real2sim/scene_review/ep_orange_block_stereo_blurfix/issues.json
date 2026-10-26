@@ -1,0 +1,177 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo",
+ "note": "Issues the user sees on the scene review page (10-23 onwards). status: raised -> cause found -> fix agreed -> fixed (user checked). Cause and fix filled by res31; nothing is changed before the fix is agreed.",
+ "issues": [
+  {
+   "id": 1,
+   "frame": 0,
+   "camera": "exterior",
+   "seen": "ghost inpaint (grey smear, upper right background)",
+   "by": "user",
+   "cause": "background plate = per-pixel median over ~150 frames; only objects are cut out, not the robot, so where the arm is in about half the frames or more its smeared trace stays in the plate (composite.py clean_plate). Baked in: shows in every exterior frame where our robot doesn't cover it.",
+   "fix": "proposed: median per pixel only over frames without the robot there (robot masks with a margin), inpaint what's left; new plate next to the old one, opt-in",
+   "status": "cause found"
+  },
+  {
+   "id": 2,
+   "frame": "all",
+   "camera": "wrist",
+   "seen": "shadow under the bowl should be darker",
+   "by": "user",
+   "cause": "every shadowed table pixel gets the same darkening (x0.75), so a contact shadow can't be darker than a far cast shadow (composite.py WristCompositor shadow ratio)",
+   "fix": "proposed: contact darkening that fades with distance from where an object touches the table, strength measured from the real frames",
+   "status": "cause found"
+  },
+  {
+   "id": 3,
+   "frame": "all",
+   "camera": "wrist",
+   "seen": "shadows around the two blocks should be softer",
+   "by": "user",
+   "cause": "one small blur (3 px) for every shadow edge; real edges soften with the caster's height above the table",
+   "fix": "proposed: edge blur growing with caster height, amount measured from the real block shadows",
+   "status": "cause found"
+  },
+  {
+   "id": 4,
+   "frame": 63,
+   "camera": "wrist",
+   "seen": "shape of the shadow is different",
+   "by": "user",
+   "cause": "",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 5,
+   "frame": "0, 40, 126",
+   "camera": "wrist",
+   "seen": "robot shadow on the table too dark, too big, hard-edged (two blobs at frame 0)",
+   "by": "res31",
+   "cause": "possibly the wrist light fit (direction fitted with overlap 0.21 only) plus the same x0.75 / 3 px rule as 2-3; unchecked",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 6,
+   "frame": 0,
+   "camera": "wrist",
+   "seen": "pale see-through patch with pinkish edges on the table; in GR00T rollouts a hard diagonal seam on the table at most moments (review/batch_yfit_v2 yellow v0)",
+   "by": "res31",
+   "cause": "probably the boundary of the wrist table-texture mosaic (built from the wrist frames before the grasp); beyond it a paler texture takes over; unchecked",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 7,
+   "frame": "73, 75",
+   "camera": "wrist",
+   "seen": "whole wrist image blurred near the grasp (gripper, table, blocks); real is sharp; confirmed in GR00T rollouts: wrist image fully blurred at the grasp and lift (review/batch_yfit_v2 yellow v0, steps 44-45)",
+   "by": "user + res31",
+   "cause": "bug (res31): near_defocus blurs everything closer than 20 cm to the camera (composite.py:494), meant for the gripper only; near the grasp the table and blocks are that close too. GR00T sees this blur at grasp time in every V2 rollout",
+   "fix": "blur only the gripper's own pixels (sim segmentation) instead of everything within 20 cm: composite.WristRenderV2(near='gripper'), policy_rollout/policy_batch/scene_review --wrist_blur gripper; opt-in, default unchanged so past runs stay reproducible. Sharpness away from the gripper at 320x180, frames 73/75: old 3, fixed 174-186, real 63-65. Before/after: scene_review/ep_orange_block_stereo_blurfix",
+   "status": "fixed (user checked 10-23); gripper-only blur is the default for new runs. All GR00T batches up to 10-23 (D2, firm, yfit, no-shadow) used the old blur"
+  },
+  {
+   "id": 8,
+   "frame": "0, 75, 126",
+   "camera": "exterior",
+   "seen": "robot drawn off: gripper right/below at frame 0, elbow and upper arm right/higher at 75 and 126",
+   "by": "user + res31",
+   "cause": "exterior calibration: robot-outline overlap only 0.49 with both calibrations; suspects intrinsics, lens distortion, real-robot masks; unchecked",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 9,
+   "frame": 73,
+   "camera": "exterior",
+   "seen": "real robot shadow on the table is not that sharp; ours is sharper",
+   "by": "user",
+   "cause": "same shadow rule as #2-3 (one darkness, 3 px edge blur) in the exterior composite",
+   "fix": "",
+   "status": "cause found",
+   "note": "for GR00T probably minor: replacing our whole exterior image with the real one did not change its plan (G3)"
+  },
+  {
+   "id": 10,
+   "frame": 100,
+   "camera": "wrist",
+   "seen": "orange block missing from the gripper ('something vanished')",
+   "by": "user",
+   "cause": "not a scene fault: this page replays the operator's recorded joints, and in our physics that motion does not pick the block up, so it stays on the table (known: replay is not a grasp criterion)",
+   "fix": "none needed; could pose the block in the hand for display only",
+   "status": "cause found"
+  },
+  {
+   "id": 11,
+   "frame": "100",
+   "camera": "wrist",
+   "seen": "gripper looks rotated / wrong, jagged dark edge",
+   "by": "user",
+   "cause": "the real-gripper library has only OPEN gripper images; a closed gripper falls back to our plain render (dark, blurred, no detail). Not rotated: the cyan outline sits on the real gripper",
+   "fix": "",
+   "status": "cause found"
+  },
+  {
+   "id": 12,
+   "frame": "73, 100",
+   "camera": "wrist",
+   "seen": "bowl outline bigger than the real bowl and offset",
+   "by": "res31",
+   "cause": "unchecked: the bowl's size/position were never measured from the wrist view (block_size_check covers blocks only)",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 13,
+   "frame": 73,
+   "camera": "wrist",
+   "seen": "yellow block smaller and displaced (outline off the real block)",
+   "by": "res31",
+   "cause": "this page shows the original scene; yellow is 2.48 cm here, fixed (3.27 cm) only in ep_orange_block_stereo_yfit",
+   "fix": "show the yfit scene",
+   "status": "cause found"
+  },
+  {
+   "id": 14,
+   "frame": "rollouts",
+   "camera": "wrist",
+   "seen": "re-fitted yellow block looks olive/dull in the shaded wrist view",
+   "by": "res31",
+   "cause": "render-colour override fitted on 4 frames only (lime x0.55); likely too dark in shade; unchecked",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 15,
+   "frame": "rollouts",
+   "camera": "both",
+   "seen": "after success the arm keeps moving for the rest of the 30 s and ends stretched out low",
+   "by": "res31",
+   "cause": "policy behaviour + fixed 30 s episode (no end-on-success): parked question D26; not a scene fault",
+   "fix": "",
+   "status": "cause found"
+  },
+  {
+   "id": 16,
+   "frame": "all",
+   "camera": "wrist",
+   "seen": "our wrist render is ~3x sharper than the real camera away from the gripper (320x180: ours 170-240, real 59-76)",
+   "by": "res31",
+   "cause": "unchecked; candidates: hard shadow edges (#3, #9), the table seam (#6), no motion blur or video compression in our render (the real camera has both)",
+   "fix": "",
+   "status": "raised"
+  },
+  {
+   "id": 17,
+   "frame": "66-75",
+   "camera": "both",
+   "seen": "frame 73: our gripper closed while the real one is still open",
+   "by": "user",
+   "cause": "(1) our gripper closes ~2-3x faster than the real one: both get the close command at frame 66; real starts ~2 frames late and closes at ~1.2/s (0.40 at frame 73, stops on the block at 0.52 at 75); ours is at 0.40 by frame 66 and 0.92 by 70 (Menagerie actuator, never system-identified; part of checklist 5.3). (2) replay only: ours closes fully (0.95) because the replayed motion doesn't put the block between our fingers.",
+   "fix": "none for now (user 10-23: not an issue at this point; watch it in closed-loop rollouts and in the scripted expert's grasps)",
+   "status": "parked by user"
+  }
+ ]
+}

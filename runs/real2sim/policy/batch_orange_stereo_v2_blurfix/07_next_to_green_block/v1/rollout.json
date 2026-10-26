@@ -1,0 +1,78 @@
+{
+ "scene": "ep_orange_block_stereo",
+ "task": {
+  "type": "next_to",
+  "target": "green_block",
+  "ref": "orange_block",
+  "text": "move the green block next to the orange block"
+ },
+ "instruction": "move the green block next to the orange block",
+ "variant": 1,
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "replay_npz": null,
+ "seed": 701,
+ "layout_rng_seed": 701701,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "success": false,
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 3.332714080810547,
+ "infer_s_median": 0.23932814598083496,
+ "wall_s": 83.64982485771179,
+ "vram": {
+  "vram_alloc_gib": 6.017820358276367,
+  "vram_reserved_gib": 6.115234375
+ },
+ "gpu_used_max_gib": 6.7294921875,
+ "joint_target_minus_ctrlrange_max": -0.32500038337707515,
+ "gripper_closed_frac": 0.41555555555555557,
+ "final_target_xyz": [
+  0.5590331648678148,
+  0.13328719508563702,
+  -0.08039659145238662
+ ],
+ "final_ref_xyz": [
+  0.6987318046179418,
+  0.05909711676001472,
+  -0.077267675254905
+ ],
+ "wrist_view": "WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)",
+ "wrist_render": "v2",
+ "grip_physics": "scene",
+ "shadows": true,
+ "wrist_blur": "gripper",
+ "exterior_view": "composite (cleaned real plate + sim)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 35,
+   "closed_at_target": 142,
+   "lifted": 155
+  },
+  "min_dist_to_target_m": 0.0052000240496123855,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.043403284413004325,
+  "median_err_m": 0.011518297337056477,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}
