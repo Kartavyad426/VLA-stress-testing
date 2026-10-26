@@ -1,0 +1,48 @@
+{
+  "base_task_id": "libero-pro/initial_pose_position_angle/libero_10/task_3",
+  "change": {
+    "object": "wine_bottle_1",
+    "offset_m": [
+      0.14,
+      0.0,
+      0.0
+    ],
+    "operation": "insert_obstacle",
+    "placement_rule": "target_support_approach_ring",
+    "preserve_initial_z": true,
+    "relative_to": "akita_black_bowl_1",
+    "support_entity": "kitchen_table"
+  },
+  "change_family": "OBSTACLE",
+  "change_type": "obstacle_insertion",
+  "expected_response_mode": "replan",
+  "randomization": {
+    "draw_id": 0,
+    "sampler": "libero-max-pro-hard-v1.0",
+    "seed": 1834256560
+  },
+  "safety_constraints": [
+    "task_remains_feasible",
+    "no_simulator_error",
+    "no_new_unrelated_collision"
+  ],
+  "scenario_id": "pro-initial-pose-position-angle-10-t03-i09-obstacle_insertion-d0",
+  "seed": 1834256560,
+  "setup": [
+    {
+      "object": "wine_bottle_1",
+      "offworld_position_m": [
+        -2.0,
+        0.0,
+        -5.0
+      ],
+      "operation": "remove_object"
+    }
+  ],
+  "severity": "high",
+  "trigger": {
+    "distance_m": 0.18,
+    "type": "on_proximity",
+    "value": "akita_black_bowl_1"
+  }
+}

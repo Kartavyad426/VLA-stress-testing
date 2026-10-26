@@ -1,0 +1,40 @@
+{
+  "base_task_id": "libero_spatial/task_276",
+  "change": {
+    "calibration": "deterministic_candidate_requires_preflight",
+    "delta_position_m": [
+      -0.08485281,
+      -0.08485281,
+      0.0
+    ],
+    "direction_xy": [
+      -0.70710678,
+      -0.70710678
+    ],
+    "distance_m": 0.12,
+    "object": "akita_black_bowl_1",
+    "operation": "move_object",
+    "support_entity": "main_table"
+  },
+  "change_family": "GEO",
+  "change_type": "target_relocation",
+  "expected_response_mode": "replan",
+  "randomization": {
+    "draw_id": 1,
+    "sampler": "libero-max-hard-v2.0",
+    "seed": 3010181093
+  },
+  "safety_constraints": [
+    "task_remains_feasible",
+    "no_simulator_error",
+    "no_new_unrelated_collision"
+  ],
+  "scenario_id": "libero_spatial-t0276-target_relocation-d1",
+  "seed": 3010181093,
+  "severity": "high",
+  "trigger": {
+    "distance_m": 0.18,
+    "type": "on_proximity",
+    "value": "akita_black_bowl_1"
+  }
+}
