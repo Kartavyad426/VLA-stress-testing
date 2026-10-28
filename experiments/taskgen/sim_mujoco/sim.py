@@ -2,6 +2,7 @@
 import json, os
 import numpy as np
 import mujoco
+from scipy.spatial.transform import Rotation as Rot
 
 from core.sim import Sim
 from sim_mujoco.base import load_spec, compile_scene
@@ -107,6 +108,65 @@ class MujocoSim(Sim):
             if n != "mjNWARNING" and self.d.warning[int(w)].number:
                 out[n] = int(self.d.warning[int(w)].number)
         return out
+
+    # --- poses, snapshots, geometry, reach ---
+    def _root(self, name):
+        return self.m.body_rootid[self.m.body(name).id]
+
+    def set_pose(self, name, x, y, z_bottom, yaw):
+        m, d = self.m, self.d
+        b = m.body(name).id
+        j = [j for j in range(m.njnt) if m.jnt_bodyid[j] == b and m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE][0]
+        a, va = m.jnt_qposadr[j], m.jnt_dofadr[j]
+        d.qpos[a + 3:a + 7] = Rot.from_euler("z", yaw).as_quat(scalar_first=True)
+        d.qvel[va:va + 6] = 0
+        mujoco.mj_kinematics(m, d)
+        pts = self.collision_points(name)
+        off = d.xpos[b] - np.r_[(pts[:, :2].min(0) + pts[:, :2].max(0)) / 2, pts[:, 2].min()]
+        d.qpos[a:a + 3] = [x + off[0], y + off[1], z_bottom + off[2] + 0.001]
+        mujoco.mj_forward(m, d)
+
+    def snapshot(self):
+        d = self.d
+        return (d.time, d.qpos.copy(), d.qvel.copy(), d.ctrl.copy(), d.act.copy(), d.qfrc_applied.copy())
+
+    def restore(self, snap):
+        d = self.d
+        d.time, d.qpos[:], d.qvel[:], d.ctrl[:], d.act[:], d.qfrc_applied[:] = snap[0], *snap[1:]
+        mujoco.mj_forward(self.m, d)
+
+    def collision_points(self, name):
+        m, d = self.m, self.d
+        root = self._root(name)
+        pts = []
+        for g in range(m.ngeom):
+            if m.body_rootid[m.geom_bodyid[g]] != root or not (m.geom_contype[g] or m.geom_conaffinity[g]):
+                continue
+            R, p = d.geom_xmat[g].reshape(3, 3), d.geom_xpos[g]
+            if m.geom_type[g] == mujoco.mjtGeom.mjGEOM_MESH:
+                mid = m.geom_dataid[g]
+                v = m.mesh_vert[m.mesh_vertadr[mid]:m.mesh_vertadr[mid] + m.mesh_vertnum[mid]]
+            elif m.geom_type[g] == mujoco.mjtGeom.mjGEOM_PLANE:
+                continue
+            else:  # box exact; sphere / capsule / cylinder / ellipsoid by their bounding box
+                s = m.geom_size[g].copy()
+                t = m.geom_type[g]
+                if t == mujoco.mjtGeom.mjGEOM_SPHERE:
+                    s = np.array([s[0]] * 3)
+                elif t in (mujoco.mjtGeom.mjGEOM_CAPSULE, mujoco.mjtGeom.mjGEOM_CYLINDER):
+                    s = np.array([s[0], s[0], s[1] + (s[0] if t == mujoco.mjtGeom.mjGEOM_CAPSULE else 0)])
+                v = np.array([[i, j, k] for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)]) * s
+            pts.append(v @ R.T + p)
+        return np.concatenate(pts) if pts else np.zeros((0, 3))
+
+    def reachable(self, point):
+        from scripted_grasp import ik
+        m, d = self.m, self.d
+        arm_q = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
+        arm_dof = [m.joint(f"fr3_joint{k}").dofadr[0] for k in range(1, 8)]
+        R_down = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1.0]])  # approach straight down
+        _, err = ik(m, d.qpos[arm_q].copy(), m.site("g_pinch").id, np.asarray(point, float), R_down, arm_q, arm_dof)
+        return err
 
     # --- output ---
     def render(self, view, height=360, width=640):

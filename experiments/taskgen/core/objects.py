@@ -31,6 +31,8 @@ class PackAsset:
     key: str                        # e.g. "kitchen/GlassCup002"
     xy: Vec2
     scale: float = 1.0
+    z_bottom: Optional[float] = None
+    yaw: float = 0.0
     pack: str = "kitchen"
     source: str = "pack"
 
@@ -87,6 +89,11 @@ class Drawer:
         floor = z_table + z0 + td
         centre = (self.xy[0] - self.open_m + xm, self.xy[1], floor + (z1 - z0 - td) / 2)
         return centre, (hx - td, yi - td, (z1 - z0 - td) / 2), floor
+
+    def footprint(self):
+        """(lo, hi) of the cabinet + open drawer + handle in the cabinet frame, x/y only."""
+        D, W, _ = self.outer
+        return (-D / 2 - self.open_m - 0.036, -W / 2), (D / 2, W / 2)
 
     def body_names(self):
         return dict(cabinet=f"{self.name}_cabinet", drawer=f"{self.name}_drawer", joint=f"{self.name}_slide")

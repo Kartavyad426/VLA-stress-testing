@@ -26,11 +26,13 @@ def add_box(spec, o: Box, z_table):
 def add_pack(spec, o: PackAsset, z_table):
     import catalogue as packs
     from build_scene import asset_footprint
-    ent = packs.pack_catalogue(o.pack)[o.key]
+    ent = packs.pack_catalogue(o.key.split("/")[0])[o.key]
     k = o.scale
     half_xy, zmin, zmax, cxy = asset_footprint(ent["xml"])
     child, info = packs.prepare_child(ent["xml"], k, dict(packs.DEFAULTS))
-    b = spec.worldbody.add_body(name=o.name, pos=[o.xy[0], o.xy[1], z_table - k * zmin + 0.001])
+    zb = z_table if o.z_bottom is None else o.z_bottom
+    b = spec.worldbody.add_body(name=o.name, pos=[o.xy[0], o.xy[1], zb - k * zmin + 0.001],
+                                quat=Rot.from_euler("z", o.yaw).as_quat(scalar_first=True))
     b.add_freejoint()
     fr = b.add_frame(pos=[-k * cxy[0], -k * cxy[1], 0])
     spec.attach(child, frame=fr, prefix=o.name + "_")

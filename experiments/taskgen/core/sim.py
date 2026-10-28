@@ -55,6 +55,26 @@ class Sim(ABC):
         """Apply a constant generalised force on a 1-dof joint while stepping."""
 
     @abstractmethod
+    def set_pose(self, name, x, y, z_bottom, yaw):
+        """Move a free object so its collision footprint is centred at (x, y), its lowest point at z_bottom, yawed."""
+
+    @abstractmethod
+    def snapshot(self):
+        """Opaque copy of the full dynamic state."""
+
+    @abstractmethod
+    def restore(self, snap):
+        """Return to a snapshot."""
+
+    @abstractmethod
+    def collision_points(self, name):
+        """World-frame points (N, 3) on the collision shapes of a top-level object (box corners, mesh vertices)."""
+
+    @abstractmethod
+    def reachable(self, point):
+        """Residual (m) of a top-down gripper pose at `point` from the current arm pose (IK)."""
+
+    @abstractmethod
     def render(self, view, height=360, width=640):
         """RGB image (H, W, 3) from 'ext', 'wrist' or 'free'."""
 

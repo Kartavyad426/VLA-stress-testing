@@ -1,0 +1,475 @@
+{
+ "results": {
+  "list_scene: 4 locked base objects, bowl has an opening": {
+   "base": {
+    "black_bowl": {
+     "kind": "bowl",
+     "locked": true,
+     "size_cm": [
+      19.3,
+      19.3,
+      9.1
+     ],
+     "centre_cm": [
+      65.6,
+      -28.2,
+      -4.8
+     ],
+     "opening_cm": 18.4,
+     "inner_depth_cm": 8.2
+    },
+    "green_block": {
+     "kind": "block",
+     "locked": true,
+     "size_cm": [
+      2.8,
+      2.8,
+      2.8
+     ],
+     "centre_cm": [
+      50.2,
+      -4.5,
+      -8.0
+     ]
+    },
+    "orange_block": {
+     "kind": "block",
+     "locked": true,
+     "size_cm": [
+      3.4,
+      3.4,
+      3.4
+     ],
+     "centre_cm": [
+      64.3,
+      3.1,
+      -7.7
+     ]
+    },
+    "yellow_block": {
+     "kind": "block",
+     "locked": true,
+     "size_cm": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "centre_cm": [
+      57.4,
+      2.9,
+      -8.2
+     ]
+    }
+   },
+   "added": {},
+   "table": {
+    "z_cm": -9.4,
+    "x_cm": [
+     35.9,
+     90.6
+    ],
+    "y_cm": [
+     -67.8,
+     33.8
+    ]
+   },
+   "gripper_opening_cm": 8.5
+  },
+  "list_assets('cup') finds pack cups": {
+   "assets": [
+    {
+     "source": "pack:kitchen/GlassCup002",
+     "kind": "cup",
+     "size_cm": [
+      9.4,
+      9.4,
+      15.2
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup003",
+     "kind": "cup",
+     "size_cm": [
+      9.5,
+      9.4,
+      11.0
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup004",
+     "kind": "cup",
+     "size_cm": [
+      9.0,
+      9.0,
+      10.1
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup005",
+     "kind": "cup",
+     "size_cm": [
+      9.5,
+      9.4,
+      11.1
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup006",
+     "kind": "cup",
+     "size_cm": [
+      9.5,
+      9.5,
+      10.8
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup007",
+     "kind": "cup",
+     "size_cm": [
+      9.1,
+      9.1,
+      10.3
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup008",
+     "kind": "cup",
+     "size_cm": [
+      10.7,
+      10.7,
+      10.3
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    },
+    {
+     "source": "pack:kitchen/GlassCup009",
+     "kind": "cup",
+     "size_cm": [
+      9.3,
+      9.3,
+      10.6
+     ],
+     "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)"
+    }
+   ]
+  },
+  "list_assets of an unknown noun is an error with a hint": {
+   "error": "no pack model matches 'zzqx'",
+   "hint": "use a primitive (primitive:box) or another noun"
+  },
+  "unknown colour refused": {
+   "error": "unknown colour 'magenta'",
+   "colours": [
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "orange",
+    "purple",
+    "white",
+    "black"
+   ]
+  },
+  "block 9 cm refused (bounds 2-6)": {
+   "error": "block size 9.0 cm outside bounds 2-6 cm",
+   "hint": "pass size_cm within the bounds"
+  },
+  "add drawer": {
+   "added": "drawer_1",
+   "kind": "drawer",
+   "size_cm": [
+    20.0,
+    24.0,
+    10.0
+   ],
+   "graspable": false,
+   "placed": false
+  },
+  "place drawer on the table (reachable, clear of base objects)": {
+   "placed": "drawer_1",
+   "relation": "on_table",
+   "target": null,
+   "at_cm": [
+    71.1,
+    -52.3,
+    -9.4
+   ],
+   "size_cm": [
+    20.0,
+    24.0,
+    10.0
+   ]
+  },
+  "3 cm block fits inside the drawer (geometry)": {
+   "fits": true,
+   "reason": null,
+   "max_scale": 1.9
+  },
+  "place red block inside the drawer": {
+   "placed": "red_block_1",
+   "relation": "inside",
+   "target": "drawer_1",
+   "at_cm": [
+    64.6,
+    -45.8,
+    -7.5
+   ],
+   "size_cm": [
+    3.0,
+    3.0,
+    3.0
+   ]
+  },
+  "10 cm block does not fit inside the drawer, limit named": {
+   "fits": false,
+   "reason": "height 5.7 cm < 10.0 cm needed",
+   "max_scale": 0.57
+  },
+  "10 cm block placed inside the drawer after resizing within bounds": {
+   "placed": "big_block",
+   "relation": "inside",
+   "target": "drawer_1",
+   "at_cm": [
+    55.6,
+    -58.8,
+    -7.5
+   ],
+   "size_cm": [
+    5.5,
+    5.5,
+    5.5
+   ],
+   "resized": "[10.0, 10.0, 10.0] -> [5.5, 5.5, 5.5] cm (did not fit inside drawer_1: height 5.7 cm < 10.0 cm needed)"
+  },
+  "place cup_1 next to the bowl": {
+   "placed": "cup_1",
+   "relation": "next_to",
+   "target": "black_bowl",
+   "at_cm": [
+    80.0,
+    -11.7,
+    -9.4
+   ],
+   "size_cm": [
+    10.0,
+    10.0,
+    7.2
+   ]
+  },
+  "place cup_2 next to the bowl": {
+   "placed": "cup_2",
+   "relation": "next_to",
+   "target": "black_bowl",
+   "at_cm": [
+    47.1,
+    -16.3,
+    -9.4
+   ],
+   "size_cm": [
+    10.0,
+    10.0,
+    7.2
+   ]
+  },
+  "blue block on the green base block": {
+   "placed": "blue_block_2",
+   "relation": "on",
+   "target": "green_block",
+   "at_cm": [
+    50.2,
+    -4.6,
+    -6.7
+   ],
+   "size_cm": [
+    2.5,
+    2.5,
+    2.5
+   ]
+  },
+  "the bowl into the drawer is refused (locked base object)": {
+   "infeasible": "'black_bowl' is a locked base object; only added objects can be placed or resized"
+  },
+  "removing a base object is refused": {
+   "error": "'orange_block' is a locked base object"
+  },
+  "rebuilt from config: no overlaps, nothing moves > 2 cm, no warnings": {
+   "overlaps": [],
+   "max_moved_cm": 0.13,
+   "warnings": {}
+  }
+ },
+ "fails": [],
+ "seconds": 10.7,
+ "scene": {
+  "base": {
+   "black_bowl": {
+    "kind": "bowl",
+    "locked": true,
+    "size_cm": [
+     19.3,
+     19.3,
+     9.1
+    ],
+    "centre_cm": [
+     65.6,
+     -28.2,
+     -4.8
+    ],
+    "opening_cm": 18.4,
+    "inner_depth_cm": 8.2
+   },
+   "green_block": {
+    "kind": "block",
+    "locked": true,
+    "size_cm": [
+     2.8,
+     2.8,
+     2.8
+    ],
+    "centre_cm": [
+     50.2,
+     -4.5,
+     -8.0
+    ]
+   },
+   "orange_block": {
+    "kind": "block",
+    "locked": true,
+    "size_cm": [
+     3.4,
+     3.4,
+     3.4
+    ],
+    "centre_cm": [
+     64.3,
+     3.1,
+     -7.7
+    ]
+   },
+   "yellow_block": {
+    "kind": "block",
+    "locked": true,
+    "size_cm": [
+     2.5,
+     2.5,
+     2.5
+    ],
+    "centre_cm": [
+     57.4,
+     2.9,
+     -8.2
+    ]
+   }
+  },
+  "added": {
+   "drawer_1": {
+    "kind": "drawer",
+    "size_cm": [
+     33.6,
+     24.0,
+     10.0
+    ],
+    "centre_cm": [
+     64.3,
+     -52.3,
+     -4.4
+    ],
+    "relation": {
+     "type": "on_table",
+     "target": null
+    },
+    "inside_cm": [
+     17.1,
+     19.8,
+     6.7
+    ]
+   },
+   "red_block_1": {
+    "kind": "block",
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "centre_cm": [
+     64.6,
+     -45.8,
+     -5.9
+    ],
+    "relation": {
+     "type": "inside",
+     "target": "drawer_1"
+    }
+   },
+   "cup_1": {
+    "kind": "cup",
+    "size_cm": [
+     9.8,
+     9.8,
+     7.1
+    ],
+    "centre_cm": [
+     80.0,
+     -11.7,
+     -5.7
+    ],
+    "relation": {
+     "type": "next_to",
+     "target": "black_bowl"
+    }
+   },
+   "cup_2": {
+    "kind": "cup",
+    "size_cm": [
+     9.8,
+     9.8,
+     7.1
+    ],
+    "centre_cm": [
+     47.1,
+     -16.3,
+     -5.7
+    ],
+    "relation": {
+     "type": "next_to",
+     "target": "black_bowl"
+    }
+   },
+   "blue_block_2": {
+    "kind": "block",
+    "size_cm": [
+     2.5,
+     2.5,
+     2.5
+    ],
+    "centre_cm": [
+     50.2,
+     -4.6,
+     -5.3
+    ],
+    "relation": {
+     "type": "on",
+     "target": "green_block"
+    }
+   }
+  },
+  "table": {
+   "z_cm": -9.4,
+   "x_cm": [
+    35.9,
+    90.6
+   ],
+   "y_cm": [
+    -67.8,
+    33.8
+   ]
+  },
+  "gripper_opening_cm": 8.5
+ }
+}
