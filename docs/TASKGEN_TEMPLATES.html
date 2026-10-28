@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskGen templates by difficulty</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#7a5c2e;--ok:#2c6e3a;--warn:#8a6d12;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#c79a5e;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1150px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}
+h2{font-size:1.15rem;margin-top:1.9em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
+h3{font-size:1rem;margin-top:1.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px;margin:12px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+td.note{color:var(--muted);font-size:.83rem}
+code{font-size:.85em}
+pre{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;font-size:.82rem}
+.lv{display:inline-block;min-width:2.2em;text-align:center;font-weight:700;color:#fff;background:var(--accent);border-radius:4px;padding:0 4px}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>TaskGen templates by difficulty</h1>
+<p class="meta"><b>Last updated: 2026-10-29 00:51 IST (TaskGen; clock time).</b> Started at the user's request (2026-10-29: <i>"lets start a doc with templates as well, to showcase difficulty wise as well"</i>). A showcase of the task templates, from easiest to hardest, on res31's build_v1 scenes. Design and rules: <a href="TASKGEN_DESIGN.html">TASKGEN_DESIGN.html</a>. <b>Draft: the levels and the difficulty scores are TaskGen's proposal, not measured.</b> Variant counts are computed from each scene's objects; nothing here has been run on these scenes yet. Every number from new code is UNVERIFIED.</p>
+
+<div class="box"><b>How to read it.</b> A template is a task with placeholders (slots). Its variants are the slots' permutations and combinations, filled from each scene's own objects, so one template runs on every scene. Each template lists what makes it hard (the axes in §1), its pass condition, the expert that proves it solvable, and its state. Renders per template go in the last column once the presets have been run on the scenes.</div>
+
+<h2>1 · What makes a task hard (the axes used for the levels)</h2>
+<div class="wrap"><table>
+<tr><th>Axis</th><th>Low</th><th>High</th><th>Note</th></tr>
+<tr><td>Steps</td><td>1 pick-and-place</td><td>3+ pick-and-places in one episode</td><td class="note">each step can fail; errors compound</td></tr>
+<tr><td>Placement tolerance</td><td>a 17 cm bowl</td><td>on top of a 2.5–3.4 cm block</td><td class="note">stacking needs ~1 cm accuracy</td></tr>
+<tr><td>Language load</td><td>one object named</td><td>an order of 3 objects (which goes where, in what order)</td><td class="note">tests instruction following, not just grasping</td></tr>
+<tr><td>Novelty</td><td>the episode's real objects</td><td>added objects (sim-rendered, no real texture yet)</td><td class="note">appearance gap: stage 6 measures it</td></tr>
+<tr><td>Occlusion / containment</td><td>everything in the open</td><td>object inside a drawer (hidden from the exterior camera: 4–12 px)</td><td class="note">relies on the wrist camera</td></tr>
+<tr><td>Articulation</td><td>none</td><td>a drawer that must be opened first</td><td class="note">PoC: the drawer starts open (proposal)</td></tr>
+</table></div>
+
+<h2>2 · Scenes and their objects (res31, build_v1, 2026-10-28)</h2>
+<div class="wrap"><table>
+<tr><th>Scene</th><th>Usable objects (colour from the fit)</th><th>Real task</th><th>Note</th></tr>
+<tr><td>orange <code>runs/real2sim/v1/orange</code></td><td>yellow, orange, green blocks; black bowl</td><td>put the orange block in the black bowl</td><td class="note">res31: all Tier 0 pass, B3 12/12</td></tr>
+<tr><td>c11 <code>runs/real2sim/v1/c11</code></td><td>orange, green blocks; black bowl</td><td>put the green and orange cubes in the bowl</td><td class="note">B3 8/8</td></tr>
+<tr><td>c1b <code>runs/real2sim/v1/c1b</code></td><td>green, orange blocks; black bowl</td><td>put the blocks in the black bowl</td><td class="note">avoid block_3 (a cylinder built as a 2 cm cube) and cup_2 (8.6 cm, too wide to grasp); cup_1 off-table</td></tr>
+<tr><td>c9 <code>runs/real2sim/v1/c9</code></td><td>orange coffee cup (7.4 cm); black bowl</td><td>put the orange cup in the bowl</td><td class="note">avoid the mallet (ellipsoid stand-in)</td></tr>
+<tr><td>c3</td><td>—</td><td>—</td><td class="note">on hold (res31): radish missing, two probes not looked at</td></tr>
+</table></div>
+
+<h2>3 · All templates (T-…), easiest first</h2>
+<div class="wrap"><table>
+<tr><th>Level</th><th>Template</th><th>Slots → variants per scene (orange / c11 / c1b / c9)</th><th>Pass condition</th><th>Expert</th><th>Axes</th><th>State</th><th>Render</th></tr>
+
+<tr><td><span class="lv">L0</span></td><td><b>T-infeasible</b>: "put the black bowl inside a drawer"</td><td>none → 1 / 1 / 1 / 1</td><td>the request is refused with the reason (bowl is a locked base object)</td><td>none (nothing to solve)</td><td>sanity: refusals</td><td class="ok">built as P5 (orange 10-19); agent test passes with a fake model</td><td>—</td></tr>
+
+<tr><td><span class="lv">L1</span></td><td><b>T-into</b>: "put the {object} in the black bowl" (the real task's type)</td><td>{object} = any graspable object → 3 / 2 / 2 / 1</td><td>inside(object, bowl)</td><td>pick → drop in bowl</td><td>1 step, large target, 1 object named</td><td class="warn">built as P1 (orange 10-19); rule + expert not yet</td><td>—</td></tr>
+
+<tr><td><span class="lv">L2</span></td><td><b>T-next</b>: "move the {a} block next to the {b} block"</td><td>ordered pairs of blocks → 6 / 2 / 2 / —</td><td>next_to(a, b): gap 1–6 cm, on the table</td><td>pick → place beside b</td><td>1 step, medium tolerance, 2 objects named</td><td>planned</td><td>—</td></tr>
+<tr><td><span class="lv">L2</span></td><td><b>T-added</b>: "put the {colour} block in the bowl" with a new {colour} block placed next to the bowl</td><td>{colour} ∈ red, blue, purple → 3 / 3 / 3 / 3</td><td>inside(added block, bowl)</td><td>pick → drop in bowl</td><td>1 step, novel object</td><td class="warn">built as P3 (orange 10-19); rule + expert not yet</td><td>—</td></tr>
+
+<tr><td><span class="lv">L3</span></td><td><b>T-on</b>: "put the {a} block on the {b} block"</td><td>ordered pairs → 6 / 2 / 2 / —</td><td>on(a, b)</td><td>pick → place on top of b</td><td>1 step, tight tolerance</td><td>planned</td><td>—</td></tr>
+
+<tr><td><span class="lv">L4</span></td><td><b>T-all-into</b>: "put the {a} and the {b} in the bowl" (c11 / c1b's real task)</td><td>pairs → 3 / 1 / 1 / —</td><td>inside(a, bowl) ∧ inside(b, bowl)</td><td>2 × (pick → drop in bowl)</td><td>2 steps, large target</td><td>planned</td><td>—</td></tr>
+
+<tr><td><span class="lv">L5</span></td><td><b>T-stack</b>: "stack the blocks: {order[0]} at the bottom, then {order[1]}, then {order[2]} on top"</td><td>permutations of the blocks → 6 (3 blocks) / 2 (2 blocks) / 2 / —</td><td>ordered_stack(order)</td><td>pick order[1] → onto order[0]; pick order[2] → onto order[1]</td><td>2 steps, tight tolerance, order of 3 named</td><td class="warn">built as P2 (orange 10-19); rule + expert not yet</td><td>—</td></tr>
+
+<tr><td><span class="lv">L6</span></td><td><b>T-drawer</b>: an open drawer holding a {colour} block; "take the {colour} block out of the drawer and put it in the bowl"</td><td>{colour} ∈ red, blue, purple → 3 / 3* / 3* / 3*</td><td>inside(block, bowl) (out of the drawer implied)</td><td>pick from inside the open drawer → drop in bowl</td><td>containment (hidden from the exterior camera), novel objects, clearance</td><td class="warn">built as P4 (orange 10-19); rule + expert not yet</td><td>—</td></tr>
+
+<tr><td><span class="lv">L6+</span></td><td><b>T-cabinet</b> (the user's priority, 2026-10-29): the agent adds a 3-level cabinet with the {level} drawer open and a {colour} block inside it; "take the {colour} block out of the {level} drawer and put it in the black bowl"</td><td>{level} ∈ bottom, middle, top × {colour} ∈ red, blue, purple → 9 per scene (where the cabinet fits)</td><td>inside(block, bowl)</td><td>pick from the open drawer's exposed part → drop in bowl</td><td>containment at 3 heights, novel objects, clearance under the closed drawers above</td><td>proposed: needs a multi-level cabinet, "inside cabinet_1/&lt;level&gt;", the expert</td><td>—</td></tr>
+<tr><td><span class="lv">L7</span></td><td><b>T-drawer-stack</b> (the user's example): a drawer with {k} coloured blocks; "take them out and stack them in order {order}"</td><td>k = 2–3, colours chosen + ordered → e.g. 3 colours of 5: 60 per scene (sampled, cap)</td><td>ordered_stack(order), all out of the drawer</td><td>k × (pick from drawer → onto the previous)</td><td>everything: steps, tolerance, order, containment, novelty</td><td>planned (stretch)</td><td>—</td></tr>
+
+<tr><td><span class="lv">L8</span></td><td><b>T-drawer-closed</b>: as L6, drawer starts closed</td><td>as L6</td><td>inside(block, bowl)</td><td>pull the handle open → pick → drop</td><td>articulation</td><td>later (needs a handle-pull expert)</td><td>—</td></tr>
+</table></div>
+<p class="meta">* L6 on c11, c1b, c9 only if a drawer fits on that table clear of the base objects; place() decides and says so if not.</p>
+
+
+<h2>3b · Variations</h2>
+<p class="meta">User, 2026-10-29: <i>"add the variations of all like not all variation but some of the interesting ones … another section on possible variations then put some mind boggling variations like having one drawer open and object is in second drawer … intriguing tasks"</i>. Every variation is a slot of a template (§3); "needs" says what has to exist before it can run. Nothing here has been run.</p>
+
+<h3>Standard variations (the slots each template expands)</h3>
+<div class="wrap"><table>
+<tr><th>Variation axis</th><th>Applies to</th><th>Example values</th><th>What it changes</th></tr>
+<tr><td>which object</td><td>T-into, T-next, T-on, T-all-into</td><td>each graspable object of the scene</td><td>target identity (language grounding)</td></tr>
+<tr><td>order</td><td>T-stack, T-drawer-stack</td><td>all permutations</td><td>instruction following on order</td></tr>
+<tr><td>colour of an added object</td><td>T-added, T-drawer, T-cabinet</td><td>red, blue, purple (well separated from the real blocks)</td><td>novel object appearance</td></tr>
+<tr><td>drawer level</td><td>T-cabinet</td><td>bottom, middle, top</td><td>height of the pick; how much of the drawer the camera sees</td></tr>
+<tr><td>placement seed</td><td>every template with added objects</td><td>0..4</td><td>where exactly the added objects land (place() re-run, relations kept)</td></tr>
+<tr><td>size within bounds</td><td>added blocks</td><td>2.5, 3, 4 cm</td><td>grasp margin, fit in the drawer</td></tr>
+<tr><td>paraphrase</td><td>every template</td><td>3 wordings per prompt</td><td>agent robustness (stage 2 tests)</td></tr>
+</table></div>
+
+<h3>Intriguing variations (proposals)</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Variation</th><th>Why it's interesting (what it tests)</th><th>Pass condition</th><th>Needs</th></tr>
+<tr><td>V1</td><td><b>Wrong drawer open:</b> the top drawer stands open and empty; the red block is in the closed middle drawer. "Take the red block out of the middle drawer and put it in the bowl"</td><td>does the policy follow the instruction or the salient open drawer? It has to close or ignore the open one and open the right one</td><td>inside(red, bowl)</td><td>handle-pull primitive (L8); close-push optional</td></tr>
+<tr><td>V2</td><td><b>Decoy in the same drawer:</b> the open drawer holds a red and a blue block. "Take the red one out"</td><td>colour grounding at close range, wrist camera only</td><td>inside(red, bowl) ∧ blue still in the drawer</td><td>"others" rule (blue must stay); buildable now</td></tr>
+<tr><td>V3</td><td><b>Same colour twice:</b> a red block in the open drawer and another red block on the table. "Put the red block from the drawer in the bowl"</td><td>reference by location, not colour</td><td>inside(red_in_drawer, bowl) ∧ the table one unmoved</td><td>"others" rule; instruction uniqueness by location; buildable now</td></tr>
+<tr><td>V4</td><td><b>Two drawers open, stacked:</b> top and middle both open; the block is in the middle drawer, partly under the open top drawer</td><td>access geometry: the approach from above is half blocked; the expert must pick from the exposed lip</td><td>inside(block, bowl)</td><td>exposed-region placement handles it; the expert may fail, which is informative</td></tr>
+<tr><td>V5</td><td><b>Put it back:</b> a block on the table; "put the red block in the middle drawer"</td><td>the reverse direction: precise drop into a narrow, low container</td><td>inside(red, cabinet_1/middle)</td><td>inside-drawer rule; buildable now</td></tr>
+<tr><td>V6</td><td><b>Swap:</b> the drawer holds a red block; a blue block is on the table. "Put the red block in the bowl and the blue block in the drawer"</td><td>two steps, two containers, both directions</td><td>inside(red, bowl) ∧ inside(blue, drawer)</td><td>buildable now</td></tr>
+<tr><td>V7</td><td><b>Cabinet as a shelf:</b> "take the block out of the drawer and put it on top of the cabinet"</td><td>placing at height on a surface the robot has never seen in real data</td><td>on(block, cabinet_1)</td><td>on-rule with a fixed target; buildable now</td></tr>
+<tr><td>V8</td><td><b>Stack in the bowl:</b> two blocks in the open drawer; "stack the red on the blue inside the bowl"</td><td>containment + stacking + order</td><td>inside(blue, bowl) ∧ on(red, blue)</td><td>buildable now; hard for the expert</td></tr>
+<tr><td>V9</td><td><b>By level only:</b> "take whatever is in the bottom drawer and put it in the bowl" (no colour named)</td><td>reference by container, unseen object</td><td>inside(the bottom drawer's object, bowl)</td><td>buildable now</td></tr>
+<tr><td>V10</td><td><b>Negation:</b> red and blue blocks in the drawer; "take out the block that is not red"</td><td>negation in language</td><td>inside(blue, bowl) ∧ red still in the drawer</td><td>"others" rule; buildable now</td></tr>
+<tr><td>V11</td><td><b>The real block into the drawer:</b> "put the orange block (the episode's own) in the middle drawer"</td><td>a real, textured object into a sim-made container: mixes real and added appearance</td><td>inside(orange_block, cabinet_1/middle)</td><td>buildable now (tasks may move base objects; only the scene setup may not)</td></tr>
+<tr><td>V12</td><td><b>Crowded drop:</b> two cups placed next to the bowl, narrowing the way in</td><td>collision-aware placement near distractors</td><td>inside(block, bowl) ∧ cups not knocked over</td><td>"others" rule; buildable now</td></tr>
+<tr><td>V13</td><td><b>Tidy up:</b> take the block out, then close the drawer</td><td>a second interaction with the furniture after the pick</td><td>inside(block, bowl) ∧ drawer closed</td><td>push-to-close primitive (easier than pulling); joint-state rule</td></tr>
+<tr><td>V14</td><td><b>Too big for the gap:</b> "put a 6 cm block in the bottom drawer" (inner height about 7 cm, the drawer above about 1 cm higher)</td><td>the tools' resize / refusal, not the policy</td><td>— (setup-level: resized or refused, reason logged)</td><td>buildable now</td></tr>
+</table></div>
+<p class="meta">Order proposed: V5, V2, V3, V9, V11 first (buildable now, single-step), then V6, V7, V10, V12, V4, V8; V1 and V13 need new primitives.</p>
+
+
+<h2>3c · Presets (generated section, not built yet)</h2>
+<p class="meta">Decided 2026-10-29 00:51 (user: "same doc, generated section"). A preset = a template (T-…) bound to one scene, with slot values, prompts and the expected answer. Source of truth: one presets JSON per scene under <code>experiments/taskgen/presets/</code>, generated from the templates and the scene's own objects (build_v1 names objects block_1, bowl_1, …, so the 10-19 P1–P5 are regenerated). This section will be rendered from those files by a script, one table per scene (preset id, template, slot values, prompts, expected answer, state: built / checked / approved, render), so the doc can't drift from the code. First rows: T-cabinet on v1/orange.</p>
+
+<h2>4 · How a template is written (example: L5 T-stack)</h2>
+<pre>
+template: ordered_stack
+  slots:
+    order : permutation of {blocks in this scene}             task slot
+  instruction:    "stack the blocks: {order[0]} at the bottom, then {order[1]}, then {order[2]} on top"
+  pass_all:       [ordered_stack(order)]
+  expert:         derived from pass_all: pick order[1] → onto order[0]; pick order[2] → onto order[1]
+  count:          3! = 6 on orange; 2! = 2 on c11 and c1b
+</pre>
+
+<h2>5 · Open questions</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Question</th><th>Proposal</th><th>State</th></tr>
+<tr><td>Q1</td><td>Are the levels and their order right?</td><td>as §3</td><td>open</td></tr>
+<tr><td>Q2</td><td>Should difficulty be measured instead of assigned? (e.g. expert success rate under the B4/B5 mass and friction sweeps, and later the base policy's success)</td><td>yes, once the expert runs: report both</td><td>open</td></tr>
+<tr><td>Q3</td><td>Drawer starts open in the PoC (L6, L7); closed drawer (L8) later</td><td>yes</td><td>open</td></tr>
+<tr><td>Q4</td><td>Is L7 (the user's example) in the PoC?</td><td>stretch</td><td>open</td></tr>
+</table></div>
+
+<h2>6 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Who / trigger</th><th>Outcome</th></tr>
+<tr><td>2026-10-29 ~00:10</td><td>User: "In the meantime lets go over some presets, res31 has build some scenes which are promising, talk to it which one then lets start making task config with expert and all"</td><td>res31 ranked orange, c11, c1b, c9 (c3 on hold); TaskGen proposed one template set across scenes, the task config and a sequential expert (awaiting the user's go)</td></tr>
+<tr><td>2026-10-29 00:51</td><td>User: "T- ones are task templates, where are we putting presets in the same doc or no where as of now?" then "same doc, generated section"</td><td>§3c: presets as a section generated from the per-scene presets JSON</td></tr>
+<tr><td>2026-10-29 ~00:30</td><td>User: "okay yes, add the variations of all like not all variation but some of the interesting ones. So one table with T-whatever stuff. Then another section on possible variations then put some mind boggling variations like having one drawer open and object is in second drawer smth like that. intriguing tasks"</td><td>§3 = all T-templates; §3b standard variations + V1–V14; go for building T-cabinet first</td></tr>
+<tr><td>2026-10-29 ~00:20</td><td>User: the preset of most interest: an object added by the agent into a drawer of a multi-level cabinet (the cabinet may be added too), task: take it out and put it in the bowl</td><td>T-cabinet (L6+) proposed as the priority preset</td></tr>
+<tr><td>2026-10-29 ~00:12</td><td>User: "lets start a doc with templates as well, to showcase difficulty wise as well"</td><td>this doc</td></tr>
+</table></div>
+</main>
+</body>
+</html>
