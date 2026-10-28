@@ -37,6 +37,7 @@ trap 'stop; log "queue exit"' EXIT
 
 serve() {  # $1 name, rest = command
     local name=$1; shift
+    if [ -e "$STOP" ]; then log "$name not started (low-memory stop)"; return 1; fi
     local used; used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
     if [ "$used" -gt 500 ]; then log "GPU busy ($used MiB used); not starting $name"; return 1; fi
     log "starting $name: $*"
@@ -51,12 +52,33 @@ serve() {  # $1 name, rest = command
 }
 
 run() {  # $1 test, $2 model alias
+    if [ -e "$STOP" ]; then log "test $1 on $2: skipped (low-memory stop)"; return 3; fi
     log "test $1 on $2: start"
     $EVAL --test "$1" --model "$2" >> "$OUT/eval_$1_$2.log" 2>&1
     local rc=$?
     log "test $1 on $2: rc $rc"
     return $rc
 }
+
+# monitor (prim's conditions 10-28): every 10 s log RAM available, GPU used, llama-server RSS; if RAM available
+# drops below 6 GiB, stop: kill the server and the eval, and mark STOP so no further test or server starts.
+STOP=$OUT/STOP_LOWMEM
+rm -f "$STOP"
+echo "time,mem_available_mib,gpu_used_mib,server_rss_mib" > "$OUT/monitor.csv"
+(
+    while kill -0 $$ 2>/dev/null; do
+        a=$(free -m | awk '/^Mem:/{print $7}')
+        g=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
+        r=$(ps -C llama-server -o rss= | awk '{s+=$1} END{print int(s/1024)}')
+        echo "$(date '+%F %T'),$a,$g,$r" >> "$OUT/monitor.csv"
+        if [ "$a" -lt 6144 ] && [ ! -e "$STOP" ]; then
+            touch "$STOP"
+            echo "$(date '+%F %T') MemAvailable $a MiB < 6144: stopping the queue" >> "$LOG"
+            pkill -f "llama-server.*--port 8099"; pkill -f "taskgen/eval_agent.py"
+        fi
+        sleep 10
+    done
+) &
 
 log "queue start; disk free $(df -h / | awk 'NR==2{print $4}'); RAM available $(free -m | awk '/^Mem:/{print $7}') MiB"
 
@@ -89,4 +111,4 @@ else
         stop
     fi
 fi
-log "queue done"
+log "queue done; peak GPU $(awk -F, 'NR>1&&$3>m{m=$3}END{print m}' "$OUT/monitor.csv") MiB, peak server RSS $(awk -F, 'NR>1&&$4>m{m=$4}END{print m}' "$OUT/monitor.csv") MiB, min RAM available $(awk -F, 'NR==2{m=$2}NR>1&&$2<m{m=$2}END{print m}' "$OUT/monitor.csv") MiB"
