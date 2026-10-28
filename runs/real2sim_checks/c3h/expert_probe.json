@@ -1,0 +1,1611 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/v1_dev/calibtest/c3h",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_c3",
+ "config": {
+  "_doc": "B3 general scripted-expert test (REAL2SIM_CHECKLIST_V1 B3, B4, B5). Every number here is a choice, not a measurement; change it here, not in the script. Distances in m, times in s, angles in deg.",
+  "gripper_max_width_m": 0.085,
+  "grasp_min_above_table_m": 0.015,
+  "approach_above_m": 0.12,
+  "_approach_correct_doc": "after the descend, re-aim on the measured fingertip error up to this many times (0 = make_tasks' open-loop expert)",
+  "approach_correct_iters": 3,
+  "approach_correct_tol_m": 0.002,
+  "approach_correct_s": 0.5,
+  "lift_m": 0.1,
+  "hold_s": 2.0,
+  "place_offset_m": 0.1,
+  "table_margin_m": 0.05,
+  "probes": [
+   "pick_lift_hold",
+   "place_upright",
+   "into_container",
+   "stack"
+  ],
+  "pass": {
+   "lift_min_m": 0.08,
+   "slip_max_m": 0.01,
+   "place_xy_tol_m": 0.02,
+   "place_z_tol_m": 0.01,
+   "upright_max_deg": 10.0,
+   "container_rim_frac": 0.8
+  },
+  "timing_s": {
+   "approach": 2.0,
+   "descend": 1.5,
+   "close": 1.0,
+   "lift": 1.5,
+   "carry": 2.0,
+   "lower": 1.0,
+   "open": 0.8,
+   "retreat": 1.2,
+   "settle": 0.8,
+   "start_settle": 0.5
+  },
+  "sweeps": {
+   "nominal": {},
+   "mass_x0.5": {
+    "mass": 0.5
+   },
+   "mass_x2": {
+    "mass": 2.0
+   },
+   "friction_x0.5": {
+    "friction": 0.5
+   },
+   "friction_x2": {
+    "friction": 2.0
+   }
+  },
+  "_friction_doc": "MuJoCo takes the larger sliding friction of the two touching geoms, so scaling only the object would do nothing while the pads are higher. 'object_and_pads' scales the object's geoms and the gripper pads' collision geoms by the same factor (table unchanged); the effective pad-object value is recorded.",
+  "friction_scope": "object_and_pads",
+  "video": {
+   "sweeps": [
+    "nominal"
+   ],
+   "camera": "ext",
+   "width": 320,
+   "height": 180
+  }
+ },
+ "status": "exploratory, UNVERIFIED",
+ "sweeps": {
+  "nominal": {
+   "params": {},
+   "applied_to": "the probed object only (+ pads for friction)",
+   "rows": [
+    {
+     "object": "apple_1",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.07614157206364248,
+     "grasp_point": [
+      0.45633695443786887,
+      0.051439268880530936,
+      0.16108973775716603
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004721966616111589,
+     "reach_err_m": 0.0005606464096581448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09687596594902723,
+     "slip_in_hand_m": 0.00020431657277756516,
+     "rotation_in_hand_deg": 1.7894483684775824,
+     "rise_after_hold_m": 0.09834517295150172,
+     "ik_err_max_m": 8.766805117732293e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.05377329960691534,
+     "seconds": 10.3,
+     "video": "expert_probe/apple_1__pick_lift_hold.mp4"
+    },
+    {
+     "object": "apple_1",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.07614157206364248,
+     "grasp_point": [
+      0.45633695443786887,
+      0.051439268880530936,
+      0.16108973775716603
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004721966616111589,
+     "reach_err_m": 0.0005606464096581448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09687596594902723,
+     "slip_in_hand_m": 0.00027664130256318,
+     "rotation_in_hand_deg": 1.836004582631403,
+     "rise_after_hold_m": 0.09687596594902723,
+     "spot": [
+      0.45633695443786887,
+      -0.04856073111946907
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.4038928896297542,
+     "final_centre": [
+      0.45676323496245486,
+      -0.04598322249762516,
+      0.16107919860597897
+     ],
+     "place_xy_err_m": 0.0026125209628481433,
+     "place_z_err_m": 0.00011956071467029983,
+     "result": "xy 0.3 cm, z +0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 8.79613775400856e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.05377329960691534,
+     "seconds": 13.8,
+     "video": "expert_probe/apple_1__place_upright.mp4"
+    },
+    {
+     "object": "apple_1",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.07614157206364248,
+     "grasp_point": [
+      0.45633695443786887,
+      0.051439268880530936,
+      0.16108973775716603
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004721966616111589,
+     "reach_err_m": 0.0005606464096581448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09687596594902723,
+     "slip_in_hand_m": 0.00027664130256318,
+     "rotation_in_hand_deg": 1.836004582631403,
+     "rise_after_hold_m": 0.09687596594902723,
+     "container_top_z": 0.20611660994490089,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 2.320733861873704,
+     "final_centre": [
+      0.5148018507851234,
+      0.2150800219821477,
+      0.16850361447776824
+     ],
+     "container_horiz_m": 0.001040507182472248,
+     "bottom_below_rim": true,
+     "result": "0.1 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 8.766805117732293e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.05377329960691534,
+     "seconds": 14.5,
+     "video": "expert_probe/apple_1__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "red_radish_1",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.1018640177252542,
+     "grasp_point": [
+      0.5581592435967939,
+      0.369718612600594,
+      0.17836360518371092
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.007821268039791385,
+     "reach_err_m": 0.00037797791519894526,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.049673944737192,
+     "stopped": "rose 5.0 cm < 8 cm",
+     "slip_in_hand_m": 0.08569393431779665,
+     "rotation_in_hand_deg": 21.005282793388126,
+     "rise_after_hold_m": 0.008730849149242659,
+     "ik_err_max_m": 4.318256067470763e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.07568754401769329,
+     "seconds": 10.9,
+     "video": "expert_probe/red_radish_1__pick_lift_hold.mp4"
+    },
+    {
+     "object": "red_radish_1",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.1018640177252542,
+     "grasp_point": [
+      0.5581592435967939,
+      0.369718612600594,
+      0.17836360518371092
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.007821268039791385,
+     "reach_err_m": 0.00037797791519894526,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.049673944737192,
+     "stopped": "rose 5.0 cm < 8 cm",
+     "slip_in_hand_m": 0.04326664609449665,
+     "rotation_in_hand_deg": 6.80933159581624,
+     "rise_after_hold_m": 0.049673944737192,
+     "spot": [
+      0.5964275868333029,
+      0.4621065658517227
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.004395067434302409,
+     "final_centre": [
+      0.5630610597365421,
+      0.3872004211187411,
+      0.17834153517557957
+     ],
+     "ik_err_max_m": 8.09059956641485e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.07568754401769329,
+     "seconds": 15.4,
+     "video": "expert_probe/red_radish_1__place_upright.mp4"
+    },
+    {
+     "object": "red_radish_1",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.1018640177252542,
+     "grasp_point": [
+      0.5581592435967939,
+      0.369718612600594,
+      0.17836360518371092
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.007821268039791385,
+     "reach_err_m": 0.00037797791519894526,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.049673944737192,
+     "stopped": "rose 5.0 cm < 8 cm",
+     "slip_in_hand_m": 0.04326664609449665,
+     "rotation_in_hand_deg": 6.80933159581624,
+     "rise_after_hold_m": 0.049673944737192,
+     "container_top_z": 0.20611660994485556,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 18.41377446042326,
+     "final_centre": [
+      0.5556255616274874,
+      0.3329052385614779,
+      0.1896056982199171
+     ],
+     "ik_err_max_m": 9.052620842639782e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.07568754401769329,
+     "seconds": 14.9,
+     "video": "expert_probe/red_radish_1__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_1",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.03230151298240209,
+     "grasp_point": [
+      0.3594740774723215,
+      0.4017207318140227,
+      0.14835119003707758
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.0062403534598500735,
+     "reach_err_m": 0.0003555506565160292,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09628289582860444,
+     "slip_in_hand_m": 5.3839242426604545e-05,
+     "rotation_in_hand_deg": 0.6880752861595099,
+     "rise_after_hold_m": 0.09782236426368743,
+     "ik_err_max_m": 7.832577843749076e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.0202218015960298,
+     "seconds": 10.8,
+     "video": "expert_probe/toy_block_1__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_1",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.03230151298240209,
+     "grasp_point": [
+      0.3594740774723215,
+      0.4017207318140227,
+      0.14835119003707758
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.0062403534598500735,
+     "reach_err_m": 0.0003555506565160292,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09628289582860444,
+     "slip_in_hand_m": 1.0193867035626997e-05,
+     "rotation_in_hand_deg": 0.6212931797069647,
+     "rise_after_hold_m": 0.09628289582860444,
+     "spot": [
+      0.32120573423581256,
+      0.4941086850651514
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.0,
+     "final_centre": [
+      0.3200386906732628,
+      0.4865666452222294,
+      0.14835119004547637
+     ],
+     "place_xy_err_m": 0.0076317989798677915,
+     "place_z_err_m": 8.398781670138078e-12,
+     "result": "xy 0.8 cm, z +0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 3.980384348792673e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.0202218015960298,
+     "seconds": 14.7,
+     "video": "expert_probe/toy_block_1__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_1",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.03230151298240209,
+     "grasp_point": [
+      0.3594740774723215,
+      0.4017207318140227,
+      0.14835119003707758
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.0062403534598500735,
+     "reach_err_m": 0.0003555506565160292,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09628289582860444,
+     "slip_in_hand_m": 1.0193867035626997e-05,
+     "rotation_in_hand_deg": 0.6212931797069647,
+     "rise_after_hold_m": 0.09628289582860444,
+     "container_top_z": 0.2061166099448545,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.004533327749815574,
+     "final_centre": [
+      0.5111424612996013,
+      0.20921167412768557,
+      0.15581794958979092
+     ],
+     "container_horiz_m": 0.006486230511416687,
+     "bottom_below_rim": true,
+     "result": "0.6 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 5.585422979463844e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.0202218015960298,
+     "seconds": 15.0,
+     "video": "expert_probe/toy_block_1__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_1",
+     "probe": "stack",
+     "ref": "toy_block_2",
+     "width_across_grasp_m": 0.03230151298240209,
+     "grasp_point": [
+      0.3594740774723215,
+      0.4017207318140227,
+      0.14835119003707758
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.0062403534598500735,
+     "reach_err_m": 0.0003555506565160292,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09628289582860444,
+     "slip_in_hand_m": 1.0193867035626997e-05,
+     "rotation_in_hand_deg": 0.6212931797069647,
+     "rise_after_hold_m": 0.09628289582860444,
+     "tilt_deg": 0.26952133381118426,
+     "final_centre": [
+      0.3814756299003678,
+      0.20365966986334244,
+      0.18035422716588786
+     ],
+     "stack_horiz_m": 0.00546346418447687,
+     "result": "0.5 cm off the lower block's centre",
+     "ik_err_max_m": 5.520643089680303e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.0202218015960298,
+     "seconds": 14.8,
+     "video": "expert_probe/toy_block_1__stack__toy_block_2.mp4"
+    },
+    {
+     "object": "toy_block_2",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.032325633145816594,
+     "grasp_point": [
+      0.3834335865543018,
+      0.20926717346062887,
+      0.14836108018473315
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004703310599660073,
+     "reach_err_m": 0.0005611139667319575,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09118887471479484,
+     "slip_in_hand_m": 0.0031531271905527536,
+     "rotation_in_hand_deg": 0.3343067751207523,
+     "rise_after_hold_m": 0.09268877666715708,
+     "ik_err_max_m": 8.158426055496714e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.020267135459925444,
+     "seconds": 10.4,
+     "video": "expert_probe/toy_block_2__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_2",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.032325633145816594,
+     "grasp_point": [
+      0.3834335865543018,
+      0.20926717346062887,
+      0.14836108018473315
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004703310599660073,
+     "reach_err_m": 0.0005611139667319575,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09118887471479484,
+     "slip_in_hand_m": 0.0031465392543268958,
+     "rotation_in_hand_deg": 0.3444719355237422,
+     "rise_after_hold_m": 0.09118887471479484,
+     "spot": [
+      0.3451652433177928,
+      0.11687922020950021
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.2627655606899985,
+     "final_centre": [
+      0.34345531825588776,
+      0.11586632037850825,
+      0.1483632501272112
+     ],
+     "place_xy_err_m": 0.0019874128370709755,
+     "place_z_err_m": 8.686232288815376e-05,
+     "result": "xy 0.2 cm, z +0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 8.158426055496714e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.020267135459925444,
+     "seconds": 14.0,
+     "video": "expert_probe/toy_block_2__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_2",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.032325633145816594,
+     "grasp_point": [
+      0.3834335865543018,
+      0.20926717346062887,
+      0.14836108018473315
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004703310599660073,
+     "reach_err_m": 0.0005611139667319575,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09118887471479484,
+     "slip_in_hand_m": 0.0031465392543268958,
+     "rotation_in_hand_deg": 0.3444719355237422,
+     "rise_after_hold_m": 0.09118887471479484,
+     "container_top_z": 0.2061166099449313,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.26621754975700473,
+     "final_centre": [
+      0.5105142408278341,
+      0.209878444733375,
+      0.15582994367197178
+     ],
+     "container_horiz_m": 0.006186552200197929,
+     "bottom_below_rim": true,
+     "result": "0.6 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 8.158426055496714e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.020267135459925444,
+     "seconds": 14.4,
+     "video": "expert_probe/toy_block_2__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_2",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.032325633145816594,
+     "grasp_point": [
+      0.3834335865543018,
+      0.20926717346062887,
+      0.14836108018473315
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004703310599660073,
+     "reach_err_m": 0.0005611139667319575,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09118887471479484,
+     "slip_in_hand_m": 0.0031465392543268958,
+     "rotation_in_hand_deg": 0.3444719355237422,
+     "rise_after_hold_m": 0.09118887471479484,
+     "tilt_deg": 0.2885020194288309,
+     "final_centre": [
+      0.35810384940267725,
+      0.3982770422775109,
+      0.1803504417393974
+     ],
+     "stack_horiz_m": 0.003702535365015868,
+     "result": "0.4 cm off the lower block's centre",
+     "ik_err_max_m": 8.327940333568943e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.020267135459925444,
+     "seconds": 14.5,
+     "video": "expert_probe/toy_block_2__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_3",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.0388886706729845,
+     "grasp_point": [
+      0.42305636781152134,
+      0.20859800526327457,
+      0.15164885479287313
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.002939962459943112,
+     "reach_err_m": 0.0007412711008735954,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09620713547608037,
+     "slip_in_hand_m": 9.212729634826787e-05,
+     "rotation_in_hand_deg": 0.059610126337309034,
+     "rise_after_hold_m": 0.09788602353145215,
+     "ik_err_max_m": 5.263943647195339e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.035287471814770176,
+     "seconds": 10.9,
+     "video": "expert_probe/toy_block_3__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_3",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.0388886706729845,
+     "grasp_point": [
+      0.42305636781152134,
+      0.20859800526327457,
+      0.15164885479287313
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.002939962459943112,
+     "reach_err_m": 0.0007412711008735954,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09620713547608037,
+     "slip_in_hand_m": 1.972066722210756e-05,
+     "rotation_in_hand_deg": 0.06349278685033792,
+     "rise_after_hold_m": 0.09620713547608037,
+     "spot": [
+      0.3847880245750123,
+      0.11621005201214592
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.13128857113277115,
+     "final_centre": [
+      0.3838391294591332,
+      0.11573232833576269,
+      0.15164476889077877
+     ],
+     "place_xy_err_m": 0.0010623661571776471,
+     "place_z_err_m": 5.385878734964766e-05,
+     "result": "xy 0.1 cm, z +0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 5.263943647195339e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.035287471814770176,
+     "seconds": 14.3,
+     "video": "expert_probe/toy_block_3__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_3",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.0388886706729845,
+     "grasp_point": [
+      0.42305636781152134,
+      0.20859800526327457,
+      0.15164885479287313
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.002939962459943112,
+     "reach_err_m": 0.0007412711008735954,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09620713547608037,
+     "slip_in_hand_m": 1.972066722210756e-05,
+     "rotation_in_hand_deg": 0.06349278685033792,
+     "rise_after_hold_m": 0.09620713547608037,
+     "container_top_z": 0.20611648775618302,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.12737927801709262,
+     "final_centre": [
+      0.5151361583052613,
+      0.22112302580013843,
+      0.1591918183538379
+     ],
+     "container_horiz_m": 0.00290791646903388,
+     "bottom_below_rim": true,
+     "result": "0.3 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 5.263943647195339e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.035287471814770176,
+     "seconds": 15.3,
+     "video": "expert_probe/toy_block_3__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_3",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.0388886706729845,
+     "grasp_point": [
+      0.42305636781152134,
+      0.20859800526327457,
+      0.15164885479287313
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.002939962459943112,
+     "reach_err_m": 0.0007412711008735954,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09620713547608037,
+     "slip_in_hand_m": 1.972066722210756e-05,
+     "rotation_in_hand_deg": 0.06349278685033792,
+     "rise_after_hold_m": 0.09620713547608037,
+     "tilt_deg": 0.3316188423197287,
+     "final_centre": [
+      0.3593122410979293,
+      0.4004359728954729,
+      0.1835630817913837
+     ],
+     "stack_horiz_m": 0.0012825906939496153,
+     "result": "0.1 cm off the lower block's centre",
+     "ik_err_max_m": 5.263943647195339e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.035287471814770176,
+     "seconds": 14.7,
+     "video": "expert_probe/toy_block_3__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_4",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.027438660929774778,
+     "grasp_point": [
+      0.4622054390205584,
+      0.38842183004704667,
+      0.14730818897267067
+     ],
+     "stage": "lifted",
+     "passed": false,
+     "reach_err_before_correction_m": 0.007774955438090058,
+     "reach_err_m": 0.00037825642139314086,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.08419811025678267,
+     "slip_in_hand_m": 0.011915340604458055,
+     "rotation_in_hand_deg": 1.2468126313833996,
+     "rise_after_hold_m": 0.08570759020928087,
+     "stopped": "during hold: rise 8.6 cm, slip 1.2 cm",
+     "ik_err_max_m": 9.504633063194334e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.012394813295019607,
+     "seconds": 11.0,
+     "video": "expert_probe/toy_block_4__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_4",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.027438660929774778,
+     "grasp_point": [
+      0.4622054390205584,
+      0.38842183004704667,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.007774955438090058,
+     "reach_err_m": 0.00037825642139314086,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.08419811025678267,
+     "slip_in_hand_m": 0.011908978066742824,
+     "rotation_in_hand_deg": 1.2448512208497775,
+     "rise_after_hold_m": 0.08419811025678267,
+     "spot": [
+      0.4622054390205584,
+      0.48842183004704665
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 2.831646840510158e-06,
+     "final_centre": [
+      0.4577813191079746,
+      0.48712264085500406,
+      0.14591976401917692
+     ],
+     "place_xy_err_m": 0.00461093586570456,
+     "place_z_err_m": -2.3190616094126426e-12,
+     "result": "xy 0.5 cm, z -0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 9.430104223983441e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.012394813295019607,
+     "seconds": 15.3,
+     "video": "expert_probe/toy_block_4__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_4",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.027438660929774778,
+     "grasp_point": [
+      0.4622054390205584,
+      0.38842183004704667,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.007774955438090058,
+     "reach_err_m": 0.00037825642139314086,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.08419811025678267,
+     "slip_in_hand_m": 0.011908978066742824,
+     "rotation_in_hand_deg": 1.2448512208497775,
+     "rise_after_hold_m": 0.08419811025678267,
+     "container_top_z": 0.2061166099448698,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.1402641996710743,
+     "final_centre": [
+      0.5127289138784604,
+      0.21777805714149853,
+      0.15344704748453253
+     ],
+     "container_horiz_m": 0.0028066993382981622,
+     "bottom_below_rim": true,
+     "result": "0.3 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 5.085196271012953e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.012394813295019607,
+     "seconds": 15.5,
+     "video": "expert_probe/toy_block_4__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_4",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.027438660929774778,
+     "grasp_point": [
+      0.4622054390205584,
+      0.38842183004704667,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.007774955438090058,
+     "reach_err_m": 0.00037825642139314086,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.08419811025678267,
+     "slip_in_hand_m": 0.011908978066742824,
+     "rotation_in_hand_deg": 1.2448512208497775,
+     "rise_after_hold_m": 0.08419811025678267,
+     "tilt_deg": 0.07690639388266364,
+     "final_centre": [
+      0.35466947565014834,
+      0.3995967219180246,
+      0.178050908134326
+     ],
+     "stack_horiz_m": 0.005247907450623288,
+     "result": "0.5 cm off the lower block's centre",
+     "ik_err_max_m": 5.085196271012953e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.012394813295019607,
+     "seconds": 15.3,
+     "video": "expert_probe/toy_block_4__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_5",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.028227424341710515,
+     "grasp_point": [
+      0.36024370287992175,
+      0.33842396928842006,
+      0.14730818897267067
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005392309030612941,
+     "reach_err_m": 0.0005006963515989567,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09753915870669772,
+     "slip_in_hand_m": 4.6767556128415306e-05,
+     "rotation_in_hand_deg": 0.03270980686246864,
+     "rise_after_hold_m": 0.09905859392983057,
+     "ik_err_max_m": 9.606097627922788e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.01349475506899654,
+     "seconds": 11.3,
+     "video": "expert_probe/toy_block_5__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_5",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.028227424341710515,
+     "grasp_point": [
+      0.36024370287992175,
+      0.33842396928842006,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005392309030612941,
+     "reach_err_m": 0.0005006963515989567,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09753915870669772,
+     "slip_in_hand_m": 2.068245437718766e-05,
+     "rotation_in_hand_deg": 0.03297084068329532,
+     "rise_after_hold_m": 0.09753915870669772,
+     "spot": [
+      0.32197535964341273,
+      0.24603601603729142
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.0,
+     "final_centre": [
+      0.3191527221662102,
+      0.24482567337853894,
+      0.1463141457251259
+     ],
+     "place_xy_err_m": 0.0030711905963818316,
+     "place_z_err_m": 8.394118733434652e-12,
+     "result": "xy 0.3 cm, z +0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 9.606097627922788e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.01349475506899654,
+     "seconds": 14.4,
+     "video": "expert_probe/toy_block_5__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_5",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.028227424341710515,
+     "grasp_point": [
+      0.36024370287992175,
+      0.33842396928842006,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005392309030612941,
+     "reach_err_m": 0.0005006963515989567,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09753915870669772,
+     "slip_in_hand_m": 2.068245437718766e-05,
+     "rotation_in_hand_deg": 0.03297084068329532,
+     "rise_after_hold_m": 0.09753915870669772,
+     "container_top_z": 0.20611660994490474,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.005852820235741005,
+     "final_centre": [
+      0.5103423440601109,
+      0.2109154351668701,
+      0.15379695365463159
+     ],
+     "container_horiz_m": 0.005437371448791291,
+     "bottom_below_rim": true,
+     "result": "0.5 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 9.606097627922788e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.01349475506899654,
+     "seconds": 15.5,
+     "video": "expert_probe/toy_block_5__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_5",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.028227424341710515,
+     "grasp_point": [
+      0.36024370287992175,
+      0.33842396928842006,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005392309030612941,
+     "reach_err_m": 0.0005006963515989567,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09753915870669772,
+     "slip_in_hand_m": 2.068245437718766e-05,
+     "rotation_in_hand_deg": 0.03297084068329532,
+     "rise_after_hold_m": 0.09753915870669772,
+     "tilt_deg": 0.07588670905227668,
+     "final_centre": [
+      0.3570339757804882,
+      0.40716036015819357,
+      0.17842083009940066
+     ],
+     "stack_horiz_m": 0.003246240612029179,
+     "result": "0.3 cm off the lower block's centre",
+     "ik_err_max_m": 9.606097627922788e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.01349475506899654,
+     "seconds": 14.8,
+     "video": "expert_probe/toy_block_5__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_6",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.03191517603679635,
+     "grasp_point": [
+      0.4983338447164999,
+      0.3877044820988854,
+      0.14815802157500682
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.008131840023276767,
+     "reach_err_m": 0.0003174071557470033,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09574111270334432,
+     "slip_in_hand_m": 0.0003006179895588175,
+     "rotation_in_hand_deg": 0.9180884261233623,
+     "rise_after_hold_m": 0.09723851282230977,
+     "ik_err_max_m": 1.835102345174757e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.019504866542865314,
+     "seconds": 11.7,
+     "video": "expert_probe/toy_block_6__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_6",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.03191517603679635,
+     "grasp_point": [
+      0.4983338447164999,
+      0.3877044820988854,
+      0.14815802157500682
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.008131840023276767,
+     "reach_err_m": 0.0003174071557470033,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09574111270334432,
+     "slip_in_hand_m": 0.00028558840127007243,
+     "rotation_in_hand_deg": 0.8400930677733209,
+     "rise_after_hold_m": 0.09574111270334432,
+     "spot": [
+      0.5366021879530088,
+      0.4800924353500141
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 1.7075472925031877e-06,
+     "final_centre": [
+      0.5352359845842446,
+      0.47056007389253096,
+      0.14815802157265728
+     ],
+     "place_xy_err_m": 0.009629767733488337,
+     "place_z_err_m": -2.349537231438603e-12,
+     "result": "xy 1.0 cm, z -0.0 cm, tilt 0 deg",
+     "ik_err_max_m": 7.880344355009807e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.019504866542865314,
+     "seconds": 15.7,
+     "video": "expert_probe/toy_block_6__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_6",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.03191517603679635,
+     "grasp_point": [
+      0.4983338447164999,
+      0.3877044820988854,
+      0.14815802157500682
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.008131840023276767,
+     "reach_err_m": 0.0003174071557470033,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09574111270334432,
+     "slip_in_hand_m": 0.00028558840127007243,
+     "rotation_in_hand_deg": 0.8400930677733209,
+     "rise_after_hold_m": 0.09574111270334432,
+     "container_top_z": 0.20611660994487865,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.004893234189556655,
+     "final_centre": [
+      0.5110238138493967,
+      0.2102928160419854,
+      0.15562651349657594
+     ],
+     "container_horiz_m": 0.005573355703907273,
+     "bottom_below_rim": true,
+     "result": "0.6 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 5.129695103664397e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.019504866542865314,
+     "seconds": 15.6,
+     "video": "expert_probe/toy_block_6__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_6",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.03191517603679635,
+     "grasp_point": [
+      0.4983338447164999,
+      0.3877044820988854,
+      0.14815802157500682
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.008131840023276767,
+     "reach_err_m": 0.0003174071557470033,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09574111270334432,
+     "slip_in_hand_m": 0.00028558840127007243,
+     "rotation_in_hand_deg": 0.8400930677733209,
+     "rise_after_hold_m": 0.09574111270334432,
+     "tilt_deg": 0.38300425981826897,
+     "final_centre": [
+      0.3590272701771745,
+      0.3930262555614747,
+      0.1801599057503952
+     ],
+     "stack_horiz_m": 0.008653949019168328,
+     "result": "0.9 cm off the lower block's centre",
+     "ik_err_max_m": 3.543719603250956e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.019504866542865314,
+     "seconds": 15.0,
+     "video": "expert_probe/toy_block_6__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_7",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.048162516764398845,
+     "grasp_point": [
+      0.4066482428043492,
+      0.29587207757934675,
+      0.15628169192807598
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004018213850446237,
+     "reach_err_m": 0.0032650792132730448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.0954260865983633,
+     "slip_in_hand_m": 0.00016515340639118234,
+     "rotation_in_hand_deg": 0.0646739181555256,
+     "rise_after_hold_m": 0.09743037941559266,
+     "ik_err_max_m": 0.0004203992089626249,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.06703147407148981,
+     "seconds": 11.9,
+     "video": "expert_probe/toy_block_7__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_7",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.048162516764398845,
+     "grasp_point": [
+      0.4066482428043492,
+      0.29587207757934675,
+      0.15628169192807598
+     ],
+     "stage": "lifted",
+     "passed": false,
+     "reach_err_before_correction_m": 0.004018213850446237,
+     "reach_err_m": 0.0032650792132730448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.0954260865983633,
+     "slip_in_hand_m": 0.00010106619441904666,
+     "rotation_in_hand_deg": 0.08358882993289266,
+     "rise_after_hold_m": 0.0954260865983633,
+     "spot": [
+      0.49903619605547783,
+      0.2576037343428377
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 10.442045901714772,
+     "final_centre": [
+      0.5033532679802786,
+      0.2437756463658013,
+      0.3111532082508887
+     ],
+     "place_xy_err_m": 0.014486308263479726,
+     "place_z_err_m": 0.15021591050799135,
+     "result": "xy 1.4 cm, z +15.0 cm, tilt 10 deg",
+     "stopped": "after release: xy 1.4 cm, z +15.0 cm, tilt 10 deg",
+     "ik_err_max_m": 0.0004203992089626249,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.06703147407148981,
+     "seconds": 15.9,
+     "video": "expert_probe/toy_block_7__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_7",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.048162516764398845,
+     "grasp_point": [
+      0.4066482428043492,
+      0.29587207757934675,
+      0.15628169192807598
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004018213850446237,
+     "reach_err_m": 0.0032650792132730448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.0954260865983633,
+     "slip_in_hand_m": 0.00010106619441904666,
+     "rotation_in_hand_deg": 0.08358882993289266,
+     "rise_after_hold_m": 0.0954260865983633,
+     "container_top_z": 0.2061166099448027,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.03905116215357125,
+     "final_centre": [
+      0.5574775887177169,
+      0.2111641932180106,
+      0.16379476056317374
+     ],
+     "container_horiz_m": 0.005608887868354737,
+     "bottom_below_rim": true,
+     "result": "0.6 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 0.003822246395381015,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.06703147407148981,
+     "seconds": 16.2,
+     "video": "expert_probe/toy_block_7__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_7",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.048162516764398845,
+     "grasp_point": [
+      0.4066482428043492,
+      0.29587207757934675,
+      0.15628169192807598
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.004018213850446237,
+     "reach_err_m": 0.0032650792132730448,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.0954260865983633,
+     "slip_in_hand_m": 0.00010106619441904666,
+     "rotation_in_hand_deg": 0.08358882993289266,
+     "rise_after_hold_m": 0.0954260865983633,
+     "tilt_deg": 0.49531153026464153,
+     "final_centre": [
+      0.35700143802266354,
+      0.39995157954732263,
+      0.18793951124757194
+     ],
+     "stack_horiz_m": 0.0030017425001059206,
+     "result": "0.3 cm off the lower block's centre",
+     "ik_err_max_m": 0.0004203992089626249,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.06703147407148981,
+     "seconds": 15.2,
+     "video": "expert_probe/toy_block_7__stack__toy_block_1.mp4"
+    },
+    {
+     "object": "toy_block_8",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.024816789410107384,
+     "grasp_point": [
+      0.5004027875489718,
+      0.345403252040914,
+      0.14730818897267067
+     ],
+     "stage": "held",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005557692630411306,
+     "reach_err_m": 0.0005818716280294475,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09863861703673871,
+     "slip_in_hand_m": 4.111848409576357e-05,
+     "rotation_in_hand_deg": 1.0038900975093468,
+     "rise_after_hold_m": 0.10011407592879262,
+     "ik_err_max_m": 6.255299679122144e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.00917039487198073,
+     "seconds": 11.9,
+     "video": "expert_probe/toy_block_8__pick_lift_hold.mp4"
+    },
+    {
+     "object": "toy_block_8",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.024816789410107384,
+     "grasp_point": [
+      0.5004027875489718,
+      0.345403252040914,
+      0.14730818897267067
+     ],
+     "stage": "lifted",
+     "passed": false,
+     "reach_err_before_correction_m": 0.005557692630411306,
+     "reach_err_m": 0.0005818716280294475,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09863861703673871,
+     "slip_in_hand_m": 5.1898068045926075e-05,
+     "rotation_in_hand_deg": 0.34677184961720287,
+     "rise_after_hold_m": 0.09863861703673871,
+     "spot": [
+      0.5711134656676266,
+      0.2746925739222592
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 96.7364995202862,
+     "final_centre": [
+      0.5170868833291857,
+      0.2401986002418509,
+      0.1511509670021765
+     ],
+     "place_xy_err_m": 0.06409918735395188,
+     "place_z_err_m": 0.004266108697129178,
+     "result": "xy 6.4 cm, z +0.4 cm, tilt 97 deg",
+     "stopped": "after release: xy 6.4 cm, z +0.4 cm, tilt 97 deg",
+     "ik_err_max_m": 4.539980226426976e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.00917039487198073,
+     "seconds": 16.0,
+     "video": "expert_probe/toy_block_8__place_upright.mp4"
+    },
+    {
+     "object": "toy_block_8",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.024816789410107384,
+     "grasp_point": [
+      0.5004027875489718,
+      0.345403252040914,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005557692630411306,
+     "reach_err_m": 0.0005818716280294475,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09863861703673871,
+     "slip_in_hand_m": 5.1898068045926075e-05,
+     "rotation_in_hand_deg": 0.34677184961720287,
+     "rise_after_hold_m": 0.09863861703673871,
+     "container_top_z": 0.2061166099449107,
+     "rim_radius_m": 0.06882790447620862,
+     "tilt_deg": 0.14910679206517,
+     "final_centre": [
+      0.511570594746126,
+      0.21856549460098995,
+      0.15214152517572574
+     ],
+     "container_horiz_m": 0.004040380262488955,
+     "bottom_below_rim": true,
+     "result": "0.4 cm from the container centre (rim 6.9 cm), bottom below the rim",
+     "ik_err_max_m": 6.595364757977291e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.00917039487198073,
+     "seconds": 15.7,
+     "video": "expert_probe/toy_block_8__into_container__black_bowl.mp4"
+    },
+    {
+     "object": "toy_block_8",
+     "probe": "stack",
+     "ref": "toy_block_1",
+     "width_across_grasp_m": 0.024816789410107384,
+     "grasp_point": [
+      0.5004027875489718,
+      0.345403252040914,
+      0.14730818897267067
+     ],
+     "stage": "placed",
+     "passed": true,
+     "reach_err_before_correction_m": 0.005557692630411306,
+     "reach_err_m": 0.0005818716280294475,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.09863861703673871,
+     "slip_in_hand_m": 5.1898068045926075e-05,
+     "rotation_in_hand_deg": 0.34677184961720287,
+     "rise_after_hold_m": 0.09863861703673871,
+     "tilt_deg": 0.012763758017365266,
+     "final_centre": [
+      0.3596659235396696,
+      0.4013076575116809,
+      0.176784915457617
+     ],
+     "stack_horiz_m": 0.00045745947891632463,
+     "result": "0.0 cm off the lower block's centre",
+     "ik_err_max_m": 3.814999905393486e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 1.0,
+     "mass_kg": 0.00917039487198073,
+     "seconds": 15.5,
+     "video": "expert_probe/toy_block_8__stack__toy_block_1.mp4"
+    }
+   ]
+  }
+ },
+ "table": {
+  "apple_1 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "apple_1 | place_upright": {
+   "nominal": "PASS"
+  },
+  "apple_1 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "red_radish_1 | pick_lift_hold": {
+   "nominal": "fail@closed"
+  },
+  "red_radish_1 | place_upright": {
+   "nominal": "fail@closed"
+  },
+  "red_radish_1 | into_container -> black_bowl": {
+   "nominal": "fail@closed"
+  },
+  "toy_block_1 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_1 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_1 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_1 | stack -> toy_block_2": {
+   "nominal": "PASS"
+  },
+  "toy_block_2 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_2 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_2 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_2 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_3 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_3 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_3 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_3 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_4 | pick_lift_hold": {
+   "nominal": "fail@lifted"
+  },
+  "toy_block_4 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_4 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_4 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_5 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_5 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_5 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_5 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_6 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_6 | place_upright": {
+   "nominal": "PASS"
+  },
+  "toy_block_6 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_6 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_7 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_7 | place_upright": {
+   "nominal": "fail@lifted"
+  },
+  "toy_block_7 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_7 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  },
+  "toy_block_8 | pick_lift_hold": {
+   "nominal": "PASS"
+  },
+  "toy_block_8 | place_upright": {
+   "nominal": "fail@lifted"
+  },
+  "toy_block_8 | into_container -> black_bowl": {
+   "nominal": "PASS"
+  },
+  "toy_block_8 | stack -> toy_block_1": {
+   "nominal": "PASS"
+  }
+ },
+ "seconds_total": 538.6
+}

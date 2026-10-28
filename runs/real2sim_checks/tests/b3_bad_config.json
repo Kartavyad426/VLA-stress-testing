@@ -1,0 +1,53 @@
+{
+ "_doc": "B3 general scripted-expert test (REAL2SIM_CHECKLIST_V1 B3, B4, B5). Every number here is a choice, not a measurement; change it here, not in the script. Distances in m, times in s, angles in deg.",
+ "gripper_max_width_m": 0.085,
+ "grasp_min_above_table_m": 0.015,
+ "approach_above_m": 0.12,
+ "_approach_correct_doc": "after the descend, re-aim on the measured fingertip error up to this many times (0 = make_tasks' open-loop expert)",
+ "approach_correct_iters": 3,
+ "approach_correct_tol_m": 0.002,
+ "approach_correct_s": 0.5,
+ "lift_m": 0.1,
+ "hold_s": 2.0,
+ "place_offset_m": 0.1,
+ "table_margin_m": 0.05,
+ "probes": [
+  "pick_lift_hold",
+  "place_upright",
+  "into_container",
+  "stack"
+ ],
+ "pass": {
+  "lift_min_m": 0.08,
+  "slip_max_m": 0.01,
+  "place_xy_tol_m": 0.02,
+  "place_z_tol_m": 0.01,
+  "upright_max_deg": 10.0,
+  "container_rim_frac": 0.8
+ },
+ "timing_s": {
+  "approach": 2.0,
+  "descend": 1.5,
+  "close": 1.0,
+  "lift": 1.5,
+  "carry": 2.0,
+  "lower": 1.0,
+  "open": 0.8,
+  "retreat": 1.2,
+  "settle": 0.8,
+  "start_settle": 0.5
+ },
+ "sweeps": {
+  "bad_friction_x0.05": {
+   "friction": 0.05
+  }
+ },
+ "_friction_doc": "MuJoCo takes the larger sliding friction of the two touching geoms, so scaling only the object would do nothing while the pads are higher. 'object_and_pads' scales the object's geoms and the gripper pads' collision geoms by the same factor (table unchanged); the effective pad-object value is recorded.",
+ "friction_scope": "object_and_pads",
+ "video": {
+  "sweeps": [],
+  "camera": "ext",
+  "width": 320,
+  "height": 180
+ }
+}

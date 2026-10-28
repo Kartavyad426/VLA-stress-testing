@@ -1,0 +1,17 @@
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+ext 0 None {"black_bowl": 2.33, "green_block": 0.81, "orange_block": 1.16, "yellow_block": 1.23} table spread 1.36 (20.3 s)
+wrist 0 None {"black_bowl": 2.29, "green_block": 0.9, "orange_block": -12.92, "yellow_block": -0.09} table spread 4.57 (22.1 s)
+wrist 32 None {"black_bowl": 2.7, "green_block": 1.15, "orange_block": 0.74, "yellow_block": 1.25} table spread 1.67 (22.3 s)
+wrist 52 None {"black_bowl": -7.32, "green_block": null, "orange_block": 1.43, "yellow_block": 2.87} table spread 2.3 (21.8 s)
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/ep_orange_block_stereo/moge_check.json (94.1 s)

@@ -1,0 +1,449 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Scene Checks v1</title><style>:root{--bg:#fbfaf7;--fg:#1f1c17;--muted:#6b645a;--line:#e2ddd3;--card:#f3efe7;--accent:#7a5c2e;--bad:#a3321f;--ok:#2f6b3a;--warn:#8a6a12}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150f;--fg:#ebe6dc;--muted:#a69e90;--line:#363127;--card:#211e17;--accent:#c9a46a;--bad:#ee8a76;--ok:#86c994;--warn:#e0c060}}
+:root[data-theme="dark"]{--bg:#17150f;--fg:#ebe6dc;--muted:#a69e90;--line:#363127;--card:#211e17;--accent:#c9a46a;--bad:#ee8a76;--ok:#86c994;--warn:#e0c060}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:28px 16px}
+main{max-width:1180px;margin:0 auto}h1{font-size:1.6rem;margin:.1em 0 .2em}h2{font-size:1.2rem;margin:2em 0 .5em;padding-bottom:.25em;border-bottom:2px solid var(--accent)}
+h3{font-size:1.02rem;margin:1.4em 0 .4em;color:var(--accent)}a{color:var(--accent)}.meta{color:var(--muted);font-size:.86rem}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:12px 16px;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.4em 0}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--card);font-weight:600}td.n{font-variant-numeric:tabular-nums;white-space:nowrap}.wrap{overflow-x:auto}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.warn{color:var(--warn);font-weight:600}.mut{color:var(--muted)}
+img{max-width:100%;border-radius:4px;display:block;margin:6px 0}figure{margin:8px 0}figcaption{font-size:.8rem;color:var(--muted)}
+nav a{margin-right:12px;font-size:.88rem}details{margin:.4em 0}summary{cursor:pointer;color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+video{max-width:320px;width:100%;border-radius:4px}</style></head><body><main>
+<h1>Scene checks v1: results</h1>
+<p class='meta'>implres31 · generated 2026-10-28 15:18 by <code>experiments/real2sim_checks/report_page.py</code> (worktree <code>../VLA-exp-real2sim-checks</code>, branch <code>exp/real2sim-checks</code>) · checks from <a href='../../docs/REAL2SIM_CHECKLIST_V1.html'>REAL2SIM_CHECKLIST_V1</a> · internal, exploratory, numbers UNVERIFIED (the user is the checker) · <b>nothing here gates</b>: every check writes numbers, no build stops and no scene is dropped.</p>
+<nav><a href='#ep_orange_block_stereo'>ep_orange_block_stereo</a><a href='#c11'>c11</a><a href='#c1b'>c1b</a><a href='#c3h'>c3h</a><a href='#c9'>c9</a><a href='#tests'>known-bad tests</a><a href='#notrun'>not run</a><a href='#log'>decision log</a></nav>
+<h2>Short answers</h2><div class='card'><ul><li><b>Orange (reference):</b> the scripted expert picks, lifts, places, puts in the bowl and stacks every block, at nominal and at mass/friction ×0.5 and ×2. Its weak points are visual: in the wrist view our blocks are drawn 1–1.7 cm off the real ones (K3 reproduced), the sim table's edges sit ~3 cm inside the real ones, the wrist composite has ~1.6× the real shadow area (30% vs 19% of the table), and objects render darker than real in the exterior view.</li><li><b>The checks catch known errors:</b> a camera moved 2 cm along its line of sight or tilted 3° makes the wrist offsets grow ~1.5–2.5 cm; a hidden object is flagged; low friction fails every expert probe; a 2 cm depth shift shows in MoGe's exterior residual. See the known-bad table.</li><li><b>The 10-27 calibration-test scenes</b> were built from calibrations already known to be wrong (K13/K14); the checks are shown on them as a second, harder test, not as scene verdicts.</li><li><b>Not run:</b> C6/C7's GPU parts, and every composite-based check (C1–C5, D6, contact shadows) on scenes without composite caches.</li></ul></div>
+<h2>Across scenes</h2>
+<div class="wrap"><table><tr><th>scene</th><th>B3 expert (nominal; sweeps)</th><th>D3 objects drawn</th><th>D1 wrist offset (median per object)</th><th>D1 FAR (misplaced)</th><th>A2 wrist table edge</th><th>D5 contacts</th></tr>
+<tr><td><b>ep_orange_block_stereo</b><br><span class='mut'>reference scene (orange booth, rebuilt 10-20); the only one with composite caches</span></td><td><span class='ok'>12/12</span><br><span class='mut'>mass_x0.5 12/12, mass_x2 12/12, friction_x0.5 12/12, friction_x2 12/12</span></td><td><span class='ok'>all drawn</span></td><td>1.1–1.7 cm<br><span class='mut'>unwitnessed: black_bowl</span></td><td>none</td><td>3.0 cm</td><td><span class='ok'>all on the table</span></td></tr>
+<tr><td><b>c11</b><br><span class='mut'>10-27 calibration test, built from the anchored calibration that K13 found wrong (objects 13–21 cm from the real grasps)</span></td><td><span class='ok'>8/8</span><br><span class='mut'>—</span></td><td><span class='ok'>all drawn</span></td><td>—<br><span class='mut'>unwitnessed: bowl</span></td><td><span class='bad'>block_1 (wrist), block_1 (ext), block_2 (wrist), block_2 (ext), bowl (ext)</span></td><td>3.8 cm</td><td><span class='ok'>all on the table</span></td></tr>
+<tr><td><b>c1b</b><br><span class='mut'>10-27 calibration test, broken build (K13: rotated 39°, cups placed far away and fallen to the floor)</span></td><td><span class='bad'>8/18</span><br><span class='mut'>—</span></td><td><span class='bad'>2: cup_1, cup_2</span></td><td>—<br><span class='mut'>unwitnessed: block_1, bowl, cup_1, cup_2</span></td><td><span class='bad'>block_2 (wrist), block_2 (ext), block_3 (wrist)</span></td><td>12.0 cm</td><td><span class='bad'>cup_1 (FLOOR (off the table)); cup_2 (FLOOR (off the table))</span></td></tr>
+<tr><td><b>c3h</b><br><span class='mut'>10-27 calibration test with hand prompts; anchored calibration (K13: overlap 0.27 → 0.15)</span></td><td><span class='bad'>32/38</span><br><span class='mut'>—</span></td><td><span class='ok'>all drawn</span></td><td>—<br><span class='mut'>unwitnessed: black_bowl, red_radish_1, toy_block_1, toy_block_5</span></td><td><span class='bad'>apple_1 (wrist), apple_1 (ext), black_bowl (ext), toy_block_2 (wrist), toy_block_3 (wrist), toy_block_4 (wrist), toy_block_4 (ext), toy_block_6 (wrist), toy_block_6 (ext), toy_block_7 (wrist), toy_block_8 (wrist), toy_block_8 (ext)</span></td><td>2.6 cm</td><td><span class='ok'>all on the table</span></td></tr>
+<tr><td><b>c9</b><br><span class='mut'>10-27 calibration test; stopped at the stereo table step (K14), built from the outline-only fit</span></td><td><span class='bad'>3/6</span><br><span class='mut'>—</span></td><td><span class='bad'>1: hammer</span></td><td>—<br><span class='mut'>unwitnessed: bowl, cup, hammer</span></td><td><span class='bad'>bowl (ext)</span></td><td>1.3 cm</td><td><span class='ok'>all on the table</span></td></tr>
+</table></div>
+<h2 id='tests'>Known-bad tests (does each check notice an error we put in?)</h2><div class="wrap"><table><tr><th>check</th><th>injected error</th><th>expected</th><th>observed</th><th>result</th></tr>
+<tr><td>B3</td><td>orange, bad_friction_x0.05</td><td>every probe fails</td><td>0/12 pass</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>D3</td><td>orange, yellow block drawn nowhere (alpha 0), physics kept</td><td>error</td><td>exterior: INVISIBLE although in view; wrist: INVISIBLE although in view</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>D1 wrist</td><td>orange copy: exterior camera +2 cm along its line of sight</td><td>offsets grow</td><td>green_block 1.2→2.6 cm; orange_block 1.7→2.7 cm; yellow_block 1.1→2.7 cm</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>A2 wrist</td><td>orange copy: exterior camera +2 cm along its line of sight</td><td>edge distance grows</td><td>2.95 → 3.65 cm</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>D1 wrist</td><td>orange copy: exterior camera tilted 3°</td><td>offsets grow</td><td>green_block 1.2→4.0 cm; orange_block 1.7→3.7 cm; yellow_block 1.1→3.5 cm</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>A2 wrist</td><td>orange copy: exterior camera tilted 3°</td><td>edge distance grows</td><td>2.95 → 3.17 cm</td><td><span class='warn'>small change</span></td></tr>
+<tr><td>D1 wrist</td><td>orange copy: exterior camera 2 cm sideways</td><td>offsets grow</td><td>green_block 1.2→2.4 cm; orange_block 1.7→1.0 cm; yellow_block 1.1→1.8 cm</td><td><span class='warn'>partly</span></td></tr>
+<tr><td>A2 wrist</td><td>orange copy: exterior camera 2 cm sideways</td><td>edge distance grows</td><td>2.95 → 2.65 cm</td><td><span class='warn'>small change</span></td></tr>
+<tr><td>D6</td><td>orange block 2 cm higher in the sim depth only (ext frame 0)</td><td>its residual moves ~2 cm</td><td>+1.16 → +4.07 cm (table spread 1.36 cm)</td><td><span class='ok'>caught</span></td></tr>
+<tr><td>D6</td><td>orange block 2 cm higher in the sim depth only (wrist frame 0)</td><td>its residual moves ~2 cm</td><td>-12.92 → -27.12 cm (table spread 4.57 cm)</td><td><span class='warn'>too noisy to read</span></td></tr>
+</table></div>
+<h2 id='ep_orange_block_stereo'>ep_orange_block_stereo</h2><p class='meta'>reference scene (orange booth, rebuilt 10-20); the only one with composite caches</p>
+<h3>B3 · general scripted-expert test (+ B4 mass, B5 friction sweeps)</h3><p class='meta'>Hover a cell for why it stopped. Stages: reached → closed → lifted → held / placed. UNSTABLE = MuJoCo reset the state (not a fail).</p><div class="wrap"><table><tr><th>object | probe</th><th>nominal</th><th>mass_x0.5</th><th>mass_x2</th><th>friction_x0.5</th><th>friction_x2</th><th>nominal video</th></tr>
+<tr><td>green_block | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/green_block__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>green_block | place_upright</td><td><span class='ok' title='xy 0.2 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.2 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.3 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/green_block__place_upright.mp4'>video</a></td></tr>
+<tr><td>green_block | into_container -&gt; black_bowl</td><td><span class='ok' title='0.1 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.3 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.2 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.3 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.2 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/green_block__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>green_block | stack -&gt; orange_block</td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.5 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.6 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.2 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/green_block__stack__orange_block.mp4'>video</a></td></tr>
+<tr><td>orange_block | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/orange_block__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>orange_block | place_upright</td><td><span class='ok' title='xy 0.5 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.5 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.5 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.4 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.6 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/orange_block__place_upright.mp4'>video</a></td></tr>
+<tr><td>orange_block | into_container -&gt; black_bowl</td><td><span class='ok' title='0.4 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.4 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.3 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.3 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.4 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/orange_block__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>orange_block | stack -&gt; green_block</td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.5 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/orange_block__stack__green_block.mp4'>video</a></td></tr>
+<tr><td>yellow_block | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><span class='ok' title=''>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/yellow_block__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>yellow_block | place_upright</td><td><span class='ok' title='xy 0.4 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.4 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><span class='ok' title='xy 0.4 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/yellow_block__place_upright.mp4'>video</a></td></tr>
+<tr><td>yellow_block | into_container -&gt; black_bowl</td><td><span class='ok' title='1.0 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='1.1 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.7 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.7 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><span class='ok' title='0.2 cm from the container centre (rim 8.5 cm), bottom below the rim'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/yellow_block__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>yellow_block | stack -&gt; green_block</td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.3 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='ep_orange_block_stereo/expert_probe/yellow_block__stack__green_block.mp4'>video</a></td></tr>
+</table></div>
+<p class='meta'>Frames (before anything is touched): [0, 10, 21, 32, 42, 52]. Composite: scene_review --wrist v2 --wrist_blur gripper.</p>
+<h3>D3 · nothing physical that's invisible</h3>
+<div class="wrap"><table><tr><th>object</th><th>exterior</th><th>wrist</th><th>error</th></tr>
+<tr><td>black_bowl</td><td>visible (2059 px)</td><td>visible (12404 px)</td><td>no</td></tr>
+<tr><td>green_block</td><td>visible (236 px)</td><td>visible (1390 px)</td><td>no</td></tr>
+<tr><td>orange_block</td><td>visible (398 px)</td><td>visible (4561 px)</td><td>no</td></tr>
+<tr><td>yellow_block</td><td>visible (233 px)</td><td>visible (2569 px)</td><td>no</td></tr>
+</table></div>
+<h3>D1 · objects drawn where physics has them</h3><p class='meta'>Offset real − sim centroid in cm at the object's depth, median over frames; wrist = independent witness (pose from the joints); exterior = the camera the scene was built from (compares the build with its own input). FAR = the real object was found, but nowhere near the sim one.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>frames</th><th>offset cm</th><th>dx</th><th>dy</th><th>IoU</th><th>label</th><th>frames skipped</th></tr>
+<tr><td>black_bowl</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim touches the image edge: 6</td></tr>
+<tr><td>black_bowl</td><td>ext</td><td>6</td><td>0.47</td><td>0.46</td><td>-0.03</td><td>0.76</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>green_block</td><td>wrist</td><td>3</td><td>1.16</td><td>1.16</td><td>-0.10</td><td>0.48</td><td><span class=''>measured</span></td><td>sim touches the image edge: 1, sim &lt; 100 px: 2</td></tr>
+<tr><td>green_block</td><td>ext</td><td>6</td><td>0.06</td><td>-0.06</td><td>-0.02</td><td>0.80</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>orange_block</td><td>wrist</td><td>3</td><td>1.67</td><td>0.02</td><td>-1.67</td><td>0.36</td><td><span class=''>measured</span></td><td>sim &lt; 100 px: 1</td></tr>
+<tr><td>orange_block</td><td>ext</td><td>6</td><td>0.04</td><td>0.01</td><td>0.01</td><td>0.83</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>yellow_block</td><td>wrist</td><td>4</td><td>1.09</td><td>0.64</td><td>-0.63</td><td>0.43</td><td><span class=''>measured</span></td><td>real touches the image edge: 2</td></tr>
+<tr><td>yellow_block</td><td>ext</td><td>6</td><td>0.25</td><td>0.25</td><td>0.03</td><td>0.67</td><td><span class=''>measured</span></td><td></td></tr>
+</table></div>
+<div class='grid2'><figure><a href="ep_orange_block_stereo/image_checks/d1_wrist.jpg"><img src="ep_orange_block_stereo/image_checks/d1_wrist.jpg" alt="wrist: white = sim, black = real (red = nearest real, FAR)" loading="lazy"></a><figcaption>wrist: white = sim, black = real (red = nearest real, FAR)</figcaption></figure><figure><a href="ep_orange_block_stereo/image_checks/d1_ext.jpg"><img src="ep_orange_block_stereo/image_checks/d1_ext.jpg" alt="exterior: white = sim, black = real" loading="lazy"></a><figcaption>exterior: white = sim, black = real</figcaption></figure></div>
+<h3>A2 · table extent and edges</h3>
+<div class="wrap"><table><tr><th>view</th><th>frames</th><th>table IoU</th><th>edge distance cm (median)</th><th>independent</th><th>label</th></tr>
+<tr><td>ext</td><td>6</td><td>0.85</td><td>1.9</td><td>False</td><td>measured</td></tr>
+<tr><td>wrist</td><td>6</td><td>0.77</td><td>3.0</td><td>True</td><td>measured</td></tr>
+</table></div>
+<p class='meta'>Each object's distance to the nearest built table edge (cm): {&#x27;black_bowl&#x27;: 24.9, &#x27;green_block&#x27;: 14.3, &#x27;orange_block&#x27;: 26.3, &#x27;yellow_block&#x27;: 21.5}</p>
+<div class='grid2'><figure><a href="ep_orange_block_stereo/image_checks/a2_wrist.jpg"><img src="ep_orange_block_stereo/image_checks/a2_wrist.jpg" alt="wrist: white = sim table, black = real table" loading="lazy"></a><figcaption>wrist: white = sim table, black = real table</figcaption></figure><figure><a href="ep_orange_block_stereo/image_checks/a2_ext.jpg"><img src="ep_orange_block_stereo/image_checks/a2_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure></div>
+<h3>D5 · contacts</h3>
+<div class="wrap"><table><tr><th>object</th><th>rests on</th><th>bottom − table cm</th><th>deepest contact cm</th><th>contact shadow ext (ours/real)</th><th>contact shadow wrist</th></tr>
+<tr><td>black_bowl</td><td><span class=''>table</span></td><td>-0.00</td><td>-0.003</td><td>{&#x27;ours&#x27;: 0.909, &#x27;real&#x27;: 0.943}</td><td>{&#x27;ours&#x27;: 0.917, &#x27;real&#x27;: 0.924}</td></tr>
+<tr><td>green_block</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>{&#x27;ours&#x27;: 0.901, &#x27;real&#x27;: 0.909}</td><td>{&#x27;ours&#x27;: 0.978, &#x27;real&#x27;: 0.807}</td></tr>
+<tr><td>orange_block</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>{&#x27;ours&#x27;: 0.929, &#x27;real&#x27;: 0.964}</td><td>{&#x27;ours&#x27;: 0.751, &#x27;real&#x27;: 0.923}</td></tr>
+<tr><td>yellow_block</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>{&#x27;ours&#x27;: 0.927, &#x27;real&#x27;: 0.947}</td><td>{&#x27;ours&#x27;: 0.856, &#x27;real&#x27;: 0.932}</td></tr>
+</table></div>
+<h3>C1 · similarity per region (policy's 320×180)</h3><p class='meta'>Colour error: mean |ours − real| per channel (0–1); edge F1: Canny edges within 1 px; sharpness: Laplacian variance ours/real (&gt;1 = ours sharper). composite: scene_review --wrist v2 --wrist_blur gripper. Region masks come from the sim; where the sim draws an object off the real one (D1), its region mixes look and placement.</p>
+<div class="wrap"><table><tr><th>view</th><th>region</th><th>colour err</th><th>colour err (exposure-matched)</th><th>edge F1</th><th>sharpness ratio</th><th>frames</th></tr>
+<tr><td>ext</td><td>table</td><td>0.032</td><td>0.035</td><td>0.89</td><td>1.41</td><td>6</td></tr>
+<tr><td>ext</td><td>robot</td><td>0.192</td><td>0.192</td><td>0.65</td><td>1.81</td><td>6</td></tr>
+<tr><td>ext</td><td>black_bowl</td><td>0.100</td><td>0.099</td><td>0.77</td><td>2.32</td><td>6</td></tr>
+<tr><td>ext</td><td>green_block</td><td>0.069</td><td>0.063</td><td>0.98</td><td>1.68</td><td>6</td></tr>
+<tr><td>ext</td><td>orange_block</td><td>0.130</td><td>0.125</td><td>0.86</td><td>4.33</td><td>6</td></tr>
+<tr><td>ext</td><td>yellow_block</td><td>0.162</td><td>0.153</td><td>0.81</td><td>3.76</td><td>6</td></tr>
+<tr><td>ext</td><td>background</td><td>0.021</td><td>0.030</td><td>0.95</td><td>0.96</td><td>6</td></tr>
+<tr><td>wrist</td><td>table</td><td>0.084</td><td>0.085</td><td>0.38</td><td>1.93</td><td>6</td></tr>
+<tr><td>wrist</td><td>gripper</td><td>0.032</td><td>0.035</td><td>0.80</td><td>2.64</td><td>6</td></tr>
+<tr><td>wrist</td><td>black_bowl</td><td>0.147</td><td>0.147</td><td>0.14</td><td>6.76</td><td>6</td></tr>
+<tr><td>wrist</td><td>green_block</td><td>0.185</td><td>0.178</td><td>0.40</td><td>7.49</td><td>4</td></tr>
+<tr><td>wrist</td><td>orange_block</td><td>0.175</td><td>0.161</td><td>0.38</td><td>3.36</td><td>5</td></tr>
+<tr><td>wrist</td><td>yellow_block</td><td>0.230</td><td>0.217</td><td>0.53</td><td>13.26</td><td>6</td></tr>
+<tr><td>wrist</td><td>background</td><td>0.116</td><td>0.113</td><td>0.56</td><td>1.73</td><td>5</td></tr>
+</table></div>
+<figure><a href="ep_orange_block_stereo/image_checks/c1_wrist.jpg"><img src="ep_orange_block_stereo/image_checks/c1_wrist.jpg" alt="wrist: real | ours, first frames" loading="lazy"></a><figcaption>wrist: real | ours, first frames</figcaption></figure><figure><a href="ep_orange_block_stereo/image_checks/c1_ext.jpg"><img src="ep_orange_block_stereo/image_checks/c1_ext.jpg" alt="exterior: real | ours" loading="lazy"></a><figcaption>exterior: real | ours</figcaption></figure>
+<h3>C2 · background ghosts</h3><p class='meta'>(a) counts: one detector call per noun on our composite and on the real frame, robot masked; ghost_suspect = more instances on our composite than both the sim objects visible and the real frame; unbuilt_or_false_positive = an extra instance on both our composite and the real frame. (b) residue: magenta = background pixels (away from sim and real foreground) differing by &gt; 40/255 after exposure matching.</p>
+<div class="wrap"><table><tr><th>view</th><th>residue share (median)</th><th>ghost-suspect frames</th><th>unbuilt-or-false-positive frames</th></tr>
+<tr><td>ext</td><td>0.015</td><td>[]</td><td>[]</td></tr>
+<tr><td>wrist</td><td>0.136</td><td>[0]</td><td>[10, 52]</td></tr>
+</table></div>
+<figure><a href="ep_orange_block_stereo/image_checks/c2_residue_wrist.jpg"><img src="ep_orange_block_stereo/image_checks/c2_residue_wrist.jpg" alt="wrist: real with residue in magenta | ours" loading="lazy"></a><figcaption>wrist: real with residue in magenta | ours</figcaption></figure><figure><a href="ep_orange_block_stereo/image_checks/c2_residue_ext.jpg"><img src="ep_orange_block_stereo/image_checks/c2_residue_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure>
+<h3>C3 · wrist table-texture coverage</h3>
+<div class="wrap"><table><tr><th>measure</th><th>share observed (real texture)</th></tr>
+<tr><td>wrist view, table pixels (median over frames)</td><td>0.63</td></tr>
+<tr><td>reachable table (≤ 0.855 m from the base)</td><td>0.46</td></tr>
+<tr><td>whole table</td><td>0.39</td></tr>
+<tr><td>around black_bowl (0-3cm)</td><td>0.00</td></tr>
+<tr><td>around black_bowl (3-6cm)</td><td>0.00</td></tr>
+<tr><td>around green_block (0-3cm)</td><td>0.00</td></tr>
+<tr><td>around green_block (3-6cm)</td><td>0.56</td></tr>
+<tr><td>around orange_block (0-3cm)</td><td>0.00</td></tr>
+<tr><td>around orange_block (3-6cm)</td><td>0.57</td></tr>
+<tr><td>around yellow_block (0-3cm)</td><td>0.00</td></tr>
+<tr><td>around yellow_block (3-6cm)</td><td>0.41</td></tr>
+</table></div>
+<h3>C4 · light per view</h3><p class='meta'>fit_iou: overlap of the real dark mask with the sim shadow at the fitted light (res31&#x27;s fits); best_minus_second: gap to the runner-up direction (small = flat optimum, the direction is a guess); shadow_share: share of visible table pixels (robot/objects excluded) darker than 0.85x their 31-px neighbourhood median (sharp shadows); broad_ = darker than 0.85x the visible table&#x27;s median (wide shadows; also counts darker wood), at the policy&#x27;s size.</p>
+<div class="wrap"><table><tr><th>view</th><th>fit overlap</th><th>gap to runner-up</th><th>real shadow darkness</th><th>sharp shadow share ours / real</th><th>broad shadow share ours / real</th></tr>
+<tr><td>ext</td><td>0.445</td><td>0.0702</td><td>0.84</td><td>0.011 / 0.008</td><td>0.245 / 0.190</td></tr>
+<tr><td>wrist</td><td>0.214</td><td>0.0001</td><td>0.75</td><td>0.029 / 0.036</td><td>0.305 / 0.191</td></tr>
+</table></div>
+<p class='meta'>Angle between the exterior and wrist light fits: 25.7°</p>
+<h3>C5 · objects as rendered</h3><p class='meta'>Median colour (0–1) inside the object; clipped = share of its pixels with a channel ≥ 250.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>ours RGB</th><th>real RGB</th><th>|error| per channel</th><th>ours clipped</th><th>frames</th></tr>
+<tr><td>black_bowl</td><td>ext</td><td>[0.057, 0.041, 0.029]</td><td>[0.116, 0.086, 0.063]</td><td>[0.059, 0.045, 0.034]</td><td><span class=''>0.00</span></td><td>6</td></tr>
+<tr><td>black_bowl</td><td>wrist</td><td>unwitnessed</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>green_block</td><td>ext</td><td>[0.118, 0.247, 0.184]</td><td>[0.236, 0.559, 0.443]</td><td>[0.118, 0.312, 0.259]</td><td><span class=''>0.00</span></td><td>6</td></tr>
+<tr><td>green_block</td><td>wrist</td><td>[0.286, 0.608, 0.451]</td><td>[0.204, 0.645, 0.502]</td><td>[0.082, 0.037, 0.051]</td><td><span class=''>0.00</span></td><td>3</td></tr>
+<tr><td>orange_block</td><td>ext</td><td>[0.424, 0.118, 0.004]</td><td>[0.676, 0.191, 0.012]</td><td>[0.252, 0.073, 0.008]</td><td><span class=''>0.00</span></td><td>6</td></tr>
+<tr><td>orange_block</td><td>wrist</td><td>[0.349, 0.094, 0.004]</td><td>[0.549, 0.2, 0.047]</td><td>[0.2, 0.106, 0.043]</td><td><span class=''>0.00</span></td><td>3</td></tr>
+<tr><td>yellow_block</td><td>ext</td><td>[0.486, 0.482, 0.227]</td><td>[0.872, 0.85, 0.356]</td><td>[0.387, 0.368, 0.129]</td><td><span class=''>0.00</span></td><td>6</td></tr>
+<tr><td>yellow_block</td><td>wrist</td><td>[0.996, 0.996, 0.467]</td><td>[0.922, 0.945, 0.424]</td><td>[0.075, 0.051, 0.044]</td><td><span class='bad'>0.60</span></td><td>4</td></tr>
+</table></div>
+<h3>D6 · MoGe relative check</h3><p class='meta'>residual = a*z_moge + b - z_reference (cm), fit on table pixels; object_vs_table_spread = |object residual - median table-patch residual| / p90 table-patch spread (&gt;1: stands out from the table). Heat images: composite | ours-vs-physics residual (red: MoGe farther, blue: nearer, +-5 cm) | real | real-vs-ours residual.</p>
+<div class="wrap"><table><tr><th>view</th><th>frame</th><th>variant</th><th>ours vs physics: object residual cm</th><th>table-patch spread cm (p90)</th><th>real vs ours: object residual cm</th></tr>
+<tr><td>ext</td><td>0</td><td></td><td>{&#x27;black_bowl&#x27;: 2.33, &#x27;green_block&#x27;: 0.81, &#x27;orange_block&#x27;: 1.16, &#x27;yellow_block&#x27;: 1.23}</td><td>1.36</td><td>{&#x27;black_bowl&#x27;: -1.52, &#x27;green_block&#x27;: -0.03, &#x27;orange_block&#x27;: -0.42, &#x27;yellow_block&#x27;: 0.74}</td></tr>
+<tr><td>wrist</td><td>0</td><td></td><td>{&#x27;black_bowl&#x27;: 2.29, &#x27;green_block&#x27;: 0.9, &#x27;orange_block&#x27;: -12.92, &#x27;yellow_block&#x27;: -0.09}</td><td>4.57</td><td>{&#x27;black_bowl&#x27;: 2.0, &#x27;green_block&#x27;: -0.09, &#x27;orange_block&#x27;: 5.03, &#x27;yellow_block&#x27;: 0.52}</td></tr>
+<tr><td>wrist</td><td>32</td><td></td><td>{&#x27;black_bowl&#x27;: 2.7, &#x27;green_block&#x27;: 1.15, &#x27;orange_block&#x27;: 0.74, &#x27;yellow_block&#x27;: 1.25}</td><td>1.67</td><td>{&#x27;black_bowl&#x27;: 0.43, &#x27;green_block&#x27;: -0.39, &#x27;orange_block&#x27;: -0.95, &#x27;yellow_block&#x27;: -0.82}</td></tr>
+<tr><td>wrist</td><td>52</td><td></td><td>{&#x27;black_bowl&#x27;: -7.32, &#x27;green_block&#x27;: None, &#x27;orange_block&#x27;: 1.43, &#x27;yellow_block&#x27;: 2.87}</td><td>2.30</td><td>{&#x27;black_bowl&#x27;: -18.25, &#x27;green_block&#x27;: None, &#x27;orange_block&#x27;: -2.58, &#x27;yellow_block&#x27;: -0.08}</td></tr>
+</table></div>
+<figure><a href="ep_orange_block_stereo/moge_check/ext_f0.jpg"><img src="ep_orange_block_stereo/moge_check/ext_f0.jpg" alt="ext frame 0: composite | residual vs physics | real | residual real vs ours" loading="lazy"></a><figcaption>ext frame 0: composite | residual vs physics | real | residual real vs ours</figcaption></figure>
+<figure><a href="ep_orange_block_stereo/moge_check/wrist_f0.jpg"><img src="ep_orange_block_stereo/moge_check/wrist_f0.jpg" alt="wrist frame 0: composite | residual vs physics | real | residual real vs ours" loading="lazy"></a><figcaption>wrist frame 0: composite | residual vs physics | real | residual real vs ours</figcaption></figure>
+
+<h2 id='c11'>c11</h2><p class='meta'>10-27 calibration test, built from the anchored calibration that K13 found wrong (objects 13–21 cm from the real grasps)</p>
+<h3>B3 · general scripted-expert test (+ B4 mass, B5 friction sweeps)</h3><p class='meta'>Hover a cell for why it stopped. Stages: reached → closed → lifted → held / placed. UNSTABLE = MuJoCo reset the state (not a fail).</p><div class="wrap"><table><tr><th>object | probe</th><th>nominal</th><th>nominal video</th></tr>
+<tr><td>block_1 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c11/expert_probe/block_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>block_1 | place_upright</td><td><span class='ok' title='xy 0.6 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c11/expert_probe/block_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>block_1 | into_container -&gt; bowl</td><td><span class='ok' title='0.1 cm from the container centre (rim 8.3 cm), bottom below the rim'>PASS</span></td><td><a href='c11/expert_probe/block_1__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>block_1 | stack -&gt; block_2</td><td><span class='ok' title='0.6 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c11/expert_probe/block_1__stack__block_2.mp4'>video</a></td></tr>
+<tr><td>block_2 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c11/expert_probe/block_2__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>block_2 | place_upright</td><td><span class='ok' title='xy 0.5 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c11/expert_probe/block_2__place_upright.mp4'>video</a></td></tr>
+<tr><td>block_2 | into_container -&gt; bowl</td><td><span class='ok' title='0.3 cm from the container centre (rim 8.3 cm), bottom below the rim'>PASS</span></td><td><a href='c11/expert_probe/block_2__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>block_2 | stack -&gt; block_1</td><td><span class='ok' title='0.6 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c11/expert_probe/block_2__stack__block_1.mp4'>video</a></td></tr>
+</table></div>
+<p class='meta'>Frames (before anything is touched): [0, 9, 18, 27, 36, 46]. Composite: not requested.</p>
+<h3>D3 · nothing physical that's invisible</h3>
+<div class="wrap"><table><tr><th>object</th><th>exterior</th><th>wrist</th><th>error</th></tr>
+<tr><td>block_1</td><td>visible (262 px)</td><td>visible (824 px)</td><td>no</td></tr>
+<tr><td>block_2</td><td>visible (157 px)</td><td>visible (3859 px)</td><td>no</td></tr>
+<tr><td>bowl</td><td>visible (1194 px)</td><td>visible (4304 px)</td><td>no</td></tr>
+</table></div>
+<h3>D1 · objects drawn where physics has them</h3><p class='meta'>Offset real − sim centroid in cm at the object's depth, median over frames; wrist = independent witness (pose from the joints); exterior = the camera the scene was built from (compares the build with its own input). FAR = the real object was found, but nowhere near the sim one.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>frames</th><th>offset cm</th><th>dx</th><th>dy</th><th>IoU</th><th>label</th><th>frames skipped</th></tr>
+<tr><td>block_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 8.6 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 4</td></tr>
+<tr><td>block_1</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 7.7 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>block_2</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 15.5 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 3, sim touches the image edge: 1</td></tr>
+<tr><td>block_2</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 7.3 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>bowl</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 4, sim touches the image edge: 2</td></tr>
+<tr><td>bowl</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 18.2 cm away; may be another instance)</span></td><td></td></tr>
+</table></div>
+<div class='grid2'><figure><a href="c11/image_checks/d1_wrist.jpg"><img src="c11/image_checks/d1_wrist.jpg" alt="wrist: white = sim, black = real (red = nearest real, FAR)" loading="lazy"></a><figcaption>wrist: white = sim, black = real (red = nearest real, FAR)</figcaption></figure><figure><a href="c11/image_checks/d1_ext.jpg"><img src="c11/image_checks/d1_ext.jpg" alt="exterior: white = sim, black = real" loading="lazy"></a><figcaption>exterior: white = sim, black = real</figcaption></figure></div>
+<h3>A2 · table extent and edges</h3>
+<div class="wrap"><table><tr><th>view</th><th>frames</th><th>table IoU</th><th>edge distance cm (median)</th><th>independent</th><th>label</th></tr>
+<tr><td>ext</td><td>6</td><td>0.67</td><td>5.0</td><td>False</td><td>measured</td></tr>
+<tr><td>wrist</td><td>6</td><td>0.60</td><td>3.8</td><td>True</td><td>measured</td></tr>
+</table></div>
+<p class='meta'>Each object's distance to the nearest built table edge (cm): {&#x27;block_1&#x27;: 23.0, &#x27;block_2&#x27;: 24.0, &#x27;bowl&#x27;: 17.3}</p>
+<div class='grid2'><figure><a href="c11/image_checks/a2_wrist.jpg"><img src="c11/image_checks/a2_wrist.jpg" alt="wrist: white = sim table, black = real table" loading="lazy"></a><figcaption>wrist: white = sim table, black = real table</figcaption></figure><figure><a href="c11/image_checks/a2_ext.jpg"><img src="c11/image_checks/a2_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure></div>
+<h3>D5 · contacts</h3>
+<div class="wrap"><table><tr><th>object</th><th>rests on</th><th>bottom − table cm</th><th>deepest contact cm</th><th>contact shadow ext (ours/real)</th><th>contact shadow wrist</th></tr>
+<tr><td>block_1</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>block_2</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>bowl</td><td><span class=''>table</span></td><td>-0.00</td><td>-0.003</td><td>—</td><td>—</td></tr>
+</table></div>
+
+
+<h2 id='c1b'>c1b</h2><p class='meta'>10-27 calibration test, broken build (K13: rotated 39°, cups placed far away and fallen to the floor)</p>
+<h3>B3 · general scripted-expert test (+ B4 mass, B5 friction sweeps)</h3><p class='meta'>Hover a cell for why it stopped. Stages: reached → closed → lifted → held / placed. UNSTABLE = MuJoCo reset the state (not a fail).</p><div class="wrap"><table><tr><th>object | probe</th><th>nominal</th><th>nominal video</th></tr>
+<tr><td>block_1 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c1b/expert_probe/block_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>block_1 | place_upright</td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c1b/expert_probe/block_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>block_1 | into_container -&gt; bowl</td><td><span class='ok' title='0.5 cm from the container centre (rim 8.4 cm), bottom below the rim'>PASS</span></td><td><a href='c1b/expert_probe/block_1__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>block_1 | stack -&gt; block_2</td><td><span class='ok' title='0.1 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c1b/expert_probe/block_1__stack__block_2.mp4'>video</a></td></tr>
+<tr><td>block_2 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c1b/expert_probe/block_2__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>block_2 | place_upright</td><td><span class='ok' title='xy 0.2 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c1b/expert_probe/block_2__place_upright.mp4'>video</a></td></tr>
+<tr><td>block_2 | into_container -&gt; bowl</td><td><span class='ok' title='0.6 cm from the container centre (rim 8.4 cm), bottom below the rim'>PASS</span></td><td><a href='c1b/expert_probe/block_2__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>block_2 | stack -&gt; block_1</td><td><span class='ok' title='0.2 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c1b/expert_probe/block_2__stack__block_1.mp4'>video</a></td></tr>
+<tr><td>block_3 | pick_lift_hold</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/block_3__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>block_3 | place_upright</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/block_3__place_upright.mp4'>video</a></td></tr>
+<tr><td>block_3 | into_container -&gt; bowl</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/block_3__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>block_3 | stack -&gt; block_1</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/block_3__stack__block_1.mp4'>video</a></td></tr>
+<tr><td>cup_1 | pick_lift_hold</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>cup_1 | place_upright</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>cup_1 | into_container -&gt; bowl</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_1__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>cup_2 | pick_lift_hold</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_2__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>cup_2 | place_upright</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_2__place_upright.mp4'>video</a></td></tr>
+<tr><td>cup_2 | into_container -&gt; bowl</td><td><span class='bad' title='not both pads on the object after closing'>fail@reached</span></td><td><a href='c1b/expert_probe/cup_2__into_container__bowl.mp4'>video</a></td></tr>
+</table></div>
+<details><summary>Why each failure stopped (10)</summary><div class="wrap"><table><tr><th>object | probe</th><th>sweep</th><th>stopped</th></tr>
+<tr><td>block_3 | pick_lift_hold</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>block_3 | place_upright</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>block_3 | into_container -&gt; bowl</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>block_3 | stack -&gt; block_1</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_1 | pick_lift_hold</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_1 | place_upright</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_1 | into_container -&gt; bowl</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_2 | pick_lift_hold</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_2 | place_upright</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+<tr><td>cup_2 | into_container -&gt; bowl</td><td>nominal</td><td>not both pads on the object after closing</td></tr>
+</table></div></details>
+<p class='meta'>Frames (before anything is touched): [0, 14, 28, 42, 55, 69]. Composite: not requested.</p>
+<h3>D3 · nothing physical that's invisible</h3>
+<div class="wrap"><table><tr><th>object</th><th>exterior</th><th>wrist</th><th>error</th></tr>
+<tr><td>block_1</td><td>visible (145 px)</td><td>not in view before the first touch (0 px)</td><td>no</td></tr>
+<tr><td>block_2</td><td>visible (197 px)</td><td>visible (7400 px)</td><td>no</td></tr>
+<tr><td>block_3</td><td>visible (245 px)</td><td>visible (2640 px)</td><td>no</td></tr>
+<tr><td>bowl</td><td>visible (5783 px)</td><td>visible (78456 px)</td><td>no</td></tr>
+<tr><td>cup_1</td><td>visible (135 px)</td><td>0 px although its centre projects into the image (hidden behind something, or not drawn) (0 px)</td><td><span class='bad'>yes</span></td></tr>
+<tr><td>cup_2</td><td>0 px although its centre projects into the image (hidden behind something, or not drawn) (0 px)</td><td>0 px although its centre projects into the image (hidden behind something, or not drawn) (0 px)</td><td><span class='bad'>yes</span></td></tr>
+</table></div>
+<h3>D1 · objects drawn where physics has them</h3><p class='meta'>Offset real − sim centroid in cm at the object's depth, median over frames; wrist = independent witness (pose from the joints); exterior = the camera the scene was built from (compares the build with its own input). FAR = the real object was found, but nowhere near the sim one.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>frames</th><th>offset cm</th><th>dx</th><th>dy</th><th>IoU</th><th>label</th><th>frames skipped</th></tr>
+<tr><td>block_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>block_1</td><td>ext</td><td>6</td><td>0.57</td><td>-0.49</td><td>0.30</td><td>0.25</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>block_2</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 10.6 cm away; may be another instance)</span></td><td>sim touches the image edge: 1, sim &lt; 100 px: 2</td></tr>
+<tr><td>block_2</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 23.6 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 4</td></tr>
+<tr><td>block_3</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 21.1 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 3</td></tr>
+<tr><td>block_3</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim touches the image edge: 6</td></tr>
+<tr><td>bowl</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim touches the image edge: 6</td></tr>
+<tr><td>bowl</td><td>ext</td><td>6</td><td>3.83</td><td>3.25</td><td>2.13</td><td>0.59</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>cup_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>cup_1</td><td>ext</td><td>6</td><td>7.17</td><td>3.46</td><td>-6.28</td><td>0.08</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>cup_2</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>cup_2</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+</table></div>
+<div class='grid2'><figure><a href="c1b/image_checks/d1_wrist.jpg"><img src="c1b/image_checks/d1_wrist.jpg" alt="wrist: white = sim, black = real (red = nearest real, FAR)" loading="lazy"></a><figcaption>wrist: white = sim, black = real (red = nearest real, FAR)</figcaption></figure><figure><a href="c1b/image_checks/d1_ext.jpg"><img src="c1b/image_checks/d1_ext.jpg" alt="exterior: white = sim, black = real" loading="lazy"></a><figcaption>exterior: white = sim, black = real</figcaption></figure></div>
+<h3>A2 · table extent and edges</h3>
+<div class="wrap"><table><tr><th>view</th><th>frames</th><th>table IoU</th><th>edge distance cm (median)</th><th>independent</th><th>label</th></tr>
+<tr><td>ext</td><td>6</td><td>0.55</td><td>3.8</td><td>False</td><td>measured</td></tr>
+<tr><td>wrist</td><td>6</td><td>0.35</td><td>12.0</td><td>True</td><td>measured</td></tr>
+</table></div>
+<p class='meta'>Each object's distance to the nearest built table edge (cm): {&#x27;block_1&#x27;: 17.2, &#x27;block_2&#x27;: 19.4, &#x27;block_3&#x27;: 7.3, &#x27;bowl&#x27;: 18.8, &#x27;cup_1&#x27;: -111.6, &#x27;cup_2&#x27;: -14.1}</p>
+<div class='grid2'><figure><a href="c1b/image_checks/a2_wrist.jpg"><img src="c1b/image_checks/a2_wrist.jpg" alt="wrist: white = sim table, black = real table" loading="lazy"></a><figcaption>wrist: white = sim table, black = real table</figcaption></figure><figure><a href="c1b/image_checks/a2_ext.jpg"><img src="c1b/image_checks/a2_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure></div>
+<h3>D5 · contacts</h3>
+<div class="wrap"><table><tr><th>object</th><th>rests on</th><th>bottom − table cm</th><th>deepest contact cm</th><th>contact shadow ext (ours/real)</th><th>contact shadow wrist</th></tr>
+<tr><td>block_1</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>block_2</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>block_3</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>bowl</td><td><span class=''>table</span></td><td>-0.00</td><td>-0.003</td><td>—</td><td>—</td></tr>
+<tr><td>cup_1</td><td><span class='bad'>FLOOR (off the table)</span></td><td>-75.17</td><td>-0.002</td><td>—</td><td>—</td></tr>
+<tr><td>cup_2</td><td><span class='bad'>FLOOR (off the table)</span></td><td>-76.37</td><td>-0.007</td><td>—</td><td>—</td></tr>
+</table></div>
+
+
+<h2 id='c3h'>c3h</h2><p class='meta'>10-27 calibration test with hand prompts; anchored calibration (K13: overlap 0.27 → 0.15)</p>
+<h3>B3 · general scripted-expert test (+ B4 mass, B5 friction sweeps)</h3><p class='meta'>Hover a cell for why it stopped. Stages: reached → closed → lifted → held / placed. UNSTABLE = MuJoCo reset the state (not a fail).</p><div class="wrap"><table><tr><th>object | probe</th><th>nominal</th><th>nominal video</th></tr>
+<tr><td>apple_1 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/apple_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>apple_1 | place_upright</td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/apple_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>apple_1 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.1 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/apple_1__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>red_radish_1 | pick_lift_hold</td><td><span class='bad' title='rose 5.0 cm &lt; 8 cm'>fail@closed</span></td><td><a href='c3h/expert_probe/red_radish_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>red_radish_1 | place_upright</td><td><span class='bad' title='rose 5.0 cm &lt; 8 cm'>fail@closed</span></td><td><a href='c3h/expert_probe/red_radish_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>red_radish_1 | into_container -&gt; black_bowl</td><td><span class='bad' title='rose 5.0 cm &lt; 8 cm'>fail@closed</span></td><td><a href='c3h/expert_probe/red_radish_1__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_1 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_1__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_1 | place_upright</td><td><span class='ok' title='xy 0.8 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_1__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_1 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.6 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_1__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_1 | stack -&gt; toy_block_2</td><td><span class='ok' title='0.5 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_1__stack__toy_block_2.mp4'>video</a></td></tr>
+<tr><td>toy_block_2 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_2__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_2 | place_upright</td><td><span class='ok' title='xy 0.2 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_2__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_2 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.6 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_2__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_2 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.4 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_2__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_3 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_3__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_3 | place_upright</td><td><span class='ok' title='xy 0.1 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_3__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_3 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.3 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_3__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_3 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.1 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_3__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_4 | pick_lift_hold</td><td><span class='bad' title='during hold: rise 8.6 cm, slip 1.2 cm'>fail@lifted</span></td><td><a href='c3h/expert_probe/toy_block_4__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_4 | place_upright</td><td><span class='ok' title='xy 0.5 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_4__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_4 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.3 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_4__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_4 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.5 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_4__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_5 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_5__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_5 | place_upright</td><td><span class='ok' title='xy 0.3 cm, z +0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_5__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_5 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.5 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_5__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_5 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.3 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_5__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_6 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_6__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_6 | place_upright</td><td><span class='ok' title='xy 1.0 cm, z -0.0 cm, tilt 0 deg'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_6__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_6 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.6 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_6__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_6 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.9 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_6__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_7 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_7__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_7 | place_upright</td><td><span class='bad' title='after release: xy 1.4 cm, z +15.0 cm, tilt 10 deg'>fail@lifted</span></td><td><a href='c3h/expert_probe/toy_block_7__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_7 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.6 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_7__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_7 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.3 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_7__stack__toy_block_1.mp4'>video</a></td></tr>
+<tr><td>toy_block_8 | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c3h/expert_probe/toy_block_8__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>toy_block_8 | place_upright</td><td><span class='bad' title='after release: xy 6.4 cm, z +0.4 cm, tilt 97 deg'>fail@lifted</span></td><td><a href='c3h/expert_probe/toy_block_8__place_upright.mp4'>video</a></td></tr>
+<tr><td>toy_block_8 | into_container -&gt; black_bowl</td><td><span class='ok' title='0.4 cm from the container centre (rim 6.9 cm), bottom below the rim'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_8__into_container__black_bowl.mp4'>video</a></td></tr>
+<tr><td>toy_block_8 | stack -&gt; toy_block_1</td><td><span class='ok' title='0.0 cm off the lower block&#x27;s centre'>PASS</span></td><td><a href='c3h/expert_probe/toy_block_8__stack__toy_block_1.mp4'>video</a></td></tr>
+</table></div>
+<details><summary>Why each failure stopped (6)</summary><div class="wrap"><table><tr><th>object | probe</th><th>sweep</th><th>stopped</th></tr>
+<tr><td>red_radish_1 | pick_lift_hold</td><td>nominal</td><td>rose 5.0 cm &lt; 8 cm</td></tr>
+<tr><td>red_radish_1 | place_upright</td><td>nominal</td><td>rose 5.0 cm &lt; 8 cm</td></tr>
+<tr><td>red_radish_1 | into_container -&gt; black_bowl</td><td>nominal</td><td>rose 5.0 cm &lt; 8 cm</td></tr>
+<tr><td>toy_block_4 | pick_lift_hold</td><td>nominal</td><td>during hold: rise 8.6 cm, slip 1.2 cm</td></tr>
+<tr><td>toy_block_7 | place_upright</td><td>nominal</td><td>after release: xy 1.4 cm, z +15.0 cm, tilt 10 deg</td></tr>
+<tr><td>toy_block_8 | place_upright</td><td>nominal</td><td>after release: xy 6.4 cm, z +0.4 cm, tilt 97 deg</td></tr>
+</table></div></details>
+<p class='meta'>Frames (before anything is touched): [0, 10, 21, 32, 42, 52]. Composite: not requested.</p>
+<h3>D3 · nothing physical that's invisible</h3>
+<div class="wrap"><table><tr><th>object</th><th>exterior</th><th>wrist</th><th>error</th></tr>
+<tr><td>apple_1</td><td>visible (475 px)</td><td>visible (3389 px)</td><td>no</td></tr>
+<tr><td>black_bowl</td><td>visible (2043 px)</td><td>visible (25233 px)</td><td>no</td></tr>
+<tr><td>red_radish_1</td><td>visible (561 px)</td><td>visible (5403 px)</td><td>no</td></tr>
+<tr><td>toy_block_1</td><td>visible (815 px)</td><td>not in view before the first touch (0 px)</td><td>no</td></tr>
+<tr><td>toy_block_2</td><td>visible (462 px)</td><td>visible (2380 px)</td><td>no</td></tr>
+<tr><td>toy_block_3</td><td>visible (349 px)</td><td>visible (2785 px)</td><td>no</td></tr>
+<tr><td>toy_block_4</td><td>visible (313 px)</td><td>visible (1780 px)</td><td>no</td></tr>
+<tr><td>toy_block_5</td><td>visible (512 px)</td><td>visible (1622 px)</td><td>no</td></tr>
+<tr><td>toy_block_6</td><td>visible (356 px)</td><td>visible (2222 px)</td><td>no</td></tr>
+<tr><td>toy_block_7</td><td>visible (806 px)</td><td>visible (6428 px)</td><td>no</td></tr>
+<tr><td>toy_block_8</td><td>visible (140 px)</td><td>visible (1224 px)</td><td>no</td></tr>
+</table></div>
+<h3>D1 · objects drawn where physics has them</h3><p class='meta'>Offset real − sim centroid in cm at the object's depth, median over frames; wrist = independent witness (pose from the joints); exterior = the camera the scene was built from (compares the build with its own input). FAR = the real object was found, but nowhere near the sim one.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>frames</th><th>offset cm</th><th>dx</th><th>dy</th><th>IoU</th><th>label</th><th>frames skipped</th></tr>
+<tr><td>apple_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 21.3 cm away; may be another instance)</span></td><td>sim touches the image edge: 2, sim &lt; 100 px: 2</td></tr>
+<tr><td>apple_1</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 11.8 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>black_bowl</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>no detection of this noun: 4, sim touches the image edge: 2</td></tr>
+<tr><td>black_bowl</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 13.5 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>red_radish_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>no detection of this noun: 4, sim touches the image edge: 2</td></tr>
+<tr><td>red_radish_1</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>no detection of this noun: 6</td></tr>
+<tr><td>toy_block_1</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>toy_block_1</td><td>ext</td><td>6</td><td>0.77</td><td>-0.25</td><td>-0.72</td><td>0.62</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>toy_block_2</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 9.6 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 4</td></tr>
+<tr><td>toy_block_2</td><td>ext</td><td>6</td><td>3.69</td><td>-1.92</td><td>-3.15</td><td>0.05</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>toy_block_3</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 8.0 cm away; may be another instance)</span></td><td>sim touches the image edge: 2, sim &lt; 100 px: 2</td></tr>
+<tr><td>toy_block_3</td><td>ext</td><td>6</td><td>3.87</td><td>1.71</td><td>-3.47</td><td>0.09</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>toy_block_4</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 25.7 cm away; may be another instance)</span></td><td>sim touches the image edge: 3, sim &lt; 100 px: 2</td></tr>
+<tr><td>toy_block_4</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 7.0 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>toy_block_5</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim touches the image edge: 2, sim &lt; 100 px: 4</td></tr>
+<tr><td>toy_block_5</td><td>ext</td><td>6</td><td>0.63</td><td>0.20</td><td>-0.60</td><td>0.63</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>toy_block_6</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 25.7 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 2</td></tr>
+<tr><td>toy_block_6</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 8.7 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>toy_block_7</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 16.6 cm away; may be another instance)</span></td><td>sim touches the image edge: 2, sim &lt; 100 px: 2</td></tr>
+<tr><td>toy_block_7</td><td>ext</td><td>6</td><td>2.44</td><td>-0.96</td><td>-2.24</td><td>0.28</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>toy_block_8</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 22.0 cm away; may be another instance)</span></td><td>sim &lt; 100 px: 3</td></tr>
+<tr><td>toy_block_8</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 8.1 cm away; may be another instance)</span></td><td></td></tr>
+</table></div>
+<div class='grid2'><figure><a href="c3h/image_checks/d1_wrist.jpg"><img src="c3h/image_checks/d1_wrist.jpg" alt="wrist: white = sim, black = real (red = nearest real, FAR)" loading="lazy"></a><figcaption>wrist: white = sim, black = real (red = nearest real, FAR)</figcaption></figure><figure><a href="c3h/image_checks/d1_ext.jpg"><img src="c3h/image_checks/d1_ext.jpg" alt="exterior: white = sim, black = real" loading="lazy"></a><figcaption>exterior: white = sim, black = real</figcaption></figure></div>
+<h3>A2 · table extent and edges</h3>
+<div class="wrap"><table><tr><th>view</th><th>frames</th><th>table IoU</th><th>edge distance cm (median)</th><th>independent</th><th>label</th></tr>
+<tr><td>ext</td><td>6</td><td>0.50</td><td>1.1</td><td>False</td><td>measured</td></tr>
+<tr><td>wrist</td><td>6</td><td>0.40</td><td>2.6</td><td>True</td><td>measured</td></tr>
+</table></div>
+<p class='meta'>Each object's distance to the nearest built table edge (cm): {&#x27;apple_1&#x27;: 19.1, &#x27;black_bowl&#x27;: 16.1, &#x27;red_radish_1&#x27;: 11.7, &#x27;toy_block_1&#x27;: 9.4, &#x27;toy_block_2&#x27;: 11.8, &#x27;toy_block_3&#x27;: 15.8, &#x27;toy_block_4&#x27;: 17.6, &#x27;toy_block_5&#x27;: 9.5, &#x27;toy_block_6&#x27;: 17.6, &#x27;toy_block_7&#x27;: 14.2, &#x27;toy_block_8&#x27;: 17.5}</p>
+<div class='grid2'><figure><a href="c3h/image_checks/a2_wrist.jpg"><img src="c3h/image_checks/a2_wrist.jpg" alt="wrist: white = sim table, black = real table" loading="lazy"></a><figcaption>wrist: white = sim table, black = real table</figcaption></figure><figure><a href="c3h/image_checks/a2_ext.jpg"><img src="c3h/image_checks/a2_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure></div>
+<h3>D5 · contacts</h3>
+<div class="wrap"><table><tr><th>object</th><th>rests on</th><th>bottom − table cm</th><th>deepest contact cm</th><th>contact shadow ext (ours/real)</th><th>contact shadow wrist</th></tr>
+<tr><td>apple_1</td><td><span class=''>table</span></td><td>-1.99</td><td>-0.012</td><td>—</td><td>—</td></tr>
+<tr><td>black_bowl</td><td><span class=''>table</span></td><td>-0.00</td><td>-0.003</td><td>—</td><td>—</td></tr>
+<tr><td>red_radish_1</td><td><span class=''>table</span></td><td>-0.12</td><td>-0.042</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_1</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_2</td><td><span class=''>table</span></td><td>-0.02</td><td>-0.032</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_3</td><td><span class=''>table</span></td><td>-0.02</td><td>-0.032</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_4</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_5</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_6</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_7</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+<tr><td>toy_block_8</td><td><span class=''>table</span></td><td>-0.01</td><td>-0.011</td><td>—</td><td>—</td></tr>
+</table></div>
+
+
+<h2 id='c9'>c9</h2><p class='meta'>10-27 calibration test; stopped at the stereo table step (K14), built from the outline-only fit</p>
+<h3>B3 · general scripted-expert test (+ B4 mass, B5 friction sweeps)</h3><p class='meta'>Hover a cell for why it stopped. Stages: reached → closed → lifted → held / placed. UNSTABLE = MuJoCo reset the state (not a fail).</p><div class="wrap"><table><tr><th>object | probe</th><th>nominal</th><th>nominal video</th></tr>
+<tr><td>cup | pick_lift_hold</td><td><span class='ok' title=''>PASS</span></td><td><a href='c9/expert_probe/cup__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>cup | place_upright</td><td><span class='bad' title='after release: xy 2.3 cm, z -0.7 cm, tilt 84 deg'>fail@lifted</span></td><td><a href='c9/expert_probe/cup__place_upright.mp4'>video</a></td></tr>
+<tr><td>cup | into_container -&gt; bowl</td><td><span class='ok' title='0.3 cm from the container centre (rim 2.9 cm), bottom below the rim'>PASS</span></td><td><a href='c9/expert_probe/cup__into_container__bowl.mp4'>video</a></td></tr>
+<tr><td>hammer | pick_lift_hold</td><td><span class='bad' title='during hold: rise 11.5 cm, slip 1.9 cm'>fail@lifted</span></td><td><a href='c9/expert_probe/hammer__pick_lift_hold.mp4'>video</a></td></tr>
+<tr><td>hammer | place_upright</td><td><span class='bad' title='after release: xy 20.3 cm, z -75.1 cm, tilt 178 deg'>fail@lifted</span></td><td><a href='c9/expert_probe/hammer__place_upright.mp4'>video</a></td></tr>
+<tr><td>hammer | into_container -&gt; bowl</td><td><span class='ok' title='1.7 cm from the container centre (rim 2.9 cm), bottom below the rim'>PASS</span></td><td><a href='c9/expert_probe/hammer__into_container__bowl.mp4'>video</a></td></tr>
+</table></div>
+<details><summary>Why each failure stopped (3)</summary><div class="wrap"><table><tr><th>object | probe</th><th>sweep</th><th>stopped</th></tr>
+<tr><td>cup | place_upright</td><td>nominal</td><td>after release: xy 2.3 cm, z -0.7 cm, tilt 84 deg</td></tr>
+<tr><td>hammer | pick_lift_hold</td><td>nominal</td><td>during hold: rise 11.5 cm, slip 1.9 cm</td></tr>
+<tr><td>hammer | place_upright</td><td>nominal</td><td>after release: xy 20.3 cm, z -75.1 cm, tilt 178 deg</td></tr>
+</table></div></details>
+<p class='meta'>Frames (before anything is touched): [0, 12, 23, 35, 46, 58]. Composite: not requested.</p>
+<h3>D3 · nothing physical that's invisible</h3>
+<div class="wrap"><table><tr><th>object</th><th>exterior</th><th>wrist</th><th>error</th></tr>
+<tr><td>bowl</td><td>visible (108 px)</td><td>not in view before the first touch (0 px)</td><td>no</td></tr>
+<tr><td>cup</td><td>visible (1023 px)</td><td>not in view before the first touch (0 px)</td><td>no</td></tr>
+<tr><td>hammer</td><td>0 px although its centre projects into the image (hidden behind something, or not drawn) (0 px)</td><td>not in view before the first touch (0 px)</td><td><span class='bad'>yes</span></td></tr>
+</table></div>
+<h3>D1 · objects drawn where physics has them</h3><p class='meta'>Offset real − sim centroid in cm at the object's depth, median over frames; wrist = independent witness (pose from the joints); exterior = the camera the scene was built from (compares the build with its own input). FAR = the real object was found, but nowhere near the sim one.</p>
+<div class="wrap"><table><tr><th>object</th><th>view</th><th>frames</th><th>offset cm</th><th>dx</th><th>dy</th><th>IoU</th><th>label</th><th>frames skipped</th></tr>
+<tr><td>bowl</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>bowl</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='bad'>FAR: no real detection within 60 px of the sim object (nearest same-noun detection 3.5 cm away; may be another instance)</span></td><td></td></tr>
+<tr><td>cup</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>cup</td><td>ext</td><td>6</td><td>0.79</td><td>0.36</td><td>0.69</td><td>0.52</td><td><span class=''>measured</span></td><td></td></tr>
+<tr><td>hammer</td><td>wrist</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+<tr><td>hammer</td><td>ext</td><td>0</td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class="mut">—</span></td><td><span class='mut'>unwitnessed</span></td><td>sim &lt; 100 px: 6</td></tr>
+</table></div>
+<div class='grid2'><figure><a href="c9/image_checks/d1_ext.jpg"><img src="c9/image_checks/d1_ext.jpg" alt="exterior: white = sim, black = real" loading="lazy"></a><figcaption>exterior: white = sim, black = real</figcaption></figure></div>
+<h3>A2 · table extent and edges</h3>
+<div class="wrap"><table><tr><th>view</th><th>frames</th><th>table IoU</th><th>edge distance cm (median)</th><th>independent</th><th>label</th></tr>
+<tr><td>ext</td><td>6</td><td>0.40</td><td>2.2</td><td>False</td><td>measured</td></tr>
+<tr><td>wrist</td><td>4</td><td>0.00</td><td>1.3</td><td>True</td><td>measured</td></tr>
+</table></div>
+<p class='meta'>Each object's distance to the nearest built table edge (cm): {&#x27;bowl&#x27;: 14.2, &#x27;cup&#x27;: 7.0, &#x27;hammer&#x27;: 11.2}</p>
+<div class='grid2'><figure><a href="c9/image_checks/a2_wrist.jpg"><img src="c9/image_checks/a2_wrist.jpg" alt="wrist: white = sim table, black = real table" loading="lazy"></a><figcaption>wrist: white = sim table, black = real table</figcaption></figure><figure><a href="c9/image_checks/a2_ext.jpg"><img src="c9/image_checks/a2_ext.jpg" alt="exterior" loading="lazy"></a><figcaption>exterior</figcaption></figure></div>
+<h3>D5 · contacts</h3>
+<div class="wrap"><table><tr><th>object</th><th>rests on</th><th>bottom − table cm</th><th>deepest contact cm</th><th>contact shadow ext (ours/real)</th><th>contact shadow wrist</th></tr>
+<tr><td>bowl</td><td><span class=''>table</span></td><td>-0.00</td><td>-0.003</td><td>—</td><td>—</td></tr>
+<tr><td>cup</td><td><span class=''>table</span></td><td>-0.09</td><td>-0.002</td><td>—</td><td>—</td></tr>
+<tr><td>hammer</td><td><span class=''>table</span></td><td>-0.04</td><td>-0.037</td><td>—</td><td>—</td></tr>
+</table></div>
+
+
+<h2 id='notrun'>Not run, and why</h2><div class="wrap"><table><tr><th>what</th><th>why</th></tr>
+<tr><td>Rewriting C6 (image swap)</td><td>already exists in res31&#x27;s image_swap.py / g7_v2.py; only per-scene GPU runs are missing</td></tr>
+<tr><td>Running C7&#x27;s GR00T stage</td><td>needs the GPU (prim&#x27;s go + disk line) or the user&#x27;s OK for a slow CPU run</td></tr>
+<tr><td>Building composite caches for the c-scenes</td><td>would write into res31&#x27;s scene directories; build_v1 / scene_review make them</td></tr>
+<tr><td>Labels (consistent / check / likely error)</td><td>wait for the bars (IMAGE_PHYSICS Q1, checklist rule 2)</td></tr>
+</table></div>
+<h2 id='log'>Decision log</h2><div class="wrap"><table><tr><th>when</th><th>who</th><th>asked / found</th><th>decision / outcome</th></tr>
+<tr><td>10-27</td><td>prim (user&#x27;s onboarding)</td><td>implres31 builds the unbuilt checklist items next to res31; outline first, no code until the user&#x27;s go</td><td>outline shown in implres31&#x27;s terminal; res31 listed 7 items it wants built (REAL2SIM_CHECKLIST_V1 §15) and the ones it keeps (calibration, A3, inspect_scene, overrides, build_v1)</td></tr>
+<tr><td>10-27</td><td>user</td><td>&quot;start B3, A2, all C and D … I was thinking of using config for task generation … F6 for now&quot;</td><td>built B3, A2, C1–C5, C7, D1, D3, D5, D6; B3 is driven by expert_probe_config.json (the config idea; the same for make_tasks would be a suggestion to res31 via prim, not sent yet); F6 read as parked</td></tr>
+<tr><td>10-27</td><td>user</td><td>&quot;can you work in a separate worktree maybe&quot;</td><td>worktree ../VLA-exp-real2sim-checks, branch exp/real2sim-checks; res31&#x27;s uncommitted modules imported read-only from the main checkout</td></tr>
+<tr><td>10-27</td><td>implres31</td><td>B3 sweeps: every block failed at &#x27;reached&#x27; under mass x0.5</td><td>own bug: masses changed without mj_setConst, and every block swept at once; fixed (per object, setConst, MuJoCo resets labelled UNSTABLE)</td></tr>
+<tr><td>10-28</td><td>implres31</td><td>orange block still failed under small sweeps</td><td>cause: the expert&#x27;s arm stops ~1 cm short of the IK target, so one pad shoved the block; fixed with a closed-loop re-aim before closing (make_tasks&#x27; expert has the same open-loop approach: to tell res31)</td></tr>
+<tr><td>10-28</td><td>implres31</td><td>known-bad B3 cases</td><td>friction x0.05 kept (every probe fails); mass x20 dropped as a bad case (0.2–0.46 kg blocks are liftable)</td></tr>
+<tr><td>10-28</td><td>implres31</td><td>c11&#x27;s exterior D1 read &#x27;unwitnessed&#x27; while its blocks are 13–21 cm off</td><td>D1 now reports the nearest same-noun detection as FAR instead of hiding it; D5 flags objects on the floor; D3&#x27;s wording no longer claims &#x27;invisible&#x27; when the object may be occluded</td></tr>
+<tr><td>10-28</td><td>user</td><td>&quot;none of these are gating as of now right?&quot;</td><td>confirmed: every check only writes numbers and labels; nothing stops a build or drops a scene (rule 1)</td></tr>
+<tr><td>10-28</td><td>user</td><td>&quot;make the results page&quot;</td><td>this page, generated by report_page.py from the result files</td></tr>
+</table></div>
+</main></body></html>

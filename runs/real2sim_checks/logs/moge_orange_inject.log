@@ -1,0 +1,15 @@
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/modules/conv_stack.py:170: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  torch.autocast(device_type=x.device.type, dtype=torch.float32, enabled=True)
+/home/imerit/Documents/Code/VLA/.venvs/real2sim/lib/python3.12/site-packages/moge/model/v2.py:284: UserWarning: In CPU autocast, but the target dtype is not supported. Disabling autocast.
+CPU Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.
+  with torch.autocast(device_type=self.device.type, dtype=torch.float32):
+ext 0 None {"black_bowl": 2.35, "green_block": 0.81, "orange_block": 4.07, "yellow_block": 1.23} table spread 1.34 (22.0 s)
+wrist 0 None {"black_bowl": 2.28, "green_block": 0.9, "orange_block": -27.12, "yellow_block": -0.09} table spread 4.56 (22.0 s)
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/tests/moge_inject/moge_check.json (51.9 s)

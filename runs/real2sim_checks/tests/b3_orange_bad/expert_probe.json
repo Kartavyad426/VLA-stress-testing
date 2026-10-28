@@ -1,0 +1,530 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "config": {
+  "_doc": "B3 general scripted-expert test (REAL2SIM_CHECKLIST_V1 B3, B4, B5). Every number here is a choice, not a measurement; change it here, not in the script. Distances in m, times in s, angles in deg.",
+  "gripper_max_width_m": 0.085,
+  "grasp_min_above_table_m": 0.015,
+  "approach_above_m": 0.12,
+  "_approach_correct_doc": "after the descend, re-aim on the measured fingertip error up to this many times (0 = make_tasks' open-loop expert)",
+  "approach_correct_iters": 3,
+  "approach_correct_tol_m": 0.002,
+  "approach_correct_s": 0.5,
+  "lift_m": 0.1,
+  "hold_s": 2.0,
+  "place_offset_m": 0.1,
+  "table_margin_m": 0.05,
+  "probes": [
+   "pick_lift_hold",
+   "place_upright",
+   "into_container",
+   "stack"
+  ],
+  "pass": {
+   "lift_min_m": 0.08,
+   "slip_max_m": 0.01,
+   "place_xy_tol_m": 0.02,
+   "place_z_tol_m": 0.01,
+   "upright_max_deg": 10.0,
+   "container_rim_frac": 0.8
+  },
+  "timing_s": {
+   "approach": 2.0,
+   "descend": 1.5,
+   "close": 1.0,
+   "lift": 1.5,
+   "carry": 2.0,
+   "lower": 1.0,
+   "open": 0.8,
+   "retreat": 1.2,
+   "settle": 0.8,
+   "start_settle": 0.5
+  },
+  "sweeps": {
+   "bad_friction_x0.05": {
+    "friction": 0.05
+   }
+  },
+  "_friction_doc": "MuJoCo takes the larger sliding friction of the two touching geoms, so scaling only the object would do nothing while the pads are higher. 'object_and_pads' scales the object's geoms and the gripper pads' collision geoms by the same factor (table unchanged); the effective pad-object value is recorded.",
+  "friction_scope": "object_and_pads",
+  "video": {
+   "sweeps": [],
+   "camera": "ext",
+   "width": 320,
+   "height": 180
+  }
+ },
+ "status": "exploratory, UNVERIFIED",
+ "sweeps": {
+  "bad_friction_x0.05": {
+   "params": {
+    "friction": 0.05
+   },
+   "applied_to": "the probed object only (+ pads for friction)",
+   "rows": [
+    {
+     "object": "green_block",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.027503058690465425,
+     "grasp_point": [
+      0.501874320533703,
+      -0.04547026004381871,
+      -0.07904036537922156
+     ],
+     "stage": "reached",
+     "passed": false,
+     "reach_err_before_correction_m": 0.005988344246566325,
+     "reach_err_m": 0.0004897524814297367,
+     "pads_on_object_after_close": [
+      false,
+      true
+     ],
+     "stopped": "not both pads on the object after closing",
+     "rise_after_lift_m": 0.08605257623184413,
+     "slip_in_hand_m": 0.10024244212905144,
+     "rotation_in_hand_deg": 107.7361837932605,
+     "rise_after_hold_m": -0.0001158783727332191,
+     "ik_err_max_m": 6.507717030250394e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.012482289105514804,
+     "seconds": 0.3
+    },
+    {
+     "object": "green_block",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.027503058690465425,
+     "grasp_point": [
+      0.501874320533703,
+      -0.04547026004381871,
+      -0.07904036537922156
+     ],
+     "stage": "reached",
+     "passed": false,
+     "reach_err_before_correction_m": 0.005988344246566325,
+     "reach_err_m": 0.0004897524814297367,
+     "pads_on_object_after_close": [
+      false,
+      true
+     ],
+     "stopped": "not both pads on the object after closing",
+     "rise_after_lift_m": 0.08605257623184413,
+     "slip_in_hand_m": 0.011851169331504116,
+     "rotation_in_hand_deg": 4.4088563560242,
+     "rise_after_hold_m": 0.08605257623184413,
+     "spot": [
+      0.4311636424150482,
+      -0.11618093816247346
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 90.00000000000001,
+     "final_centre": [
+      0.48203993436487635,
+      -0.04221907066318633,
+      -0.08039659145232618
+     ],
+     "ik_err_max_m": 2.9754409784412075e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.012482289105514804,
+     "seconds": 0.4
+    },
+    {
+     "object": "green_block",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.027503058690465425,
+     "grasp_point": [
+      0.501874320533703,
+      -0.04547026004381871,
+      -0.07904036537922156
+     ],
+     "stage": "reached",
+     "passed": false,
+     "reach_err_before_correction_m": 0.005988344246566325,
+     "reach_err_m": 0.0004897524814297367,
+     "pads_on_object_after_close": [
+      false,
+      true
+     ],
+     "stopped": "not both pads on the object after closing",
+     "rise_after_lift_m": 0.08605257623184413,
+     "slip_in_hand_m": 0.011851169331504116,
+     "rotation_in_hand_deg": 4.4088563560242,
+     "rise_after_hold_m": 0.08605257623184413,
+     "container_top_z": -0.0030474714399667258,
+     "rim_radius_m": 0.08485033751528838,
+     "tilt_deg": 67.99524021726168,
+     "final_centre": [
+      0.6711127836034947,
+      -0.32644440861061114,
+      -0.06702945407193697
+     ],
+     "ik_err_max_m": 0.00028297877362960187,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.012482289105514804,
+     "seconds": 0.5
+    },
+    {
+     "object": "green_block",
+     "probe": "stack",
+     "ref": "orange_block",
+     "width_across_grasp_m": 0.027503058690465425,
+     "grasp_point": [
+      0.501874320533703,
+      -0.04547026004381871,
+      -0.07904036537922156
+     ],
+     "stage": "reached",
+     "passed": false,
+     "reach_err_before_correction_m": 0.005988344246566325,
+     "reach_err_m": 0.0004897524814297367,
+     "pads_on_object_after_close": [
+      false,
+      true
+     ],
+     "stopped": "not both pads on the object after closing",
+     "rise_after_lift_m": 0.08605257623184413,
+     "slip_in_hand_m": 0.011851169331504116,
+     "rotation_in_hand_deg": 4.4088563560242,
+     "rise_after_hold_m": 0.08605257623184413,
+     "tilt_deg": 89.99999999999999,
+     "final_centre": [
+      0.5594063963938337,
+      -0.04170068859600022,
+      -0.0803965914524122
+     ],
+     "ik_err_max_m": 5.191668825983699e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.012482289105514804,
+     "seconds": 0.4
+    },
+    {
+     "object": "orange_block",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.033760891085303536,
+     "grasp_point": [
+      0.6433453248652297,
+      0.030769091770701418,
+      -0.07726767525263185
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.010164324717327242,
+     "reach_err_m": 0.0005361468799837208,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.07584190169231553,
+     "stopped": "rose 7.6 cm < 8 cm",
+     "slip_in_hand_m": 0.03842658944380238,
+     "rotation_in_hand_deg": 11.7883064170467,
+     "rise_after_hold_m": 0.058337494197110124,
+     "ik_err_max_m": 7.358362317856754e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.023088352960017624,
+     "seconds": 0.3
+    },
+    {
+     "object": "orange_block",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.033760891085303536,
+     "grasp_point": [
+      0.6433453248652297,
+      0.030769091770701418,
+      -0.07726767525263185
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.010164324717327242,
+     "reach_err_m": 0.0005361468799837208,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.07584190169231553,
+     "stopped": "rose 7.6 cm < 8 cm",
+     "slip_in_hand_m": 0.019842415350192696,
+     "rotation_in_hand_deg": 9.420209603617044,
+     "rise_after_hold_m": 0.07584190169231553,
+     "spot": [
+      0.7433453248652296,
+      0.030769091770701418
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 0.0,
+     "final_centre": [
+      0.7420546763468933,
+      0.027382948902634676,
+      -0.07726767525496482
+     ],
+     "ik_err_max_m": 7.143345974082303e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.023088352960017624,
+     "seconds": 0.4
+    },
+    {
+     "object": "orange_block",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.033760891085303536,
+     "grasp_point": [
+      0.6433453248652297,
+      0.030769091770701418,
+      -0.07726767525263185
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.010164324717327242,
+     "reach_err_m": 0.0005361468799837208,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.07584190169231553,
+     "stopped": "rose 7.6 cm < 8 cm",
+     "slip_in_hand_m": 0.019842415350192696,
+     "rotation_in_hand_deg": 9.420209603617044,
+     "rise_after_hold_m": 0.07584190169231553,
+     "container_top_z": -0.003047471440041083,
+     "rim_radius_m": 0.08485033751528838,
+     "tilt_deg": 0.018059361552757724,
+     "final_centre": [
+      0.6557651113428544,
+      -0.28804496393676815,
+      -0.06793841078365759
+     ],
+     "ik_err_max_m": 9.629977080904601e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.023088352960017624,
+     "seconds": 0.4
+    },
+    {
+     "object": "orange_block",
+     "probe": "stack",
+     "ref": "green_block",
+     "width_across_grasp_m": 0.033760891085303536,
+     "grasp_point": [
+      0.6433453248652297,
+      0.030769091770701418,
+      -0.07726767525263185
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.010164324717327242,
+     "reach_err_m": 0.0005361468799837208,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": 0.07584190169231553,
+     "stopped": "rose 7.6 cm < 8 cm",
+     "slip_in_hand_m": 0.019842415350192696,
+     "rotation_in_hand_deg": 9.420209603617044,
+     "rise_after_hold_m": 0.07584190169231553,
+     "tilt_deg": 90.00000000000003,
+     "final_centre": [
+      0.5624488187158324,
+      -0.018803700163469047,
+      -0.0772676752549159
+     ],
+     "ik_err_max_m": 7.143345974082303e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.023088352960017624,
+     "seconds": 0.4
+    },
+    {
+     "object": "yellow_block",
+     "probe": "pick_lift_hold",
+     "ref": null,
+     "width_across_grasp_m": 0.02478717516557396,
+     "grasp_point": [
+      0.5739061102648888,
+      0.02853968527272005,
+      -0.07904036537922156
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.008667431580180273,
+     "reach_err_m": 0.000489198197563778,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": -0.00022268773633424277,
+     "stopped": "rose -0.0 cm < 8 cm",
+     "slip_in_hand_m": 0.12908836236180307,
+     "rotation_in_hand_deg": 179.67567268173002,
+     "rise_after_hold_m": -0.0002226865614072815,
+     "ik_err_max_m": 5.554190897259654e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.009137604525862241,
+     "seconds": 0.3
+    },
+    {
+     "object": "yellow_block",
+     "probe": "place_upright",
+     "ref": null,
+     "width_across_grasp_m": 0.02478717516557396,
+     "grasp_point": [
+      0.5739061102648888,
+      0.02853968527272005,
+      -0.07904036537922156
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.008667431580180273,
+     "reach_err_m": 0.000489198197563778,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": -0.00022268773633424277,
+     "stopped": "rose -0.0 cm < 8 cm",
+     "slip_in_hand_m": 0.12782058519594125,
+     "rotation_in_hand_deg": 179.62993900478713,
+     "rise_after_hold_m": -0.00022268773633424277,
+     "spot": [
+      0.5031954321462341,
+      0.09925036339137482
+     ],
+     "spot_on_table": true,
+     "tilt_deg": 180.0,
+     "final_centre": [
+      0.6306770657543578,
+      0.08578273186427385,
+      -0.08175453321482672
+     ],
+     "ik_err_max_m": 5.2139849516351e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.009137604525862241,
+     "seconds": 0.4
+    },
+    {
+     "object": "yellow_block",
+     "probe": "into_container",
+     "ref": "black_bowl",
+     "width_across_grasp_m": 0.02478717516557396,
+     "grasp_point": [
+      0.5739061102648888,
+      0.02853968527272005,
+      -0.07904036537922156
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.008667431580180273,
+     "reach_err_m": 0.000489198197563778,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": -0.00022268773633424277,
+     "stopped": "rose -0.0 cm < 8 cm",
+     "slip_in_hand_m": 0.12782058519594125,
+     "rotation_in_hand_deg": 179.62993900478713,
+     "rise_after_hold_m": -0.00022268773633424277,
+     "container_top_z": -0.0030474714399528965,
+     "rim_radius_m": 0.08485033751528838,
+     "tilt_deg": 180.0,
+     "final_centre": [
+      0.6306770657543578,
+      0.08578273186427385,
+      -0.08175453321481323
+     ],
+     "ik_err_max_m": 9.156202055185892e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.009137604525862241,
+     "seconds": 0.4
+    },
+    {
+     "object": "yellow_block",
+     "probe": "stack",
+     "ref": "green_block",
+     "width_across_grasp_m": 0.02478717516557396,
+     "grasp_point": [
+      0.5739061102648888,
+      0.02853968527272005,
+      -0.07904036537922156
+     ],
+     "stage": "closed",
+     "passed": false,
+     "reach_err_before_correction_m": 0.008667431580180273,
+     "reach_err_m": 0.000489198197563778,
+     "pads_on_object_after_close": [
+      true,
+      true
+     ],
+     "rise_after_lift_m": -0.00022268773633424277,
+     "stopped": "rose -0.0 cm < 8 cm",
+     "slip_in_hand_m": 0.12782058519594125,
+     "rotation_in_hand_deg": 179.62993900478713,
+     "rise_after_hold_m": -0.00022268773633424277,
+     "tilt_deg": 180.0,
+     "final_centre": [
+      0.6306770657543577,
+      0.08578273186427385,
+      -0.08175453321481967
+     ],
+     "ik_err_max_m": 3.9906277371084157e-05,
+     "unstable_at_s": null,
+     "pad_object_friction": 0.05,
+     "mass_kg": 0.009137604525862241,
+     "seconds": 0.4
+    }
+   ]
+  }
+ },
+ "table": {
+  "green_block | pick_lift_hold": {
+   "bad_friction_x0.05": "fail@reached"
+  },
+  "green_block | place_upright": {
+   "bad_friction_x0.05": "fail@reached"
+  },
+  "green_block | into_container -> black_bowl": {
+   "bad_friction_x0.05": "fail@reached"
+  },
+  "green_block | stack -> orange_block": {
+   "bad_friction_x0.05": "fail@reached"
+  },
+  "orange_block | pick_lift_hold": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "orange_block | place_upright": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "orange_block | into_container -> black_bowl": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "orange_block | stack -> green_block": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "yellow_block | pick_lift_hold": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "yellow_block | place_upright": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "yellow_block | into_container -> black_bowl": {
+   "bad_friction_x0.05": "fail@closed"
+  },
+  "yellow_block | stack -> green_block": {
+   "bad_friction_x0.05": "fail@closed"
+  }
+ },
+ "seconds_total": 5.0
+}

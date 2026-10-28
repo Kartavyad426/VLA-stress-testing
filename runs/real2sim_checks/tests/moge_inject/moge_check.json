@@ -1,0 +1,165 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "composite": "scene_review --wrist v2 --wrist_blur gripper",
+ "inject": "orange_block:0.02",
+ "status": "exploratory, UNVERIFIED",
+ "views": [
+  {
+   "cam": "ext",
+   "frame": 0,
+   "real_frame": 0,
+   "variant": null,
+   "fov_x_deg": 101.35,
+   "ours_vs_physics": {
+    "fit_a": 1.0426,
+    "fit_b_m": -0.0115,
+    "fit_px": 41098,
+    "object_residual_cm": {
+     "black_bowl": 2.35,
+     "green_block": 0.81,
+     "orange_block": 4.07,
+     "yellow_block": 1.23
+    },
+    "table_patch_residual_cm": {
+     "table_02": -1.64,
+     "table_03": -2.29,
+     "table_11": -0.63,
+     "table_12": 0.43,
+     "table_13": -0.09,
+     "table_20": -0.73,
+     "table_21": -0.19,
+     "table_22": 0.7,
+     "table_23": 0.43,
+     "table_30": -0.67,
+     "table_31": -0.19,
+     "table_32": 0.29,
+     "table_33": 0.2
+    },
+    "table_patch_spread_cm_p90": 1.34,
+    "object_vs_table_spread": {
+     "black_bowl": 1.9,
+     "green_block": 0.75,
+     "orange_block": 3.18,
+     "yellow_block": 1.06
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 0.8898,
+    "fit_b_m": 0.0593,
+    "fit_px": 45427,
+    "object_residual_cm": {
+     "black_bowl": -1.52,
+     "green_block": -0.03,
+     "orange_block": -0.08,
+     "yellow_block": 0.74
+    },
+    "table_patch_residual_cm": {
+     "table_02": -0.64,
+     "table_03": 0.38,
+     "table_11": -0.61,
+     "table_12": -0.12,
+     "table_13": 0.48,
+     "table_20": -0.45,
+     "table_21": -0.39,
+     "table_22": -0.03,
+     "table_23": 0.44,
+     "table_30": -0.15,
+     "table_31": -0.18,
+     "table_32": 0.2,
+     "table_33": 0.44
+    },
+    "table_patch_spread_cm_p90": 0.56,
+    "object_vs_table_spread": {
+     "black_bowl": 2.5,
+     "green_block": 0.16,
+     "orange_block": 0.07,
+     "yellow_block": 1.54
+    }
+   },
+   "moge_seconds": 22.0
+  },
+  {
+   "cam": "wrist",
+   "frame": 0,
+   "real_frame": 0,
+   "variant": null,
+   "fov_x_deg": 82.31,
+   "ours_vs_physics": {
+    "fit_a": 0.7367,
+    "fit_b_m": -0.0667,
+    "fit_px": 79416,
+    "object_residual_cm": {
+     "black_bowl": 2.28,
+     "green_block": 0.9,
+     "orange_block": -27.12,
+     "yellow_block": -0.09
+    },
+    "table_patch_residual_cm": {
+     "table_00": 0.33,
+     "table_01": 0.06,
+     "table_02": -0.22,
+     "table_03": -0.4,
+     "table_10": 0.6,
+     "table_11": 0.03,
+     "table_12": -0.63,
+     "table_13": -1.65,
+     "table_20": 0.32,
+     "table_21": -0.32,
+     "table_22": -1.37,
+     "table_23": -2.37,
+     "table_30": -0.17,
+     "table_31": -41.89,
+     "table_32": -6.5,
+     "table_33": -3.35
+    },
+    "table_patch_spread_cm_p90": 4.56,
+    "object_vs_table_spread": {
+     "black_bowl": 0.58,
+     "green_block": 0.28,
+     "orange_block": 5.86,
+     "yellow_block": 0.06
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 1.0972,
+    "fit_b_m": -0.1003,
+    "fit_px": 108763,
+    "object_residual_cm": {
+     "black_bowl": 2.0,
+     "green_block": -0.08,
+     "orange_block": 5.19,
+     "yellow_block": 0.52
+    },
+    "table_patch_residual_cm": {
+     "table_00": 1.62,
+     "table_01": -0.12,
+     "table_02": -1.86,
+     "table_03": 1.45,
+     "table_10": 3.03,
+     "table_11": 0.54,
+     "table_12": -2.82,
+     "table_13": -5.43,
+     "table_20": 4.41,
+     "table_21": 1.66,
+     "table_22": -2.62,
+     "table_23": -5.53,
+     "table_30": 6.04,
+     "table_31": 6.31,
+     "table_32": 4.65,
+     "table_33": -5.57
+    },
+    "table_patch_spread_cm_p90": 6.47,
+    "object_vs_table_spread": {
+     "black_bowl": 0.16,
+     "green_block": 0.17,
+     "orange_block": 0.65,
+     "yellow_block": 0.07
+    }
+   },
+   "moge_seconds": 22.0
+  }
+ ],
+ "seconds": 51.9,
+ "note": "residual = a*z_moge + b - z_reference (cm), fit on table pixels; object_vs_table_spread = |object residual - median table-patch residual| / p90 table-patch spread (>1: stands out from the table). Heat images: composite | ours-vs-physics residual (red: MoGe farther, blue: nearer, +-5 cm) | real | real-vs-ours residual."
+}

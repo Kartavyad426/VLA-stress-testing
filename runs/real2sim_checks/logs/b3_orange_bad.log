@@ -1,0 +1,27 @@
+[bad_friction_x0.05]    green_block pick_lift_hold                 fail  stage=reached  not both pads on the object after closing  (0.3 s)
+[bad_friction_x0.05]    green_block place_upright                  fail  stage=reached  not both pads on the object after closing  (0.4 s)
+[bad_friction_x0.05]    green_block into_container  black_bowl     fail  stage=reached  not both pads on the object after closing  (0.5 s)
+[bad_friction_x0.05]    green_block stack           orange_block   fail  stage=reached  not both pads on the object after closing  (0.4 s)
+[bad_friction_x0.05]   orange_block pick_lift_hold                 fail  stage=closed   rose 7.6 cm < 8 cm  (0.3 s)
+[bad_friction_x0.05]   orange_block place_upright                  fail  stage=closed   rose 7.6 cm < 8 cm  (0.4 s)
+[bad_friction_x0.05]   orange_block into_container  black_bowl     fail  stage=closed   rose 7.6 cm < 8 cm  (0.4 s)
+[bad_friction_x0.05]   orange_block stack           green_block    fail  stage=closed   rose 7.6 cm < 8 cm  (0.4 s)
+[bad_friction_x0.05]   yellow_block pick_lift_hold                 fail  stage=closed   rose -0.0 cm < 8 cm  (0.3 s)
+[bad_friction_x0.05]   yellow_block place_upright                  fail  stage=closed   rose -0.0 cm < 8 cm  (0.4 s)
+[bad_friction_x0.05]   yellow_block into_container  black_bowl     fail  stage=closed   rose -0.0 cm < 8 cm  (0.4 s)
+[bad_friction_x0.05]   yellow_block stack           green_block    fail  stage=closed   rose -0.0 cm < 8 cm  (0.4 s)
+
+                                            bad_friction_x0.05
+green_block | pick_lift_hold                  fail@reached
+green_block | place_upright                   fail@reached
+green_block | into_container -> black_bowl    fail@reached
+green_block | stack -> orange_block           fail@reached
+orange_block | pick_lift_hold                  fail@closed
+orange_block | place_upright                   fail@closed
+orange_block | into_container -> black_bowl    fail@closed
+orange_block | stack -> green_block            fail@closed
+yellow_block | pick_lift_hold                  fail@closed
+yellow_block | place_upright                   fail@closed
+yellow_block | into_container -> black_bowl    fail@closed
+yellow_block | stack -> green_block            fail@closed
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/tests/b3_orange_bad/expert_probe.json (5.0 s)

@@ -1,0 +1,409 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "frames": [
+  0,
+  10,
+  21,
+  32,
+  42,
+  52
+ ],
+ "work_hw": [
+  360,
+  640
+ ],
+ "policy_hw": [
+  180,
+  320
+ ],
+ "composite": "scene_review --wrist v2 --wrist_blur gripper",
+ "status": "exploratory, UNVERIFIED",
+ "checks": {
+  "d3": {
+   "black_bowl": {
+    "drawn": true,
+    "ext": {
+     "max_px": 2059,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 12404,
+     "frames_in_view": 4,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "green_block": {
+    "drawn": true,
+    "ext": {
+     "max_px": 236,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 1390,
+     "frames_in_view": 4,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "orange_block": {
+    "drawn": true,
+    "ext": {
+     "max_px": 398,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 4561,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "yellow_block": {
+    "drawn": false,
+    "ext": {
+     "max_px": 0,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "INVISIBLE although in view"
+    },
+    "wrist": {
+     "max_px": 0,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "INVISIBLE although in view"
+    },
+    "error": true
+   }
+  },
+  "c2": {
+   "nouns": [
+    "block",
+    "bowl"
+   ],
+   "counts": {
+    "ext": [
+     {
+      "frame": 0,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 10,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 21,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 32,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 42,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 4,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 52,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     }
+    ],
+    "wrist": [
+     {
+      "frame": 0,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 3,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": true
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 0,
+        "real": 0,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 10,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 3,
+        "real": 4,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": true
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 0,
+        "real": 0,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 21,
+      "per_noun": {
+       "block": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 3,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 1,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 32,
+      "per_noun": {
+       "block": {
+        "sim_visible": 2,
+        "ours": 2,
+        "real": 4,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 0,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 42,
+      "per_noun": {
+       "block": {
+        "sim_visible": 1,
+        "ours": 1,
+        "real": 4,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 0,
+        "real": 2,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     },
+     {
+      "frame": 52,
+      "per_noun": {
+       "block": {
+        "sim_visible": 1,
+        "ours": 2,
+        "real": 4,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": true
+       },
+       "bowl": {
+        "sim_visible": 1,
+        "ours": 0,
+        "real": 2,
+        "ghost_suspect": false,
+        "unbuilt_or_false_positive": false
+       }
+      }
+     }
+    ]
+   },
+   "residue": {
+    "ext": [
+     {
+      "frame": 0,
+      "bg_px": 50883,
+      "residue_share": 0.0191
+     },
+     {
+      "frame": 10,
+      "bg_px": 50813,
+      "residue_share": 0.0192
+     },
+     {
+      "frame": 21,
+      "bg_px": 49718,
+      "residue_share": 0.0212
+     },
+     {
+      "frame": 32,
+      "bg_px": 49427,
+      "residue_share": 0.0108
+     },
+     {
+      "frame": 42,
+      "bg_px": 47325,
+      "residue_share": 0.0076
+     },
+     {
+      "frame": 52,
+      "bg_px": 47817,
+      "residue_share": 0.0039
+     }
+    ],
+    "wrist": [
+     {
+      "frame": 0,
+      "bg_px": 39762,
+      "residue_share": 0.0995
+     },
+     {
+      "frame": 10,
+      "bg_px": 39399,
+      "residue_share": 0.1109
+     },
+     {
+      "frame": 21,
+      "bg_px": 38101,
+      "residue_share": 0.2418
+     },
+     {
+      "frame": 32,
+      "bg_px": 37671,
+      "residue_share": 0.1753
+     },
+     {
+      "frame": 42,
+      "bg_px": 37092,
+      "residue_share": 0.0867
+     },
+     {
+      "frame": 52,
+      "bg_px": 37995,
+      "residue_share": 0.1812
+     }
+    ]
+   },
+   "residue_share_median_ext": 0.01495,
+   "ghost_suspect_frames_ext": [],
+   "unbuilt_or_false_positive_frames_ext": [],
+   "residue_share_median_wrist": 0.1431,
+   "ghost_suspect_frames_wrist": [],
+   "unbuilt_or_false_positive_frames_wrist": [
+    0,
+    10,
+    52
+   ],
+   "note": "(a) counts: one detector call per noun on our composite and on the real frame, robot masked; ghost_suspect = more instances on our composite than both the sim objects visible and the real frame; unbuilt_or_false_positive = an extra instance on both our composite and the real frame. (b) residue: magenta = background pixels (away from sim and real foreground) differing by > 40/255 after exposure matching."
+  }
+ },
+ "detector_calls": 48,
+ "seconds": 722.5
+}

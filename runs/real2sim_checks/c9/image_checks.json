@@ -1,0 +1,434 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/v1_dev/calibtest/c9",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_c9",
+ "frames": [
+  0,
+  12,
+  23,
+  35,
+  46,
+  58
+ ],
+ "work_hw": [
+  360,
+  640
+ ],
+ "policy_hw": [
+  180,
+  320
+ ],
+ "composite": "not requested",
+ "status": "exploratory, UNVERIFIED",
+ "checks": {
+  "d3": {
+   "bowl": {
+    "drawn": true,
+    "ext": {
+     "max_px": 108,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 0,
+     "frames_in_view": 0,
+     "frames": 6,
+     "label": "not in view before the first touch"
+    },
+    "error": false
+   },
+   "cup": {
+    "drawn": true,
+    "ext": {
+     "max_px": 1023,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 0,
+     "frames_in_view": 0,
+     "frames": 6,
+     "label": "not in view before the first touch"
+    },
+    "error": false
+   },
+   "hammer": {
+    "drawn": true,
+    "ext": {
+     "max_px": 0,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "0 px although its centre projects into the image (hidden behind something, or not drawn)"
+    },
+    "wrist": {
+     "max_px": 0,
+     "frames_in_view": 0,
+     "frames": 6,
+     "label": "not in view before the first touch"
+    },
+    "error": true
+   }
+  },
+  "d1": {
+   "bowl": {
+    "ext": {
+     "n_frames": 0,
+     "skipped": {},
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "far_frames": 6,
+     "nearest_detection_offset_cm_median": 3.535,
+     "label": "FAR: no real detection within 60 px of the sim object (nearest same-noun detection 3.5 cm away; may be another instance)",
+     "frames": [],
+     "far": [
+      {
+       "frame": 0,
+       "offset_px": [
+        -7.9,
+        -27.3
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 3.53
+      },
+      {
+       "frame": 12,
+       "offset_px": [
+        -7.9,
+        -27.8
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 3.59
+      },
+      {
+       "frame": 23,
+       "offset_px": [
+        -7.8,
+        -27.4
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 3.54
+      },
+      {
+       "frame": 35,
+       "offset_px": [
+        -227.4,
+        -145.8
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 33.52
+      },
+      {
+       "frame": 46,
+       "offset_px": [
+        -10.0,
+        -20.5
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 2.83
+      },
+      {
+       "frame": 58,
+       "offset_px": [
+        -5.2,
+        -15.3
+       ],
+       "depth_m": 0.325,
+       "offset_cm": 2.0
+      }
+     ],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 0,
+     "skipped": {
+      "sim < 100 px": 6
+     },
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "far_frames": 0,
+     "nearest_detection_offset_cm_median": null,
+     "label": "unwitnessed",
+     "frames": [],
+     "far": []
+    }
+   },
+   "cup": {
+    "ext": {
+     "n_frames": 6,
+     "skipped": {},
+     "offset_cm_median": 0.79,
+     "dx_cm_median": 0.365,
+     "dy_cm_median": 0.695,
+     "iou_median": 0.523,
+     "far_frames": 0,
+     "nearest_detection_offset_cm_median": null,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.249,
+       "offset_px": [
+        3.7,
+        7.6
+       ],
+       "dx_cm": 0.36,
+       "dy_cm": 0.73,
+       "offset_cm": 0.81,
+       "iou": 0.53,
+       "sim_px": 1023,
+       "real_px": 1830
+      },
+      {
+       "frame": 12,
+       "depth_m": 0.249,
+       "offset_px": [
+        3.6,
+        6.7
+       ],
+       "dx_cm": 0.34,
+       "dy_cm": 0.64,
+       "offset_cm": 0.72,
+       "iou": 0.527,
+       "sim_px": 1023,
+       "real_px": 1854
+      },
+      {
+       "frame": 23,
+       "depth_m": 0.249,
+       "offset_px": [
+        3.7,
+        7.2
+       ],
+       "dx_cm": 0.36,
+       "dy_cm": 0.69,
+       "offset_cm": 0.77,
+       "iou": 0.527,
+       "sim_px": 1023,
+       "real_px": 1859
+      },
+      {
+       "frame": 35,
+       "depth_m": 0.249,
+       "offset_px": [
+        8.0,
+        9.4
+       ],
+       "dx_cm": 0.76,
+       "dy_cm": 0.89,
+       "offset_cm": 1.18,
+       "iou": 0.336,
+       "sim_px": 1023,
+       "real_px": 1394
+      },
+      {
+       "frame": 46,
+       "depth_m": 0.249,
+       "offset_px": [
+        3.9,
+        6.5
+       ],
+       "dx_cm": 0.37,
+       "dy_cm": 0.62,
+       "offset_cm": 0.72,
+       "iou": 0.519,
+       "sim_px": 1023,
+       "real_px": 1841
+      },
+      {
+       "frame": 58,
+       "depth_m": 0.249,
+       "offset_px": [
+        4.7,
+        7.4
+       ],
+       "dx_cm": 0.45,
+       "dy_cm": 0.7,
+       "offset_cm": 0.83,
+       "iou": 0.501,
+       "sim_px": 1023,
+       "real_px": 1759
+      }
+     ],
+     "far": [],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 0,
+     "skipped": {
+      "sim < 100 px": 6
+     },
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "far_frames": 0,
+     "nearest_detection_offset_cm_median": null,
+     "label": "unwitnessed",
+     "frames": [],
+     "far": []
+    }
+   },
+   "hammer": {
+    "ext": {
+     "n_frames": 0,
+     "skipped": {
+      "sim < 100 px": 6
+     },
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "far_frames": 0,
+     "nearest_detection_offset_cm_median": null,
+     "label": "unwitnessed",
+     "frames": [],
+     "far": [],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 0,
+     "skipped": {
+      "sim < 100 px": 6
+     },
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "far_frames": 0,
+     "nearest_detection_offset_cm_median": null,
+     "label": "unwitnessed",
+     "frames": [],
+     "far": []
+    }
+   }
+  },
+  "a2": {
+   "table_label": "table",
+   "views": {
+    "ext": {
+     "n_frames": 6,
+     "iou_median": 0.40249999999999997,
+     "edge_dist_cm_median": 2.17,
+     "label": "measured",
+     "independent": false,
+     "frames": [
+      {
+       "frame": 0,
+       "iou": 0.397,
+       "sim_edge_px": 977,
+       "edge_dist_cm_median": 2.46,
+       "edge_dist_cm_p90": 4.66
+      },
+      {
+       "frame": 12,
+       "iou": 0.395,
+       "sim_edge_px": 977,
+       "edge_dist_cm_median": 2.27,
+       "edge_dist_cm_p90": 4.72
+      },
+      {
+       "frame": 23,
+       "iou": 0.391,
+       "sim_edge_px": 778,
+       "edge_dist_cm_median": 1.93,
+       "edge_dist_cm_p90": 4.69
+      },
+      {
+       "frame": 35,
+       "iou": 0.408,
+       "sim_edge_px": 815,
+       "edge_dist_cm_median": 2.15,
+       "edge_dist_cm_p90": 4.29
+      },
+      {
+       "frame": 46,
+       "iou": 0.423,
+       "sim_edge_px": 769,
+       "edge_dist_cm_median": 2.19,
+       "edge_dist_cm_p90": 4.08
+      },
+      {
+       "frame": 58,
+       "iou": 0.436,
+       "sim_edge_px": 777,
+       "edge_dist_cm_median": 2.05,
+       "edge_dist_cm_p90": 4.35
+      }
+     ]
+    },
+    "wrist": {
+     "n_frames": 4,
+     "iou_median": 0.0005,
+     "edge_dist_cm_median": 1.33,
+     "label": "measured",
+     "independent": true,
+     "frames": [
+      {
+       "frame": 0,
+       "iou": 0.0,
+       "sim_edge_px": 147,
+       "edge_dist_cm_median": 3.55,
+       "edge_dist_cm_p90": 5.88
+      },
+      {
+       "frame": 12,
+       "iou": 0.0,
+       "sim_edge_px": 289,
+       "edge_dist_cm_median": 2.25,
+       "edge_dist_cm_p90": 2.79
+      },
+      {
+       "frame": 23,
+       "iou": 0.001,
+       "sim_edge_px": 46,
+       "edge_dist_cm_median": 0.03,
+       "edge_dist_cm_p90": 0.06
+      },
+      {
+       "frame": 35,
+       "iou": 0.003,
+       "sim_edge_px": 64,
+       "edge_dist_cm_median": 0.41,
+       "edge_dist_cm_p90": 0.62
+      }
+     ]
+    }
+   },
+   "objects_to_edge_cm": {
+    "bowl": 14.2,
+    "cup": 7.0,
+    "hammer": 11.2
+   }
+  },
+  "d5": {
+   "bowl": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.0,
+    "deepest_contact_cm": -0.003,
+    "error": false,
+    "note": "bottom from collision bounding boxes: loose for meshes (c3h apple reads -2 cm on the table)"
+   },
+   "cup": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.09,
+    "deepest_contact_cm": -0.002,
+    "error": false,
+    "note": "bottom from collision bounding boxes: loose for meshes (c3h apple reads -2 cm on the table)"
+   },
+   "hammer": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.04,
+    "deepest_contact_cm": -0.037,
+    "error": false,
+    "note": "bottom from collision bounding boxes: loose for meshes (c3h apple reads -2 cm on the table)"
+   }
+  }
+ },
+ "detector_calls": 21,
+ "seconds": 409.0
+}

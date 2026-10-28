@@ -1,0 +1,325 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "composite": "scene_review --wrist v2 --wrist_blur gripper",
+ "inject": null,
+ "status": "exploratory, UNVERIFIED",
+ "views": [
+  {
+   "cam": "ext",
+   "frame": 0,
+   "real_frame": 0,
+   "variant": null,
+   "fov_x_deg": 101.35,
+   "ours_vs_physics": {
+    "fit_a": 1.042,
+    "fit_b_m": -0.0113,
+    "fit_px": 41065,
+    "object_residual_cm": {
+     "black_bowl": 2.33,
+     "green_block": 0.81,
+     "orange_block": 1.16,
+     "yellow_block": 1.23
+    },
+    "table_patch_residual_cm": {
+     "table_02": -1.67,
+     "table_03": -2.32,
+     "table_11": -0.64,
+     "table_12": 0.43,
+     "table_13": -0.1,
+     "table_20": -0.74,
+     "table_21": -0.2,
+     "table_22": 0.71,
+     "table_23": 0.43,
+     "table_30": -0.67,
+     "table_31": -0.19,
+     "table_32": 0.29,
+     "table_33": 0.2
+    },
+    "table_patch_spread_cm_p90": 1.36,
+    "object_vs_table_spread": {
+     "black_bowl": 1.85,
+     "green_block": 0.73,
+     "orange_block": 0.99,
+     "yellow_block": 1.04
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 0.8898,
+    "fit_b_m": 0.0592,
+    "fit_px": 45427,
+    "object_residual_cm": {
+     "black_bowl": -1.52,
+     "green_block": -0.03,
+     "orange_block": -0.42,
+     "yellow_block": 0.74
+    },
+    "table_patch_residual_cm": {
+     "table_02": -0.64,
+     "table_03": 0.38,
+     "table_11": -0.61,
+     "table_12": -0.12,
+     "table_13": 0.48,
+     "table_20": -0.45,
+     "table_21": -0.39,
+     "table_22": -0.03,
+     "table_23": 0.44,
+     "table_30": -0.15,
+     "table_31": -0.18,
+     "table_32": 0.2,
+     "table_33": 0.44
+    },
+    "table_patch_spread_cm_p90": 0.56,
+    "object_vs_table_spread": {
+     "black_bowl": 2.5,
+     "green_block": 0.16,
+     "orange_block": 0.54,
+     "yellow_block": 1.54
+    }
+   },
+   "moge_seconds": 20.3
+  },
+  {
+   "cam": "wrist",
+   "frame": 0,
+   "real_frame": 0,
+   "variant": null,
+   "fov_x_deg": 82.31,
+   "ours_vs_physics": {
+    "fit_a": 0.7367,
+    "fit_b_m": -0.0666,
+    "fit_px": 79452,
+    "object_residual_cm": {
+     "black_bowl": 2.29,
+     "green_block": 0.9,
+     "orange_block": -12.92,
+     "yellow_block": -0.09
+    },
+    "table_patch_residual_cm": {
+     "table_00": 0.33,
+     "table_01": 0.06,
+     "table_02": -0.22,
+     "table_03": -0.4,
+     "table_10": 0.6,
+     "table_11": 0.03,
+     "table_12": -0.63,
+     "table_13": -1.65,
+     "table_20": 0.32,
+     "table_21": -0.31,
+     "table_22": -1.37,
+     "table_23": -2.37,
+     "table_30": -0.17,
+     "table_31": -41.89,
+     "table_32": -6.5,
+     "table_33": -3.35
+    },
+    "table_patch_spread_cm_p90": 4.57,
+    "object_vs_table_spread": {
+     "black_bowl": 0.58,
+     "green_block": 0.27,
+     "orange_block": 2.75,
+     "yellow_block": 0.06
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 1.098,
+    "fit_b_m": -0.1009,
+    "fit_px": 108697,
+    "object_residual_cm": {
+     "black_bowl": 2.0,
+     "green_block": -0.09,
+     "orange_block": 5.03,
+     "yellow_block": 0.52
+    },
+    "table_patch_residual_cm": {
+     "table_00": 1.61,
+     "table_01": -0.13,
+     "table_02": -1.87,
+     "table_03": 1.45,
+     "table_10": 3.03,
+     "table_11": 0.53,
+     "table_12": -2.82,
+     "table_13": -5.44,
+     "table_20": 4.41,
+     "table_21": 1.69,
+     "table_22": -2.62,
+     "table_23": -5.53,
+     "table_30": 6.06,
+     "table_31": 6.27,
+     "table_32": 4.62,
+     "table_33": -5.56
+    },
+    "table_patch_spread_cm_p90": 6.48,
+    "object_vs_table_spread": {
+     "black_bowl": 0.16,
+     "green_block": 0.17,
+     "orange_block": 0.62,
+     "yellow_block": 0.07
+    }
+   },
+   "moge_seconds": 22.1
+  },
+  {
+   "cam": "wrist",
+   "frame": 32,
+   "real_frame": 32,
+   "variant": null,
+   "fov_x_deg": 82.31,
+   "ours_vs_physics": {
+    "fit_a": 0.8304,
+    "fit_b_m": -0.0897,
+    "fit_px": 137452,
+    "object_residual_cm": {
+     "black_bowl": 2.7,
+     "green_block": 1.15,
+     "orange_block": 0.74,
+     "yellow_block": 1.25
+    },
+    "table_patch_residual_cm": {
+     "table_00": -0.92,
+     "table_01": -0.01,
+     "table_02": 0.29,
+     "table_03": 0.6,
+     "table_10": -0.7,
+     "table_11": 0.02,
+     "table_12": 0.71,
+     "table_13": 1.05,
+     "table_20": -1.05,
+     "table_21": -0.16,
+     "table_22": 0.37,
+     "table_23": 0.83,
+     "table_30": -2.3,
+     "table_31": -19.99,
+     "table_32": -0.08,
+     "table_33": -0.26
+    },
+    "table_patch_spread_cm_p90": 1.67,
+    "object_vs_table_spread": {
+     "black_bowl": 1.64,
+     "green_block": 0.71,
+     "orange_block": 0.47,
+     "yellow_block": 0.77
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 0.8279,
+    "fit_b_m": -0.0363,
+    "fit_px": 137457,
+    "object_residual_cm": {
+     "black_bowl": 0.43,
+     "green_block": -0.39,
+     "orange_block": -0.95,
+     "yellow_block": -0.82
+    },
+    "table_patch_residual_cm": {
+     "table_00": 0.22,
+     "table_01": 0.28,
+     "table_02": -0.19,
+     "table_03": -0.28,
+     "table_10": 0.32,
+     "table_11": 0.18,
+     "table_12": -0.24,
+     "table_13": -0.27,
+     "table_20": 0.17,
+     "table_21": 0.35,
+     "table_22": -0.37,
+     "table_23": -0.24,
+     "table_30": 0.3,
+     "table_31": 2.09,
+     "table_32": -0.24,
+     "table_33": -0.25
+    },
+    "table_patch_spread_cm_p90": 0.36,
+    "object_vs_table_spread": {
+     "black_bowl": 1.22,
+     "green_block": 1.06,
+     "orange_block": 2.61,
+     "yellow_block": 2.25
+    }
+   },
+   "moge_seconds": 22.3
+  },
+  {
+   "cam": "wrist",
+   "frame": 52,
+   "real_frame": 52,
+   "variant": null,
+   "fov_x_deg": 82.31,
+   "ours_vs_physics": {
+    "fit_a": 0.4629,
+    "fit_b_m": -0.0627,
+    "fit_px": 167569,
+    "object_residual_cm": {
+     "black_bowl": -7.32,
+     "green_block": null,
+     "orange_block": 1.43,
+     "yellow_block": 2.87
+    },
+    "table_patch_residual_cm": {
+     "table_00": -0.64,
+     "table_01": 0.08,
+     "table_02": 1.1,
+     "table_03": 1.81,
+     "table_10": -1.01,
+     "table_11": -0.19,
+     "table_12": 0.92,
+     "table_13": 1.52,
+     "table_20": -1.62,
+     "table_21": -0.84,
+     "table_22": 0.28,
+     "table_23": 1.03,
+     "table_30": -2.8,
+     "table_31": -16.63,
+     "table_32": -0.45,
+     "table_33": -1.35
+    },
+    "table_patch_spread_cm_p90": 2.3,
+    "object_vs_table_spread": {
+     "black_bowl": 3.04,
+     "green_block": null,
+     "orange_block": 0.76,
+     "yellow_block": 1.38
+    }
+   },
+   "real_vs_ours": {
+    "fit_a": 1.2501,
+    "fit_b_m": -0.2574,
+    "fit_px": 153902,
+    "object_residual_cm": {
+     "black_bowl": -18.25,
+     "green_block": null,
+     "orange_block": -2.58,
+     "yellow_block": -0.08
+    },
+    "table_patch_residual_cm": {
+     "table_00": 0.13,
+     "table_01": -0.47,
+     "table_02": 0.28,
+     "table_03": 0.73,
+     "table_10": 0.11,
+     "table_11": -0.4,
+     "table_12": 0.34,
+     "table_13": 0.31,
+     "table_20": -0.03,
+     "table_21": -0.32,
+     "table_22": -0.32,
+     "table_23": -0.59,
+     "table_30": -0.2,
+     "table_31": -2.5,
+     "table_32": -2.11,
+     "table_33": -3.19
+    },
+    "table_patch_spread_cm_p90": 2.04,
+    "object_vs_table_spread": {
+     "black_bowl": 8.8,
+     "green_block": null,
+     "orange_block": 1.13,
+     "yellow_block": 0.09
+    }
+   },
+   "moge_seconds": 21.8
+  }
+ ],
+ "seconds": 94.1,
+ "note": "residual = a*z_moge + b - z_reference (cm), fit on table pixels; object_vs_table_spread = |object residual - median table-patch residual| / p90 table-patch spread (>1: stands out from the table). Heat images: composite | ours-vs-physics residual (red: MoGe farther, blue: nearer, +-5 cm) | real | real-vs-ours residual."
+}

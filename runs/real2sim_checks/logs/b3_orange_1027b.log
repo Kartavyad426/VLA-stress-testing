@@ -1,0 +1,75 @@
+[nominal]    green_block pick_lift_hold                 PASS  stage=held       (10.0 s)
+[nominal]    green_block place_upright                  PASS  stage=placed   xy 0.6 cm, z +0.0 cm, tilt 0 deg  (13.7 s)
+[nominal]    green_block into_container  black_bowl     PASS  stage=placed   0.5 cm from the container centre (rim 8.5 cm), bottom below the rim  (13.6 s)
+[nominal]    green_block stack           orange_block   PASS  stage=placed   0.1 cm off the lower block's centre  (13.9 s)
+[nominal]   orange_block pick_lift_hold                 PASS  stage=held       (10.6 s)
+[nominal]   orange_block place_upright                  PASS  stage=placed   xy 1.8 cm, z -0.0 cm, tilt 0 deg  (14.6 s)
+[nominal]   orange_block into_container  black_bowl     PASS  stage=placed   2.6 cm from the container centre (rim 8.5 cm), bottom below the rim  (14.1 s)
+[nominal]   orange_block stack           green_block    fail  stage=lifted   after release: 4.0 cm off the lower block's centre  (14.2 s)
+[nominal]   yellow_block pick_lift_hold                 PASS  stage=held       (9.3 s)
+[nominal]   yellow_block place_upright                  PASS  stage=placed   xy 0.6 cm, z +0.0 cm, tilt 0 deg  (12.9 s)
+[nominal]   yellow_block into_container  black_bowl     PASS  stage=placed   0.7 cm from the container centre (rim 8.5 cm), bottom below the rim  (12.6 s)
+[nominal]   yellow_block stack           green_block    PASS  stage=placed   0.8 cm off the lower block's centre  (13.5 s)
+[mass_x0.5]    green_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[mass_x0.5]    green_block place_upright                  PASS  stage=placed   xy 0.6 cm, z +0.0 cm, tilt 0 deg  (0.5 s)
+[mass_x0.5]    green_block into_container  black_bowl     PASS  stage=placed   0.4 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.6 s)
+[mass_x0.5]    green_block stack           orange_block   fail  stage=lifted   after release: 6.7 cm off the lower block's centre  (0.5 s)
+[mass_x0.5]   orange_block pick_lift_hold                 fail  stage=closed   rose -0.7 cm < 8 cm  (0.3 s)
+[mass_x0.5]   orange_block place_upright                  fail  stage=closed   rose -0.7 cm < 8 cm  (0.4 s)
+[mass_x0.5]   orange_block into_container  black_bowl     fail  stage=closed   rose -0.7 cm < 8 cm  (0.4 s)
+[mass_x0.5]   orange_block stack           green_block    fail  stage=closed   rose -0.7 cm < 8 cm  (0.4 s)
+[mass_x0.5]   yellow_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[mass_x0.5]   yellow_block place_upright                  PASS  stage=placed   xy 0.5 cm, z +0.0 cm, tilt 0 deg  (0.4 s)
+[mass_x0.5]   yellow_block into_container  black_bowl     PASS  stage=placed   0.7 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[mass_x0.5]   yellow_block stack           green_block    PASS  stage=placed   0.7 cm off the lower block's centre  (0.5 s)
+[mass_x2]    green_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[mass_x2]    green_block place_upright                  PASS  stage=placed   xy 0.6 cm, z +0.0 cm, tilt 0 deg  (0.5 s)
+[mass_x2]    green_block into_container  black_bowl     PASS  stage=placed   0.4 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.5 s)
+[mass_x2]    green_block stack           orange_block   PASS  stage=placed   0.1 cm off the lower block's centre  (0.5 s)
+[mass_x2]   orange_block pick_lift_hold                 fail  stage=lifted   during hold: rise 8.8 cm, slip 1.1 cm  (0.3 s)
+[mass_x2]   orange_block place_upright                  PASS  stage=placed   xy 0.5 cm, z -0.0 cm, tilt 0 deg  (0.4 s)
+[mass_x2]   orange_block into_container  black_bowl     PASS  stage=placed   0.1 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[mass_x2]   orange_block stack           green_block    PASS  stage=placed   0.4 cm off the lower block's centre  (0.4 s)
+[mass_x2]   yellow_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[mass_x2]   yellow_block place_upright                  PASS  stage=placed   xy 0.7 cm, z +0.0 cm, tilt 0 deg  (0.4 s)
+[mass_x2]   yellow_block into_container  black_bowl     PASS  stage=placed   0.7 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[mass_x2]   yellow_block stack           green_block    PASS  stage=placed   0.9 cm off the lower block's centre  (0.4 s)
+[friction_x0.5]    green_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[friction_x0.5]    green_block place_upright                  PASS  stage=placed   xy 0.3 cm, z +0.0 cm, tilt 0 deg  (0.4 s)
+[friction_x0.5]    green_block into_container  black_bowl     PASS  stage=placed   0.5 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.5 s)
+[friction_x0.5]    green_block stack           orange_block   PASS  stage=placed   0.2 cm off the lower block's centre  (0.4 s)
+[friction_x0.5]   orange_block pick_lift_hold                 fail  stage=reached  not both pads on the object after closing  (0.3 s)
+[friction_x0.5]   orange_block place_upright                  fail  stage=reached  not both pads on the object after closing  (0.4 s)
+[friction_x0.5]   orange_block into_container  black_bowl     fail  stage=reached  not both pads on the object after closing  (0.4 s)
+[friction_x0.5]   orange_block stack           green_block    fail  stage=reached  not both pads on the object after closing  (0.4 s)
+[friction_x0.5]   yellow_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[friction_x0.5]   yellow_block place_upright                  PASS  stage=placed   xy 0.2 cm, z +0.0 cm, tilt 0 deg  (0.4 s)
+[friction_x0.5]   yellow_block into_container  black_bowl     PASS  stage=placed   0.5 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[friction_x0.5]   yellow_block stack           green_block    PASS  stage=placed   0.2 cm off the lower block's centre  (0.4 s)
+[friction_x2]    green_block pick_lift_hold                 fail  stage=lifted   during hold: rise 9.0 cm, slip 1.0 cm  (0.3 s)
+[friction_x2]    green_block place_upright                  PASS  stage=placed   xy 0.5 cm, z -0.0 cm, tilt 0 deg  (0.4 s)
+[friction_x2]    green_block into_container  black_bowl     PASS  stage=placed   0.4 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.5 s)
+[friction_x2]    green_block stack           orange_block   PASS  stage=placed   0.6 cm off the lower block's centre  (0.4 s)
+[friction_x2]   orange_block pick_lift_hold                 fail  stage=lifted   during hold: rise 8.8 cm, slip 1.2 cm  (0.3 s)
+[friction_x2]   orange_block place_upright                  PASS  stage=placed   xy 0.5 cm, z -0.0 cm, tilt 0 deg  (0.4 s)
+[friction_x2]   orange_block into_container  black_bowl     PASS  stage=placed   0.1 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[friction_x2]   orange_block stack           green_block    PASS  stage=placed   0.4 cm off the lower block's centre  (0.4 s)
+[friction_x2]   yellow_block pick_lift_hold                 PASS  stage=held       (0.3 s)
+[friction_x2]   yellow_block place_upright                  PASS  stage=placed   xy 0.4 cm, z -0.0 cm, tilt 0 deg  (0.4 s)
+[friction_x2]   yellow_block into_container  black_bowl     PASS  stage=placed   0.4 cm from the container centre (rim 8.5 cm), bottom below the rim  (0.4 s)
+[friction_x2]   yellow_block stack           green_block    PASS  stage=placed   0.5 cm off the lower block's centre  (0.4 s)
+
+                                                   nominal       mass_x0.5         mass_x2   friction_x0.5     friction_x2
+green_block | pick_lift_hold                          PASS            PASS            PASS            PASS     fail@lifted
+green_block | place_upright                           PASS            PASS            PASS            PASS            PASS
+green_block | into_container -> black_bowl            PASS            PASS            PASS            PASS            PASS
+green_block | stack -> orange_block                   PASS     fail@lifted            PASS            PASS            PASS
+orange_block | pick_lift_hold                         PASS     fail@closed     fail@lifted    fail@reached     fail@lifted
+orange_block | place_upright                          PASS     fail@closed            PASS    fail@reached            PASS
+orange_block | into_container -> black_bowl           PASS     fail@closed            PASS    fail@reached            PASS
+orange_block | stack -> green_block            fail@lifted     fail@closed            PASS    fail@reached            PASS
+yellow_block | pick_lift_hold                         PASS            PASS            PASS            PASS            PASS
+yellow_block | place_upright                          PASS            PASS            PASS            PASS            PASS
+yellow_block | into_container -> black_bowl           PASS            PASS            PASS            PASS            PASS
+yellow_block | stack -> green_block                   PASS            PASS            PASS            PASS            PASS
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/ep_orange_block_stereo/expert_probe.json (175.3 s)

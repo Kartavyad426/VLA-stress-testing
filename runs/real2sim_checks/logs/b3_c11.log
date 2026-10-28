@@ -1,0 +1,19 @@
+[nominal]        block_1 pick_lift_hold                 PASS  stage=held       (16.6 s)
+[nominal]        block_1 place_upright                  PASS  stage=placed   xy 0.6 cm, z +0.0 cm, tilt 0 deg  (21.9 s)
+[nominal]        block_1 into_container  bowl           PASS  stage=placed   0.1 cm from the container centre (rim 8.3 cm), bottom below the rim  (21.9 s)
+[nominal]        block_1 stack           block_2        PASS  stage=placed   0.6 cm off the lower block's centre  (22.8 s)
+[nominal]        block_2 pick_lift_hold                 PASS  stage=held       (16.6 s)
+[nominal]        block_2 place_upright                  PASS  stage=placed   xy 0.5 cm, z -0.0 cm, tilt 0 deg  (23.8 s)
+[nominal]        block_2 into_container  bowl           PASS  stage=placed   0.3 cm from the container centre (rim 8.3 cm), bottom below the rim  (23.7 s)
+[nominal]        block_2 stack           block_1        PASS  stage=placed   0.6 cm off the lower block's centre  (22.0 s)
+
+                                                   nominal
+block_1 | pick_lift_hold                              PASS
+block_1 | place_upright                               PASS
+block_1 | into_container -> bowl                      PASS
+block_1 | stack -> block_2                            PASS
+block_2 | pick_lift_hold                              PASS
+block_2 | place_upright                               PASS
+block_2 | into_container -> bowl                      PASS
+block_2 | stack -> block_1                            PASS
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/c11/expert_probe.json (171.6 s)

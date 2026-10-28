@@ -1,0 +1,79 @@
+[nominal]        apple_1 pick_lift_hold                 PASS  stage=held       (10.3 s)
+[nominal]        apple_1 place_upright                  PASS  stage=placed   xy 0.3 cm, z +0.0 cm, tilt 0 deg  (13.8 s)
+[nominal]        apple_1 into_container  black_bowl     PASS  stage=placed   0.1 cm from the container centre (rim 6.9 cm), bottom below the rim  (14.5 s)
+[nominal]   red_radish_1 pick_lift_hold                 fail  stage=closed   rose 5.0 cm < 8 cm  (10.9 s)
+[nominal]   red_radish_1 place_upright                  fail  stage=closed   rose 5.0 cm < 8 cm  (15.4 s)
+[nominal]   red_radish_1 into_container  black_bowl     fail  stage=closed   rose 5.0 cm < 8 cm  (14.9 s)
+[nominal]    toy_block_1 pick_lift_hold                 PASS  stage=held       (10.8 s)
+[nominal]    toy_block_1 place_upright                  PASS  stage=placed   xy 0.8 cm, z +0.0 cm, tilt 0 deg  (14.7 s)
+[nominal]    toy_block_1 into_container  black_bowl     PASS  stage=placed   0.6 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.0 s)
+[nominal]    toy_block_1 stack           toy_block_2    PASS  stage=placed   0.5 cm off the lower block's centre  (14.8 s)
+[nominal]    toy_block_2 pick_lift_hold                 PASS  stage=held       (10.4 s)
+[nominal]    toy_block_2 place_upright                  PASS  stage=placed   xy 0.2 cm, z +0.0 cm, tilt 0 deg  (14.0 s)
+[nominal]    toy_block_2 into_container  black_bowl     PASS  stage=placed   0.6 cm from the container centre (rim 6.9 cm), bottom below the rim  (14.4 s)
+[nominal]    toy_block_2 stack           toy_block_1    PASS  stage=placed   0.4 cm off the lower block's centre  (14.5 s)
+[nominal]    toy_block_3 pick_lift_hold                 PASS  stage=held       (10.9 s)
+[nominal]    toy_block_3 place_upright                  PASS  stage=placed   xy 0.1 cm, z +0.0 cm, tilt 0 deg  (14.3 s)
+[nominal]    toy_block_3 into_container  black_bowl     PASS  stage=placed   0.3 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.3 s)
+[nominal]    toy_block_3 stack           toy_block_1    PASS  stage=placed   0.1 cm off the lower block's centre  (14.7 s)
+[nominal]    toy_block_4 pick_lift_hold                 fail  stage=lifted   during hold: rise 8.6 cm, slip 1.2 cm  (11.0 s)
+[nominal]    toy_block_4 place_upright                  PASS  stage=placed   xy 0.5 cm, z -0.0 cm, tilt 0 deg  (15.3 s)
+[nominal]    toy_block_4 into_container  black_bowl     PASS  stage=placed   0.3 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.5 s)
+[nominal]    toy_block_4 stack           toy_block_1    PASS  stage=placed   0.5 cm off the lower block's centre  (15.3 s)
+[nominal]    toy_block_5 pick_lift_hold                 PASS  stage=held       (11.3 s)
+[nominal]    toy_block_5 place_upright                  PASS  stage=placed   xy 0.3 cm, z +0.0 cm, tilt 0 deg  (14.4 s)
+[nominal]    toy_block_5 into_container  black_bowl     PASS  stage=placed   0.5 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.5 s)
+[nominal]    toy_block_5 stack           toy_block_1    PASS  stage=placed   0.3 cm off the lower block's centre  (14.8 s)
+[nominal]    toy_block_6 pick_lift_hold                 PASS  stage=held       (11.7 s)
+[nominal]    toy_block_6 place_upright                  PASS  stage=placed   xy 1.0 cm, z -0.0 cm, tilt 0 deg  (15.7 s)
+[nominal]    toy_block_6 into_container  black_bowl     PASS  stage=placed   0.6 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.6 s)
+[nominal]    toy_block_6 stack           toy_block_1    PASS  stage=placed   0.9 cm off the lower block's centre  (15.0 s)
+[nominal]    toy_block_7 pick_lift_hold                 PASS  stage=held       (11.9 s)
+[nominal]    toy_block_7 place_upright                  fail  stage=lifted   after release: xy 1.4 cm, z +15.0 cm, tilt 10 deg  (15.9 s)
+[nominal]    toy_block_7 into_container  black_bowl     PASS  stage=placed   0.6 cm from the container centre (rim 6.9 cm), bottom below the rim  (16.2 s)
+[nominal]    toy_block_7 stack           toy_block_1    PASS  stage=placed   0.3 cm off the lower block's centre  (15.2 s)
+[nominal]    toy_block_8 pick_lift_hold                 PASS  stage=held       (11.9 s)
+[nominal]    toy_block_8 place_upright                  fail  stage=lifted   after release: xy 6.4 cm, z +0.4 cm, tilt 97 deg  (16.0 s)
+[nominal]    toy_block_8 into_container  black_bowl     PASS  stage=placed   0.4 cm from the container centre (rim 6.9 cm), bottom below the rim  (15.7 s)
+[nominal]    toy_block_8 stack           toy_block_1    PASS  stage=placed   0.0 cm off the lower block's centre  (15.5 s)
+
+                                                   nominal
+apple_1 | pick_lift_hold                              PASS
+apple_1 | place_upright                               PASS
+apple_1 | into_container -> black_bowl                PASS
+red_radish_1 | pick_lift_hold                  fail@closed
+red_radish_1 | place_upright                   fail@closed
+red_radish_1 | into_container -> black_bowl    fail@closed
+toy_block_1 | pick_lift_hold                          PASS
+toy_block_1 | place_upright                           PASS
+toy_block_1 | into_container -> black_bowl            PASS
+toy_block_1 | stack -> toy_block_2                    PASS
+toy_block_2 | pick_lift_hold                          PASS
+toy_block_2 | place_upright                           PASS
+toy_block_2 | into_container -> black_bowl            PASS
+toy_block_2 | stack -> toy_block_1                    PASS
+toy_block_3 | pick_lift_hold                          PASS
+toy_block_3 | place_upright                           PASS
+toy_block_3 | into_container -> black_bowl            PASS
+toy_block_3 | stack -> toy_block_1                    PASS
+toy_block_4 | pick_lift_hold                   fail@lifted
+toy_block_4 | place_upright                           PASS
+toy_block_4 | into_container -> black_bowl            PASS
+toy_block_4 | stack -> toy_block_1                    PASS
+toy_block_5 | pick_lift_hold                          PASS
+toy_block_5 | place_upright                           PASS
+toy_block_5 | into_container -> black_bowl            PASS
+toy_block_5 | stack -> toy_block_1                    PASS
+toy_block_6 | pick_lift_hold                          PASS
+toy_block_6 | place_upright                           PASS
+toy_block_6 | into_container -> black_bowl            PASS
+toy_block_6 | stack -> toy_block_1                    PASS
+toy_block_7 | pick_lift_hold                          PASS
+toy_block_7 | place_upright                    fail@lifted
+toy_block_7 | into_container -> black_bowl            PASS
+toy_block_7 | stack -> toy_block_1                    PASS
+toy_block_8 | pick_lift_hold                          PASS
+toy_block_8 | place_upright                    fail@lifted
+toy_block_8 | into_container -> black_bowl            PASS
+toy_block_8 | stack -> toy_block_1                    PASS
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/c3h/expert_probe.json (538.6 s)

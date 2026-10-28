@@ -1,0 +1,15 @@
+[nominal]            cup pick_lift_hold                 PASS  stage=held       (11.7 s)
+[nominal]            cup place_upright                  fail  stage=lifted   after release: xy 2.3 cm, z -0.7 cm, tilt 84 deg  (15.9 s)
+[nominal]            cup into_container  bowl           PASS  stage=placed   0.3 cm from the container centre (rim 2.9 cm), bottom below the rim  (16.3 s)
+[nominal]         hammer pick_lift_hold                 fail  stage=lifted   during hold: rise 11.5 cm, slip 1.9 cm  (11.3 s)
+[nominal]         hammer place_upright                  fail  stage=lifted   after release: xy 20.3 cm, z -75.1 cm, tilt 178 deg  (16.0 s)
+[nominal]         hammer into_container  bowl           PASS  stage=placed   1.7 cm from the container centre (rim 2.9 cm), bottom below the rim  (15.7 s)
+
+                                                   nominal
+cup | pick_lift_hold                                  PASS
+cup | place_upright                            fail@lifted
+cup | into_container -> bowl                          PASS
+hammer | pick_lift_hold                        fail@lifted
+hammer | place_upright                         fail@lifted
+hammer | into_container -> bowl                       PASS
+written /home/imerit/Documents/Code/VLA/runs/real2sim_checks/c9/expert_probe.json (88.2 s)

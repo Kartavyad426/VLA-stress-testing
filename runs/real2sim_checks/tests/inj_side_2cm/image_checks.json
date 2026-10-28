@@ -1,0 +1,816 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/v1_dev/injection/side_2cm",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "frames": [
+  0,
+  10,
+  21,
+  32,
+  42,
+  52
+ ],
+ "work_hw": [
+  360,
+  640
+ ],
+ "policy_hw": [
+  180,
+  320
+ ],
+ "composite": "not requested",
+ "status": "exploratory, UNVERIFIED",
+ "checks": {
+  "d3": {
+   "black_bowl": {
+    "drawn": true,
+    "ext": {
+     "max_px": 2059,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 11372,
+     "frames_in_view": 4,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "green_block": {
+    "drawn": true,
+    "ext": {
+     "max_px": 236,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 855,
+     "frames_in_view": 3,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "orange_block": {
+    "drawn": true,
+    "ext": {
+     "max_px": 398,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 4676,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   },
+   "yellow_block": {
+    "drawn": true,
+    "ext": {
+     "max_px": 233,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "wrist": {
+     "max_px": 2626,
+     "frames_in_view": 6,
+     "frames": 6,
+     "label": "visible"
+    },
+    "error": false
+   }
+  },
+  "d1": {
+   "black_bowl": {
+    "ext": {
+     "n_frames": 6,
+     "skipped": {},
+     "offset_cm_median": 0.36,
+     "dx_cm_median": 0.355,
+     "dy_cm_median": -0.025,
+     "iou_median": 0.7865,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.866,
+       "offset_px": [
+        0.6,
+        -0.0
+       ],
+       "dx_cm": 0.19,
+       "dy_cm": -0.01,
+       "offset_cm": 0.19,
+       "iou": 0.803,
+       "sim_px": 2059,
+       "real_px": 1653
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.866,
+       "offset_px": [
+        0.7,
+        -0.1
+       ],
+       "dx_cm": 0.25,
+       "dy_cm": -0.04,
+       "offset_cm": 0.25,
+       "iou": 0.8,
+       "sim_px": 2059,
+       "real_px": 1648
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.866,
+       "offset_px": [
+        0.7,
+        -0.1
+       ],
+       "dx_cm": 0.24,
+       "dy_cm": -0.05,
+       "offset_cm": 0.25,
+       "iou": 0.805,
+       "sim_px": 2059,
+       "real_px": 1657
+      },
+      {
+       "frame": 32,
+       "depth_m": 0.837,
+       "offset_px": [
+        4.1,
+        0.7
+       ],
+       "dx_cm": 1.3,
+       "dy_cm": 0.23,
+       "offset_cm": 1.32,
+       "iou": 0.619,
+       "sim_px": 1385,
+       "real_px": 858
+      },
+      {
+       "frame": 42,
+       "depth_m": 0.864,
+       "offset_px": [
+        1.4,
+        -0.2
+       ],
+       "dx_cm": 0.46,
+       "dy_cm": -0.05,
+       "offset_cm": 0.47,
+       "iou": 0.773,
+       "sim_px": 1862,
+       "real_px": 1440
+      },
+      {
+       "frame": 52,
+       "depth_m": 0.87,
+       "offset_px": [
+        5.6,
+        6.0
+       ],
+       "dx_cm": 1.87,
+       "dy_cm": 2.0,
+       "offset_cm": 2.74,
+       "iou": 0.456,
+       "sim_px": 1743,
+       "real_px": 794
+      }
+     ],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 0,
+     "skipped": {
+      "sim touches the image edge": 5,
+      "sim < 100 px": 1
+     },
+     "offset_cm_median": null,
+     "dx_cm_median": null,
+     "dy_cm_median": null,
+     "iou_median": null,
+     "label": "unwitnessed",
+     "frames": []
+    }
+   },
+   "green_block": {
+    "ext": {
+     "n_frames": 6,
+     "skipped": {},
+     "offset_cm_median": 0.055,
+     "dx_cm_median": -0.055,
+     "dy_cm_median": -0.02,
+     "iou_median": 0.799,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.2,
+        -0.1
+       ],
+       "dx_cm": -0.05,
+       "dy_cm": -0.01,
+       "offset_cm": 0.05,
+       "iou": 0.795,
+       "sim_px": 236,
+       "real_px": 297
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.3,
+        -0.1
+       ],
+       "dx_cm": -0.06,
+       "dy_cm": -0.03,
+       "offset_cm": 0.06,
+       "iou": 0.819,
+       "sim_px": 236,
+       "real_px": 288
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.3,
+        -0.2
+       ],
+       "dx_cm": -0.06,
+       "dy_cm": -0.05,
+       "offset_cm": 0.08,
+       "iou": 0.811,
+       "sim_px": 236,
+       "real_px": 291
+      },
+      {
+       "frame": 32,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.2,
+        -0.2
+       ],
+       "dx_cm": -0.06,
+       "dy_cm": -0.05,
+       "offset_cm": 0.07,
+       "iou": 0.803,
+       "sim_px": 236,
+       "real_px": 294
+      },
+      {
+       "frame": 42,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.2,
+        -0.1
+       ],
+       "dx_cm": -0.03,
+       "dy_cm": -0.01,
+       "offset_cm": 0.04,
+       "iou": 0.781,
+       "sim_px": 236,
+       "real_px": 302
+      },
+      {
+       "frame": 52,
+       "depth_m": 0.585,
+       "offset_px": [
+        -0.2,
+        0.0
+       ],
+       "dx_cm": -0.05,
+       "dy_cm": 0.01,
+       "offset_cm": 0.05,
+       "iou": 0.784,
+       "sim_px": 236,
+       "real_px": 301
+      }
+     ],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 3,
+     "skipped": {
+      "sim touches the image edge": 1,
+      "sim < 100 px": 2
+     },
+     "offset_cm_median": 2.35,
+     "dx_cm_median": 1.78,
+     "dy_cm_median": 1.65,
+     "iou_median": 0.174,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.461,
+       "offset_px": [
+        13.3,
+        13.1
+       ],
+       "dx_cm": 1.68,
+       "dy_cm": 1.65,
+       "offset_cm": 2.35,
+       "iou": 0.174,
+       "sim_px": 750,
+       "real_px": 887
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.46,
+       "offset_px": [
+        14.2,
+        13.5
+       ],
+       "dx_cm": 1.78,
+       "dy_cm": 1.7,
+       "offset_cm": 2.46,
+       "iou": 0.162,
+       "sim_px": 748,
+       "real_px": 903
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.417,
+       "offset_px": [
+        17.1,
+        8.2
+       ],
+       "dx_cm": 1.95,
+       "dy_cm": 0.93,
+       "offset_cm": 2.16,
+       "iou": 0.208,
+       "sim_px": 855,
+       "real_px": 1071
+      }
+     ]
+    }
+   },
+   "orange_block": {
+    "ext": {
+     "n_frames": 6,
+     "skipped": {},
+     "offset_cm_median": 0.035,
+     "dx_cm_median": 0.015,
+     "dy_cm_median": 0.015,
+     "iou_median": 0.829,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.578,
+       "offset_px": [
+        0.0,
+        0.2
+       ],
+       "dx_cm": 0.01,
+       "dy_cm": 0.04,
+       "offset_cm": 0.04,
+       "iou": 0.823,
+       "sim_px": 398,
+       "real_px": 406
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.578,
+       "offset_px": [
+        0.1,
+        0.1
+       ],
+       "dx_cm": 0.02,
+       "dy_cm": 0.02,
+       "offset_cm": 0.03,
+       "iou": 0.831,
+       "sim_px": 398,
+       "real_px": 402
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.578,
+       "offset_px": [
+        0.1,
+        -0.0
+       ],
+       "dx_cm": 0.01,
+       "dy_cm": -0.0,
+       "offset_cm": 0.01,
+       "iou": 0.838,
+       "sim_px": 398,
+       "real_px": 407
+      },
+      {
+       "frame": 32,
+       "depth_m": 0.578,
+       "offset_px": [
+        0.1,
+        -0.1
+       ],
+       "dx_cm": 0.02,
+       "dy_cm": -0.03,
+       "offset_cm": 0.03,
+       "iou": 0.841,
+       "sim_px": 398,
+       "real_px": 410
+      },
+      {
+       "frame": 42,
+       "depth_m": 0.578,
+       "offset_px": [
+        -0.2,
+        0.0
+       ],
+       "dx_cm": -0.05,
+       "dy_cm": 0.01,
+       "offset_cm": 0.05,
+       "iou": 0.808,
+       "sim_px": 398,
+       "real_px": 430
+      },
+      {
+       "frame": 52,
+       "depth_m": 0.578,
+       "offset_px": [
+        0.2,
+        0.2
+       ],
+       "dx_cm": 0.03,
+       "dy_cm": 0.04,
+       "offset_cm": 0.05,
+       "iou": 0.827,
+       "sim_px": 398,
+       "real_px": 428
+      }
+     ],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 3,
+     "skipped": {
+      "no matching detection": 3
+     },
+     "offset_cm_median": 0.98,
+     "dx_cm_median": 0.96,
+     "dy_cm_median": -0.15,
+     "iou_median": 0.528,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 32,
+       "depth_m": 0.371,
+       "offset_px": [
+        9.5,
+        -3.5
+       ],
+       "dx_cm": 0.96,
+       "dy_cm": -0.35,
+       "offset_cm": 1.02,
+       "iou": 0.528,
+       "sim_px": 1539,
+       "real_px": 1696
+      },
+      {
+       "frame": 42,
+       "depth_m": 0.268,
+       "offset_px": [
+        13.3,
+        -2.1
+       ],
+       "dx_cm": 0.97,
+       "dy_cm": -0.15,
+       "offset_cm": 0.98,
+       "iou": 0.522,
+       "sim_px": 2742,
+       "real_px": 3092
+      },
+      {
+       "frame": 52,
+       "depth_m": 0.204,
+       "offset_px": [
+        11.7,
+        -0.9
+       ],
+       "dx_cm": 0.65,
+       "dy_cm": -0.05,
+       "offset_cm": 0.65,
+       "iou": 0.655,
+       "sim_px": 4676,
+       "real_px": 4888
+      }
+     ]
+    }
+   },
+   "yellow_block": {
+    "ext": {
+     "n_frames": 6,
+     "skipped": {},
+     "offset_cm_median": 0.25,
+     "dx_cm_median": 0.25,
+     "dy_cm_median": 0.03,
+     "iou_median": 0.667,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.555,
+       "offset_px": [
+        1.1,
+        0.1
+       ],
+       "dx_cm": 0.24,
+       "dy_cm": 0.03,
+       "offset_cm": 0.24,
+       "iou": 0.668,
+       "sim_px": 233,
+       "real_px": 334
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.555,
+       "offset_px": [
+        1.2,
+        0.1
+       ],
+       "dx_cm": 0.26,
+       "dy_cm": 0.01,
+       "offset_cm": 0.26,
+       "iou": 0.666,
+       "sim_px": 233,
+       "real_px": 325
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.555,
+       "offset_px": [
+        1.2,
+        0.2
+       ],
+       "dx_cm": 0.26,
+       "dy_cm": 0.04,
+       "offset_cm": 0.26,
+       "iou": 0.668,
+       "sim_px": 233,
+       "real_px": 329
+      },
+      {
+       "frame": 32,
+       "depth_m": 0.555,
+       "offset_px": [
+        1.3,
+        0.1
+       ],
+       "dx_cm": 0.27,
+       "dy_cm": 0.03,
+       "offset_cm": 0.27,
+       "iou": 0.668,
+       "sim_px": 233,
+       "real_px": 329
+      },
+      {
+       "frame": 42,
+       "depth_m": 0.555,
+       "offset_px": [
+        1.0,
+        0.1
+       ],
+       "dx_cm": 0.21,
+       "dy_cm": 0.03,
+       "offset_cm": 0.21,
+       "iou": 0.664,
+       "sim_px": 233,
+       "real_px": 331
+      },
+      {
+       "frame": 52,
+       "depth_m": 0.555,
+       "offset_px": [
+        0.9,
+        0.2
+       ],
+       "dx_cm": 0.2,
+       "dy_cm": 0.04,
+       "offset_cm": 0.2,
+       "iou": 0.66,
+       "sim_px": 233,
+       "real_px": 338
+      }
+     ],
+     "independent": false
+    },
+    "wrist": {
+     "n_frames": 4,
+     "skipped": {
+      "sim touches the image edge": 2
+     },
+     "offset_cm_median": 1.8050000000000002,
+     "dx_cm_median": 1.375,
+     "dy_cm_median": 0.9099999999999999,
+     "iou_median": 0.2515,
+     "label": "measured",
+     "frames": [
+      {
+       "frame": 0,
+       "depth_m": 0.504,
+       "offset_px": [
+        8.4,
+        10.1
+       ],
+       "dx_cm": 1.16,
+       "dy_cm": 1.39,
+       "offset_cm": 1.81,
+       "iou": 0.257,
+       "sim_px": 513,
+       "real_px": 885
+      },
+      {
+       "frame": 10,
+       "depth_m": 0.503,
+       "offset_px": [
+        8.6,
+        10.7
+       ],
+       "dx_cm": 1.19,
+       "dy_cm": 1.48,
+       "offset_cm": 1.89,
+       "iou": 0.231,
+       "sim_px": 516,
+       "real_px": 844
+      },
+      {
+       "frame": 21,
+       "depth_m": 0.457,
+       "offset_px": [
+        14.0,
+        3.4
+       ],
+       "dx_cm": 1.75,
+       "dy_cm": 0.43,
+       "offset_cm": 1.8,
+       "iou": 0.246,
+       "sim_px": 583,
+       "real_px": 936
+      },
+      {
+       "frame": 32,
+       "depth_m": 0.344,
+       "offset_px": [
+        16.5,
+        -8.1
+       ],
+       "dx_cm": 1.56,
+       "dy_cm": -0.76,
+       "offset_cm": 1.73,
+       "iou": 0.263,
+       "sim_px": 908,
+       "real_px": 1686
+      }
+     ]
+    }
+   }
+  },
+  "a2": {
+   "table_label": "wooden table",
+   "views": {
+    "ext": {
+     "n_frames": 6,
+     "iou_median": 0.8485,
+     "edge_dist_cm_median": 1.8900000000000001,
+     "label": "measured",
+     "independent": false,
+     "frames": [
+      {
+       "frame": 0,
+       "iou": 0.845,
+       "sim_edge_px": 758,
+       "edge_dist_cm_median": 2.05,
+       "edge_dist_cm_p90": 6.15
+      },
+      {
+       "frame": 10,
+       "iou": 0.847,
+       "sim_edge_px": 758,
+       "edge_dist_cm_median": 1.99,
+       "edge_dist_cm_p90": 5.96
+      },
+      {
+       "frame": 21,
+       "iou": 0.849,
+       "sim_edge_px": 735,
+       "edge_dist_cm_median": 2.04,
+       "edge_dist_cm_p90": 5.97
+      },
+      {
+       "frame": 32,
+       "iou": 0.855,
+       "sim_edge_px": 708,
+       "edge_dist_cm_median": 1.79,
+       "edge_dist_cm_p90": 5.08
+      },
+      {
+       "frame": 42,
+       "iou": 0.858,
+       "sim_edge_px": 668,
+       "edge_dist_cm_median": 1.55,
+       "edge_dist_cm_p90": 4.09
+      },
+      {
+       "frame": 52,
+       "iou": 0.848,
+       "sim_edge_px": 661,
+       "edge_dist_cm_median": 1.65,
+       "edge_dist_cm_p90": 4.16
+      }
+     ]
+    },
+    "wrist": {
+     "n_frames": 6,
+     "iou_median": 0.7765,
+     "edge_dist_cm_median": 2.65,
+     "label": "measured",
+     "independent": true,
+     "frames": [
+      {
+       "frame": 0,
+       "iou": 0.758,
+       "sim_edge_px": 965,
+       "edge_dist_cm_median": 2.65,
+       "edge_dist_cm_p90": 5.21
+      },
+      {
+       "frame": 10,
+       "iou": 0.76,
+       "sim_edge_px": 967,
+       "edge_dist_cm_median": 2.48,
+       "edge_dist_cm_p90": 5.43
+      },
+      {
+       "frame": 21,
+       "iou": 0.754,
+       "sim_edge_px": 777,
+       "edge_dist_cm_median": 3.83,
+       "edge_dist_cm_p90": 7.89
+      },
+      {
+       "frame": 32,
+       "iou": 0.793,
+       "sim_edge_px": 486,
+       "edge_dist_cm_median": 3.87,
+       "edge_dist_cm_p90": 8.68
+      },
+      {
+       "frame": 42,
+       "iou": 0.848,
+       "sim_edge_px": 193,
+       "edge_dist_cm_median": 2.12,
+       "edge_dist_cm_p90": 3.06
+      },
+      {
+       "frame": 52,
+       "iou": 0.848,
+       "sim_edge_px": 0
+      }
+     ]
+    }
+   },
+   "objects_to_edge_cm": {
+    "black_bowl": 24.9,
+    "green_block": 14.3,
+    "orange_block": 26.3,
+    "yellow_block": 21.5
+   }
+  },
+  "d5": {
+   "black_bowl": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.0,
+    "deepest_contact_cm": -0.003,
+    "error": false
+   },
+   "green_block": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.01,
+    "deepest_contact_cm": -0.011,
+    "error": false
+   },
+   "orange_block": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.01,
+    "deepest_contact_cm": -0.011,
+    "error": false
+   },
+   "yellow_block": {
+    "rests_on": "table",
+    "bottom_minus_table_cm": -0.01,
+    "deepest_contact_cm": -0.011,
+    "error": false
+   }
+  }
+ },
+ "detector_calls": 29,
+ "seconds": 560.4
+}
