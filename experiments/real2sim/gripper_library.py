@@ -30,13 +30,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True, help="a scene with the wrist camera (for the sim gripper silhouette)")
     ap.add_argument("--episodes", nargs="+", required=True)
-    ap.add_argument("--serial", default="18026681")
+    ap.add_argument("--serial", default=None, help="wrist camera serial; default: the scene's (scene_fit wrist_camera; our rig: 18026681)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--open_max", type=float, default=0.02, help="recorded gripper_position up to which the gripper counts as open")
     ap.add_argument("--max_frames", type=int, default=150)
     ap.add_argument("--dark_max", type=float, default=60.0, help="median luminance below which a pixel is gripper")
     ap.add_argument("--band", type=int, default=81, help="px: only pixels within this dilation of the sim gripper silhouette")
     a = ap.parse_args()
+    if a.serial is None:
+        a.serial = json.load(open(os.path.join(a.scene, "scene_fit.json")))["wrist_camera"]["serial"]
     os.makedirs(a.out, exist_ok=True)
     m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
     d = mujoco.MjData(m)

@@ -20,15 +20,16 @@ import h5py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from stereo_depth import stereo_pair, disparity, BASELINE_M  # noqa: E402
 from composite import cam_K, cam_pose  # noqa: E402
+from episode_info import frames_arg  # noqa: E402
 
-SKIP = ("wooden table", "robot gripper")
+SKIP = ("wooden table", "robot gripper")  # legacy role labels; the scene's own roles are added in main() (10-26)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True)
     ap.add_argument("--episode", required=True)
-    ap.add_argument("--frames", default="0,20,40")
+    ap.add_argument("--frames", default=None, help="wrist frames before any object is touched; derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--num_disp", type=int, default=320, help="SGBM range; blocks can be ~0.15 m from the wrist camera")
     ap.add_argument("--min_px", type=int, default=150, help="ignore a detection with fewer valid stereo pixels")
     ap.add_argument("--table_z", type=float, default=None, help="drop detections whose point is not within [-3, +15] cm of this "
@@ -44,11 +45,15 @@ def main():
     d = mujoco.MjData(m)
     fit = json.load(open(os.path.join(a.scene, "scene_fit.json")))
     serial = fit["wrist_camera"]["serial"]
-    labels = sorted({k.split("#")[0] for k in fit["objects"]} - set(SKIP))
+    from scene_roles import table_label, gripper_label
+    pj = os.path.join(a.scene, "perception.json")
+    pinfo = json.load(open(pj)) if os.path.exists(pj) else {}
+    labels = sorted({k.split("#")[0] for k in fit["objects"]} - set(SKIP) - {table_label(pinfo), gripper_label(pinfo)})
     J = h5py.File(os.path.join(a.episode, "trajectory.h5"))["observation/robot_state/joint_positions"][:]
     arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
     cid = m.camera("wrist").id
     per_frame = {}
+    a.frames = ",".join(map(str, frames_arg(a.frames, a.episode, "before_touch")))  # recorded in wrist_anchors.json
     for fr in (int(x) for x in a.frames.split(",")):
         q = m.qpos0.copy()
         q[arm] = J[fr]

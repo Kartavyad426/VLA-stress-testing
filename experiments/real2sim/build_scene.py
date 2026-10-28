@@ -28,7 +28,9 @@ NOT_OBJECTS = ("table", "gripper", "robot")
 COLOURS = {"red", "orange", "yellow", "green", "blue", "black", "white", "brown", "purple", "pink", "grey", "gray", "toy", "small", "large"}
 LIBERO_ASSETS = os.path.join(REPO, "third_party/LIBERO-plus/libero/libero/assets")
 sys.path.insert(0, os.path.join(REPO, "experiments/asset_pack"))
-import catalogue as packs  # CC BY asset packs (--assets kitchen|gso|ycb or a list): docs/ASSET_PACK_ADOPTION.html
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from scene_roles import table_label, gripper_label  # noqa: E402
+import catalogue as packs  # noqa: E402  CC BY asset packs (--assets kitchen|gso|ycb or a list): docs/ASSET_PACK_ADOPTION.html
 
 
 def asset_catalogue(source):
@@ -279,6 +281,7 @@ def main():
 
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     info = json.load(open(os.path.join(a.out, "perception.json")))
+    TABLE, GRIPPER = table_label(info), gripper_label(info)  # roles from perceive.py (10-26); older scenes: "wooden table"
     f = h5py.File(os.path.join(a.episode, "trajectory.h5"))
     ee = f["observation/robot_state/cartesian_position"][()]
     H, W = per["image"].shape[:2]
@@ -297,7 +300,7 @@ def main():
             # scale is taken where the scene is: the table.
             from stereo_depth import stereo_z, BASELINE_M
             zs = stereo_z(a.episode, a.cam, info["frame"], K[0, 0], BASELINE_M["ext"])
-            tab = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
+            tab = cv2.erode(per[f"mask/{TABLE}"].astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
             both = tab & np.isfinite(zs) & per["valid"] & (z > 0)
             r = zs[both] / z[both]
             stereo_scale = float(np.median(r))
@@ -320,15 +323,15 @@ def main():
         geo_n = geometry(read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), n))
         both = (zs > 0) & real_n & geo_n["mask"]
         s_n = float(np.median(zs[both] / geo_n["depth"][both]))
-        table = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
+        table = cv2.erode(per[f"mask/{TABLE}"].astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
         static = table & ~cv2.dilate(real_n.astype(np.uint8), np.ones((31, 31), np.uint8)).astype(bool) & per["valid"] & geo_n["mask"]
         ratio = float(np.median(geo_n["depth"][static] / per["depth"][static]))
         s_anchor = s_n * ratio
         anchor_info = dict(anchor_frame=n, robot_px=int(both.sum()), s_at_anchor_frame=s_n, table_px=int(static.sum()),
                            depth_ratio_anchor_over_perception=ratio)
-    elif "mask/robot gripper" in per and a.depth != "stereo":
+    elif f"mask/{GRIPPER}" in per and a.depth != "stereo":
         # legacy anchor: recorded gripper position vs MoGe depth on the gripper mask
-        zg = per["depth"][per["mask/robot gripper"] & per["valid"]]
+        zg = per["depth"][per[f"mask/{GRIPPER}"] & per["valid"]]
         if len(zg):
             s_anchor = float(z_ee[0] / np.median(zg))
     if a.depth == "stereo":
@@ -342,7 +345,7 @@ def main():
     fit = dict(depth=a.depth, scale_mode=a.scale if a.depth == "mono" else "none (stereo)", scale=s, scale_anchor=s_anchor, **anchor_info, ee_pixel=uv_ee[0].tolist(),
                ee_inside_image=bool(0 <= uv_ee[0, 0] < W and 0 <= uv_ee[0, 1] < H), objects={})
 
-    tb = to_base(masked_points(per, "wooden table", erode=9))
+    tb = to_base(masked_points(per, TABLE, erode=9))
     z_table = float(np.median(tb[:, 2]))
     lo, hi = np.percentile(tb[:, :2], 2, axis=0), np.percentile(tb[:, :2], 98, axis=0)
     fit["table"] = dict(z=z_table, xy_lo=lo.tolist(), xy_hi=hi.tolist(), z_spread_iqr=float(np.subtract(*np.percentile(tb[:, 2], [75, 25]))))

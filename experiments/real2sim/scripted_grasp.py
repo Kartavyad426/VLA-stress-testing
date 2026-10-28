@@ -52,7 +52,8 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--target", default="orange_block", help="single target body (kept for the orange-block runs)")
+    ap.add_argument("--target", default=None, help="single target body; default: the object nearest the first recorded "
+                    "grasp (scene_roles; ep_orange_block: orange_block)")
     ap.add_argument("--targets", default="", help="comma-separated bodies picked in sequence; 'auto:N' = the N blocks "
                     "with the most clearance from other objects, most isolated first")
     ap.add_argument("--tag", default="scripted_grasp", help="output name prefix")
@@ -70,9 +71,13 @@ def main():
     pinch = m.site("g_pinch").id
     fit = json.load(open(os.path.join(a.out, "scene_fit.json")))
     free = [m.body(m.jnt_bodyid[j]).name for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
-    bowl_name = [n for n in free if "bowl" in n][0]
-    bowl = m.body(bowl_name).id
-    bowl_fit = [o for o in fit["objects"].values() if o.get("kind", "bowl") == "bowl" and "rim_radius" in o][0]
+    from scene_roles import body_kinds, container_bodies, container_fit, first_grasp_target
+    cont = container_bodies(m, fit)
+    if not cont:
+        raise SystemExit("scripted_grasp places into a container; this scene has none fitted (scene_fit kind 'bowl')")
+    bowl = cont[0]
+    bowl_name = m.body(bowl).name
+    bowl_fit = container_fit(fit, bowl_name)
     rim_top = fit["table"]["z"] + bowl_fit["height_asset_scaled"]
 
     # settle the scene with the arm at the recorded start pose
@@ -85,7 +90,7 @@ def main():
 
     if a.targets.startswith("auto:"):
         n_pick = int(a.targets.split(":")[1])
-        blocks = [n for n in free if "block" in n]
+        blocks = [n for n, k in body_kinds(fit).items() if k in ("box", "cube") and n in free]  # 10-26: by kind, not name
         others = {n: d.xpos[m.body(n).id][:2] for n in free}
         clear = {b: min(np.linalg.norm(others[b] - others[o]) for o in free if o != b) for b in blocks}
         targets = sorted(blocks, key=lambda b: -clear[b])[:n_pick]
@@ -93,7 +98,7 @@ def main():
     elif a.targets:
         targets = [t.strip() for t in a.targets.split(",")]
     else:
-        targets = [a.target]
+        targets = [a.target or first_grasp_target(m, fit, a.episode)]
 
     H, W = 720, 1280
     rend = mujoco.Renderer(m, H, W)

@@ -74,21 +74,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True)
     ap.add_argument("--episode", required=True)
-    ap.add_argument("--frames", default="0,20,40", help="real frames (replay_states.npz poses the sim robot there)")
+    ap.add_argument("--frames", default=None, help="real frames, comma-separated (replay_states.npz poses the sim robot there); derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--ext_serial", default=None, help="default: calib.json 'cam'")
     a = ap.parse_args()
+    from episode_info import frames_arg
+    frames = frames_arg(a.frames, a.episode, "stereo")
     m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
     d = mujoco.MjData(m)
     fit = json.load(open(os.path.join(a.scene, "scene_fit.json")))
     ext_serial = a.ext_serial or json.load(open(os.path.join(a.scene, "calib.json")))["cam"]
     st = np.load(os.path.join(a.scene, "replay_states.npz"))
     out = dict(sim_table_z=fit["table"]["z"], results=[])
-    for fr in (int(x) for x in a.frames.split(",")):
+    for fr in frames:
         k = int(np.argmin(np.abs(st["real_frames"] - fr)))
         d.qpos[:] = st["qpos"][k]
         mujoco.mj_forward(m, d)
         for cam, serial in (("ext", ext_serial), ("wrist", fit["wrist_camera"]["serial"])):
-            if cam == "ext" and fr != int(a.frames.split(",")[0]):
+            if cam == "ext" and fr != frames[0]:
                 continue  # the exterior camera is static: one frame is enough
             res = table_height(m, d, a.episode, serial, fr, cam)
             res["minus_sim_cm"] = 100 * (res["z_median"] - fit["table"]["z"])

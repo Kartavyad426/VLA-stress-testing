@@ -22,6 +22,7 @@ import mujoco
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from episode_info import frames_arg  # noqa: E402
 from composite import (Compositor, WristCompositor, WristRenderV2, load_plate, wrist_plate, wrist_table_texture,  # noqa: E402
                        load_gripper_library)
 
@@ -51,7 +52,7 @@ def outlines(img, geom, groups):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True, help="<scene dir>:<episode dir>")
-    ap.add_argument("--frames", default="0,40,63,75,100,126")
+    ap.add_argument("--frames", default=None, help="comma-separated (ep_orange_block: 0,40,63,75,100,126); derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--wrist", choices=["v1", "v2"], default="v2")
     ap.add_argument("--out", required=True)
     ap.add_argument("--title", default=None)
@@ -87,7 +88,7 @@ def main():
     caps = {s: cv2.VideoCapture(os.path.join(edir, f"{s}.mp4")) for s in (per["cam"], wser)}
     d = mujoco.MjData(m)
     cards = []
-    for f in [int(x) for x in a.frames.split(",")]:
+    for f in frames_arg(a.frames, edir, "review"):
         k = int(np.argmin(np.abs(st["real_frames"] - f)))
         d.qpos[:] = st["qpos"][k]
         mujoco.mj_forward(m, d)

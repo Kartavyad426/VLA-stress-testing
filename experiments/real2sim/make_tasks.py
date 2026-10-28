@@ -25,7 +25,8 @@ import mujoco
 from scipy.spatial.transform import Rotation as Rot
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from scripted_grasp import ik  # noqa: E402  (damped least squares on the pinch site, verified on both scenes)
+from scripted_grasp import ik  # noqa: E402
+from scene_roles import body_kinds  # noqa: E402  (damped least squares on the pinch site, verified on both scenes)
 
 FPS = 15
 HUES = [(15, "red"), (40, "orange"), (70, "yellow"), (165, "green"), (200, "teal"), (260, "blue"), (300, "purple"), (340, "pink"), (361, "red")]
@@ -99,7 +100,7 @@ def body_radius(m, body):
     return max(float(m.geom_rbound[g]) for g in range(m.ngeom) if m.body_rootid[m.geom_bodyid[g]] == root and m.geom_contype[g])
 
 
-def randomise(m, d, rng, free, jitter=0.03, yaw=0.5):
+def randomise(m, d, rng, free, jitter=0.03, yaw=0.5, kinds=None):
     """jitter free objects in x/y (+ yaw), rejecting overlaps (bounding spheres, horizontal)."""
     base = {b: d.qpos[free_qadr(m, b):free_qadr(m, b) + 7].copy() for b in free}
     rad = {b: 0.8 * body_radius(m, b) for b in free}
@@ -107,8 +108,9 @@ def randomise(m, d, rng, free, jitter=0.03, yaw=0.5):
         prop = {}
         for b in free:
             q = base[b].copy()
-            q[:2] += rng.uniform(-jitter, jitter, 2) * (0.6 if "bowl" in b else 1.0)
-            if "block" in b:
+            kind = (kinds or {}).get(b)  # by fitted kind (10-26; was: body name contains bowl / block)
+            q[:2] += rng.uniform(-jitter, jitter, 2) * (0.6 if kind == "bowl" else 1.0)
+            if kind in ("box", "cube"):
                 q[3:7] = (Rot.from_quat(q[3:7], scalar_first=True) * Rot.from_euler("z", rng.uniform(-yaw, yaw))).as_quat(scalar_first=True)
             prop[b] = q
         ok = all(np.linalg.norm(prop[a][:2] - prop[b][:2]) > rad[a] + rad[b] for i, a in enumerate(free) for b in free[i + 1:])
@@ -125,7 +127,7 @@ def footprint_radius(m, fit, body):
         if o.get("body") == body and o["kind"] == "bowl":
             return o["rim_radius"]
     r = body_radius(m, body)
-    return r * np.sqrt(2) / np.sqrt(3) if "block" in body else r
+    return r * np.sqrt(2) / np.sqrt(3) if body_kinds(fit).get(body) == "cube" else r
 
 
 def task_success(m, d, fit, task):
@@ -194,7 +196,7 @@ def main():
                 rng = np.random.default_rng(a.seed * 1000 + ti * 100 + vi)
                 d = mujoco.MjData(m)
                 d.qpos[arm_q] = q_start
-                if vi > 0 and not randomise(m, d, rng, free):  # variant 0 = the reconstructed scene as is
+                if vi > 0 and not randomise(m, d, rng, free, kinds=body_kinds(fit)):  # variant 0 = the reconstructed scene as is
                     continue
                 d.ctrl[arm_u] = q_start
                 d.ctrl[grip_u] = g_lo

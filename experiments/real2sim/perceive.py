@@ -12,7 +12,27 @@ import cv2
 import torch
 from PIL import Image
 
-PROMPTS = ["black bowl", "orange block", "yellow block", "green block", "wooden table", "robot gripper"]
+# ep_orange_block's prompts, kept for reference only (10-26: no scene-specific default; objects come from --prompts or from
+# a vlm_objects.py list in --out, the table and gripper from --table / --gripper)
+ORANGE_PROMPTS = ["black bowl", "orange block", "yellow block", "green block", "wooden table", "robot gripper"]
+
+
+def vlm_prompts(out):
+    """Object prompts from the newest vlm_objects_*.json in `out`: lower-cased names, duplicates merged; an object the
+    VLM counts more than once becomes a multi-instance prompt. Returns (single, multi, source file) or None."""
+    import glob
+    files = sorted(glob.glob(os.path.join(out, "vlm_objects_*.json")), key=os.path.getmtime)
+    if not files:
+        return None
+    objs = json.load(open(files[-1])).get("objects") or []
+    count = {}
+    for o in objs:
+        name = " ".join(str(o.get("name", "")).lower().split())
+        if name:
+            count[name] = count.get(name, 0) + int(o.get("count", 1) or 1)
+    single = sorted(n for n, c in count.items() if c == 1)
+    multi = sorted(n for n, c in count.items() if c > 1)
+    return single, multi, files[-1]
 
 
 def read_frame(path, idx):
@@ -125,21 +145,44 @@ def main():
     ap.add_argument("--cam", required=True)
     ap.add_argument("--frame", type=int, default=0)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--prompts", default=",".join(PROMPTS), help="single-instance prompts (best box each), comma-separated")
+    ap.add_argument("--prompts", default=None, help="single-instance object prompts (best box each), comma-separated; default: "
+                    "from a vlm_objects.py list in --out (ep_orange_block used " + ",".join(ORANGE_PROMPTS) + ")")
     ap.add_argument("--multi", default="", help="multi-instance prompts for cluttered scenes, comma-separated")
+    ap.add_argument("--table", default="table", help="prompt for the table (role 'table'; scenes before 10-26 used 'wooden table')")
+    ap.add_argument("--gripper", default="robot gripper", help="prompt for the gripper (role 'gripper')")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     torch.set_num_threads(os.cpu_count())
+    src = "--prompts"
+    if a.prompts is None:
+        v = vlm_prompts(a.out)
+        if v is None:
+            raise SystemExit("no object prompts: pass --prompts, or run vlm_objects.py with --out " + a.out + " first")
+        single, multi, src = v
+        a.prompts = ",".join(single)
+        a.multi = ",".join(sorted(set(multi) | {x.strip() for x in a.multi.split(",") if x.strip()}))
+    single = [x.strip() for x in a.prompts.split(",") if x.strip()]
+    for role in (a.table, a.gripper):  # the table and gripper are always single prompts, whatever the object list says
+        if role not in single:
+            single.append(role)
+    multi = [x.strip() for x in a.multi.split(",") if x.strip() and x.strip() not in single]
+    print("prompts (" + src + "):", single, "multi:", multi)
 
     img = read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), a.frame)
     cache = os.path.join(a.out, "masks_cache.npz")
-    if os.path.exists(cache):  # detection + SAM are the slow CPU part; reuse them on reruns
+    cached = None
+    if os.path.exists(cache):  # detection + SAM are the slow CPU part; reuse them on reruns with the same prompts
         c = np.load(cache, allow_pickle=True)
-        dets, masks = c["dets"].item(), c["masks"].item()
+        cached = (c["dets"].item(), c["masks"].item())
+        if set(single) - {k.split("#")[0] for k in cached[0]} or set(multi) - {k.split("#")[0] for k in cached[0]}:
+            print("masks_cache.npz was made with other prompts: detecting again")  # 10-26: the cache used to ignore prompts
+            cached = None
+    if cached:
+        dets, masks = cached
     else:
-        dets = detect(img, [x.strip() for x in a.prompts.split(",") if x.strip()])
-        if a.multi:
-            dets.update(detect_multi(img, [x.strip() for x in a.multi.split(",") if x.strip()]))
+        dets = detect(img, single)
+        if multi:
+            dets.update(detect_multi(img, multi))
         masks = segment(img, dets)
         np.savez_compressed(cache, dets=np.array(dets, dtype=object), masks=np.array(masks, dtype=object))
     geo = geometry(img)  # FOV left to MoGe: no ZED intrinsics without the SDK
@@ -152,7 +195,8 @@ def main():
         os.path.join(a.out, "perception.npz"), image=img, points=geo["points"],
         depth=geo["depth"], valid=geo["mask"], K=K,
         **{f"mask/{k}": v for k, v in masks.items()})
-    json.dump(dict(cam=a.cam, frame=a.frame, detections=dets, K=K.tolist(),
+    json.dump(dict(cam=a.cam, frame=a.frame, detections=dets, K=K.tolist(), prompts=dict(single=single, multi=multi, source=src),
+                   roles=dict(table=a.table, gripper=a.gripper),
                    fov_x_deg=float(np.degrees(2 * np.arctan(W / (2 * K[0, 0]))))),
               open(os.path.join(a.out, "perception.json"), "w"), indent=1)
 

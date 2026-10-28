@@ -35,7 +35,8 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--target", default="orange_block")
+    ap.add_argument("--target", default=None, help="body to track; default: the object nearest the first recorded grasp "
+                    "(scene_roles.first_grasp_target; ep_orange_block: orange_block)")
     ap.add_argument("--settle_s", type=float, default=0.5)
     a = ap.parse_args()
 
@@ -56,9 +57,13 @@ def main():
     grip_u = grip_u[0]
     g_lo, g_hi = m.actuator_ctrlrange[grip_u]
     pinch = m.site("g_pinch").id
-    tgt = m.body(a.target).id
+    from scene_roles import container_bodies, container_fit, first_grasp_target
+    target = a.target or first_grasp_target(m, fit, a.episode)
+    print("replay target:", target)
+    tgt = m.body(target).id if target else None
     free_bodies = [m.body(m.jnt_bodyid[j]).name for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
-    bowl = m.body([n for n in free_bodies if "bowl" in n][0]).id
+    cont = container_bodies(m, fit)
+    bowl = cont[0] if cont else None  # the first fitted container (was: the free body named *bowl*)
 
     def command(i):
         d.ctrl[arm_u] = jp[i]
@@ -85,7 +90,8 @@ def main():
             mujoco.mj_step(m, d)
         states.append(d.qpos.copy())
         pinch_err.append(d.site_xpos[pinch] - ee[i])
-        tpos.append(d.xpos[tgt].copy())
+        if tgt is not None:
+            tpos.append(d.xpos[tgt].copy())
         rend.update_scene(d, camera="ext")
         sim = rend.render()
         blend = (0.5 * real[i] + 0.5 * sim).astype(np.uint8)
@@ -97,24 +103,23 @@ def main():
     writer.close()
     np.savez_compressed(os.path.join(a.out, "replay_states.npz"), qpos=np.array(states), real_frames=np.arange(T))
 
-    tpos = np.array(tpos)
     pe = np.array(pinch_err)
-    bowl_xy, bowl_z = d.xpos[bowl][:2], d.xpos[bowl][2]
-    bowl_fit = [o for o in fit["objects"].values() if o.get("kind", "bowl") == "bowl" and "rim_radius" in o][0]
-    r = bowl_fit["rim_radius"]
-    final = tpos[-1]
-    horiz = float(np.linalg.norm(final[:2] - bowl_xy))
-    metrics = dict(
-        steps=T, settle_displacement_m=settle,
-        target_lifted_m=float(tpos[:, 2].max() - tpos[0, 2]),
-        target_final_xyz=final.tolist(), bowl_final_xyz=d.xpos[bowl].tolist(),
-        target_to_bowl_horizontal_m=horiz, bowl_rim_radius_m=r,
-        target_in_bowl=bool(horiz < 0.8 * r and final[2] < bowl_z + bowl_fit["height_fit"] + 0.02),
-        pinch_minus_recorded_ee_mean_m=pe.mean(0).tolist(), pinch_minus_recorded_ee_std_m=pe.std(0).tolist(),
-    )
+    metrics = dict(steps=T, settle_displacement_m=settle, target=target,
+                   pinch_minus_recorded_ee_mean_m=pe.mean(0).tolist(), pinch_minus_recorded_ee_std_m=pe.std(0).tolist())
+    if tgt is not None:
+        tpos = np.array(tpos)
+        final = tpos[-1]
+        metrics.update(target_lifted_m=float(tpos[:, 2].max() - tpos[0, 2]), target_final_xyz=final.tolist())
+        bowl_fit = container_fit(fit, m.body(bowl).name) if bowl is not None else None
+        if bowl_fit and "rim_radius" in bowl_fit:  # container metrics only when the scene has a fitted container
+            bowl_xy, bowl_z = d.xpos[bowl][:2], d.xpos[bowl][2]
+            r = bowl_fit["rim_radius"]
+            horiz = float(np.linalg.norm(final[:2] - bowl_xy))
+            metrics.update(bowl_final_xyz=d.xpos[bowl].tolist(), target_to_bowl_horizontal_m=horiz, bowl_rim_radius_m=r,
+                           target_in_bowl=bool(horiz < 0.8 * r and final[2] < bowl_z + bowl_fit["height_fit"] + 0.02))
     json.dump(metrics, open(os.path.join(a.out, "replay_metrics.json"), "w"), indent=1)
-    print(json.dumps({k: metrics[k] for k in ("target_lifted_m", "target_to_bowl_horizontal_m", "target_in_bowl",
-                                              "settle_displacement_m", "pinch_minus_recorded_ee_std_m")}))
+    print(json.dumps({k: metrics.get(k) for k in ("target", "target_lifted_m", "target_to_bowl_horizontal_m", "target_in_bowl",
+                                                  "settle_displacement_m", "pinch_minus_recorded_ee_std_m")}))
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ import mujoco
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from episode_info import frames_arg  # noqa: E402
 from composite import Compositor, WristCompositor, load_plate, wrist_plate, wrist_table_texture, HIDE_GROUP  # noqa: E402
 
 H, W = 180, 320
@@ -33,7 +34,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True)
     ap.add_argument("--episode", required=True)
-    ap.add_argument("--frames", default="18:73:3")
+    ap.add_argument("--frames", default=None, help="approach frames lo:hi:step or a,b,c (ep_orange_block: 18:73:3); derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--dark", type=float, default=0.85)
     ap.add_argument("--margin", type=int, default=31, help="px at 320x180 around sim objects")
     ap.add_argument("--grip_margin", type=int, default=5, help="px at 320x180 around the sim robot (narrow)")
@@ -63,9 +64,8 @@ def main():
     group0 = m.geom_group.copy()
     d = mujoco.MjData(m)
     cap = cv2.VideoCapture(os.path.join(a.episode, f"{ws}.mp4"))
-    lo, hi_, st = (int(x) for x in a.frames.split(":"))
     frames = []
-    for k in range(lo, hi_, st):
+    for k in frames_arg(a.frames, a.episode, "approach"):
         d.qpos[:] = m.qpos0
         d.qpos[arm] = J[k]
         for jn in ("g_right_driver_joint", "g_left_driver_joint"):

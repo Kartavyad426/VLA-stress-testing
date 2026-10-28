@@ -25,31 +25,21 @@ import h5py
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from composite import redacted_discs  # noqa: E402
+from scene_roles import container_bodies  # noqa: E402
+from episode_info import frames_arg, grasp_events  # noqa: E402,F401  (grasp_events moved there 10-26)
 
 # thresholds: res31's, user-accepted 10-19 (reversible)
 SETTLE_M, GRASP_M, SCALE_TOL, TABLE_M = 0.02, 0.015, 0.10, 0.01
-
-
-def grasp_events(g, thr=0.5):
-    """(close_frame, open_frame) pairs from the recorded gripper position."""
-    ev, k = [], 0
-    while k < len(g):
-        if g[k] > thr:
-            o = k + int(np.argmax(g[k:] < thr)) if (g[k:] < thr).any() else len(g) - 1
-            ev.append((k, o))
-            k = o + 1
-        else:
-            k += 1
-    return ev
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene", required=True)
     ap.add_argument("--episode", required=True)
-    ap.add_argument("--stereo_frames", default="0,20,40", help="wrist frames for #6 (before the objects are touched)")
+    ap.add_argument("--stereo_frames", default=None, help="wrist frames for #6 (before the objects are touched); derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--no_overlay", action="store_true")
     a = ap.parse_args()
+    a.stereo_frames = ",".join(map(str, frames_arg(a.stereo_frames, a.episode, "stereo")))
     m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
     fit = json.load(open(os.path.join(a.scene, "scene_fit.json")))
     h = h5py.File(os.path.join(a.episode, "trajectory.h5"))
@@ -58,7 +48,7 @@ def main():
     au = [m.actuator(f"fr3_joint{k}").id for k in range(1, 8)]
     pinch = m.site("g_pinch").id
     free = [m.jnt_bodyid[j] for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE]
-    containers = [b for b in free if "bowl" in m.body(b).name]
+    containers = container_bodies(m, fit)  # fitted containers (10-26; was: free bodies named *bowl*)
     out = dict(scene=a.scene, episode=a.episode, thresholds=dict(settle_m=SETTLE_M, grasp_m=GRASP_M, scale_tol=SCALE_TOL, table_m=TABLE_M), checks={})
 
     # #1 settle

@@ -18,8 +18,9 @@ import mujoco
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from replay import read_video  # noqa: E402
+from episode_info import frames_arg  # noqa: E402
+from scene_roles import table_label  # noqa: E402
 
-FRAMES = [30, 45, 60, 72, 90, 110, 130]
 DOWN = 4
 HIDE_GROUP = 5
 
@@ -34,9 +35,9 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames, comma-separated")
+    ap.add_argument("--frames", default=None, help="robot-visible frames, comma-separated (ep_orange_block: 30,45,60,72,90,110,130); derived from the episode (episode_info.py) when omitted")
     a = ap.parse_args()
-    frames = [int(x) for x in a.frames.split(",")]
+    frames = frames_arg(a.frames, a.episode, "robot")
 
     real = read_video(os.path.join(a.episode, f"{a.cam}.mp4"))
     H, W = real[0].shape[:2]
@@ -46,7 +47,7 @@ def main():
     plate = np.median(np.stack([small[i] for i in range(0, len(real), step)]), axis=0)
     pc = plate / (plate.sum(-1, keepdims=True) + 1e-3)
     per = np.load(os.path.join(a.out, "perception.npz"))
-    table_px = cv2.resize(per["mask/wooden table"].astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST).astype(bool)
+    table_px = cv2.resize(per[f"mask/{table_label(json.load(open(os.path.join(a.out, 'perception.json'))))}"].astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST).astype(bool)
 
     real_sh, ratios = {}, []
     for i in frames:

@@ -26,10 +26,17 @@ from scipy.spatial.transform import Rotation as Rot
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from perceive import read_frame, detect, segment  # noqa: E402
+from episode_info import frames_arg  # noqa: E402
+from scene_roles import table_label  # noqa: E402
+
+
+def _perception_info(out):
+    p = os.path.join(out, "perception.json")
+    return json.load(open(p)) if os.path.exists(p) else {}
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CALIB = os.path.join(REPO, "data/real2sim/droid/calib")
-FRAMES = [30, 45, 60, 72, 90, 110, 130]  # frame 0 dropped: robot barely visible, motion mask picks up wall flicker
+FRAMES = []  # robot-visible frames; ep_orange_block used 30,45,60,72,90,110,130 (frame 0 dropped: wall flicker). Now per episode
 DOWN = 4  # silhouettes are compared at 1/4 resolution
 
 
@@ -122,7 +129,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--masks", choices=["motion", "dino"], default="motion",
                     help="motion: background subtraction (default); dino: Grounding DINO + SAM (unreliable on this episode)")
-    ap.add_argument("--frames", default=",".join(map(str, FRAMES)), help="robot-visible frames to fit, comma-separated")
+    ap.add_argument("--frames", default=None, help="robot-visible frames to fit, comma-separated; derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--init_sphere", action="store_true", help="coarse pose search when no starting extrinsics exist")
     ap.add_argument("--fit_focal", action="store_true", help="also fit the focal length (unknown intrinsics)")
     ap.add_argument("--init", default=None, help="start from this calib.json instead of DROID's extrinsics")
@@ -141,7 +148,7 @@ def main():
                     "(stereo_depth.py wrist results); the exterior stereo table points must land there")
     ap.add_argument("--table_weight", type=float, default=0.0, help="cost per cm of |exterior-stereo table z - --table_z|")
     a = ap.parse_args()
-    FRAMES = [int(x) for x in a.frames.split(",")]
+    FRAMES = frames_arg(a.frames, a.episode, "robot")
 
     f = h5py.File(os.path.join(a.episode, "trajectory.h5"))
     jp = f["observation/robot_state/joint_positions"][()]
@@ -159,7 +166,7 @@ def main():
         uu, vv = np.meshgrid(np.arange(Ww), np.arange(Hh))
         zz = per["depth"]
         P = np.stack([(uu - K[0, 2]) / K[0, 0] * zz, (vv - K[1, 2]) / K[1, 1] * zz, zz], -1)
-        tm = cv2.erode(per["mask/wooden table"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & per["valid"]
+        tm = cv2.erode(per[f"mask/{table_label(_perception_info(a.out))}"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & per["valid"]
         tp = P[tm]
         n_cam = np.linalg.svd(tp - tp.mean(0), full_matrices=False)[2][-1]
 
@@ -186,7 +193,7 @@ def main():
         per_t = np.load(os.path.join(a.out, "perception.npz"))
         fr = json.load(open(os.path.join(a.out, "perception.json")))["frame"]
         zs = stereo_z(a.episode, a.cam, fr, K[0, 0], BASELINE_M["ext"])
-        tm = cv2.erode(per_t["mask/wooden table"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & np.isfinite(zs)
+        tm = cv2.erode(per_t[f"mask/{table_label(_perception_info(a.out))}"].astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool) & np.isfinite(zs)
         vv_, uu_ = np.nonzero(tm)
         zz_ = zs[tm]
         table_cam = np.stack([(uu_ + 0.5 - K[0, 2]) / K[0, 0] * zz_, (vv_ + 0.5 - K[1, 2]) / K[1, 1] * zz_, zz_], -1)
