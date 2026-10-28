@@ -62,6 +62,24 @@ nav ol{columns:2;font-size:.9rem}
 </table></div>
 <p>The reconstructed episode is the reference: table, background, lighting, cameras and robot come from real footage and stay as they are. New objects and tasks are composed in simulation, and the simulator decides what fits where.</p>
 
+<h3>1a · Two separate jobs: scene modification and task creation (scoped 2026-10-29 00:40)</h3>
+<p>User, 2026-10-29: <i>"scope it clearly that there are two tasks, one is scene modification and other is task creation."</i></p>
+<div class="wrap"><table>
+<tr><th>Job</th><th>What it decides</th><th>Output</th><th>Base objects</th><th>Who checks it</th></tr>
+<tr><td><b>A · Scene modification</b> (the setup)</td><td>what is added to the reconstructed scene, and where (relation + target); sizes within bounds</td><td>rubric 1, the scene config</td><td><b>locked</b>: never added, moved, resized or removed by the setup</td><td>the tools: place() with physics, overlap, clearance, reach, visibility (stage 1)</td></tr>
+<tr><td><b>B · Task creation</b> (what the robot must do)</td><td>instruction, targets, pass condition on the final state</td><td>rubric 2, the task config</td><td><b>free to use</b>: the robot may move any base or added object (the real task moves a base block)</td><td>success rule (E4), expert solves it (E1), do-nothing fails (E2) (stages 3, 5)</td></tr>
+</table></div>
+<p>A request is A only (add a drawer and a block, no task yet), B only (P1, P2: tasks on the scene as it is), or A + B (P3, P4: add objects, then a task about them). The first NIM run showed why the split must be explicit: the rules prompt said "base objects are LOCKED" without saying "for the setup only", and gpt-oss-20b refused 6/9 P1 and 7/9 P2 prompts as "cannot move base object" (L26): it took task creation for scene modification. Prompt v2 states the split; its rerun is running (§4a3). Proposed next (not done, needs the user's OK): make the split structural in the agent's answer format, a <code>scene</code> part and a <code>task</code> part, each optional, so the model fills them separately.</p>
+
+<h3>1b · Proposal logged, not built (2026-10-29 00:44): the agent's answer in two optional parts</h3>
+<div class="wrap"><table>
+<tr><th>Part</th><th>Job</th><th>Rule</th><th>Empty when</th></tr>
+<tr><td><code>scene</code></td><td>A · scene modification</td><td>may only ADD objects (relation + target); base objects locked</td><td>nothing to add (P1, P2)</td></tr>
+<tr><td><code>task</code></td><td>B · task creation</td><td>may move ANY object (base or added); pass conditions from the fixed set</td><td>no task asked</td></tr>
+<tr><td><code>infeasible</code></td><td>per part</td><td>the reason for the part that breaks a rule; with the closest alternative when there is one (e.g. "the episode's orange_block can't start in the drawer; used an added orange block")</td><td>nothing refused</td></tr>
+</table></div>
+<p>Flow: one call → the executor runs <code>scene</code> through the tools → <code>task</code> is checked against the scene as built → a second call only if the scene step resized or refused something. Example, "put the orange block in the bowl": scene {}, task inside(orange_block, black_bowl), no refusal. Open decision D20: one general agent with this two-part answer, or two separate agents (one per job).</p>
+
 <h2 id="s2">2 · The pipeline: six stages, framework and simulator layer</h2>
 <p>User, 10-28: <span class="q">"first step is to see how can anything be added to mujoco scene, then can agent do it. Then task creation, then variation, then scripted expert doing the same, then checking if task is useful addition to eval set or not."</span></p>
 <div class="wrap"><table>
@@ -176,6 +194,20 @@ prompt ─► local Qwen (llama-server, OpenAI-compatible HTTP)
 <tr><td>presets/orange.json (editable)</td><td>P1 the real task over 3 blocks (3); P2 stack orders (3! = 6); P3 added block into the bowl (3 colours); P4 drawer → bowl (3); P5 infeasible bowl-in-drawer; 3 prompt paraphrases each</td></tr>
 <tr><td>tests/test_stage2_fake.py: 12/12, 14 s</td><td>PnC counts; capped expansion; executor builds every preset's variant 0; fake model: fenced answer with other names matches P3; malformed JSON + bad relation recovered in 3 attempts; unknown target fails cleanly; moving a base object → told it's locked → answers infeasible (matches P5); compare catches a wrong colour</td></tr>
 </table></div>
+
+<h3>4a3 · First real-model results (NIM, 2026-10-29; UNVERIFIED, partial)</h3>
+<p>User, 2026-10-28: <i>"use nim endpoint then, need POC. Try any non flagship model"</i>. NVIDIA's hosted NIM, no local GPU; no forced schema (the forced JSON schema on llama-server let Qwen3.5-9B skip <code>colour</code> three times in the 10-28 smoke test). Smoke (1 call, P3): gpt-oss-20b and nemotron-3.5-lightning-30b-a3b valid on the first try and matching the preset (22 s, 38 s); nemotron-nano-3-30b-a3b and gemma-3-12b-it HTTP 404 for this key.</p>
+<div class="wrap"><table>
+<tr><th>gpt-oss-20b, suite (3 paraphrases × 3 runs)</th><th>Calls</th><th>Valid</th><th>Matches preset</th><th>Built</th><th>Cause of misses</th></tr>
+<tr><td>P1 real task (base block → bowl)</td><td>9</td><td>9</td><td>3</td><td>9</td><td>6 × "infeasible: cannot move base object": the rules prompt says base objects are LOCKED, meant for the setup, read as "the robot may not move them"</td></tr>
+<tr><td>P2 stack order</td><td>9</td><td>9</td><td>2</td><td>9</td><td>same</td></tr>
+<tr><td>P3 added block → bowl</td><td>9</td><td>9</td><td>8</td><td>9</td><td></td></tr>
+<tr><td>P4 drawer → bowl</td><td>9</td><td>9</td><td>6</td><td>6</td><td>"a small cabinet" → pack noun "cabinet" (3 ×): no synonym rule</td></tr>
+<tr><td>P5 infeasible</td><td>9</td><td>9</td><td>9</td><td>9</td><td></td></tr>
+</table></div>
+<p>Variants (every slot value, 1 run): P3, P4, P5 7/7; P2 4/6; P1 0/3 (same cause). 4–30 s per call. Robustness (T4) and nemotron-lightning still running. Fixes proposed (awaiting the user): one sentence in the rules ("locked for the setup only; tasks may ask the robot to move base objects") and a synonym rule (cabinet / drawer → source drawer).</p>
+
+<p><b>Prompt v2 rerun (2026-10-29 00:46, gpt-oss-20b, P1 / P2 / P4 only; UNVERIFIED):</b> suite P1 9/9 (v1: 3/9), P2 9/9 (v1: 2/9), P4 6/9 (unchanged); variants P1 3/3, P2 6/6, P4 3/3. The "locked = setup only" sentence removed the task-creation refusals. The three P4 misses are all paraphrase 3 ("a small cabinet with an open drawer holding a red block"): the model adds a pack "cabinet" and puts the drawer or the block inside it, so the synonym line did not help for that wording.</p>
 
 <h3>4b · Framework: none; plain classes + pydantic</h3>
 <div class="wrap"><table>
@@ -395,6 +427,17 @@ template: ordered_stack
 <tr><td>L23</td><td>step 2 CPU</td><td>Preset comparison matches added objects by (source, colour or noun, relation, target); noun synonyms ("cube"/"block", "mug"/"cup") count as different; sizes and the chosen pack model are ignored</td><td>can under-count a correct agent answer</td><td>open</td></tr>
 <tr><td>L24</td><td>step 2 CPU</td><td>Mode A has only been driven by a fake model; the rules prompt is untested on a real one; the llama-server client (JSON-schema response_format, reasoning off) has never run</td><td>real-model behaviour unknown</td><td>open (needs the GPU slot)</td></tr>
 <tr><td>L25</td><td>step 2 CPU</td><td>Presets on orange only; the infeasible preset (P5) is a declared answer: the model must decide it (the tools also refuse if it tries)</td><td>c11 presets wait for res31's verification</td><td>open</td></tr>
+<tr><td>L26</td><td>agent (2026-10-29)</td><td>The rules prompt said base objects are LOCKED without saying "for the setup only": gpt-oss-20b refused 6/9 real-task and 7/9 stack prompts as "cannot move base object"</td><td>tasks on base objects refused</td><td class="ok">fixed by prompt v2 (2026-10-29 00:46): P1 9/9, P2 9/9 on gpt-oss-20b (one model, orange)</td></tr>
+<tr><td>L27</td><td>agent</td><td>Fixed pass rules only (inside, on, stacked, ordered stack, out of, next to); a task outside them ("pour", "push", "open", "between") should be refused, but refusing isn't enforced: the model may pick the nearest rule</td><td>a wrong rule for an unsupported task</td><td>open</td></tr>
+<tr><td>L28</td><td>agent</td><td>Fixed placement relations (on the table, next to, on, inside); no "left of", "behind", "between", "corner"</td><td>spatial wording beyond these is approximated or refused</td><td>open</td></tr>
+<tr><td>L29</td><td>agent</td><td>Can't change base objects in the setup (move, resize, remove); only added objects</td><td>no perturbations by the agent (later, D12)</td><td>accepted (by design)</td></tr>
+<tr><td>L30</td><td>agent</td><td>Object sources in its schema: blocks (8 palette colours), the drawer, pack models found by name; no cylinders or spheres; no ObjGen; no synonyms ("a small cabinet" → pack noun "cabinet", 3/9 P4 answers failed to build)</td><td>common words miss</td><td>open: the v2 synonym line did not fix "a small cabinet with an open drawer" (3/3 misses, 2026-10-29 00:46); next: refuse unknown pack nouns in validation with a hint, so the model corrects itself</td></tr>
+<tr><td>L31</td><td>agent</td><td>Never gives coordinates; the tools place and may resize</td><td>it can't ask for an exact spot</td><td>accepted (by design)</td></tr>
+<tr><td>L32</td><td>agent</td><td>Sees only a text summary of the scene (kinds, sizes, colours); no images</td><td>it can't refer to appearance beyond colour names</td><td>open</td></tr>
+<tr><td>L33</td><td>agent</td><td>One answer per prompt with up to 2 corrections; it never asks the user back</td><td>ambiguous prompts are guessed</td><td>open</td></tr>
+<tr><td>L34</td><td>agent</td><td>No "other objects must stay" field in its schema</td><td>decoy tasks (TEMPLATES V2, V3, V10, V12) can't be stated yet</td><td>open</td></tr>
+<tr><td>L35</td><td>agent</td><td>It fills one variant; templates with slots (and PnC) come from code, not from the agent</td><td>the agent doesn't create variation sets</td><td>open (could be added)</td></tr>
+<tr><td>L36</td><td>agent</td><td>Its tasks are only name-checked; success rule, expert and do-nothing are not run on them yet; quality measured on gpt-oss-20b only, on orange (10-19 build), partial run</td><td>agent tasks are not yet shown solvable or non-trivial</td><td>open (task config + expert being built)</td></tr>
 </table></div>
 
 <h2 id="s14">14 · Open decisions</h2>
@@ -416,6 +459,7 @@ template: ordered_stack
 <tr><td>D16</td><td>agent framework</td><td>none: plain classes + pydantic + httpx</td><td>proposed 10-28</td></tr>
 <tr><td>D17</td><td>drawer-episode scouting</td><td>prim routes it to res32</td><td>open (user's call)</td></tr>
 <tr><td>D18</td><td>simulator split</td><td>core/ + sim_mujoco/, interface now, MuJoCo only</td><td class="ok">user: separate before building</td></tr>
+<tr><td>D20</td><td>one general agent (two-part answer) or two separate agents, one per job</td><td>general agent, each job scored separately (§1b)</td><td class="ok">user 2026-10-29 00:48: "go with general agent"</td></tr>
 <tr><td>D19</td><td>stage-6 criteria</td><td>§8 draft</td><td>open (user's to set)</td></tr>
 </table></div>
 
@@ -439,6 +483,9 @@ template: ordered_stack
 <tr><td>10-28</td><td>User: framework + simulator layer, plug and play; "separate before building"</td><td>split now vs later</td><td>core/ + sim_mujoco/ before stage 1 continues (D18)</td></tr>
 <tr><td>10-28</td><td>User: "yeah go with your flow, keep committing tho, to make everything revertible at any stage"</td><td>—</td><td>commits on exp/taskgen in the worktree (not main, not pushed; code + small JSON); prim told. Step 1 built: 4da2af3</td></tr>
 <tr><td>10-28</td><td>User: "keep adding known limitations in a section separately after each step"</td><td>—</td><td>§13b, updated after every step</td></tr>
+<tr><td>10-29 00:48</td><td>User: "fold it into T-cabinet, go with general agent"</td><td>one agent vs two per job; unknown-noun hint now or with T-cabinet</td><td>D20: one general agent (two-part answer, §1b); the unknown-pack-noun hint is built with T-cabinet</td></tr>
+<tr><td>10-29</td><td>User: "scope it clearly that there are two tasks, one is scene modification and other is task creation. I believe P1 is task creation which the agent confused as scene modification right?"</td><td>—</td><td>§1a: job A (scene modification, base locked) vs job B (task creation, base objects free); yes, P1/P2 misses were that confusion; prompt v2 rerun running; structural split proposed</td></tr>
+<tr><td>10-29</td><td>User: "one more thing I wanted to confirm, the agent will be able to make tasks as well right? what are the limitations for the agent?" then "can you add these limitations in agentic doc we made"</td><td>—</td><td>§4a3 first NIM results; agent limitations L26–L36 in §13b</td></tr>
 <tr><td>10-28</td><td>User: which agent framework?</td><td>LangChain/LangGraph, LlamaIndex, smolagents, PydanticAI, OpenAI Agents SDK, plain</td><td>proposed plain classes + pydantic (D16)</td></tr>
 </table></div>
 <p class="meta">Directions not taken: res31 refactoring build_scene for TaskGen; the agent writing MJCF or files directly; an MCP server; make_tasks.randomise for variations; agent frameworks; the tool loop (mode B) in the PoC; presets built on invented objects (replaced by presets on verified episodes).</p>
