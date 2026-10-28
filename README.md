@@ -49,31 +49,26 @@ equal budget."** That is what the mining layer is for, and it needs a control ar
 
 ---
 
-## Architecture
+## Pipeline
 
-Five layers. The model is a plugin at L1; four of the five need no GPU.
+The end-to-end loop, from a robot failure to a better policy
+([`docs/END_TO_END_PIPELINE.html`](docs/END_TO_END_PIPELINE.html)):
 
 ```
-L4  manifest.py    Data Gap Manifest generation
-L3  mining/        phase detection · classification · clustering
-L2  envs/          ToyReachEnv → LIBERO → LIBERO-plus     (Env protocol)
-L1  policies/      ScriptedPolicy → GR00T N1.7 · MINERVA  (Policy protocol)
-L0  schema.py      canonical Rollout contract + trace store
+1 Scene            a simulated workspace (LIBERO, or rebuilt from a real recording)
+2 Task set         what to do in it: instruction + success check + time limit
+3 Policy runs      many rollouts
+4 Failures         the success check says no
+5 Root             where it went wrong
+6 Mechanism        why: which input carries the failure, and when it is decided
+7 Corrected demo   from the root to the goal, in sim
+8 Retrain          add the new data
+9 Held-out re-test on unseen episodes; the new policy goes back to step 3
 ```
 
-**The contract is the product.** Everything above L0 reads and writes the same
-`Rollout`. Swapping the policy or the simulator is a one-file change. The mining layer
-imports nothing from `envs/` or `policies/` — if a detector needs a signal, it belongs
-in `Observation.state`.
-
-Two invariants worth knowing before reading the code:
-
-- **`_gt_` keys are privileged.** They are simulator ground truth a real robot does not
-  have. `runner.rollout` passes `obs.policy_view()` to the policy, which strips them, so
-  a policy *cannot* read one. Detectors get the full state.
-- **Cache hits are verified, not trusted.** Every `Rollout` carries a fingerprint
-  (`env` + `policy` identity + runtime). A hit whose fingerprint disagrees is re-run and
-  reported, because a stale cache reports a *number*, not an exception.
+The one design choice that differs from a naive "fail → correct → retrain" loop is
+step 6: we classify the mechanism *before* correcting, because the mechanism decides
+which fix can work. The loop is not built end to end yet.
 
 ---
 
@@ -278,7 +273,7 @@ Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md) an
 ### Extended reading
 
 **Project design:** [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) (the
-original proposal) · [`PLAN.md`](PLAN.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
+original proposal) · [`PLAN.md`](PLAN.md) ·
 [`docs/FLOW.md`](docs/FLOW.md) · [`docs/COMPONENTS.md`](docs/COMPONENTS.md) ·
 [`IMPLEMENTATION.md`](IMPLEMENTATION.md)
 
