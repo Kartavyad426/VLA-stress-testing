@@ -8,14 +8,18 @@ from pydantic import ValidationError
 from core.templates import SceneRequest, schema_json
 from core import executor
 
+PROMPT_VERSION = "v2"  # v1 -> v2 (10-29, user OK): "locked" means setup only (L26); drawer/cabinet synonym (L30)
 RULES = """You set up robot manipulation tasks in a simulated scene that was reconstructed from a real video.
 Rules:
-- The base objects listed are LOCKED: you can't move, resize or remove them. You can add objects and refer to base objects as targets.
-- To add an object give: name, source (box | drawer | pack with a noun), colour for boxes, optional size_cm (blocks 2-6 cm),
+- The base objects listed are LOCKED for the scene setup: you can't add, move, resize or remove them when building the scene.
+  Tasks may (and usually do) ask the ROBOT to move base objects: "put the orange block in the bowl" is a valid task on base
+  objects with nothing to add.
+- To add an object give: name, source (box | drawer | pack with a noun; a drawer or cabinet is source drawer, not pack), colour for boxes, optional size_cm (blocks 2-6 cm),
   and where it goes: relation (on_table | next_to | on | inside) and target (an existing object or one you add earlier in the list).
 - Never give coordinates; the simulator finds the exact place and may resize added objects to fit.
 - The task: an instruction, the target objects, and a pass_condition (inside | on | stacked | ordered_stack | out_of | next_to).
-- If the request can't be done under these rules (e.g. it needs a base object moved), set "infeasible" to the reason and leave add empty.
+- If the request can't be done under these rules (e.g. the scene would have to START with a base object somewhere else,
+  like "the bowl starts inside a drawer"), set "infeasible" to the reason and leave add empty.
 Answer with ONE JSON object matching the schema, nothing else."""
 
 
@@ -34,7 +38,7 @@ def scene_summary(session):
 
 
 def parse(text):
-    t = text.strip()
+    t = re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()  # reasoning models: drop the trace
     t = re.sub(r"^```(json)?|```$", "", t, flags=re.M).strip()
     m = re.search(r"\{.*\}", t, flags=re.S)
     return json.loads(m.group(0) if m else t)

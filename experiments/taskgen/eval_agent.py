@@ -20,7 +20,7 @@ from sim_mujoco import assets  # noqa: E402
 from core.session import Session  # noqa: E402
 from core.templates import Template, SceneRequest  # noqa: E402
 from core.compare import compare  # noqa: E402
-from agent.models import LlamaServer  # noqa: E402
+from agent.models import LlamaServer, Nim  # noqa: E402
 from agent import mode_a  # noqa: E402
 
 WT = os.path.dirname(os.path.dirname(HERE))
@@ -92,6 +92,8 @@ def main():
     ap.add_argument("--model", default="qwen3.5-9b")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--only", default=None, help="comma-separated preset ids")
+    ap.add_argument("--provider", choices=["llama", "nim"], default="llama")
+    ap.add_argument("--tag", default=None, help="suffix for the output dir (e.g. the prompt version)")
     a = ap.parse_args()
     P = json.load(open(a.presets))
     if a.test == "smoke":
@@ -99,10 +101,10 @@ def main():
         a.runs = 1
     if a.test == "variants":
         a.runs = 1
-    out = os.path.join(WT, "runs/taskgen/agent_eval", a.test, a.model)
+    out = os.path.join(WT, "runs/taskgen/agent_eval", a.test, a.model.replace("/", "__") + (f"__{a.tag}" if a.tag else ""))
     os.makedirs(out, exist_ok=True)
     q0 = h5py.File(os.path.join(MAIN, P["episode"], "trajectory.h5"))["observation/robot_state/joint_positions"][0]
-    model = LlamaServer(a.url, a.model)
+    model = Nim(a.model) if a.provider == "nim" else LlamaServer(a.url, a.model)
     rows = []
     for cid, text, want, exp, values in cases(a, P):
         for run in range(a.runs):
@@ -136,7 +138,7 @@ def main():
         s["exec_ok"] += bool(r["exec_ok"])
         s["attempts"] += r["attempts"] or 0
         s["seconds"] += r["seconds"]
-    json.dump(dict(model=a.model, test=a.test, url=a.url, runs=a.runs, summary=summ, rows=rows), open(os.path.join(out, "report.json"), "w"), indent=1, default=str)
+    json.dump(dict(model=a.model, test=a.test, prompt_version=mode_a.PROMPT_VERSION, url=a.url, runs=a.runs, summary=summ, rows=rows), open(os.path.join(out, "report.json"), "w"), indent=1, default=str)
     print(json.dumps(summ, indent=1))
 
 
