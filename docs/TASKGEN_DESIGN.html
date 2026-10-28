@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskGen design: prompt-made eval tasks on reconstructed scenes</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#7a5c2e;--ok:#2c6e3a;--warn:#8a6d12;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#c79a5e;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}
+h2{font-size:1.15rem;margin-top:1.9em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
+h3{font-size:1rem;margin-top:1.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px;margin:12px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.87rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+td.note{color:var(--muted);font-size:.84rem}
+pre{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;font-size:.82rem;line-height:1.45}
+code{font-size:.85em}
+a{color:var(--accent)}
+.q{font-style:italic}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}
+nav ol{columns:2;font-size:.9rem}
+@media (max-width:700px){nav ol{columns:1}}
+</style>
+</head>
+<body>
+<main>
+<h1>TaskGen design: prompt-made eval tasks on reconstructed scenes</h1>
+<p class="meta">TaskGen session, 2026-10-28 (restructured the same day around the user's six stages). Builds on res31's <a href="Agentic_task_creation.html">Agentic_task_creation.html</a> (scope) and <a href="SceneGen_v1_gaps_1028.html">SceneGen_v1_gaps_1028.html</a> §5. Code: worktree <code>../VLA-exp-taskgen</code> (branch <code>exp/taskgen</code>), uncommitted. <b>Stage 1 has a first exploratory run; everything else is design.</b> Every number from TaskGen's code is UNVERIFIED.</p>
+
+<nav class="box"><b>Sections</b>
+<ol>
+<li><a href="#s1">Goal: two separate questions</a></li>
+<li><a href="#s2">The pipeline: six stages, framework and simulator layer</a></li>
+<li><a href="#s3">Stage 1 · Add anything to a scene</a></li>
+<li><a href="#s4">Stage 2 · The agent does it</a></li>
+<li><a href="#s5">Stage 3 · Task creation</a></li>
+<li><a href="#s6">Stage 4 · Variation (placeholders, PnC)</a></li>
+<li><a href="#s7">Stage 5 · Scripted expert</a></li>
+<li><a href="#s8">Stage 6 · Is the task useful?</a></li>
+<li><a href="#s9">Eval-set manifest and task sources</a></li>
+<li><a href="#s10">Presets</a></li>
+<li><a href="#s11">Rules every task follows</a></li>
+<li><a href="#s12">Implementation plan</a></li>
+<li><a href="#s13">Risks</a></li>
+<li><a href="#s16">Known limitations (after each step)</a></li>
+<li><a href="#s14">Open decisions</a></li>
+<li><a href="#s15">Decision log</a></li>
+</ol></nav>
+
+<h2 id="s1">1 · Goal: two separate questions</h2>
+<p>User, 10-28: <span class="q">"there are two separate things. One is can agent put anything anywhere like logically speaking. Second is whatever shit agent made, can we use that task to improve or break the policy. Now essentially I need to make a good eval set qualitatively but the first step towards that is to make it possible to make any scene we want."</span></p>
+<div class="wrap"><table>
+<tr><th>Question</th><th>Stages</th><th>Needs the policy / GPU?</th><th>Note</th></tr>
+<tr><td><b>Capability:</b> can we, then the agent, build any scene and task we want, logically correctly?</td><td>1–5</td><td>no (CPU), except serving the agent's model</td><td class="note">realism and textures are not judged here: an unpolished drawer is fine while testing whether it can be built</td></tr>
+<tr><td><b>Usefulness:</b> does a made task improve or break the policy, so it earns a place in the eval set?</td><td>6</td><td>yes</td><td class="note">appearance (textures, ObjGen) matters here</td></tr>
+</table></div>
+<p>The reconstructed episode is the reference: table, background, lighting, cameras and robot come from real footage and stay as they are. New objects and tasks are composed in simulation, and the simulator decides what fits where.</p>
+
+<h2 id="s2">2 · The pipeline: six stages, framework and simulator layer</h2>
+<p>User, 10-28: <span class="q">"first step is to see how can anything be added to mujoco scene, then can agent do it. Then task creation, then variation, then scripted expert doing the same, then checking if task is useful addition to eval set or not."</span></p>
+<div class="wrap"><table>
+<tr><th>#</th><th>Stage</th><th>Question</th><th>Output</th><th>State</th></tr>
+<tr><td>1</td><td>Add to a scene</td><td>can anything be added to a built scene?</td><td>scene config (rubric 1); additions built, settled, overlap-checked, rendered</td><td class="ok">first run done (§3d)</td></tr>
+<tr><td>2</td><td>Agent</td><td>can the agent do stage 1 from a prompt, logically correctly?</td><td>prompt → filled template → built scene; compared with presets</td><td>design</td></tr>
+<tr><td>3</td><td>Task creation</td><td>instruction, targets, pass condition</td><td>task config (rubric 2)</td><td>design</td></tr>
+<tr><td>4</td><td>Variation</td><td>slots expanded by permutations and combinations</td><td>all variants counted, then sampled up to a cap</td><td>design</td></tr>
+<tr><td>5</td><td>Scripted expert</td><td>is each variant solvable in this physics?</td><td>expert result per variant (E1) + do-nothing (E2)</td><td>design</td></tr>
+<tr><td>6</td><td>Usefulness</td><td>is it a useful eval task?</td><td>keep / reject with the reason</td><td>design; criteria are the user's</td></tr>
+</table></div>
+<pre>
+reconstructed base scene (res31) ─► 1 scene config ─► 2 agent fills templates ─► 3 task config ─► 4 variants
+                                                                                                     │
+                                       eval-set manifest ◄── 6 usefulness ◄── 5 expert + do-nothing ◄┘
+</pre>
+
+<h3>2a · Framework and simulator layer (plug and play)</h3>
+<p>User, 10-28: <span class="q">"will this whole thing be very tightly linked to mujoco? like we can have a framework and a layer for mujoco things separately to make physic sim plug and play"</span>; then <span class="q">"make sure to separate before building"</span>.</p>
+<div class="wrap"><table>
+<tr><th>Framework (no simulator in it)</th><th>Simulator layer (one per simulator; MuJoCo first)</th></tr>
+<tr><td>scene and task configs (the two rubrics), templates, PnC, manifest</td><td>load a base scene; add an object from a neutral description (kind, size, colour, asset id, pose)</td></tr>
+<tr><td>agent, tool schemas, validation messages</td><td>build / compile</td></tr>
+<tr><td>placement <i>logic</i>: what "next to / inside / on" means, candidate sampling, size bounds</td><td>measure: collision bounding box, container opening, free table area</td></tr>
+<tr><td>success rules on a neutral state (object poses, sizes, joint states)</td><td>step / settle; overlaps; warnings; get / set state</td></tr>
+<tr><td>reports, review pages</td><td>render views; the expert's motion (IK, controller)</td></tr>
+</table></div>
+<p>The framework talks only to an interface (<code>Sim.load_base</code>, <code>add_object</code>, <code>build</code>, <code>measure</code>, <code>settle</code>, <code>overlaps</code>, <code>state</code>, <code>render</code>). Only MuJoCo is implemented; a second simulator is added only when there's a reason. What stays simulator-specific regardless: base scenes (res31's are MuJoCo; res31 has an <code>export_usd.py</code>, not read), asset formats and collision models, and physics results (a task checked in MuJoCo is not checked in another simulator; the manifest records which simulator).</p>
+
+<h2 id="s3">3 · Stage 1 · Add anything to a scene</h2>
+<h3>3a · Rubric 1: scene config (the modified scene)</h3>
+<p>User, 10-28: <span class="q">"what is the way to add objects in already built scene, first you need to see if object is present in asset pack or not, this could be deterministic as well. another route would be ObjGen which is not built yet. Then agent need to specify where and what size objects should be. so this is the modified scene now."</span></p>
+<div class="wrap"><table>
+<tr><th>Field</th><th>Contents</th><th>Who fills it</th><th>Note</th></tr>
+<tr><td><code>base_scene</code></td><td>path + hash of scene_fit.json / calib.json</td><td>tool</td><td class="note">the base version matters: res31's camera-search rebuild of orange will probably replace the 10-19 build once the user locks geometry</td></tr>
+<tr><td><code>base_objects</code></td><td>reconstructed objects, locked; optional overrides</td><td>tool; user (overrides)</td><td class="note">one format with res31's B8 overrides (D1, yes): per-object size, position, yaw, mass, friction, colour, mesh, remove/restore (SIM_FIXES §6 outline)</td></tr>
+<tr><td><code>added_objects[].source</code></td><td><code>primitive:box|cylinder|sphere|drawer</code>, <code>pack:&lt;id&gt;</code>, later <code>objgen:&lt;id&gt;</code></td><td>agent / user / preset</td><td class="note"><b>deterministic lookup</b> (user): the pack catalogue's name match decides whether the object exists. Not found → primitive stand-in, or "infeasible: no model for &lt;noun&gt;". ObjGen is a placeholder source</td></tr>
+<tr><td><code>added_objects[].what</code></td><td>kind, colour, asset id, licence</td><td>agent / user / preset</td><td class="note">licence per object, so the eval set's licence is known</td></tr>
+<tr><td><code>added_objects[].where</code></td><td>relation + target (<code>inside drawer_1</code>, <code>next_to black_bowl</code>, <code>on red_box_1</code>); the tool writes the pose</td><td>agent says where; tool finds the pose</td><td class="note">"agent needs to specify where" (user): intent, not coordinates</td></tr>
+<tr><td><code>added_objects[].size</code></td><td>proposed, final, <code>resized_from</code> + reason</td><td>agent proposes; tool clamps</td><td class="note">"and what size" (user): within the kind's bounds (spec §5: block 2–6 cm, cup 6–10 cm tall, bowl 10–20 cm, fruit 5–9 cm), graspable (≤ 8.5 cm) when the task needs a grasp; pack assets start at their real size</td></tr>
+<tr><td><code>added_objects[].physics</code></td><td>mass, friction</td><td>defaults</td><td class="note">assumptions (checklist B4/B5)</td></tr>
+<tr><td><code>articulation</code></td><td>joint states at the start (drawer open / closed)</td><td>agent / user / preset</td><td class="note"></td></tr>
+<tr><td><code>scene_checks</code></td><td>overlap at start, settle (B1), warnings, camera-covered area (C3), visible in both views (D3)</td><td>tool</td><td class="note">C3 has no code yet: table extent as a stand-in (D2)</td></tr>
+<tr><td><code>log</code></td><td>every call, arguments, result, by whom</td><td>tool</td><td class="note"></td></tr>
+</table></div>
+
+<h3>3b · Geometry comes from sim truth</h3>
+<p>User: <span class="q">"how will agent reason with existing geometry and sizes of base objects"</span>; <span class="q">"numbers are from sim truth I guess?"</span>. The agent doesn't reason about geometry: it names intent; the tools answer every fit and placement question from the compiled model's collision geometry. scene_fit.json is used for meaning only (kind, colour name). For blocks the fit and the sim agree (fitted half-size = box geom size); for the bowl they don't: <code>bowl_asset()</code> takes the radius from the collision boxes' centres, not their outer edges (from the code; not measured). Neither is real-world truth (K2: size methods disagree 8–25%; K3: wrist offsets 0.7–1.9 cm), so a margin around base objects is proposed (D8).</p>
+
+<h3>3c · Why MuJoCo doesn't warn about overlaps</h3>
+<p>User: <span class="q">"why does mujoco doesn't like give warning where object meshes will be colliding?"</span>. MuJoCo's compiler doesn't check initial interpenetration; contacts are found only while simulating, and an overlap is a deep contact the solver pushes apart (a jump, or instability if large). Its runtime warnings (<code>d.warning</code>) cover contact-buffer overflow and bad accelerations, not overlaps. Visual-only geoms (contype = conaffinity = 0) never collide, parent/child bodies don't collide by default, and each mesh collision part is convex. So TaskGen checks overlaps itself (§3d).</p>
+
+<h3>3d · First run (10-28, orange, CPU, ~3 s; UNVERIFIED)</h3>
+<p>Script <code>experiments/taskgen/stage1_add.py</code>; outputs <code>runs/taskgen/stage1/</code> in the worktree (<code>compare.png</code>, <code>modified.mjb</code>, <code>stage1_report.json</code>; 74 MB).</p>
+<div class="wrap"><table>
+<tr><th>Item</th><th>Result</th><th>Note</th></tr>
+<tr><td>Base as an editable MjSpec</td><td>res31's scene.xml + repaired mesh paths + cameras re-applied with res31's set_camera</td><td class="note">a replay of all 153 recorded frames on res31's .mjb and on the rebuild: arm motion differs by 2e-14, objects by ≤ 0.05 mm. Field differences ~1e-7 (XML float printing), plus the fixed base link's mass (2.8 vs 5.8 kg; welded to the world, no dynamic effect) and a ~0.03% inertia constant on the free objects. So the equivalence test needs a tolerance plus the replay</td></tr>
+<tr><td>Added: red 3 cm box; blue 2.5 cm box on it; Kitchen glass cup (real size); primitive cabinet 20 × 24 × 10 cm with an open sliding drawer; purple 3 cm box inside the drawer</td><td>all built by MjSpec edits; settle 1 s: added objects moved ≤ 0.13 cm; base objects identical to the original</td><td class="note">positions hand-picked; reach and camera coverage not checked. The cup is a pint glass (9.4 cm wide, 15 cm tall): not graspable</td></tr>
+<tr><td>Drawer test</td><td>pushed closed (3 N): closes fully, the box rides inside (0.26 cm slip)</td><td class="note">the first try (40 N) slammed it and the box slid 6.7 cm</td></tr>
+<tr><td>Overlap at start (contact depth &gt; 1 mm between two objects, robot included)</td><td>none in either scene</td><td class="note">positive control (a box sunk 1 cm into another) found exactly that pair at 1.0 cm</td></tr>
+<tr><td>MuJoCo warnings after settling</td><td>none in either scene</td><td class="note"></td></tr>
+<tr><td>Renders</td><td>exterior, wrist, free camera; original vs modified</td><td class="note">plain sim renders, not composited over the real footage; the drawer blocks much of the exterior view; the cup renders dark red</td></tr>
+</table></div>
+
+<h3>3e · From scripts to tools (what stage 1 still needs)</h3>
+<p>User: <span class="q">"can these be directly used by agent via tools? what do we need for that"</span>. Not directly: the scripts take metres and check nothing.</p>
+<div class="wrap"><table>
+<tr><th>Need</th><th>Today</th><th>To add</th></tr>
+<tr><td>intent in, not coordinates</td><td>add_box(spec, half=[0.015]*3, xy=[0.45, 0.10])</td><td>add_object("primitive:box", size_cm=3, colour="red") then place(obj, "next_to", "black_bowl")</td></tr>
+<tr><td>placement search</td><td>hand-picked</td><td>place(): sample spots for the relation, settle, reject overlap / off-table / unreachable / moved &gt; 2 cm</td></tr>
+<tr><td>scene query</td><td>none</td><td>list_scene() with sim-measured sizes, container openings, sub-targets; list_assets(noun)</td></tr>
+<tr><td>validation</td><td>none</td><td>names, size bounds, graspability, base locked; errors the model can act on</td></tr>
+<tr><td>state</td><td>in-memory, gone after the run</td><td>a session whose source of truth is the scene config; every call edits it and the scene is rebuilt: logged, replayable, undoable</td></tr>
+<tr><td>short results</td><td>a report on disk</td><td>per call, e.g. {"placed": "cup_1", "at_cm": [45, -25]} or {"infeasible": "…"}</td></tr>
+</table></div>
+
+<h3>3f · Step 1 built: the tools (10-28, commit 4da2af3 on exp/taskgen; UNVERIFIED)</h3>
+<p><code>core/session.py</code> implements §3e: list_scene, list_assets, add_object, fits, place, remove_object, on the scene config as source of truth (every call logged; the scene rebuilt from it). <code>place()</code> pre-filters candidates by geometry, then for each: no overlap, ≥ 1.5 cm from base objects, settle 1 s (moves ≤ 2 cm, others ≤ 0.5 cm), no warnings, relation still holds, reachable (IK); resizes within bounds if allowed. <code>tests/test_stage1_tools.py</code> on orange: <b>17/17 known-answer cases pass, 11 s CPU</b>.</p>
+<div class="wrap"><table>
+<tr><th>Case</th><th>Result</th></tr>
+<tr><td>list_scene</td><td>4 locked base objects; sim-measured sizes (rotation-free): green 2.8 cm cube; bowl 19.3 cm outer, opening ~18.4 cm, depth ~8.2 cm (approximate, L9)</td></tr>
+<tr><td>drawer on the table</td><td>placed automatically at (71, −52) cm, clear of base objects, the arm reaches into it</td></tr>
+<tr><td>3 cm block inside the drawer</td><td>fits (max scale 1.9); placed</td></tr>
+<tr><td>10 cm block inside the drawer</td><td>fits: "height 5.7 cm &lt; 10.0 cm needed"; place with resize: 10 → 5.5 cm, reason logged</td></tr>
+<tr><td>two cups next to the bowl</td><td>"cup" → first pack match within cup bounds (gso Ecoforms_Cup_B4_SAN, 7.2 cm tall; the 15 cm pint glass skipped); both placed</td></tr>
+<tr><td>blue block on the green base block</td><td>placed</td></tr>
+<tr><td>refusals</td><td>unknown colour; 9 cm block (bounds 2–6); bowl into the drawer (locked); removing a base object</td></tr>
+<tr><td>rebuild from the config alone</td><td>no overlaps, max move 0.13 cm, no warnings</td></tr>
+<tr><td>visibility (df0de55; 19/19 in 12 s)</td><td>thresholds from the base objects (exterior 29 px, wrist-above 86 px); drawer 616 px / 69% unhidden; blocks in the open drawer seen from above (262–480 px), hidden from the exterior camera (4–12 px, allowed for "inside"); positive control: drawer closed → 0 px from both cameras</td></tr>
+</table></div>
+
+<h2 id="s4">4 · Stage 2 · The agent does it</h2>
+<p>User: <span class="q">"I dont want to spend a lot of time engineering the agent itself, thats why the whole placeholder thing"</span>; the task is <span class="q">"mostly instruction following … and putting things in the right place"</span>.</p>
+<h3>4a · Structure</h3>
+<div class="wrap"><table>
+<tr><th>Mode</th><th>How</th><th>Note</th></tr>
+<tr><td><b>A · Fill the template</b> (the PoC)</td><td>one structured call: the model returns the filled template (objects, relations, sizes, targets, pass condition, order) as JSON for the template's schema; plain code then runs add_object / place / set_task / check</td><td class="note">small models do best with one constrained answer; the placeholder design is exactly this schema; minimal agent engineering</td></tr>
+<tr><td>B · Tool loop</td><td>the model calls the tools one by one and reacts</td><td class="note">not in the PoC (no objection 10-28); same tools if needed later</td></tr>
+</table></div>
+<pre>
+prompt ─► local Qwen (llama-server, OpenAI-compatible HTTP)
+            system prompt: rules (§11), template schema, scene summary (sim-measured sizes)
+         ─► filled template JSON ─► pydantic validation (errors back to the model, ≤ 2 retries)
+         ─► executor: add_object / place / set_task / check ─► scene + task configs ─► review page
+</pre>
+<h3>4a2 · Step 2 CPU part built (10-28, commit 64580ef; UNVERIFIED)</h3>
+<div class="wrap"><table>
+<tr><th>Piece</th><th>What</th></tr>
+<tr><td>core/templates.py</td><td>SceneRequest (objects with relation + target; task: instruction, targets, pass condition; or infeasible + reason); Template = request with {slot} placeholders + slot domains; count() and expand(cap, seed)</td></tr>
+<tr><td>core/executor.py</td><td>request → add_object / place in order; stops at the first failure with the reason</td></tr>
+<tr><td>agent/mode_a.py, agent/models.py</td><td>rules + schema + scene summary → one JSON answer → schema and name validation → errors back (≤ 2 retries) → executor; FakeModel; LlamaServer client (unrun)</td></tr>
+<tr><td>presets/orange.json (editable)</td><td>P1 the real task over 3 blocks (3); P2 stack orders (3! = 6); P3 added block into the bowl (3 colours); P4 drawer → bowl (3); P5 infeasible bowl-in-drawer; 3 prompt paraphrases each</td></tr>
+<tr><td>tests/test_stage2_fake.py: 12/12, 14 s</td><td>PnC counts; capped expansion; executor builds every preset's variant 0; fake model: fenced answer with other names matches P3; malformed JSON + bad relation recovered in 3 attempts; unknown target fails cleanly; moving a base object → told it's locked → answers infeasible (matches P5); compare catches a wrong colour</td></tr>
+</table></div>
+
+<h3>4b · Framework: none; plain classes + pydantic</h3>
+<div class="wrap"><table>
+<tr><th>Option</th><th>Verdict</th><th>Why</th></tr>
+<tr><td><b>Plain classes + pydantic</b> (pydantic 2.14 is in the real2sim venv; httpx 0.28 too)</td><td><b>proposed</b></td><td>one structured call: the pydantic model of a template gives the JSON schema for the model and validation with readable errors; prompts stay visible for debugging a small model</td></tr>
+<tr><td>LangChain / LangGraph, LlamaIndex</td><td>no</td><td>heavy, churn, hide the prompts, add nothing to one call</td></tr>
+<tr><td>smolagents, PydanticAI, OpenAI Agents SDK</td><td>not now</td><td>lighter, but a loop we don't need for mode A</td></tr>
+<tr><td>MCP server</td><td>no</td><td>user (10-28): <span class="q">"I dont think this should be needed"</span>. One local client; the tools' JSON schemas are MCP's format, so wrapping later is small</td></tr>
+</table></div>
+<p>Whether llama-server can constrain output to a JSON schema is to check; if not, pydantic validation + retry. The <code>openai</code> client isn't installed; httpx is enough.</p>
+<h3>4c · Models (on disk, checked 10-28)</h3>
+<div class="wrap"><table>
+<tr><th>Model</th><th>Size</th><th>Serve script (Tau-harness/scripts)</th><th>Memory (scripts' comments, measured in the Tau project)</th><th>Note</th></tr>
+<tr><td>Qwen3.5-9B Q4_K_M</td><td>5.3 GB</td><td>serve_examiner_9b.sh</td><td>6505 MiB VRAM (ctx 61440)</td><td class="note">whole model on the GPU: takes prim's GPU slot</td></tr>
+<tr><td>Qwen3.5-35B-A3B Q3_K_M (the user recalled "27B"; no 27B on disk)</td><td>16 GB</td><td>serve_35b_moe_cuda.sh</td><td>experts in RAM, 2851 MiB VRAM; ~16.4 GB free RAM needed</td><td class="note">14.6 GB RAM available at 10-28: doesn't fit without closing apps</td></tr>
+</table></div>
+<p><b>Which is better (D5):</b> no data on disk settles it for this use. The one comparison (Tau-harness/docs/2026-08-31-next-session.md §6) is from the user-simulator role: reasoning-trace leak rate 9B 20.4% of 879 turns vs 35B-A3B 2.7% of 148 — the 35B looks more format-disciplined, but it's a different role, a small sample and possibly different reasoning settings. Cheapest real check: both models on the preset suite in mode A (~5 presets × 3 paraphrases × 3 runs × 2 models ≈ 90 single calls). Trap from that project: <code>--reasoning-budget 256</code> leaked the reasoning into the content; reasoning off avoids it.</p>
+<h3>4d · Tested against presets</h3>
+<p>User: <span class="q">"preset thing can be used to test agent against what you made"</span>. Each preset has a prompt and a hand-made config; the agent's config is compared field by field, and must also pass the same checks.</p>
+<div class="wrap"><table>
+<tr><th>Must match</th><th>May differ</th></tr>
+<tr><td>target objects (kind, colour, count); relation and target; pass-condition type and order; feasible vs infeasible and the reason; base untouched</td><td>poses and seeds; which pack asset among equivalents; size within bounds; wording; number of calls</td></tr>
+</table></div>
+<h3>4e · What to expect from the agent</h3>
+<div class="wrap"><table>
+<tr><th>Expect it to</th><th>Don't expect it to</th></tr>
+<tr><td>map a prompt to slots (kinds, colours, counts, relations, rule, order); pick an asset by name; write and paraphrase instructions; report; refuse infeasible prompts with the tool's reason</td><td>do geometry or search (tools do); invent task types with no rule or expert (it must answer "unsupported task type"); be identical run to run (measured by the presets); always produce valid JSON (validation catches it); judge realism</td></tr>
+</table></div>
+
+<h2 id="s5">5 · Stage 3 · Task creation (rubric 2: task config)</h2>
+<p>User: <span class="q">"Now task, so instruction, pass condition meaning final state of all target objects, target objects name and count. We have 2 rubrics: new scene, task config with everything about the task."</span></p>
+<div class="wrap"><table>
+<tr><th>Field</th><th>Contents</th><th>Note</th></tr>
+<tr><td><code>scene</code></td><td>scene config + version</td><td class="note">one scene, many tasks</td></tr>
+<tr><td><code>instruction</code></td><td>text from a template with placeholders</td><td class="note">names every target unambiguously (two same-colour blocks → left / right, as make_tasks.describe does)</td></tr>
+<tr><td><code>targets</code></td><td>target object names and count</td><td class="note">user's item</td></tr>
+<tr><td><code>pass_condition</code></td><td>final state of every target from a fixed set: inside, on, stacked, ordered stack, out of, next to; tolerances</td><td class="note">user's item. Rules work on the neutral state (framework, §2a)</td></tr>
+<tr><td><code>order</code></td><td>for ordered stacks</td><td class="note">a placeholder slot (§6)</td></tr>
+<tr><td><code>others</code></td><td>optional: may non-targets be disturbed?</td><td class="note">proposal (D15)</td></tr>
+<tr><td><code>start</code></td><td>robot start joints, articulation states, placement seed</td><td class="note">the seed replays a variant, as policy_batch <code>--layouts_from</code> does</td></tr>
+<tr><td><code>time_limit</code></td><td>maximum episode length</td><td class="note">policy_batch's default today: <code>--seconds 30</code></td></tr>
+<tr><td><code>expert</code>, <code>trivial</code></td><td>expert result (E1), do-nothing result (E2)</td><td class="note">stage 5</td></tr>
+<tr><td><code>status</code></td><td>checks, source (preset / agent / user), approval</td><td class="note">read by the manifest</td></tr>
+</table></div>
+<p>Task-agnostic (user, D7): the pipeline knows no task type. A task type is a plug-in: template + success rule + expert, registered in one place (D4).</p>
+
+<h2 id="s6">6 · Stage 4 · Variation (placeholders, PnC)</h2>
+<p>User: <span class="q">"my idea is that everything be a placeholder, we make some preset tasks to showcase and then user takes it from there"</span>; <span class="q">"lets say task is to stack blocks in order red, blue, green. Then this order be a placeholder and variations generated by PnCs"</span>.</p>
+<div class="box"><b>Design.</b> Every field of both rubrics is a slot with a type, a domain and a default. A task is a filled template, whoever filled it. Variations come from expanding the slots' domains by permutations and combinations.</div>
+<pre>
+template: ordered_stack
+  slots:
+    colours : choose 3 from {red, blue, green, yellow, orange}     scene slot
+    order   : permutation of colours                               task slot
+    seed    : 0..4 (placement)                                     scene slot
+  instruction: "stack the blocks in order: {order[0]}, then {order[1]}, then {order[2]} on top"
+  pass_condition: ordered_stack(order)
+</pre>
+<div class="wrap"><table>
+<tr><th>Slot kind</th><th>Examples</th><th>Effect</th><th>Note</th></tr>
+<tr><td>Task slot</td><td>order, target, container, relation</td><td>instruction + pass condition only; same scene</td><td class="note">tests language following (like checklist F4)</td></tr>
+<tr><td>Scene slot</td><td>colours, counts, sizes, seed, drawer open/closed</td><td>a new scene config; scene checks re-run</td><td class="note">variants differing only in seed share one compiled model (§12c disk)</td></tr>
+</table></div>
+<p><b>Counts (D9, yes):</b> each template reports how many variants are possible in total, then samples up to the cap. E.g. 3 fixed blocks: 3! = 6 orders; 3 of 5 colours ordered: 60; × 5 seeds: 300. Each variant records its slot values, so results can be split by slot. <b>Filtered automatically:</b> infeasible (place says why), trivial (E2), unsolvable (E1), indistinguishable colours (the real "green" block is teal, K4; palette fixed and well separated).</p>
+<p><b>Existing code:</b> make_tasks.randomise jitters all free objects ±3 cm and blocks ±0.5 rad, rejecting bounding-sphere overlaps; it moves base objects, ignores relations and checks no physics. TaskGen's variation re-runs place() with a new seed on added objects, keeping relations; the seed convention (seed·1000 + task·100 + variant) is reused.</p>
+
+<h2 id="s7">7 · Stage 5 · Scripted expert</h2>
+<div class="wrap"><table>
+<tr><th>Task type</th><th>Expert</th><th>Note</th></tr>
+<tr><td>pick, place upright, into a container, stack</td><td>implres31's <code>expert_probe.py</code> probes (B3), built on scripted_grasp.ik</td><td class="note">read-only from its worktree; reports the stage reached and why it stopped; labels NaN resets UNSTABLE</td></tr>
+<tr><td>ordered stack</td><td>new: stack probe in the slot's order</td><td class="note"></td></tr>
+<tr><td>open / close drawer, into / out of drawer</td><td>new: handle pull + pick</td><td class="note">biggest unknown; articulated objects are out of checklist v1's scope, so no check exists</td></tr>
+</table></div>
+<p>Only expert-solved variants that a do-nothing policy doesn't solve go on to stage 6.</p>
+
+<h2 id="s8">8 · Stage 6 · Is the task useful?</h2>
+<p>The user sets the criteria; TaskGen's draft to correct:</p>
+<div class="wrap"><table>
+<tr><th>Criterion</th><th>How</th><th>Note</th></tr>
+<tr><td>valid</td><td>stages 1–5 passed</td><td class="note"></td></tr>
+<tr><td>seen as real by the policy</td><td>image swap per new object type (checklist C6)</td><td class="note">where textures and ObjGen come in (user: no texture mechanism for added objects yet; if this works, push for the ObjGen PoC)</td></tr>
+<tr><td>informative</td><td>the base policy neither always succeeds nor always fails, or exposes a failure mode current tasks don't (order, placement accuracy)</td><td class="note">GPU, policy_batch through prim's gate</td></tr>
+<tr><td>noise-aware</td><td>read against run-to-run noise (checklist F6, not measured)</td><td class="note"></td></tr>
+</table></div>
+<p><b>Perturbations</b> (user: <span class="q">"not priority right now, if initial poc works then this will be next step"</span>): none built (inject_errors.py is camera-pose injection for check bars). When taken up: a perturbation is a child task (parent + change) on matched starts; the agent can do added-object changes, paraphrases and saved starts; base-object changes are an open question.</p>
+
+<h2 id="s9">9 · Eval-set manifest and task sources</h2>
+<p>User: <span class="q">"eval set manifest would be another thing in which we can add tasks generated by agent after some checks + plus manually generated tasks by user"</span>.</p>
+<div class="wrap"><table>
+<tr><th>Source</th><th>Made by</th><th>Enters after</th></tr>
+<tr><td>Preset</td><td>TaskGen, filled templates</td><td>checks + user approval</td></tr>
+<tr><td>Agent</td><td>prompt → filled template</td><td>checks + user approval</td></tr>
+<tr><td>User</td><td>copies a preset or template and fills slots (JSON or a small CLI; later the inspector)</td><td>checks + user approval (checklist E5 already requires this for inspector starts)</td></tr>
+</table></div>
+<p>Entry: scene config + version, task config, variant slot values and seed, simulator, source, checks, approval. policy_batch reads the manifest through a TaskGen reader; policy_batch itself is not changed.</p>
+
+<h2 id="s10">10 · Presets</h2>
+<p>User: <span class="q">"I want you to make presets around actual episode, ask res31 which ones we are running for scene calibration rn so we have verified that scene is perfect for them and can use that directly without friction"</span>; and <span class="q">"I do want a scene which has a drawer beforehand and we can use that to make a task around that"</span>.</p>
+<div class="wrap"><table>
+<tr><th>Scene (res31, 10-28 15:30)</th><th>State</th><th>Real task</th><th>Presets</th></tr>
+<tr><td>orange: data/real2sim/droid/ep_orange_block; build runs/real2sim/ep_orange_block_stereo (10-19, committed)</td><td class="ok">verified (best of the set); camera-search rebuild (uncommitted) passes all scene_checks and will likely replace it</td><td>"Put the orange block inside the black bowl"</td><td>the real task + task-slot variations: which block into the bowl, stacking orders of the 3 blocks (6), next to</td></tr>
+<tr><td>c11: ep_c11; build runs/real2sim/v1_dev/camera_search/c11_rebuilt</td><td class="warn">in progress: grasps and drops pass; exterior-stereo table check fails; sizes unchecked</td><td>"Put the green and orange cubes in the bowl"</td><td>once verified</td></tr>
+<tr><td>c1b, c3, c9</td><td class="bad">failing</td><td>—</td><td>not used</td></tr>
+<tr><td>a drawer scene</td><td>none: no current scene has a drawer. 222 DROID drawer episodes on the same robot (84bd5053) before 2023-10-27, e.g. "Open the topmost drawer" (2023-07-27-09h-20m-40s), "Put the screwdriver in the drawer and close it" (2023-09-04 series); none downloaded, MP4s unchecked</td><td>—</td><td>needs scouting (res32's area), a download with a disk line, and a sim drawer placed over the real one with the real drawer masked out of the backgrounds (the pipeline can't rebuild an articulated drawer from video; res31). Routing is open (D17)</td></tr>
+</table></div>
+<p>Stage-1 additions (drawer, cup) are capability tests, not presets: added objects have no texture mechanism yet, so presets stay around the real episodes' objects.</p>
+
+<h2 id="s11">11 · Rules every task follows</h2>
+<ul>
+<li>The base scene is locked for the agent; only added objects are resized, within bounds, every resize logged and reported.</li>
+<li>Infeasible is an answer, with the reason; never a silent change.</li>
+<li>Everything goes through the config, rebuilt through the simulator's editing API. Never patch a compiled .mjb (10-23: stale collision bounds).</li>
+<li>Geometry questions use sim truth, with a margin for the base's fit error.</li>
+<li>No overlaps at the start; nothing moves more than the settle limit; no simulator warnings.</li>
+<li>Added objects on the table, inside the camera-covered area, reachable.</li>
+<li>A task enters the manifest only after its checks and the user's approval, whatever its source.</li>
+<li>Numbers from new code are UNVERIFIED until checked.</li>
+</ul>
+
+<h2 id="s12">12 · Implementation plan</h2>
+<p>User: <span class="q">"you will write separate code for this … smth like you inherit from that code … I want this whole impl effort in a separate worktree"</span>.</p>
+<h3>12a · Code structure (framework / simulator split first)</h3>
+<pre>
+../VLA-exp-taskgen/  (branch exp/taskgen)
+  experiments/taskgen/
+    core/                    framework: no simulator import anywhere below
+      objects.py             neutral object descriptions (kind, size, colour, source, pose, relation)
+      config.py              scene + task configs (pydantic models), versions, load / save
+      sim.py                 the simulator interface (abstract class Sim)
+      session.py             holds the scene config; every edit → rebuild through Sim; log
+      place.py               relation logic + candidate sampling; asks Sim to settle / check
+      rules.py               pass conditions on the neutral state
+      templates.py           slots, PnC expansion, counts, cap, filters
+      registry.py            task type → (template, rule, expert)
+      manifest.py            eval-set manifest
+      api.py                 the tool functions + JSON schemas (the agent's only surface)
+    sim_mujoco/              MuJoCo implementation of core/sim.py
+      base.py                res31's scene as an MjSpec (today's base.py) + replay equivalence
+      build.py               neutral objects → MjSpec edits (today's add_objects.py)
+      measure.py             collision boxes, container openings, free area
+      checks.py              overlaps, settle, warnings (today's stage-1 checks)
+      render.py              views
+      expert.py              wraps implres31's probes + new experts
+    agent/                   client.py (httpx → llama-server), mode_a.py, prompts.py
+    presets/                 orange presets (+ c11 when verified)
+    tests/                   per-piece tests without a model
+    stage1_add.py            today's stage-1 run, moved onto the split
+  runs/taskgen/…             outputs (not committed except small JSON)
+</pre>
+<div class="wrap"><table>
+<tr><th>Decision</th><th>Why</th></tr>
+<tr><td>core/ imports no simulator</td><td>plug and play (user): a second simulator is a new sim_*/ folder</td></tr>
+<tr><td>res31's and implres31's modules imported read-only (main checkout; implres31's worktree)</td><td>code ownership (10-23); no edits to their files</td></tr>
+<tr><td>Base equivalence = tolerance + replay</td><td>the first run showed exact field comparison flags harmless XML rounding (§3d)</td></tr>
+<tr><td>api.py as the only agent surface</td><td>one place for validation and schemas; tests and the agent call the same functions</td></tr>
+</table></div>
+<h3>12b · Order and estimate (working days; estimates)</h3>
+<div class="wrap"><table>
+<tr><th>Step</th><th>Work</th><th>Days</th><th>Test without a model</th></tr>
+<tr><td>0</td><td>split: core/sim.py interface + sim_mujoco from the stage-1 code; stage-1 run re-done on it</td><td>½</td><td>same stage-1 results; core imports no mujoco</td></tr>
+<tr><td>1</td><td>config + session, list_scene (sim sizes), add_object / list_assets, validation, place with search</td><td>2–2½</td><td>known answers: fits / infeasible with the limiting dimension; next-to placements settle, no overlap</td></tr>
+<tr><td>2</td><td>agent mode A, client, preset suite, 9B vs 35B</td><td>1½ + GPU slot</td><td>a fake model replaying fixed outputs drives the executor</td></tr>
+<tr><td>3</td><td>task config, rules, instructions</td><td>½–1</td><td>rules on hand-set states</td></tr>
+<tr><td>4</td><td>templates, PnC, counts, cap</td><td>½</td><td>counts (3 blocks → 6 orders)</td></tr>
+<tr><td>5</td><td>experts: implres31's probes; ordered stack; drawer</td><td>1½</td><td>do-nothing fails; expert passes</td></tr>
+<tr><td>6</td><td>usefulness: criteria, policy runs</td><td>1 + GPU time</td><td>—</td></tr>
+<tr><td></td><td><b>Total</b></td><td><b>~8–10</b></td><td>plus GPU time for stages 2 and 6</td></tr>
+</table></div>
+<h3>12c · Resources</h3>
+<div class="wrap"><table>
+<tr><th>Resource</th><th>Line</th></tr>
+<tr><td>Disk</td><td>no model download. Orange's .mjb is 69.6 MB (meshes embedded), so variants that differ only in seed share one compiled model; a .mjb per distinct scene config only. Stage 1 used 74 MB; 198 GB free (10-28). Each run's pre-registration carries a disk line</td></tr>
+<tr><td>CPU</td><td>steps 0–5 (orange stage 1: ~3 s per run)</td></tr>
+<tr><td>GPU</td><td>model serving (stage 2) and policy runs (stage 6): prim's explicit go with a disk line</td></tr>
+<tr><td>RAM</td><td>35B-A3B needs ~16.4 GB free; 14.6 GB at 10-28</td></tr>
+</table></div>
+
+<h2 id="s13">13 · Risks</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Risk</th><th>Mitigation</th></tr>
+<tr><td>R1</td><td>res31's scene.xml isn't standalone (relative meshdir; cameras set after compiling)</td><td>solved in stage 1 (§3d); a change in res31's build would show in the replay equivalence</td></tr>
+<tr><td>R2</td><td>LIBERO short_cabinet: old .msh meshes (support in MuJoCo 3.15 unchecked), names differ from the spec, solref 0.001 below 2 × timestep, unchecked interior</td><td>primitive drawer (stage 1 built one); LIBERO optional later (D3)</td></tr>
+<tr><td>R3</td><td>Licence: upstream LIBERO is MIT, but articulated-object mesh/texture provenance unchecked; the orange bowl's collision boxes are LIBERO-made</td><td>licence per object in the config; pack assets CC BY 4.0</td></tr>
+<tr><td>R4</td><td>Articulated objects are out of checklist v1's scope: no drawer check or expert</td><td>stage 5 builds the expert</td></tr>
+<tr><td>R5</td><td>Orange's base geometry will change (camera-search rebuild)</td><td>base version in every config; replay equivalence flags it; re-check on the new base</td></tr>
+<tr><td>R6</td><td>Base sizes carry fit error (K2, K3)</td><td>margin (D8), tight-fit flag</td></tr>
+<tr><td>R7</td><td>Local model quality on this task unknown</td><td>mode A, validation, preset suite</td></tr>
+<tr><td>R8</td><td>Added objects have no texture mechanism; large ones (drawer) look unpolished and may move the policy</td><td>stage 6 image swap; ObjGen PoC if the pipeline works</td></tr>
+</table></div>
+
+<h2 id="s16">13b · Known limitations (updated after each step)</h2>
+<p>User, 10-28: <span class="q">"keep adding known limitations in a section separately after each step"</span>. One row per limitation, with the step that found it; a row is never deleted, its state changes to fixed (with the commit) or accepted.</p>
+<div class="wrap"><table>
+<tr><th>#</th><th>Step</th><th>Limitation</th><th>Effect</th><th>State</th></tr>
+<tr><td>L1</td><td>stage 1 (9c497ef)</td><td>The base is rebuilt from res31's scene.xml with repaired mesh paths and re-applied cameras; equivalence (fields with tolerance + replay of the recorded episode) is shown on orange only</td><td>another scene, or a change in res31's build, could differ; the test would flag it</td><td>open (re-run per scene)</td></tr>
+<tr><td>L2</td><td>stage 1</td><td>The fixed robot base link's mass differs after the XML round trip (2.8 vs 5.8 kg); a ~0.03% inertia constant on free objects</td><td>none measured (welded link; replay arm 2e-14, objects ≤ 0.05 mm)</td><td>accepted</td></tr>
+<tr><td>L3</td><td>stage 1</td><td>Renders are plain sim views, not composited over the real footage</td><td>what the policy would see is not shown yet</td><td>open (composite needed for stage 6)</td></tr>
+<tr><td>L4</td><td>stage 1</td><td>The overlap check can't see visual-only geoms or parent/child pairs (MuJoCo makes no contacts for them)</td><td>a visual mesh can look overlapped without a report; drawer ↔ cabinet clearance is by construction only</td><td>accepted (by design)</td></tr>
+<tr><td>L5</td><td>stage 1</td><td>Settle runs 1 s with a 2 cm limit (checklist B1 says 0.5 s)</td><td>slightly stricter than B1</td><td>accepted</td></tr>
+<tr><td>L6</td><td>step 1 (4da2af3)</td><td>No camera-coverage or visibility check: an added object can be placed where the wrist / exterior cameras don't see it (the test drawer landed behind the bowl, out of the wrist view)</td><td>tasks the policy can't see</td><td class="ok">fixed df0de55: visibility check in place() (see L17, L18)</td></tr>
+<tr><td>L7</td><td>step 1</td><td>Pack models are chosen by name + size bounds, not by graspability (the chosen cups are 10 cm wide, above the 8 cm grasp limit)</td><td>a pick task could get an ungraspable object</td><td>open</td></tr>
+<tr><td>L8</td><td>step 1</td><td>One parametric drawer design; it always faces the robot (the stored yaw means nothing); not resizable</td><td>drawer variety and orientation not covered</td><td>open</td></tr>
+<tr><td>L9</td><td>step 1</td><td>Container cavity is read from collision-part corners/vertices (bowl opening 18.4 cm, depth 8.2 cm: approximate); rotation-free size by a 1° search</td><td>fits near the limit may be off by ~1 cm</td><td>open</td></tr>
+<tr><td>L10</td><td>step 1</td><td>Reach = top-down IK to the object's top (residual &lt; 1 cm); no full grasp, no collision-free path, no side grasp</td><td>"reachable" ≠ "pickable"; stage 5's expert decides</td><td>accepted until stage 5</td></tr>
+<tr><td>L11</td><td>step 1</td><td>Clearance 1.5 cm to base objects (D8 proposal), next-to gap 1–6 cm, table edge margin 3 cm: chosen, not measured</td><td>may reject feasible spots or allow tight ones</td><td>open (D8)</td></tr>
+<tr><td>L12</td><td>step 1</td><td>Asset lookup by name only (GSO names are product names); YCB left out (its catalogue writes MJCF files into data/ on first use)</td><td>wrong or missing models for some nouns</td><td>open</td></tr>
+<tr><td>L13</td><td>step 1</td><td>Placement is random sampling (8 × 24 candidates, pre-filtered, up to 24 simulated; resize steps × 0.85, 3 rounds)</td><td>can miss tight feasible spots; "infeasible" means "none found", with the reasons counted</td><td>accepted</td></tr>
+<tr><td>L14</td><td>step 1</td><td>The stored pose is the settled footprint centre and lowest point with the yaw as placed (the small turn while settling is not stored)</td><td>a rebuild can differ by the settle turn (rebuild test: max move 0.13 cm)</td><td>accepted</td></tr>
+<tr><td>L15</td><td>step 1</td><td>Mass and friction of added objects are defaults (boxes 600 kg/m³, packs 500 kg/m³ × hull volume, build_scene's frictions)</td><td>assumptions (checklist B4/B5)</td><td>accepted</td></tr>
+<tr><td>L16</td><td>step 1</td><td>Tested on orange only, with known-answer scripts; no independent checker</td><td>all numbers UNVERIFIED</td><td>open</td></tr>
+<tr><td>L17</td><td>visibility (df0de55)</td><td>Visibility thresholds are chosen: pixel minimum = 0.5 × the smallest base object's pixels in the scene (orange: exterior 29 px, wrist-above 86 px), floor 20 px, ≥ 50% unhidden, at 320×180. A fixed 150 px first rejected a 2.5 cm block as visible as the real blocks (37–58 px)</td><td>"visible" means "as visible as this episode's real objects", not "the policy can use it"</td><td>accepted (stage 6 tests the policy)</td></tr>
+<tr><td>L18</td><td>visibility</td><td>Checked at two moments only: exterior camera at the start pose, wrist camera from 25 cm above the object (pre-grasp, arm moved by IK). Not over the whole episode; the wrist view at the start pose isn't required (the orange test drawer, behind the bowl, is out of it). Objects inside a container may be hidden from the exterior camera (blocks in the open drawer: 4–12 px)</td><td>drawer-content tasks rely on the wrist camera</td><td>accepted</td></tr>
+<tr><td>L19</td><td>visibility</td><td>Segmentation counts collision and visual geoms of the object alike; the "unhidden" silhouette moves every other geom away (robot included)</td><td>an object hidden only by the robot's start pose counts as hidden</td><td>accepted</td></tr>
+<tr><td>L20</td><td>step 2 CPU (64580ef)</td><td>The task's pass condition is only name-checked (every object it names exists); the rule itself is evaluated in stage 3</td><td>a task can be well-formed but physically odd until stage 3/5</td><td>open (stage 3)</td></tr>
+<tr><td>L21</td><td>step 2 CPU</td><td>The executor runs objects in the given order and stops at the first failure; no backtracking (an early placement can leave no room for a later one)</td><td>"infeasible" can depend on the order</td><td>open</td></tr>
+<tr><td>L22</td><td>step 2 CPU</td><td>Slot kinds: choice, choose k, permute k, permutation_of; no numeric ranges or conditional slots; every scene-slot variant is built separately</td><td>size or position sweeps need a new slot kind</td><td>open</td></tr>
+<tr><td>L23</td><td>step 2 CPU</td><td>Preset comparison matches added objects by (source, colour or noun, relation, target); noun synonyms ("cube"/"block", "mug"/"cup") count as different; sizes and the chosen pack model are ignored</td><td>can under-count a correct agent answer</td><td>open</td></tr>
+<tr><td>L24</td><td>step 2 CPU</td><td>Mode A has only been driven by a fake model; the rules prompt is untested on a real one; the llama-server client (JSON-schema response_format, reasoning off) has never run</td><td>real-model behaviour unknown</td><td>open (needs the GPU slot)</td></tr>
+<tr><td>L25</td><td>step 2 CPU</td><td>Presets on orange only; the infeasible preset (P5) is a declared answer: the model must decide it (the tools also refuse if it tries)</td><td>c11 presets wait for res31's verification</td><td>open</td></tr>
+</table></div>
+
+<h2 id="s14">14 · Open decisions</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Question</th><th>Proposal</th><th>State</th></tr>
+<tr><td>D1</td><td>one scene-config format with res31's B8 overrides</td><td>yes</td><td class="ok">user: yes (10-28)</td></tr>
+<tr><td>D2</td><td>camera-covered area (C3) before its code exists</td><td>table extent as stand-in</td><td>open</td></tr>
+<tr><td>D3</td><td>drawer: primitive or LIBERO</td><td>primitive</td><td>open</td></tr>
+<tr><td>D4</td><td>where new success rules and experts live</td><td>a task-type registry in TaskGen's code; shared module later</td><td>open (explained 10-28)</td></tr>
+<tr><td>D5</td><td>model</td><td>compare 9B and 35B-A3B on the presets, mode A</td><td>user: check which is better (10-28)</td></tr>
+<tr><td>D7</td><td>build order</td><td>task-agnostic pipeline; stages 0 → 6</td><td class="ok">user: task-agnostic; order 10-28</td></tr>
+<tr><td>D8</td><td>margin around base objects</td><td>max(1.5 cm, 10%)</td><td>open</td></tr>
+<tr><td>D9</td><td>PnC cap</td><td>count all possible, then cap (e.g. 50 per template)</td><td class="ok">user: yes, state the count then cap</td></tr>
+<tr><td>D10</td><td>paraphrases × runs per preset</td><td>3 × 3</td><td>open</td></tr>
+<tr><td>D11</td><td>agent mode</td><td>A only in the PoC</td><td class="ok">no objection 10-28</td></tr>
+<tr><td>D12</td><td>perturbations</td><td>after the PoC works</td><td class="ok">user: next step after the PoC</td></tr>
+<tr><td>D14</td><td>presets</td><td>around res31's verified episodes (orange now, c11 later)</td><td class="ok">user 10-28</td></tr>
+<tr><td>D15</td><td>"others" rule, time limit</td><td>others optional, off; 30 s default</td><td>open</td></tr>
+<tr><td>D16</td><td>agent framework</td><td>none: plain classes + pydantic + httpx</td><td>proposed 10-28</td></tr>
+<tr><td>D17</td><td>drawer-episode scouting</td><td>prim routes it to res32</td><td>open (user's call)</td></tr>
+<tr><td>D18</td><td>simulator split</td><td>core/ + sim_mujoco/, interface now, MuJoCo only</td><td class="ok">user: separate before building</td></tr>
+<tr><td>D19</td><td>stage-6 criteria</td><td>§8 draft</td><td>open (user's to set)</td></tr>
+</table></div>
+
+<h2 id="s15">15 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Who / trigger</th><th>Options</th><th>Outcome</th></tr>
+<tr><td>10-28</td><td>prim onboarded TaskGen as implementer of res31's Agentic_task_creation; outline first</td><td>—</td><td>outline sent to the user</td></tr>
+<tr><td>10-28</td><td>User: "we'll have to reiterate on what the task and structure of whole thing would be"; "dont write any code before we are done discussing"</td><td>—</td><td>discussion first</td></tr>
+<tr><td>10-28</td><td>No editable base scene (R1); res31 offered an <code>assemble_spec</code> refactor of build_scene</td><td>(a) res31 refactors; (b) TaskGen's own code reusing res31's</td><td>User: own code in a separate worktree → (b); res31 told</td></tr>
+<tr><td>10-28</td><td>res31: reference scene, B8 format</td><td>—</td><td>orange 10-19 build (not _yfit, its .mjb was patched); one format (D1, user: yes)</td></tr>
+<tr><td>10-28</td><td>User: geometry of base objects; "sim truth?"</td><td>fit numbers vs compiled model</td><td>sim truth for geometry; the fit for meaning; the bowl's width differs (§3b)</td></tr>
+<tr><td>10-28</td><td>User: two rubrics; deterministic asset lookup; ObjGen later</td><td>—</td><td>§3a, §5</td></tr>
+<tr><td>10-28</td><td>User: manifest for agent + manual tasks; "everything a placeholder"; presets</td><td>manifest file vs flag</td><td>manifest file (§9); templates (§6)</td></tr>
+<tr><td>10-28</td><td>User: variations / perturbations by agents?</td><td>make_tasks.randomise vs place re-run with seeds</td><td>place with seeds; perturbations later (D12)</td></tr>
+<tr><td>10-28</td><td>User: order as a placeholder, PnC; presets to test the agent</td><td>—</td><td>task vs scene slots; count then cap (D9); preset suite (§4d)</td></tr>
+<tr><td>10-28</td><td>User: local Qwen models; API vs MCP</td><td>Ollama qwen2.5:7b; Qwen3.5-9B; 35B-A3B; MCP vs in-process</td><td>9B and 35B-A3B found (no 27B); compare on presets (D5); in-process API, no MCP</td></tr>
+<tr><td>10-28</td><td>User: D1 yes; D4?; D5 check which is better; D7 task-agnostic; D9 yes; D12 later; presets around actual verified episodes; a drawer scene; no texture mechanism → ObjGen PoC if this works</td><td>—</td><td>res31 asked: orange verified, c11 in progress, others failing, no drawer scene (§10)</td></tr>
+<tr><td>10-28</td><td>User: two questions (capability, usefulness); six stages</td><td>—</td><td>doc restructured around them (this version)</td></tr>
+<tr><td>10-28</td><td>User: "first you try way to add object and then have me inspect both scenes"</td><td>—</td><td>worktree created; stage-1 run (§3d); user: "looks good"</td></tr>
+<tr><td>10-28</td><td>User: why no overlap warning from MuJoCo?</td><td>—</td><td>explained (§3c); overlap check + positive control added and re-run: no overlaps</td></tr>
+<tr><td>10-28</td><td>User: framework + simulator layer, plug and play; "separate before building"</td><td>split now vs later</td><td>core/ + sim_mujoco/ before stage 1 continues (D18)</td></tr>
+<tr><td>10-28</td><td>User: "yeah go with your flow, keep committing tho, to make everything revertible at any stage"</td><td>—</td><td>commits on exp/taskgen in the worktree (not main, not pushed; code + small JSON); prim told. Step 1 built: 4da2af3</td></tr>
+<tr><td>10-28</td><td>User: "keep adding known limitations in a section separately after each step"</td><td>—</td><td>§13b, updated after every step</td></tr>
+<tr><td>10-28</td><td>User: which agent framework?</td><td>LangChain/LangGraph, LlamaIndex, smolagents, PydanticAI, OpenAI Agents SDK, plain</td><td>proposed plain classes + pydantic (D16)</td></tr>
+</table></div>
+<p class="meta">Directions not taken: res31 refactoring build_scene for TaskGen; the agent writing MJCF or files directly; an MCP server; make_tasks.randomise for variations; agent frameworks; the tool loop (mode B) in the PoC; presets built on invented objects (replaced by presets on verified episodes).</p>
+</main>
+</body>
+</html>
