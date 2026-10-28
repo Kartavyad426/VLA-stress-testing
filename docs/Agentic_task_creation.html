@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Task Creation</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#8a5a2b;--ok:#2c6e3a;--warn:#8a6d12;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}
+h2{font-size:1.15rem;margin-top:1.9em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
+h3{font-size:1rem;margin-top:1.3em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px;margin:12px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.87rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+pre{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;font-size:.82rem;line-height:1.45}
+code{font-size:.85em}
+a{color:var(--accent)}
+nav ol{columns:2;font-size:.9rem}
+@media (max-width:700px){nav ol{columns:1}}
+</style>
+</head>
+<body><main>
+<h1>Agentic task creation</h1>
+<p class="meta">res31, 2026-10-28. Scope and design for a proof of concept; to be built by a separate implementer (user, 10-28: "you wont be working on that directly tho, I will have another impl agent for this"). Builds on the reconstructed scenes of SceneGen v1 (<code>SceneGen_v1_gaps_1028.html</code> §5) and reads res31's code read-only. Not started; exploratory.</p>
+
+<nav><h3>Sections</h3><ol>
+<li><a href="#goal">Goal</a></li>
+<li><a href="#arch">Architecture: two layers</a></li>
+<li><a href="#config">Scene config</a></li>
+<li><a href="#api">Scene API</a></li>
+<li><a href="#rules">Rules the API enforces</a></li>
+<li><a href="#agent">The agent (local, Ollama)</a></li>
+<li><a href="#assets">Assets available today</a></li>
+<li><a href="#checks">Checks on every result</a></li>
+<li><a href="#poc">PoC plan and estimate</a></li>
+<li><a href="#handoff">What the implementer needs</a></li>
+<li><a href="#later">Later: ObjGen, inspector, more scenes</a></li>
+<li><a href="#open">Open questions</a></li>
+<li><a href="#log">Decision log</a></li>
+</ol></nav>
+
+<h2 id="goal">1 · Goal</h2>
+<p>Make eval tasks by prompt on top of a reconstructed scene. The reconstructed episode is the <b>reference</b>: table, background, lighting, cameras and robot rig come from real footage and stay as they are. New objects and tasks are composed in simulation, and <b>the physics simulator decides what fits where</b>. Example (user, 10-28): "a scene like drawer having 5 blocks inside and robot has to take them out and stack them color wise".</p>
+<p>The final goal is an eval set: each created task has a success rule, is shown solvable by a scripted expert, and passes the scene checklist (<code>REAL2SIM_CHECKLIST_V1.html</code>, sections B, D, E) before the user approves it.</p>
+
+<h2 id="arch">2 · Architecture: two layers</h2>
+<div class="wrap"><table>
+<tr><th>Layer</th><th>What</th><th>Testable without a model?</th></tr>
+<tr><td><b>1 · Scene config + scene API</b> (Python)</td><td>A JSON config per created scene, and ~6–8 functions that read and change it, with the physics simulator answering every placement question</td><td>Yes: scripted calls in tests; later the user through the inspector</td></tr>
+<tr><td><b>2 · Agent</b> (local model via Ollama)</td><td>Turns a prompt into tool calls on layer 1; reports what it did, any resizing, and anything infeasible</td><td>—</td></tr>
+</table></div>
+<p>Layer 1 is model-agnostic: functions with JSON schemas. Any model with tool calling can drive it; the agent is a thin adapter.</p>
+
+<h2 id="config">3 · Scene config</h2>
+<p>One file per created scene. Base objects come from the reconstruction and are locked; added objects carry where they came from and any change the agent made. This is the same mechanism as the planned scene overrides file (SCENE_V1_MECHANISMS B8), extended: manual edits in the inspector, perturbations and the agent all write it.</p>
+<pre>{
+  "base_scene": "runs/real2sim/ep_orange_block_stereo",      // reconstructed scene (read-only)
+  "base_objects": {                                          // from scene_fit.json, LOCKED
+    "orange_block": {"locked": true, "source": "reconstructed"},
+    "black_bowl":   {"locked": true, "source": "reconstructed"}
+  },
+  "added_objects": {
+    "drawer_1": {"source": "libero:short_cabinet", "pose": [0.55, -0.20, null, 90],   // x, y, z (null = on the table), yaw deg
+                 "scale": 1.0},
+    "red_block_1": {"source": "primitive:box", "size_m": 0.030, "rgba": [0.8, 0.1, 0.1, 1],
+                    "relation": {"inside": "drawer_1/drawer_middle"},
+                    "resized_from_m": 0.040, "resize_reason": "did not fit inside drawer_middle at 0.040"}
+  },
+  "task": {"instruction": "take the red block out of the drawer and put it in the bowl",
+           "success": {"type": "inside", "object": "red_block_1", "target": "black_bowl"}},
+  "checks": {"settle": "pass", "expert": "pass", "do_nothing": "fail"},
+  "log": [{"by": "agent", "call": "place", "args": {...}, "result": "..."}]
+}</pre>
+
+<h2 id="api">4 · Scene API (layer 1)</h2>
+<div class="wrap"><table>
+<tr><th>Function</th><th>Does</th><th>Returns</th></tr>
+<tr><td><code>list_scene()</code></td><td>base and added objects with kind, size, pose, locked flag; free table area</td><td>JSON</td></tr>
+<tr><td><code>list_assets(query)</code></td><td>pack assets and articulated objects matching a word (§7)</td><td>names, sizes, licence</td></tr>
+<tr><td><code>add_object(source, size, colour)</code></td><td>source = <code>primitive:box|cylinder|sphere</code>, a pack asset, a LIBERO articulated object; later <code>objgen:&lt;id&gt;</code></td><td>new object id (not placed yet)</td></tr>
+<tr><td><code>fits(obj, target, relation)</code></td><td>geometry with clearance: inside / on / next to; graspable (≤ the 2F-85's 85 mm opening)</td><td>yes/no + the limiting dimension</td></tr>
+<tr><td><code>place(obj, relation, target, allow_resize)</code></td><td><b>does the search itself</b>: samples poses in the target's free space, settles physics, and if allowed tries smaller sizes within the kind's bounds</td><td>placed (+ any resize) or infeasible with the reason</td></tr>
+<tr><td><code>resize(obj, scale)</code></td><td>added objects only, within bounds (§5)</td><td>new size or refusal</td></tr>
+<tr><td><code>set_task(instruction, success)</code></td><td>task text + a success rule from a fixed set (inside, on, stacked, ordered stack, out of)</td><td>ok or why the rule doesn't fit the scene</td></tr>
+<tr><td><code>check()</code></td><td>settle; overlaps; reachable; inside the area the real cameras saw; scripted expert; do-nothing policy</td><td>per-check pass/fail + reasons</td></tr>
+<tr><td><code>render(view)</code> / <code>save()</code></td><td>exterior / wrist / free view images; write the config</td><td>image paths; config path</td></tr>
+</table></div>
+<p><b>The search lives in the tools</b>, not in the model: a small local model is weak at multi-step search, so <code>place(..., allow_resize=True)</code> returns one clear answer, e.g. "placed; block scaled 4.0 → 3.0 cm" or "infeasible: drawer interior height 2.5 cm &lt; smallest block 3.0 cm".</p>
+
+<h2 id="rules">5 · Rules the API enforces</h2>
+<ol>
+<li><b>The base scene is locked.</b> Reconstructed objects, table, cameras and robot are never moved, resized or removed by the agent. (Perturbing base objects is a separate, user-driven feature.)</li>
+<li><b>Only added objects can be resized</b>, and only within bounds for their kind (first proposal: block 2–6 cm, cup 6–10 cm tall, bowl 10–20 cm across, fruit 5–9 cm) and still graspable when the task needs a grasp. Every resize is logged with its reason and reported to the user.</li>
+<li><b>Infeasible is an answer.</b> When nothing within bounds fits, the API says why and the agent reports options (another container asset, a smaller object kind), never a silent change.</li>
+<li><b>Everything goes through the config</b>, rebuilt and recompiled with MuJoCo's model-editing API. Never patch the compiled <code>.mjb</code>: on 10-23 that left stale collision bounds and a block sank 0.4 cm unnoticed.</li>
+<li><b>Added objects stay inside the area the real cameras saw</b> (wrist table texture exists there; checklist C3), on the table, reachable by the arm.</li>
+<li><b>A task enters the eval set only after <code>check()</code> passes and the user approves</b> in the inspector.</li>
+</ol>
+
+<h2 id="agent">6 · The agent (local, Ollama)</h2>
+<p>User, 10-28: "we will have a separate agent most prolly local ollama inference for that".</p>
+<ul>
+<li><b>Model:</b> an ~8B model with tool calling in 4-bit (e.g. a Qwen3 8B); fits the 8 GB card, but not next to a policy run, so it goes through prim's GPU gate like any GPU job. CPU-only inference works but is slow.</li>
+<li><b>Tools:</b> the layer-1 functions, ~6–8 of them, strict schemas; every input validated on our side with error messages the model can act on (small models make more malformed calls).</li>
+<li><b>Loop:</b> prompt → tool calls → results → final report (what was added, resized, placed; the task; check results; anything infeasible). The user reviews in the inspector.</li>
+<li>Programmatic tool calling (model-written scripts that call the tools) is a Claude API feature, not available here; the search inside <code>place</code> replaces it.</li>
+</ul>
+
+<h2 id="assets">7 · Assets available today (checked 10-28)</h2>
+<div class="wrap"><table>
+<tr><th>Source</th><th>Where</th><th>What</th><th>Licence</th></tr>
+<tr><td>Primitives</td><td>MuJoCo</td><td>box, cylinder, sphere, any size and colour</td><td>—</td></tr>
+<tr><td>Kitchen pack</td><td><code>data/real2sim/asset_packs/kitchen_mjcf/objects/</code></td><td>~70 categories: basket, fruit bowl, glass cup, jar, pot, saucepan, tray, tupperware, kettle, …; no drawers or cabinets</td><td>CC BY 4.0 (<code>experiments/asset_pack/catalogue.py</code>)</td></tr>
+<tr><td>GSO pack</td><td><code>data/real2sim/asset_packs/gso_mjcf/</code></td><td>scanned everyday objects, real textures</td><td>CC BY 4.0 meshes + MIT XML</td></tr>
+<tr><td>YCB pack</td><td><code>data/real2sim/asset_packs/ycb/</code></td><td>scanned objects, real textures</td><td>CC BY 4.0</td></tr>
+<tr><td><b>LIBERO articulated objects</b></td><td><code>~/.cache/libero/assets/articulated_objects/</code></td><td><b>short_cabinet (drawer_low / middle / high)</b>, wooden_cabinet, white_cabinet, slide_cabinet, microwave, short_fridge, flat_stove, basin_faucet</td><td>to check (prim's licence audit)</td></tr>
+</table></div>
+<p>Asset-pack loading code exists in <code>build_scene.py --assets</code> (AssetPack session, 643c5c1). Textures: scanned packs (GSO, YCB) carry real photographed textures; G6 found block appearance didn't move GR00T's plan, but large objects (a cabinet filling the wrist view) are untested: one image-swap check (checklist C6) per new object type.</p>
+
+<h2 id="checks">8 · Checks on every result</h2>
+<p>From <code>REAL2SIM_CHECKLIST_V1.html</code>: B1 settle, B2 collision shapes, B3 the scripted expert solves it (a new expert per task type is expected; user 10-26), D3 every object visible, D5 contacts look right, E2 a do-nothing policy doesn't succeed, E4 the success rule fits the task type, C3 inside the camera-covered area. Added objects have no real reference, so the image-vs-real checks (C1, D1) don't apply to them.</p>
+
+<h2 id="poc">9 · PoC plan and estimate (one scene: orange)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Piece</th><th>Effort</th></tr>
+<tr><td>1</td><td>Config schema; apply it to a built scene via MuJoCo's model-editing API and recompile</td><td>½–1 day</td></tr>
+<tr><td>2</td><td><code>add_object</code>: primitives and pack assets, size and colour</td><td>½ day</td></tr>
+<tr><td>3</td><td><code>fits</code> / <code>place</code> with the search inside, physics settle, clear success / infeasible reasons</td><td>~1 day</td></tr>
+<tr><td>4</td><td>A drawer: LIBERO short_cabinet, "inside drawer_x" with its sliding joint</td><td>½–1 day (biggest unknown)</td></tr>
+<tr><td>5</td><td><code>set_task</code>, <code>check</code>, <code>render</code>, <code>save</code></td><td>½ day</td></tr>
+<tr><td>6</td><td>Ollama adapter (tool schemas + chat loop) and three demo prompts</td><td>½–1 day</td></tr>
+<tr><td></td><td><b>Total</b></td><td><b>~3–5 working days</b></td></tr>
+</table></div>
+<p><b>Demo prompts</b> (acceptance): (1) "put a red block in the middle drawer" → added drawer, block placed inside, resized only if needed and reported; (2) "add two cups next to the bowl" → placed, settled, reachable; (3) an infeasible one, e.g. "put the bowl in the drawer" → the bowl is a locked base object and too wide: refused with the reason. Each ends with <code>check()</code> results and renders.</p>
+<p>Does not need the SceneGen v1 geometry lock: the PoC uses orange as it is.</p>
+
+<h2 id="handoff">10 · What the implementer needs (from res31, read-only)</h2>
+<ul>
+<li>Built scene layout: <code>scene.mjb</code>, <code>scene.xml</code>, <code>scene_fit.json</code> (objects with kind, centre, half sizes, body names), <code>calib.json</code>; reference scene <code>runs/real2sim/ep_orange_block_stereo</code>.</li>
+<li><code>experiments/real2sim/build_scene.py</code> (how objects, table and assets are added; <code>object_kind</code>; asset packs), <code>scripted_grasp.py</code> (<code>ik()</code> for an expert), <code>make_tasks.py</code> (layout and task templates), <code>scene_roles.py</code> (container / kind helpers), <code>inspect_scene.py</code> (viewer, starts, scene edit).</li>
+<li>Traps: never patch the compiled <code>.mjb</code> (10-23 stale collision bounds); under <code>MUJOCO_GL=osmesa</code> import triton before mujoco (K5); CPU runs use <code>runs/real2sim/v1_dev/py_triton_first.sh</code>.</li>
+<li>Code ownership: new code in its own directory; changes to res31's files go as suggestions via prim (user's rule, 10-23).</li>
+</ul>
+
+<h2 id="later">11 · Later</h2>
+<ul>
+<li><b>ObjGen</b> objects as another <code>add_object</code> source (<code>objgen:&lt;id&gt;</code>): models and textures built from real DROID footage (user, 10-28: "then we can later on add the ObjGen thing for new objects").</li>
+<li><b>Inspector</b> reads and writes the same config (scene edit mode, ~½ day).</li>
+<li><b>More scenes</b>: every reconstructed scene that passes the SceneGen v1 checks becomes a base.</li>
+<li><b>Task types</b>: each new type needs its success rule and expert.</li>
+</ul>
+
+<h2 id="open">12 · Open questions</h2>
+<ol>
+<li>Size bounds per object kind (§5): the proposal above, or taken from the asset packs' real sizes?</li>
+<li>Which local model (Ollama) and where it runs (GPU slot vs CPU)?</li>
+<li>LIBERO articulated assets' licence for use in our eval set (licence audit).</li>
+<li>May the agent add containers or furniture that are large relative to the real table (a cabinet), or only tabletop objects in the PoC?</li>
+</ol>
+
+<h2 id="log">13 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>User</th><th>Outcome</th></tr>
+<tr><td>10-28</td><td>"we just need a reference scene right? … a scene like drawer having 5 blocks inside and robot has to take them out and stack them color wise? such are possible to make right?"; "can we also make tasks just by prompt … texture would be an issue I guess tho?"</td><td>Scoped in SceneGen_v1_gaps §5</td></tr>
+<tr><td>10-28</td><td>"should we do programmatic tool calling kind of thing? … have a config and placeholders for these codes, or maybe just use our asset pack for now … the agent has to work with physics simulator to see what should go where … block is too big to be in drawer or agent adjusts the size of block, not the scene … then we can later on add the ObjGen thing"</td><td>Two layers (config + API, then agent); base scene locked; resize only added objects within bounds; infeasible with a reason</td></tr>
+<tr><td>10-28</td><td>"we will have a separate agent most prolly local ollama inference for that"</td><td>Search inside the tools; small strict tool set; GPU gate</td></tr>
+<tr><td>10-28</td><td>"how long will it take for PoC, you wont be working on that directly tho, I will have another impl agent for this"; "Can you make a doc around this: Agentic_task_creation"</td><td>This doc; ~3–5 days estimate</td></tr>
+</table></div>
+</main></body>
+</html>

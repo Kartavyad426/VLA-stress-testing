@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-to-Sim Metrics</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--ok:#2c6e3a;--bad:#a3321f;--warn:#8a4b12;--accent:#7a5c2e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--ok:#7fc98d;--bad:#ee8a76;--warn:#e0a26a;--accent:#d1b07a}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--ok:#7fc98d;--bad:#ee8a76;--warn:#e0a26a;--accent:#d1b07a}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin-top:2em;border-bottom:1px solid var(--line);padding-bottom:.2em}h3{font-size:1rem;margin:1.2em 0 .3em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:12px 0}
+.verdict{border-left:4px solid var(--accent)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:8px 0}
+th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+.ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}.warn{color:var(--warn);font-weight:600}
+code{font-size:.85em}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+a:visited{color:var(--accent)}
+td.n{white-space:nowrap}
+</style>
+</head>
+<body><main>
+<h1>Real-to-sim metrics: what each one means, what it has shown, and how to use it</h1>
+<p class="meta">res31, 2026-10-26, internal decision log. Written at the user's request ("go over the metrics … what they mean, give reasons on how each metric is used or what it shows, what are the trends in it, why it could be useful, make a separate doc"). The user is the checker for now; <b>no metric gates anything</b> (user, 10-26): they are reported and discussed. Values come from the existing run files (<code>runs/real2sim/…</code>, batch summaries read 10-26) and SIM_FIXES; all exploratory, UNVERIFIED. Everything so far is on one scene (orange) and one policy (GR00T-N1.7-DROID); c3 is the only second scene. Companion: <a href="SCENE_V1_MECHANISMS.html">SCENE_V1_MECHANISMS</a> (how each step works).</p>
+
+<div class="box verdict"><b>Short version.</b>
+<ol>
+<li><b>Success alone is too sparse to steer by.</b> With 33 variants the 95% intervals of our batches overlap almost completely: 4/33 is 5–27%, 9/33 is 15–44%, 13/33 is 25–56%. Only the geometry fixes and the new wrist renderer moved anything clearly, and they showed up first in <b>closes, lifts and blocked arms</b>, not in success.</li>
+<li><b>The most informative policy numbers so far</b> are the stage funnel (reached → closed → lifted → placed), the blocked-arm count, and the image-swap planned-height gap (cm, continuous, needs no rollouts).</li>
+<li><b>Build metrics</b> (table height, calibration, object size, settle, expert solve rate) are what v1 can measure on every scene without a policy. Across 15–20 scenes their <i>pass rates per step</i> show which step generalises.</li>
+<li>Proposed headline set for discussion in §6.</li>
+</ol></div>
+
+<h2 id="s1">1 · How to read a number here</h2>
+<ul>
+<li><b>Counts out of small n.</b> A batch is 33 variants of one scene (9–10 for the partial ones). A 95% Wilson interval is shown next to rates; two batches whose intervals overlap heavily are not shown to differ.</li>
+<li><b>Paired comparisons.</b> Batches since D2 replay the same layouts (<code>--layouts_from</code>), so the same 33 episodes can be compared one to one; the p-value is McNemar's on the episodes that flipped. 4 flips each way = no evidence of change.</li>
+<li><b>Run-to-run noise is not measured.</b> GR00T isn't seeded in our rollouts; the same batch twice would flip some episodes by chance (checklist 6.6, ~50 min GPU). Until it's run, per-episode differences under ~4–5 flips can be noise.</li>
+<li><b>One scene.</b> Every trend below is from the orange scene; it says what changed on that scene, not what generalises. The 15–20 scenes are what turn these into generalisation evidence.</li>
+<li><b>Threshold ≠ gate.</b> Values like "≤ 1.5 cm" turn a measurement into PASS/FAIL in a report. Nothing in the pipeline stops on them (checked 10-26 in <code>scene_checks.py</code>; see SCENE_V1_MECHANISMS §12b).</li>
+</ul>
+
+<h2 id="s2">2 · Build metrics: geometry (per scene, CPU)</h2>
+<div class="wrap"><table>
+<tr><th>Metric</th><th>How it's computed</th><th>What it shows / why useful</th><th>Values and trend</th><th>Caveats</th></tr>
+<tr><td>Table height error (cm)<br><span class="meta">checklist 1.1</span></td><td>Table-top z from DROID stereo (exterior and wrist; wrist pose from the joints) minus the built table's z</td><td>The first error found and the one that hid the others: a high table makes the policy push into it. Independent of the camera calibration, so it catches errors invisible from the exterior view</td><td class="n">orange old: +5.7 / +6.3<br>orange rebuilt: −0.2 (ext), −0.4…+0.2 (wrist)<br>c3 old: ~+8</td><td>Needs a visible, textured table for stereo</td></tr>
+<tr><td>Calibration: robot-outline overlap (IoU)<br><span class="meta">1.2</span></td><td>Overlap of the rendered robot silhouette with the real robot's mask over 7 frames</td><td>Whether the exterior camera pose puts our robot where the real one is in the policy's image</td><td class="n">orange 0.488 → 0.495<br>c3 0.40 → <b>0.35</b> (worse after anchoring)</td><td>Blind along the camera's rays (a 6 cm depth error looked fine); low ceiling (~0.5) even when right, so read as "not worse"</td></tr>
+<tr><td>Calibration: anchor error (px) and table term (cm)<br><span class="meta">1.2</span></td><td>Wrist-stereo object points reprojected into the exterior image vs the objects there; exterior-stereo table vs wrist-stereo table</td><td>Metric evidence for the pose, independent of the outline. Disagreement with the outline is the c3 conflict (B4)</td><td class="n">orange 44.8 → 4.9 px, 1.5 → 0 cm<br>c3 38.8 → 17.0 px, 5.4 → 0.08 cm</td><td>Depends on the detector finding the right objects in the wrist frames</td></tr>
+<tr><td>Object position vs wrist anchors (cm)<br><span class="meta">1.3</span></td><td>Distance of each built object from its wrist-stereo point</td><td>Objects placed right in 3D, checked from a second camera</td><td class="n">orange rebuilt: 0.7–1.2</td><td>Anchor is a surface point, not the centre (~half a block)</td></tr>
+<tr><td>Object size ratio (real/sim)<br><span class="meta">1.4</span></td><td>√(real px / sim px) in wrist frames before the grasp, median over frames</td><td>Wrong-sized objects make the policy close on air. Found the yellow block too small</td><td class="n">orange block 1.00 (control)<br>yellow 1.32 → 1.00 (re-fit)<br>green 0.88 (far frames only)</td><td>Blocks only today, by colour range (B6); also absorbs distance errors</td></tr>
+<tr><td>Real grasp point (cm, vertical / horizontal)<br><span class="meta">1.5</span></td><td>At each real gripper close: fingertip point (FK of the recorded joints) vs the nearest sim object</td><td>Whether the real operator's grasp lands on our object: the most direct test that real and sim scenes line up</td><td class="n">orange old: −5.0 / 0.7<br>rebuilt: +1.4 / 1.7 (bar 1.5)</td><td>Needs a grasp in the episode</td></tr>
+<tr><td>Real release point (cm from container centre)<br><span class="meta">1.6</span></td><td>Fingertip at the real release vs the container rim</td><td>Container placed right</td><td class="n">rebuilt 4.9 (rim 8.5)</td><td>Only container tasks</td></tr>
+<tr><td>Horizontal scale<br><span class="meta">1.7</span></td><td>Real grasp→release distance / sim object→container distance</td><td>Whole-scene scale errors</td><td class="n">old 1.078 → rebuilt 0.907</td><td>One distance per episode</td></tr>
+</table></div>
+
+<h2 id="s3">3 · Build metrics: physics and tasks (per scene, CPU)</h2>
+<div class="wrap"><table>
+<tr><th>Metric</th><th>How</th><th>What it shows / why useful</th><th>Values and trend</th><th>Caveats</th></tr>
+<tr><td>Settle (cm)<br><span class="meta">2.1</span></td><td>Max movement of any free object in 0.5 s, robot held still</td><td>Floating or interpenetrating objects. Found the floating-bowl bug</td><td class="n">c3 old bowl 1.95 → fixed builds 0.10; yfit yellow 0.011</td><td>A failure is a bug until shown otherwise</td></tr>
+<tr><td>Contact depth after an edit (cm)<br><span class="meta">2.3</span></td><td>Resting penetration of an edited object vs unedited ones</td><td>Catches edits that break collision data (stale BVH)</td><td class="n">yfit 0.011 (= others)</td><td>Goes away once edits are applied at build time (overrides)</td></tr>
+<tr><td>Expert solve rate<br><span class="meta">3.1</span></td><td>Scripted expert's successes over generated variants</td><td>Which tasks are possible in our physics; only solved variants are used for policies. Across scenes: how well task generation generalises</td><td class="n">orange 34/40; c3 57/65; yaw-90 both 91/105; D2 played layouts 27/32</td><td>A top-down centre grasp only; a low rate can be the expert, not the scene</td></tr>
+<tr><td>Trivial variants<br><span class="meta">3.2</span></td><td>Variants a do-nothing policy "solves" (2 s hold batch)</td><td>Removes free successes</td><td class="n">orange 1/34 excluded</td><td>—</td></tr>
+<tr><td>Tasks generated; objects built / primitive / redacted</td><td>Counts from make_tasks and scene_fit</td><td>How much of the real scene made it into the sim, and how many tasks each scene yields</td><td class="n">orange 8 tasks (40 variants), nothing redacted; c3 13 (12 with packs, radish redacted)</td><td>Grows in importance with diverse objects</td></tr>
+<tr><td>Hold-run tracking / blocked<br><span class="meta">5.1</span></td><td>Policy-free dry run: does the arm follow commands?</td><td>Pipeline bugs and geometry that holds the arm</td><td class="n">orange 0.5 cm tracking, not blocked</td><td>—</td></tr>
+</table></div>
+
+<h2 id="s4">4 · Build metrics: how the images look (per scene; mostly new)</h2>
+<p>None of these predicts the policy's behaviour; the image swap (§5) does. They describe the image and flag broken scenes on CPU. Proposed for v1 (B10).</p>
+<div class="wrap"><table>
+<tr><th>Metric</th><th>How</th><th>What it shows / why useful</th><th>Values</th><th>Caveats</th></tr>
+<tr><td><b>Image error</b> (new, proposed main one)</td><td>Real vs our composite at the review frames, at the policy's 320×180, mean abs error on table pixels and on object pixels after exposure matching; per camera</td><td>One number for "does it look like the real camera" at the resolution the policy sees; comparable across scenes</td><td>not run</td><td>Equal weight to every pixel; G7 showed some differences (shading) don't matter to GR00T</td></tr>
+<tr><td>Light-fit overlap (IoU)</td><td>Overlap of real and sim robot shadow for the best light direction</td><td>Whether a light could be fitted at all; low = shadows are a guess</td><td class="n">orange exterior 0.445, wrist <b>0.21</b></td><td>Scenes with diffuse light have no shadow to fit</td></tr>
+<tr><td>Table mosaic coverage (%) (new)</td><td>Share of wrist-view table pixels textured from the wrist mosaic vs fallbacks</td><td>Holes and seams (issue #6)</td><td>not run</td><td>—</td></tr>
+<tr><td>Gripper silhouette overlap</td><td>Real vs sim gripper outline in the wrist view</td><td>Gripper drawn in the right place</td><td class="n">0.76 (0.91 if corrected; correction didn't move GR00T, G8)</td><td>Fixed per rig: once per wrist camera</td></tr>
+<tr><td>Plate ghost area (%) (new)</td><td>Share of exterior plate pixels where the robot is present in ≥ 40% of frames</td><td>Arm smears in the background (issue #1)</td><td>not run</td><td>G3: exterior image didn't move GR00T's plan</td></tr>
+</table></div>
+
+<h2 id="s5">5 · Policy metrics (per batch, GPU)</h2>
+<h3>5a · The batches so far (orange scene, GR00T, 30 s rollouts)</h3>
+<div class="wrap"><table>
+<tr><th>Batch</th><th>What changed</th><th>n</th><th>Reached</th><th>Closed*</th><th>Lifted</th><th>Success (placed) [95% CI]</th><th>Blocked</th></tr>
+<tr><td>Slot A</td><td>rebuilt scene, old wrist render</td><td>33</td><td>32</td><td>17</td><td>11</td><td>4 [5–27%]</td><td>17</td></tr>
+<tr><td>D2</td><td>new wrist renderer (V2)</td><td>33</td><td>32</td><td>28</td><td>24</td><td>9 [15–44%]</td><td>2</td></tr>
+<tr><td>Firm grip</td><td>firmer pad contact (scene-wide cone + impratio)</td><td>33</td><td>32</td><td>30</td><td>29</td><td>13 [25–56%]</td><td><b>18</b></td></tr>
+<tr><td>Blur fix</td><td>wrist blur only on the gripper</td><td>33</td><td>33</td><td>25</td><td>25</td><td>9 [15–44%]</td><td>4</td></tr>
+<tr><td>No shadow</td><td>bowl tasks, shadows off</td><td>10</td><td>10</td><td>9</td><td>9</td><td>6 [31–83%] (D2 on the same 10: 5)</td><td>1</td></tr>
+<tr><td>Yellow re-fit</td><td>yellow block resized, colour fixed</td><td>9</td><td>9</td><td>8</td><td>8</td><td>3 [12–65%]</td><td>1</td></tr>
+</table></div>
+<p class="meta">* "Closed" changed definition on 10-20 (both pads on the target ≥ 0.5 s, from "closed within 3 cm"); slot A and D2 used the old, more lenient rule, so their closed counts are not comparable with later batches. Paired McNemar vs D2: D2 vs slot A closed p = 0.013, lifted p = 0.001, success p = 0.13; firm success p = 0.29 (confounded by blocking); blur fix success p = 1.0 (4 flips each way).</p>
+
+<h3>5b · By task type</h3>
+<div class="wrap"><table>
+<tr><th>Batch</th><th>In the bowl (succ / lifted / n)</th><th>Stack</th><th>Next to</th></tr>
+<tr><td>Slot A</td><td>2 / 6 / 14</td><td>0 / 1 / 10</td><td>2 / 4 / 9</td></tr>
+<tr><td>D2</td><td>5 / 10 / 14</td><td>1 / 8 / 10</td><td>3 / 6 / 9</td></tr>
+<tr><td>Firm grip</td><td>10 / 13 / 14</td><td>0 / 8 / 10</td><td>3 / 8 / 9</td></tr>
+<tr><td>Blur fix</td><td>7 / 10 / 14</td><td>1 / 7 / 10</td><td>1 / 8 / 9</td></tr>
+<tr><td>Yellow re-fit</td><td>3 / 3 / 4</td><td>0 / 5 / 5</td><td>—</td></tr>
+</table></div>
+<p><b>Trend:</b> stacking is lifted often but almost never succeeds (2/45 across batches): GR00T releases 1–3.5 cm off-centre (expert ≤ 0.6 cm). Bowl tasks respond to fixes; stacking doesn't. A per-type split is therefore more informative than one success rate.</p>
+
+<h3>5c · What each policy metric means</h3>
+<div class="wrap"><table>
+<tr><th>Metric</th><th>Definition</th><th>What it shows / why useful</th><th>Trend so far</th><th>Caveats</th></tr>
+<tr><td>Success (placed)</td><td>Task condition met in sim state at the end (in bowl / stacked / 3–12 cm next to)</td><td>The headline everyone asks for; the only end-to-end number</td><td>4 → 9 → 9 (13 confounded) of 33</td><td><b>Sparse</b>: intervals overlap; moves last</td></tr>
+<tr><td>Reached</td><td>Fingertip within 3 cm of the target's centre</td><td>Did the policy find the right object (instruction following + perception)</td><td>32–33/33 in every batch: saturated</td><td>Not informative on this scene; may be on cluttered ones</td></tr>
+<tr><td>Closed at target</td><td>Both pads on the target ≥ 0.5 s</td><td>Did the approach end in a real grasp: sensitive to the wrist image and the table height</td><td>17 → 28 (D2, p 0.013)</td><td>Definition changed 10-20</td></tr>
+<tr><td>Lifted</td><td>Target raised ≥ 2 cm</td><td>Grasp held: the most sensitive stage so far</td><td>11 → 24 (p 0.001) → 25</td><td>Firm grip lifts more but blocks more</td></tr>
+<tr><td>Blocked</td><td>Commanded vs achieved fingertip &gt; 1 cm for ≥ 1 s while nearly still</td><td>Sim geometry or physics holding the arm back (table too high, sticky pads). A sim fault detector, not a policy score</td><td>17 → 2 (geometry + renderer) → 18 (firm physics) → 4</td><td>Read with the physics settings in force</td></tr>
+<tr><td>Gripper closed fraction</td><td>Share of steps with the gripper commanded closed</td><td>Hover vs act: smoke1's 1.3% was the first symptom</td><td>logged per episode</td><td>—</td></tr>
+<tr><td>Planned grasp height gap (cm)<br><span class="meta">image swap, 4.2 / 6.2</span></td><td>Same recorded state, our wrist image vs the real one: difference in GR00T's planned grasp height</td><td><b>Continuous and cheap</b> (~2–5 min GPU, no rollouts): isolates the image from everything else; tells which image change matters</td><td>gap 3.9 cm (old render) → V2 recovers 2.6 (+1.2 vs real +2.4/+2.6); no shadows +0.3; real light pasted in +1.1</td><td>Run-to-run noise 0.3 cm; 10 states of one episode</td></tr>
+<tr><td>Release offset (cm)</td><td>Horizontal distance of the release from the goal</td><td>Separates "grasp fine, place wrong" (policy) from grasp failures; explains stacking</td><td>stacking 1–3.5 cm off-centre (expert ≤ 0.6); bowl: early release ~13 cm short, also on real frames</td><td>Needs a release</td></tr>
+<tr><td>Failure split of lifted-but-failed</td><td>Re-simulated last carry, classified</td><td>Points at the cause: policy (released away) vs physics (didn't stay)</td><td>D2, 15 cases: 7 released away, 6 released over the goal but didn't stay, 1 dropped, 1 never released</td><td>—</td></tr>
+<tr><td>Below-table aim share</td><td>Share of planned grasp points below the table top</td><td>Aiming low (table/image fault) without rollouts</td><td>29% → 41% with shadows off (aims lower)</td><td>—</td></tr>
+<tr><td>Run-to-run noise<br><span class="meta">6.6</span></td><td>Same batch twice; episodes that flip</td><td>The yardstick for every per-episode comparison</td><td><b>not measured</b></td><td>~50 min GPU once</td></tr>
+</table></div>
+
+<h2 id="s6">6 · Proposed headline set (for discussion, not gates)</h2>
+<div class="wrap"><table>
+<tr><th>Level</th><th>Headline</th><th>Why this one</th></tr>
+<tr><td>Per scene (v1 build)</td><td>Step pass table (1.1 table, 1.2 calibration, 1.4 size, 1.5 grasp, 2.1 settle, 3.1 expert) + expert solve rate + image error</td><td>Across 15–20 scenes the pass rate per step answers "which step generalises"; needs no policy</td></tr>
+<tr><td>Per batch (policy)</td><td>Stage funnel (reached / closed / lifted / placed) with CIs, split by task type; blocked count</td><td>Lifted and closed moved with real fixes when success didn't; per type because stacking behaves differently</td></tr>
+<tr><td>Per scene × policy (image)</td><td>Planned grasp height gap from an image swap</td><td>Continuous, minutes of GPU, isolates the image</td></tr>
+<tr><td>Once</td><td>Run-to-run noise</td><td>Without it no per-episode difference can be read</td></tr>
+</table></div>
+<p>Open for the user: which of these become the numbers quoted upward; whether the image-error metric is worth building before the GPU image swap is run on the new scenes.</p>
+
+<h2 id="s7">7 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Trigger</th><th>Options</th><th>Decision</th><th>Outcome</th></tr>
+<tr><td>10-26</td><td>User: "due to lack of data … metrics are sparse and they don't move"</td><td>More variants of one scene vs more scenes; continuous metrics</td><td>res31: report step pass rates across scenes and continuous policy numbers next to success</td><td>§6 proposal</td></tr>
+<tr><td>10-26</td><td>User: "I am the checker as of now … decide on some metrics but not be gated on them"</td><td>—</td><td>No metric gates; thresholds only label PASS/FAIL in reports</td><td>This doc</td></tr>
+<tr><td>10-26</td><td>User: "go over the metrics once and what they mean … make a separate doc"</td><td>—</td><td>Written from run files read 10-26</td><td>Headline set awaiting the user</td></tr>
+</table></div>
+</main></body>
+</html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SceneGen v1 Gaps</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#8a5a2b;--ok:#2c6e3a;--warn:#8a6d12;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1150px;margin:0 auto}
+h1{font-size:1.5rem;margin:.2em 0}
+h2{font-size:1.15rem;margin-top:1.8em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px;margin:12px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.87rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{font-size:.85em}
+a{color:var(--accent)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}
+</style>
+</head>
+<body><main>
+<h1>SceneGen v1: gaps across episodes (2026-10-28)</h1>
+<p class="meta">res31. What changes from one DROID episode to the next and breaks scene generation, found by running the pipeline on orange, c11, c1b, c3 and c9 (10-27/28). Evidence and numbers: <code>SCENE_V1_MECHANISMS.html</code> §16 (K1–K14), §18 (calibration on more scenes), §19 (wrist-first), §20 (geometry probes). Exploratory, UNVERIFIED.</p>
+
+<div class="box"><b>Decision (user, 10-28):</b> "okay so if this fixes geom, then we'll lock it". Timebox: the recipe below runs on orange, c11, c1b, c3, c9; if ≥ 3 of 4 new scenes pass the independent checks (table level and at wrist height, real drops inside the containers, object sizes, the user's look in the inspector), geometry is locked for v1. Otherwise manual camera placement in the inspector becomes the v1 calibration.</div>
+
+<h2>1 · What varies between episodes</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>What varies</th><th>Seen in</th><th>Fix in the recipe</th><th>State</th></tr>
+<tr><td>1</td><td><b>Exterior camera pose quality.</b> DROID's recorded pose is good on some episodes (c1b outline overlap 0.55) and poor on others; the outline-only fit drifts (c9: 54°) and can't see distance along its ray (c11: 13 cm)</td><td>all</td><td>robot outline + grasp points; start at DROID's pose, bound the move, keep DROID's pose when the fit isn't better</td><td class="warn">grasp part done; guards to add (~1 h)</td></tr>
+<tr><td>2</td><td><b>Exterior stereo accuracy.</b> Depth at the grasp points: orange ×1.04, c11 ×1.28</td><td>orange, c11</td><td>scale from the grasp points (<code>build_scene --depth grasp</code>); stereo only where it agrees with them</td><td class="ok">done; check sent to res32 for the checklist</td></tr>
+<tr><td>3</td><td><b>Table comes out tilted</b> in the exterior rebuild: orange 3.1°, c11 8.6° (rising with distance from the camera)</td><td>orange, c11</td><td>E1 decides: camera tilt or MoGe depth growing wrong with distance; table height from wrist stereo (<code>--table_z</code>)</td><td class="warn">height fixed; tilt cause pending (E1)</td></tr>
+<tr><td>4</td><td><b>What the wrist camera sees.</b> Objects early (orange), only late under the fingers (c11), no table at all (c9)</td><td>c11, c9</td><td>table from the wrist plane where visible, else from the grasp fingertip heights (~1 cm); frames that don't see the table skipped</td><td class="warn">guard done; fallback to add (~1 h)</td></tr>
+<tr><td>5</td><td><b>Detection.</b> Wrong VLM names (radish → "green onion"), colour words, all labels in one call, duplicates, blocks seen as bowls</td><td>c3, c11, orange</td><td>noun-only prompts, one detector call per noun, assignment by overlap, user reviews the object list</td><td class="warn">done in the size check and wrist-first; perceive in progress (§3)</td></tr>
+<tr><td>6</td><td><b>Number of grasps.</b> 1 (orange, c9), 2 (c11), 3 (c1b), 7 (c3)</td><td>all</td><td>each object's first grasp only; only closes that hold something; check for pushes before a grasp</td><td class="bad">to add (~1 h)</td></tr>
+<tr><td>7</td><td><b>Object types.</b> Blocks, bowls, cups (c1b: one placed 1.6 m away), mallet, radish, apple</td><td>c1b, c3, c9</td><td>blocks → boxes, bowls → library bowl; everything else needs decision 1 (simple shapes vs removal)</td><td class="bad">user decision pending</td></tr>
+<tr><td>8</td><td><b>Task types.</b> Into a bowl, cups, stacking, bowl on cup, into/out of a container</td><td>c1b, c9</td><td>success rule per type (checklist E4); release checks only for container tasks</td><td class="bad">after geometry</td></tr>
+<tr><td>9</td><td><b>Episode length and timing.</b> 153–1183 frames; videos shorter than the trajectory</td><td>all</td><td>frames derived per episode; clamped to the video</td><td class="ok">done</td></tr>
+<tr><td>10</td><td><b>Table and setup.</b> Wood booth, office table, glossy cart; table height relative to the robot differs</td><td>c3, c9</td><td>table from wrist stereo / grasp heights; flag glossy surfaces (checklist A8)</td><td class="warn">partly</td></tr>
+<tr><td>11</td><td><b>Lighting and background.</b> Booth vs bright office</td><td>c1b, c9</td><td>composite light and shadows fitted per scene</td><td>after geometry</td></tr>
+<tr><td>12</td><td><b>Which exterior camera sees better</b> (22008760 vs 24400334)</td><td>c1b</td><td>choose per episode, or camera 2 as the held-out check (E5)</td><td>after geometry</td></tr>
+</table></div>
+<p>Same for every episode (rig-level, fixed once): the wrist camera mount offset (K3), the gripper model, the physics defaults.</p>
+
+<h2>2 · What to fix to lock geometry</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Item</th><th>Covers rows</th><th>Size</th><th>State</th></tr>
+<tr><td>1</td><td><b>One recipe script</b>: grasp points written and filtered automatically, guarded calibration, grasp scale, table from wrist stereo with the grasp-height fallback, objects placed, checks written</td><td>1, 2, 4, 6</td><td>~3 h</td><td>next</td></tr>
+<tr><td>2</td><td><b>Table-tilt fix</b>, once E1 says camera or MoGe</td><td>3</td><td>~1–2 h</td><td>E1 running</td></tr>
+<tr><td>3</td><td><b>Noun-only prompts in perceive</b>, VLM test first</td><td>5</td><td>~½ day</td><td>started 10-28 (§3)</td></tr>
+<tr><td>4</td><td><b>Run on orange, c11, c1b, c3, c9</b>; the user checks each in the inspector</td><td>all</td><td>~1 h CPU</td><td>after 1–2</td></tr>
+</table></div>
+<p>Rows 7, 8, 11 and 12 are not geometry: after the lock. Row 7 needs the user's decision 1.</p>
+
+<h2>3 · VLM noun-only test (row 5; user, 10-28: "test if vlm will return noun only names and how good they are")</h2>
+<p><b>Setup.</b> <code>experiments/real2sim/vlm_nouns_test.py</code>; outputs <code>runs/real2sim/v1_dev/vlm_nouns/vlm_nouns.json</code> and <code>*_det.jpg</code>. Exterior frame 0 of each scene; the prompt asks for ONE generic noun per kind (no colour/material words) + count + details; reference lists read by eye by res31 (orange: bowl 1, block 3; c11: bowl 1, block 2; c1b: bowl 1, block 2, cylinder 1, cup 2, peg stand 2; c3: bowl 1, block 8, apple 1, radish 1; c9: bowl 1, cup 1, mallet 1). Then the detector (Grounding DINO, one call per noun) is run on each returned noun. Exploratory, UNVERIFIED (references by eye).</p>
+<p><b>Models (NVIDIA NIM, 10-28):</b> <code>llama-3.2-11b-vision-instruct</code> answered on all 5 scenes (3–62 s); <code>llama-3.2-90b-vision-instruct</code> timed out on all 5; <code>llama-4-maverick-17b-128e-instruct</code> and <code>phi-4-multimodal-instruct</code> returned HTTP 410 (no longer served).</p>
+<div class="wrap"><table>
+<tr><th>Scene</th><th>Reference</th><th>VLM nouns (llama-3.2-11b)</th><th>Detector count per noun</th><th>Verdict</th></tr>
+<tr><td>orange</td><td>bowl 1, block 3</td><td>bowl 1, block 3</td><td>bowl 1, block 3</td><td class="ok">exact</td></tr>
+<tr><td>c11</td><td>bowl 1, block 2</td><td>bowl 1, block 2</td><td>bowl 1, block 2</td><td class="ok">exact</td></tr>
+<tr><td>c9</td><td>bowl 1, cup 1, mallet 1</td><td>bowl 1, cup 1, hammer 1</td><td>bowl 1, cup 1, hammer 1</td><td class="ok">right ("hammer" fine for a detector)</td></tr>
+<tr><td>c1b</td><td>bowl 1, block 2, cylinder 1, cup 2, peg stand 2</td><td>bowl 1, block 3, cup 2, marker 1</td><td>bowl 1, block 3, cup 3, marker 0</td><td class="warn">cylinder folded into "block" (fine); peg stands called "marker" and not found by the detector; one extra cup detection</td></tr>
+<tr><td>c3</td><td>bowl 1, block 8, apple 1, radish 1</td><td>bowl 1, block 4, apple 2, tomato 1, marker 1, bag 1</td><td><b>block 8</b>, apple 1, tomato 1 (likely the same object as the apple), bowl 2 (one extra), marker 0, bag 0</td><td class="warn">VLM undercounts blocks (4/8) but the detector finds all 8 from the noun; radish missed by the VLM (so never prompted); the background nouns find nothing on the table</td></tr>
+</table></div>
+<p><b>Reading:</b> (1) noun-only naming works: every answer was one generic noun, no colour words, exact on the simple scenes; this removes the "Green Onion" / "Orange Cube" prompt problem (K7, K9). (2) VLM counts are unreliable on clutter, but the detector counts correctly from the noun: c3 "block" → all 8 blocks (the VLM said 4). So the VLM only supplies nouns; counts come from the detector. Its remaining errors are a missed noun (radish) and occasional extra detections (a second "bowl", a third "cup"). (3) On clutter the VLM misses objects (radish) and adds background ones (bag, marker), so the noun list still needs the user's review before the build (checklist A6). Untested ideas: a second pass ("anything else on the table?"), a crop to the table region, a local VLM. User, 10-28: "record the VLM results somewhere for now, we will see what we can do for that as well."</p>
+
+<h2>4 · Objects that appear later (scope, 10-28)</h2>
+<p>User: "our scenes cant have any object come in between right? are there any tasks like that?", then "okay scope that as well". A scene contains only what is visible in exterior frame 0 (plus what the wrist camera sees before the first grasp). Not built: objects inside drawers, boxes or containers; objects hidden behind another object or the robot at frame 0; objects a person brings in; the lower object of a stack. DROID has such tasks ("take X out of the drawer", "remove the lid", unstacking, handovers).</p>
+<div class="wrap"><table>
+<tr><th>Piece</th><th>How</th><th>Where</th><th>Size</th></tr>
+<tr><td>Grasp check</td><td>for every real grasp, project the fingertip into exterior frame 0; if it lands on no detected object, the grasped object was not visible at the start → flag "object appears later", drop the scene's tasks touching it. Today's probe already records this (<code>geom_probe.py</code> E2, <code>masks_at_px</code>): orange and c11 clean; c1b, c3, c9 not checked yet</td><td>checklist A6</td><td>~½ h</td></tr>
+<tr><td>Selection filter</td><td>at scene selection, drop instructions with "out of", "from the drawer/box", "take … from", "hand", "unstack", "lid"</td><td>scene sourcing (res31H's list)</td><td>minutes</td></tr>
+</table></div>
+<p>This limits only <i>reconstructing</i> the real episode. Hidden objects can still be <i>added</i> in sim (§5).</p>
+
+<h2>5 · Beyond the reference episode: composed tasks and prompt-made scenes (scope, 10-28; not v1)</h2>
+<p>User: "we just need a reference scene right? … once we have made these in sim, we can have interactions like that right? Like final goal is an eval set, so a scene like drawer having 5 blocks inside and robot has to take them out and stack them color wise?" and "can we also make tasks just by prompt … I prompt it what the initial scene would look like, like table bg etc. comes from video I put in a new object or maybe multiple new object … texture would be an issue I guess tho? should we find some other way for that?"</p>
+<p><b>Yes, the episode is only the reference</b> for what must look and measure real: table, background, lighting, cameras, the robot rig. Once those are in sim, objects and tasks can be composed freely, including hidden objects (blocks inside a drawer). What each added thing needs:</p>
+<div class="wrap"><table>
+<tr><th>Need</th><th>For the drawer example</th><th>Source</th></tr>
+<tr><td>A physics model</td><td>a drawer with a sliding joint; 5 blocks</td><td>asset libraries (res32's SIM_READY_ASSET_LIBRARIES survey; robosuite/LIBERO have articulated drawers and cabinets)</td></tr>
+<tr><td>An appearance</td><td>drawer and blocks rendered by the sim over the real background</td><td>see "Textures" below</td></tr>
+<tr><td>A layout</td><td>drawer on the table inside the area the real cameras saw (checklist C3), reachable, settled</td><td>placement rules + physics settle (B1)</td></tr>
+<tr><td>A task and success rule</td><td>blocks out of the drawer, stacked by colour</td><td>task templates (make_tasks) + a rule per task type (checklist E4)</td></tr>
+<tr><td>Proof it's solvable</td><td>an expert that opens the drawer, picks, stacks</td><td>scripted expert per task type (B3 generalised); "a new expert per scenario" is expected (user, 10-26)</td></tr>
+<tr><td>Checks</td><td>image-physics consistency, expert solves it, do-nothing doesn't</td><td>checklist B, D, E</td></tr>
+</table></div>
+<p><b>Prompt-made scenes (an agent):</b> reference episode (background, table, cameras, light) + a prompt ("add a drawer with 5 blocks inside; task: stack them by colour") → the agent picks or generates assets, proposes a layout, writes the task and success rule, the scripted expert proves it solvable, the checklist runs, the user approves in the inspector. Feasible; each step exists in some form except asset choice/generation and the generic expert.</p>
+<p><b>Textures.</b> Added objects are sim-rendered, not real pixels. Evidence so far: in the G6 image swaps, block appearance and compression did not move GR00T's plan; table texture, light/shadow and the gripper did. So object textures may matter less than feared, but large objects (a drawer filling the wrist view) are untested. Ways to get realistic object appearance, best first:</p>
+<ol>
+<li><b>Scanned asset libraries</b> (GSO, YCB): photogrammetry textures from real objects.</li>
+<li><b>Objects from other DROID episodes</b> (the ObjGen session's work): model and texture built from real footage of the object.</li>
+<li><b>Generated assets</b> (text/image-to-3D): weakest textures today.</li>
+<li><b>Generated images</b> (Cosmos-style transfer): heavy, needs ≥ 48 GB, loses fidelity to the source.</li>
+</ol>
+<p>Whatever the source, the image swap (C6) measures whether the policy treats the added object as real. <b>Proposed order:</b> v1 (reconstruct, then perturb existing objects) → v1.5 (add library objects to reconstructed scenes, one image-swap check per new object type) → v2 (articulated objects, prompt-made scenes).</p>
+
+<h2>6 · Current assumptions of the pipeline (10-28)</h2>
+<p>User, 10-28: "okay what are our current assumptions", then "yes add it to the gaps doc". What broke the failing scenes: c3 #18, #19, #9, #8; c9 #11, #16 (and #22: its DROID calibration was right); c1b #12, #16 (its camera was roughly right).</p>
+<div class="wrap"><table>
+<tr><th>#</th><th>Assumption</th><th>Status</th></tr>
+<tr><th colspan="3">Robot and cameras (rig)</th></tr>
+<tr><td>1</td><td>Same physical rig: FR3 + Robotiq 2F-85, gripper mounted at 90°</td><td>holds: kinematics exact (0 mm); the ±90° mount sign unconfirmed</td></tr>
+<tr><td>2</td><td>The robot base is the world origin; recorded joints are exact</td><td>holds</td></tr>
+<tr><td>3</td><td>The sim fingertip point is where the real fingertips are</td><td>~8.5 mm / 2.4° possibly off (R3, unresolved)</td></tr>
+<tr><td>4</td><td>Wrist camera pose = joints + DROID's fixed mount offset</td><td>part of the 0.7–1.9 cm wrist-view offsets (K3)</td></tr>
+<tr><td>5</td><td>Camera intrinsics from DROID's file, no lens distortion</td><td>assumed (DROID gives zero distortion)</td></tr>
+<tr><td>6</td><td>Exterior cameras don't move during an episode</td><td>assumed (fixed mounts)</td></tr>
+<tr><td>7</td><td>Our sim arm moves like DROID's real controller</td><td>never checked (checklist R8)</td></tr>
+<tr><th colspan="3">Scene geometry</th></tr>
+<tr><td>8</td><td>One flat, level, rectangular table; height from wrist stereo</td><td>holds on booth tables; c3's glossy cart breaks stereo; c9's wrist frames never saw the table</td></tr>
+<tr><td>9</td><td>Objects rigid, resting on the table, don't move before their first grasp</td><td>mostly; fails on pushes and re-grasps (c3: 10 of 11 grasps unusable)</td></tr>
+<tr><td>10</td><td>Everything relevant is visible at frame 0</td><td>holds in our five; fails for drawers / hidden objects (§4)</td></tr>
+<tr><td>11</td><td>A grasp's fingertip ≈ the object's centre</td><td>holds for blocks; <b>fails for rims and handles</b> (correction 10-28: c9's grasp is the <i>cup</i>, gripped at its rim ~4 cm from its centre, not the mallet; with the search's mask-centroid target this pulled the camera away from a correct one)</td></tr>
+<tr><td>12</td><td>Object shapes: blocks are cubes, bowls the LIBERO bowl, others an ellipsoid or a pack asset</td><td>pack assets misplaced (c1b's cups at 2.3 m)</td></tr>
+<tr><td>13</td><td>MoGe's depth shape is right up to one scale per image</td><td>±4% over 0.25–0.7 m (E1); untested beyond</td></tr>
+<tr><td>14</td><td>Exterior stereo is metric</td><td>fails: c11 28% off; invalid closer than 0.33 m</td></tr>
+<tr><td>15</td><td>The detector's table mask is just the table</td><td>assumed</td></tr>
+<tr><td>16</td><td>Anything moving in the exterior video is the robot</td><td>holds in the booth; <b>fails</b> in c1b's office and probably on c9's flickering pixel wall (our outline score 0.28 where DROID's GT camera lines up by eye)</td></tr>
+<tr><td>17</td><td>Mass = density × volume, default friction</td><td>assumed (checklist B4/B5)</td></tr>
+<tr><th colspan="3">Camera calibration</th></tr>
+<tr><td>18</td><td>The starting camera is within ±10–20° of the truth</td><td>holds for orange, c11, c1b; fails for c3, c9</td></tr>
+<tr><td>19</td><td>The robot outline (motion masks) is a reliable score</td><td>holds in the booth; fails on busy backgrounds; can't see pitch at all</td></tr>
+<tr><td>20</td><td>The table being level fixes pitch</td><td>worked on orange and c11</td></tr>
+<tr><td>21</td><td>One grasp point pins the camera well enough</td><td>azimuth left free; points spread sideways needed</td></tr>
+<tr><td>22</td><td><b>DROID's calibration is too noisy to use</b></td><td><b>wrong for episodes with DROID's refined calibration</b>: c9 and c1b have refined "GT" extrinsics (IoU 0.86 / 0.79), identical to the recorded ones; c9's lines up by eye. Orange, c11, c3 have none (raw only, noisy per DROID's README)</td></tr>
+<tr><th colspan="3">Appearance</th></tr>
+<tr><td>23</td><td>Exterior background = the real image with the robot removed (median); lines up only if the camera is right</td><td>arm ghost known; unbuilt objects stay visible (redaction gap a)</td></tr>
+<tr><td>24</td><td>Wrist table texture from a mosaic of the wrist video; one shadow darkness (×0.75); one light per view; flat object colours</td><td>all tuned on orange</td></tr>
+<tr><td>25</td><td>The policy sees 320×180 images prepared like its own client</td><td>holds</td></tr>
+<tr><th colspan="3">Tasks and evaluation</th></tr>
+<tr><td>26</td><td>Scripted expert succeeds = the task is doable</td><td>design decision (checklist B3)</td></tr>
+<tr><td>27</td><td>Success rules exist for the task type</td><td>bowl tasks only</td></tr>
+<tr><td>28</td><td>The policy's run-to-run noise is small enough to compare batches</td><td>never measured (checklist F6)</td></tr>
+</table></div>
+
+<h2>7 · DROID's refined calibrations (found 10-28)</h2>
+<p>DROID published higher-accuracy extrinsics after the release (<code>data/real2sim/droid/calib/README.md</code>): <code>cam2base_extrinsics.json</code> (~36k episodes, one camera each, with a quality score), <code>cam2base_extrinsic_superset.json</code> (~24k, both cameras), <code>cam2cam_extrinsics.json</code> (~90k, not downloaded). The first two were on disk and never used by the pipeline (res31's miss). Coverage of our five, camera 22008760: c9 and c1b yes ("source: GT", robot-mask IoU 0.856 / 0.795, values identical to the episode's recorded extrinsics), orange, c11, c3 no. Rendering c9 from DROID's GT camera (<code>runs/real2sim/v1_dev/camera_search/compare/c9gt.jpg</code>): the sim robot's base and gripper sit on the real ones by eye. Our outline score gave that camera 0.28 and our search moved 12 cm / 6° away from it, because of #16 (motion masks) and #11 (the cup gripped at its rim; first written here as the mallet's handle, corrected after drawing the grasp on the frames: <code>runs/real2sim/v1_dev/camera_search/compare/c9gt_grasp.jpg</code>).</p>
+<p><b>Proposed design change (awaiting the user):</b> keep the approach (robot as origin, geometry from grasp points and the wrist, scripted expert = doable, real pixels for backgrounds); take the camera from DROID's refined calibration whenever it exists (quality ≥ ~0.8) and select v1 scenes from those ~36k episodes; our checks (drops in containers, table level, wrist offsets, the user in the inspector) verify it; the camera search only for episodes without one (it worked on orange). Fix #16 and #11 regardless.</p>
+
+<h3>7a · Scenes built with DROID's GT camera (10-28; user: "go ahead with DROID refined calibration, check c1b too")</h3>
+<p>Script <code>runs/real2sim/v1_dev/run_droid_gt_1028.sh</code>; scenes <code>runs/real2sim/v1_dev/camera_search/{c9,c1b}gt{stereo,grasp}_rebuilt</code>; images <code>camera_search/compare/c9gtstereo.jpg</code>, <code>c1bgtstereo.jpg</code>.</p>
+<div class="wrap"><table>
+<tr><th>Scene</th><th>Build</th><th>Real drops vs container</th><th>Real grasps vs sim object</th><th>Exterior-stereo table check</th><th>Table tilt</th><th>Grasp-point depth vs MoGe / stereo</th><th>By eye (real | sim | blend)</th></tr>
+<tr><td>c1b</td><td>stereo scale</td><td><b>3/3 inside the bowl</b> (3.1 / 5.5 / 7.1 cm, rim 8.6)</td><td>2.9 / 1.2 / 2.0 cm</td><td>PASS</td><td>2.7°</td><td>×1.01 / ×0.93; stereo 0.477 vs 0.467 m, 0.629 vs 0.624 m (agree)</td><td>robot and bowl line up; cups missing (pack asset placed ~2 m away: settle FAIL); a red block missing</td></tr>
+<tr><td>c1b</td><td>grasp scale</td><td>3/3 inside (4.4 / 7.2 / 8.7, rim 8.9)</td><td>3.9 / 2.1 / 4.2 cm</td><td>FAIL</td><td>2.7°</td><td>×1.04 / ×0.96</td><td>—</td></tr>
+<tr><td>c9</td><td>stereo scale</td><td>10.1 cm (rim 7.6): the fingertip is at the cup's rim, not its centre</td><td>7.9 cm to the cup (same reason)</td><td>PASS</td><td>3.5°</td><td>stereo 0.604 vs fingertip 0.515 m (the ray hits the table behind the rim)</td><td>robot lines up; bowl, cup, mallet close but a few cm off; sim table smaller than the real one</td></tr>
+<tr><td>c9</td><td>grasp scale</td><td colspan="6">not built: the grasp point (cup rim) lands on no object mask</td></tr>
+</table></div>
+<p><b>Reading:</b> DROID's GT cameras put the robot and the main objects in place on both scenes; the remaining problems are objects (c1b's pack cups, a missing block; c9's few-cm offsets and table extent) and our checks' assumption #11 (rim grasps), not the camera. The table still reads tilted 2.7–3.5° through the GT cameras, so part of the "tilt" seen on orange and c11 may come from the depth/table fit rather than the camera alone; unresolved.</p>
+
+<h2>8 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Trigger</th><th>Decision</th></tr>
+<tr><td>10-28</td><td>User: "okay so if this fixes geom, then we'll lock it"</td><td>Timebox above</td></tr>
+<tr><td>10-28</td><td>User: "lets start in this way only what all do we need to fix then? what all is inconsistent in developing scene across different episodes"; then "put them in a doc call it V1_gaps_1028", "actually sceneGen_v1"</td><td>This doc</td></tr>
+<tr><td>10-28</td><td>User asked to scope objects that appear later, composed tasks (drawer with blocks) and prompt-made scenes</td><td>§4, §5 (scope only; not v1)</td></tr>
+<tr><td>10-28</td><td>User: "can we start on 5 parallely? test if vlm will return noun only names and how good they are"</td><td>VLM noun test started (§3)</td></tr>
+<tr><td>10-28</td><td>User: "okay what are our current assumptions" → "yes add it to the gaps doc. I just wanted a generalised design, can we fix the mechanism or do we need to change approach entirely?"; "were these calibrations wrong and our measurements correct? … standard practice to provide camera models and calibrations"</td><td>§6 assumptions; §7 DROID refined calibrations and the proposed design change</td></tr>
+</table></div>
+</main></body>
+</html>

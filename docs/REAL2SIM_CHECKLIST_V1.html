@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real2Sim Checklist v1</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d1d1b;--muted:#5f5f5a;--line:#dddcd5;--card:#f2f1ec;--accent:#8a5a2b;--ok:#2c6e3a;--warn:#8a6d12;--bad:#a3321f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#e8e7e2;--muted:#a3a29b;--line:#34332f;--card:#1f1f1d;--accent:#d29a62;--ok:#7fc98d;--warn:#d9c46a;--bad:#ee8a76}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:1200px;margin:0 auto}
+h1{font-size:1.55rem;margin:.2em 0}
+h2{font-size:1.15rem;margin-top:2em;border-bottom:2px solid var(--accent);padding-bottom:.2em}
+h3{font-size:1rem;margin-top:1.4em}
+.meta{color:var(--muted);font-size:.9rem}
+.box{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 14px;margin:12px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.87rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+code{font-size:.85em}
+a{color:var(--accent);text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:2px}
+a:visited{color:var(--accent)}
+a:hover{text-decoration-color:var(--accent)}
+.ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}
+.tag{font-size:.72rem;border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--muted);white-space:nowrap}
+nav ol{columns:2;font-size:.9rem}
+@media (max-width:700px){nav ol{columns:1}}
+</style>
+</head>
+<body><main>
+<h1>Real2Sim checklist v1</h1>
+<p class="meta">res31, 2026-10-27. Draft for iteration with the user; replaces <code>docs/REAL_TO_SIM_PREDEPLOY_CHECKLIST.html</code> (10-23, Gates 0–6, kept as history). Exploratory; numbers UNVERIFIED. Companion docs: <code>SCENE_V1_MECHANISMS.html</code> (pipeline, gaps K1–K14, bars §17, calibration tests §18, wrist-first §19), <code>IMAGE_PHYSICS_CHECKS.html</code> (res31H), <code>REAL_TO_SIM_METRICS.html</code>.</p>
+
+<nav><h3>Sections</h3><ol>
+<li><a href="#why">Why a rebuild</a></li>
+<li><a href="#rules">Rules every check follows</a></li>
+<li><a href="#map">Structure at a glance</a></li>
+<li><a href="#stages">Four stages: geometry, doable, camera, appearance</a></li>
+<li><a href="#R">R · Rig (once per rig)</a></li>
+<li><a href="#A">A · Geometry</a></li>
+<li><a href="#B">B · Physics</a></li>
+<li><a href="#C">C · Appearance (digital cousin)</a></li>
+<li><a href="#D">D · Image-physics consistency</a></li>
+<li><a href="#E">E · Tasks</a></li>
+<li><a href="#F">F · Control and policy</a></li>
+<li><a href="#Z">Z · Fidelity to the source episode (report only)</a></li>
+<li><a href="#out">Out of scope for v1</a></li>
+<li><a href="#user">The user's items → where they are</a></li>
+<li><a href="#old">Old → new map</a></li>
+<li><a href="#build">What exists vs what has to be built</a></li>
+<li><a href="#open">Open questions for the next iteration</a></li>
+<li><a href="#log">Decision log</a></li>
+</ol></nav>
+
+<h2 id="why">1 · Why a rebuild</h2>
+<p>The old checklist (10-23) judged a scene partly by replaying the real operator's motion against it (real grasp, release and scale: old 1.5–1.7). On the 10-27 scenes those checks fail for reasons unrelated to whether the scene is usable: they only fit "pick into a bowl" tasks, they compare later grasps with the objects' starting positions, and they match each grasp to the nearest sim object (so on c3 every grasp became "apple_1"). The user, 10-27: "if the scene itself is wrong, how can that motion even translate … its always gonna fail … Can we make a general scripted expert scene test?" and "we will need to rebuild the entire checklist completely".</p>
+<p>The scene is a <b>digital cousin</b>, not a replica (user, 10-26: "it doesn't have to be a replica … an exact replica [isn't] even possible"). So the checklist asks two main things: <b>does the physics hold up for every interaction</b>, and <b>do the images show exactly what the physics contains</b>. How close it is to the recorded episode becomes a report (section Z).</p>
+
+<h2 id="rules">2 · Rules every check follows</h2>
+<div class="box"><ol>
+<li><b>Nothing gates the pipeline.</b> Each check gives a report label (consistent / check / likely error); the user is the checker (user, 10-26).</li>
+<li><b>Bars come from error injection</b>: once per rig, plus a per-scene noise floor and one positive control (<code>SCENE_V1_MECHANISMS §17</code>; orange results §17a). A check that misses its positive control on a scene is reported as "blind on this scene", and its labels there aren't trusted.</li>
+<li><b>Real images can only be compared before anything is touched.</b> Appearance and image-physics checks (C, D) use frame 0 and the frames before the first grasp, with the sim posed at the recorded joints. After that there is no real reference.</li>
+<li><b>Never check a camera only from itself.</b> Checks made from the exterior camera can't see that camera's own error along its line of sight (K11; c11: outline overlap 0.49 but table 13 cm off). Every geometry check names its independent source (wrist stereo, recorded joints).</li>
+<li><b>"Unwitnessed" is its own label</b> <span class="tag">IMAGE_PHYSICS / res32</span>: a check whose witness skipped every frame (e.g. the orange bowl in A4: it touches the image edge in every frame, K1) reports "unwitnessed", not a pass. Different from "blind on this scene" (rule 2): measured but insensitive vs not measured at all.</li>
+<li><b>Detection-based checks use one counting protocol</b> <span class="tag">IMAGE_PHYSICS / res32</span>: one detector call per noun (no colour words), robot pixels masked, detections assigned to sim objects by mask overlap, the protocol itself validated by injection (an object added or removed must be counted). Used by A3, A6, C2, D2.</li>
+<li><b>A failed check is a bug until shown otherwise</b> (kept from the old rules).</li>
+<li><b>Any edit re-runs what it touches</b>: an edit to size, mass, position or calibration re-runs the checks of its section and everything after (old 2.3).</li>
+</ol></div>
+
+<h2 id="map">3 · Structure at a glance</h2>
+<div class="wrap"><table>
+<tr><th>Section</th><th>Question</th><th>Per</th><th>Weight</th></tr>
+<tr><td><a href="#R">R · Rig</a></td><td>Robot, cameras and policy inputs set up right?</td><td>rig</td><td>prerequisite</td></tr>
+<tr><td><a href="#A">A · Geometry</a></td><td>Table, objects, sizes, shapes in the right place?</td><td>scene</td><td>main</td></tr>
+<tr><td><a href="#B">B · Physics</a></td><td>Do objects behave plausibly; can every interaction be done?</td><td>scene</td><td>main</td></tr>
+<tr><td><a href="#C">C · Appearance</a></td><td>How close is the look, and does the policy treat it as real?</td><td>scene × camera</td><td>main</td></tr>
+<tr><td><a href="#D">D · Image-physics</a></td><td>Do the images show exactly what the physics contains?</td><td>scene</td><td>main</td></tr>
+<tr><td><a href="#E">E · Tasks</a></td><td>Are the tasks valid and non-trivial?</td><td>scene</td><td>main</td></tr>
+<tr><td><a href="#F">F · Control and policy</a></td><td>Does the arm move like the real one; is the policy run fairly?</td><td>rig / policy</td><td>prerequisite</td></tr>
+<tr><td><a href="#Z">Z · Fidelity</a></td><td>How close is this to the recorded episode?</td><td>scene</td><td>report only</td></tr>
+</table></div>
+<p>Status column in every table: <span class="ok">exists</span> = code runs today; <span class="warn">partial</span> = exists but needs the change named; <span class="bad">to build</span>. Orange / c11 cells hold only measured values.</p>
+
+<h2 id="stages">3a · How a scene is judged: four stages (user, 10-28)</h2>
+<p>User, 10-28: "if we focus on geometry of objects with each other and then make sure that camera looks approximately similar to what was in the real video, how can we measure that texture is covering the things it should cover, and there are no ghosts in the background … if a scripted expert works can we say that its doable … for that we need to see if objects look right in exterior view … calibrating using … grasp point, this way we will have any number of accurate points". The stages run in order; each uses the checks below.</p>
+<div class="wrap"><table>
+<tr><th>Stage</th><th>Question</th><th>How it's measured</th><th>Checks</th></tr>
+<tr><td><b>1 · Geometry</b></td><td>Are objects right relative to each other, the table and the robot?</td><td>Placement independent of the exterior camera: grasped objects at the real fingertip of their first grasp, wrist-seen objects from wrist stereo, table height from wrist stereo. Verified by what wasn't used to place: real drops land in the containers, objects rest on the table, sizes</td><td>A1, A3, A4, A5, A6, B1</td></tr>
+<tr><td><b>2 · Doable</b></td><td>Can the task be done in this physics?</td><td><b>Scripted expert succeeds = doable</b> (feasibility only; says nothing about what the policy will see)</td><td>B3 (+ B4/B5 robustness), E1, E2</td></tr>
+<tr><td><b>3 · Camera</b></td><td>Does the exterior view line up with the real video?</td><td>Camera fitted <i>after</i> the scene is built, from many exact 3D ↔ 2D pairs: the real gripper in many frames of the real video (3D from the recorded joints; 2D located by clicks in the inspector or render-and-match, since the detector can't localise the gripper), plus the stage-1 objects ↔ their real masks, plus the robot outline. Then measured: sim robot over the real robot in all frames (overlap, pixel error), sim objects over their real masks at frame 0, the fitted table level. Note: the scripted expert's grasp points can't calibrate the camera, since no real image shows them</td><td>A7, D1, D4</td></tr>
+<tr><td><b>4 · Appearance</b></td><td>Do the images cover what they should, with no ghosts?</td><td><b>Exterior ghosts:</b> at frame 0, composite vs real frame; outside the sim-rendered robot and objects the background is the real image, so any difference there is a ghost (arm left in the median plate, unbuilt objects); per object: real object with no sim object over it = missing, sim object over no real one = misplaced. <b>Wrist coverage:</b> while the scripted expert runs, the share of the wrist view's table pixels with real texture vs filled-in, per frame and per task; flags tasks that leave the covered area. <b>Wrist ghosts:</b> run the detector on the wrist table texture itself; it must find no objects. <b>Policy-relevant:</b> image swap at a few states</td><td>C1, C2, C3, C6, D2, D3</td></tr>
+</table></div>
+
+<h2 id="R">4 · R · Rig (once per robot + camera setup)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Orange rig</th><th>Old</th></tr>
+<tr><td>R1</td><td>End-effector frame, joint convention</td><td>FK of the recorded joints = recorded cartesian pose; state computed in sim = recorded state</td><td class="ok">exists</td><td>0 mm / 0°</td><td>0.1</td></tr>
+<tr><td>R2</td><td>Gripper convention, mount angle, length, mount sign</td><td>0 open → 1 closed; sim finger pads over the real ones in wrist frames; ±90° sign from the wrist video</td><td class="warn">partial (sign unconfirmed)</td><td>yaw 90, length OK</td><td>0.3, 0.5, 0.7</td></tr>
+<tr><td>R3</td><td>Wrist camera ↔ gripper placement</td><td>sim gripper outline vs real in wrist frames (IoU)</td><td class="ok">exists</td><td>0.76 (0.91 corrected; camera vs mount undecided)</td><td>0.6</td></tr>
+<tr><td>R4</td><td>Policy inputs</td><td>state inside the checkpoint's range; images prepared as the policy's own client does</td><td class="ok">exists</td><td>yes</td><td>0.2, 0.4</td></tr>
+<tr><td>R5</td><td>Robot height and placement</td><td>The robot base is the origin and the robot model's kinematics are exact, so "robot height" is the table's height relative to the robot (A1) and the robot's place relative to the table (A2)</td><td>—</td><td>—</td><td>new wording</td></tr>
+<tr><td>R6</td><td>Bars for every check</td><td>error injection on 2–3 scenes of the rig (exterior pose today; table height, object shift/size once the overrides file exists; wrist pose not covered). <b>+ object-shift injection</b> <span class="tag">IMAGE_PHYSICS / res32</span>: move one object 1–2 cm as seen in the wrist view only, after the overrides file exists</td><td class="warn">partial (orange only)</td><td>§17a</td><td>new</td></tr>
+<tr><td>R7</td><td>Contact-settings record</td><td>every scene and run logs friction (sliding, twist, rolling), condim, cone, impratio; changes say local or scene-wide</td><td class="warn">partial</td><td>—</td><td>0.9</td></tr>
+<tr><td>R8</td><td>Controller identification</td><td>the sim arm follows commands like DROID's controller (system identification). Shared by every scene of the rig</td><td class="bad">to build</td><td>not done</td><td>5.3</td></tr>
+</table></div>
+
+<h2 id="A">5 · A · Geometry: is the layout right?</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Independent source</th><th>Status</th><th>Orange</th><th>c11</th><th>Old</th></tr>
+<tr><td>A1</td><td><b>Table height</b></td><td>stereo table z (exterior + wrist frames) vs built table; ≤ 1 cm consistent. Frames with too few table pixels are skipped (c11 frame 0 read +34.5 cm, c9 crashed at −1.46 m). <b>+ tilt</b> <span class="tag">IMAGE_PHYSICS / res32</span>: plane fitted to the stereo table points vs the built (level) table, in degrees</td><td>wrist stereo + joints</td><td class="warn">partial (needs the pixel guard)</td><td>−0.2 / −0.4…+0.2 cm</td><td>outline-only build: table −0.146 m vs wrist −0.012 m (13 cm)</td><td>1.1</td></tr>
+<tr><td>A2</td><td><b>Table extent and edges</b></td><td>real table mask vs the projected sim table in both views; matters when objects sit near an edge</td><td>wrist view</td><td class="bad">to build</td><td>—</td><td>—</td><td>new</td></tr>
+<tr><td>A3</td><td><b>Object positions</b></td><td>wrist-first placement vs the exterior-based build, per object, ≤ 1.5 cm consistent; also reports which objects the wrist saw (coverage)</td><td>wrist stereo + joints</td><td class="warn">partial (pilot; detection fixes listed in §19)</td><td>3/3 blocks, 0.6–1.2 cm</td><td>blocks only late, half-hidden; not usable</td><td>1.3</td></tr>
+<tr><td>A4</td><td><b>Object size</b></td><td>linear size ratio real/sim in the wrist view (masks), median over ≥ 5 whole, unoccluded frames, ±10%; wrist-first size as a second estimate. The mask and colour methods disagree by 8–25% (K2): to settle before the bar means much. <b>+ gripper width at grasp</b> <span class="tag">IMAGE_PHYSICS / res32</span>: the recorded gripper opening at each real grasp vs the sim object's width across the closing direction; independent of detector masks, so proposed as the <b>primary size witness</b> for grasped objects (IMAGE_PHYSICS R6). Needs the 2F-85 width map (recorded signal → mm)</td><td>wrist view</td><td class="warn">partial</td><td>orange 1.08, green 1.13, yellow 1.33 (masks)</td><td>—</td><td>1.4</td></tr>
+<tr><td>A5</td><td><b>Object shape</b></td><td>(a) the right primitive class (box / cylinder / sphere / bowl / mesh) for the label; (b) sim outline vs real mask overlap in both views at frame 0. Overlap catches a wrong shape, not only a wrong size</td><td>wrist view</td><td class="bad">to build</td><td>—</td><td>—</td><td>new</td></tr>
+<tr><td>A6</td><td><b>Object inventory</b></td><td>every detected object is built or listed as redacted; the VLM object list is reviewed (K7, K9); real objects left in the background without physics are flagged</td><td>both views</td><td class="warn">partial</td><td>4/4 built</td><td>3/3 built</td><td>3.4 + K9</td></tr>
+<tr><td>A7</td><td><b>Exterior camera</b></td><td>robot-outline overlap not worse than DROID's own pose; sim object outlines on the real masks at frame 0; accepted only together with A1 and A3 (the outline alone was 0.49 on c11 with the table 13 cm off). Sideways errors: no check catches them yet (K11). <b>+ held-out view</b> <span class="tag">IMAGE_PHYSICS / res32</span>: DROID's second exterior camera calibrated on its own, the scene checked from it (still open in res32's A2 discussion, Q2). <b>+ stereo-robot registration</b> <span class="tag">IMAGE_PHYSICS / res32</span> (SCENE_V1_RESEARCH §4): exterior stereo points on the robot vs the robot's FK model, position only; the candidate sideways witness. Needs its own injection test on orange first (one copy at +1.83 / +0.88 / −0.32 cm in camera axes)</td><td>A1, A3</td><td class="warn">partial</td><td>0.50; anchors 4.9 px</td><td>0.49 (outline only); table fails</td><td>1.2</td></tr>
+<tr><td>A8</td><td><b>Hard materials</b></td><td>flag glossy or reflective tops and transparent objects, which break stereo and outline masks (c3's cart)</td><td>by eye / stereo validity</td><td class="bad">to build</td><td>—</td><td>—</td><td>new</td></tr>
+</table></div>
+<p><b>How the camera gets its anchor (10-27, being tested):</b> (1) objects the wrist sees well (wrist-first, orange); (2) failing that, the table plane from wrist stereo (c11 test running: <code>runs/real2sim/v1_dev/calibtest/c11_table/</code>); (3) failing that, manual placement in the inspection UI. The table fixes height and distance only; sideways shift and rotation about the vertical still rest on the robot outline.</p>
+
+<h2 id="B">6 · B · Physics: does it behave, can everything be done?</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Orange</th><th>Old</th></tr>
+<tr><td>B1</td><td>Settle</td><td>every free body moves &lt; 2 cm in the first 0.5 s, robot held at its start</td><td class="ok">exists</td><td>bowl 0.10 cm</td><td>2.1</td></tr>
+<tr><td>B2</td><td>Collision shapes, edits</td><td>containers keep their cavity; pads collide through their boxes; edits applied at build time, never by patching the compiled scene</td><td class="warn">partial (overrides file, B8 of the pipeline, not built)</td><td>LIBERO bowl</td><td>2.2, 2.3</td></tr>
+<tr><td>B3</td><td><b>General scripted-expert test</b></td><td>per object, independent of the episode's task: reach → pick, lift 10 cm, hold 2 s → place upright 10 cm away → into each container (if any) → stack (if ≥ 2 blocks). Per-object table + video. Objects wider than the gripper's 85 mm opening are "not graspable by design", not failures. Reuses scripted_grasp's IK. A failure is the scene's or the expert's; the video tells which</td><td class="bad">to build (~½ day CPU)</td><td>today's task expert: 34/40 variants</td><td>2.4, 2.5, part of 3.1</td></tr>
+<tr><td>B4</td><td><b>Mass</b></td><td>not measurable from video. Today: fixed density × volume (fitted objects 600 kg/m³, bowl 300, pack meshes 500 or the pack's mass). Check: a plausibility range per object type, and B3 still passes at 0.5× and 2× mass. Recorded as an assumption</td><td class="bad">to build</td><td>—</td><td>new</td></tr>
+<tr><td>B5</td><td><b>Friction</b></td><td>same: defaults today (table 1.0, pads/objects per build_scene); B3 at 0.5× and 2× friction. MuJoCo uses the larger of the two surfaces' friction, so the pair matters</td><td class="bad">to build</td><td>—</td><td>new</td></tr>
+</table></div>
+<p>B4 and B5 are <b>robustness checks, not truth checks</b>: they show the scene doesn't depend on a lucky value we can't measure.</p>
+
+<h2 id="C">7 · C · Appearance: how good is the digital cousin's look?</h2>
+<p>Two different questions: <b>how close</b> the look is (C1–C5, CPU), and <b>whether that closeness matters to the policy</b> (C6–C7). A scene can look close by pixels and still move the policy (G6 did exactly that), so both are needed. All of C uses the pre-touch frames only (rule 3).</p>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Orange</th><th>Old</th></tr>
+<tr><td>C1</td><td><b>Similarity per region</b></td><td>our composite vs the real frame at the policy's input size (320×180), split by region (table, background, each object, gripper): edge overlap (F1), outline overlap, colour error, sharpness. Says <i>where</i> the look is off (res32's T1)</td><td class="bad">to build</td><td>—</td><td>new</td></tr>
+<tr><td>C2</td><td><b>Background ghosts</b></td><td>exterior: residue of the real image outside the sim-rendered pixels (arm ghost in the median plate, unbuilt objects); wrist: ghosts in the table texture</td><td class="bad">to build</td><td>ghost found by the user 10-23 (issue list)</td><td>new</td></tr>
+<tr><td>C3</td><td><b>Wrist table texture coverage</b></td><td>share of the wrist view's table pixels with real texture vs filled-in, over the reachable workspace; warns when a start or layout leaves the covered area</td><td class="bad">to build</td><td>—</td><td>new</td></tr>
+<tr><td>C4</td><td>Light and shadows per view</td><td>each camera's light fitted on its own view; shadow plan (SIM_FIXES §5b)</td><td class="warn">partial</td><td>two fits</td><td>4.3</td></tr>
+<tr><td>C5</td><td>Objects as rendered</td><td>rendered pixel colour vs real per object, nothing clipped, ≤ ~0.05 per channel</td><td class="warn">partial</td><td>yellow de-clipped 10-23</td><td>4.4</td></tr>
+<tr><td>C6</td><td><b>Does the policy treat it as real?</b></td><td>image swap at recorded states: the policy's planned grasp with our image vs the real image, within ~0.5 cm / ~1°, per camera. The decisive appearance test (GPU, prim's gate)</td><td class="ok">exists</td><td>wrist +1.2 vs real +2.4/+2.6 cm (G7, before K3 known); exterior: no effect (G3)</td><td>4.1, 4.2</td></tr>
+<tr><td>C7</td><td>Encoder distance</td><td>are our images among real DROID frames, measured with the policy's own image encoder? Cheap out-of-distribution signal</td><td class="bad">to build</td><td>never run</td><td>6.3</td></tr>
+</table></div>
+<p><b>Perturbations</b> (user, 10-27): built objects can be moved, recoloured, resized, added; robot start, instruction and image effects too. Lighting, table texture and background only partly (they are real pixels), and the cameras not at all. Each perturbation's effect is measured on matched starts against the same layout unperturbed (res32's T2), after F6.</p>
+
+<h2 id="D">8 · D · Image-physics consistency: do the images show what the physics contains?</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Orange</th></tr>
+<tr><td>D1</td><td>Objects drawn where physics has them</td><td>wrist: per-object offset of the sim outline from the real object, in cm at the object's depth (K3); exterior: A7's outlines. Pre-touch frames</td><td class="warn">partial (<code>wrist_offset_cm.py</code>)</td><td>0.7–1.9 cm in every wrist frame (K3)</td></tr>
+<tr><td>D2</td><td><b>Nothing visible without physics</b></td><td>every unbuilt or redacted object removed from both backgrounds (redaction gap (a)); C2 measures leftovers</td><td class="bad">to build</td><td>none redacted</td></tr>
+<tr><td>D3</td><td>Nothing physical that's invisible</td><td>every sim object appears in both rendered views</td><td class="bad">to build (easy)</td><td>—</td></tr>
+<tr><td>D4</td><td>Robot drawn where physics has it</td><td>R3 (wrist) + exterior robot outline (A7)</td><td class="ok">exists</td><td>0.76 / 0.50</td></tr>
+<tr><td>D5</td><td>Contacts look right</td><td>objects visibly rest on the table: no gap or sinking at the contact line in either view; contact shadow present</td><td class="bad">to build</td><td>—</td></tr>
+<tr><td>D6</td><td><b>MoGe image vs physics, relative form</b> <span class="tag">IMAGE_PHYSICS / res32</span></td><td>monocular depth of our rendered/composited image vs the sim's own depth, compared in relative form (ordering and ratios, not metres). The only D check that also works on layout variants, where no real image exists</td><td class="bad">to build</td><td>—</td></tr>
+</table></div>
+<p>Wrist-first placement (A3) makes D1's wrist part consistent by construction for the objects the wrist saw: they are placed where the wrist camera saw them, and the sim draws them from the same mount.</p>
+
+<h2 id="E">9 · E · Tasks</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Old</th></tr>
+<tr><td>E1</td><td>The expert solves the exact layout played</td><td>only expert-solved layouts enter the eval set; every rollout records its seed and layout; re-simulating it reproduces the recorded track</td><td class="ok">exists</td><td>3.1, 3.3</td></tr>
+<tr><td>E2</td><td>No trivial tasks</td><td>a do-nothing policy must not succeed; exclude those</td><td class="ok">exists</td><td>3.2</td></tr>
+<tr><td>E3</td><td>Tasks use built objects only</td><td>tasks touching a redacted object are excluded</td><td class="ok">exists</td><td>3.4</td></tr>
+<tr><td>E4</td><td><b>A success rule per task type</b></td><td>new scenes bring new types (stack cups, bowl on cup, into or out of a container): each needs its sim-state success rule before its tasks are used</td><td class="bad">to build</td><td>new</td></tr>
+<tr><td>E5</td><td>Starts saved in the UI</td><td>go through E1 and E2 like generated layouts</td><td class="bad">to build</td><td>new</td></tr>
+</table></div>
+
+<h2 id="F">10 · F · Control and policy</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Check</th><th>How / label</th><th>Status</th><th>Old</th></tr>
+<tr><td>F1</td><td>Dry run</td><td>do-nothing policy end to end on CPU</td><td class="ok">exists</td><td>5.1</td></tr>
+<tr><td>F2</td><td>Command tracking</td><td>commanded vs achieved fingertip; "blocked" logged per rollout, read with R7</td><td class="ok">exists</td><td>5.2</td></tr>
+<tr><td>F3</td><td>Policy on real data</td><td>on the real episode's frames + recorded state, does the policy close / release / move as the operator did?</td><td class="ok">exists</td><td>6.1</td></tr>
+<tr><td>F4</td><td>Instruction swap</td><td>the target follows the instruction</td><td class="ok">exists</td><td>6.4</td></tr>
+<tr><td>F5</td><td>Stage scoring</td><td>reached / closed / lifted / placed per rollout</td><td class="ok">exists</td><td>6.5</td></tr>
+<tr><td>F6</td><td><b>Run-to-run noise</b></td><td>the same batch twice: how many episodes flip by chance? Needed before any comparison, given how sparse the metrics are (~50 min GPU)</td><td class="bad">never run</td><td>6.6</td></tr>
+</table></div>
+<p><b>Counting rule</b> (kept, updated): a rollout failure counts as the policy's only if the rig passes R, the scene's labels in A–E are "consistent" or explained, the expert solved that layout (E1), a do-nothing policy didn't (E2), and the command wasn't blocked (F2). Everything else is "unattributed".</p>
+
+<h2 id="Z">11 · Z · Fidelity to the source episode (report only)</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Report</th><th>Known limits</th><th>Old</th></tr>
+<tr><td>Z1</td><td>Real grasp point vs nearest sim object</td><td>matches the nearest object (wrong when objects are misplaced: c3 "apple_1"); later grasps compared with starting positions</td><td>1.5</td></tr>
+<tr><td>Z2</td><td>Real release point vs nearest container</td><td>assumes "put into a bowl"; meaningless for cups, stacking, "into or out of"</td><td>1.6</td></tr>
+<tr><td>Z3</td><td>Grasp → release distance, real vs sim</td><td>same as Z2</td><td>1.7</td></tr>
+</table></div>
+
+<h2 id="out">12 · Out of scope for v1</h2>
+<ul>
+<li>Articulated objects (drawers, doors, lids) and deformables (cloth, cables): filtered at scene selection.</li>
+<li>A different robot or camera rig: re-runs R entirely (next phase, user 10-26).</li>
+<li>Camera moves, background and table-texture changes beyond the real pixels (would need generation; see the Cosmos discussion).</li>
+</ul>
+
+<h2 id="user">13 · The user's items → where they are</h2>
+<div class="wrap"><table>
+<tr><th>User (10-27)</th><th>Here</th></tr>
+<tr><td>"Physics: scripted expert checking if all interactable objects are right or not"</td><td>B3 (general expert test), with B4/B5 robustness</td></tr>
+<tr><td>"Size, mass etc: how are we checking this"</td><td>size A4 (+ A3's wrist size); mass B4, friction B5: robustness, not truth</td></tr>
+<tr><td>"digital cousin, how well can [we] put textures or bg details in sim. How can we measure this?"</td><td>C1–C5 (how close, pre-touch frames), C6–C7 (does it matter to the policy), C2/C3 (ghosts, texture coverage)</td></tr>
+<tr><td>"table height, robot height, shapes of objects"</td><td>A1, R5 (robot height = table relative to the robot), A2, A5</td></tr>
+<tr><td>"anything else that I might have missed"</td><td>A6/D2 inventory and redaction, rule 3 (pre-touch only), R8 controller, F6 run-to-run noise, E4 success rules per task type, A8 hard materials, rule 2 positive controls, section 12 scope</td></tr>
+</table></div>
+
+<h2 id="old">14 · Old → new map</h2>
+<div class="wrap"><table>
+<tr><th>Old (10-23)</th><th>New</th><th>Change</th></tr>
+<tr><td>0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9</td><td>R1, R4, R2, R4, R2, R3, R2, R7</td><td>kept</td></tr>
+<tr><td>0.8 calibration transfer</td><td>R6 / A7</td><td>folded: calibration is per scene (§18)</td></tr>
+<tr><td>1.1 table height</td><td>A1</td><td>kept; pixel guard added</td></tr>
+<tr><td>1.2 exterior calibration</td><td>A7</td><td>accepted only with A1 and A3; anchored step out of the default (K13)</td></tr>
+<tr><td>1.3 objects from the wrist</td><td>A3</td><td>becomes wrist-first agreement + coverage</td></tr>
+<tr><td>1.4 size</td><td>A4</td><td>kept; K2 to settle</td></tr>
+<tr><td>1.5, 1.6, 1.7</td><td>Z1–Z3</td><td><b>demoted to report only</b></td></tr>
+<tr><td>2.1, 2.2, 2.3</td><td>B1, B2</td><td>kept</td></tr>
+<tr><td>2.4 drop/stack, 2.5 grasp hold</td><td>B3</td><td>merged into the general expert test</td></tr>
+<tr><td>3.1, 3.2, 3.3, 3.4</td><td>E1, E2, E1, E3</td><td>kept</td></tr>
+<tr><td>4.1, 4.2</td><td>C6</td><td>kept (decisive appearance test)</td></tr>
+<tr><td>4.3, 4.4</td><td>C4, C5</td><td>kept</td></tr>
+<tr><td>5.1, 5.2, 5.3</td><td>F1, F2, R8</td><td>controller moved to the rig</td></tr>
+<tr><td>6.1, 6.3, 6.4, 6.5, 6.6</td><td>F3, C7, F4, F5, F6</td><td>kept</td></tr>
+<tr><td>—</td><td>R5, R6, A2, A5, A8, B3, B4, B5, C1, C2, C3, D1–D6, E4, E5</td><td>new</td></tr>
+<tr><td>IMAGE_PHYSICS (res31H → res32)</td><td>A1 tilt, A4 gripper width, A7 held-out view + stereo-robot registration, D6 MoGe, R6 object shift, rules "unwitnessed" and counting protocol</td><td>added 10-27 (user: "yes add all 8")</td></tr>
+</table></div>
+
+<h2 id="build">15 · What exists vs what has to be built</h2>
+<div class="wrap"><table>
+<tr><th>Item</th><th>Work</th><th>Size</th></tr>
+<tr><td>A1 pixel guard; D3</td><td>small edits</td><td>&lt; 1 h</td></tr>
+<tr><td>A3 wrist-first detection fixes (dedupe across nouns, mask the gripper, size floor, post-touch frames)</td><td>wrist_first.py</td><td>½ day</td></tr>
+<tr><td>B3 general expert test (+ B4/B5 sweeps)</td><td>new script from scripted_grasp</td><td>½–1 day</td></tr>
+<tr><td>C1, C2, C3</td><td>new scoring script on the composite (CPU)</td><td>1 day</td></tr>
+<tr><td>A2, A5, D5</td><td>outline/mask overlaps in both views</td><td>½ day</td></tr>
+<tr><td>D2</td><td>with redaction (B7 of the pipeline, decision 1)</td><td>with B7</td></tr>
+<tr><td>E4</td><td>success rules per new task type</td><td>per type</td></tr>
+<tr><td>F6, C6 re-run, C7</td><td>GPU, prim's gate</td><td>~1–2 h GPU</td></tr>
+<tr><td>A1 tilt</td><td>plane fit on existing stereo points</td><td>&lt; 1 h</td></tr>
+<tr><td>A4 gripper width (2F-85 width map first)</td><td>map + per-grasp comparison</td><td>½ day</td></tr>
+<tr><td>A7 stereo-robot registration (injection test first) and held-out camera 2</td><td>res32 §4 → my code</td><td>~1 day</td></tr>
+<tr><td>D6 MoGe relative check</td><td>new script</td><td>½ day</td></tr>
+<tr><td>R8 controller identification</td><td>open research</td><td>unknown</td></tr>
+</table></div>
+
+<h2 id="open">16 · Open questions for the next iteration</h2>
+<ol>
+<li>Any check to add, drop or re-order?</li>
+<li>Label wording: "consistent / check / likely error", or plain numbers only?</li>
+<li>Which sections must be "consistent" before a scene enters the 15–20 batch: A + B + D (my suggestion), with C reported?</li>
+<li>B3: is pick-lift-place-container-stack the right probe set, or task-specific probes too?</li>
+<li>C1: which metric becomes the headline per region (edge F1 is my suggestion)?</li>
+<li>Order of building (my suggestion): A1 guard + D3 → B3 → A3 fixes → C1–C3 → A2/A5/D5.</li>
+</ol>
+
+<h2 id="log">17 · Decision log</h2>
+<div class="wrap"><table>
+<tr><th>When</th><th>Trigger</th><th>Options</th><th>Decision</th><th>Outcome</th></tr>
+<tr><td>10-27</td><td>User: "lets just focus on image physics check, if the scene itself is wrong, how can that motion even translate … Can we make a general scripted expert scene test? Also tell me if I missed something"</td><td>Keep real-motion checks as main vs demote them</td><td>res31 proposed layers: image-physics consistency, general expert test, fidelity as report</td><td>—</td></tr>
+<tr><td>10-27</td><td>User: "we will need to rebuild the entire checklist completely … Physics: scripted expert … Size, mass … digital cousin … textures or bg details … table height, robot height, shapes … anything else"</td><td>—</td><td>res31 proposed sections R, A–F, Z in the terminal</td><td>—</td></tr>
+<tr><td>10-27</td><td>User: "can you update checklist doc or maybe make Real2Sim_Checklist_v1 doc with the things you proposed and lets iterate then"</td><td>Update the old file vs a new file</td><td>New file (this one); the old checklist stays as history</td><td>This draft</td></tr>
+<tr><td>10-27</td><td>res32 mapped IMAGE_PHYSICS_CHECKS against this draft: 8 items missing (tilt, gripper width at grasp, MoGe relative check, held-out exterior camera 2, stereo-robot registration, object-shift injection, detector counting protocol, "unwitnessed" label). User: "yes add all 8 to the checklist"</td><td>—</td><td>All 8 added, tagged "IMAGE_PHYSICS / res32"</td><td>A1, A4, A7, D6, R6, rules</td></tr>
+<tr><td>10-28</td><td>User proposed judging a scene in stages (geometry of objects; scripted expert = doable; camera aligned to the real video using many accurate points; texture coverage and ghosts)</td><td>Grasp points of the scripted expert vs the real robot as the calibration target</td><td>Section 3a; the real gripper in many frames is the target (the expert's points have no real image). The detector can't localise the gripper (8 test frames, 6 empty, 2 wrong), so clicks or render-and-match</td><td>3a</td></tr>
+</table></div>
+</main></body>
+</html>
