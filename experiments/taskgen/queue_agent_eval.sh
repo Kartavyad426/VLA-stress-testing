@@ -28,6 +28,10 @@ stop() {
         kill "$PID"; wait "$PID" 2>/dev/null
     fi
     PID=""
+    # the 35B server runs inside a systemd scope (no_swap.sh): make sure nothing is left on :8099
+    if pgrep -f "llama-server.*--port 8099" > /dev/null; then
+        log "server still on :8099 after stop; killing it"; pkill -f "llama-server.*--port 8099"; sleep 3
+    fi
 }
 trap 'stop; log "queue exit"' EXIT
 
