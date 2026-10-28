@@ -1,0 +1,129 @@
+{
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "simulator": "mujoco",
+ "base_objects": {
+  "black_bowl": {
+   "kind": "bowl",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "green_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "orange_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "yellow_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  }
+ },
+ "added_objects": {
+  "red_block_1": {
+   "name": "red_block_1",
+   "source": "primitive:box",
+   "kind": "block",
+   "colour": "red",
+   "rgba": [
+    0.8,
+    0.1,
+    0.1,
+    1.0
+   ],
+   "size_m": [
+    0.03,
+    0.03,
+    0.03
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "next_to",
+    "target": "black_bowl"
+   },
+   "pose": [
+    0.7756383577401769,
+    -0.14806258095415506,
+    -0.0941477554183885,
+    0.0
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  }
+ },
+ "articulation": {},
+ "checks": {},
+ "log": [
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "red",
+    "size_cm": 3.0,
+    "name": "red_block_1"
+   },
+   "result": {
+    "added": "red_block_1",
+    "kind": "block",
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "graspable": true,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "red_block_1",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "red_block_1",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "at_cm": [
+     77.6,
+     -14.8,
+     -9.4
+    ],
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "visible": {
+     "ext": {
+      "px": 42,
+      "frac": 1.0,
+      "min_px": 29,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 262,
+      "frac": 1.0,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  }
+ ]
+}
