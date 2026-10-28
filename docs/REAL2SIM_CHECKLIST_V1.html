@@ -38,6 +38,7 @@ nav ol{columns:2;font-size:.9rem}
 <li><a href="#rules">Rules every check follows</a></li>
 <li><a href="#map">Structure at a glance</a></li>
 <li><a href="#stages">Four stages: geometry, doable, camera, appearance</a></li>
+<li><a href="#tiers">Tiers 0 / 1 / 2</a></li>
 <li><a href="#R">R · Rig (once per rig)</a></li>
 <li><a href="#A">A · Geometry</a></li>
 <li><a href="#B">B · Physics</a></li>
@@ -92,6 +93,14 @@ nav ol{columns:2;font-size:.9rem}
 <tr><td><b>2 · Doable</b></td><td>Can the task be done in this physics?</td><td><b>Scripted expert succeeds = doable</b> (feasibility only; says nothing about what the policy will see)</td><td>B3 (+ B4/B5 robustness), E1, E2</td></tr>
 <tr><td><b>3 · Camera</b></td><td>Does the exterior view line up with the real video?</td><td>Camera fitted <i>after</i> the scene is built, from many exact 3D ↔ 2D pairs: the real gripper in many frames of the real video (3D from the recorded joints; 2D located by clicks in the inspector or render-and-match, since the detector can't localise the gripper), plus the stage-1 objects ↔ their real masks, plus the robot outline. Then measured: sim robot over the real robot in all frames (overlap, pixel error), sim objects over their real masks at frame 0, the fitted table level. Note: the scripted expert's grasp points can't calibrate the camera, since no real image shows them</td><td>A7, D1, D4</td></tr>
 <tr><td><b>4 · Appearance</b></td><td>Do the images cover what they should, with no ghosts?</td><td><b>Exterior ghosts:</b> at frame 0, composite vs real frame; outside the sim-rendered robot and objects the background is the real image, so any difference there is a ghost (arm left in the median plate, unbuilt objects); per object: real object with no sim object over it = missing, sim object over no real one = misplaced. <b>Wrist coverage:</b> while the scripted expert runs, the share of the wrist view's table pixels with real texture vs filled-in, per frame and per task; flags tasks that leave the covered area. <b>Wrist ghosts:</b> run the detector on the wrist table texture itself; it must find no objects. <b>Policy-relevant:</b> image swap at a few states</td><td>C1, C2, C3, C6, D2, D3</td></tr>
+</table></div>
+
+<h2 id="tiers">3b · Tiers (user, 10-28: "maybe we can make a tiered checklist"; "close v1 asap")</h2>
+<div class="wrap"><table>
+<tr><th>Tier</th><th>Meaning</th><th>Checks</th><th>Code (10-28)</th></tr>
+<tr><td><b>Tier 0 · minimum</b></td><td>a scene doesn't enter the eval set without it</td><td>camera from a published calibration or verified (A7) · table height from the wrist plane (A1) · real grasps on objects, real drops in containers (A3) · settle (B1) · object inventory, nothing missing, no ghosts (A6, D2) · <b>scripted expert solves the tasks = doable (B3)</b> · do-nothing doesn't succeed (E2) · success rule for the task type (E4)</td><td>camera_source.py; stereo_depth.py --wrist_plane; scene_checks.py; implres31 expert_probe.py (B3); make_tasks / policy_batch --policy hold (E2); A6/D2 partly (image_checks)</td></tr>
+<tr><td><b>Tier 1 · should</b></td><td>reported; a failure needs a reason</td><td>sizes (A4) · shapes (A5) · table extent and tilt (A2) · wrist-view offsets (D1) · rendered colours (C5) · exterior ghosts, wrist coverage (C2, C3) · mass/friction robustness (B4/B5) · MoGe check (D6)</td><td>implres31 image_checks.py, moge_check.py, expert_probe sweeps; block_size_check.py</td></tr>
+<tr><td><b>Tier 2 · research</b></td><td>not needed to close v1</td><td>image swaps (C6) · encoder distance (C7) · run-to-run noise (F6) · controller identification (R8) · perturbation sensitivity</td><td>image_swap.py, implres31 encoder_distance.py (GPU)</td></tr>
 </table></div>
 
 <h2 id="R">4 · R · Rig (once per robot + camera setup)</h2>
@@ -262,6 +271,7 @@ nav ol{columns:2;font-size:.9rem}
 <tr><td>10-27</td><td>User: "can you update checklist doc or maybe make Real2Sim_Checklist_v1 doc with the things you proposed and lets iterate then"</td><td>Update the old file vs a new file</td><td>New file (this one); the old checklist stays as history</td><td>This draft</td></tr>
 <tr><td>10-27</td><td>res32 mapped IMAGE_PHYSICS_CHECKS against this draft: 8 items missing (tilt, gripper width at grasp, MoGe relative check, held-out exterior camera 2, stereo-robot registration, object-shift injection, detector counting protocol, "unwitnessed" label). User: "yes add all 8 to the checklist"</td><td>—</td><td>All 8 added, tagged "IMAGE_PHYSICS / res32"</td><td>A1, A4, A7, D6, R6, rules</td></tr>
 <tr><td>10-28</td><td>User proposed judging a scene in stages (geometry of objects; scripted expert = doable; camera aligned to the real video using many accurate points; texture coverage and ghosts)</td><td>Grasp points of the scripted expert vs the real robot as the calibration target</td><td>Section 3a; the real gripper in many frames is the target (the expert's points have no real image). The detector can't localise the gripper (8 test frames, 6 empty, 2 wrong), so clicks or render-and-match</td><td>3a</td></tr>
+<tr><td>10-28</td><td>User: "this + a revised checklist or maybe another checklist with doable and all those things … maybe we can make a tiered checklist"; "close v1 asap"</td><td>—</td><td>Tiers 0/1/2 added (§3b) on top of the existing check IDs</td><td>3b</td></tr>
 </table></div>
 </main></body>
 </html>

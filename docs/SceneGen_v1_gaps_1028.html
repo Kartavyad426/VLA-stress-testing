@@ -155,6 +155,33 @@ a{color:var(--accent)}
 </table></div>
 <p><b>Reading:</b> DROID's GT cameras put the robot and the main objects in place on both scenes; the remaining problems are objects (c1b's pack cups, a missing block; c9's few-cm offsets and table extent) and our checks' assumption #11 (rim grasps), not the camera. The table still reads tilted 2.7–3.5° through the GT cameras, so part of the "tilt" seen on orange and c11 may come from the depth/table fit rather than the camera alone; unresolved.</p>
 
+<h3>7b · NVIDIA PointWorld-DROID cameras (10-28; found by res32)</h3>
+<p>PointWorld-DROID (Hugging Face <code>nvidia/PointWorld-DROID</code>, <code>droid/cameras</code>, ~43k episodes; NVIDIA License, <b>non-commercial research/evaluation only</b>) re-fitted the exterior cameras: start from VGGT anchored by the wrist camera, then the robot mesh at the recorded joints matched to stereo depth on robot pixels over many frames (res32's reading of arXiv 2601.03782). Covers orange, c11, c3, c9 (not c1b). Camera files from res32; rebuilds by res31 (<code>runs/real2sim/v1_dev/run_pointworld_1028.sh</code>, <code>camera_search/{orange,c11,c3}pw{stereo,grasp}_rebuilt</code>). Exploratory, UNVERIFIED.</p>
+<div class="wrap"><table>
+<tr><th>Scene</th><th>PointWorld vs raw DROID</th><th>PointWorld vs our search</th><th>Real grasps on the object</th><th>Real drops in the container</th><th>Stereo / geometry depth at grasps</th><th>Table tilt (our fit)</th></tr>
+<tr><td>orange</td><td>31.4 cm, 15.3°</td><td>2.5 cm, 5.4°</td><td>0.0 cm</td><td>3.3–3.5 cm (rim 8.4; ours 4.1, raw 4.87)</td><td>1.02</td><td>2.6°</td></tr>
+<tr><td>c11</td><td>10.5 cm, 11.4°</td><td>18.7 cm, 2.5° (ours too close along the ray)</td><td>0.0 / 0.0 cm</td><td>3.7–4.1 and 8.0–8.4 cm (rim 8.7)</td><td><b>0.99 / 0.95</b> (with our camera 1.28–1.31: the "c11 stereo 28% off" was our camera)</td><td>2.7°</td></tr>
+<tr><td>c3</td><td>0.7 cm, 0.8°</td><td>22.9 cm, 39.3°</td><td>mostly 0–2 cm; re-grasps of moved objects 2–5 cm</td><td>7–8 of 11 inside (rim 7.7–7.8); misses on later steps after objects moved</td><td>0.99 / 0.97 / 1.22 / 1.04</td><td>9.3° (glossy cart)</td></tr>
+<tr><td>c9</td><td>0.3 cm, 1.1° (= DROID GT)</td><td>12.4 cm, 6.5°</td><td colspan="4">see §7a (the DROID GT build is effectively the PointWorld build)</td></tr>
+</table></div>
+<p><b>Reading:</b> (1) PointWorld's cameras are right where ours were wrong: c3 goes from completely wrong to mostly passing; c11's stereo agrees once the camera is right. (2) Raw DROID cameras are either fine (c3, c9) or badly off (orange, c11). (3) Our camera search was 2.5–23 cm and 2.5–39° off; the error cancels near the grasp anchors (objects and drops still right on c11) and shows away from them. (4) The 2.6–2.7° table tilt remains under correct cameras: it comes from our table fit from depth, not the camera, so the search's table-level term was chasing a bias. (5) Open: orange's wrist-view offsets were smaller with our camera (0.98 / 1.21 / 0.87 cm) than with PointWorld's (1.39 / 1.51 / 1.02).</p>
+<p><b>Use now, adapt later (res31's recommendation, 10-28; user asked "should we adapt their method before calibration or use their calibrations for now and adapt later?"):</b> use the published calibrations now, since they unblock v1 (pick scenes inside their coverage), are verified on orange, c11, c3, and take the camera off the critical path. Adapt their method later (depth-based robot matching over many frames: FoundationStereo + VGGT start, likely GPU, days) for episodes they don't cover, other datasets/robots, and commercial use if PointWorld's licence rules it out. Camera source order: DROID refined → PointWorld (marked non-commercial) → our search → manual placement in the inspector. Steps proposed: (1) make that order the pipeline's camera source; (2) res31H filters scene candidates to covered episodes (via prim); (3) back to stage 1: table from wrist stereo, checks + refine for untouched objects. Pending the user's go and the licence call.</p>
+<p><b>Proposed (awaiting the user):</b> camera source = PointWorld or DROID refined calibrations where they exist (licence decision for PointWorld); our search only as the fallback, after replacing motion masks with depth-based robot matching and dropping the table-level term; table from wrist stereo.</p>
+
+<h2>9 · Closing v1 (status 10-28 evening; user: "lets check everything and see whats left and close v1 asap")</h2>
+<div class="wrap"><table>
+<tr><th>Item</th><th>State</th><th>Evidence / owner</th></tr>
+<tr><td>Camera source (DROID refined → PointWorld → search → manual)</td><td class="ok">done (camera_source.py)</td><td>5/5 scenes covered; PointWorld files byte-identical to res32's; licence call pending (user)</td></tr>
+<tr><td>Table from the wrist plane (mask-free)</td><td class="ok">done (stereo_depth.py --wrist_plane)</td><td>agrees with the published-camera builds within 0.1–0.8 cm on all 5; real tables 0.4–2.0° from level</td></tr>
+<tr><td>Grasps on objects, drops in containers (A3)</td><td class="ok">passing on orange, c11, c1b, c3 (8/11), c9 partly</td><td>§7a, §7b; scene_checks on/in rule</td></tr>
+<tr><td>Doable (B3)</td><td class="warn">built by implres31; rerun on corrected scenes requested</td><td>old scenes: orange 12/12, c11 8/8</td></tr>
+<tr><td>Tier 1 image checks</td><td class="warn">built by implres31; rerun requested; composite plates needed for some</td><td>runs/real2sim_checks/</td></tr>
+<tr><td>Object fixes: pack-asset sizing/placement (c1b cups, c9 cup), noun-only perceive</td><td class="bad">open (res31; asked TaskGen whether their asset sizing can be reused)</td><td>c1b cups ~2 m away</td></tr>
+<tr><td>build_v1 driver (camera source → perceive → build → wrist plane → replay → checks → Tier 0/1 report → inspector)</td><td class="bad">open (res31, ~1 day)</td><td>—</td></tr>
+<tr><td>Batch: 15–20 covered scenes, user review, fix loop</td><td class="bad">open</td><td>needs res31H's candidates filtered to covered episodes</td></tr>
+<tr><td>Commits</td><td class="warn">8 revertible patches sent to prim (01–08), not yet committed</td><td>runs/real2sim/v1_dev/commit_1028/</td></tr>
+</table></div>
+
 <h2>8 · Decision log</h2>
 <div class="wrap"><table>
 <tr><th>When</th><th>Trigger</th><th>Decision</th></tr>
@@ -163,6 +190,8 @@ a{color:var(--accent)}
 <tr><td>10-28</td><td>User asked to scope objects that appear later, composed tasks (drawer with blocks) and prompt-made scenes</td><td>§4, §5 (scope only; not v1)</td></tr>
 <tr><td>10-28</td><td>User: "can we start on 5 parallely? test if vlm will return noun only names and how good they are"</td><td>VLM noun test started (§3)</td></tr>
 <tr><td>10-28</td><td>User: "okay what are our current assumptions" → "yes add it to the gaps doc. I just wanted a generalised design, can we fix the mechanism or do we need to change approach entirely?"; "were these calibrations wrong and our measurements correct? … standard practice to provide camera models and calibrations"</td><td>§6 assumptions; §7 DROID refined calibrations and the proposed design change</td></tr>
+<tr><td>10-28</td><td>res32 found NVIDIA PointWorld-DROID cameras; user: "loop res31 in", wants results before deciding; then "so if we know our method is wrong, how wrong are we", "time for pointworld"</td><td>§7b; adoption and licence pending</td></tr>
+<tr><td>10-28</td><td>User: "should we adapt their method before calibration or use their calibrations for now and adapt later?", then "make a note of it somewhere?"</td><td>Recommendation recorded in §7b (use now, adapt later); go and licence call pending</td></tr>
 </table></div>
 </main></body>
 </html>
