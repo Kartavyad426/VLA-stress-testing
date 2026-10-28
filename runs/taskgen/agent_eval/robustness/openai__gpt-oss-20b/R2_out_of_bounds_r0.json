@@ -1,0 +1,35 @@
+{
+ "test": "robustness",
+ "case": "R2_out_of_bounds",
+ "case_id": "R2_out_of_bounds",
+ "values": {},
+ "run": 0,
+ "prompt": "add a 9 cm red block next to the bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 181.9,
+ "match": false,
+ "compare": null,
+ "expect_notes": [
+  "size above the bound",
+  "feasible=True, expected False"
+ ],
+ "exec_ok": false,
+ "exec_reason": "block size 9.0 cm outside bounds 2-6 cm",
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_block_9cm\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":9,\"relation\":\"next_to\",\"target\":\"black_bowl\"},\"task\":null,\"infeasible\":null}",
+   "errors": [
+    "Expecting ',' delimiter: line 1 column 137 (char 136)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"add\":[{\"name\":\"red_block_9cm\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":9,\"relation\":\"next_to\",\"target\":\"black_bowl\"}],\"task\":null,\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

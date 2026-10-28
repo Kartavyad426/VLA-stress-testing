@@ -1,0 +1,25 @@
+{
+ "test": "robustness",
+ "case": "R4_base_start",
+ "case_id": "R4_base_start",
+ "values": {},
+ "run": 0,
+ "prompt": "the orange block should start inside a drawer",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 4.6,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "Cannot move the locked orange_block into a drawer; base objects are immutable.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"Cannot move the locked orange_block into a drawer; base objects are immutable.\"}",
+   "errors": []
+  }
+ ]
+}

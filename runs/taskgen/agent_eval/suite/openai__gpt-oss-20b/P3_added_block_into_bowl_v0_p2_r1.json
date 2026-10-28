@@ -1,0 +1,50 @@
+{
+ "test": "suite",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 1,
+ "prompt": "place an extra red block near the bowl, task: block into bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 20.7,
+ "match": false,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": false,
+  "task_match": true,
+  "objects_diff": {
+   "missing": [
+    [
+     "box",
+     "red",
+     "next_to",
+     "black_bowl"
+    ]
+   ],
+   "extra": [
+    [
+     "box",
+     "red",
+     "inside",
+     "black_bowl"
+    ]
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"black_bowl\"}],\"task\":{\"instruction\":\"place an extra red block near the bowl\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

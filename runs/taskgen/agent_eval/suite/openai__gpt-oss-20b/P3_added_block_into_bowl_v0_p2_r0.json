@@ -1,0 +1,32 @@
+{
+ "test": "suite",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "place an extra red block near the bowl, task: block into bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 6.5,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":3,\"relation\":\"next_to\",\"target\":\"black_bowl\"}],\"task\":{\"instruction\":\"place an extra red block near the bowl\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

@@ -1,0 +1,836 @@
+{
+ "model": "openai/gpt-oss-20b",
+ "test": "suite",
+ "prompt_version": "v2",
+ "url": "http://127.0.0.1:8099",
+ "runs": 3,
+ "summary": {
+  "P1_real_task": {
+   "calls": 9,
+   "valid": 9,
+   "match": 9,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 45.0
+  },
+  "P2_stack_order": {
+   "calls": 9,
+   "valid": 9,
+   "match": 9,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 83.1
+  },
+  "P4_drawer_out_of": {
+   "calls": 9,
+   "valid": 9,
+   "match": 6,
+   "exec_ok": 6,
+   "attempts": 9,
+   "seconds": 189.70000000000002
+  }
+ },
+ "rows": [
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.0,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 6.0,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 7.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.6,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 9.0,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 21.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 6.6,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 6.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 8.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 5.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 5.9,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 9.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 14.6,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 18.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 11.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 9.9,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 27.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 32.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 14.1,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "drawer",
+        ""
+       ]
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 24.0,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "drawer",
+       "",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 29.8,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "drawer",
+       "",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  }
+ ]
+}

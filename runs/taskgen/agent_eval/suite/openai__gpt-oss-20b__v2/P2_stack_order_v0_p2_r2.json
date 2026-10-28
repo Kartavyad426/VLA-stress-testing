@@ -1,0 +1,36 @@
+{
+ "test": "suite",
+ "case": "P2_stack_order",
+ "case_id": "P2_stack_order_v0_p2",
+ "values": {
+  "order": [
+   "green",
+   "orange",
+   "yellow"
+  ]
+ },
+ "run": 2,
+ "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 14.6,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":{\"instruction\":\"Stack the green block on the orange block, then stack the yellow block on top to form a stack with green at the bottom, orange in the middle, and yellow on top.\",\"targets\":[\"green_block\",\"orange_block\",\"yellow_block\"],\"pass_condition\":{\"type\":\"ordered_stack\",\"order\":[\"green_block\",\"orange_block\",\"yellow_block\"],\"target\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

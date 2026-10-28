@@ -1,0 +1,25 @@
+{
+ "test": "robustness",
+ "case": "R5_two_step",
+ "case_id": "R5_two_step",
+ "values": {},
+ "run": 0,
+ "prompt": "add a drawer with two blocks inside, a red one and a blue one; the task is to put the red one in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 16.8,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"drawer_1\",\"source\":\"drawer\",\"noun\":null,\"colour\":null,\"size_cm\":null,\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"drawer_1\"},{\"name\":\"blue_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"blue\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"drawer_1\"}],\"task\":{\"instruction\":\"Put the red block in the bowl\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

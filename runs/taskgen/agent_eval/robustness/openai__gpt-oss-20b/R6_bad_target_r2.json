@@ -1,0 +1,28 @@
+{
+ "test": "robustness",
+ "case": "R6_bad_target",
+ "case_id": "R6_bad_target",
+ "values": {},
+ "run": 2,
+ "prompt": "add a red block next to the blue bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 29.1,
+ "match": false,
+ "compare": null,
+ "expect_notes": [
+  "targets [None, 'blue_bowl']",
+  "feasible=True, expected False"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"blue_bowl\",\"source\":\"pack\",\"noun\":\"bowl\",\"colour\":\"blue\",\"size_cm\":null,\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"next_to\",\"target\":\"blue_bowl\"}],\"task\":null,\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

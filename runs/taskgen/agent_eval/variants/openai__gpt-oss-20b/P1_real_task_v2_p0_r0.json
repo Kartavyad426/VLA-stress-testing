@@ -1,0 +1,41 @@
+{
+ "test": "variants",
+ "case": "P1_real_task",
+ "case_id": "P1_real_task_v2_p0",
+ "values": {
+  "block": "yellow"
+ },
+ "run": 0,
+ "prompt": "put the yellow block in the black bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 5.6,
+ "match": false,
+ "compare": {
+  "feasible_match": false,
+  "objects_match": true,
+  "task_match": false,
+  "task_diff": {
+   "got": null,
+   "want": [
+    "inside",
+    "yellow_block",
+    "black_bowl",
+    []
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "Cannot move base objects; the yellow block is locked and cannot be placed into the black bowl.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"Cannot move base objects; the yellow block is locked and cannot be placed into the black bowl.\"}",
+   "errors": []
+  }
+ ]
+}

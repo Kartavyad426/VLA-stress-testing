@@ -1,0 +1,32 @@
+{
+ "test": "variants",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p0",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 21.9,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"drawer_1\",\"source\":\"drawer\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"relation\":\"inside\",\"target\":\"drawer_1\"}],\"task\":{\"instruction\":\"Take the red block out of the drawer and put it in the black bowl.\",\"targets\":[\"red_block_1\",\"black_bowl\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"black_bowl\"}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

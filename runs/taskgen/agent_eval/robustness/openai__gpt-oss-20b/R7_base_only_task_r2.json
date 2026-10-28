@@ -1,0 +1,25 @@
+{
+ "test": "robustness",
+ "case": "R7_base_only_task",
+ "case_id": "R7_base_only_task",
+ "values": {},
+ "run": 2,
+ "prompt": "stack the green block on the yellow block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 9.2,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":{\"instruction\":\"stack the green block on the yellow block\",\"targets\":[\"green_block\",\"yellow_block\"],\"pass_condition\":{\"type\":\"stacked\",\"object\":\"green_block\",\"target\":\"yellow_block\"}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

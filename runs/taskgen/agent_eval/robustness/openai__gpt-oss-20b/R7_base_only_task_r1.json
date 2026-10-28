@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R7_base_only_task",
+ "case_id": "R7_base_only_task",
+ "values": {},
+ "run": 1,
+ "prompt": "stack the green block on the yellow block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 4.9,
+ "match": false,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "Cannot move base object green_block to stack on yellow_block; base objects are locked.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"Cannot move base object green_block to stack on yellow_block; base objects are locked.\"}",
+   "errors": []
+  }
+ ]
+}
