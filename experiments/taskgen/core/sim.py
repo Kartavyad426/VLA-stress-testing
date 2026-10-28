@@ -75,6 +75,15 @@ class Sim(ABC):
         """Residual (m) of a top-down gripper pose at `point` from the current arm pose (IK)."""
 
     @abstractmethod
+    def visibility(self, name, view, height=180, width=320):
+        """(visible pixels, pixels it would cover with nothing in front) of an object from a camera, at the policy's
+        input size by default."""
+
+    @abstractmethod
+    def arm_above(self, point, height):
+        """Arm joint angles putting the gripper `height` above `point`, pointing down (IK), or None if unreachable."""
+
+    @abstractmethod
     def render(self, view, height=360, width=640):
         """RGB image (H, W, 3) from 'ext', 'wrist' or 'free'."""
 

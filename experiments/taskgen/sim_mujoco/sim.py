@@ -168,6 +168,49 @@ class MujocoSim(Sim):
         _, err = ik(m, d.qpos[arm_q].copy(), m.site("g_pinch").id, np.asarray(point, float), R_down, arm_q, arm_dof)
         return err
 
+    def visibility(self, name, view, height=180, width=320):
+        m, d = self.m, self.d
+        key = (height, width)
+        if getattr(self, "_seg", None) is None or self._seg[0] != key:
+            self._seg = (key, mujoco.Renderer(m, height, width))
+        r = self._seg[1]
+        r.enable_segmentation_rendering()
+        if view == "free":
+            cam = mujoco.MjvCamera()
+            cam.lookat[:] = [0.62, 0.0, -0.08]
+            cam.distance, cam.azimuth, cam.elevation = 1.25, 205.0, -35.0
+            r.update_scene(d, camera=cam)
+        else:
+            r.update_scene(d, camera=view)
+        root = self._root(name)
+        scn = r.scene
+        ours = set()
+        for i in range(scn.ngeom):
+            g = scn.geoms[i]
+            if g.objtype == int(mujoco.mjtObj.mjOBJ_GEOM) and m.body_rootid[m.geom_bodyid[g.objid]] == root:
+                ours.add(g.objid)
+
+        seg = r.render()
+        mask = (seg[..., 1] == int(mujoco.mjtObj.mjOBJ_GEOM)) & np.isin(seg[..., 0], list(ours))
+        vis = int(mask.sum())
+        for i in range(scn.ngeom):  # move everything else out of the way: the unoccluded silhouette
+            g = scn.geoms[i]
+            if not (g.objtype == int(mujoco.mjtObj.mjOBJ_GEOM) and g.objid in ours):
+                g.pos[:] = [0.0, 0.0, -1e3]
+        seg = r.render()
+        full = int(((seg[..., 1] == int(mujoco.mjtObj.mjOBJ_GEOM)) & np.isin(seg[..., 0], list(ours))).sum())
+        r.disable_segmentation_rendering()
+        return vis, full
+
+    def arm_above(self, point, height):
+        from scripted_grasp import ik
+        m, d = self.m, self.d
+        arm_q = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
+        arm_dof = [m.joint(f"fr3_joint{k}").dofadr[0] for k in range(1, 8)]
+        R_down = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1.0]])
+        q, err = ik(m, d.qpos[arm_q].copy(), m.site("g_pinch").id, np.asarray(point, float) + [0, 0, height], R_down, arm_q, arm_dof)
+        return q if err < 0.01 else None
+
     # --- output ---
     def render(self, view, height=360, width=640):
         r = mujoco.Renderer(self.m, height, width)

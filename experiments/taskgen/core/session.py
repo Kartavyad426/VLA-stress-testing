@@ -24,6 +24,15 @@ OTHERS_LIMIT = 0.005       # everything else must stay put
 CLEARANCE_BASE = 0.015     # horizontal clearance to base objects that are not the target (D8 proposal)
 CLEARANCE_ADDED = 0.005
 REACH_TOL = 0.01
+# Visibility (L6), at the policy's 320x180 input. The exterior camera must see the object from the start pose; the
+# wrist camera from 25 cm above it (pre-grasp). Objects inside a container may be hidden from the exterior camera
+# (reported, not required). Pixel minimum per camera = VIS_REL x the smallest base object's pixels in this scene
+# ("as visible as the real objects of this episode"), never below VIS_FLOOR_PX; at least VIS_MIN_FRAC unhidden.
+# Chosen values, not measured.
+VIS_REL = 0.5
+VIS_FLOOR_PX = 20
+VIS_MIN_FRAC = 0.5
+WRIST_ABOVE_M = 0.25
 BASE_KIND = {"box": "block", "bowl": "bowl", "ellipsoid": "item", "asset": "item"}
 
 
@@ -223,7 +232,8 @@ class Session:
             res = self._try(a, relation, target, t, cands, reasons)
             if res:
                 a.pose, a.relation = res, Relation(type=relation, target=target)
-                out = dict(placed=name, relation=relation, target=target, at_cm=cm(res[:3]), size_cm=cm(a.size_m))
+                out = dict(placed=name, relation=relation, target=target, at_cm=cm(res[:3]), size_cm=cm(a.size_m),
+                           visible=getattr(self, "_last_vis", None))
                 if a.resized_from_m:
                     out["resized"] = f"{cm(a.resized_from_m)} -> {cm(a.size_m)} cm ({a.resize_reason})"
                 return self._log("place", args, out)
@@ -321,4 +331,54 @@ class Session:
             reach_pt = (c[0], c[1], floor + 0.02)
         if s.reachable(reach_pt) > REACH_TOL:
             return "out of the arm's reach"
+        vis = self.visibility(s, body, reach_pt)
+        self._last_vis = vis
+        if relation != "inside" and not vis["ext"]["ok"]:
+            return f"not visible from the exterior camera ({vis['ext']['px']} px, {vis['ext']['frac']:.0%} unhidden)"
+        if not vis["wrist_above"]["ok"]:
+            return f"not visible from the wrist camera above it ({vis['wrist_above']['px']} px, {vis['wrist_above']['frac']:.0%} unhidden)"
         return True
+
+    def _raw_visibility(self, s, body, point):
+        out = dict(ext=s.visibility(body, "ext"))
+        snap = s.snapshot()
+        q = s.arm_above(point, WRIST_ABOVE_M)
+        if q is not None:
+            s.set_robot(q)
+            out["wrist_above"] = s.visibility(body, "wrist")
+        s.restore(snap)
+        return out
+
+    def vis_thresholds(self):
+        """Per-camera pixel minimum from the base objects of this scene (computed once)."""
+        if getattr(self, "_vis_thr", None) is None:
+            s = self.build()
+            px = {"ext": [], "wrist_above": []}
+            self.base_visibility = {}
+            for b in self.base_bodies:
+                box = aabb(s.collision_points(b))
+                v = self._raw_visibility(s, b, (box["centre"][0], box["centre"][1], box["hi"][2] - 0.01))
+                self.base_visibility[b] = {k: dict(px=p_, full=f_) for k, (p_, f_) in v.items()}
+                for k, (p_, f_) in v.items():
+                    if f_ and p_ / f_ >= VIS_MIN_FRAC:  # only base objects that are themselves mostly in view
+                        px[k].append(p_)
+            self._vis_thr = {k: max(VIS_FLOOR_PX, int(VIS_REL * min(v))) if v else VIS_FLOOR_PX for k, v in px.items()}
+        return self._vis_thr
+
+    def visibility(self, s, body, point):
+        """Exterior view at the current state; wrist view with the arm moved (kinematically) 25 cm above `point`."""
+        thr = self.vis_thresholds()
+
+        def row(k, px, full):
+            frac = px / full if full else 0.0
+            return dict(px=px, frac=round(frac, 2), min_px=thr[k], ok=bool(px >= thr[k] and frac >= VIS_MIN_FRAC))
+        out = dict(ext=row("ext", *s.visibility(body, "ext")))
+        snap = s.snapshot()
+        q = s.arm_above(point, WRIST_ABOVE_M)
+        if q is None:
+            out["wrist_above"] = dict(px=0, frac=0.0, ok=False, why="no IK above the object")
+        else:
+            s.set_robot(q)
+            out["wrist_above"] = row("wrist_above", *s.visibility(body, "wrist"))
+        s.restore(snap)
+        return out

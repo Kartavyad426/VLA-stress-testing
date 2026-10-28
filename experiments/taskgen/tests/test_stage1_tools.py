@@ -37,6 +37,8 @@ def main():
     q0 = h5py.File(os.path.join(EPISODE, "trajectory.h5"))["observation/robot_state/joint_positions"][0]
     S = Session(MujocoSim, assets, SCENE, EPISODE, q0)
 
+    thr = S.vis_thresholds()
+    case("visibility thresholds from the base objects", dict(thresholds=thr, base=S.base_visibility), thr["ext"] >= 20 and thr["wrist_above"] >= 20)
     sc = S.list_scene()
     case("list_scene: 4 locked base objects, bowl has an opening", sc,
          len(sc["base"]) == 4 and all(r["locked"] for r in sc["base"].values()) and "opening_cm" in sc["base"]["black_bowl"])
@@ -96,6 +98,15 @@ def main():
     case("rebuilt from config: no overlaps, nothing moves > 2 cm, no warnings",
          dict(overlaps=ov, max_moved_cm=round(100 * max(moved.values()), 2), warnings=s.warnings()),
          not ov and max(moved.values()) < 0.02 and not s.warnings())
+    # every placed object passed the visibility rule; positive control: close the drawer over the red block
+    s2 = S.build()
+    p = s2.position(red)
+    before = S.visibility(s2, red, p)
+    s2.push_joint("drawer_1_slide", 3.0, 1.5)
+    s2.settle(0.5)
+    after = S.visibility(s2, red, p)  # same arm pose as the open case (25 cm above where the block was)
+    case("visibility control: block in the open drawer seen from above; hidden once the drawer is closed",
+         dict(open=before, closed=after), before["wrist_above"]["ok"] and "why" not in after["wrist_above"] and not after["wrist_above"]["ok"] and not after["ext"]["ok"])
     S.cfg.checks = dict(overlaps=ov, max_moved_m=max(moved.values()))
     S.cfg.save(os.path.join(OUT, "scene_config.json"))
     s.save(os.path.join(OUT, "scene.mjb"))
