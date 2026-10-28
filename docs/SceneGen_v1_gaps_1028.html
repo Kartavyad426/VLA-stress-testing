@@ -171,7 +171,7 @@ a{color:var(--accent)}
 <h2>9 · Closing v1 (status 10-28 evening; user: "lets check everything and see whats left and close v1 asap")</h2>
 <div class="wrap"><table>
 <tr><th>Item</th><th>State</th><th>Evidence / owner</th></tr>
-<tr><td>Camera source (DROID refined → PointWorld → search → manual)</td><td class="ok">done (camera_source.py)</td><td>5/5 scenes covered; PointWorld files byte-identical to res32's; licence call pending (user)</td></tr>
+<tr><td>Camera source (DROID refined → PointWorld → search → manual)</td><td class="ok">done (camera_source.py)</td><td>5/5 scenes covered; PointWorld files byte-identical to res32's; <b>licence: OK for the PoC (user 10-28)</b>; port their method or clear the licence before non-PoC use</td></tr>
 <tr><td>Table from the wrist plane (mask-free)</td><td class="ok">done (stereo_depth.py --wrist_plane)</td><td>agrees with the published-camera builds within 0.1–0.8 cm on all 5; real tables 0.4–2.0° from level</td></tr>
 <tr><td>Grasps on objects, drops in containers (A3)</td><td class="ok">passing on orange, c11, c1b, c3 (8/11), c9 partly</td><td>§7a, §7b; scene_checks on/in rule</td></tr>
 <tr><td>Doable (B3)</td><td class="warn">built by implres31; rerun on corrected scenes requested</td><td>old scenes: orange 12/12, c11 8/8</td></tr>
@@ -192,6 +192,7 @@ a{color:var(--accent)}
 <tr><td>10-28</td><td>User: "okay what are our current assumptions" → "yes add it to the gaps doc. I just wanted a generalised design, can we fix the mechanism or do we need to change approach entirely?"; "were these calibrations wrong and our measurements correct? … standard practice to provide camera models and calibrations"</td><td>§6 assumptions; §7 DROID refined calibrations and the proposed design change</td></tr>
 <tr><td>10-28</td><td>res32 found NVIDIA PointWorld-DROID cameras; user: "loop res31 in", wants results before deciding; then "so if we know our method is wrong, how wrong are we", "time for pointworld"</td><td>§7b; adoption and licence pending</td></tr>
 <tr><td>10-28</td><td>User: "should we adapt their method before calibration or use their calibrations for now and adapt later?", then "make a note of it somewhere?"</td><td>Recommendation recorded in §7b (use now, adapt later); go and licence call pending</td></tr>
+<tr><td>10-28</td><td>User: "yes to 1" (one shared module in main for detector, kinds/bounds, collision geometry, scene loading; owner res31, implres31 and TaskGen import it read-only) and on PointWorld: "for this level its ok otherwise we will have to port their method, although we do have a nvidia partnership. Lets use it for poc now"</td><td>Shared module: plan sent to prim. PointWorld cameras used for the PoC (v1); before any non-PoC use, either port their method or clear the licence (NVIDIA partnership noted)</td></tr>
 </table></div>
 </main></body>
 </html>
