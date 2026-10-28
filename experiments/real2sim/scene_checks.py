@@ -85,6 +85,7 @@ def main():
         mujoco.mj_forward(m, dk)
         return dk.site_xpos[pinch].copy(), dk
     events = []
+    grasped = set()  # 10-29: only each object's FIRST grasp is checked; a re-grasp finds the object moved (c3)
     for kc, ko in grasp_events(G):
         p, dk = pinch_at(kc)
         objs = [b for b in free if b not in containers]
@@ -94,6 +95,11 @@ def main():
         if red and min(red)[0] <= np.linalg.norm((dk.xpos[tgt] - p)[:2]):
             events.append(dict(close_frame=kc, open_frame=ko, object=min(red)[1], skipped="object redacted (not in the scene)"))
             continue
+        if tgt in grasped:
+            events.append(dict(close_frame=kc, open_frame=ko, object=m.body(tgt).name,
+                               skipped="re-grasp: the object was moved by an earlier grasp (start position no longer applies)"))
+            continue
+        grasped.add(tgt)
         dp = p - dk.xpos[tgt]
         ev = dict(close_frame=kc, open_frame=ko, object=m.body(tgt).name, surface_m=surface_dist(m, dk, tgt, p),
                   horiz_m=float(np.linalg.norm(dp[:2])), vert_m=float(dp[2]),
