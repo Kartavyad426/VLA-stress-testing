@@ -79,6 +79,66 @@ def table_height(m, d, episode, serial, frame, cam):
     return res
 
 
+def wrist_table_plane(m, episode, serial, frames, n_iter=400, inlier_m=0.006, max_tilt_deg=15.0, seed=0):
+    """Table plane from wrist stereo WITHOUT the sim table (10-28; the old check selects table pixels through the built
+    table, which is circular when the build is wrong). Per frame: the wrist camera pose from the recorded joints, stereo
+    points 0.15-0.9 m away, points within 12 cm of the fingertip point dropped (the gripper itself); then RANSAC for the
+    largest near-horizontal plane over all frames. Returns z at the robot's workspace centre, tilt, inliers."""
+    import mujoco, h5py
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from composite import cam_K, cam_pose
+    d = mujoco.MjData(m)
+    J = h5py.File(os.path.join(episode, "trajectory.h5"))["observation/robot_state/joint_positions"][:]
+    arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
+    cid, pinch = m.camera("wrist").id, m.site("g_pinch").id
+    pts = []
+    for fr in frames:
+        d.qpos[:] = m.qpos0
+        d.qpos[arm] = J[fr]
+        mujoco.mj_forward(m, d)
+        L, Rr = stereo_pair(episode, serial, fr)
+        H, W = L.shape[:2]
+        K = cam_K(m, cid, W, H)
+        Rc, tc = cam_pose(d, cid)
+        disp = disparity(L, Rr, num_disp=320)
+        ok = disp > 1
+        z = np.where(ok, K[0, 0] * BASELINE_M["wrist"] / np.maximum(disp, 1e-6), np.nan)
+        v, u = np.nonzero(ok & (z > 0.15) & (z < 0.9))
+        sel = np.random.default_rng(fr).choice(len(u), min(len(u), 15000), replace=False) if len(u) else []
+        u, v = u[sel], v[sel]
+        zz = z[v, u]
+        pc = np.stack([(u + 0.5 - K[0, 2]) / K[0, 0] * zz, (v + 0.5 - K[1, 2]) / K[1, 1] * zz, zz], -1)
+        pw = pc @ Rc.T + tc
+        pw = pw[np.linalg.norm(pw - d.site_xpos[pinch], axis=1) > 0.12]
+        pts.append(pw)
+    P = np.concatenate(pts) if pts else np.zeros((0, 3))
+    if len(P) < 500:
+        return dict(z=None, why=f"only {len(P)} stereo points", n=int(len(P)))
+    rng = np.random.default_rng(seed)
+    best, best_n = None, 0
+    for _ in range(n_iter):
+        a3 = P[rng.choice(len(P), 3, replace=False)]
+        nrm = np.cross(a3[1] - a3[0], a3[2] - a3[0])
+        if np.linalg.norm(nrm) < 1e-9:
+            continue
+        nrm /= np.linalg.norm(nrm)
+        if np.degrees(np.arccos(abs(nrm[2]))) > max_tilt_deg:
+            continue
+        n_in = int((np.abs((P - a3[0]) @ nrm) < inlier_m).sum())
+        if n_in > best_n:
+            best, best_n = (nrm, a3[0]), n_in
+    if best is None:
+        return dict(z=None, why="no near-horizontal plane", n=int(len(P)))
+    nrm, p0 = best
+    inl = P[np.abs((P - p0) @ nrm) < inlier_m]
+    A = np.c_[inl[:, 0], inl[:, 1], np.ones(len(inl))]  # least-squares refit z = a x + b y + c on the inliers
+    (ca, cb, cc), *_ = np.linalg.lstsq(A, inl[:, 2], rcond=None)
+    cx, cy = float(np.median(inl[:, 0])), float(np.median(inl[:, 1]))
+    return dict(z=float(ca * cx + cb * cy + cc), at_xy=[cx, cy], tilt_deg=float(np.degrees(np.arctan(np.hypot(ca, cb)))),
+                plane=[float(ca), float(cb), float(cc)], n_inliers=int(len(inl)), n_points=int(len(P)), frames=list(frames),
+                inlier_frac=float(len(inl) / len(P)))
+
+
 def main():
     import mujoco
     ap = argparse.ArgumentParser()
@@ -86,7 +146,17 @@ def main():
     ap.add_argument("--episode", required=True)
     ap.add_argument("--frames", default=None, help="real frames, comma-separated (replay_states.npz poses the sim robot there); derived from the episode (episode_info.py) when omitted")
     ap.add_argument("--ext_serial", default=None, help="default: calib.json 'cam'")
+    ap.add_argument("--wrist_plane", action="store_true", help="only fit the wrist table plane without the sim table "
+                    "(frames: episode_info 'before_touch'); writes <scene>/wrist_table_plane.json")
     a = ap.parse_args()
+    if a.wrist_plane:
+        from episode_info import frames_arg
+        m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
+        serial = json.load(open(os.path.join(a.scene, "scene_fit.json")))["wrist_camera"]["serial"]
+        res = wrist_table_plane(m, a.episode, serial, frames_arg(a.frames, a.episode, "before_touch"))
+        json.dump(res, open(os.path.join(a.scene, "wrist_table_plane.json"), "w"), indent=1)
+        print(json.dumps({k: (round(v, 4) if isinstance(v, float) else v) for k, v in res.items() if k != "plane"}))
+        return
     from episode_info import frames_arg
     frames = frames_arg(a.frames, a.episode, "stereo")
     m = mujoco.MjModel.from_binary_path(os.path.join(a.scene, "scene.mjb"))
