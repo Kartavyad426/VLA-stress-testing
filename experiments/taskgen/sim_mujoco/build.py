@@ -56,8 +56,25 @@ def add_drawer(spec, o: Drawer, z_table):
     return dict(closed_qpos=o.open_m, **names)
 
 
-ADDERS = {Box: add_box, PackAsset: add_pack, Drawer: add_drawer}
-
-
 def add(spec, obj, z_table):
-    return ADDERS[type(obj)](spec, obj, z_table)
+    from core.objects import Cabinet
+    adders = {Box: add_box, PackAsset: add_pack, Drawer: add_drawer, Cabinet: add_cabinet}
+    return adders[type(obj)](spec, obj, z_table)
+
+
+def add_cabinet(spec, o, z_table):
+    from core.objects import Cabinet  # noqa: F401
+    names = o.body_names()
+    parts = o.parts()
+    cab = spec.worldbody.add_body(name=names["cabinet"], pos=[o.xy[0], o.xy[1], z_table])  # no joint: fixed
+    for nm, c, h in parts["cabinet"]:
+        cab.add_geom(name=f"{o.name}_cab_{nm}", type=BOX, pos=list(c), size=list(h), rgba=WOOD, density=500)
+    for lv, dpart in parts["drawers"].items():
+        dr = cab.add_body(name=names["drawers"][lv])
+        dr.add_joint(name=names["joints"][lv], type=mujoco.mjtJoint.mjJNT_SLIDE, axis=[1, 0, 0],
+                     range=list(dpart["range"]), damping=10.0, armature=0.01)
+        for nm, c, h in dpart["boxes"]:
+            dr.add_geom(name=f"{o.name}_{lv}_dr_{nm}", type=BOX, pos=list(c), size=list(h), rgba=WOOD2, density=500)
+        for nm, c, h in dpart["handle"]:
+            dr.add_geom(name=f"{o.name}_{lv}_{nm}", type=BOX, pos=list(c), size=list(h), rgba=METAL, density=500)
+    return dict(open_level=o.open_level, opening_m=o.open_m, **{k: v for k, v in names.items() if k != "drawers"})

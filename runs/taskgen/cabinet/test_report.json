@@ -1,0 +1,324 @@
+{
+ "results": {
+  "[bottom] add a 3-level cabinet, bottom drawer open": {
+   "added": "cabinet_1",
+   "kind": "cabinet",
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "graspable": false,
+   "placed": false
+  },
+  "[bottom] place the cabinet on the table (clear, reachable into the open drawer, visible)": {
+   "placed": "cabinet_1",
+   "relation": "on_table",
+   "target": null,
+   "at_cm": [
+    71.0,
+    -51.3,
+    -9.4
+   ],
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 1292,
+     "frac": 0.82,
+     "min_px": 28,
+     "ok": true
+    },
+    "wrist_above": {
+     "px": 29239,
+     "frac": 0.92,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[bottom] list_scene: one level open, two closed": {
+   "kind": "cabinet",
+   "size_cm": [
+    35.6,
+    24.0,
+    24.0
+   ],
+   "centre_cm": [
+    63.2,
+    -51.3,
+    2.6
+   ],
+   "relation": {
+    "type": "on_table",
+    "target": null
+   },
+   "levels": {
+    "bottom": "open: reachable part 10.2x19.8 cm, height 5.4 cm",
+    "middle": "closed",
+    "top": "closed"
+   }
+  },
+  "[bottom] red 3 cm block into the open bottom drawer": {
+   "placed": "red_block_1",
+   "relation": "inside",
+   "target": "cabinet_1/bottom",
+   "at_cm": [
+    55.6,
+    -47.7,
+    -7.5
+   ],
+   "size_cm": [
+    3.0,
+    3.0,
+    3.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 4,
+     "frac": 0.17,
+     "min_px": 28,
+     "ok": false
+    },
+    "wrist_above": {
+     "px": 161,
+     "frac": 0.61,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[bottom] blue block into the closed middle drawer is refused": {
+   "infeasible": "the middle drawer of cabinet_1 is closed: nothing can be placed in it from above"
+  },
+  "[bottom] unknown level is an error": {
+   "error": "target 'cabinet_1/attic' is not a placed object in the scene"
+  },
+  "[bottom] rebuilt from the config: no overlaps, nothing moves > 2 cm, no warnings": {
+   "overlaps": [],
+   "max_moved_cm": 0.1,
+   "warnings": {}
+  },
+  "[bottom] drawer pushed closed: closes, block rides inside": {
+   "slide_end": 0.123,
+   "slip_cm": 0.3
+  },
+  "[middle] add a 3-level cabinet, middle drawer open": {
+   "added": "cabinet_1",
+   "kind": "cabinet",
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "graspable": false,
+   "placed": false
+  },
+  "[middle] place the cabinet on the table (clear, reachable into the open drawer, visible)": {
+   "placed": "cabinet_1",
+   "relation": "on_table",
+   "target": null,
+   "at_cm": [
+    71.0,
+    -51.3,
+    -9.4
+   ],
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 1304,
+     "frac": 0.84,
+     "min_px": 28,
+     "ok": true
+    },
+    "wrist_above": {
+     "px": 24902,
+     "frac": 0.97,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[middle] list_scene: one level open, two closed": {
+   "kind": "cabinet",
+   "size_cm": [
+    35.6,
+    24.0,
+    24.0
+   ],
+   "centre_cm": [
+    63.2,
+    -51.3,
+    2.6
+   ],
+   "relation": {
+    "type": "on_table",
+    "target": null
+   },
+   "levels": {
+    "bottom": "closed",
+    "middle": "open: reachable part 10.2x19.8 cm, height 5.4 cm",
+    "top": "closed"
+   }
+  },
+  "[middle] red 3 cm block into the open middle drawer": {
+   "placed": "red_block_1",
+   "relation": "inside",
+   "target": "cabinet_1/middle",
+   "at_cm": [
+    52.1,
+    -59.0,
+    0.2
+   ],
+   "size_cm": [
+    3.0,
+    3.0,
+    3.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 17,
+     "frac": 0.89,
+     "min_px": 28,
+     "ok": false
+    },
+    "wrist_above": {
+     "px": 257,
+     "frac": 1.0,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[middle] blue block into the closed bottom drawer is refused": {
+   "infeasible": "the bottom drawer of cabinet_1 is closed: nothing can be placed in it from above"
+  },
+  "[middle] unknown level is an error": {
+   "error": "target 'cabinet_1/attic' is not a placed object in the scene"
+  },
+  "[middle] rebuilt from the config: no overlaps, nothing moves > 2 cm, no warnings": {
+   "overlaps": [],
+   "max_moved_cm": 0.1,
+   "warnings": {}
+  },
+  "[middle] drawer pushed closed: closes, block rides inside": {
+   "slide_end": 0.123,
+   "slip_cm": 0.3
+  },
+  "[top] add a 3-level cabinet, top drawer open": {
+   "added": "cabinet_1",
+   "kind": "cabinet",
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "graspable": false,
+   "placed": false
+  },
+  "[top] place the cabinet on the table (clear, reachable into the open drawer, visible)": {
+   "placed": "cabinet_1",
+   "relation": "on_table",
+   "target": null,
+   "at_cm": [
+    65.0,
+    -51.4,
+    -9.4
+   ],
+   "size_cm": [
+    20.0,
+    24.0,
+    24.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 1365,
+     "frac": 0.84,
+     "min_px": 28,
+     "ok": true
+    },
+    "wrist_above": {
+     "px": 19235,
+     "frac": 0.99,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[top] list_scene: one level open, two closed": {
+   "kind": "cabinet",
+   "size_cm": [
+    35.6,
+    24.0,
+    24.0
+   ],
+   "centre_cm": [
+    57.2,
+    -51.4,
+    2.6
+   ],
+   "relation": {
+    "type": "on_table",
+    "target": null
+   },
+   "levels": {
+    "bottom": "closed",
+    "middle": "closed",
+    "top": "open: reachable part 10.2x19.8 cm, height 5.4 cm"
+   }
+  },
+  "[top] red 3 cm block into the open top drawer": {
+   "placed": "red_block_1",
+   "relation": "inside",
+   "target": "cabinet_1/top",
+   "at_cm": [
+    49.8,
+    -55.1,
+    7.8
+   ],
+   "size_cm": [
+    3.0,
+    3.0,
+    3.0
+   ],
+   "visible": {
+    "ext": {
+     "px": 8,
+     "frac": 0.32,
+     "min_px": 28,
+     "ok": false
+    },
+    "wrist_above": {
+     "px": 262,
+     "frac": 1.0,
+     "min_px": 83,
+     "ok": true
+    }
+   }
+  },
+  "[top] blue block into the closed bottom drawer is refused": {
+   "infeasible": "the bottom drawer of cabinet_1 is closed: nothing can be placed in it from above"
+  },
+  "[top] unknown level is an error": {
+   "error": "target 'cabinet_1/attic' is not a placed object in the scene"
+  },
+  "[top] rebuilt from the config: no overlaps, nothing moves > 2 cm, no warnings": {
+   "overlaps": [],
+   "max_moved_cm": 0.1,
+   "warnings": {}
+  },
+  "[top] drawer pushed closed: closes, block rides inside": {
+   "slide_end": 0.123,
+   "slip_cm": 0.3
+  }
+ },
+ "fails": [],
+ "seconds": 16.0
+}

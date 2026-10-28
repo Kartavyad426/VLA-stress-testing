@@ -13,7 +13,7 @@ Exploratory, UNVERIFIED.
 import numpy as np
 
 from core.config import SceneConfig, AddedObject, BaseObject, Relation, base_version, dump
-from core.objects import Box, PackAsset, Drawer
+from core.objects import Box, PackAsset, Drawer, Cabinet
 from core.geometry import aabb, cavity, horizontal_gap, oriented_size, footprint_box
 from core import kinds, place as P
 
@@ -56,6 +56,8 @@ class Session:
         x, y, zb, yaw = pose or a.pose
         if a.kind == "drawer":
             return Drawer(a.name, (x, y))
+        if a.kind == "cabinet":
+            return Cabinet(a.name, (x, y), levels=a.params.get("levels", 3), open_level=a.params.get("open_level"))
         if a.source.startswith("pack:"):
             return PackAsset(a.name, a.source[5:], (x, y), scale=a.scale, z_bottom=zb, yaw=yaw)
         return Box(a.name, tuple(a.size_m), tuple(a.rgba), (x, y), z_bottom=zb, yaw=yaw)
@@ -73,15 +75,30 @@ class Session:
         s.set_robot(self.q0)
         return s
 
+    FIXED = ("drawer", "cabinet")
+
     def _body(self, name):
+        name = name.split("/")[0]
         a = self.cfg.added_objects.get(name)
-        return f"{name}_cabinet" if a is not None and a.kind == "drawer" else name
+        return f"{name}_cabinet" if a is not None and a.kind in self.FIXED else name
 
     def _target(self, s, name):
         """Geometry the placement logic needs about a target, measured in the simulator."""
-        box = aabb(s.collision_points(self._body(name)))
+        base, _, level = name.partition("/")
+        box = aabb(s.collision_points(self._body(base)))
         t = dict(aabb=box)
-        a = self.cfg.added_objects.get(name)
+        a = self.cfg.added_objects.get(base)
+        if a is not None and a.kind == "cabinet":
+            c = self._neutral(a)
+            lv = level or c.open_level
+            if lv not in c.level_names():
+                return dict(aabb=box, error=f"'{base}' has levels {list(c.level_names())}")
+            inner = c.inner(lv, self.table_z, shift=s.joint(c.body_names()["joints"][lv]))
+            if inner is None:
+                t["closed"] = lv
+            else:
+                t["inner"] = inner
+            return t
         if a is not None and a.kind == "drawer":
             d = Drawer(a.name, a.pose[:2])
             c, h, floor = d.inner(self.table_z)
@@ -94,7 +111,13 @@ class Session:
         return t
 
     def _exists(self, name):
-        return name in self.base_bodies or (name in self.cfg.added_objects and self.cfg.added_objects[name].pose is not None)
+        base, _, level = name.partition("/")
+        if base in self.base_bodies:
+            return not level
+        a = self.cfg.added_objects.get(base)
+        if a is None or a.pose is None:
+            return False
+        return not level or (a.kind == "cabinet" and level in self._neutral(a).level_names())
 
     def _log(self, call, args, result):
         self.cfg.log.append(dict(by="tool", call=call, args=args, result=result))
@@ -123,6 +146,11 @@ class Session:
             if a.kind == "drawer":
                 c, h, _ = self._target(s, n)["inner"]
                 row["inside_cm"] = cm(2 * np.array(h))
+            if a.kind == "cabinet":
+                cab = self._neutral(a)
+                row["levels"] = {lv: ("open: reachable part " + "x".join(str(v) for v in cm(2 * np.array(t_["inner"][1])[:2])) + f" cm, height {round(200 * t_['inner'][1][2], 1)} cm"
+                                      if "inner" in (t_ := self._target(s, f"{n}/{lv}")) else "closed")
+                                 for lv in cab.level_names()}
             out["added"][n] = row
         return out
 
@@ -133,8 +161,8 @@ class Session:
         return dict(assets=[dict(source=f"pack:{k}", kind=(i := self.assets.info(k))["kind"], size_cm=cm(i["size_m"]),
                                  licence=i["licence"]) for k in keys])
 
-    def add_object(self, source, colour=None, size_cm=None, name=None):
-        args = dict(source=source, colour=colour, size_cm=size_cm, name=name)
+    def add_object(self, source, colour=None, size_cm=None, name=None, params=None):
+        args = dict(source=source, colour=colour, size_cm=size_cm, name=name, params=params)
         if source == "primitive:box":
             colour = colour or "red"
             if colour not in kinds.PALETTE:
@@ -144,6 +172,15 @@ class Session:
         elif source == "primitive:drawer":
             d = Drawer("tmp", (0, 0))
             kind, size, rgba, scale, lic, colour = "drawer", d.outer, None, 1.0, None, None
+        elif source == "primitive:cabinet":
+            levels = int((params or {}).get("levels", 3))
+            if levels not in (1, 2, 3):
+                return self._log("add_object", args, dict(error="cabinet levels must be 1, 2 or 3"))
+            c = Cabinet("tmp", (0, 0), levels=levels, open_level=(params or {}).get("open_level", "middle" if levels == 3 else "top"))
+            if c.open_level is not None and c.open_level not in c.level_names():
+                return self._log("add_object", args, dict(error=f"open_level must be one of {list(c.level_names())} or null"))
+            kind, size, rgba, scale, lic, colour = "cabinet", c.outer, None, 1.0, None, None
+            params = dict(levels=levels, open_level=c.open_level)
         elif source.startswith("pack:"):
             key = source[5:]
             if not self.assets.exists(key):  # a noun: the first match (catalogue order) whose real size is within bounds
@@ -160,7 +197,7 @@ class Session:
                 size, scale = tuple(float(k * v) for v in size), k
         else:
             return self._log("add_object", args, dict(error=f"unknown source '{source}'",
-                                                      sources=["primitive:box", "primitive:drawer", "pack:<key or noun>"]))
+                                                      sources=["primitive:box", "primitive:drawer", "primitive:cabinet", "pack:<key or noun>"]))
         ok, b = kinds.within_bounds(kind, size)
         if not ok:
             return self._log("add_object", args, dict(error=f"{kind} size {100 * b[2]:.1f} cm outside bounds {100 * b[0]:.0f}-{100 * b[1]:.0f} cm",
@@ -168,7 +205,8 @@ class Session:
         n = name or f"{colour + '_' if colour else ''}{kind}_{1 + sum(a.kind == kind for a in self.cfg.added_objects.values())}"
         if n in self.base_bodies or n in self.cfg.added_objects:
             return self._log("add_object", args, dict(error=f"name '{n}' already used"))
-        self.cfg.added_objects[n] = AddedObject(name=n, source=source, kind=kind, colour=colour, rgba=rgba, size_m=size, scale=scale, licence=lic)
+        self.cfg.added_objects[n] = AddedObject(name=n, source=source, kind=kind, colour=colour, rgba=rgba, size_m=size, scale=scale,
+                                                licence=lic, params=params if kind == "cabinet" else {})
         return self._log("add_object", args, dict(added=n, kind=kind, size_cm=cm(size), graspable=kinds.graspable(size), placed=False))
 
     def fits(self, name, relation, target=None):
@@ -211,11 +249,15 @@ class Session:
             return self._log("place", args, dict(error=f"unknown relation '{relation}'", relations=list(RELATIONS)))
         if relation != "on_table" and (target is None or not self._exists(target) or target == name):
             return self._log("place", args, dict(error=f"target '{target}' is not a placed object in the scene"))
-        if a.kind == "drawer" and relation != "on_table":
-            return self._log("place", args, dict(infeasible="a drawer stands on the table only"))
+        if a.kind in self.FIXED and relation != "on_table":
+            return self._log("place", args, dict(infeasible=f"a {a.kind} stands on the table only"))
         a.pose, a.relation = None, None
         s = self.build()
         t = self._target(s, target) if target else None
+        if t and t.get("error"):
+            return self._log("place", args, dict(error=t["error"]))
+        if t and t.get("closed"):
+            return self._log("place", args, dict(infeasible=f"the {t['closed']} drawer of {target.split('/')[0]} is closed: nothing can be placed in it from above"))
         ok, why, k = P.fits(relation, a.size_m, t, self.table)
         if not ok:
             if allow_resize and k and self._resize(a, 0.97 * k, f"did not fit {relation} {target}: {why}"):
@@ -227,7 +269,7 @@ class Session:
         rng = np.random.default_rng(seed)
         reasons = {}
         for r in range(rounds):
-            fp = Drawer(a.name, (0, 0)).footprint() if a.kind == "drawer" else None
+            fp = Drawer(a.name, (0, 0)).footprint() if a.kind == "drawer" else self._neutral(a, (0, 0, 0, 0)).footprint() if a.kind == "cabinet" else None
             cands = P.candidates(relation, a.size_m, self.table, t, rng, 8 * n, footprint=fp)
             res = self._try(a, relation, target, t, cands, reasons)
             if res:
@@ -244,8 +286,8 @@ class Session:
                                              tried=sum(reasons.values()), reasons=dict(top)))
 
     def _footprint(self, a, c):
-        if a.kind == "drawer":
-            lo, hi = Drawer(a.name, c[:2]).footprint()
+        if a.kind in self.FIXED:
+            lo, hi = self._neutral(a, c).footprint()
             return footprint_box((c[0] + (lo[0] + hi[0]) / 2, c[1] + (lo[1] + hi[1]) / 2), ((hi[0] - lo[0]) / 2, (hi[1] - lo[1]) / 2))
         r = float(np.linalg.norm(a.size_m[:2])) / 2  # any yaw
         return footprint_box(c[:2], (r, r))
@@ -258,7 +300,7 @@ class Session:
             if relation != "inside" and not P.table_ok(fp, self.table):
                 reasons["off the usable table (pre-filter)"] = reasons.get("off the usable table (pre-filter)", 0) + 1
                 continue
-            near = next((o for o, b in boxes.items() if o != target and
+            near = next((o for o, b in boxes.items() if o != (target or "").split("/")[0] and
                          horizontal_gap(fp, b) < (CLEARANCE_BASE if o in self.base_bodies else CLEARANCE_ADDED)), None)
             if near and relation in ("on_table", "next_to"):
                 reasons[f"too close to {near} (pre-filter)"] = reasons.get(f"too close to {near} (pre-filter)", 0) + 1
@@ -278,7 +320,7 @@ class Session:
         cands = self._prefilter(a, relation, target, cands, boxes, reasons, keep=12 if a.kind == "drawer" else 24)
         if not cands:
             return None
-        if a.kind == "drawer":  # fixed body: one build per candidate
+        if a.kind in self.FIXED:  # fixed body: one build per candidate
             for c in cands:
                 s = self.build(extra=[self._neutral(a, c)])
                 ok = self._check(s, a, relation, t, target, c, moving=False)
@@ -304,7 +346,7 @@ class Session:
         if relation != "inside" and not P.table_ok(box, self.table):
             return "off the usable table"
         for o in list(self.base_bodies) + [n for n, x in self.cfg.added_objects.items() if x.pose is not None and n != a.name]:
-            if o == target:
+            if target and o == target.split("/")[0]:
                 continue
             g = horizontal_gap(box, aabb(s.collision_points(self._body(o))))
             if g < (CLEARANCE_BASE if o in self.base_bodies else CLEARANCE_ADDED):
@@ -329,6 +371,10 @@ class Session:
         if a.kind == "drawer":  # the arm must reach into the open drawer
             c, _, floor = Drawer(a.name, pose[:2]).inner(self.table_z)
             reach_pt = (c[0], c[1], floor + 0.02)
+        if a.kind == "cabinet":  # ... into the open drawer's exposed part, or onto the top if all are closed
+            cab = self._neutral(a, pose)
+            inner = cab.inner(cab.open_level, self.table_z) if cab.open_level else None
+            reach_pt = (inner[0][0], inner[0][1], inner[2] + 0.02) if inner else (pose[0], pose[1], self.table_z + cab.outer[2] + 0.02)
         if s.reachable(reach_pt) > REACH_TOL:
             return "out of the arm's reach"
         vis = self.visibility(s, body, reach_pt)

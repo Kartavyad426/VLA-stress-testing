@@ -23,6 +23,7 @@ class AddedObject(BaseModel):
     licence: Optional[str] = None
     relation: Optional[Relation] = None          # None = added, not placed yet
     pose: Optional[Tuple[float, float, float, float]] = None   # x, y, z_bottom, yaw (written by place)
+    params: Dict = Field(default_factory=dict)  # kind-specific (cabinet: levels, open_level)
     resized_from_m: Optional[Tuple[float, float, float]] = None
     resize_reason: Optional[str] = None
 
