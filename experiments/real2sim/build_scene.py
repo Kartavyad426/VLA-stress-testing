@@ -426,6 +426,15 @@ def main():
         pts = to_base(masked_points(per, label))
         if len(pts) < 50:
             continue
+        # 10-28: only objects ON the table are built. c1b's detector also found a cup on a cabinet in the background,
+        # ~1.8 m from the camera, and it was built 2 m out (outside the table, bottom far above it). Off-table objects
+        # are listed, not built: centre outside the table's extent + 5 cm, or bottom not within -5..+10 cm of the table
+        mid, z_bot = np.median(pts[:, :2], axis=0), float(np.percentile(pts[:, 2], 5))
+        if (np.any(mid < lo - 0.05) or np.any(mid > hi + 0.05)) or not (-0.05 <= z_bot - z_table <= 0.10):
+            fit.setdefault("off_table", {})[label] = dict(center_xy=mid.tolist(), bottom_minus_table_m=z_bot - z_table)
+            print(f"WARNING: '{label}' not on the table (centre {np.round(mid, 3).tolist()}, bottom {z_bot - z_table:+.3f} m "
+                  f"from the table): not built", file=sys.stderr)
+            continue
         rgb = (np.median(per["image"][cv2.erode(per[key].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0], axis=0) / 255.0).tolist()
         body = label.replace("#", "_").replace(" ", "_")
         if kind == "box":
