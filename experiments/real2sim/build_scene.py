@@ -272,7 +272,8 @@ def main():
                     "(mass kg, friction [3], scale_mult); see experiments/asset_pack/catalogue.py")
     ap.add_argument("--robot", choices=["fr3_robotiq", "panda"], default="fr3_robotiq")
     ap.add_argument("--floor_below", type=float, default=0.75, help="ASSUMED floor depth under the table top (m)")
-    ap.add_argument("--anchor_frame", type=int, default=60, help="frame for the robot-depth scale anchor (with --calib)")
+    ap.add_argument("--anchor_frame", type=int, default=None,
+                    help="frame for the robot-depth scale anchor (with --calib); default: the middle calibration frame")
     ap.add_argument("--no_wrist", action="store_true", help="don't add the DROID wrist camera")
     a = ap.parse_args()
     anchor_info = {}
@@ -317,7 +318,7 @@ def main():
         # MoGe depth on pixels where the sim robot and the real motion mask agree; then carried to the perception
         # frame through static table pixels seen in both frames
         from perceive import read_frame, geometry
-        n = a.anchor_frame
+        n = a.anchor_frame if a.anchor_frame is not None else c["frames"][len(c["frames"]) // 2]  # orange: 60
         zs = sim_robot_depth(R, t, K, W, H, f["observation/robot_state/joint_positions"][n], a.robot)
         real_n = np.load(os.path.join(a.out, "robot_masks_motion.npz"))[str(n)]
         geo_n = geometry(read_frame(os.path.join(a.episode, f"{a.cam}.mp4"), n))

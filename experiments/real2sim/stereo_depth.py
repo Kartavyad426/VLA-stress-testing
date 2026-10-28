@@ -45,6 +45,9 @@ def stereo_z(episode, serial, frame, fx, baseline, num_disp=192):
     return z
 
 
+MIN_TABLE_PX, MAX_TABLE_IQR_M = 3000, 0.03  # 10-27 (checklist A1): skip frames that don't see the table well
+
+
 def table_height(m, d, episode, serial, frame, cam):
     """Median table-top z (robot frame) from stereo, over the pixels where the sim sees the table (eroded)."""
     import mujoco
@@ -62,11 +65,18 @@ def table_height(m, d, episode, serial, frame, cam):
     table = cv2.erode(table.astype(np.uint8), np.ones((15, 15), np.uint8)) > 0
     z = stereo_z(episode, serial, frame, K[0, 0], BASELINE_M[cam])
     sel = table & np.isfinite(z)
+    if sel.sum() < MIN_TABLE_PX:  # 10-27 guard: c9 crashed here on an empty selection
+        return dict(cam=cam, frame=frame, px=int(sel.sum()), table_px=int(table.sum()), z_median=None,
+                    skipped=f"only {int(sel.sum())} stereo table pixels (< {MIN_TABLE_PX})")
     v, u = np.nonzero(sel)
     pc = np.stack([(u + 0.5 - K[0, 2]) / K[0, 0] * z[sel], (v + 0.5 - K[1, 2]) / K[1, 1] * z[sel], z[sel]], -1)
     zw = (pc @ R.T + t)[:, 2]
-    return dict(cam=cam, frame=frame, px=int(sel.sum()), table_px=int(table.sum()), z_median=float(np.median(zw)),
-                z_iqr=[float(np.percentile(zw, 25)), float(np.percentile(zw, 75))])
+    iqr = [float(np.percentile(zw, 25)), float(np.percentile(zw, 75))]
+    res = dict(cam=cam, frame=frame, px=int(sel.sum()), table_px=int(table.sum()), z_median=float(np.median(zw)), z_iqr=iqr)
+    if iqr[1] - iqr[0] > MAX_TABLE_IQR_M:  # not a table: the projected sim table covers something else (c11 +34.5 cm)
+        res.update(z_median=None, z_median_raw=float(np.median(zw)),
+                   skipped=f"table z spread (IQR) {100 * (iqr[1] - iqr[0]):.1f} cm > {100 * MAX_TABLE_IQR_M:.0f} cm")
+    return res
 
 
 def main():
@@ -93,6 +103,10 @@ def main():
             if cam == "ext" and fr != frames[0]:
                 continue  # the exterior camera is static: one frame is enough
             res = table_height(m, d, a.episode, serial, fr, cam)
+            if res["z_median"] is None:  # skipped frames are kept apart so every consumer of "results" stays valid
+                out.setdefault("skipped", []).append(res)
+                print("skipped", json.dumps(res))
+                continue
             res["minus_sim_cm"] = 100 * (res["z_median"] - fit["table"]["z"])
             out["results"].append(res)
             print(json.dumps({k2: (round(v, 4) if isinstance(v, float) else v) for k2, v in res.items()}))
