@@ -6,7 +6,8 @@ independent of the exterior calibration: the recorded robot joints (exact, via F
 
   #1 settle      every free body moves < SETTLE_M in 0.5 s (robot held at its frame-0 joints)
   #3 real grasp  fingertip point (g_pinch, FK of the recorded joints) at the operator's gripper close vs the
-                 nearest object: |horizontal| and |vertical| <= GRASP_M
+                 nearest object: on or in it, within GRASP_M of its collision boxes (10-28; was: |horizontal| and
+                 |vertical| offset from its centre <= GRASP_M, which failed correct scenes on rim/handle grasps)
   #4 release     fingertip point at the operator's release vs the nearest container (bowl): inside its rim
   #5 scale       real grasp->release distance vs sim object->container distance: ratio within 1 +- SCALE_TOL
   #6 stereo      table-top z from the exterior and wrist stereo (stereo_depth.py) vs the built table: <= TABLE_M
@@ -30,6 +31,19 @@ from episode_info import frames_arg, grasp_events  # noqa: E402,F401  (grasp_eve
 
 # thresholds: res31's, user-accepted 10-19 (reversible)
 SETTLE_M, GRASP_M, SCALE_TOL, TABLE_M = 0.02, 0.015, 0.10, 0.01
+
+
+def surface_dist(m, d, body, p):
+    """Distance (m) from point p to the nearest collision box of `body` (all geoms whose root is body; each as its local
+    bounding box), 0 inside. 10-28: a grasp point is ON or IN the object (rim, handle), not at its centre (c9's cup)."""
+    best = np.inf
+    for g in range(m.ngeom):
+        if m.body_rootid[m.geom_bodyid[g]] != body or not (m.geom_contype[g] or m.geom_conaffinity[g]):
+            continue
+        c, h = m.geom_aabb[g, :3], m.geom_aabb[g, 3:]
+        q = d.geom_xmat[g].reshape(3, 3).T @ (p - d.geom_xpos[g]) - c
+        best = min(best, float(np.linalg.norm(np.maximum(np.abs(q) - h, 0.0))))
+    return best
 
 
 def main():
@@ -74,16 +88,17 @@ def main():
     for kc, ko in grasp_events(G):
         p, dk = pinch_at(kc)
         objs = [b for b in free if b not in containers]
-        tgt = min(objs, key=lambda b: np.linalg.norm(dk.xpos[b] - p))
+        tgt = min(objs, key=lambda b: surface_dist(m, dk, b, p))  # nearest by surface, not centre (10-28)
         # a grasp of an object left out of the scene (asset-pack redaction, 10-20) has nothing to compare with
         red = [(np.hypot(p[0] - cx, p[1] - cy), lab) for cx, cy, _, lab in redacted_discs(fit)]
         if red and min(red)[0] <= np.linalg.norm((dk.xpos[tgt] - p)[:2]):
             events.append(dict(close_frame=kc, open_frame=ko, object=min(red)[1], skipped="object redacted (not in the scene)"))
             continue
         dp = p - dk.xpos[tgt]
-        ev = dict(close_frame=kc, open_frame=ko, object=m.body(tgt).name, horiz_m=float(np.linalg.norm(dp[:2])), vert_m=float(dp[2]),
+        ev = dict(close_frame=kc, open_frame=ko, object=m.body(tgt).name, surface_m=surface_dist(m, dk, tgt, p),
+                  horiz_m=float(np.linalg.norm(dp[:2])), vert_m=float(dp[2]),
                   pinch_above_table_m=float(p[2] - fit["table"]["z"]))
-        ev["grasp_pass"] = ev["horiz_m"] <= GRASP_M and abs(ev["vert_m"]) <= GRASP_M
+        ev["grasp_pass"] = ev["surface_m"] <= GRASP_M  # 10-28: on/in the object within 1.5 cm (was: centre offsets)
         if containers:
             p2, _ = pinch_at(ko)
             c = min(containers, key=lambda b: np.linalg.norm(dk.xpos[b][:2] - p2[:2]))
@@ -124,7 +139,7 @@ def main():
         if "skipped" in e:
             print(f"  grasp f{e['close_frame']}->{e['open_frame']} {e['object']}: skipped ({e['skipped']})")
             continue
-        print(f"  grasp f{e['close_frame']}->{e['open_frame']} {e['object']}: horiz {e['horiz_m']*100:.1f} vert {e['vert_m']*100:+.1f} cm"
+        print(f"  grasp f{e['close_frame']}->{e['open_frame']} {e['object']}: surface {e['surface_m']*100:.1f} cm (centre: horiz {e['horiz_m']*100:.1f} vert {e['vert_m']*100:+.1f} cm)"
               + (f"; release {e['release_horiz_m']*100:.1f} cm from {e['container']} (rim {e['rim_radius_m'] and e['rim_radius_m']*100:.1f}); scale {e['scale_ratio']:.3f}" if "container" in e else ""))
     print("ALL PASS" if out["all_pass"] else "NOT ALL PASS")
 

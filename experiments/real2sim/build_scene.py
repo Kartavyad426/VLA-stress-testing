@@ -254,9 +254,10 @@ def main():
     ap.add_argument("--cam", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--scale", choices=["anchor", "raw"], default="anchor")
-    ap.add_argument("--depth", choices=["mono", "stereo"], default="mono",
+    ap.add_argument("--depth", choices=["mono", "stereo", "grasp"], default="mono",
                     help="mono: MoGe-2 depth x robot-anchored scale (scenes built before 10-16; found 6-8 cm too high); "
-                         "stereo: MoGe-2 shape, scale from the <cam>-stereo.mp4 pair on the table (needs --calib)")
+                         "stereo: MoGe-2 shape, scale from the <cam>-stereo.mp4 pair on the table (needs --calib); "
+                         "grasp: MoGe-2 shape, scale from the real grasp points (--grasp_anchors; 10-27, c11)")
     # 90: the sim wrist view (DROID gripper offset + ZED intrinsics) matches the real DROID wrist video only with the
     # Robotiq at +-90 deg about the flange (impl, 10-15, ep_orange_block frame 50; at 0 the gripper is seen side-on,
     # i.e. the fingers close 90 deg rotated vs the real rig). The sign is unresolved (the 2F-85 looks the same).
@@ -275,10 +276,17 @@ def main():
     ap.add_argument("--anchor_frame", type=int, default=None,
                     help="frame for the robot-depth scale anchor (with --calib); default: the middle calibration frame")
     ap.add_argument("--no_wrist", action="store_true", help="don't add the DROID wrist camera")
+    ap.add_argument("--table_z", type=float, default=None, help="table-top z (robot frame) from an independent source "
+                    "(wrist stereo, stereo_depth.py); replaces the height fitted from the exterior points, objects stand on it. "
+                    "10-27, c11: one MoGe scale left the far table ~4.5 cm low")
+    ap.add_argument("--grasp_anchors", default=None, help="--depth grasp: JSON {anchors: {label#k: {point}}} of real fingertip "
+                    "points at real grasps (FK of the recorded joints); MoGe is scaled so the grasped objects sit at them")
     a = ap.parse_args()
     anchor_info = {}
-    if a.depth == "stereo" and not a.calib:
-        raise SystemExit("--depth stereo needs --calib (the stereo depth uses the calibrated ZED intrinsics)")
+    if a.depth in ("stereo", "grasp") and not a.calib:
+        raise SystemExit(f"--depth {a.depth} needs --calib")
+    if a.depth == "grasp" and not a.grasp_anchors:
+        raise SystemExit("--depth grasp needs --grasp_anchors")
 
     per = dict(np.load(os.path.join(a.out, "perception.npz")))
     info = json.load(open(os.path.join(a.out, "perception.json")))
@@ -307,13 +315,48 @@ def main():
             stereo_scale = float(np.median(r))
             anchor_info["stereo"] = dict(baseline_m=BASELINE_M["ext"], table_px=int(both.sum()), table_valid_frac=float(both.sum() / max(tab.sum(), 1)),
                                          scale=stereo_scale, ratio_iqr=[float(np.percentile(r, 25)), float(np.percentile(r, 75))])
+        elif a.depth == "grasp":
+            # 10-27 (c11: exterior stereo read ~28% deeper than the robot geometry): scale from the real grasp points.
+            # Objects don't move before their first grasp, so the fingertip at that grasp (FK, exact) is where the
+            # object sat in the perception frame. Per grasp point: its camera depth vs MoGe's depth on the mask it
+            # projects into (median of the mask's inner pixels; the fingertip is mid-object, MoGe sees the front
+            # surface, so this reads a few % short on small objects)
+            rows = []
+            for name, an in json.load(open(a.grasp_anchors))["anchors"].items():
+                pc = (np.array(an["point"]) - t) @ R
+                uu, vv = (pc[:2] / pc[2] * [K[0, 0], K[1, 1]] + [K[0, 2], K[1, 2]]).round().astype(int)
+                # 10-28: the grasp point is ON or IN the object (rim, handle), so MoGe is read where it lands: at its
+                # pixel if that's on an object mask, else at the nearest pixel of the nearest object mask within 40 px
+                # (was: the mask's median depth, i.e. its centre, which failed on c9's cup gripped at the rim)
+                objm = {k: per[k] & per["valid"] & (z > 0) for k in per if k.startswith("mask/") and k not in (f"mask/{TABLE}", f"mask/{GRIPPER}")}
+                best = None
+                for k, mk in objm.items():
+                    ys, xs = np.nonzero(mk)
+                    if not len(xs):
+                        continue
+                    dd = np.hypot(xs - uu, ys - vv)
+                    i = int(np.argmin(dd))
+                    if dd[i] <= 40 and (best is None or dd[i] < best[0]):
+                        best = (float(dd[i]), k, int(xs[i]), int(ys[i]))
+                if best is None:
+                    rows.append(dict(anchor=name, px=[int(uu), int(vv)], mask=None))
+                    continue
+                dpx, k, xu, yv = best
+                win = z[max(yv - 2, 0):yv + 3, max(xu - 2, 0):xu + 3][objm[k][max(yv - 2, 0):yv + 3, max(xu - 2, 0):xu + 3]]
+                rows.append(dict(anchor=name, px=[int(uu), int(vv)], mask=k[5:], px_to_mask=dpx, cam_depth=float(pc[2]),
+                                 moge_depth=float(np.median(win)), ratio=float(pc[2] / np.median(win))))
+            used = [r_ for r_ in rows if r_.get("ratio")]
+            if not used:
+                raise SystemExit(f"--depth grasp: no grasp point projects onto an object mask: {rows}")
+            stereo_scale = float(np.median([r_["ratio"] for r_ in used]))
+            anchor_info["grasp"] = dict(scale=stereo_scale, points=rows)
     else:
         R, t = cam_pose(f[f"observation/camera_extrinsics/{a.cam}_left"][info["frame"]])
         K = per["K"]
 
     uv_ee, z_ee = project(K, R, t, ee[info["frame"], :3])
     s_anchor = None
-    if a.calib and a.depth != "stereo":  # stereo mode: the scale comes from stereo, not from the robot anchor
+    if a.calib and a.depth == "mono":  # stereo/grasp modes: the scale comes from stereo or the grasp points, not the robot anchor
         # scale anchor at a frame where the calibration was checked (robot clearly visible): sim robot depth vs
         # MoGe depth on pixels where the sim robot and the real motion mask agree; then carried to the perception
         # frame through static table pixels seen in both frames
@@ -330,12 +373,12 @@ def main():
         s_anchor = s_n * ratio
         anchor_info = dict(anchor_frame=n, robot_px=int(both.sum()), s_at_anchor_frame=s_n, table_px=int(static.sum()),
                            depth_ratio_anchor_over_perception=ratio)
-    elif f"mask/{GRIPPER}" in per and a.depth != "stereo":
+    elif f"mask/{GRIPPER}" in per and a.depth == "mono":
         # legacy anchor: recorded gripper position vs MoGe depth on the gripper mask
         zg = per["depth"][per[f"mask/{GRIPPER}"] & per["valid"]]
         if len(zg):
             s_anchor = float(z_ee[0] / np.median(zg))
-    if a.depth == "stereo":
+    if a.depth in ("stereo", "grasp"):
         s = stereo_scale
     else:
         s = s_anchor if (a.scale == "anchor" and s_anchor) else 1.0
@@ -343,11 +386,14 @@ def main():
     def to_base(pc):
         return (s * pc) @ R.T + t
 
-    fit = dict(depth=a.depth, scale_mode=a.scale if a.depth == "mono" else "none (stereo)", scale=s, scale_anchor=s_anchor, **anchor_info, ee_pixel=uv_ee[0].tolist(),
+    fit = dict(depth=a.depth, scale_mode=a.scale if a.depth == "mono" else f"none ({a.depth})", scale=s, scale_anchor=s_anchor, **anchor_info, ee_pixel=uv_ee[0].tolist(),
                ee_inside_image=bool(0 <= uv_ee[0, 0] < W and 0 <= uv_ee[0, 1] < H), objects={})
 
     tb = to_base(masked_points(per, TABLE, erode=9))
     z_table = float(np.median(tb[:, 2]))
+    if a.table_z is not None:
+        fit["table_z_override"] = dict(fitted=z_table, used=a.table_z)
+        z_table = a.table_z
     lo, hi = np.percentile(tb[:, :2], 2, axis=0), np.percentile(tb[:, :2], 98, axis=0)
     fit["table"] = dict(z=z_table, xy_lo=lo.tolist(), xy_hi=hi.tolist(), z_spread_iqr=float(np.subtract(*np.percentile(tb[:, 2], [75, 25]))))
 
