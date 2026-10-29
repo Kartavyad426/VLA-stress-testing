@@ -20,6 +20,7 @@ th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertic
 th{background:var(--card)}
 code{font-size:.85em}
 a{color:var(--accent)}
+.muted{color:var(--muted)}
 .ok{color:var(--ok);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}
 </style>
 </head>
@@ -183,6 +184,92 @@ a{color:var(--accent)}
 <tr><td>Commits</td><td class="warn">8 revertible patches sent to prim (01–08), not yet committed</td><td>runs/real2sim/v1_dev/commit_1028/</td></tr>
 </table></div>
 
+<h2>10 · Phase-1 batch results (10-29; user: "lets make all the scenes? everything is automated right"; then "yes add §10. Can you show me failure reasons as well")</h2>
+<p class="meta">Written 2026-10-29 12:05 by res31. Run: <code>runs/real2sim/v1/run_phase1.py</code>, unattended, 00:42–03:34. It used every candidate in <code>SCENE_SOURCES_V1.html</code> that has a published camera: 32 of 34. Each one went through <code>build_v1 --auto_nouns</code>, so the object names came from the VLM and were not reviewed. Summary page: <a href="../runs/real2sim/v1/phase1/index.html">runs/real2sim/v1/phase1/index.html</a>. Every reason below was read from the report JSONs, the logs or the probe outputs; anything not checked is marked <i>suspected</i>. Exploratory, UNVERIFIED (val has not checked it).</p>
+
+<div class="box"><b>Verdict.</b> 15 of 32 candidates built a scene with objects. Only 3 of them are good (c05, c10, c17).
+<ul>
+<li><b>17 candidates were lost to pipeline bugs, not scene problems:</b> 6 crashed when the VLM call timed out or returned a server error, and 11 got no object names from the VLM.</li>
+<li><b>Two scenes (c20, c22) built only bowls,</b> so the checks crashed. The report then still showed passes.</li>
+<li><b>Real scene problems:</b> misplaced objects (grasps 1.7–14.4 cm off), objects the detector misses, cups and apples too wide for the gripper, and some grasps that close on nothing.</li>
+<li><b>Across the 5 dev scenes plus phase 1,</b> 5 of 20 built scenes are good: orange, c11, c05, c10, c17.</li>
+</ul></div>
+
+<h3>10a · What happened to the 32 candidates</h3>
+<div class="wrap"><table>
+<tr><th>Outcome</th><th>n</th><th>Candidates</th><th>Reason</th><th>Checked?</th></tr>
+<tr><td class="bad">crashed at the VLM step</td><td>6</td><td>c09, c11, c12, c19, c23, c25</td><td>NIM call failed. c09 got HTTP 500; the other 5 got "TimeoutError: The read operation timed out". <code>vlm_nouns_test.ask</code> has no retry, so one failure kills the whole candidate. No v1_report was written, so a resume picks them up again.</td><td>checked (logs)</td></tr>
+<tr><td class="bad">empty scene: the VLM returned no names</td><td>11</td><td>c01, c04 (S1); c07, c08 (S2); c13 (S4); c27–c32 (S8/S9, all six)</td><td><code>nouns.json</code> holds <code>nouns: []</code> and <code>raw: []</code>. Perception then ran with no prompts and built nothing. build_v1 carried on instead of stopping. The VLM's raw text is not saved, so whether the model answered badly or our parser failed is <b>not known</b>. The camera, table and settle checks still "pass" on an empty table, so the "3/7 pass" these show on the index page is meaningless.</td><td>checked (nouns.json); cause unknown</td></tr>
+<tr><td class="bad">only containers built: checks crashed</td><td>2</td><td>c20, c22 (S6)</td><td>The VLM gave only "bowl", so 2 bowls were built and the grasped object was not. <code>scene_checks.py</code> line 92 takes <code>min()</code> over the non-container objects, finds none and crashes with "min() iterable argument is empty". build_v1 ignored the crash (rc 1). B1 is missing from the report, and B3 shows "pass" with 0/0 probes.</td><td>checked (log, code)</td></tr>
+<tr><td>built with objects</td><td>13</td><td>c00, c03, c05, c06, c10, c14, c15, c16, c17, c18, c21, c24, c26</td><td>see 10b</td><td></td></tr>
+<tr><td class="muted">not run: no published camera</td><td>2</td><td>(the 2 uncalibrated of 34)</td><td>no DROID refined or PointWorld pose for either exterior camera</td><td>checked</td></tr>
+</table></div>
+<p class="meta">Every Autolab candidate dated October (c27–c32, scenes S8/S9) came out empty. Something common to those episodes (lighting, table, frame 0) may be confusing the VLM. <i>Suspected, not checked.</i></p>
+
+<h3>10b · Per scene: results and failure reasons</h3>
+<p class="meta">"Grasp" = A3, each real grasp within 1.5 cm of a built object's surface. "Drop" = A3, each real release inside the container rim; it reads n/a when the scene has no container (see bug P4 in 10c). "Expert" = B3, implres31's scripted expert, nominal sweep. The codes in brackets point to the failure classes in 10c.</p>
+<div class="wrap"><table>
+<tr><th>Scene</th><th>Verdict</th><th>Built / missing / off-table</th><th>Grasp (A3)</th><th>Drop (A3)</th><th>Expert (B3)</th><th>Failure reasons</th></tr>
+<tr><td><a href="../runs/real2sim/v1/orange/v1_report.html">orange</a> (dev)</td><td class="ok">good</td><td>3 blocks, bowl</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">12/12</td><td>none (E2/E4 not wired in)</td></tr>
+<tr><td><a href="../runs/real2sim/v1/c11/v1_report.html">c11</a> (dev)</td><td class="ok">good</td><td>2 blocks, bowl</td><td class="ok">pass</td><td class="ok">pass</td><td class="ok">8/8</td><td>none</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c05_2023-07-21-12h-23m-24s/v1_report.html">c05</a></td><td class="ok">good</td><td>2 cups / marker / block#1 (detected 1.4 m away, 17 cm below the table: correctly dropped)</td><td class="ok">0.7 cm</td><td>n/a</td><td class="ok">4/4</td><td>marker not detected [S2]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c10_2023-07-27-08h-47m-54s/v1_report.html">c10</a></td><td class="ok">good</td><td>bowl, cup / — / 2 blocks</td><td class="ok">0.0 cm</td><td class="ok">pass</td><td class="ok">3/3</td><td>2 blocks off-table: whether they are on the real table is <i>not checked</i></td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c17_2023-08-18-11h-40m-54s/v1_report.html">c17</a></td><td class="ok">good</td><td>block, cup / marker / block#2</td><td class="ok">0.7 cm</td><td>n/a</td><td class="ok">4/4</td><td>marker not detected [S2]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c00_2023-07-07-16h-16m-13s/v1_report.html">c00</a></td><td class="warn">expert fails</td><td>2 blocks, 3 cups / marker / —</td><td class="ok">0.0, 0.2 cm</td><td>n/a</td><td class="bad">6/12</td><td>All 3 cups (8.8–10.7 cm across the grasp) close but never lift: rise ≈ 0 cm, slip 6–9 cm [S3]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c14_2023-08-17-17h-02m-12s/v1_report.html">c14</a></td><td class="warn">expert fails</td><td>2 blocks, cup</td><td class="ok">0.0 cm</td><td>n/a</td><td class="bad">3/8</td><td>block_2 (1.9 cm): pads miss the object [S4]. block_1: slip 1.0 cm, just over the 1.0 cm limit [S5]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c16_2023-08-12-18h-02m-23s/v1_report.html">c16</a></td><td class="bad">poor</td><td>1 clamp / block, bowl, cup, paper, pen, scissors, tape / clamp#1, pencil</td><td class="ok">0.0 cm</td><td>n/a</td><td class="bad">0/2</td><td>7 of 9 nouns not detected [S2]. The clamp is 10.2 cm across the grasp: closes, no lift [S3]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c18_2023-08-18-17h-06m-22s/v1_report.html">c18</a></td><td class="warn">expert fails</td><td>4 blocks, cup, wheel / marker, tape / —</td><td class="ok">0.0 cm</td><td>n/a</td><td class="warn">14/16</td><td>wheel_1 (2.8 cm): pads miss the object [S4]. marker and tape not detected [S2]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c03_2023-07-13-11h-24m-13s/v1_report.html">c03</a></td><td class="warn">borderline</td><td>bowl, 4 cups / marker, pan / bowl#2, cup#5</td><td class="warn">cup_1 1.5 cm (at the limit)</td><td class="ok">pass</td><td class="bad">6/12</td><td>cup_3 (8.3 cm) closes, no lift [S3]. cup_4 (7.9 cm): pads miss [S4]. marker and pan not detected [S2]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c06_2023-07-21-15h-26m-45s/v1_report.html">c06</a></td><td class="bad">misplaced</td><td>3 cups / bowl, marker / block#1, cup#4</td><td class="bad">cup_1 7.5 cm</td><td>n/a</td><td class="warn">5/6</td><td>The grasped cup is 7.5 cm from where it was built [S1]. bowl not detected [S2]. cup_3 placed 3.5 cm off (tolerance 2 cm) [S6]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c15_2023-08-12-18h-57m-44s/v1_report.html">c15</a></td><td class="bad">misplaced</td><td>11 blocks, bowl</td><td class="bad">4 of 10 over 1.5 cm: 10.3, 4.8, 2.9, 1.9 cm</td><td class="bad">5 of 10 outside the rim (up to 25.1 cm vs 7.6)</td><td class="warn">36/44</td><td>Several blocks misplaced [S1]. block_10 (1.9 cm): pads miss [S4]. block_1/4/11 stacks land 3.3–26 cm off or fall over; block_11 lands 11.2 cm from the bowl [S6]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c21_2023-07-14-16h-58m-47s/v1_report.html">c21</a></td><td class="bad">misplaced</td><td>1 cup / apple, marker / —</td><td class="bad">cup_1 10.6 cm</td><td>n/a</td><td class="bad">0/2</td><td>The grasped object is not in the scene: "apple" not detected, so the grasp lands 10.6 cm from the cup [S2→S1]. cup_1 (9.3 cm): closes, no lift [S3]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c24_2023-09-02-14h-00m-05s/v1_report.html">c24</a></td><td class="bad">misplaced</td><td>apple, 7 blocks, bowl / bag, marker, paper, pepper, scissors, tape / block#8, 2 cups</td><td class="bad">14.4, 12.0, 2.2 cm</td><td class="bad">2 of 7 outside the rim (19.4, 7.8 vs 7.7)</td><td class="warn">22/31</td><td>2 blocks misplaced by 12–14 cm [S1]. 6 nouns not detected [S2]. The apple (9.4 cm) closes, no lift [S3]. block_4 slips 9.9 cm on lift (2.6 cm wide, so not a width problem; cause <i>not checked</i>). block_4/5 placements fall over (tilt 90°) [S6]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/phase1/c26_2023-09-02-14h-02m-53s/v1_report.html">c26</a></td><td class="bad">misplaced</td><td>apple, 8 blocks, bowl / marker / block#9</td><td class="bad">7.5, 1.9, 1.8 cm</td><td class="ok">pass</td><td class="warn">25/35</td><td>block_8 misplaced by 7.5 cm [S1]. block_2 and block_8 (2.3–2.4 cm) close but don't lift, slip 9.5 cm: <i>not a width problem; cause not checked</i>. block_5: slip 1.0 cm [S5]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/c1b/v1_report.html">c1b</a> (dev)</td><td class="warn">expert fails</td><td>3 blocks, bowl, cup / — / cup#1</td><td class="bad">block_3 1.9 cm</td><td class="ok">pass</td><td class="bad">10/15</td><td>cup_2 (8.6 cm) closes, no lift [S3]. block_1/3 slip 1.1–1.2 cm [S5]: by the user's 10-29 rule that is a warning, but the report still marks it fail. block_3 is a cylinder built as a cube</td></tr>
+<tr><td><a href="../runs/real2sim/v1/c3/v1_report.html">c3</a> (dev)</td><td class="bad">misplaced</td><td>apple, 8 blocks, bowl / radish / bowl#2</td><td class="bad">8.4, 5.2, 2.3 cm</td><td class="bad">2 of 8 outside the rim (24.8, 8.4 vs 7.8)</td><td class="warn">32/35</td><td>3 blocks misplaced [S1]. Radish missing [S2]. block_5: slip 1.1 cm [S5]. block_7 lands 33.7 cm from the bowl; block_8 falls over [S6]</td></tr>
+<tr><td><a href="../runs/real2sim/v1/c9/v1_report.html">c9</a> (dev)</td><td class="bad">misplaced</td><td>bowl, cup, hammer</td><td class="bad">cup_1 3.4 cm</td><td class="bad">10.1 vs rim 7.6 cm</td><td class="ok">6/6</td><td>The cup is built 3.4 cm from where it is grasped (a rim grasp), and the drop lands outside the bowl [S1]. In 10-28 notes I put this down to the source video; <i>that was not checked</i></td></tr>
+<tr><td>c20, c22</td><td class="bad">invalid</td><td>2 bowls each / — / —</td><td colspan="3">checks crashed: see 10a</td><td>Only "bowl" was named, so the grasped object was never built [S2, P3]</td></tr>
+</table></div>
+
+<h3>10c · Failure classes</h3>
+<div class="wrap"><table>
+<tr><th>Code</th><th>Class</th><th>Where</th><th>What we know</th></tr>
+<tr><td colspan="4"><b>Pipeline bugs (mine; fixes proposed in 10d)</b></td></tr>
+<tr><td>P1</td><td>VLM call fails and kills the candidate</td><td>6 candidates</td><td>NIM timeout or HTTP 500; no retry. Checked.</td></tr>
+<tr><td>P2</td><td>Empty name list accepted silently</td><td>11 candidates</td><td>build_v1 carries on with no objects, and the raw reply is not saved. Checked. Why the list is empty: unknown.</td></tr>
+<tr><td>P3</td><td>scene_checks crashes when only containers are built, and build_v1 ignores step failures</td><td>c20, c22</td><td><code>min()</code> over an empty list; rc 1 not acted on. Checked.</td></tr>
+<tr><td>P4</td><td>"Drops inside containers" fails when the scene has no container</td><td>c00, c05, c06, c14, c16, c17, c18, c21</td><td><code>all(e.get("release_pass", False))</code> is False when no event has a container, and the Detail cell is empty. Checked.</td></tr>
+<tr><td>P5</td><td>B3 with 0 probes reads "pass"</td><td>all empty scenes, c20, c22</td><td><code>"pass" if not fails</code>; should read "not run". Checked.</td></tr>
+<tr><td colspan="4"><b>Scene problems</b></td></tr>
+<tr><td>S1</td><td>Object built away from where it is grasped (more than 1.5 cm)</td><td>c06, c15, c21, c24, c26, c3, c9; c03 at the limit</td><td>Measured: 1.7–14.4 cm. Cause <i>not checked</i> per object: the camera, the depth, the detection box, or (c21) the real object not being built at all.</td></tr>
+<tr><td>S2</td><td>Named object not detected (listed as missing)</td><td>11 of 13 phase-1 scenes; "marker" in 8</td><td>Recorded in inventory.json as designed (user 10-29: added later by manual mode, agent or ObjGen). When the missing object is the one being grasped (c21, c20, c22), the scene can't be checked.</td></tr>
+<tr><td>S3</td><td>Wide object: the gripper closes but can't lift</td><td>cups in c00, c03, c21, c1b; apple c24; clamp c16</td><td>Width across the grasp 8.3–10.7 cm against the 8.5 cm gripper; rise ≈ 0, slip 6–10 cm. Width measured; that width is the cause is <i>suspected</i> (two are under 8.5 cm, so contact geometry may matter too).</td></tr>
+<tr><td>S4</td><td>Gripper closes on nothing (pads not on the object)</td><td>c03 cup_4, c14 block_2, c15 block_10, c18 wheel_1</td><td>stage "reached", pads [False, False]. Cause <i>not checked</i>. Three of the four are thin (1.9–2.8 cm); suspected: a thin or low object, or a reach error.</td></tr>
+<tr><td>S5</td><td>Slip just over the 1.0 cm limit</td><td>c14, c24, c26, c1b, c3</td><td>slip 1.0–1.2 cm with the object lifted 8.5–11 cm. The user's 10-29 rule says slip is a warning, not a failure, but implres31's B3 still fails it (suggestion pending via prim).</td></tr>
+<tr><td>S6</td><td>Released object lands off target or falls over</td><td>c06, c15, c24, c3</td><td>place 3.5–7.8 cm off; stacks 2.9–26 cm off; container drops 11–34 cm from the centre; tilt 90°. Cause <i>not checked</i>.</td></tr>
+<tr><td>—</td><td>Thin blocks that close but don't lift</td><td>c26 block_2/8, c24 block_4</td><td>2.3–2.6 cm wide, slip ~9.5 cm. Not explained by width; <i>not checked</i>.</td></tr>
+</table></div>
+
+<h3>10d · Proposed fixes (NOT applied; waiting for the user's go)</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Fix</th><th>File (owner)</th><th>Recovers</th></tr>
+<tr><td>F1</td><td>Retry the VLM call (3 tries, backoff) on timeouts and 5xx errors</td><td>build_v1.py / vlm_nouns_test.py (res31)</td><td>6 crashed candidates</td></tr>
+<tr><td>F2</td><td>Save the VLM's raw text. Stop with "no nouns" on an empty list, instead of building an empty scene. Then look at why the list is empty</td><td>build_v1.py (res31)</td><td>11 empty candidates (after the cause is known)</td></tr>
+<tr><td>F3</td><td>When there are no non-container objects, scene_checks reports n/a instead of crashing. build_v1 marks a failed step as fail in the report</td><td>scene_checks.py, build_v1.py (res31)</td><td>c20, c22 report honestly</td></tr>
+<tr><td>F4</td><td>Drop check = n/a when the scene has no container, with a Detail reading "no container in scene"</td><td>scene_checks.py, build_v1.py (res31)</td><td>removes the false fail on 8 scenes</td></tr>
+<tr><td>F5</td><td>B3 with 0 probes = "not run"</td><td>build_v1.py (res31)</td><td>honest reports</td></tr>
+<tr><td>F6</td><td>Slip-only failures counted as warnings (the user's 10-29 rule)</td><td>suggestion to implres31 via prim, or in build_v1's report</td><td>c1b, parts of c14/c24/c26/c3</td></tr>
+</table></div>
+<p class="meta">After F1–F5, rerun the 19 lost candidates (resumable; about 5 min each, so about 1.5 h). The scene problems S1, S3, S4 and S6 need investigation per object, then the user's review in the inspector.</p>
+
+<h3>10e · Corrections to earlier statements</h3>
+<ul>
+<li><b>c9:</b> 10-28 notes called the cup grasp/drop mismatch "source fidelity". That was not checked. The report fails both: the grasp is 3.4 cm off and the drop lands 10.1 cm from the bowl centre, against a 7.6 cm rim.</li>
+<li><b>c1b:</b> I described it as a "slip warning". The report marks B3 as fail (10/15), and the cup also fails for width.</li>
+<li><b>c3:</b> its drop failures are real (it has a bowl); they are not bug P4.</li>
+<li><b>c20, c22:</b> in chat at 11:32 I counted these as empty scenes. They built 2 bowls each, and their checks crashed (P3).</li>
+</ul>
+
 <h2>8 · Decision log</h2>
 <div class="wrap"><table>
 <tr><th>When</th><th>Trigger</th><th>Decision</th></tr>
@@ -195,6 +282,7 @@ a{color:var(--accent)}
 <tr><td>10-28</td><td>User: "should we adapt their method before calibration or use their calibrations for now and adapt later?", then "make a note of it somewhere?"</td><td>Recommendation recorded in §7b (use now, adapt later); go and licence call pending</td></tr>
 <tr><td>10-28</td><td>User: "yes to 1" (one shared module in main for detector, kinds/bounds, collision geometry, scene loading; owner res31, implres31 and TaskGen import it read-only) and on PointWorld: "for this level its ok otherwise we will have to port their method, although we do have a nvidia partnership. Lets use it for poc now"</td><td>Shared module: plan sent to prim. PointWorld cameras used for the PoC (v1); before any non-PoC use, either port their method or clear the licence (NVIDIA partnership noted)</td></tr>
 <tr><td>10-29</td><td>User: "okay record it, We can put all this in redacted as a workaround I guess so manual mode or agent mode can add it later with Obj Gen"</td><td>Undetected nouns listed as missing (like redacted) in build_v1's inventory.json; added later by manual / agent / ObjGen</td></tr>
+<tr><td>10-29</td><td>User: "lets make all the scenes? everything is automated right, I am going away so wont be able to allow anything"; on return: "yes add §10. Can you show me failure reasons as well"</td><td>Phase-1 batch run unattended (32 candidates); results and failure reasons in §10. Fixes F1–F6 proposed, not applied</td></tr>
 </table></div>
 </main></body>
 </html>
