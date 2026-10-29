@@ -1,0 +1,32 @@
+{
+ "id": "chat_1",
+ "source": "agent",
+ "template": null,
+ "slot_values": {},
+ "scene_config": "(in memory)",
+ "base_version": "bf2cf8512a318882",
+ "instruction": "take the red block out of the middle drawer and put it in the black bowl",
+ "targets": [
+  "red_block_1"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "bowl_1",
+   "order": null
+  }
+ ],
+ "start": {},
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  }
+ },
+ "status": "draft"
+}

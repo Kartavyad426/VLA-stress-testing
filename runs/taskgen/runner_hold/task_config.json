@@ -1,0 +1,25 @@
+{
+ "id": "T-cabinet_middle_red_stereo",
+ "source": "preset",
+ "template": "T-cabinet",
+ "slot_values": {},
+ "scene_config": "/home/imerit/Documents/Code/VLA-exp-taskgen/runs/taskgen/runner_hold/scene_config.json",
+ "base_version": "f32f1578ff483a55",
+ "instruction": "take the red block out of the middle drawer and put it in the black bowl",
+ "targets": [
+  "red_block_1"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "black_bowl",
+   "order": null
+  }
+ ],
+ "start": {},
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {},
+ "status": "draft"
+}

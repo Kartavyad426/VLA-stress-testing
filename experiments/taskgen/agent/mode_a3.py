@@ -83,6 +83,9 @@ def semantic_errors(req, session, assets):
                 elif o.relation == "inside" and lv != cabinets[tb][1]:
                     errs.append(f"{o.name}: the {lv} drawer of {tb} is closed; objects can only go into the open one ({cabinets[tb][1]}), or set open_level={lv}")
         seen.add(o.name)
+    if req.task and not req.task.pass_all:  # 10-29: "close the drawer" came back with an empty pass_all (no rule for it)
+        errs.append("the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / "
+                    "out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so")
     if req.task:
         names = set(req.task.targets)
         for c in req.task.pass_all:
@@ -102,7 +105,8 @@ def _emit(on_event, **kw):
 def _ask(model, msgs, session, assets, retries, log, on_event=None, purpose="answer"):
     import time
     for attempt in range(retries + 1):
-        _emit(on_event, type="model_start", purpose=purpose, attempt=attempt, model=getattr(model, "model", type(model).__name__))
+        _emit(on_event, type="model_start", purpose=purpose, attempt=attempt, model=getattr(model, "model", type(model).__name__),
+              messages=[dict(m) for m in msgs])  # exactly what the model is sent (observability O2)
         t0 = time.time()
         text = model.complete(msgs, schema_json())
         _emit(on_event, type="model_end", purpose=purpose, attempt=attempt, seconds=round(time.time() - t0, 1), answer=text)

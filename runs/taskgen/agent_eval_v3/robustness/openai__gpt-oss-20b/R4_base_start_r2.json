@@ -1,0 +1,62 @@
+{
+ "test": "robustness",
+ "case": "R4_base_start",
+ "case_id": "R4_base_start",
+ "run": 2,
+ "prompt": "the orange block should start inside a drawer",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 174.5,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "scene",
+   "reason": "Base objects cannot be moved into a drawer at the start of the scene.",
+   "alternative": "Add a drawer and have the robot move block_2 into it during the task."
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"scene\",\"reason\":\"Base objects cannot be moved into a drawer at the start of the scene.\",\"alternative\":\"Add a drawer and have the robot move block_2 into it during the task.\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "Base objects cannot be moved into a drawer at the start of the scene.",
+     "alternative": "Add a drawer and have the robot move block_2 into it during the task."
+    }
+   ]
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"scene\",\"reason\":\"Base objects cannot be moved into a drawer at the start of the scene.\",\"alternative\":\"Add a drawer and have the robot move block_2 into it during the task.\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}
