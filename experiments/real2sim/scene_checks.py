@@ -93,8 +93,14 @@ def main():
             events.append(dict(close_frame=kc, open_frame=ko, object=None, skipped="no built non-container object in the scene"))
             continue
         tgt = min(objs, key=lambda b: surface_dist(m, dk, b, p))  # nearest by surface, not centre (10-28)
-        # a grasp of an object left out of the scene (asset-pack redaction, 10-20) has nothing to compare with
-        red = [(np.hypot(p[0] - cx, p[1] - cy), lab) for cx, cy, _, lab in redacted_discs(fit)]
+        # 10-29: a grasp build_v1 judged to be of a never-built object is skipped by its frame (was: by distance to the
+        # object's marker, which also swallowed c24's f173, a grasp of a built object 4.3 cm from unbuilt@f139)
+        unb = next((lab for lab, v in fit.get("unbuilt", {}).items() if kc in v.get("grasp_frames", [v.get("close_frame")])), None)
+        if unb:
+            events.append(dict(close_frame=kc, open_frame=ko, object=unb, skipped="object redacted (grasped, never built)"))
+            continue
+        # a grasp of an object left out for having no model (no grasp frame recorded) has nothing to compare with
+        red = [(np.hypot(p[0] - cx, p[1] - cy), lab) for cx, cy, _, lab in redacted_discs(fit) if lab in fit.get("redacted", {})]
         if red and min(red)[0] <= np.linalg.norm((dk.xpos[tgt] - p)[:2]):
             events.append(dict(close_frame=kc, open_frame=ko, object=min(red)[1], skipped="object redacted (not in the scene)"))
             continue

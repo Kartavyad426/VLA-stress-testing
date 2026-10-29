@@ -59,13 +59,20 @@ def vlm_nouns(episode, cam, out):
     return nouns
 
 
-def grasp_scale_ratios(out, episode):
-    """Exterior stereo depth / camera-geometry depth at each real grasp point (geom_probe e2)."""
+def grasp_scale_ratios(out, episode, skip_frames=()):
+    """Exterior stereo depth / camera-geometry depth at each real grasp point (geom_probe e2). skip_frames: close frames
+    of grasps of never-built objects (10-29: c24's f56/f139 read 2.83/5.98, the camera sees something else there)."""
     p = os.path.join(out, "probe", "geom_probe.json")
     if not os.path.exists(p):
         return []
     rows = json.load(open(p))["e2"]["grasps"]
-    return [g["stereo_at_px"] / g["cam_depth"] for g in rows if g.get("stereo_at_px") and g.get("inside_image")]
+    return [g["stereo_at_px"] / g["cam_depth"] for g in rows
+            if g.get("stereo_at_px") and g.get("inside_image") and g.get("close_frame") not in set(skip_frames)]
+
+
+def unbuilt_frames(fit):
+    """Close frames of every real grasp build_v1 judged to be of a never-built object (fit['unbuilt'] grasp_frames)."""
+    return sorted({k for v in (fit or {}).get("unbuilt", {}).values() for k in v.get("grasp_frames", [v.get("close_frame")]) if k is not None})
 
 
 def redact_unbuilt_grasps(out, episode):
@@ -99,9 +106,13 @@ def redact_unbuilt_grasps(out, episode):
         u, v = int(round(u[0])), int(round(u[1]))
         return (u, v) if 0 <= u < W and 0 <= v < H else None
     unb = fit["unbuilt"] = {}  # rebuilt from scratch each run
+    # 10-29: a container (bowl) counts only on its own mask, not the 12 px margin: c24 f173 (the never-built object f139
+    # fumbled, at the bowl's edge) was judged 'on a built object' by the margin alone, then scored as block_6 at 10.4 cm.
+    # Inside the bowl's mask still counts (a re-grasp from the bowl, c03 f457 / c15 f578; a grasp of the bowl, c20/c22)
+    bowls = {o.get("mask", k) for k, o in fit["objects"].items() if o.get("kind") == "bowl"}
     labels = [o.get("mask", k) for k, o in fit["objects"].items() if o.get("body")] + list(fit.get("redacted", {}))
     ker = np.ones((25, 25), np.uint8)
-    masks = [cv2.dilate(z["mask/" + l].astype(np.uint8), ker) > 0 for l in labels if "mask/" + l in z.files]
+    masks = [z["mask/" + l] > 0 if l in bowls else cv2.dilate(z["mask/" + l].astype(np.uint8), ker) > 0 for l in labels if "mask/" + l in z.files]
     m = mujoco.MjModel.from_binary_path(os.path.join(out, "scene.mjb"))
     d = mujoco.MjData(m)
     f = h5py.File(os.path.join(episode, "trajectory.h5"))
@@ -121,26 +132,35 @@ def redact_unbuilt_grasps(out, episode):
         p = fk(kc)
         row = dict(close_frame=int(kc), point=[round(float(x), 4) for x in p])
         q = pixel(p)
-        if any(np.linalg.norm((p - r)[:2]) < 0.03 for r in releases):
+        held = None  # the never-built object this grasp is holding, if any (set below; follows it through re-grasps)
+        if any(np.linalg.norm((p - r)[:2]) < 0.03 for r, _ in releases):
+            held = next(lab for r, lab in releases if np.linalg.norm((p - r)[:2]) < 0.03)
             row["class"] = "re-grasp of a moved object (not judged)"
+            if held:  # 10-29: a moved never-built object is still never built: scene_checks skips it by this frame
+                unb[held]["grasp_frames"].append(int(kc))
+                row["class"] += f", {held}"
         elif q is None:
             row["class"] = "outside the camera image (not judged)"
         elif any(mk[q[1], q[0]] for mk in masks):
             row["class"] = "on a built or redacted object"
-        elif any(np.linalg.norm((p - a)[:2]) < 0.03 for a in added):
-            row["class"] = "same unbuilt object as an earlier grasp"
+        elif any(np.linalg.norm((p - a)[:2]) < 0.03 for a, _ in added):
+            first = next(k for a, k in added if np.linalg.norm((p - a)[:2]) < 0.03)
+            held = f"unbuilt@f{first}"
+            unb[held]["grasp_frames"].append(int(kc))
+            row["class"] = f"same unbuilt object as an earlier grasp (unbuilt@f{first})"
         else:
             unb[f"unbuilt@f{kc}"] = dict(reason="real grasp lands on no built object in the camera image (not detected, or never named)",
                                          kind="ellipsoid", center=[float(p[0]), float(p[1]), float(max(p[2], fit["table"]["z"]))],
-                                         width_m=0.06, close_frame=int(kc), source="build_v1 unbuilt grasp")
-            added.append(p)
+                                         width_m=0.06, close_frame=int(kc), grasp_frames=[int(kc)], source="build_v1 unbuilt grasp")
+            added.append((p, int(kc)))
+            held = f"unbuilt@f{kc}"
             row["class"] = f"unbuilt: redacted as unbuilt@f{kc}"
             if objs:
                 dist, b = min((surface_dist(m, d, b, p), b) for b in objs)
                 if dist <= NEAR_BUILT_M:
                     unb[f"unbuilt@f{kc}"]["near_built"] = row["near_built"] = dict(body=m.body(b).name, surface_m=round(dist, 4))
                     row["class"] += f" (needs review: {100 * dist:.1f} cm from built {m.body(b).name}, may be a rim/edge grasp of it)"
-        releases.append(fk(ko))
+        releases.append((fk(ko), held))
         rows.append(row)
     json.dump(fit, open(os.path.join(out, "scene_fit.json"), "w"), indent=1)
     return rows
@@ -233,7 +253,8 @@ def report(out, episode, info, label=None):
         row(0, "B3", "doable: scripted expert per object (implres31)", "not run", "expert_probe.py not available or not run")
     row(0, "E2", "do-nothing policy doesn't succeed", "not run", "make_tasks + policy_batch --policy hold (task generation not in build_v1 yet)")
     row(0, "E4", "success rule for the task type", "not run", "bowl tasks only today")
-    ratios = info.get("scale_ratios") or []
+    # 10-29: grasps of never-built objects left out of the ratios (needs the probe output; else the build-time list)
+    ratios = grasp_scale_ratios(out, episode, unbuilt_frames(fit)) if os.path.exists(os.path.join(out, "probe", "geom_probe.json")) else (info.get("scale_ratios") or [])
     row(1, "A1/A7", "exterior stereo vs geometry at grasp points", "pass" if ratios and all(abs(r - 1) <= 0.05 for r in ratios) else ("report" if ratios else "not run"),
         ", ".join(f"{r:.3f}" for r in ratios) + (f"; built with --depth {info.get('depth')}" if info.get("depth") else ""))
     for cid, name in (("A4", "object sizes"), ("A5", "shapes"), ("A2", "table extent"), ("D1", "wrist-view offsets"),
@@ -243,7 +264,7 @@ def report(out, episode, info, label=None):
     # the previous report's rows go into 'history' (oldest first) unless they are identical to the new rows
     prev = J("v1_report.json")
     history, prev_label = (prev or {}).get("history", []), (prev or {}).get("label")
-    if prev and prev["rows"] != rows:
+    if prev and (prev["rows"] != rows or (label and label != prev.get("label"))):  # a new label = a new run, kept even if unchanged
         history = history + [dict(created=prev["created"], label=prev.get("label") or "earlier run", rows=prev["rows"])]
         prev_label = None
     rep = dict(episode=episode, out=out, status="exploratory, UNVERIFIED", created=time.strftime("%Y-%m-%d %H:%M"),
