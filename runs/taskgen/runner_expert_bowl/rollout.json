@@ -1,0 +1,116 @@
+{
+ "task_id": "chat_2",
+ "instruction": "put the orange block in the bowl",
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "orange_block",
+   "target": "black_bowl",
+   "order": null
+  }
+ ],
+ "rules": [
+  {
+   "rule": {
+    "type": "inside",
+    "object": "orange_block",
+    "target": "black_bowl",
+    "order": null
+   },
+   "ok": true,
+   "detail": {
+    "reason": null
+   }
+  }
+ ],
+ "success": true,
+ "stage_target": "orange_block",
+ "scene_config": "(in memory)",
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "policy": "expert",
+ "checkpoint": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "steps": 215,
+ "seconds": 14.3,
+ "open_loop": 15,
+ "policy_calls": 0,
+ "load_s": 0.0,
+ "infer_s_median": null,
+ "wall_s": 73.01732468605042,
+ "vram": {},
+ "gpu_used_max_gib": null,
+ "gripper_closed_frac": 0.4790697674418605,
+ "wrist_render": "v2",
+ "wrist_blur": "gripper",
+ "shadows": true,
+ "exterior_view": "composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
+ "expert_steps": [
+  {
+   "step": "pick",
+   "object": "orange_block",
+   "width_cm": 3.4,
+   "attempts": [
+    {
+     "ik_above_m": 1.0775708594395643e-05,
+     "ik_descend_m": 2.3224406147279508e-05,
+     "aim_err_cm": 0.9,
+     "reaim": "xy",
+     "lifted_cm": 13.6,
+     "held": true
+    }
+   ],
+   "yaw_deg": 90,
+   "yaw_tried": [
+    [
+     90,
+     0.0001
+    ]
+   ],
+   "lifted_cm": 13.6,
+   "held": true,
+   "aim_err_cm": 0.9,
+   "n_attempts": 1
+  },
+  {
+   "step": "into black_bowl",
+   "at_cm": [
+    65.6,
+    -28.2,
+    -3.8
+   ],
+   "ik_above_m": 4.2330431644614104e-05,
+   "ik_lower_m": 1.2404083816639276e-05
+  }
+ ],
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": true,
+  "first_step": {
+   "reached": 44,
+   "closed_at_target": 67,
+   "lifted": 81
+  },
+  "min_dist_to_target_m": 0.0022993387478692923,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.02314269418037345,
+  "median_err_m": 0.013013874980467473,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

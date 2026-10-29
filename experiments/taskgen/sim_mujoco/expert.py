@@ -37,6 +37,7 @@ class Expert:
         self.rend = mujoco.Renderer(m, 180, 320) if record else None
         self.q = self.d.qpos[self.arm_q].copy()
         self.grip = self.g_open
+        self.on_frame = None  # optional callback after each 1/FPS step (policy_runner: composite frames + stage measurements)
 
     def _go(self, p, secs, grip=None):
         q, err = self.ik(self.m, self.q, self.pinch, np.asarray(p, float), self.R, self.arm_q, self.arm_dof)
@@ -51,6 +52,8 @@ class Expert:
             if self.frames is not None:
                 self.rend.update_scene(self.d, camera="ext")
                 self.frames.append(self.rend.render())
+            if self.on_frame is not None:
+                self.on_frame(self.q + (q - self.q) * a, g0 + (g1 - g0) * a)
         self.q, self.grip = q, g1
         return err
 

@@ -72,7 +72,7 @@ textarea{flex:1;border:0;background:transparent;color:var(--fg);font:inherit;res
   <button id="b-render">Render</button>
   <button id="b-composite" title="what the policy sees: exterior composite over the real plate + wrist view (scenes with composite assets)">Composite</button>
   <label>policy <select id="policy"></select></label>
-  <button id="b-run" title="run the policy on this turn's scene + task (30 s, a separate process; the chat stays usable)">Run policy</button>
+  <button id="b-run" title="run on this turn's scene + task as a separate process (the chat stays usable): expert = scripted expert in the policy's sim and cameras (CPU, proof it can be solved); groot = GR00T 30 s (GPU)">Run policy</button>
   <button id="b-stoprun" title="stop the running policy" disabled>Stop run</button>
   <button id="b-save">Save</button>
   <button id="b-undo">Undo</button>
@@ -177,7 +177,7 @@ function onEvent(ev){
   if (ev.type === 'turns'){ renderTurns(ev.turns, ev.current); return; }
   if (ev.type === 'policy_start'){ policyRunning(true); const a = agentBlock();
     const d = document.createElement('details'); d.className = 'step'; d.id = 'prun';
-    d.innerHTML = `<summary><span class="dot run">⏺</span><span>run_policy(${esc(ev.policy)}, turn ${ev.turn}, 30 s) … started ${ev.started}</span></summary><div class="sub">"${esc(ev.task)}" · output ${esc(ev.out)} · you can keep chatting meanwhile</div>`;
+    d.innerHTML = `<summary><span class="dot run">⏺</span><span>run_policy(${esc(ev.policy)}, turn ${ev.turn}, ${ev.policy==='expert'?'until its steps end':'30 s'}) … started ${ev.started}</span></summary><div class="sub">"${esc(ev.task)}" · output ${esc(ev.out)} · you can keep chatting meanwhile</div>`;
     a.steps.appendChild(d); scroll(); return; }
   if (ev.type === 'policy_end'){ policyRunning(false); const old = document.getElementById('prun'); if (old) old.querySelector('.dot').className = 'dot ' + (ev.rc===0?'ok':'bad'), old.removeAttribute('id');
     const a = agentBlock(); const r = ev.result || {}, st = r.stages || {};
@@ -187,7 +187,7 @@ function onEvent(ev){
     d.innerHTML = `<summary><span class="dot ${ev.rc===0&&r.success?'ok':'bad'}">⏺</span><span>Policy ${esc(ev.run.policy)} on turn ${ev.turn}: result</span><span class="secs">${ev.run.wall_s} s</span></summary><div class="sub">${line}</div><pre class="json">${hl(ev.rc===0 ? r : ev.log_tail)}</pre>`;
     a.steps.appendChild(d);
     if (ev.run.video){ const v = document.createElement('video'); v.src = ev.run.video; v.controls = true; a.steps.appendChild(v); }
-    a.text.textContent = 'Video: what the policy saw (exterior composite | wrist). UNVERIFIED.'; scroll(); return; }
+    a.text.textContent = ev.run.video ? (ev.run.policy==='expert' ? (r.success ? 'The scripted expert solved it in the policy\'s own sim and cameras: the task can be solved. Video below. UNVERIFIED.' : 'The scripted expert did NOT solve it: not proven solvable (the expert has known gaps, e.g. top drawers), not proven unsolvable. Video below. UNVERIFIED.') : 'Video: what the policy saw (exterior composite | wrist). UNVERIFIED.') : 'No video: the run stopped before the episode (see the log above).'; scroll(); return; }
   if (ev.type === 'policy_refused'){ const a = agentBlock(); a.text.innerHTML = `<span class="err">Run policy: ${esc(ev.text)}</span>`; scroll(); return; }
   if (ev.type === 'idle'){ setBusy(false); current = null; return; }
   if (ev.type === 'idle_if_not_busy'){ if (!running) setBusy(false); return; }

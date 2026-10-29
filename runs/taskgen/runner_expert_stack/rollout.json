@@ -1,0 +1,227 @@
+{
+ "task_id": "chat_5",
+ "instruction": "Stack the blocks in order: red, green, red, yellow from bottom to top.",
+ "pass_all": [
+  {
+   "type": "ordered_stack",
+   "object": null,
+   "target": null,
+   "order": [
+    "red_block_1",
+    "green_block",
+    "red_block_2",
+    "yellow_block"
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "rule": {
+    "type": "ordered_stack",
+    "object": null,
+    "target": null,
+    "order": [
+     "red_block_1",
+     "green_block",
+     "red_block_2",
+     "yellow_block"
+    ]
+   },
+   "ok": true,
+   "detail": {
+    "steps": [
+     {
+      "object": "red_block_1",
+      "on_table": true
+     },
+     {
+      "object": "green_block",
+      "on": "red_block_1",
+      "ok": true,
+      "centre_over_target": true,
+      "bottom_cm": -6.5,
+      "target_top_cm": -6.4
+     },
+     {
+      "object": "red_block_2",
+      "on": "green_block",
+      "ok": true,
+      "centre_over_target": true,
+      "bottom_cm": -3.9,
+      "target_top_cm": -3.7
+     },
+     {
+      "object": "yellow_block",
+      "on": "red_block_2",
+      "ok": true,
+      "centre_over_target": true,
+      "bottom_cm": -0.9,
+      "target_top_cm": -0.7
+     }
+    ]
+   }
+  }
+ ],
+ "success": true,
+ "stage_target": "green_block",
+ "scene_config": "(in memory)",
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "policy": "expert",
+ "checkpoint": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "steps": 601,
+ "seconds": 40.1,
+ "open_loop": 15,
+ "policy_calls": 0,
+ "load_s": 0.0,
+ "infer_s_median": null,
+ "wall_s": 218.35910177230835,
+ "vram": {},
+ "gpu_used_max_gib": null,
+ "gripper_closed_frac": 0.5141430948419301,
+ "wrist_render": "v2",
+ "wrist_blur": "gripper",
+ "shadows": true,
+ "exterior_view": "composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
+ "expert_steps": [
+  {
+   "step": "pick",
+   "object": "green_block",
+   "width_cm": 2.8,
+   "attempts": [
+    {
+     "ik_above_m": 3.4696277889759063e-05,
+     "ik_descend_m": 1.1181839973202408e-05,
+     "aim_err_cm": 0.55,
+     "reaim": "xy",
+     "lifted_cm": 13.5,
+     "held": true
+    }
+   ],
+   "yaw_deg": 90,
+   "yaw_tried": [
+    [
+     90,
+     0.0
+    ]
+   ],
+   "lifted_cm": 13.5,
+   "held": true,
+   "aim_err_cm": 0.55,
+   "n_attempts": 1
+  },
+  {
+   "step": "onto red_block_1",
+   "at_cm": [
+    41.8,
+    11.6,
+    -4.5
+   ],
+   "ik_above_m": 4.482174463051596e-05,
+   "ik_lower_m": 1.3169507957664933e-05
+  },
+  {
+   "step": "pick",
+   "object": "red_block_2",
+   "width_cm": 3.0,
+   "attempts": [
+    {
+     "ik_above_m": 2.549213791725018e-06,
+     "ik_descend_m": 1.3816330993549436e-05,
+     "aim_err_cm": 0.57,
+     "reaim": "xy",
+     "lifted_cm": 13.7,
+     "held": true
+    }
+   ],
+   "yaw_deg": 0,
+   "yaw_tried": [
+    [
+     0,
+     0.0
+    ]
+   ],
+   "lifted_cm": 13.7,
+   "held": true,
+   "aim_err_cm": 0.57,
+   "n_attempts": 1
+  },
+  {
+   "step": "onto green_block",
+   "at_cm": [
+    41.0,
+    11.5,
+    -1.7
+   ],
+   "ik_above_m": 2.6367357261227337e-06,
+   "ik_lower_m": 2.63419021076692e-06
+  },
+  {
+   "step": "pick",
+   "object": "yellow_block",
+   "width_cm": 2.5,
+   "attempts": [
+    {
+     "ik_above_m": 3.2066855543776696e-06,
+     "ik_descend_m": 2.0202011302879904e-05,
+     "aim_err_cm": 0.68,
+     "reaim": "xy",
+     "lifted_cm": 13.3,
+     "held": true
+    }
+   ],
+   "yaw_deg": 270,
+   "yaw_tried": [
+    [
+     270,
+     0.0
+    ]
+   ],
+   "lifted_cm": 13.3,
+   "held": true,
+   "aim_err_cm": 0.68,
+   "n_attempts": 1
+  },
+  {
+   "step": "onto red_block_2",
+   "at_cm": [
+    40.4,
+    11.5,
+    1.1
+   ],
+   "ik_above_m": 5.2778509988122305e-05,
+   "ik_lower_m": 3.438484743051871e-05
+  }
+ ],
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": true,
+  "first_step": {
+   "reached": 45,
+   "closed_at_target": 68,
+   "lifted": 81
+  },
+  "min_dist_to_target_m": 0.000936827538648515,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.019091808809299043,
+  "median_err_m": 0.008474261392113595,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

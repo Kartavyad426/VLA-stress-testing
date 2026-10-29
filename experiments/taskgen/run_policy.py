@@ -33,7 +33,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scene_config", required=True)
     ap.add_argument("--task_config", required=True)
-    ap.add_argument("--policy", choices=["hold", "replay", "groot"], default="hold")
+    ap.add_argument("--policy", choices=["hold", "replay", "groot", "expert"], default="hold")
     ap.add_argument("--replay_npz", default=None)
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--wrist_render", choices=["v1", "v2"], default="v2")

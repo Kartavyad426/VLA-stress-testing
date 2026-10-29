@@ -9,9 +9,12 @@ SC=$1; TC=$2; OUT=$3; SECS=${4:-30}
 if [ "${TASKGEN_LOCKED:-0}" != "1" ]; then
     exec env TASKGEN_LOCKED=1 flock -n /tmp/vla_gpu.lock "$0" "$@" || { echo "GPU lock held by another job; not started" >&2; exit 1; }
 fi
+# started from the chat server, which runs under the CPU wrapper: drop its CUDA_VISIBLE_DEVICES="" / MUJOCO_GL=osmesa
+# (10-29 16:29: inherited, they hid the GPU, so EGL failed: "module 'mujoco' has no attribute 'Renderer'")
+unset CUDA_VISIBLE_DEVICES MUJOCO_GL PYOPENGL_PLATFORM
 used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)
 if [ "$used" -gt 500 ]; then echo "GPU busy ($used MiB used); not started" >&2; exit 1; fi
-mkdir -p "$OUT"
+mkdir -p "$OUT"; touch "$OUT/gpu_monitor.csv"
 echo "$(date '+%F %T') start: scene $SC task $TC seconds $SECS; disk free $(df -h / | awk 'NR==2{print $4}')" | tee -a "$OUT/run.log"
 # monitor: time, GPU MiB, MemAvailable MiB; prim's condition (c): abort if MemAvailable < 6 GiB
 ( while sleep 5; do

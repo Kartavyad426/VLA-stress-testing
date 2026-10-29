@@ -43,7 +43,8 @@ FAKE_ANSWER = json.dumps({"scene": {"add": [
              "pass_all": [{"type": "inside", "object": "red_block_1", "target": "bowl_1"}]}, "infeasible": []})
 
 
-POLICIES = ["hold", "groot"]  # hold: CPU, no network; groot: GPU via run_groot.sh, only if the server was started with --allow_groot
+POLICIES = ["expert", "groot"]  # expert: TaskGen's scripted expert in the policy's sim + cameras (CPU; proof the task can be solved);
+# groot: GPU via run_groot.sh, only if the server was started with --allow_groot. (hold stays in run_policy.py, CLI only)
 TASKGEN = HERE  # experiments/taskgen
 
 
@@ -205,23 +206,18 @@ class Chat:
 
     def composite(self):
         """What the policy would see: the exterior composite (cleaned real plate + sim) and the wrist view, at the policy's
-        320x180, for scenes whose base has the composite assets (res31 10-29: ep_orange_block_stereo only)."""
+        320x180, with the runner's own compositors (wrist v2, as GR00T gets it), for scenes whose base has the composite assets (res31 10-29: ep_orange_block_stereo only)."""
         from sim_mujoco.policy_runner import need_assets
         sdir = self.S.cfg.base_scene
-        miss = need_assets(sdir, "v1")
+        miss = need_assets(sdir, "v2")
         if miss:
             return None, f"this scene's base ({os.path.relpath(sdir, MAIN)}) has no composite assets ({', '.join(miss)}); res31's composite / light / gripper-library steps haven't been run on it. Scene 'orange_stereo' has them."
-        from composite import Compositor, WristCompositor, load_plate, wrist_plate
+        from sim_mujoco.policy_runner import compositors
         s = self.S.build()
-        plate = load_plate(sdir, "lama", "frame0+plate")
-        comp = Compositor(s.m, sdir, plate, shadows=True, size=(180, 320), verbose=False)
-        mb = __import__("mujoco").MjModel.from_binary_path(os.path.join(sdir, "scene.mjb"))
-        comp_b = Compositor(mb, sdir, plate, shadows=True, size=(180, 320), verbose=False)
-        wp = wrist_plate(mb, sdir, self.S.cfg.episode, comp_b, self.S.fit["wrist_camera"]["serial"])
-        wcomp = WristCompositor(s.m, plate, comp, (180, 320), plate2=wp)
+        comp, wcomp = compositors(self.S, s.m, "v2")  # the runner's own setup: what GR00T gets (wrist v2)
         ext = comp(s.d).clip(0, 255).astype(np.uint8)
         wr = wcomp(s.d).clip(0, 255).astype(np.uint8)
-        return {"exterior composite (policy view)": png_data_url(ext), "wrist composite (policy view, v1)": png_data_url(wr)}, None
+        return {"exterior composite (policy view)": png_data_url(ext), "wrist composite (policy view, v2)": png_data_url(wr)}, None
 
     def start_policy(self, policy, emit, allow_groot=False):
         """Run a policy on the current turn's scene + task, as a separate process (the chat stays usable meanwhile):
@@ -233,6 +229,8 @@ class Chat:
             return "no task with pass conditions on this turn, so a policy run can't be scored"
         if not getattr(self, "cur_turn", None):
             return "no turn yet: give a prompt first"
+        if policy not in POLICIES:
+            return f"unknown policy {policy}; choose one of {', '.join(POLICIES)}"
         if policy == "groot" and not allow_groot:
             return ("GR00T runs on the GPU, which needs prim's go for each use; this server was started without --allow_groot. "
                     "Ask, then restart the server with --allow_groot (or run run_groot.sh by hand).")
