@@ -270,6 +270,92 @@ a{color:var(--accent)}
 <li><b>c20, c22:</b> in chat at 11:32 I counted these as empty scenes. They built 2 bowls each, and their checks crashed (P3).</li>
 </ul>
 
+<h2>11 · Changing the simulator: what it touches and how much work (10-30; user: "if we need to change simulator then how much effort is it, what all changes need to be done")</h2>
+<p class="meta">Written 2026-10-30 00:53 by res31. Module counts and MuJoCo usage were read from the code. Facts about other simulators come from <code>SIM_ALTERNATIVES_PIPELINE.html</code> (res21, 10-06), which checked them; this section adds nothing new about them. <b>The effort figures are my estimates, not measured.</b></p>
+
+<div class="box"><b>Verdict.</b> The scene <i>description</i> is already simulator-neutral: the objects and table (<code>scene_fit.json</code>), the camera (<code>calib.json</code>), and the redaction and inventory lists. Everything that <i>uses</i> the scene is MuJoCo-bound, though: assembling the model, the robot's fingertip positions, physics, rendering, the scripted expert and policy rollouts. 38 of the 52 modules in <code>experiments/real2sim/</code> import mujoco.
+<ul>
+<li><b>Full switch:</b> about <b>6–10 person-weeks</b> across res31, implres31 and TaskGen, plus GPU time to redo every policy baseline (estimate).</li>
+<li><b>Rendering-only switch</b> (MuJoCo keeps the physics): about <b>2–3 weeks</b>, and a first version of it already exists (MuJoCo → USD → Blender).</li>
+<li><b>Choice of simulator:</b> Isaac Sim does not fit this machine. Its minimum is a 16 GB RTX GPU, and we have an 8 GB RTX PRO 1000.</li>
+</ul></div>
+
+<h3>11a · What depends on MuJoCo today</h3>
+<div class="wrap"><table>
+<tr><th>Layer</th><th>MuJoCo-bound?</th><th>Where (lines)</th><th>What changes in a switch</th></tr>
+<tr><td>Camera source, perception (detector, masks, stereo depth), VLM nouns, episode timing</td><td class="ok">no</td><td>camera_source, perceive, vlm_objects, episode_info</td><td>nothing</td></tr>
+<tr><td>Scene description: objects (centre, half-size, yaw, kind, colour, physics properties), table, camera, redacted/unbuilt</td><td class="ok">no (JSON)</td><td>scene_fit.json, calib.json, redacted.json</td><td>nothing. This is the seam to build on</td></tr>
+<tr><td>Shape fitting (boxes, ellipsoids, bowl circles from depth points)</td><td class="ok">no (numpy)</td><td>build_scene.py fit_* (inside a MuJoCo file)</td><td>move it into a neutral module</td></tr>
+<tr><td><b>Scene assembly</b>: FR3 arm + Robotiq 2F-85 from MuJoCo Menagerie, LIBERO object models, bowl asset, table and floor, saved as scene.mjb</td><td class="bad">yes (MjSpec)</td><td>build_scene.py (649), about 90 lines of assembly plus asset loading</td><td>rewrite for the new simulator's scene API; convert the assets (11b)</td></tr>
+<tr><td>Robot fingertip position from recorded joints (FK). Feeds every grasp/drop check, the unbuilt-grasp redaction and grasp anchors</td><td class="warn">yes, kinematics only</td><td>scene_checks, build_v1, geom_probe, scene_roles</td><td>any FK library will do; check it against MuJoCo to within 1 mm</td></tr>
+<tr><td>Physics checks: settle (B1); surface distance from collision boxes</td><td class="bad">yes</td><td>scene_checks (165)</td><td>port, then <b>re-tune thresholds</b> (settle 2 cm and slip were set in MuJoCo)</td></tr>
+<tr><td>Scripted expert (B3): IK, grasp, lift, place</td><td class="bad">yes</td><td>implres31: expert_probe (411) + common (235); res31: scripted_grasp (175)</td><td>port (implres31's code); retune the grasp, because friction and contact differ</td></tr>
+<tr><td>Rendering: RGB, per-pixel object id and depth at the calibrated camera; exterior and wrist composites; wrist v2 with the real gripper library; light fits</td><td class="bad">yes (mujoco.Renderer)</td><td>composite (639), stereo_depth, geom_probe, gripper_library, light_fit_wrist, calibrate_light, wrist_overlay</td><td>rewrite the render calls; <b>re-validate that the policy sees the same image</b> (the G6 checks). This is the largest piece</td></tr>
+<tr><td>Policy rollouts (GR00T-DROID) and task generation</td><td class="bad">yes</td><td>policy_rollout (399), make_tasks (272); TaskGen's sim_mujoco/ (about 880)</td><td>port the step loop; <b>re-verify the DROID conventions</b> (yaw-90 fix, gripper mapping, frame rate)</td></tr>
+<tr><td>Interactive inspector</td><td class="bad">yes (MuJoCo viewer)</td><td>inspect_scene (777)</td><td>rewrite on the new viewer, or keep a MuJoCo-only inspector</td></tr>
+<tr><td>One-off analysis scripts (g6/g7/g8, grasp_debug, placement/release analysis, replay_probe, refit_block, etc.; about 20 files)</td><td class="bad">yes</td><td>experiments/real2sim/*</td><td>do not port; they record past investigations</td></tr>
+<tr><td>Existing exit</td><td>—</td><td>export_usd (MuJoCo's USD exporter), blender_render (Cycles)</td><td>already renders our scenes outside MuJoCo, for visuals only</td></tr>
+</table></div>
+<p class="meta">TaskGen already keeps its framework behind a simulator interface (<code>core/sim.py</code>, an abstract <code>Sim</code> class; <code>sim_mujoco/</code> implements it). Using that same interface in SceneGen is the natural first step.</p>
+
+<h3>11b · Asset and physics issues that don't show up in line counts</h3>
+<ul>
+<li><b>Robot gripper:</b> the Robotiq 2F-85 model is a closed linkage held together with a tendon and equality constraints (Menagerie <code>2f85.xml</code>). Other simulators model these differently; the gripper has to be re-authored and its grip re-tested.</li>
+<li><b>Objects:</b> LIBERO models are MuJoCo XML files (meshes plus collision boxes). res21 recorded RoboVerse's note that a port to SAPIEN/Newton "needs asset re-authoring + a different contact model", which makes it approximate, not 1:1.</li>
+<li><b>Contact and friction:</b> per-object friction triples (MuJoCo's sliding/torsion/rolling) and the elliptic friction cone set in rollouts do not carry over one-to-one. Slip, lift and settle results would all shift.</li>
+<li><b>Baselines are MuJoCo-only:</b> res21 recorded ROBOGATE's result that a GR00T N1.6 LIBERO checkpoint scored 97.65% in MuJoCo and 0% on Isaac Sim scenes. Every policy result so far would need re-running before any comparison.</li>
+<li><b>Hardware:</b> Isaac Sim 6.0 needs at least an RTX 4080 with 16 GB VRAM (res21, verified). This machine has an 8 GB RTX PRO 1000. Isaac means a rented GPU.</li>
+<li><b>MuJoCo Warp</b> (a GPU MuJoCo) is not a simulator change. Our real2sim venv is MuJoCo 3.15.0, which meets its ≥ 3.12 requirement. The LIBERO venvs stay pinned below 3.4.</li>
+</ul>
+
+<h3>11c · Work items and estimates (my estimates, not measured)</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Item</th><th>Owner</th><th>Estimate</th></tr>
+<tr><td>1</td><td>Simulator interface (TaskGen's <code>Sim</code> plus FK, render, step), with a MuJoCo implementation; SceneGen calls only the interface. Useful even with no switch</td><td>res31 + TaskGen</td><td>3–5 days</td></tr>
+<tr><td>2</td><td>Robot (FR3 + 2F-85) in the new simulator; FK matched to MuJoCo; gripper re-authored and grip-tested</td><td>res31</td><td>1–2 weeks</td></tr>
+<tr><td>3</td><td>Object assets (LIBERO set, bowl, primitives) converted; collision checked</td><td>res31</td><td>3–5 days</td></tr>
+<tr><td>4</td><td>Scene assembly from scene_fit.json</td><td>res31</td><td>2–4 days</td></tr>
+<tr><td>5</td><td>Checks (settle, grasp/drop FK) ported; thresholds re-tuned on the 6 passing scenes</td><td>res31</td><td>3–5 days</td></tr>
+<tr><td>6</td><td>Rendering: RGB, object id, depth at the calibrated intrinsics; composites and wrist v2; then the G6-style "same image" checks</td><td>res31</td><td>2–3 weeks</td></tr>
+<tr><td>7</td><td>Policy rollout loop plus DROID convention re-checks</td><td>res31</td><td>3–5 days</td></tr>
+<tr><td>8</td><td>Scripted expert (B3)</td><td>implres31</td><td>3–5 days</td></tr>
+<tr><td>9</td><td>TaskGen <code>sim_&lt;new&gt;/</code> layer</td><td>TaskGen</td><td>3–6 days</td></tr>
+<tr><td>10</td><td>Inspector: rewrite, or keep MuJoCo-only</td><td>res31</td><td>0 (keep) to 1 week</td></tr>
+<tr><td>11</td><td>Re-run the baselines (GR00T on the scenes) for comparison</td><td>prim's GPU gate</td><td>GPU hours; rented GPU if Isaac</td></tr>
+</table></div>
+
+<h3>11d · Recommendation</h3>
+<ul>
+<li><b>Decide by the reason for switching.</b> If the reason is how the scenes <i>look</i> (gripper appearance, lighting; see the 10-29 wrist flicker), switch only the renderer. The USD → Blender path is the start of that. MuJoCo keeps the physics, the checks and all baselines.</li>
+<li>Switch the physics only if contact or grasp behaviour is the problem, and expect items 2–11.</li>
+<li><b>Either way, item 1 first:</b> putting SceneGen behind TaskGen's simulator interface costs little and makes a later switch a new backend, not a rewrite.</li>
+</ul>
+
+<h2>12 · Wrist composite: photo/sim gripper switch (10-30; TaskGen found it 10-29, user: "Lets go with B for now, but write other choices not chosen as of now")</h2>
+<p class="meta">Written 2026-10-30 by res31. Problem, from TaskGen: <code>WristRenderV2</code> pasted the real gripper photo when the gripper was ≤ 5% closed and drew the black sim gripper with blur otherwise. GR00T's gripper command dithered across that line, and the wrist image flipped in one frame each time: 15 flips in a 30 s run, with frame difference 13.6 at the flips against 5.1 elsewhere (TaskGen's numbers, not re-measured). The library holds only an <i>open</i> gripper photo, so a closed gripper always looks sim.</p>
+<div class="wrap"><table>
+<tr><th>Option</th><th>What</th><th>Downside</th><th>Status</th></tr>
+<tr><td><b>B · soft blend</b></td><td>Both images made; mixed with weight w = clip((open_max + ramp − closed) / ramp, 0, 1), ramp 0.05: photo up to 2% closed, sim from 7%</td><td>Between 2% and 7% both grippers show, overlaid (ghost); a real camera never shows this</td><td class="ok">CHOSEN, applied 10-30</td></tr>
+<tr><td>A · hysteresis</td><td>Switch to sim past 7% closed, back to the photo below 4%</td><td>A real open or close still jumps in one frame (once per real action)</td><td class="muted">not chosen</td></tr>
+<tr><td>B + averaging over time</td><td>w moves 30% of the way to its target each frame, so dithering barely moves it</td><td>The look lags the gripper by 3–5 frames (0.2–0.3 s); ghosting lasts longer</td><td class="muted">not chosen; next step if B's ghosting or dithering is still a problem</td></tr>
+<tr><td>Colour match</td><td>Sim gripper material set to the real gripper's mean colour, plus ambient light tuning, so the two images differ less</td><td>Detail still differs (the real one is brown with screws)</td><td class="muted">not chosen; combines with any option</td></tr>
+<tr><td>Texture the sim fingers</td><td>Texture taken from the real gripper photo, mapped onto the sim finger meshes</td><td>Needs UV mapping of the Robotiq meshes; feasibility not checked</td><td class="muted">not chosen</td></tr>
+<tr><td>Closed-gripper photos</td><td>Extend the gripper library with photos at several closures, so no sim gripper is shown</td><td>Needs real wrist frames at each closure, per robot; larger job</td><td class="muted">not chosen</td></tr>
+<tr><td>One fixed look for the episode</td><td>Always the photo, or always sim</td><td>No flicker, but the gripper looks open while closed (or always sim)</td><td class="muted">rejected</td></tr>
+</table></div>
+<p><b>Applied (res31's code):</b></p>
+<ul>
+<li><code>composite.WristRenderV2(open_ramp=…)</code>, with a default of 0, which is the old hard switch. It reports <code>library_weight</code> per frame.</li>
+<li><code>policy_rollout.py --wrist_open_ramp</code>, with a default of 0.05 = B. It's recorded in <code>rollout.json</code>. Passing 0 reproduces every v2 run before 10-30.</li>
+</ul>
+<p><b>Check on <code>ep_orange_block_stereo</code></b> (closure swept 0 → 0.10 in 0.005 steps, mean absolute image change per step):</p>
+<ul>
+<li>hard switch: one jump of 6.6 at 0.05, otherwise 0;</li>
+<li>B: 0.6–0.7 per step from 0.02 to 0.07;</li>
+<li>at 0.045 the two grippers are visible half-and-half, as expected.</li>
+</ul>
+<p>Not yet tested with a policy. TaskGen will run before/after on the same task, CPU expert first, GR00T only with prim's go. TaskGen's hypothesis that the flicker feeds GR00T's gripper dithering is untested.</p>
+
 <h2>8 · Decision log</h2>
 <div class="wrap"><table>
 <tr><th>When</th><th>Trigger</th><th>Decision</th></tr>
@@ -283,6 +369,9 @@ a{color:var(--accent)}
 <tr><td>10-28</td><td>User: "yes to 1" (one shared module in main for detector, kinds/bounds, collision geometry, scene loading; owner res31, implres31 and TaskGen import it read-only) and on PointWorld: "for this level its ok otherwise we will have to port their method, although we do have a nvidia partnership. Lets use it for poc now"</td><td>Shared module: plan sent to prim. PointWorld cameras used for the PoC (v1); before any non-PoC use, either port their method or clear the licence (NVIDIA partnership noted)</td></tr>
 <tr><td>10-29</td><td>User: "okay record it, We can put all this in redacted as a workaround I guess so manual mode or agent mode can add it later with Obj Gen"</td><td>Undetected nouns listed as missing (like redacted) in build_v1's inventory.json; added later by manual / agent / ObjGen</td></tr>
 <tr><td>10-29</td><td>User: "lets make all the scenes? everything is automated right, I am going away so wont be able to allow anything"; on return: "yes add §10. Can you show me failure reasons as well"</td><td>Phase-1 batch run unattended (32 candidates); results and failure reasons in §10. Fixes F1–F6 proposed, not applied</td></tr>
+<tr><td>10-29/30</td><td>User asked how tangled SceneGen v1 is with MuJoCo, then "write up somewhere, if we need to change simulator then how much effort is it, what all changes need to be done" and "add in sceneGen v1 docs"</td><td>§11. No switch decided; recommendation: renderer-only if the reason is visual, simulator interface first in either case</td></tr>
+<tr><td>10-30</td><td>TaskGen reported the wrist photo/sim gripper flicker; user: "Lets go with B for now, but write other choices not chosen as of now"</td><td>§12: soft blend applied (policy_rollout default ramp 0.05; 0 = old behaviour); A, averaging over time, colour match, texture and closed-gripper photos recorded as not chosen</td></tr>
+<tr><td>10-30</td><td>User: "should we have a check for composite consistency throughout when TaskGen chatbot is running? scope that with TaskGen"</td><td>Scoping sent to TaskGen; not built</td></tr>
 </table></div>
 </main></body>
 </html>

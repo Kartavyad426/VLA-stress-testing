@@ -518,11 +518,15 @@ class WristRenderV2:
         (gripper_library.py; rigid w.r.t. the camera); where the sim gripper sticks out beyond the real one, the table
         texture behind it is shown (ray/table-plane intersection);
       - otherwise: the sim gripper with near-layer defocus (blur_sigma px at 1280x720);
+      - open_ramp > 0 (10-30, option B, user: "Lets go with B"): no hard switch; both images are made and mixed with
+        w = clip((open_max + open_ramp - closed) / open_ramp, 0, 1): photo at <= open_max closed, sim from
+        open_max + open_ramp. The hard switch (open_ramp = 0, threshold open_max + open_tol) flipped the look in one
+        frame whenever GR00T's gripper command dithered across 0.05 (TaskGen 10-29: 15 flips in 30 s);
     and shrinks to `size` by area averaging, as real frames reach the policy (rendered at work_size first).
     Light/shadow: optional wrist-fitted light (S4, `light=`); the shadow comes from the sim robot with that light."""
 
     def __init__(self, m, plate, ext_comp, size, plate2, table_tex, grip_lib=None, blur_sigma=8.0, open_tol=0.03, cam="wrist",
-                 work_size=(360, 640), light=None, near="depth"):
+                 work_size=(360, 640), light=None, near="depth", open_ramp=0.0):
         """work_size: resolution rendered before the area downscale to `size` (full 1280x720 took 0.5 s/frame, which
         would add ~4 min per 30 s rollout; 640x360 keeps the averaging-down, at ~1/4 the cost). blur_sigma is in
         1280x720 pixels and scaled to work_size; the gripper library is resized to work_size.
@@ -537,6 +541,7 @@ class WristRenderV2:
             self.light = dict(dir=np.asarray(light["dir"], float), real_shadow_ratio=float(light["real_shadow_ratio"]))
         self.m, self.size, self.tt = m, size, table_tex
         self.open_tol = open_tol
+        self.open_ramp = open_ramp
         self.cid = m.camera(cam).id
         W0, H0 = (int(v) for v in m.cam_sensorsize[self.cid])
         wh, ww = work_size
@@ -566,8 +571,15 @@ class WristRenderV2:
         seg = info["seg"]
         gm = (seg[..., 1] == mujoco.mjtObj.mjOBJ_GEOM) & np.isin(seg[..., 0], self.grip)
         opening = float(np.clip(d.qpos[self.drv_q] / self.drv_max, 0, 1))
-        use_lib = self.lib is not None and opening <= self.lib["open_max"] + self.open_tol
-        if use_lib:
+        if self.lib is None:
+            w = 0.0
+        elif self.open_ramp > 0:
+            w = float(np.clip((self.lib["open_max"] + self.open_ramp - opening) / self.open_ramp, 0, 1))
+        else:  # hard switch (all runs before 10-30)
+            w = 1.0 if opening <= self.lib["open_max"] + self.open_tol else 0.0
+        use_lib = w > 0
+        sim = near_defocus(out, info["depth"], self.blur_sigma, mask=gm if self.near == "gripper" else None) if w < 1 else None
+        if w > 0:
             # table texture behind the sim gripper: intersect each pixel's ray with the table plane
             R, t = cam_pose(d, self.cid)
             dirs = self.hi.rays @ R.T
@@ -577,15 +589,17 @@ class WristRenderV2:
             iy = ((pw[..., 1] - self.tt["y0"]) / self.tt["res"] - 0.5).astype(np.float32)
             behind = cv2.remap(self.tt["tex"], ix, iy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
             fill = gm & (s > 0)
-            out[fill] = behind[fill]
+            photo = out.copy()
+            photo[fill] = behind[fill]
             a = self.lib["alpha"][..., None]
-            out = a * self.lib["rgb"] + (1 - a) * out
+            photo = a * self.lib["rgb"] + (1 - a) * photo
+            out = photo if sim is None else w * photo + (1 - w) * sim
         else:
-            out = near_defocus(out, info["depth"], self.blur_sigma, mask=gm if self.near == "gripper" else None)
+            out = sim
         H, W = self.size
         small = cv2.resize(np.clip(out, 0, 255).astype(np.float32), (W, H), interpolation=cv2.INTER_AREA)
         if return_info:
-            return small, dict(info, used_library=use_lib, opening=opening)
+            return small, dict(info, used_library=use_lib, library_weight=w, opening=opening)
         return small
 
     def close(self):
