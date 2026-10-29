@@ -59,6 +59,7 @@ footer{border-top:1px solid var(--line);padding:12px 0}
 textarea{flex:1;border:0;background:transparent;color:var(--fg);font:inherit;resize:none;outline:none;max-height:180px}
 .hint{font-size:12px;color:var(--muted);margin-top:6px}
 .base{font-size:12px;color:var(--muted)}
+.run{font-size:12px;margin-top:2px}.run .okk{color:var(--ok)}.run .bad{color:var(--bad)}
 </style>
 </head>
 <body>
@@ -70,6 +71,9 @@ textarea{flex:1;border:0;background:transparent;color:var(--fg);font:inherit;res
   <button id="b-new" title="new chat: fresh session, empty sidebar (old sessions stay on disk)">New chat</button>
   <button id="b-render">Render</button>
   <button id="b-composite" title="what the policy sees: exterior composite over the real plate + wrist view (scenes with composite assets)">Composite</button>
+  <label>policy <select id="policy"></select></label>
+  <button id="b-run" title="run the policy on this turn's scene + task (30 s, a separate process; the chat stays usable)">Run policy</button>
+  <button id="b-stoprun" title="stop the running policy" disabled>Stop run</button>
   <button id="b-save">Save</button>
   <button id="b-undo">Undo</button>
   <button id="b-reset">Reset</button>
@@ -108,7 +112,9 @@ function step(label, sub, detail, state, secs){
   current.steps.appendChild(d); scroll(); return d;
 }
 let running = false;
-function setBusy(b, r){ busy = b; running = b && (r !== false); document.querySelectorAll('header button, #send').forEach(x => x.disabled = b); document.getElementById('b-stop').disabled = !b; }
+let prunning = false;
+function setBusy(b, r){ busy = b; running = b && (r !== false); document.querySelectorAll('header button, #send').forEach(x => x.disabled = b); document.getElementById('b-stop').disabled = !b; policyRunning(prunning); }
+function policyRunning(p){ prunning = p; document.getElementById('b-run').disabled = p || busy; document.getElementById('b-stoprun').disabled = !p; }
 function replayTurns(turns){ // after a reload: the session's past prompts and replies (full steps are in each turn's trace)
   for (const t of turns){
     add(`<div class="bubble">${esc(t.kind === 'check' ? '/check' : t.text)}</div>`, 'user');
@@ -138,6 +144,8 @@ function onEvent(ev){
     if (ev.new){ document.getElementById('turns').innerHTML = '<div class="t2" style="padding:4px">New chat. Each prompt and check appears here.</div>'; }
     if (ev.turns){ renderTurns(ev.turns, null); if (!col.children.length) replayTurns(ev.turns); }
     if (ev.running){ add(`<div class="err">A request is still running: "${esc(ev.running.text)}" (started ${ev.running.started}). Its steps continue below; press Stop to cancel it.</div>`, 'agent'); setBusy(true, true); }
+    if (ev.policies){ fill('policy', ev.policies, document.getElementById('policy').value || ev.policies[0]); }
+    if (ev.policy_running){ policyRunning(true); add(`<div class="err">A ${ev.policy_running.policy} run on turn ${ev.policy_running.turn} is going (started ${ev.policy_running.started}); its result appears here and in the sidebar.</div>`, 'agent'); }
     if (ev.trace_dir) document.getElementById('tracedir').textContent = 'traces: ' + ev.trace_dir;
     document.getElementById('base').textContent = 'base (locked): ' + Object.entries(ev.base).map(([n,r]) => `${n} ${r.kind}`).join(' · ');
     return;
@@ -167,6 +175,20 @@ function onEvent(ev){
   if (ev.type === 'error'){ if (ev.traceback){ step('Error: ' + ev.text, 'click for the full traceback', ev.traceback, 'bad'); return; }
     if (!current) current = agentBlock(); const e = document.createElement('div'); e.className = 'err'; e.textContent = ev.text; current.el.appendChild(e); scroll(); return; }
   if (ev.type === 'turns'){ renderTurns(ev.turns, ev.current); return; }
+  if (ev.type === 'policy_start'){ policyRunning(true); const a = agentBlock();
+    const d = document.createElement('details'); d.className = 'step'; d.id = 'prun';
+    d.innerHTML = `<summary><span class="dot run">⏺</span><span>run_policy(${esc(ev.policy)}, turn ${ev.turn}, 30 s) … started ${ev.started}</span></summary><div class="sub">"${esc(ev.task)}" · output ${esc(ev.out)} · you can keep chatting meanwhile</div>`;
+    a.steps.appendChild(d); scroll(); return; }
+  if (ev.type === 'policy_end'){ policyRunning(false); const old = document.getElementById('prun'); if (old) old.querySelector('.dot').className = 'dot ' + (ev.rc===0?'ok':'bad'), old.removeAttribute('id');
+    const a = agentBlock(); const r = ev.result || {}, st = r.stages || {};
+    const line = ev.rc !== 0 ? `✗ the run failed (rc ${ev.rc}); click for the log` :
+      `${r.success ? 'SUCCESS ✓' : 'not solved ✗'} · stages on ${esc(r.stage_target || '')}: ` + ['reached','closed_at_target','lifted','placed'].map(k => `${k.replace('_at_target','')} ${st[k]?'✓':'✗'}`).join(', ') + ` · ${r.steps} steps · ${Math.round(r.wall_s||0)} s${r.gpu_used_max_gib?' · GPU '+r.gpu_used_max_gib.toFixed(1)+' GiB':''}`;
+    const d = document.createElement('details'); d.className = 'step';
+    d.innerHTML = `<summary><span class="dot ${ev.rc===0&&r.success?'ok':'bad'}">⏺</span><span>Policy ${esc(ev.run.policy)} on turn ${ev.turn}: result</span><span class="secs">${ev.run.wall_s} s</span></summary><div class="sub">${line}</div><pre class="json">${hl(ev.rc===0 ? r : ev.log_tail)}</pre>`;
+    a.steps.appendChild(d);
+    if (ev.run.video){ const v = document.createElement('video'); v.src = ev.run.video; v.controls = true; a.steps.appendChild(v); }
+    a.text.textContent = 'Video: what the policy saw (exterior composite | wrist). UNVERIFIED.'; scroll(); return; }
+  if (ev.type === 'policy_refused'){ const a = agentBlock(); a.text.innerHTML = `<span class="err">Run policy: ${esc(ev.text)}</span>`; scroll(); return; }
   if (ev.type === 'idle'){ setBusy(false); current = null; return; }
   if (ev.type === 'idle_if_not_busy'){ if (!running) setBusy(false); return; }
 }
@@ -177,7 +199,8 @@ function renderTurns(turns, cur){
     <div class="t1"><span class="n">#${t.turn} ${t.time}</span>${t.status?`<span class="badge ${t.status}">${t.status}</span>`:''}</div>
     <div class="p">${esc(t.kind === 'check' ? 'check: ' + (t.task||'') : t.text)}</div>
     <div class="t2">${t.scene} · ${esc(t.model.split('/').pop())}${t.added.length?' · '+t.added.length+' added':''}${t.task&&t.kind!=='check'?' · task':''}
-      · <a href="/trace/${t.turn}" target="_blank" onclick="event.stopPropagation()">trace</a>${t.video?` · <a href="${t.video}" target="_blank" onclick="event.stopPropagation()">video</a>`:''}</div></div>`).join('');
+      · <a href="/trace/${t.turn}" target="_blank" onclick="event.stopPropagation()">trace</a>${t.video?` · <a href="${t.video}" target="_blank" onclick="event.stopPropagation()">video</a>`:''}</div>
+    ${(t.runs||[]).map(r => `<div class="run">▶ ${esc(r.policy)} ${r.started||''}: ${r.rc!==0?'<span class="bad">error</span>':(r.success?'<span class="okk">success</span>':'<span class="bad">not solved</span>')}${r.video?` · <a href="${r.video}" target="_blank" onclick="event.stopPropagation()">video</a>`:''}</div>`).join('')}</div>`).join('');
   box.querySelectorAll('.turn').forEach(el => el.onclick = () => { if (busy) return; current = null;
     add(`<div class="bubble">/open turn ${el.dataset.turn}</div>`, 'user'); send({type:'open_turn', turn: Number(el.dataset.turn)}); });
 }
@@ -197,6 +220,9 @@ document.getElementById('b-stop').onclick = () => ws.send(JSON.stringify({type:'
 document.getElementById('b-new').onclick = () => { col.innerHTML = ''; current = null; send({type:'new'}); };
 for (const k of ['check','render','composite','save','undo','reset']) document.getElementById('b-'+k).onclick = () => { current = null; add(`<div class="bubble">/${k}</div>`, 'user'); send({type:k}); };
 document.getElementById('scene').onchange = e => { current = null; add(`<div class="bubble">/scene ${e.target.value}</div>`, 'user'); send({type:'scene', scene:e.target.value}); };
+document.getElementById('b-run').onclick = () => { const p = document.getElementById('policy').value; current = null;
+  add(`<div class="bubble">/run ${esc(p)}</div>`, 'user'); ws.send(JSON.stringify({type:'run_policy', policy:p})); };
+document.getElementById('b-stoprun').onclick = () => ws.send(JSON.stringify({type:'stop_policy'}));
 document.getElementById('model').onchange = e => send({type:'model', model:e.target.value});
 connect();
 </script>

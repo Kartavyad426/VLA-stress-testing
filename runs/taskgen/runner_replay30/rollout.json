@@ -1,0 +1,78 @@
+{
+ "task_id": "T-cabinet_middle_red_stereo",
+ "instruction": "take the red block out of the middle drawer and put it in the black bowl",
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "black_bowl",
+   "order": null
+  }
+ ],
+ "rules": [
+  {
+   "rule": {
+    "type": "inside",
+    "object": "red_block_1",
+    "target": "black_bowl",
+    "order": null
+   },
+   "ok": false,
+   "detail": {
+    "reason": "not inside the target"
+   }
+  }
+ ],
+ "success": false,
+ "stage_target": "red_block_1",
+ "scene_config": "/home/imerit/Documents/Code/VLA-exp-taskgen/runs/taskgen/runner_hold/scene_config.json",
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "policy": "replay",
+ "checkpoint": null,
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 0.0,
+ "infer_s_median": 0.0,
+ "wall_s": 179.07366490364075,
+ "vram": {},
+ "gpu_used_max_gib": 0.103515625,
+ "gripper_closed_frac": 0.0,
+ "wrist_render": "v2",
+ "wrist_blur": "gripper",
+ "shadows": true,
+ "exterior_view": "composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": false,
+  "closed_at_target": false,
+  "closed_near_target": false,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": false,
+  "placed": false,
+  "first_step": {
+   "reached": null,
+   "closed_at_target": null,
+   "lifted": null
+  },
+  "min_dist_to_target_m": 0.6907899904561345,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.005052534510772642,
+  "median_err_m": 0.004505260117480182,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

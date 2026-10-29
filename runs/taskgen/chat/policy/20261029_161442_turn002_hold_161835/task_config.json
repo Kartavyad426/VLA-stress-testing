@@ -1,0 +1,33 @@
+{
+ "id": "chat_2",
+ "source": "agent",
+ "template": null,
+ "slot_values": {},
+ "scene_config": "(in memory)",
+ "base_version": "f32f1578ff483a55",
+ "instruction": "put the orange block in the bowl",
+ "targets": [
+  "orange_block",
+  "black_bowl"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "orange_block",
+   "target": "black_bowl",
+   "order": null
+  }
+ ],
+ "start": {},
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  }
+ },
+ "status": "draft"
+}

@@ -225,6 +225,58 @@ class MujocoSim(Sim):
         r.close()
         return img
 
+    def render_labelled(self, view, labels, height=360, width=640):
+        """render() with each visible object's name written at the centre of its pixels (from a segmentation render).
+        labels: {top-level body name: text}; objects hidden from this camera get no label."""
+        import cv2
+        img = self.render(view, height, width).copy()
+        r = mujoco.Renderer(self.m, height, width)
+        r.enable_segmentation_rendering()
+        if view == "free":
+            cam = mujoco.MjvCamera()
+            cam.lookat[:] = [0.62, 0.0, -0.08]
+            cam.distance, cam.azimuth, cam.elevation = 1.25, 205.0, -35.0
+            r.update_scene(self.d, camera=cam)
+        else:
+            r.update_scene(self.d, camera=view)
+        seg = r.render()
+        r.close()
+        m = self.m
+        geom = seg[..., 1] == int(mujoco.mjtObj.mjOBJ_GEOM)
+        ids = np.where(geom, seg[..., 0], -1)
+        root_of = np.full(m.ngeom + 1, -1)
+        root_of[:m.ngeom] = m.body_rootid[m.geom_bodyid[np.arange(m.ngeom)]]
+        roots = np.where(ids >= 0, root_of[np.clip(ids, 0, m.ngeom)], -1)
+        fs = 0.4 if width <= 480 else 0.5
+        anchors = []
+        for body, text in labels.items():
+            try:
+                bid = m.body(body).id
+            except KeyError:
+                continue
+            ys, xs = np.nonzero(roots == m.body_rootid[bid])
+            if len(xs) < 6:
+                continue
+            anchors.append((int(np.median(xs)), int(np.min(ys)), text))
+        placed = []  # boxes already drawn; a label that would overlap one moves up, with a line back to its object
+        for ax, ay, text in sorted(anchors, key=lambda a: -a[1]):
+            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, fs, 1)
+            x = int(np.clip(ax - tw // 2, 2, width - tw - 2))
+            y = int(np.clip(ay - 4, th + 4, height - 2))
+            for _ in range(12):
+                box = (x - 2, y - th - 3, x + tw + 2, y + 3)
+                if not any(box[0] < b[2] and b[0] < box[2] and box[1] < b[3] and b[1] < box[3] for b in placed):
+                    break
+                y -= th + 6
+            y = max(y, th + 4)
+            box = (x - 2, y - th - 3, x + tw + 2, y + 3)
+            placed.append(box)
+            if ay - y > th + 6:
+                cv2.line(img, (ax, ay), (x + tw // 2, y + 3), (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.rectangle(img, box[:2], box[2:], (20, 20, 20), -1)
+            cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, fs, (255, 255, 255), 1, cv2.LINE_AA)
+        return img
+
     def save(self, path):
         mujoco.mj_saveModel(self.m, path, None)
         if self.spec is not None:

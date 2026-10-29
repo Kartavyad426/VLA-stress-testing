@@ -8,7 +8,7 @@ Local only (127.0.0.1). Start from the main checkout:
 then open http://127.0.0.1:8765. Models: NIM (key from robotics_agentic/.env) or "fake" (a fixed answer, no network).
 Exploratory, UNVERIFIED.
 """
-import argparse, asyncio, base64, json, os, sys, threading, time
+import argparse, asyncio, base64, json, os, shutil, subprocess, sys, threading, time
 import cv2
 import h5py
 import numpy as np
@@ -41,6 +41,10 @@ FAKE_ANSWER = json.dumps({"scene": {"add": [
     {"name": "red_block_1", "source": "box", "colour": "red", "size_cm": 3, "relation": "inside", "target": "cabinet_1/middle"}]},
     "task": {"instruction": "take the red block out of the middle drawer and put it in the black bowl", "targets": ["red_block_1"],
              "pass_all": [{"type": "inside", "object": "red_block_1", "target": "bowl_1"}]}, "infeasible": []})
+
+
+POLICIES = ["hold", "groot"]  # hold: CPU, no network; groot: GPU via run_groot.sh, only if the server was started with --allow_groot
+TASKGEN = HERE  # experiments/taskgen
 
 
 def png_data_url(img):
@@ -90,10 +94,12 @@ class Chat:
                    scene_config=scfg, task_config=tcfg, renders=imgs)
         json.dump(dict(row, events=events), open(base + ".json", "w"), indent=1, default=str)
         self.turns.append(row)
+        self.cur_turn = n
         return row
 
     def open_turn(self, n):
         row = next(r for r in self.turns if r["turn"] == n)
+        self.cur_turn = n
         from core.config import SceneConfig
         self.snapshot()
         self.S.cfg = SceneConfig.load(row["scene_config"])
@@ -130,9 +136,21 @@ class Chat:
         self.S.cfg, self.task = self.history.pop()
         return True
 
+    def labels(self):
+        """Top-level body -> label: every object's scene name (base ones with their colour), so prompts can use them."""
+        out = {}
+        for b in self.S.base_bodies:
+            c = self.S.colour_of(b)
+            out[b] = f"{b} ({c})" if c and c not in b else b
+        for n, a in self.S.cfg.added_objects.items():
+            if a.pose is not None:
+                out[self.S._body(n)] = n
+        return out
+
     def renders(self):
         s = self.S.build()
-        return {v: png_data_url(s.render(v, 270, 480)) for v in ("ext", "wrist", "free")}
+        lab = self.labels()
+        return {v: png_data_url(s.render_labelled(v, lab, 270, 480)) for v in ("ext", "wrist", "free")}
 
     def summary_text(self, r):
         """The final reply, written from the result (the model answers in JSON only)."""
@@ -205,6 +223,65 @@ class Chat:
         wr = wcomp(s.d).clip(0, 255).astype(np.uint8)
         return {"exterior composite (policy view)": png_data_url(ext), "wrist composite (policy view, v1)": png_data_url(wr)}, None
 
+    def start_policy(self, policy, emit, allow_groot=False):
+        """Run a policy on the current turn's scene + task, as a separate process (the chat stays usable meanwhile):
+        hold on CPU via run_policy.py; groot on the GPU via run_groot.sh (flock, GPU-idle check, RAM abort), only when
+        the server was started with --allow_groot (prim's GPU gate). The result is added to the turn's row and trace."""
+        if POLICY.get("proc") is not None:
+            return f"a policy run is already going: {POLICY['policy']} on turn {POLICY['turn']} (started {POLICY['started']})"
+        if self.task is None or not self.task.pass_all:
+            return "no task with pass conditions on this turn, so a policy run can't be scored"
+        if not getattr(self, "cur_turn", None):
+            return "no turn yet: give a prompt first"
+        if policy == "groot" and not allow_groot:
+            return ("GR00T runs on the GPU, which needs prim's go for each use; this server was started without --allow_groot. "
+                    "Ask, then restart the server with --allow_groot (or run run_groot.sh by hand).")
+        row = next(r for r in self.turns if r["turn"] == self.cur_turn)
+        out = os.path.join(OUT, "policy", f"{self.session_id}_turn{row['turn']:03d}_{policy}_{time.strftime('%H%M%S')}")
+        os.makedirs(out, exist_ok=True)
+        sc, tc = os.path.join(out, "scene_config.json"), os.path.join(out, "task_config.json")
+        self.S.cfg.save(sc)
+        self.task.save(tc)
+        if policy == "groot":
+            cmd = [os.path.join(TASKGEN, "run_groot.sh"), sc, tc, out, "30"]
+        else:
+            cmd = [os.path.join(MAIN, "runs/real2sim/v1_dev/py_triton_first.sh"), os.path.join(TASKGEN, "run_policy.py"),
+                   "--scene_config", sc, "--task_config", tc, "--policy", policy, "--seconds", "30", "--out", out]
+        log = open(os.path.join(out, "stdout.log"), "w")
+        proc = subprocess.Popen(cmd, cwd=MAIN, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)  # own group: Stop kills it all
+        POLICY.update(proc=proc, policy=policy, turn=row["turn"], started=time.strftime("%H:%M:%S"), out=out)
+        emit(dict(type="policy_start", policy=policy, turn=row["turn"], out=out, task=self.task.instruction, started=POLICY["started"]))
+        threading.Thread(target=self._wait_policy, args=(proc, policy, row, out, log, emit), daemon=True).start()
+        return None
+
+    def _wait_policy(self, proc, policy, row, out, log, emit):
+        t0 = time.time()
+        rc = proc.wait()
+        log.close()
+        res, video = {}, None
+        rj = os.path.join(out, "rollout.json")
+        if os.path.exists(rj):
+            r = json.load(open(rj))
+            res = {k: r.get(k) for k in ("success", "stage_target", "steps", "policy_calls", "wall_s", "stages", "gpu_used_max_gib", "rules")}
+        mp4 = os.path.join(out, "rollout.mp4")
+        if os.path.exists(mp4):
+            os.makedirs(os.path.join(OUT, "media"), exist_ok=True)
+            name = os.path.basename(out) + ".mp4"
+            shutil.copy(mp4, os.path.join(OUT, "media", name))
+            video = f"/media/{name}"
+        tail = open(os.path.join(out, "stdout.log")).read().splitlines()[-15:]
+        run = dict(policy=policy, started=POLICY.get("started"), rc=rc, wall_s=round(time.time() - t0), success=res.get("success"),
+                   stages=res.get("stages"), video=video, out=out)
+        row.setdefault("runs", []).append(run)
+        tj = os.path.join(self.trace_dir, f"turn_{row['turn']:03d}.json")
+        if os.path.exists(tj):
+            t = json.load(open(tj))
+            t["runs"] = row["runs"]
+            json.dump(t, open(tj, "w"), indent=1, default=str)
+        POLICY.clear()
+        emit(dict(type="policy_end", turn=row["turn"], rc=rc, result=res, run=run, log_tail=None if res else tail))
+        emit(dict(type="turns", turns=self.turns, current=getattr(self, "cur_turn", None)))
+
     def new_session(self):
         """New chat: a fresh session (new trace folder, empty sidebar), the scene as reconstructed; old sessions stay on disk."""
         del self.turns
@@ -227,6 +304,8 @@ app = FastAPI()
 chat = None
 SUBS = set()          # every open page gets every event (a reloaded page keeps seeing a running request)
 RUNNING = {}          # what is running now: kind, text, started
+POLICY = {}           # the policy run going now (one at a time): proc, policy, turn, started, out
+ALLOW_GROOT = False
 STOP = threading.Event()
 
 
@@ -271,7 +350,8 @@ async def ws(sock: WebSocket):
     # this page only: the scene, the session's past turns (with replies, so a reload keeps the chat), what is running
     q.put_nowait(json.loads(json.dumps(dict(type="hello", scenes=list(SCENES), models=MODELS, scene=chat.scene, model=chat.model_name,
                                             base=chat.S.list_scene()["base"], turns=chat.turns, trace_dir=chat.trace_dir,
-                                            running=RUNNING or None), default=str)))
+                                            running=RUNNING or None, policies=POLICIES,
+                                            policy_running={k: v for k, v in POLICY.items() if k != "proc"} or None), default=str)))
 
     def worker(kind, payload):
         chat.busy = True
@@ -364,6 +444,21 @@ async def ws(sock: WebSocket):
                     STOP.set()
                     emit(dict(type="reply", text="Stopping: the current model or tool call finishes first, then the request stops."))
                 continue
+            if msg.get("type") == "stop_policy":
+                p = POLICY.get("proc")
+                if p is not None:
+                    import signal
+                    os.killpg(p.pid, signal.SIGTERM)  # the runner and, for groot, its policy server
+                    emit(dict(type="reply", text=f"Stopping the {POLICY.get('policy')} run on turn {POLICY.get('turn')}."))
+                continue
+            if msg.get("type") == "run_policy":
+                if chat.busy:
+                    q.put_nowait(dict(type="error", text=f"wait for the current request ({RUNNING.get('text')}) to finish, then run the policy"))
+                    continue
+                why = chat.start_policy(msg.get("policy", "hold"), emit, ALLOW_GROOT)
+                if why:
+                    q.put_nowait(dict(type="policy_refused", text=why))
+                continue
             if chat.busy:
                 q.put_nowait(dict(type="error", text=f"still working on: {RUNNING.get('text')} (started {RUNNING.get('started')}); press Stop to cancel it"))
                 q.put_nowait(dict(type="idle_if_not_busy"))
@@ -375,13 +470,15 @@ async def ws(sock: WebSocket):
 
 
 def main():
-    global chat
+    global chat, ALLOW_GROOT
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--scene", default="orange", choices=list(SCENES))
     ap.add_argument("--model", default="nvidia/nemotron-3-ultra-550b-a55b", choices=MODELS)
     ap.add_argument("--new", action="store_true", help="start a new session instead of resuming the latest one")
+    ap.add_argument("--allow_groot", action="store_true", help="let the Run policy button start GR00T (GPU): only with prim's go")
     a = ap.parse_args()
+    ALLOW_GROOT = a.allow_groot
     chat = Chat(a.scene, a.model)
     if not a.new:
         import glob
