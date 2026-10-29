@@ -184,11 +184,11 @@ def cam_pose(d, cid):
 
 
 def redacted_discs(fit, margin=0.0):
-    """Footprints (x, y, radius) of objects left out of the scene (asset-pack mode: fit['redacted'], 10-20). The real
-    object is still in the real frames, so every real-pixel texture source must mask it (else it reappears as a flat
-    ghost on the table)."""
+    """Footprints (x, y, radius) of objects left out of the scene (asset-pack mode: fit['redacted'], 10-20; also
+    fit['unbuilt'], 10-29: real grasps of objects that were never built, from build_v1). The real object is still in
+    the real frames, so every real-pixel texture source must mask it (else it reappears as a flat ghost on the table)."""
     out = []
-    for label, r in fit.get("redacted", {}).items():
+    for label, r in {**fit.get("redacted", {}), **fit.get("unbuilt", {})}.items():
         rad = r.get("rim_radius") or r.get("width_m", 0.06) / 2
         out.append((float(r["center"][0]), float(r["center"][1]), float(rad) + margin, label))
     return out

@@ -75,7 +75,7 @@ def main():
     for _ in range(int(0.5 / m.opt.timestep)):
         mujoco.mj_step(m, d)
     mv = {m.body(b).name: float(np.linalg.norm(d.xpos[b] - x0[b])) for b in free}
-    out["checks"]["1_settle"] = dict(pass_=max(mv.values()) < SETTLE_M, moved_m=mv)
+    out["checks"]["1_settle"] = dict(pass_=max(mv.values(), default=0.0) < SETTLE_M, moved_m=mv)
 
     # #3/#4/#5 per grasp event, objects at the scene's initial poses
     def pinch_at(k):
@@ -89,6 +89,9 @@ def main():
     for kc, ko in grasp_events(G):
         p, dk = pinch_at(kc)
         objs = [b for b in free if b not in containers]
+        if not objs:  # 10-29: everything graspable redacted or never built (c16, c20, c22): nothing to compare, not a crash
+            events.append(dict(close_frame=kc, open_frame=ko, object=None, skipped="no built non-container object in the scene"))
+            continue
         tgt = min(objs, key=lambda b: surface_dist(m, dk, b, p))  # nearest by surface, not centre (10-28)
         # a grasp of an object left out of the scene (asset-pack redaction, 10-20) has nothing to compare with
         red = [(np.hypot(p[0] - cx, p[1] - cy), lab) for cx, cy, _, lab in redacted_discs(fit)]
@@ -121,8 +124,10 @@ def main():
     na = None if not used else False  # no usable grasp event (none recorded, or all on redacted objects): n/a, not FAIL
     out["checks"]["3_grasp"] = dict(pass_=all(e["grasp_pass"] for e in used) if used else na, n_events=len(used),
                                     n_skipped_redacted=len(events) - len(used))
-    out["checks"]["4_release"] = dict(pass_=all(e.get("release_pass", False) for e in used) if used else na)
-    out["checks"]["5_scale"] = dict(pass_=all(e.get("scale_pass", False) for e in used) if used else na)
+    # 10-29: no container in the scene (c00, c05, c17): no drop to check, n/a (was a FAIL with an empty detail)
+    na45 = na if containers else None
+    out["checks"]["4_release"] = dict(pass_=all(e.get("release_pass", False) for e in used) if used and containers else na45)
+    out["checks"]["5_scale"] = dict(pass_=all(e.get("scale_pass", False) for e in used) if used and containers else na45)
 
     # #6 stereo table height (stereo_depth.py writes <scene>/stereo_table_check.json)
     env = dict(os.environ, MUJOCO_GL=os.environ.get("MUJOCO_GL", "egl"))

@@ -269,6 +269,8 @@ def main():
                     help="mesh source for named non-block objects: libero | none (fitted ellipsoids only) | a pack "
                     "kitchen|gso|ycb or a comma list (e.g. gso,ycb). Packs also supply the bowl; an object no pack "
                     "has is left out of the scene with a warning (listed under 'redacted' in scene_fit.json)")
+    ap.add_argument("--redact_unmatched", action="store_true", help="10-29: a non-block, non-bowl object with no matching "
+                    "model is left out (listed under 'redacted' in scene_fit.json) instead of built as a fitted ellipsoid")
     ap.add_argument("--object_props", default=None, help="JSON of per-label / 'category:<c>' overrides "
                     "(mass kg, friction [3], scale_mult); see experiments/asset_pack/catalogue.py")
     ap.add_argument("--robot", choices=["fr3_robotiq", "panda"], default="fr3_robotiq")
@@ -463,6 +465,15 @@ def main():
                     print(f"WARNING: '{label}' redacted: no plausible model in packs {a.assets}", file=sys.stderr)
                     continue
                 name = None
+            elif name is None and a.redact_unmatched:  # 10-29 user: "redact them" -- no matching model: no stand-in
+                cols = np.flatnonzero(per[key].any(0))  # ellipsoid (c16's clamp, c9's hammer), left out and recorded
+                z_med = float(np.median(s * per["depth"][per[key] & per["valid"]]))
+                width_m = (np.percentile(cols, 95) - np.percentile(cols, 5)) * z_med / K[0, 0]
+                fit.setdefault("redacted", {})[label] = dict(reason=f"no matching model in the {a.assets} assets (stand-in ellipsoid not built)",
+                                                             kind="ellipsoid", center=o["center"], width_m=width_m, rgb=rgb,
+                                                             source="build_scene --redact_unmatched")
+                print(f"WARNING: '{label}' redacted: no matching model in the {a.assets} assets", file=sys.stderr)
+                continue
             if name:  # retrieved mesh, uniformly scaled so its footprint matches the fitted one
                 half_xy, zmin, zmax, cxy = asset_footprint(cat[name])
                 cols = np.flatnonzero(per[key].any(0))

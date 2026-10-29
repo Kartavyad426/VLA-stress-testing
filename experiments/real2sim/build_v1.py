@@ -28,6 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 PYW = os.path.join(REPO, "runs/real2sim/v1_dev/py_triton_first.sh")
 CHECKS = os.path.join(os.path.dirname(REPO), "VLA-exp-real2sim-checks/experiments/real2sim_checks")
+NEAR_BUILT_M = 0.05  # 10-29: an unbuilt grasp this close to a built object's surface is ambiguous (A8 'needs review')
 
 
 def run(args, log, name):
@@ -67,7 +68,107 @@ def grasp_scale_ratios(out, episode):
     return [g["stereo_at_px"] / g["cam_depth"] for g in rows if g.get("stereo_at_px") and g.get("inside_image")]
 
 
-def report(out, episode, info):
+def redact_unbuilt_grasps(out, episode):
+    """10-29 (user: "redact them, make json, have a check before scripted to not check for these"). A real grasp whose
+    point, projected into the perception frame (frame 0, before anything moved), lands on no built or redacted object's
+    mask (dilated 12 px) grabbed something that was never built: not detected, or never named (c24, c26, c3 scored 7-14 cm
+    'misplacements' against the nearest built object). It goes into scene_fit.json 'unbuilt' at the grasp point (width
+    unknown: 6 cm); composite.redacted_discs reads 'redacted' and 'unbuilt', so scene_checks skips that grasp and the
+    composite masks it from the real textures. (A separate key, not 'redacted': implres31's image_checks C2 prompts the
+    detector with each redacted label's noun.) A grasp within
+    3 cm of an earlier release is a re-grasp of a moved object and is not added. One view only: an unbuilt object in
+    front of or behind a built one in the image is missed (c06). Re-run after every rebuild (it rewrites scene_fit.json).
+    An unbuilt grasp within NEAR_BUILT_M of a built object's surface may be a rim/edge grasp of that object (c9's cup,
+    3.4 cm): it stays redacted but is marked near_built, and the report's A8 reads 'needs review'. UNVERIFIED."""
+    import cv2, mujoco, h5py
+    sys.path.insert(0, HERE)
+    from episode_info import grasp_events
+    from scene_checks import surface_dist
+    from scene_roles import container_bodies
+    J = lambda f: json.load(open(os.path.join(out, f)))
+    c, fit = J("calib.json"), J("scene_fit.json")
+    z = np.load(os.path.join(out, "perception.npz"))
+    H, W = z["image"].shape[:2]
+    R, t, K = (np.array(c[k], float) for k in ("R_cam_to_base", "t_cam_in_base", "K"))
+
+    def pixel(p):
+        x = R.T @ (np.asarray(p, float) - t)
+        if x[2] <= 0:
+            return None
+        u = K @ (x / x[2])
+        u, v = int(round(u[0])), int(round(u[1]))
+        return (u, v) if 0 <= u < W and 0 <= v < H else None
+    unb = fit["unbuilt"] = {}  # rebuilt from scratch each run
+    labels = [o.get("mask", k) for k, o in fit["objects"].items() if o.get("body")] + list(fit.get("redacted", {}))
+    ker = np.ones((25, 25), np.uint8)
+    masks = [cv2.dilate(z["mask/" + l].astype(np.uint8), ker) > 0 for l in labels if "mask/" + l in z.files]
+    m = mujoco.MjModel.from_binary_path(os.path.join(out, "scene.mjb"))
+    d = mujoco.MjData(m)
+    f = h5py.File(os.path.join(episode, "trajectory.h5"))
+    Jq, G = f["observation/robot_state/joint_positions"][:], f["observation/robot_state/gripper_position"][:]
+    arm = [m.joint(f"fr3_joint{k}").qposadr[0] for k in range(1, 8)]
+    pinch = m.site("g_pinch").id
+    cont = container_bodies(m, fit)
+    objs = [m.jnt_bodyid[j] for j in range(m.njnt) if m.jnt_type[j] == mujoco.mjtJoint.mjJNT_FREE and m.jnt_bodyid[j] not in cont]
+
+    def fk(k):
+        d.qpos[:] = m.qpos0
+        d.qpos[arm] = Jq[k]
+        mujoco.mj_forward(m, d)
+        return d.site_xpos[pinch].copy()
+    releases, added, rows = [], [], []
+    for kc, ko in grasp_events(G):
+        p = fk(kc)
+        row = dict(close_frame=int(kc), point=[round(float(x), 4) for x in p])
+        q = pixel(p)
+        if any(np.linalg.norm((p - r)[:2]) < 0.03 for r in releases):
+            row["class"] = "re-grasp of a moved object (not judged)"
+        elif q is None:
+            row["class"] = "outside the camera image (not judged)"
+        elif any(mk[q[1], q[0]] for mk in masks):
+            row["class"] = "on a built or redacted object"
+        elif any(np.linalg.norm((p - a)[:2]) < 0.03 for a in added):
+            row["class"] = "same unbuilt object as an earlier grasp"
+        else:
+            unb[f"unbuilt@f{kc}"] = dict(reason="real grasp lands on no built object in the camera image (not detected, or never named)",
+                                         kind="ellipsoid", center=[float(p[0]), float(p[1]), float(max(p[2], fit["table"]["z"]))],
+                                         width_m=0.06, close_frame=int(kc), source="build_v1 unbuilt grasp")
+            added.append(p)
+            row["class"] = f"unbuilt: redacted as unbuilt@f{kc}"
+            if objs:
+                dist, b = min((surface_dist(m, d, b, p), b) for b in objs)
+                if dist <= NEAR_BUILT_M:
+                    unb[f"unbuilt@f{kc}"]["near_built"] = row["near_built"] = dict(body=m.body(b).name, surface_m=round(dist, 4))
+                    row["class"] += f" (needs review: {100 * dist:.1f} cm from built {m.body(b).name}, may be a rim/edge grasp of it)"
+        releases.append(fk(ko))
+        rows.append(row)
+    json.dump(fit, open(os.path.join(out, "scene_fit.json"), "w"), indent=1)
+    return rows
+
+
+def redaction_gate(out, grasp_rows):
+    """Check before the scripted expert (B3; user 10-29): no redacted object may exist in the model, so B3 never probes
+    it and no check scores it. Writes <out>/redacted.json: every redacted object with its reason and source, the nouns
+    with no detection (names only, no position), how each real grasp was judged, and the gate result. Covers both
+    scene_fit.json 'redacted' (no matching model) and 'unbuilt' (grasped, never built)."""
+    import mujoco
+    fit = json.load(open(os.path.join(out, "scene_fit.json")))
+    m = mujoco.MjModel.from_binary_path(os.path.join(out, "scene.mjb"))
+    bodies = {m.body(i).name for i in range(m.nbody)}
+    red = {**fit.get("redacted", {}), **fit.get("unbuilt", {})}
+    present = [l for l in red if l.replace("#", "_").replace(" ", "_") in bodies]
+    inv_p = os.path.join(out, "inventory.json")
+    inv = json.load(open(inv_p)) if os.path.exists(inv_p) else {}
+    rec = dict(note="objects left out of the scene and out of every check; add later (inspect_scene / TaskGen agent / ObjGen). "
+                    "build_scene --redact_unmatched: detected, no matching model. build_v1 unbuilt grasp: the real robot grasped "
+                    "something no built object covers (position = the real grasp point, width unknown). UNVERIFIED.",
+               objects=red, missing_names=inv.get("missing", []), grasps=grasp_rows,
+               gate=dict(passed=not present, redacted_but_in_model=present))
+    json.dump(rec, open(os.path.join(out, "redacted.json"), "w"), indent=1)
+    return not present
+
+
+def report(out, episode, info, label=None):
     J = lambda f: json.load(open(os.path.join(out, f))) if os.path.exists(os.path.join(out, f)) else None
     calib, fit, sc, wp = J("calib.json"), J("scene_fit.json"), J("scene_checks.json"), J("wrist_table_plane.json")
     rows = []
@@ -88,7 +189,7 @@ def report(out, episode, info):
         ch = sc["checks"]
         ev = [e for e in ch.get("3_4_5_grasp_events", []) if "skipped" not in e]
         row(0, "B1", "settle", "pass" if ch["1_settle"]["pass_"] else "fail",
-            f"max move {100 * max(ch['1_settle']['moved_m'].values()):.2f} cm")
+            f"max move {100 * max(ch['1_settle']['moved_m'].values(), default=0.0):.2f} cm")
         row(0, "A3", "real grasps on/in the objects", "pass" if ch["3_grasp"]["pass_"] else ("n/a" if ch["3_grasp"]["pass_"] is None else "fail"),
             "; ".join(f"f{e['close_frame']} {e['object']} {100 * e.get('surface_m', np.nan):.1f} cm" for e in ev))
         row(0, "A3", "real drops inside the containers", "pass" if ch["4_release"]["pass_"] else ("n/a" if ch["4_release"]["pass_"] is None else "fail"),
@@ -104,14 +205,30 @@ def report(out, episode, info):
     row(0, "A6", "object inventory reviewed; off-table / redacted / missing listed",
         "needs review" if (miss or not nouns.get("reviewed")) else "pass",
         f"nouns {nouns.get('nouns')} ({'reviewed' if nouns.get('reviewed') else 'NOT reviewed'}); built {sorted((fit or {}).get('objects', {}))}; "
-        f"off-table {sorted(off)}; redacted {sorted(red)}; MISSING (noun given, nothing detected; add later) {miss}")
+        f"off-table {sorted(off)}; redacted {sorted(red)}; unbuilt (grasped, never built) {sorted((fit or {}).get('unbuilt', {}))}; "
+        f"MISSING (noun given, nothing detected; add later) {miss}")
+    rj = J("redacted.json")
+    if rj:
+        n_skip = sum(1 for e in ((sc or {}).get("checks", {}).get("3_4_5_grasp_events", [])) if "redacted" in str(e.get("skipped", "")))
+        near = {k: v["near_built"] for k, v in rj["objects"].items() if v.get("near_built")}
+        row(0, "A8", "redacted objects left out of the model and the checks (gate before B3)",
+            "fail" if not rj["gate"]["passed"] else ("needs review" if near else "pass"),
+            "; ".join(f"{k}: {v.get('source', 'asset pack')}" for k, v in sorted(rj["objects"].items())) +
+            f" | real grasps skipped as redacted: {n_skip}" + (f" | IN THE MODEL: {rj['gate']['redacted_but_in_model']}" if not rj["gate"]["passed"] else "") +
+            "".join(f" | {k} is {100 * v['surface_m']:.1f} cm from built {v['body']}: may be a rim/edge grasp of it, so that grasp's "
+                    "A3 placement/drop is skipped, not passed (look in inspect_scene)" for k, v in sorted(near.items())))
     ep = J(os.path.join("checks", "expert_probe.json"))
-    if ep:
+    if rj and not rj["gate"]["passed"]:
+        row(0, "B3", "doable: scripted expert per object (implres31)", "not run", "redaction gate failed (A8): a redacted object is in the model")
+    elif ep:
         t = ep["table"]
         n_pass = sum(1 for v in t.values() if v.get("nominal") == "PASS")
         fails = [k for k, v in t.items() if v.get("nominal") != "PASS"]
-        row(0, "B3", "doable: scripted expert per object (implres31)", "pass" if not fails else "fail",
-            f"{n_pass}/{len(t)} probes pass" + (f"; failing: {fails[:6]}" if fails else ""))
+        if not t:  # 10-29: no graspable object built (c16, c20, c22): nothing was probed, so not a pass
+            row(0, "B3", "doable: scripted expert per object (implres31)", "n/a", "0 probes: no built graspable object to probe")
+        else:
+            row(0, "B3", "doable: scripted expert per object (implres31)", "pass" if not fails else "fail",
+                f"{n_pass}/{len(t)} probes pass" + (f"; failing: {fails[:6]}" if fails else ""))
     else:
         row(0, "B3", "doable: scripted expert per object (implres31)", "not run", "expert_probe.py not available or not run")
     row(0, "E2", "do-nothing policy doesn't succeed", "not run", "make_tasks + policy_batch --policy hold (task generation not in build_v1 yet)")
@@ -122,18 +239,41 @@ def report(out, episode, info):
     for cid, name in (("A4", "object sizes"), ("A5", "shapes"), ("A2", "table extent"), ("D1", "wrist-view offsets"),
                       ("C1-C5", "appearance"), ("D6", "MoGe check")):
         row(1, cid, name, "not run", "implres31 image_checks.py / moge_check.py (rerun on this scene)")
+    # 10-29 (user: "dont remove the prev checklist result tho, append into a new section while saying what changes"):
+    # the previous report's rows go into 'history' (oldest first) unless they are identical to the new rows
+    prev = J("v1_report.json")
+    history, prev_label = (prev or {}).get("history", []), (prev or {}).get("label")
+    if prev and prev["rows"] != rows:
+        history = history + [dict(created=prev["created"], label=prev.get("label") or "earlier run", rows=prev["rows"])]
+        prev_label = None
     rep = dict(episode=episode, out=out, status="exploratory, UNVERIFIED", created=time.strftime("%Y-%m-%d %H:%M"),
-               tier0_open=[r for r in rows if r["tier"] == 0 and r["state"] not in ("pass", "n/a")], rows=rows, info=info)
+               label=label or prev_label or "build_v1 run",
+               tier0_open=[r for r in rows if r["tier"] == 0 and r["state"] not in ("pass", "n/a")], rows=rows, info=info, history=history)
+    key = lambda r: (r["id"], r["check"])
+    last = {key(r): r for r in history[-1]["rows"]} if history else {}
+    rep["changes"] = [dict(id=r["id"], check=r["check"], before=last.get(key(r), {}).get("state", "(no row)"), after=r["state"])
+                      for r in rows if history and last.get(key(r), {}).get("state") != r["state"]]
     json.dump(rep, open(os.path.join(out, "v1_report.json"), "w"), indent=1, default=float)
     col = {"pass": "#2c6e3a", "fail": "#a3321f", "needs review": "#8a6d12", "not run": "#777", "report": "#555", "n/a": "#555"}
-    trs = "".join(f"<tr><td>{r['tier']}</td><td>{r['id']}</td><td>{html.escape(r['check'])}</td><td style='color:{col.get(r['state'], '#000')};font-weight:600'>{r['state']}</td><td>{html.escape(str(r['detail']))}</td></tr>" for r in rows)
+    st = lambda s: f"<span style='color:{col.get(s, '#888')};font-weight:600'>{html.escape(s)}</span>"
+    table = lambda rs: "<table><tr><th>Tier</th><th>Check</th><th>What</th><th>State</th><th>Detail</th></tr>" + "".join(
+        f"<tr><td>{r['tier']}</td><td>{r['id']}</td><td>{html.escape(r['check'])}</td><td>{st(r['state'])}</td><td>{html.escape(str(r['detail']))}</td></tr>" for r in rs) + "</table>"
+    trs = table(rows)
+    if history:
+        trs += (f"<h2>What changed since the previous result</h2><p>Previous: {html.escape(history[-1]['label'])} ({html.escape(str(history[-1]['created']))}). "
+                f"This run: {html.escape(rep['label'])}.</p>" +
+                ("<table><tr><th>Check</th><th>What</th><th>Before</th><th>Now</th></tr>" + "".join(
+                    f"<tr><td>{c['id']}</td><td>{html.escape(c['check'])}</td><td>{st(c['before'])}</td><td>{st(c['after'])}</td></tr>" for c in rep["changes"]) + "</table>"
+                 if rep["changes"] else "<p>No state changed (details may differ).</p>") +
+                "<h2>Earlier results (kept, newest first)</h2>" + "".join(
+                    f"<details><summary>{html.escape(h['label'])} ({html.escape(str(h['created']))})</summary>{table(h['rows'])}</details>" for h in reversed(history)))
     page = f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SceneGen v1 report</title>
 <style>body{{font:14px/1.5 system-ui,sans-serif;margin:0;padding:20px 16px;background:#fbfbf9;color:#1d1d1b}}main{{max-width:1100px;margin:0 auto}}
 table{{border-collapse:collapse;width:100%}}td,th{{border-bottom:1px solid #ddd;padding:5px 7px;text-align:left;vertical-align:top}}th{{background:#f2f1ec}}
 @media (prefers-color-scheme:dark){{body{{background:#161615;color:#e8e7e2}}th{{background:#1f1f1d}}td,th{{border-color:#34332f}}}}</style></head>
 <body><main><h1>SceneGen v1 report: {html.escape(os.path.basename(os.path.normpath(out)))}</h1>
 <p>Episode {html.escape(episode)} · {rep['created']} · exploratory, UNVERIFIED · Tier 0 open: {len(rep['tier0_open'])}</p>
-<table><tr><th>Tier</th><th>Check</th><th>What</th><th>State</th><th>Detail</th></tr>{trs}</table></main></body></html>"""
+{trs}</main></body></html>"""
     open(os.path.join(out, "v1_report.html"), "w").write(page)
     return rep
 
@@ -152,12 +292,23 @@ def main():
     ap.add_argument("--no_probe", action="store_true", help="skip implres31's expert_probe (B3)")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--inspect", action="store_true")
+    ap.add_argument("--report_only", action="store_true", help="10-29: on a built scene, redo the unbuilt-grasp redaction, "
+                    "scene_checks, the gate and the report (keeps the model and the B3 results; no rebuild, no expert probe)")
+    ap.add_argument("--label", default=None, help="what this run is / what changed; shown in the report next to the earlier results it keeps")
     a = ap.parse_args()
     out, ep = os.path.abspath(a.out), os.path.abspath(a.episode)
     os.makedirs(out, exist_ok=True)
     log = os.path.join(out, "build_v1.log")
     cam = a.cam or ext_serial(ep)
     R = os.path.join(HERE, "{}.py")
+    if a.report_only:
+        old = json.load(open(os.path.join(out, "v1_report.json")))
+        grasp_rows = redact_unbuilt_grasps(out, ep)
+        run([R.format("scene_checks"), "--scene", out, "--episode", ep, "--no_overlay"], log, "scene_checks (report_only)")
+        gate_ok = redaction_gate(out, grasp_rows)
+        rep = report(out, ep, old["info"], a.label)
+        print(f"report (report_only, gate {'pass' if gate_ok else 'FAIL'}): Tier 0 open: {[r['id'] + ' ' + r['state'] for r in rep['tier0_open']]}", flush=True)
+        return
     have = lambda f: os.path.exists(os.path.join(out, f)) and not a.force
     info = dict(cam=cam)
     print(f"build_v1 {ep} -> {out} (camera {cam})", flush=True)
@@ -197,7 +348,8 @@ def main():
         print(f"  WARNING nouns with no detection (not built, listed as missing): {missing}", flush=True)
     # 4 build (stereo scale)
     calib = os.path.join(out, "calib.json")
-    build = lambda extra, tag: run([R.format("build_scene"), "--episode", ep, "--cam", cam, "--out", out, "--calib", calib] + extra, log, tag)
+    build = lambda extra, tag: run([R.format("build_scene"), "--episode", ep, "--cam", cam, "--out", out, "--calib", calib,
+                                    "--redact_unmatched"] + extra, log, tag)  # 10-29: no stand-in ellipsoids
     if not have("scene.mjb"):
         if build(["--depth", "stereo"], "build (stereo)") != 0:
             sys.exit(f"build failed: see {log}")
@@ -236,16 +388,23 @@ def main():
     extra = ["--depth", depth] + tz + (["--grasp_anchors", os.path.join(out, "grasp_anchors.json")] if depth == "grasp" else [])
     if build(extra, f"rebuild ({depth} scale, wrist table)") != 0:
         sys.exit(f"rebuild failed: see {log}")
+    # 6b grasps of objects that were never built -> redacted at the grasp point (after the rebuild, which rewrites the fit)
+    grasp_rows = redact_unbuilt_grasps(out, ep)
+    n_unbuilt = sum(1 for r in grasp_rows if r["class"].startswith("unbuilt"))
+    print(f"  unbuilt grasps redacted: {n_unbuilt} of {len(grasp_rows)} grasps", flush=True)
     # 7 replay + checks
     run([R.format("replay"), "--episode", ep, "--cam", cam, "--out", out], log, "replay")
     run([R.format("scene_checks"), "--scene", out, "--episode", ep, "--no_overlay"], log, "scene_checks")
     run([R.format("episode_info"), "--episode", ep, "--scene", out], log, "episode_info")
+    # 7b gate before the scripted expert: no redacted object in the model (writes redacted.json)
+    gate_ok = redaction_gate(out, grasp_rows)
+    print(f"  redaction gate: {'pass' if gate_ok else 'FAIL (a redacted object is in the model): B3 skipped'}", flush=True)
     # 8 doable (implres31's B3), nominal sweep only
     probe = os.path.join(CHECKS, "expert_probe.py")
-    if not a.no_probe and os.path.exists(probe):
+    if gate_ok and not a.no_probe and os.path.exists(probe):
         run([probe, "--scene", out, "--episode", ep, "--out", os.path.join(out, "checks"), "--sweeps", "nominal"], log, "B3 expert probe")
     # 9 report
-    rep = report(out, ep, info)
+    rep = report(out, ep, info, a.label)
     print(f"report: {os.path.join(out, 'v1_report.html')}  Tier 0 open: {[r['id'] + ' ' + r['state'] for r in rep['tier0_open']]}", flush=True)
     if a.inspect:
         subprocess.Popen([os.path.join(REPO, ".venvs/real2sim/bin/python"), os.path.join(HERE, "inspect_scene.py"), "--scene", out,
