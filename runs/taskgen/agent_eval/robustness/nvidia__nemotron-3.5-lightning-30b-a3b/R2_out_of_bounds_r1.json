@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R2_out_of_bounds",
+ "case_id": "R2_out_of_bounds",
+ "values": {},
+ "run": 1,
+ "prompt": "add a 9 cm red block next to the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 24.1,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "Added blocks must be between 2-6 cm; a 9 cm block violates the scene size constraints.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"infeasible\": \"Added blocks must be between 2-6 cm; a 9 cm block violates the scene size constraints.\",\n  \"add\": [],\n  \"task\": null\n}",
+   "errors": []
+  }
+ ]
+}

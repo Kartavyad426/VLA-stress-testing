@@ -57,7 +57,7 @@ class Slot(BaseModel):
     """kind: 'choice' (one of values), 'choose' (k distinct values, unordered), 'permute' (k distinct, ordered),
     'permutation_of' (an order of another slot's chosen values)."""
     kind: Literal["choice", "choose", "permute", "permutation_of"]
-    values: Optional[List[Union[str, int, float]]] = None
+    values: Optional[List[Union[str, int, float, Dict]]] = None
     k: Optional[int] = None
     of: Optional[str] = None
     scope: Literal["task", "scene"] = "task"
@@ -97,7 +97,7 @@ class Template(BaseModel):
                 out[n] = [list(c) for c in itertools.permutations(s.values, s.k)]
         return out
 
-    def expand(self, cap=None, seed=0):
+    def expand(self, cap=None, seed=0, model=None):
         """All variants (slot values -> SceneRequest), or a seeded sample of `cap` of them. Returns (total, variants)."""
         doms = self._domains()
         base_names = [n for n in self.slots if self.slots[n].kind != "permutation_of"]
@@ -105,7 +105,7 @@ class Template(BaseModel):
         combos = []
         for vals in itertools.product(*[doms[n] for n in base_names]):
             fill = dict(zip(base_names, vals))
-            dep_doms = [[list(p) for p in itertools.permutations(fill[self.slots[d].of])] for d in dep]
+            dep_doms = [[list(p) for p in itertools.permutations(fill[self.slots[d].of])] for d in dep]  # noqa: E501
             for dv in itertools.product(*dep_doms):
                 combos.append({**fill, **dict(zip(dep, dv))})
         total = len(combos)
@@ -113,22 +113,33 @@ class Template(BaseModel):
         if cap is not None and total > cap:
             idx = np.random.default_rng(seed).choice(total, cap, replace=False)
             combos = [combos[i] for i in sorted(idx)]
-        return total, [(c, self.fill(c)) for c in combos]
+        return total, [(c, self.fill(c, model)) for c in combos]
 
-    def fill(self, values):
+    def fill(self, values, model=None):
+        """Fill the placeholders: {slot}, {slot[i]}, and {slot.field} / {slot[i].field} when slot values are dicts
+        (e.g. a scene object {"name": "block_2", "colour": "orange"}). model: the request class (default SceneRequest)."""
+        pat = r"\{(\w+)(?:\[(\d+)\])?(?:\.(\w+))?\}"
+
+        def val(mm):
+            v = values[mm.group(1)]
+            if mm.group(2) is not None:
+                v = v[int(mm.group(2))]
+            if mm.group(3):
+                v = v[mm.group(3)]
+            return v
+
         def sub(x):
             if isinstance(x, str):
-                full = re.fullmatch(r"\{(\w+)(\[(\d+)\])?\}", x)
+                full = re.fullmatch(pat, x)
                 if full:  # a whole-string placeholder keeps the value's type (list, number)
-                    v = values[full.group(1)]
-                    return v[int(full.group(3))] if full.group(3) else v
-                return re.sub(r"\{(\w+)(\[(\d+)\])?\}", lambda mm: str(values[mm.group(1)][int(mm.group(3))] if mm.group(3) else values[mm.group(1)]), x)
+                    return val(full)
+                return re.sub(pat, lambda mm: str(val(mm)), x)
             if isinstance(x, list):
                 return [sub(i) for i in x]
             if isinstance(x, dict):
                 return {k: sub(v) for k, v in x.items()}
             return x
-        return SceneRequest.model_validate(sub(self.request))
+        return (model or SceneRequest).model_validate(sub(self.request))
 
 
 def schema_json():

@@ -1,0 +1,490 @@
+{
+ "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+ "test": "variants",
+ "prompt_version": "v2",
+ "url": "http://127.0.0.1:8099",
+ "runs": 1,
+ "summary": {
+  "P1_real_task": {
+   "calls": 3,
+   "valid": 3,
+   "match": 3,
+   "exec_ok": 3,
+   "attempts": 3,
+   "seconds": 54.599999999999994
+  },
+  "P2_stack_order": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "exec_ok": 6,
+   "attempts": 7,
+   "seconds": 248.20000000000002
+  },
+  "P3_added_block_into_bowl": {
+   "calls": 3,
+   "valid": 3,
+   "match": 3,
+   "exec_ok": 3,
+   "attempts": 3,
+   "seconds": 107.6
+  },
+  "P4_drawer_out_of": {
+   "calls": 3,
+   "valid": 3,
+   "match": 2,
+   "exec_ok": 3,
+   "attempts": 6,
+   "seconds": 318.2
+  },
+  "P5_infeasible_bowl_in_drawer": {
+   "calls": 1,
+   "valid": 1,
+   "match": 1,
+   "exec_ok": 1,
+   "attempts": 2,
+   "seconds": 80.5
+  }
+ },
+ "rows": [
+  {
+   "test": "variants",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 19.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v1_p0",
+   "values": {
+    "block": "green"
+   },
+   "run": 0,
+   "prompt": "put the green block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 19.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v2_p0",
+   "values": {
+    "block": "yellow"
+   },
+   "run": 0,
+   "prompt": "put the yellow block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 15.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 24.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v1_p0",
+   "values": {
+    "order": [
+     "green",
+     "yellow",
+     "orange"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the green one at the bottom, then yellow, then orange on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 30.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v2_p0",
+   "values": {
+    "order": [
+     "orange",
+     "green",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the orange one at the bottom, then green, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 43.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v3_p0",
+   "values": {
+    "order": [
+     "orange",
+     "yellow",
+     "green"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the orange one at the bottom, then yellow, then green on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 27.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v4_p0",
+   "values": {
+    "order": [
+     "yellow",
+     "green",
+     "orange"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the yellow one at the bottom, then green, then orange on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 33.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v5_p0",
+   "values": {
+    "order": [
+     "yellow",
+     "orange",
+     "green"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the yellow one at the bottom, then orange, then green on top",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 89.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v1_p0",
+   "values": {
+    "colour": "blue"
+   },
+   "run": 0,
+   "prompt": "add a blue block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 41.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v2_p0",
+   "values": {
+    "colour": "purple"
+   },
+   "run": 0,
+   "prompt": "add a purple block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 43.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 173.7,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": [
+      "inside",
+      null,
+      "black_bowl",
+      []
+     ],
+     "want": [
+      "inside",
+      [
+       "box",
+       "red"
+      ],
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v1_p0",
+   "values": {
+    "colour": "blue"
+   },
+   "run": 0,
+   "prompt": "add a drawer with a blue block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 44.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v2_p0",
+   "values": {
+    "colour": "purple"
+   },
+   "run": 0,
+   "prompt": "add a drawer with a purple block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 99.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "variants",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p0",
+   "values": {},
+   "run": 0,
+   "prompt": "put the black bowl inside a drawer",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 80.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "no drawer object available in the scene to place the black bowl inside",
+   "reason": null
+  }
+ ]
+}

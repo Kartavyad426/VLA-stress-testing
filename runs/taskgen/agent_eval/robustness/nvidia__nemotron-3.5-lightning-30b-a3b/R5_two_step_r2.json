@@ -1,0 +1,39 @@
+{
+ "test": "robustness",
+ "case": "R5_two_step",
+ "case_id": "R5_two_step",
+ "values": {},
+ "run": 2,
+ "prompt": "add a drawer with two blocks inside, a red one and a blue one; the task is to put the red one in the bowl",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 157.1,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"drawer_1\",\n      \"source\": \"drawer\",\n      \"relation\": \"on_table\",\n      \"target\": null\n    },\n    {\n      \"name\": \"red_block\",\n      \"source\": \"box\",\n      \"colour\": \"red\",\n      \"size_cm\": 2.5,\n      \"relation\": \"inside\",\n      \"target\": \"drawer_1\"\n    },\n    {\n      \"name\": \"blue_block\",\n      \"source\": \"box\",\n      \"colour\": \"blue\",\n      \"size_cm\": 2.5,\n      \"relation\": \"inside\",\n      \"target\": \"drawer_1\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"put the red one in the bowl\",\n    \"targets\": [\"red_block\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block\",\n      \"target\": \"black_bowl\"\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

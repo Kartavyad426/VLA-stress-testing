@@ -36,6 +36,21 @@ WRIST_ABOVE_M = 0.25
 BASE_KIND = {"box": "block", "bowl": "bowl", "ellipsoid": "item", "asset": "item"}
 
 
+# hue bins for colour names: the same bins as res31's make_tasks.colour_name (copied, not imported: make_tasks pulls in
+# the simulator); used to name build_v1's noun-labelled base objects (block_1, ...) by colour for the agent
+_HUES = [(15, "red"), (40, "orange"), (70, "yellow"), (165, "green"), (200, "teal"), (260, "blue"), (300, "purple"), (340, "pink"), (361, "red")]
+
+
+def colour_name(rgb):
+    import colorsys
+    h, s_, v = colorsys.rgb_to_hsv(*rgb)
+    if v < 0.2:
+        return "black"
+    if s_ < 0.2:
+        return "white" if v > 0.7 else "grey"
+    return next(n for lim, n in _HUES if h * 360 < lim)
+
+
 def cm(v):
     return [round(100 * float(x), 1) for x in v]
 
@@ -50,6 +65,14 @@ class Session:
         self.base_bodies = {o.get("body", lab.replace(" ", "_")): BASE_KIND.get(o["kind"], "item") for lab, o in self.fit["objects"].items()}
         self.cfg = SceneConfig(base_scene=scene_dir, base_version=base_version(scene_dir), episode=episode, simulator=s.name,
                                base_objects={b: BaseObject(kind=k) for b, k in self.base_bodies.items()})
+
+    def colour_of(self, name):
+        """Colour name of a base object (from its fitted rgb) or an added one (its palette colour); None if unknown."""
+        for lab, o in self.fit["objects"].items():
+            if o.get("body", lab.replace(" ", "_")) == name and "rgb" in o:
+                return colour_name(o["rgb"])
+        a = self.cfg.added_objects.get(name)
+        return a.colour if a else None
 
     # ---------- building ----------
     def _neutral(self, a: AddedObject, pose=None):

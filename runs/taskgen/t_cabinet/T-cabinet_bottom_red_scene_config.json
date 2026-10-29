@@ -1,0 +1,225 @@
+{
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/v1/orange",
+ "base_version": "bf2cf8512a318882",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "simulator": "mujoco",
+ "base_objects": {
+  "block_1": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "block_2": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "block_3": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "bowl_1": {
+   "kind": "bowl",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  }
+ },
+ "added_objects": {
+  "cabinet_1": {
+   "name": "cabinet_1",
+   "source": "primitive:cabinet",
+   "kind": "cabinet",
+   "colour": null,
+   "rgba": null,
+   "size_m": [
+    0.2,
+    0.24,
+    0.24
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "on_table",
+    "target": null
+   },
+   "pose": [
+    0.7231164871000733,
+    -0.5133316633405435,
+    -0.0938,
+    1.7131054551536122
+   ],
+   "params": {
+    "levels": 3,
+    "open_level": "bottom"
+   },
+   "resized_from_m": null,
+   "resize_reason": null
+  },
+  "red_block_1": {
+   "name": "red_block_1",
+   "source": "primitive:box",
+   "kind": "block",
+   "colour": "red",
+   "rgba": [
+    0.8,
+    0.1,
+    0.1,
+    1.0
+   ],
+   "size_m": [
+    0.03,
+    0.03,
+    0.03
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "inside",
+    "target": "cabinet_1/bottom"
+   },
+   "pose": [
+    0.5205288327686668,
+    -0.49772589646553106,
+    -0.07490931526947599,
+    0.0
+   ],
+   "params": {},
+   "resized_from_m": null,
+   "resize_reason": null
+  }
+ },
+ "articulation": {},
+ "checks": {},
+ "log": [
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:cabinet",
+    "colour": null,
+    "size_cm": null,
+    "name": "cabinet_1",
+    "params": {
+     "levels": 3,
+     "open_level": "bottom"
+    }
+   },
+   "result": {
+    "added": "cabinet_1",
+    "kind": "cabinet",
+    "size_cm": [
+     20.0,
+     24.0,
+     24.0
+    ],
+    "graspable": false,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "cabinet_1",
+    "relation": "on_table",
+    "target": null,
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "cabinet_1",
+    "relation": "on_table",
+    "target": null,
+    "at_cm": [
+     72.3,
+     -51.3,
+     -9.4
+    ],
+    "size_cm": [
+     20.0,
+     24.0,
+     24.0
+    ],
+    "visible": {
+     "ext": {
+      "px": 1369,
+      "frac": 0.83,
+      "min_px": 28,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 28000,
+      "frac": 0.97,
+      "min_px": 83,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "red",
+    "size_cm": 3,
+    "name": "red_block_1",
+    "params": null
+   },
+   "result": {
+    "added": "red_block_1",
+    "kind": "block",
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "graspable": true,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "red_block_1",
+    "relation": "inside",
+    "target": "cabinet_1/bottom",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "red_block_1",
+    "relation": "inside",
+    "target": "cabinet_1/bottom",
+    "at_cm": [
+     52.1,
+     -49.8,
+     -7.5
+    ],
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "visible": {
+     "ext": {
+      "px": 9,
+      "frac": 0.38,
+      "min_px": 28,
+      "ok": false
+     },
+     "wrist_above": {
+      "px": 262,
+      "frac": 1.0,
+      "min_px": 83,
+      "ok": true
+     }
+    }
+   }
+  }
+ ]
+}

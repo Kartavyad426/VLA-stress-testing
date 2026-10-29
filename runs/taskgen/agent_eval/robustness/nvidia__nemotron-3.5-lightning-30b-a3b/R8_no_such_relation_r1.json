@@ -1,0 +1,41 @@
+{
+ "test": "robustness",
+ "case": "R8_no_such_relation",
+ "case_id": "R8_no_such_relation",
+ "values": {},
+ "run": 1,
+ "prompt": "put the yellow block between the bowl and the orange block",
+ "valid": false,
+ "attempts": 3,
+ "seconds": 155.8,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": null,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": "no valid answer after retries",
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  }
+ ]
+}

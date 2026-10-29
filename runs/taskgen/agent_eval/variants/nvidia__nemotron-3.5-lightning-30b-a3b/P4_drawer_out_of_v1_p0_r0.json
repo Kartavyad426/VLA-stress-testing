@@ -1,0 +1,32 @@
+{
+ "test": "variants",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v1_p0",
+ "values": {
+  "colour": "blue"
+ },
+ "run": 0,
+ "prompt": "add a drawer with a blue block inside; the robot takes the block out and puts it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 44.7,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"drawer_1\",\n      \"source\": \"drawer\",\n      \"relation\": \"on_table\",\n      \"target\": null\n    },\n    {\n      \"name\": \"blue_block\",\n      \"source\": \"box\",\n      \"colour\": \"blue\",\n      \"size_cm\": 3.0,\n      \"relation\": \"inside\",\n      \"target\": \"drawer_1\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"the robot takes the block out and puts it in the bowl\",\n    \"targets\": [\"blue_block\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"blue_block\",\n      \"target\": \"black_bowl\"\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

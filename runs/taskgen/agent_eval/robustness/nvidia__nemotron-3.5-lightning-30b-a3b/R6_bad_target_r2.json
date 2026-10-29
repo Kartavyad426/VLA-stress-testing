@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R6_bad_target",
+ "case_id": "R6_bad_target",
+ "values": {},
+ "run": 2,
+ "prompt": "add a red block next to the blue bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 29.6,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "The target object 'blue bowl' does not exist in the scene; only a locked black_bowl is present as a base object, and added objects are limited to boxes, drawers, or packs with nouns like 'cup'\u2014a blue bowl cannot be created or added under the current rules.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"infeasible\": \"The target object 'blue bowl' does not exist in the scene; only a locked black_bowl is present as a base object, and added objects are limited to boxes, drawers, or packs with nouns like 'cup'\u2014a blue bowl cannot be created or added under the current rules.\",\n  \"add\": [],\n  \"task\": null\n}",
+   "errors": []
+  }
+ ]
+}

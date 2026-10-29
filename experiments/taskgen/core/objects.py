@@ -121,10 +121,12 @@ class Cabinet:
     open_level: Optional[str] = "middle"
     outer: Vec3 = (0.20, 0.24, 0.24)    # depth (x), width (y), height (z)
     wall: float = 0.01
-    open_m: float = 0.12
-    travel: float = 0.16
+    open_m: float = 0.15          # 10-29: 0.12 -> 0.15, so the hand clearance below still leaves room for a block
+    travel: float = 0.17
     gap: float = 0.003
     plate: float = 0.008
+    finger_clearance: float = 0.045  # from the drawer's side walls (open 2F-85 half-span)
+    hand_clearance: float = 0.07  # 10-29: 0.01 -> 0.07; the wrist hit the handle above and a finger the cabinet top (diagnosed by contacts)
     source: str = "primitive:cabinet"
 
     def level_names(self):
@@ -173,10 +175,11 @@ class Cabinet:
                 range=(-(self.travel - self.opening(lv)), self.opening(lv) + 0.005))
         return dict(cabinet=cab, drawers=drawers)
 
-    def inner(self, level, z_table, shift=0.0, exposed=True, clearance=0.01):
+    def inner(self, level, z_table, shift=0.0, exposed=True, clearance=None):
         """A drawer's inner space, world frame, at slide value `shift` beyond its starting opening: (centre, half,
-        floor). exposed=True keeps only the part pulled out in front of the cabinet face (reachable from above),
-        minus `clearance` for the gripper fingers; None if nothing is exposed (a closed drawer)."""
+        floor). exposed=True keeps only the part pulled out in front of the cabinet face, at least `clearance`
+        (default hand_clearance) from the face so the hand clears the handles above; None if nothing is exposed."""
+        clearance = self.hand_clearance if clearance is None else clearance
         D, W, H = self.outer
         t, g, td = self.wall, self.gap, self.plate
         k = self.level_names().index(level)
@@ -189,6 +192,8 @@ class Cabinet:
         if xb <= xa:
             return None
         yi = W / 2 - t - g - td
+        if exposed:  # 10-29: an open finger (half-span ~4.25 cm) hit the drawer's side wall when the block sat 4 cm from it
+            yi -= self.finger_clearance
         floor = z_table + z0 + td
         cx = self.xy[0] + (xa + xb) / 2
         return (cx, self.xy[1], floor + (z1 - z0 - td) / 2), ((xb - xa) / 2, yi, (z1 - z0 - td) / 2), floor

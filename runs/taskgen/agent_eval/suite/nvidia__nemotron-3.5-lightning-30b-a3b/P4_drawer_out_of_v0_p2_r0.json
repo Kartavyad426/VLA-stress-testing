@@ -1,0 +1,71 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 75.7,
+ "match": false,
+ "compare": {
+  "feasible_match": false,
+  "objects_match": false,
+  "task_match": false,
+  "objects_diff": {
+   "missing": [
+    [
+     "drawer",
+     "",
+     "on_table",
+     null
+    ],
+    [
+     "box",
+     "red",
+     "inside",
+     [
+      "drawer",
+      ""
+     ]
+    ]
+   ],
+   "extra": []
+  },
+  "task_diff": {
+   "got": null,
+   "want": [
+    "inside",
+    [
+     "box",
+     "red"
+    ],
+    "black_bowl",
+    []
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "The request requires a cabinet and drawer that are not present as base objects and cannot be added under the given rules, as the scene starts with only locked base objects (black_bowl, green_block, orange_block, yellow_block).",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [],\n  \"task\": null,\n  \"infeasible\": \"The request requires a cabinet and drawer that are not present as base objects and cannot be added under the given rules, as the scene starts with only locked base objects (black_bowl, green_block, orange_block, yellow_block).\"\n}",
+   "errors": []
+  }
+ ]
+}

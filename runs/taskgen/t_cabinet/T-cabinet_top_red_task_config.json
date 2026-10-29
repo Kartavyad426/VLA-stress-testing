@@ -1,0 +1,116 @@
+{
+ "id": "T-cabinet_top_red",
+ "source": "preset",
+ "template": "T-cabinet",
+ "slot_values": {
+  "level": "top",
+  "colour": "red"
+ },
+ "scene_config": "/home/imerit/Documents/Code/VLA-exp-taskgen/runs/taskgen/t_cabinet/T-cabinet_top_red_scene_config.json",
+ "base_version": "bf2cf8512a318882",
+ "instruction": "take the red block out of the top drawer and put it in the black bowl",
+ "targets": [
+  "red_block_1"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "bowl_1",
+   "order": null
+  }
+ ],
+ "start": {
+  "arm": "episode frame 0",
+  "articulation": "cabinet_1 top drawer open 12 cm"
+ },
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  },
+  "do_nothing": {
+   "passed": true,
+   "detail": {
+    "solved_by_doing_nothing": false,
+    "seconds": 30.0,
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": false,
+      "detail": {
+       "reason": "not inside the target"
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  },
+  "expert": {
+   "passed": false,
+   "detail": {
+    "steps": [
+     {
+      "step": "pick",
+      "object": "red_block_1",
+      "width_cm": 3.0,
+      "attempts": [
+       {
+        "ik_above_m": 0.0013571593961143448,
+        "ik_descend_m": 0.0011207379408500033,
+        "aim_err_cm": 2.6,
+        "reaim": "xy",
+        "lifted_cm": 0.0,
+        "held": false
+       },
+       {
+        "ik_above_m": 8.647009591492238e-6,
+        "ik_descend_m": 0.00004476576497982647,
+        "aim_err_cm": 0.12,
+        "reaim": "3d",
+        "lifted_cm": 0.0,
+        "held": false
+       }
+      ],
+      "yaw_deg": 90,
+      "yaw_tried": [
+       [
+        90,
+        0.0014
+       ]
+      ],
+      "lifted_cm": 0.0,
+      "held": false,
+      "aim_err_cm": 0.12,
+      "n_attempts": 2
+     }
+    ],
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": false,
+      "detail": {
+       "reason": "not inside the target"
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  }
+ },
+ "status": "failed"
+}

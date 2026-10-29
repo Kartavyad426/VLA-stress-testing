@@ -1,0 +1,70 @@
+{
+ "scene": "runs/real2sim/v1/orange",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "format": "v3 (two-part answer: scene = job A, task = job B; core/request.py)",
+ "real_task": "Put the orange block inside the black bowl",
+ "base_objects": {"block_1": "yellow block", "block_2": "orange block", "block_3": "green block", "bowl_1": "black bowl"},
+ "note": "Presets on res31's build_v1 orange (2026-10-29). A preset = scene + task (template) + variation (slot values). Slot values that are scene objects carry name + colour. Written before any v3 model run.",
+ "presets": [
+  {
+   "id": "P-cabinet", "template": "T-cabinet", "level": "L6+",
+   "prompts": ["add a three-drawer cabinet with the {level} drawer open and a {colour} block inside it; the robot takes the block out and puts it in the bowl",
+               "put a {colour} cube in the open {level} drawer of a new 3-drawer cabinet, task: move it into the black bowl",
+               "a small cabinet with three drawers, the {level} one open, holding a {colour} block; take it out and drop it in the bowl"],
+   "template_def": {
+    "name": "T-cabinet",
+    "slots": {"level": {"kind": "choice", "values": ["bottom", "middle", "top"], "scope": "scene"},
+              "colour": {"kind": "choice", "values": ["red", "blue", "purple"], "scope": "scene"}},
+    "request": {"scene": {"add": [{"name": "cabinet_1", "source": "cabinet", "levels": 3, "open_level": "{level}", "relation": "on_table"},
+                                  {"name": "{colour}_block_1", "source": "box", "colour": "{colour}", "size_cm": 3, "relation": "inside", "target": "cabinet_1/{level}"}]},
+                "task": {"instruction": "take the {colour} block out of the {level} drawer and put it in the black bowl", "targets": ["{colour}_block_1"],
+                         "pass_all": [{"type": "inside", "object": "{colour}_block_1", "target": "bowl_1"}]}}
+   }
+  },
+  {
+   "id": "P-into", "template": "T-into", "level": "L1",
+   "prompts": ["put the {block.colour} block in the black bowl", "place the {block.colour} cube into the bowl", "move the {block.colour} block so it ends up inside the black bowl"],
+   "template_def": {
+    "name": "T-into",
+    "slots": {"block": {"kind": "choice", "values": [{"name": "block_2", "colour": "orange"}, {"name": "block_1", "colour": "yellow"}, {"name": "block_3", "colour": "green"}]}},
+    "request": {"task": {"instruction": "put the {block.colour} block in the black bowl", "targets": ["{block.name}"],
+                         "pass_all": [{"type": "inside", "object": "{block.name}", "target": "bowl_1"}]}}
+   }
+  },
+  {
+   "id": "P-stack", "template": "T-stack", "level": "L5",
+   "prompts": ["stack the blocks with the {order[0].colour} one at the bottom, then {order[1].colour}, then {order[2].colour} on top",
+               "make a tower: {order[0].colour} block first, {order[1].colour} on it, {order[2].colour} on top",
+               "build a stack of the three blocks in the order {order[0].colour}, {order[1].colour}, {order[2].colour} from bottom to top"],
+   "template_def": {
+    "name": "T-stack",
+    "slots": {"order": {"kind": "permute", "k": 3, "values": [{"name": "block_1", "colour": "yellow"}, {"name": "block_2", "colour": "orange"}, {"name": "block_3", "colour": "green"}]}},
+    "request": {"task": {"instruction": "stack the blocks: {order[0].colour} at the bottom, then {order[1].colour}, then {order[2].colour} on top",
+                         "targets": ["{order[0].name}", "{order[1].name}", "{order[2].name}"],
+                         "pass_all": [{"type": "ordered_stack", "order": ["{order[0].name}", "{order[1].name}", "{order[2].name}"]}]}}
+   }
+  },
+  {
+   "id": "P-alt-start", "template": "T-cabinet (partial refusal)", "level": "L6+",
+   "prompts": ["the orange block should start inside the middle drawer of a cabinet; the task is to take it out and put it in the bowl",
+               "begin with the orange cube in an open cabinet drawer, then the robot moves it into the bowl",
+               "start the episode with the orange block hidden in the middle drawer; the robot has to put it in the black bowl"],
+   "template_def": {
+    "name": "T-alt-start", "slots": {},
+    "request": {"scene": {"add": [{"name": "cabinet_1", "source": "cabinet", "levels": 3, "open_level": "middle", "relation": "on_table"},
+                                  {"name": "orange_block_1", "source": "box", "colour": "orange", "size_cm": 3, "relation": "inside", "target": "cabinet_1/middle"}]},
+                "task": {"instruction": "take the orange block out of the middle drawer and put it in the black bowl", "targets": ["orange_block_1"],
+                         "pass_all": [{"type": "inside", "object": "orange_block_1", "target": "bowl_1"}]},
+                "infeasible": [{"part": "scene", "reason": "block_2 (the episode's orange block) is a locked base object and can't start in the drawer", "alternative": "an added orange block in the drawer"}]}
+   }
+  },
+  {
+   "id": "P-infeasible", "template": "T-infeasible", "level": "L0",
+   "prompts": ["the black bowl should start inside a drawer", "add a cabinet and put the bowl in its middle drawer at the start", "begin with the bowl stored in a drawer"],
+   "template_def": {
+    "name": "T-infeasible", "slots": {},
+    "request": {"infeasible": [{"part": "scene", "reason": "bowl_1 is a locked base object and too wide (about 19 cm) for a drawer"}]}
+   }
+  }
+ ]
+}

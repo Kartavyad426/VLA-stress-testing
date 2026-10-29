@@ -1,0 +1,46 @@
+{
+ "test": "suite",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p0",
+ "values": {
+  "colour": "red"
+ },
+ "run": 2,
+ "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 141.9,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"red_block\",\n      \"source\": \"box\",\n      \"colour\": \"red\",\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"put the red block in the bowl\",\n    \"targets\": [\"red_block\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block\",\n      \"target\": \"black_bowl\"\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+ "test": "robustness",
+ "case": "R1_vague",
+ "case_id": "R1_vague",
+ "values": {},
+ "run": 0,
+ "prompt": "put a block somewhere on the table",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 157.7,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"new_block\",\n      \"source\": \"box\",\n      \"colour\": \"blue\",\n      \"size_cm\": 3,\n      \"relation\": \"on_table\",\n      \"target\": null\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"put a block somewhere on the table\",\n    \"targets\": [\"new_block\"],\n    \"pass_condition\": {\n      \"type\": \"on\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

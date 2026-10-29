@@ -1,0 +1,109 @@
+{
+ "results": {
+  "preset counts": {
+   "P-cabinet": 9,
+   "P-into": 3,
+   "P-stack": 6,
+   "P-alt-start": 1,
+   "P-infeasible": 1
+  },
+  "executor v3: P-cabinet {'level': 'bottom', 'colour': 'red'}": {
+   "ok": true,
+   "placed": [
+    "cabinet_1",
+    "red_block_1"
+   ],
+   "missing": [],
+   "reason": null
+  },
+  "executor v3: P-into orange": {
+   "ok": true,
+   "placed": [],
+   "missing": [],
+   "reason": null
+  },
+  "executor v3: P-stack {'order': [{'name': 'block_1', 'colour': 'yellow'}, {'name': 'block_2', 'colour': 'orange'}, {'name': 'block_3', 'colour': 'green'}]}": {
+   "ok": true,
+   "placed": [],
+   "missing": [],
+   "reason": null
+  },
+  "executor v3: P-alt-start {}": {
+   "ok": true,
+   "placed": [
+    "cabinet_1",
+    "orange_block_1"
+   ],
+   "missing": [],
+   "reason": null
+  },
+  "executor v3: P-infeasible {}": {
+   "ok": true,
+   "placed": [],
+   "missing": [],
+   "reason": null
+  },
+  "v3 fake: scene + task answer, other names -> built, task config made, matches": {
+   "attempts": 1,
+   "scene_ok": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "task_status": "draft"
+  },
+  "v3 fake: 'pack cabinet' -> hint -> corrected": {
+   "attempts": 2,
+   "first_errors": [
+    "cabinet_1: a cabinet is source cabinet (stacked drawers) or drawer, not pack",
+    "red_block_1: 'cabinet_1/bottom' names a drawer level, but cabinet_1 is not a cabinet"
+   ]
+  },
+  "v3 fake: block into a closed drawer -> told which one is open -> corrected": {
+   "first_errors": [
+    "red_block_1: the top drawer of cabinet_1 is closed; objects can only go into the open one (bottom), or set open_level=top"
+   ]
+  },
+  "v3 fake: task only (scene null) -> no scene steps, task config made, matches": {
+   "steps": 0,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   }
+  },
+  "v3 fake: partial refusal (scene) + alternative + task -> built, matches": {
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "refusals": [
+    {
+     "part": "scene",
+     "reason": "block_2 (the episode's orange block) is a locked base object and can't start in the drawer",
+     "alternative": "an added orange block in the drawer"
+    }
+   ]
+  },
+  "v3 fake: scene step resized the block -> second call for the task": {
+   "changed": [
+    "red_block_1 resized: [6.0, 6.0, 6.0] -> [4.2, 4.2, 4.2] cm (did not fit inside cabinet_1/bottom: height 4.4 cm < 6.0 cm needed)"
+   ],
+   "second": true,
+   "attempts": 2
+  },
+  "v3 fake: task names a missing object 3 times -> fails cleanly with the reason": {
+   "ok": false,
+   "errors": [
+    "the task refers to 'blue_bowl', which is neither a base object nor one you add"
+   ]
+  }
+ },
+ "fails": [],
+ "seconds": 18.0
+}
