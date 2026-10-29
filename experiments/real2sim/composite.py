@@ -522,11 +522,14 @@ class WristRenderV2:
         w = clip((open_max + open_ramp - closed) / open_ramp, 0, 1): photo at <= open_max closed, sim from
         open_max + open_ramp. The hard switch (open_ramp = 0, threshold open_max + open_tol) flipped the look in one
         frame whenever GR00T's gripper command dithered across 0.05 (TaskGen 10-29: 15 flips in 30 s);
+      - w_smooth > 0 (10-30, B + averaging over time): the gripper crosses the ramp in 1-2 frames (replay of TaskGen's
+        GR00T run: per-frame change at the switches 6.2 hard vs 6.3 blend), so w also moves only w_smooth of the way
+        to its target per call (one call per policy frame); call reset() at the start of an episode;
     and shrinks to `size` by area averaging, as real frames reach the policy (rendered at work_size first).
     Light/shadow: optional wrist-fitted light (S4, `light=`); the shadow comes from the sim robot with that light."""
 
     def __init__(self, m, plate, ext_comp, size, plate2, table_tex, grip_lib=None, blur_sigma=8.0, open_tol=0.03, cam="wrist",
-                 work_size=(360, 640), light=None, near="depth", open_ramp=0.0):
+                 work_size=(360, 640), light=None, near="depth", open_ramp=0.0, w_smooth=0.0):
         """work_size: resolution rendered before the area downscale to `size` (full 1280x720 took 0.5 s/frame, which
         would add ~4 min per 30 s rollout; 640x360 keeps the averaging-down, at ~1/4 the cost). blur_sigma is in
         1280x720 pixels and scaled to work_size; the gripper library is resized to work_size.
@@ -542,6 +545,7 @@ class WristRenderV2:
         self.m, self.size, self.tt = m, size, table_tex
         self.open_tol = open_tol
         self.open_ramp = open_ramp
+        self.w_smooth, self.w_prev = w_smooth, None
         self.cid = m.camera(cam).id
         W0, H0 = (int(v) for v in m.cam_sensorsize[self.cid])
         wh, ww = work_size
@@ -577,6 +581,10 @@ class WristRenderV2:
             w = float(np.clip((self.lib["open_max"] + self.open_ramp - opening) / self.open_ramp, 0, 1))
         else:  # hard switch (all runs before 10-30)
             w = 1.0 if opening <= self.lib["open_max"] + self.open_tol else 0.0
+        if self.w_smooth > 0:  # averaging over time: the first call of an episode starts at the target
+            w = w if self.w_prev is None else self.w_prev + self.w_smooth * (w - self.w_prev)
+            self.w_prev = w
+            w = 0.0 if w < 1e-3 else 1.0 if w > 1 - 1e-3 else w
         use_lib = w > 0
         sim = near_defocus(out, info["depth"], self.blur_sigma, mask=gm if self.near == "gripper" else None) if w < 1 else None
         if w > 0:
@@ -601,6 +609,10 @@ class WristRenderV2:
         if return_info:
             return small, dict(info, used_library=use_lib, library_weight=w, opening=opening)
         return small
+
+    def reset(self):
+        """Start of a new episode: forget the averaged gripper weight (w_smooth)."""
+        self.w_prev = None
 
     def close(self):
         self.hi.close()

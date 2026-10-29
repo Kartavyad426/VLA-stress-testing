@@ -355,6 +355,21 @@ a{color:var(--accent)}
 <li>at 0.045 the two grippers are visible half-and-half, as expected.</li>
 </ul>
 <p>Not yet tested with a policy. TaskGen will run before/after on the same task, CPU expert first, GR00T only with prim's go. TaskGen's hypothesis that the flicker feeds GR00T's gripper dithering is untested.</p>
+<p><b>Rollout test (10-30, 01:00–01:22; user: "first show me a rollout with this?", then "yes try time averaging and show me the rollout"):</b></p>
+<ul>
+<li><b>Setup:</b> the actions of TaskGen's GR00T run (<code>20261029_164333_turn003_groot_165729</code>) replayed on CPU on <code>ep_orange_block_stereo</code>, "put the green block in the bowl", three times. The states were identical in all three, so only the wrist rendering differs.</li>
+<li><b>Videos:</b> <code>runs/real2sim/policy/blend_1030_{hard,blend,smooth}/</code>, and side by side in <code>runs/real2sim/policy/blend_1030_compare.mp4</code>.</li>
+<li><b>B alone barely helps.</b> The gripper crosses the 2–7% band in 1–2 frames: 9 crossings, 18 frames in the band in total. B adds at most one ghost frame per switch.</li>
+<li><b>B + averaging over time</b> (new <code>w_smooth</code>, 0.3 per frame, opt-in; <code>policy_rollout --wrist_w_smooth</code>; <code>WristRenderV2.reset()</code> per episode) fades each switch over about 4–5 frames and damps short dithers. Its cost is a longer ghost and about 0.2–0.3 s of lag.</li>
+</ul>
+<div class="wrap"><table>
+<tr><th>Run</th><th>Per-frame change at switches (mean / max)</th><th>Frames with change &gt; 8</th></tr>
+<tr><td>hard switch</td><td>6.2 / 14.3</td><td>95</td></tr>
+<tr><td>B</td><td>6.3 / 10.7</td><td>93</td></tr>
+<tr><td>B + averaging</td><td>5.1 / 10.4</td><td>82</td></tr>
+</table></div>
+<p class="meta">The arm's own motion contributes about 4 per frame in all three runs.</p>
+<p><b>User's verdict:</b> "I dont see it much better tbh". Trial: TaskGen uses B + averaging (open_ramp 0.05, w_smooth 0.3) for every rollout until the morning of 10-31. It's a revertible setting in TaskGen's runner, and policy_rollout's defaults are unchanged (ramp 0.05, averaging off). The gripper look stays open: the options not chosen above still apply.</p>
 
 <h2>8 · Decision log</h2>
 <div class="wrap"><table>
@@ -372,6 +387,7 @@ a{color:var(--accent)}
 <tr><td>10-29/30</td><td>User asked how tangled SceneGen v1 is with MuJoCo, then "write up somewhere, if we need to change simulator then how much effort is it, what all changes need to be done" and "add in sceneGen v1 docs"</td><td>§11. No switch decided; recommendation: renderer-only if the reason is visual, simulator interface first in either case</td></tr>
 <tr><td>10-30</td><td>TaskGen reported the wrist photo/sim gripper flicker; user: "Lets go with B for now, but write other choices not chosen as of now"</td><td>§12: soft blend applied (policy_rollout default ramp 0.05; 0 = old behaviour); A, averaging over time, colour match, texture and closed-gripper photos recorded as not chosen</td></tr>
 <tr><td>10-30</td><td>User: "should we have a check for composite consistency throughout when TaskGen chatbot is running? scope that with TaskGen"</td><td>Scoping sent to TaskGen; not built</td></tr>
+<tr><td>10-30</td><td>Rollout replay showed B barely helps; user: "yes try time averaging and show me the rollout", then "I dont see it much better tbh, ask taskGen ti use this for any future rollouts till tom morning, revertible change ofc"</td><td>B + averaging over time (w_smooth 0.3) for TaskGen's rollouts until 10-31 morning, as a revertible runner setting; then review</td></tr>
 </table></div>
 </main></body>
 </html>

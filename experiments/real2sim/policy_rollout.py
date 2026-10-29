@@ -183,6 +183,9 @@ def main():
     ap.add_argument("--wrist_open_ramp", type=float, default=0.05,
                     help="v2 only (10-30, option B): photo/sim gripper soft blend over this much closure beyond the library's "
                          "open_max; 0 = the hard switch at open_max + 0.03 used by every v2 run before 10-30")
+    ap.add_argument("--wrist_w_smooth", type=float, default=0.0,
+                    help="v2 only (10-30, test): the photo/sim weight moves this fraction of the way to its target per frame "
+                         "(averaging over time); 0 = off")
     ap.add_argument("--grip_physics", choices=["scene", "firm"], default="scene",
                     help="firm (10-23, the closed-loop version of placement_analysis --grip_physics firm): finger pads condim 4 + "
                          "torsional friction 0.02 + sliding 1.0, elliptic cone, impratio 10; scene = Menagerie defaults as built")
@@ -259,7 +262,7 @@ def main():
         tt = wrist_table_texture(m, sdir, edir, fit["wrist_camera"]["serial"], list(range(0, k_close - 2, 2)))
         wcomp = WristRenderV2(m, plate, comp, (H, W), wp, tt, load_gripper_library(os.path.join(sdir, "gripper_lib", "gripper_library.npz")),
                               light=json.load(open(os.path.join(sdir, "light_wrist.json"))), near=a.wrist_blur,
-                              open_ramp=a.wrist_open_ramp)
+                              open_ramp=a.wrist_open_ramp, w_smooth=a.wrist_w_smooth)
     else:
         wcomp = WristCompositor(m, plate, comp, (H, W), plate2=wp)
 
@@ -340,7 +343,7 @@ def main():
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                final_target_xyz=d.xpos[m.body(task["target"]).id].tolist(), final_ref_xyz=d.xpos[m.body(task["ref"]).id].tolist(),
                wrist_view=("WristRenderV2 (wrist-video table, real-gripper library, render-and-shrink, wrist-fitted light)" if a.wrist_render == "v2"
-                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, grip_physics=a.grip_physics, shadows=not a.no_shadows, wrist_blur=a.wrist_blur if a.wrist_render == "v2" else None, wrist_open_ramp=a.wrist_open_ramp if a.wrist_render == "v2" else None, exterior_view="composite (cleaned real plate + sim)",
+                           else "textured (exterior plate + real wrist frame 0, composite.WristCompositor)"), wrist_render=a.wrist_render, grip_physics=a.grip_physics, shadows=not a.no_shadows, wrist_blur=a.wrist_blur if a.wrist_render == "v2" else None, wrist_open_ramp=a.wrist_open_ramp if a.wrist_render == "v2" else None, wrist_w_smooth=a.wrist_w_smooth if a.wrist_render == "v2" else None, exterior_view="composite (cleaned real plate + sim)",
                status="exploratory, UNVERIFIED", **diag)
     np.savez_compressed(os.path.join(a.out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
                         pinch_cmd=np.array(pinch_cmd), pinch_ach=np.array(pinch_ach), target_pos=np.array(tgt_pos), grip_cmd=np.array(grip_cmd),
