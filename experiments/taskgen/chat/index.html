@@ -58,6 +58,7 @@ footer{border-top:1px solid var(--line);padding:12px 0}
 .inbox{display:flex;gap:8px;align-items:flex-end;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px}
 textarea{flex:1;border:0;background:transparent;color:var(--fg);font:inherit;resize:none;outline:none;max-height:180px}
 .hint{font-size:12px;color:var(--muted);margin-top:6px}
+.note{font-size:12px;color:var(--muted)}
 .base{font-size:12px;color:var(--muted)}
 .run{font-size:12px;margin-top:2px}.run .okk{color:var(--ok)}.run .bad{color:var(--bad)}
 </style>
@@ -145,7 +146,7 @@ function onEvent(ev){
     if (ev.turns){ renderTurns(ev.turns, null); if (!col.children.length) replayTurns(ev.turns); }
     if (ev.running){ add(`<div class="err">A request is still running: "${esc(ev.running.text)}" (started ${ev.running.started}). Its steps continue below; press Stop to cancel it.</div>`, 'agent'); setBusy(true, true); }
     if (ev.policies){ fill('policy', ev.policies, document.getElementById('policy').value || ev.policies[0]); }
-    if (ev.policy_running){ policyRunning(true); add(`<div class="err">A ${ev.policy_running.policy} run on turn ${ev.policy_running.turn} is going (started ${ev.policy_running.started}); its result appears here and in the sidebar.</div>`, 'agent'); }
+    if (ev.policy_running){ policyRunning(true); const pr = ev.policy_running; add(`<div class="err">${pr.policy==='build_assets' ? `The composite for ${esc(pr.scene)} is being built (started ${pr.started}, about 8–10 min); the result appears here.` : `A ${pr.policy} run on turn ${pr.turn} is going (started ${pr.started}); its result appears here and in the sidebar.`}</div>`, 'agent'); }
     if (ev.trace_dir) document.getElementById('tracedir').textContent = 'traces: ' + ev.trace_dir;
     document.getElementById('base').textContent = 'base (locked): ' + Object.entries(ev.base).map(([n,r]) => `${n} ${r.kind}`).join(' · ');
     return;
@@ -188,11 +189,24 @@ function onEvent(ev){
     a.steps.appendChild(d);
     if (ev.run.video){ const v = document.createElement('video'); v.src = ev.run.video; v.controls = true; a.steps.appendChild(v); }
     a.text.textContent = ev.run.video ? (ev.run.policy==='expert' ? (r.success ? 'The scripted expert solved it in the policy\'s own sim and cameras: the task can be solved. Video below. UNVERIFIED.' : 'The scripted expert did NOT solve it: not proven solvable (the expert has known gaps, e.g. top drawers), not proven unsolvable. Video below. UNVERIFIED.') : 'Video: what the policy saw (exterior composite | wrist). UNVERIFIED.') : 'No video: the run stopped before the episode (see the log above).'; scroll(); return; }
+  if (ev.type === 'assets_built'){ const a = agentBlock();
+    const d = document.createElement('details'); d.className = 'step';
+    d.innerHTML = `<summary><span class="dot ${ev.ok?'ok':'bad'}">⏺</span><span>build_composite_assets(${esc(ev.scene)}): ${ev.ok?'all steps and checks passed':'FAILED (rc '+ev.rc+')'}</span><span class="secs">${ev.seconds?Math.round(ev.seconds)+' s':''}</span></summary>` +
+      `<div class="sub">${Object.entries(ev.checks||{}).map(([k,v]) => esc(k)+' '+(Array.isArray(v)?(v[1]?'✓':'✗')+' '+v[0]:esc(String(v)))).join(' · ')}</div><pre class="json">${hl(ev.ok ? {steps: ev.steps, checks: ev.checks, peak_ram_gib: ev.peak_ram_gib, summary: ev.summary} : {log_tail: ev.log_tail, summary: ev.summary})}</pre>`;
+    a.steps.appendChild(d);
+    a.text.textContent = ev.ok ? 'Composite assets built. Look at the check images below (thresholds are provisional, from one scene), then press Composite.' : 'The asset build failed: click the card for the log.';
+    current = a; scroll(); return; }
   if (ev.type === 'assets_missing'){ const a = agentBlock();
-    a.text.innerHTML = `<b>No composite for scene ${esc(ev.scene)}.</b> Its base (${esc(ev.base)}) lacks: ${ev.missing.map(esc).join(', ')}. ` +
-      `A policy can't see this scene until they're built. ${ev.builder ? '' : '(The builder from res31 isn\'t available yet: the button will say so.)'} ` +
-      `<button class="b-build">Build composite assets</button>`;
-    a.text.querySelector('.b-build').onclick = () => { current = null; add('<div class="bubble">/build assets</div>', 'user'); send({type:'build_assets'}); };
+    const d = document.createElement('details'); d.className = 'step';
+    d.innerHTML = `<summary><span class="dot bad">⏺</span><span>composite assets for ${esc(ev.scene)}: ${ev.missing.length} missing</span></summary>` +
+      `<pre class="json">${hl({scene: ev.base, missing: ev.missing, builder: ev.builder ? 'res31 build_composite_assets.py (CPU)' : 'not available yet'})}</pre>`;
+    a.steps.appendChild(d);
+    a.text.innerHTML = `<b>No composite scene available.</b> ` + (ev.builder
+      ? `Making one takes about 8–10 min. Do you want to proceed? <button class="b-yes">Yes, build it</button> <button class="b-no">Not now</button>`
+      : `The builder isn't available yet, so one can't be made from here.`);
+    const y = a.text.querySelector('.b-yes'), n = a.text.querySelector('.b-no');
+    if (y) y.onclick = () => { y.disabled = n.disabled = true; current = null; add('<div class="bubble">Yes, build it</div>', 'user'); send({type:'build_assets'}); };
+    if (n) n.onclick = () => { y.disabled = n.disabled = true; a.text.innerHTML += ' <span class="note">(not built)</span>'; };
     scroll(); return; }
   if (ev.type === 'policy_refused'){ const a = agentBlock(); a.text.innerHTML = `<span class="err">Run policy: ${esc(ev.text)}</span>`; scroll(); return; }
   if (ev.type === 'idle'){ setBusy(false); current = null; return; }

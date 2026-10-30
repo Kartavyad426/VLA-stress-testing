@@ -25,11 +25,14 @@ WRIST_BLEND = dict(open_ramp=0.05, w_smooth=0.3)
 EXPERT_MAX_S = 120  # --policy expert: runs to the end of its steps (not --seconds), capped here
 
 
+# what compositors() reads from a base scene, as written by res31's build_composite_assets.py (10-30: "That's your full
+# v2 list"); v1 wrist needs the first three
+ASSETS_V1 = ["plate_cache_lama_frame0_plate.png", "light.json", "plate_cache_wrist_frame0.png"]
+ASSETS_V2 = ASSETS_V1 + ["table_tex_wrist.npz", "gripper_lib/gripper_library.npz", "light_wrist.json"]
+
+
 def need_assets(base_dir, wrist_render):
-    missing = [f for f in ["plate_cache_lama_frame0_plate.png"] if not os.path.exists(os.path.join(base_dir, f))]
-    if wrist_render == "v2":
-        missing += [f for f in ("gripper_lib/gripper_library.npz", "light_wrist.json") if not os.path.exists(os.path.join(base_dir, f))]
-    return missing
+    return [f for f in (ASSETS_V2 if wrist_render == "v2" else ASSETS_V1) if not os.path.exists(os.path.join(base_dir, f))]
 
 
 def compositors(session, m, wrist_render="v2", shadows=True, wrist_blur="gripper"):

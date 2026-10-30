@@ -46,10 +46,11 @@ FAKE_ANSWER = json.dumps({"scene": {"add": [
 POLICIES = ["expert", "groot"]  # expert: TaskGen's scripted expert in the policy's sim + cameras (CPU; proof the task can be solved);
 # groot: GPU via run_groot.sh, only if the server was started with --allow_groot. (hold stays in run_policy.py, CLI only)
 TASKGEN = HERE  # experiments/taskgen
-# res31's one-command builder for a base scene's composite assets (plate, light, gripper library, wrist texture): asked
-# 10-30 00:4x, not available yet. When it exists, set it here as an argv list with {scene} / {episode} placeholders;
-# until then the chat offers the build and says plainly that the builder is missing.
-BUILD_ASSETS_CMD = None
+# res31's one-command builder for a base scene's composite assets (plate, light, wrist plate, wrist table texture, gripper
+# library, wrist light), 10-30: CPU only, ~10.5 min on v1/orange, exit 0 only if every step + check passes, last stdout
+# line = <scene>/composite_assets.json, idempotent (existing outputs skipped). argv with {scene} / {episode} placeholders.
+BUILD_ASSETS_CMD = [os.path.join(MAIN, "runs/real2sim/v1_dev/py_triton_first.sh"), os.path.join(MAIN, "experiments/real2sim/build_composite_assets.py"),
+                    "{scene}", "{episode}"]
 
 
 def png_data_url(img):
@@ -65,9 +66,9 @@ class Chat:
 
     def set_scene(self, scene):
         sd, ep = SCENES[scene]
-        self.scene = scene
         q0 = h5py.File(os.path.join(MAIN, ep, "trajectory.h5"))["observation/robot_state/joint_positions"][0]
         self.S = Session(MujocoSim, assets, os.path.join(MAIN, sd), os.path.join(MAIN, ep), q0)
+        self.scene = scene  # only after the scene loaded: a failed load keeps the old scene and its name
         self.task, self.history = None, []
         if not hasattr(self, "turns"):
             self.turns, self.turn = [], 0
@@ -221,7 +222,14 @@ class Chat:
         comp, wcomp = compositors(self.S, s.m, "v2")  # the runner's own setup: what GR00T gets (wrist v2)
         ext = comp(s.d).clip(0, 255).astype(np.uint8)
         wr = wcomp(s.d).clip(0, 255).astype(np.uint8)
-        return {"exterior composite (policy view)": png_data_url(ext), "wrist composite (policy view, v2)": png_data_url(wr)}, None
+        imgs = {"exterior composite (policy view)": png_data_url(ext), "wrist composite (policy view, v2)": png_data_url(wr)}
+        js = os.path.join(sdir, "composite_assets.json")  # res31's builder summary: warn if its checks failed
+        if os.path.exists(js):
+            summ = json.load(open(js))
+            if not summ.get("ok"):
+                bad = [f"{k} {v.get('value'):.2f}" for k, v in (summ.get("checks") or {}).items() if isinstance(v, dict) and not v.get("pass_") and v.get("value") is not None]
+                imgs["_warning"] = f"this scene's composite assets failed checks ({', '.join(bad)}; thresholds provisional): the policy's view may be off"
+        return imgs, None
 
     def start_policy(self, policy, emit, allow_groot=False):
         """Run a policy on the current turn's scene + task, as a separate process (the chat stays usable meanwhile):
@@ -292,7 +300,7 @@ class Chat:
 
     def build_assets(self, emit):
         """Build the base scene's composite assets with res31's builder, in the background; then show the composite."""
-        sd, ep = self.S.cfg.base_scene, self.S.cfg.episode
+        sd, ep, name = self.S.cfg.base_scene, self.S.cfg.episode, self.scene  # fixed at the start: the user may switch scenes meanwhile
         if BUILD_ASSETS_CMD is None:
             return ("Can't build yet: res31's one-command builder for composite assets doesn't exist yet (asked 10-30; "
                     "it needs res31 to write it). Until then only orange_stereo has a composite.")
@@ -303,17 +311,33 @@ class Chat:
         cmd = [c.format(scene=sd, episode=ep) for c in BUILD_ASSETS_CMD]
         log = open(os.path.join(out, "stdout.log"), "w")
         proc = subprocess.Popen(cmd, cwd=MAIN, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
-        POLICY.update(proc=proc, policy="build_assets", turn=getattr(self, "cur_turn", None), started=time.strftime("%H:%M:%S"), out=out)
+        POLICY.update(proc=proc, policy="build_assets", scene=name, turn=None, started=time.strftime("%H:%M:%S"), out=out)
 
         def wait():
             rc = proc.wait()
             log.close()
             POLICY.clear()
-            tail = open(os.path.join(out, "stdout.log")).read().splitlines()[-10:]
-            emit(dict(type="reply", text=f"Asset build for {self.scene} finished (rc {rc}). " +
-                      ("Press Composite to see it, and check res31's check images in " + sd if rc == 0 else "It failed; log: " + " | ".join(tail))))
+            lines = open(os.path.join(out, "stdout.log")).read().splitlines()
+            summ = {}
+            js = os.path.join(sd, "composite_assets.json")
+            if os.path.exists(js):
+                summ = json.load(open(js))
+            checks = {k: (v.get("value"), v.get("pass_", v.get("pass"))) if isinstance(v, dict) else v for k, v in (summ.get("checks") or {}).items()}
+            emit(dict(type="assets_built", scene=name, rc=rc, ok=bool(summ.get("ok")) and rc == 0, seconds=summ.get("seconds"),
+                      peak_ram_gib=summ.get("peak_ram_gib"), checks=checks,
+                      steps=[{k: st.get(k) for k in ("step", "status", "seconds", "device")} for st in summ.get("steps") or []],
+                      log_tail=lines[-10:], summary=js))
+            imgs = {}
+            for pth in summ.get("check_images") or []:
+                img = cv2.imread(pth)
+                if img is not None:
+                    hh, ww = img.shape[:2]
+                    img = cv2.resize(img, (640, int(hh * 640 / ww))) if ww > 640 else img
+                    imgs[os.path.basename(pth)] = png_data_url(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            if imgs:
+                emit(dict(type="render", images=imgs))
         threading.Thread(target=wait, daemon=True).start()
-        return f"Building composite assets for {self.scene} in the background (log: {out}/stdout.log); the chat stays usable."
+        return f"Building the composite for {name}: about 8–10 min. You can keep chatting; the result appears here when it's done."
 
     def new_session(self):
         """New chat: a fresh session (new trace folder, empty sidebar), the scene as reconstructed; old sessions stay on disk."""
@@ -438,7 +462,8 @@ async def ws(sock: WebSocket):
             elif kind == "composite":
                 imgs, miss = chat.composite()
                 if imgs:
-                    emit(dict(type="reply", text="What the policy would see (exterior composite over the real plate; wrist view v2). Added objects are drawn with their model colours."))
+                    warn = imgs.pop("_warning", None)
+                    emit(dict(type="reply", text=("⚠ " + warn + ". " if warn else "") + "What the policy would see (exterior composite over the real plate; wrist view v2). Added objects are drawn with their model colours."))
                     emit(dict(type="render", images=imgs))
                 else:
                     emit(dict(miss, type="assets_missing", builder=BUILD_ASSETS_CMD is not None))

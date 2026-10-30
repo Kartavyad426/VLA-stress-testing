@@ -32,15 +32,34 @@ def _resolve(fname):
     return hits[0]
 
 
+def _pack_dirs(scene_dir):
+    """Asset-pack objects in the scene: body name -> folder of its source MJCF (scene_fit.json 'asset_xml'). Their mesh
+    files are relative to that folder and their names are generic (the same file name exists in many pack objects:
+    10-30, c9's coffee cup), so they are resolved per object, not by searching."""
+    fp = os.path.join(scene_dir, "scene_fit.json")
+    objs = json.load(open(fp)).get("objects", {}) if os.path.exists(fp) else {}
+    return {o["body"]: os.path.dirname(o["asset_xml"]) for o in objs.values() if isinstance(o, dict) and o.get("asset_xml") and o.get("body")}
+
+
+def _resolve_in(fname, name, packs):
+    """A mesh/texture named <body>_... of a pack object: its file relative to that object's MJCF folder; else Menagerie."""
+    if not os.path.isabs(fname):
+        for body, d in packs.items():
+            if name.startswith(body + "_") and os.path.exists(os.path.join(d, fname)):
+                return os.path.join(d, fname)
+    return _resolve(fname)
+
+
 def load_spec(scene_dir):
     """res31's scene.xml as an MjSpec with absolute asset paths (not compiled)."""
     spec = mujoco.MjSpec.from_file(os.path.join(scene_dir, "scene.xml"))
+    packs = _pack_dirs(scene_dir)
     for ms in spec.meshes:
         if ms.file:
-            ms.file = _resolve(ms.file)
+            ms.file = _resolve_in(ms.file, ms.name, packs)
     for tx in spec.textures:
         if tx.file:
-            tx.file = _resolve(tx.file)
+            tx.file = _resolve_in(tx.file, tx.name, packs)
     return spec
 
 
