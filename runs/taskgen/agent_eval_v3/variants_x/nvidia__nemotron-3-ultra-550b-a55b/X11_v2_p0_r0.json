@@ -1,0 +1,160 @@
+{
+ "test": "variants",
+ "case": "X11",
+ "case_id": "X11_v2_p0",
+ "run": 0,
+ "prompt": "add a can on the table; the robot puts the yellow block next to the can",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 91.9,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": false,
+  "refusal_match": false,
+  "task_diff": {
+   "missing": [
+    "('next_to', 'block_1', ('pack', 'can'), ())"
+   ],
+   "extra": []
+  },
+  "refusal_diff": {
+   "got": [
+    "scene",
+    "task"
+   ],
+   "want": []
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": false,
+ "scene_reason": "no pose found for can_1 on_table table",
+ "second_call": true,
+ "refusals": [
+  {
+   "part": "scene",
+   "reason": "Failed to place can_1 on table: no valid pose found.",
+   "alternative": null
+  },
+  {
+   "part": "task",
+   "reason": "Cannot put yellow block next to the can because the can is not present in the scene (scene setup failed).",
+   "alternative": null
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"can_1\",\n        \"source\": \"pack\",\n        \"noun\": \"can\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"put the yellow block next to the can\",\n    \"targets\": [\"block_1\", \"can_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"can_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"scene\",\n      \"reason\": \"Failed to place can_1 on table: no valid pose found.\",\n      \"alternative\": null\n    },\n    {\n      \"part\": \"task\",\n      \"reason\": \"Cannot put yellow block next to the can because the can is not present in the scene (scene setup failed).\",\n      \"alternative\": null\n    }\n  ]\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "can_1",
+      "source": "pack",
+      "noun": "can",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": null,
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "Failed to place can_1 on table: no valid pose found.",
+     "alternative": null
+    },
+    {
+     "part": "task",
+     "reason": "Cannot put yellow block next to the can because the can is not present in the scene (scene setup failed).",
+     "alternative": null
+    }
+   ]
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"can_1\",\n        \"source\": \"pack\",\n        \"noun\": \"can\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"put the yellow block next to the can\",\n    \"targets\": [\"block_1\", \"can_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"can_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   },
+   {
+    "attempt": 1,
+    "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"scene\",\n      \"reason\": \"Failed to place can_1 on table: no valid pose found.\",\n      \"alternative\": null\n    },\n    {\n      \"part\": \"task\",\n      \"reason\": \"Cannot put yellow block next to the can because the can is not present in the scene (scene setup failed).\",\n      \"alternative\": null\n    }\n  ]\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "can_1",
+     "result": {
+      "added": "can_1",
+      "kind": "item",
+      "size_cm": [
+       40.3,
+       14.1,
+       13.0
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "can_1",
+     "result": {
+      "infeasible": "no pose found for can_1 on_table table",
+      "tried": 192,
+      "reasons": {
+       "too close to block_1 (pre-filter)": 124,
+       "too close to bowl_1 (pre-filter)": 42,
+       "too close to block_3 (pre-filter)": 23
+      }
+     }
+    }
+   ],
+   "ok": false,
+   "changed": [],
+   "failed": "can_1",
+   "reason": "no pose found for can_1 on_table table"
+  },
+  "second_call": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "Failed to place can_1 on table: no valid pose found.",
+     "alternative": null
+    },
+    {
+     "part": "task",
+     "reason": "Cannot put yellow block next to the can because the can is not present in the scene (scene setup failed).",
+     "alternative": null
+    }
+   ]
+  },
+  "task": null,
+  "task_missing_names": []
+ }
+}

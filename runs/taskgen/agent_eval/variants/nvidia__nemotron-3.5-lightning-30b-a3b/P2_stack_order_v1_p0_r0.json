@@ -1,0 +1,36 @@
+{
+ "test": "variants",
+ "case": "P2_stack_order",
+ "case_id": "P2_stack_order_v1_p0",
+ "values": {
+  "order": [
+   "green",
+   "yellow",
+   "orange"
+  ]
+ },
+ "run": 0,
+ "prompt": "stack the blocks with the green one at the bottom, then yellow, then orange on top",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 30.5,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [],\n  \"task\": {\n    \"instruction\": \"stack the blocks with the green one at the bottom, then yellow, then orange on top\",\n    \"targets\": [\"green_block\", \"yellow_block\", \"orange_block\"],\n    \"pass_condition\": {\n      \"type\": \"ordered_stack\",\n      \"order\": [\"green_block\", \"yellow_block\", \"orange_block\"]\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

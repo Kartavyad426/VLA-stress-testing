@@ -1,0 +1,39 @@
+{
+ "test": "robustness",
+ "case": "R8_no_such_relation",
+ "case_id": "R8_no_such_relation",
+ "values": {},
+ "run": 0,
+ "prompt": "put the yellow block between the bowl and the orange block",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 149.3,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [],\n  \"task\": {\n    \"instruction\": \"put the yellow block between the bowl and the orange block\",\n",
+   "errors": [
+    "Expecting property name enclosed in double quotes: line 4 column 81 (char 107)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\n  \"add\": [],\n  \"task\": {\n    \"instruction\": \"put the yellow block between the bowl and the orange block\",\n    \"targets\": [\"yellow_block\", \"black_bowl\", \"orange_block\"],\n    \"pass_condition\": {\n      \"type\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

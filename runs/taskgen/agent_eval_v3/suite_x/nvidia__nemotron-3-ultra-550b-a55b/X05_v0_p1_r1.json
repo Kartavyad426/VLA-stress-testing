@@ -1,0 +1,115 @@
+{
+ "test": "suite",
+ "case": "X05",
+ "case_id": "X05_v0_p1",
+ "run": 1,
+ "prompt": "move both the orange block and the yellow block into the black bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 11.6,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": null,\n  \"task\": {\n    \"instruction\": \"move both the orange block and the yellow block into the black bowl\",\n    \"targets\": [\"block_1\", \"block_2\", \"bowl_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"inside\",\n        \"object\": \"block_1\",\n        \"target\": \"bowl_1\"\n      },\n      {\n        \"type\": \"inside\",\n        \"object\": \"block_2\",\n        \"target\": \"bowl_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": {
+    "instruction": "move both the orange block and the yellow block into the black bowl",
+    "targets": [
+     "block_1",
+     "block_2",
+     "bowl_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "block_1",
+      "target": "bowl_1",
+      "order": null
+     },
+     {
+      "type": "inside",
+      "object": "block_2",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": null,\n  \"task\": {\n    \"instruction\": \"move both the orange block and the yellow block into the black bowl\",\n    \"targets\": [\"block_1\", \"block_2\", \"bowl_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"inside\",\n        \"object\": \"block_1\",\n        \"target\": \"bowl_1\"\n      },\n      {\n        \"type\": \"inside\",\n        \"object\": \"block_2\",\n        \"target\": \"bowl_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X05_v0_p1",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "move both the orange block and the yellow block into the black bowl",
+   "targets": [
+    "block_1",
+    "block_2",
+    "bowl_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "block_1",
+     "target": "bowl_1",
+     "order": null
+    },
+    {
+     "type": "inside",
+     "object": "block_2",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

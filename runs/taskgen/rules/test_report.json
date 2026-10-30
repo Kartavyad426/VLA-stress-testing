@@ -1,0 +1,150 @@
+{
+ "results": {
+  "start: red block inside the middle drawer": [
+   true,
+   {
+    "reason": null
+   }
+  ],
+  "start: red block not inside the bowl": [
+   false,
+   {
+    "reason": "not inside the target"
+   }
+  ],
+  "start: block_2 not inside the bowl; out_of the bowl true": [
+   [
+    false,
+    {
+     "reason": "not inside the target"
+    }
+   ],
+   [
+    true,
+    {
+     "inside": false
+    }
+   ]
+  ],
+  "red block set into the bowl: inside(bowl) and out_of(drawer)": [
+   [
+    true,
+    {
+     "reason": null
+    }
+   ],
+   [
+    true,
+    {
+     "inside": false
+    }
+   ]
+  ],
+  "hand-built stack: the right order passes, a wrong order fails": {
+   "good": [
+    true,
+    {
+     "steps": [
+      {
+       "object": "block_1",
+       "on_table": true
+      },
+      {
+       "object": "block_3",
+       "on": "block_1",
+       "ok": true,
+       "centre_over_target": true,
+       "bottom_cm": -7.0,
+       "target_top_cm": -7.0
+      },
+      {
+       "object": "block_2",
+       "on": "block_3",
+       "ok": true,
+       "centre_over_target": true,
+       "bottom_cm": -4.3,
+       "target_top_cm": -4.2
+      }
+     ]
+    }
+   ],
+   "bad": [
+    false,
+    {
+     "steps": [
+      {
+       "object": "block_1",
+       "on_table": true
+      },
+      {
+       "object": "block_2",
+       "on": "block_1",
+       "ok": true,
+       "centre_over_target": true,
+       "bottom_cm": -4.3,
+       "target_top_cm": -7.0
+      },
+      {
+       "object": "block_3",
+       "on": "block_2",
+       "ok": false,
+       "centre_over_target": true,
+       "bottom_cm": -7.0,
+       "target_top_cm": -1.1
+      }
+     ]
+    }
+   ]
+  },
+  "on(block_3, block_1) true; on(block_1, block_3) false": [
+   [
+    true,
+    {
+     "centre_over_target": true,
+     "bottom_cm": -7.0,
+     "target_top_cm": -7.0
+    }
+   ],
+   [
+    false,
+    {
+     "centre_over_target": true,
+     "bottom_cm": -9.4,
+     "target_top_cm": -4.2
+    }
+   ]
+  ],
+  "next_to: 3 cm away true, 15 cm away false": {
+   "near": [
+    true,
+    {
+     "gap_cm": 0.4,
+     "on_table": true
+    }
+   ],
+   "far": [
+    false,
+    {
+     "gap_cm": 13.6,
+     "on_table": true
+    }
+   ]
+  },
+  "task config: rule known (E4)": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  },
+  "do-nothing for 30 s does not solve it (E2)": {
+   "passed": true,
+   "solved": false,
+   "warnings": {}
+  },
+  "positive control: a task already true at the start IS caught by do-nothing": {
+   "passed": false
+  }
+ },
+ "fails": [],
+ "seconds": 6.0
+}

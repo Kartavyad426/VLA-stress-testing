@@ -1,0 +1,237 @@
+{
+ "test": "suite",
+ "case": "X08",
+ "case_id": "X08_v0_p0",
+ "run": 1,
+ "prompt": "add a drawer with a red block inside; the robot takes it out and leaves it next to the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 22.7,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"drawer_1\",\n        \"source\": \"drawer\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 3,\n        \"relation\": \"inside\",\n        \"target\": \"drawer_1\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Take the red block out of the drawer and place it next to the bowl.\",\n    \"targets\": [\n      \"red_block_1\",\n      \"bowl_1\",\n      \"drawer_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"red_block_1\",\n        \"target\": \"bowl_1\"\n      },\n      {\n        \"type\": \"out_of\",\n        \"object\": \"red_block_1\",\n        \"target\": \"drawer_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "drawer_1",
+      "source": "drawer",
+      "noun": null,
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     },
+     {
+      "name": "red_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "inside",
+      "target": "drawer_1"
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Take the red block out of the drawer and place it next to the bowl.",
+    "targets": [
+     "red_block_1",
+     "bowl_1",
+     "drawer_1"
+    ],
+    "pass_all": [
+     {
+      "type": "next_to",
+      "object": "red_block_1",
+      "target": "bowl_1",
+      "order": null
+     },
+     {
+      "type": "out_of",
+      "object": "red_block_1",
+      "target": "drawer_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"drawer_1\",\n        \"source\": \"drawer\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 3,\n        \"relation\": \"inside\",\n        \"target\": \"drawer_1\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Take the red block out of the drawer and place it next to the bowl.\",\n    \"targets\": [\n      \"red_block_1\",\n      \"bowl_1\",\n      \"drawer_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"red_block_1\",\n        \"target\": \"bowl_1\"\n      },\n      {\n        \"type\": \"out_of\",\n        \"object\": \"red_block_1\",\n        \"target\": \"drawer_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "drawer_1",
+     "result": {
+      "added": "drawer_1",
+      "kind": "drawer",
+      "size_cm": [
+       20.0,
+       24.0,
+       10.0
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "drawer_1",
+     "result": {
+      "placed": "drawer_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       70.2,
+       -51.3,
+       -9.4
+      ],
+      "size_cm": [
+       20.0,
+       24.0,
+       10.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 659,
+        "frac": 0.7,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 18994,
+        "frac": 0.99,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    },
+    {
+     "call": "add_object",
+     "name": "red_block_1",
+     "result": {
+      "added": "red_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_block_1",
+     "result": {
+      "placed": "red_block_1",
+      "relation": "inside",
+      "target": "drawer_1",
+      "at_cm": [
+       53.5,
+       -59.0,
+       -7.5
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 19,
+        "frac": 0.9,
+        "min_px": 28,
+        "ok": false
+       },
+       "wrist_above": {
+        "px": 229,
+        "frac": 0.89,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X08_v0_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Take the red block out of the drawer and place it next to the bowl.",
+   "targets": [
+    "red_block_1",
+    "bowl_1",
+    "drawer_1"
+   ],
+   "pass_all": [
+    {
+     "type": "next_to",
+     "object": "red_block_1",
+     "target": "bowl_1",
+     "order": null
+    },
+    {
+     "type": "out_of",
+     "object": "red_block_1",
+     "target": "drawer_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

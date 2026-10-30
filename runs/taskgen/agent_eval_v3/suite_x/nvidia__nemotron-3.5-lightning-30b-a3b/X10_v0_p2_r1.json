@@ -1,0 +1,164 @@
+{
+ "test": "suite",
+ "case": "X10",
+ "case_id": "X10_v0_p2",
+ "run": 1,
+ "prompt": "put a lemon somewhere on the table, then the robot moves it into the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 26.8,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"lemon_1\",\n        \"source\": \"pack\",\n        \"noun\": \"lemon\",\n        \"relation\": \"on_table\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"move the lemon into the bowl\",\n    \"targets\": [\"lemon_1\", \"bowl_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"inside\",\n        \"object\": \"lemon_1\",\n        \"target\": \"bowl_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "lemon_1",
+      "source": "pack",
+      "noun": "lemon",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "move the lemon into the bowl",
+    "targets": [
+     "lemon_1",
+     "bowl_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "lemon_1",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"lemon_1\",\n        \"source\": \"pack\",\n        \"noun\": \"lemon\",\n        \"relation\": \"on_table\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"move the lemon into the bowl\",\n    \"targets\": [\"lemon_1\", \"bowl_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"inside\",\n        \"object\": \"lemon_1\",\n        \"target\": \"bowl_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "lemon_1",
+     "result": {
+      "added": "lemon_1",
+      "kind": "fruit",
+      "size_cm": [
+       1.7,
+       5.4,
+       2.2
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "lemon_1",
+     "result": {
+      "placed": "lemon_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.7,
+       11.8,
+       -9.4
+      ],
+      "size_cm": [
+       1.7,
+       5.4,
+       2.2
+      ],
+      "visible": {
+       "ext": {
+        "px": 63,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 171,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X10_v0_p2",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "move the lemon into the bowl",
+   "targets": [
+    "lemon_1",
+    "bowl_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "lemon_1",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

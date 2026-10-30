@@ -1,0 +1,43 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 1,
+ "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+ "valid": false,
+ "attempts": 3,
+ "seconds": 176.4,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": null,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": "no valid answer after retries",
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  }
+ ]
+}

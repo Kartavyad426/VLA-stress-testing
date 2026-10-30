@@ -1,0 +1,94 @@
+{
+ "test": "variants",
+ "case": "X15",
+ "case_id": "X15_v0_p0",
+ "run": 0,
+ "prompt": "add a three-drawer cabinet with only the top drawer open and a red block inside the bottom drawer; the robot puts it in the bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 25.3,
+ "match": false,
+ "compare": {
+  "scene_match": false,
+  "task_match": false,
+  "refusal_match": true,
+  "scene_diff": {
+   "missing": [
+    "(('cabinet', '3L/top'), 'on_table', None)",
+    "(('box', 'red'), 'inside', (('cabinet', '3L/top'), 'top'))"
+   ],
+   "extra": []
+  },
+  "task_diff": {
+   "missing": [
+    "('inside', ('box', 'red'), 'bowl_1', ())"
+   ],
+   "extra": []
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "scene",
+   "reason": "cannot place a block inside a closed drawer; only the open drawer can contain objects",
+   "alternative": "add the block to the open top drawer instead"
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"top\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"cabinet_1/bottom\"}]},\"task\":{\"instruction\":\"put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+   "errors": [
+    "red_block_1: the bottom drawer of cabinet_1 is closed; objects can only go into the open one (top), or set open_level=bottom"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot place a block inside a closed drawer; only the open drawer can contain objects\",\"alternative\":\"add the block to the open top drawer instead\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "cannot place a block inside a closed drawer; only the open drawer can contain objects",
+     "alternative": "add the block to the open top drawer instead"
+    }
+   ]
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"top\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"cabinet_1/bottom\"}]},\"task\":{\"instruction\":\"put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+    "errors": [
+     "red_block_1: the bottom drawer of cabinet_1 is closed; objects can only go into the open one (top), or set open_level=bottom"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot place a block inside a closed drawer; only the open drawer can contain objects\",\"alternative\":\"add the block to the open top drawer instead\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

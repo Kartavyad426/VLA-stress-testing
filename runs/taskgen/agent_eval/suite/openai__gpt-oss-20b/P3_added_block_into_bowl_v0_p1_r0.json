@@ -1,0 +1,32 @@
+{
+ "test": "suite",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p1",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "put a new red cube beside the black bowl and make the robot drop it into the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 18.5,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"next_to\",\"target\":\"black_bowl\"}],\"task\":{\"instruction\":\"put a new red cube beside the black bowl and make the robot drop it into the bowl\",\"targets\":[\"red_cube_1\",\"black_bowl\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_cube_1\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

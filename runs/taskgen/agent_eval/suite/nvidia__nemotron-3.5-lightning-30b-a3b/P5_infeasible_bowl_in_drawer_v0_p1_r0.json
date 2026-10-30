@@ -1,0 +1,30 @@
+{
+ "test": "suite",
+ "case": "P5_infeasible_bowl_in_drawer",
+ "case_id": "P5_infeasible_bowl_in_drawer_v0_p1",
+ "values": {},
+ "run": 0,
+ "prompt": "add a drawer and move the bowl into it",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 45.9,
+ "match": false,
+ "compare": {
+  "feasible_match": false,
+  "objects_match": true,
+  "task_match": true,
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"drawer_1\",\n      \"source\": \"drawer\",\n      \"relation\": \"on_table\",\n      \"target\": null\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"move the bowl into the drawer\",\n    \"targets\": [\"black_bowl\", \"drawer_1\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"black_bowl\",\n      \"target\": \"drawer_1\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

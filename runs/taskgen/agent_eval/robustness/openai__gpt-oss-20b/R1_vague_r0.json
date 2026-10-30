@@ -1,0 +1,32 @@
+{
+ "test": "robustness",
+ "case": "R1_vague",
+ "case_id": "R1_vague",
+ "values": {},
+ "run": 0,
+ "prompt": "put a block somewhere on the table",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 32.0,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}],\"task\":{\"instruction\":\"put a block somewhere on the table\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"on\",\"object\":\"red_block_1\",\"target\":\"on_table\",\"order\":null}},\"infeasible\":null}",
+   "errors": [
+    "task refers to 'on_table', which is neither a base object nor one you add"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}],\"task\":{\"instruction\":\"put a block somewhere on the table\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"on\",\"object\":\"red_block_1\",\"target\":null,\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

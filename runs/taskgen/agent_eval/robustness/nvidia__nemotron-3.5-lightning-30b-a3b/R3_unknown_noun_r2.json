@@ -1,0 +1,42 @@
+{
+ "test": "robustness",
+ "case": "R3_unknown_noun",
+ "case_id": "R3_unknown_noun",
+ "values": {},
+ "run": 2,
+ "prompt": "add a teapot next to the bowl",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 105.8,
+ "match": false,
+ "compare": null,
+ "expect_notes": [
+  "sources ['box']",
+  "feasible=True, expected False"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"teapot_1\",\n      \"source\": \"box\",\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\",\n      \"colour\": null,\n      \"size_cm\": null\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"add a teapot next to the bowl\",\n    \"targets\": [\"teapot_1\"],\n    \"pass_condition\": {\n      \"type\": \"next_to\",\n      \"object\": \"teapot_1\",\n      \"target\": \"black_bowl\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": [
+    "teapot_1: source box needs a colour"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"teapot_1\",\n      \"source\": \"box\",\n      \"colour\": \"white\",\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"add a teapot next to the bowl\",\n    \"targets\": [\"teapot_1\"],\n    \"pass_condition\": {\n      \"type\": \"next_to\",\n      \"object\": \"teapot_1\",\n      \"target\": \"black_bowl\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

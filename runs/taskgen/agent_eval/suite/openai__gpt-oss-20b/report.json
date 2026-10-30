@@ -1,0 +1,1491 @@
+{
+ "model": "openai/gpt-oss-20b",
+ "test": "suite",
+ "url": "http://127.0.0.1:8099",
+ "runs": 3,
+ "summary": {
+  "P1_real_task": {
+   "calls": 9,
+   "valid": 9,
+   "match": 3,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 32.1
+  },
+  "P2_stack_order": {
+   "calls": 9,
+   "valid": 9,
+   "match": 2,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 54.800000000000004
+  },
+  "P3_added_block_into_bowl": {
+   "calls": 9,
+   "valid": 9,
+   "match": 8,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 97.8
+  },
+  "P4_drawer_out_of": {
+   "calls": 9,
+   "valid": 9,
+   "match": 6,
+   "exec_ok": 6,
+   "attempts": 10,
+   "seconds": 173.79999999999998
+  },
+  "P5_infeasible_bowl_in_drawer": {
+   "calls": 9,
+   "valid": 9,
+   "match": 9,
+   "exec_ok": 9,
+   "attempts": 9,
+   "seconds": 117.3
+  }
+ },
+ "rows": [
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 5.8,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "cannot move base object orange_block",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.7,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "cannot move locked base object",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p0",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "put the orange block in the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 3.6,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move base object orange_block into black_bowl because base objects are locked.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.5,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move the locked orange_block into the black_bowl because base objects are immutable.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 3.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p1",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "place the orange cube into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 3.0,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 0,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.4,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "cannot move locked base object",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 1,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 5.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P1_real_task",
+   "case_id": "P1_real_task_v0_p2",
+   "values": {
+    "block": "orange"
+   },
+   "run": 2,
+   "prompt": "move the orange block so it ends up inside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 1.2,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "inside",
+      "orange_block",
+      "black_bowl",
+      []
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move base object 'orange_block' because base objects are locked.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 9.8,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": [
+      "stacked",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ],
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 7.0,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot stack the base blocks because base objects are locked and cannot be moved.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p0",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "stack the blocks with the green one at the bottom, then orange, then yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 16.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.7,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": [
+      "stacked",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ],
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 3.6,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p1",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "make a tower: green block first, orange on it, yellow on top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 3.7,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot stack locked base objects; they cannot be moved.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 0,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 4.5,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move or stack the locked base blocks; the task requires moving them.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 1,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.4,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move locked base objects to form a stack.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P2_stack_order",
+   "case_id": "P2_stack_order_v0_p2",
+   "values": {
+    "order": [
+     "green",
+     "orange",
+     "yellow"
+    ]
+   },
+   "run": 2,
+   "prompt": "build a stack of the three blocks in the order green, orange, yellow from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 2.4,
+   "match": false,
+   "compare": {
+    "feasible_match": false,
+    "objects_match": true,
+    "task_match": false,
+    "task_diff": {
+     "got": null,
+     "want": [
+      "ordered_stack",
+      null,
+      null,
+      [
+       "green_block",
+       "orange_block",
+       "yellow_block"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move or stack locked base objects",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 7.9,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 6.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 9.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "put a new red cube beside the black bowl and make the robot drop it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 18.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "put a new red cube beside the black bowl and make the robot drop it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 12.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "put a new red cube beside the black bowl and make the robot drop it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 7.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "place an extra red block near the bowl, task: block into bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 6.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "place an extra red block near the bowl, task: block into bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 20.7,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "box",
+       "red",
+       "next_to",
+       "black_bowl"
+      ]
+     ],
+     "extra": [
+      [
+       "box",
+       "red",
+       "inside",
+       "black_bowl"
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P3_added_block_into_bowl",
+   "case_id": "P3_added_block_into_bowl_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "place an extra red block near the bowl, task: block into bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 8.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 12.6,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 12.0,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p0",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "add a drawer with a red block inside; the robot takes the block out and puts it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 11.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 17.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 17.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p1",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 17.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 0,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.3,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "drawer",
+       "",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 1,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 33.9,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "drawer",
+        ""
+       ]
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "pack",
+       "drawer",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "pack",
+        "drawer"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P4_drawer_out_of",
+   "case_id": "P4_drawer_out_of_v0_p2",
+   "values": {
+    "colour": "red"
+   },
+   "run": 2,
+   "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 30.5,
+   "match": false,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": false,
+    "task_match": true,
+    "objects_diff": {
+     "missing": [
+      [
+       "drawer",
+       "",
+       "on_table",
+       null
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "drawer",
+        ""
+       ]
+      ]
+     ],
+     "extra": [
+      [
+       "pack",
+       "cabinet",
+       "on_table",
+       null
+      ],
+      [
+       "pack",
+       "drawer",
+       "inside",
+       [
+        "pack",
+        "cabinet"
+       ]
+      ],
+      [
+       "box",
+       "red",
+       "inside",
+       [
+        "pack",
+        "drawer"
+       ]
+      ]
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "exec_ok": false,
+   "exec_reason": "no pack model 'cabinet'",
+   "infeasible": null,
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p0",
+   "values": {},
+   "run": 0,
+   "prompt": "put the black bowl inside a drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 13.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move the locked base object 'black_bowl' into a drawer.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p0",
+   "values": {},
+   "run": 1,
+   "prompt": "put the black bowl inside a drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 8.5,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move a locked base object (black_bowl) into a drawer; base objects are immutable.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p0",
+   "values": {},
+   "run": 2,
+   "prompt": "put the black bowl inside a drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 11.1,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "gripper opening too small to grasp black bowl",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p1",
+   "values": {},
+   "run": 0,
+   "prompt": "add a drawer and move the bowl into it",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.2,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Gripper opening too small to grasp the bowl.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p1",
+   "values": {},
+   "run": 1,
+   "prompt": "add a drawer and move the bowl into it",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 11.3,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Gripper cannot hold the bowl due to size mismatch",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p1",
+   "values": {},
+   "run": 2,
+   "prompt": "add a drawer and move the bowl into it",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 8.9,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move locked base object (black_bowl) into a newly added drawer",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p2",
+   "values": {},
+   "run": 0,
+   "prompt": "the bowl should start inside a cabinet drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 10.8,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move the locked bowl into a drawer; base objects are immovable.",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p2",
+   "values": {},
+   "run": 1,
+   "prompt": "the bowl should start inside a cabinet drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.4,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move locked bowl into a drawer",
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "P5_infeasible_bowl_in_drawer",
+   "case_id": "P5_infeasible_bowl_in_drawer_v0_p2",
+   "values": {},
+   "run": 2,
+   "prompt": "the bowl should start inside a cabinet drawer",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 8.7,
+   "match": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "exec_ok": true,
+   "exec_reason": null,
+   "infeasible": "Cannot move the locked black_bowl into a drawer; base objects are immutable.",
+   "reason": null
+  }
+ ]
+}

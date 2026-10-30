@@ -1,0 +1,69 @@
+{
+ "test": "suite",
+ "case": "X09",
+ "case_id": "X09_v0_p1",
+ "run": 0,
+ "prompt": "a 3-drawer cabinet, bottom drawer open, holding a red cube; task: take it out and put it on top of the green block",
+ "valid": false,
+ "attempts": 3,
+ "seconds": 265.5,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "scene_ok": null,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": null,
+ "reason": "no valid answer after retries",
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"cabinet_1\",\n        \"source\": \"cabinet\",\n        \"levels\": 3,\n        \"open_level\": \"bottom\",\n        \"relation\": \"on_table\"\n      },\n      {\n        \"name\": \"red_cube_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 2,\n        \"relation\": \"inside\",\n        \"target\": \"cabinet_1/bottom\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"take the red cube out and put it on top of the green block\",\n    \"targets\": [\"red_cube_1\", \"block_3\"],\n    \"pass_all\": [\n      {\n        \"type\": \"on\",\n        \"object\": \"red_cube_1\",\n        \"target\": \"block_3\"\n      }\n    ]\n  },\n  \"infeasible\": null\n}",
+   "errors": [
+    "infeasible: Input should be a valid list"
+   ]
+  }
+ ],
+ "result": {
+  "ok": false,
+  "attempts": 3,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 2,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"cabinet_1\",\n        \"source\": \"cabinet\",\n        \"levels\": 3,\n        \"open_level\": \"bottom\",\n        \"relation\": \"on_table\"\n      },\n      {\n        \"name\": \"red_cube_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 2,\n        \"relation\": \"inside\",\n        \"target\": \"cabinet_1/bottom\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"take the red cube out and put it on top of the green block\",\n    \"targets\": [\"red_cube_1\", \"block_3\"],\n    \"pass_all\": [\n      {\n        \"type\": \"on\",\n        \"object\": \"red_cube_1\",\n        \"target\": \"block_3\"\n      }\n    ]\n  },\n  \"infeasible\": null\n}",
+    "errors": [
+     "infeasible: Input should be a valid list"
+    ]
+   }
+  ],
+  "reason": "no valid answer after retries"
+ }
+}

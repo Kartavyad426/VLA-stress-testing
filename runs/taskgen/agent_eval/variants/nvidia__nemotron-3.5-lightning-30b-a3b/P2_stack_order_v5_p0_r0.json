@@ -1,0 +1,43 @@
+{
+ "test": "variants",
+ "case": "P2_stack_order",
+ "case_id": "P2_stack_order_v5_p0",
+ "values": {
+  "order": [
+   "yellow",
+   "orange",
+   "green"
+  ]
+ },
+ "run": 0,
+ "prompt": "stack the blocks with the yellow one at the bottom, then orange, then green on top",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 89.4,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [],\n  \"task\": {\n    \"instruction\": \"stack the blocks with the yellow one at the bottom, then orange, then green on top\",\n    \"targets\": [\"yellow_block\", \"orange_block\", \"green_block\"],\n    \"pass_condition\": {\n      \"type\": \"ordered_stack\",\n      \"order\": [\"yellow_block\", \"orange_block\", \"green_block\"]\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

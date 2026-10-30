@@ -1,0 +1,87 @@
+{
+ "task_id": "chat_4",
+ "instruction": "put green block into the bowl",
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "block_2",
+   "target": "bowl_1",
+   "order": null
+  }
+ ],
+ "rules": [
+  {
+   "rule": {
+    "type": "inside",
+    "object": "block_2",
+    "target": "bowl_1",
+    "order": null
+   },
+   "ok": true,
+   "detail": {
+    "reason": null
+   }
+  }
+ ],
+ "success": true,
+ "stage_target": "block_2",
+ "scene_config": "(in memory)",
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/v1/c11",
+ "base_version": "32589dd5f077cd8d",
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 4.7334699630737305,
+ "infer_s_median": 0.23055028915405273,
+ "wall_s": 84.59767270088196,
+ "vram": {
+  "vram_alloc_gib": 5.993988037109375,
+  "vram_reserved_gib": 6.1015625
+ },
+ "gpu_used_max_gib": 6.81640625,
+ "gripper_closed_frac": 0.06222222222222222,
+ "wrist_render": "v2",
+ "wrist_blur": "gripper",
+ "shadows": true,
+ "wrist_blend": {
+  "open_ramp": 0.05,
+  "w_smooth": 0.3
+ },
+ "wrist_gripper_photo": false,
+ "exterior_view": "composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
+ "expert_steps": null,
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": true,
+  "first_step": {
+   "reached": 31,
+   "closed_at_target": 54,
+   "lifted": 63
+  },
+  "min_dist_to_target_m": 0.0018316617246935997,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.0964344944054204,
+  "median_err_m": 0.015889327973377457,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "test": "variants",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v2_p0",
+ "values": {
+  "colour": "purple"
+ },
+ "run": 0,
+ "prompt": "add a drawer with a purple block inside; the robot takes the block out and puts it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 20.5,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"drawer1\",\"source\":\"drawer\",\"noun\":null,\"colour\":null,\"size_cm\":null,\"relation\":\"on_table\",\"target\":null},{\"name\":\"purple_block\",\"source\":\"box\",\"noun\":null,\"colour\":\"purple\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"drawer1\"}],\"task\":{\"instruction\":\"take the purple block out of the drawer and put it in the black bowl\",\"targets\":[\"purple_block\",\"black_bowl\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"purple_block\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

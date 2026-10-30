@@ -1,0 +1,25 @@
+{
+ "test": "robustness",
+ "case": "R1_vague",
+ "case_id": "R1_vague",
+ "values": {},
+ "run": 2,
+ "prompt": "put a block somewhere on the table",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 13.9,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}],\"task\":{\"instruction\":\"put a block somewhere on the table\",\"targets\":[\"red_block_1\"],\"pass_condition\":{\"type\":\"on\",\"object\":\"red_block_1\",\"target\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

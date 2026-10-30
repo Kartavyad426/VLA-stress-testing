@@ -1,0 +1,25 @@
+{
+ "test": "robustness",
+ "case": "R4_base_start",
+ "case_id": "R4_base_start",
+ "values": {},
+ "run": 0,
+ "prompt": "the orange block should start inside a drawer",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 23.8,
+ "match": true,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "The orange block is a base object and is locked for scene setup; it cannot start inside a drawer.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"infeasible\": \"The orange block is a base object and is locked for scene setup; it cannot start inside a drawer.\",\n  \"add\": [],\n  \"task\": null\n}",
+   "errors": []
+  }
+ ]
+}

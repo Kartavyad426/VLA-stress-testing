@@ -1,0 +1,144 @@
+{
+ "results": {
+  "PnC counts (3 blocks, 3! orders, 3 colours, 3 colours, 1)": {
+   "P1_real_task": 3,
+   "P2_stack_order": 6,
+   "P3_added_block_into_bowl": 3,
+   "P4_drawer_out_of": 3,
+   "P5_infeasible_bowl_in_drawer": 1
+  },
+  "expand with a cap reports the total and samples": {
+   "total": 6,
+   "sampled": 4,
+   "first": {
+    "order": [
+     "green",
+     "yellow",
+     "orange"
+    ]
+   }
+  },
+  "executor P1_real_task {'block': 'orange'}": {
+   "ok": true,
+   "reason": null,
+   "infeasible": null,
+   "placed": []
+  },
+  "executor P2_stack_order {'order': ['green', 'orange', 'yellow']}": {
+   "ok": true,
+   "reason": null,
+   "infeasible": null,
+   "placed": []
+  },
+  "executor P3_added_block_into_bowl {'colour': 'red'}": {
+   "ok": true,
+   "reason": null,
+   "infeasible": null,
+   "placed": [
+    "red_block_1"
+   ]
+  },
+  "executor P4_drawer_out_of {'colour': 'red'}": {
+   "ok": true,
+   "reason": null,
+   "infeasible": null,
+   "placed": [
+    "drawer_1",
+    "red_block_1"
+   ]
+  },
+  "executor P5_infeasible_bowl_in_drawer {}": {
+   "ok": true,
+   "reason": null,
+   "infeasible": "black_bowl is a locked base object; it can't be moved into a drawer",
+   "placed": []
+  },
+  "fake model: good answer (in a code fence, other names) -> built, matches the preset": {
+   "attempts": 1,
+   "exec_ok": true,
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   }
+  },
+  "fake model: malformed JSON, then a bad relation, then good -> 3 attempts, errors sent back": {
+   "attempts": 3,
+   "errors": [
+    [
+     "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+    ],
+    [
+     "add.0.relation: Input should be 'on_table', 'next_to', 'on' or 'inside'"
+    ],
+    []
+   ]
+  },
+  "fake model: unknown target three times -> fails cleanly with the reason": {
+   "ok": false,
+   "errors": [
+    "red_block_1: target 'blue_bowl' doesn't exist (base objects: ['black_bowl', 'green_block', 'orange_block', 'yellow_block']; add targets earlier in the list)"
+   ]
+  },
+  "fake model: tries to move a base object -> told it's locked -> answers infeasible (matches P5)": {
+   "attempts": 2,
+   "first_errors": [
+    "'black_bowl' is a locked base object; it can't be added or moved (answer infeasible if the request needs that)",
+    "black_bowl: target 'drawer_1' doesn't exist (base objects: ['black_bowl', 'green_block', 'orange_block', 'yellow_block']; add targets earlier in the list)"
+   ],
+   "compare": {
+    "feasible_match": true,
+    "objects_match": true,
+    "task_match": true,
+    "match": true
+   }
+  },
+  "compare catches a wrong colour (valid answer, wrong content)": {
+   "feasible_match": true,
+   "objects_match": false,
+   "task_match": false,
+   "objects_diff": {
+    "missing": [
+     [
+      "box",
+      "red",
+      "next_to",
+      "black_bowl"
+     ]
+    ],
+    "extra": [
+     [
+      "box",
+      "blue",
+      "next_to",
+      "black_bowl"
+     ]
+    ]
+   },
+   "task_diff": {
+    "got": [
+     "inside",
+     [
+      "box",
+      "blue"
+     ],
+     "black_bowl",
+     []
+    ],
+    "want": [
+     "inside",
+     [
+      "box",
+      "red"
+     ],
+     "black_bowl",
+     []
+    ]
+   },
+   "match": false
+  }
+ },
+ "fails": [],
+ "seconds": 14.4
+}

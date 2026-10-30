@@ -1,0 +1,233 @@
+{
+ "test": "variants",
+ "case": "X07",
+ "case_id": "X07_v1_p0",
+ "run": 0,
+ "prompt": "add a blue and a red block, then stack: blue at the bottom, red in the middle, the green block on top",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 46.4,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"blue_block\",\n        \"source\": \"box\",\n        \"colour\": \"blue\",\n        \"size_cm\": 3,\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 3,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Stack the blue block at the bottom, the red block in the middle, and the green block on top.\",\n    \"targets\": [\"blue_block\", \"red_block\", \"block_3\"],\n    \"pass_all\": [\n      {\n        \"type\": \"ordered_stack\",\n        \"order\": [\"blue_block\", \"red_block\", \"block_3\"]\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "blue_block",
+      "source": "box",
+      "noun": null,
+      "colour": "blue",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     },
+     {
+      "name": "red_block",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Stack the blue block at the bottom, the red block in the middle, and the green block on top.",
+    "targets": [
+     "blue_block",
+     "red_block",
+     "block_3"
+    ],
+    "pass_all": [
+     {
+      "type": "ordered_stack",
+      "object": null,
+      "target": null,
+      "order": [
+       "blue_block",
+       "red_block",
+       "block_3"
+      ]
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"blue_block\",\n        \"source\": \"box\",\n        \"colour\": \"blue\",\n        \"size_cm\": 3,\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"size_cm\": 3,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Stack the blue block at the bottom, the red block in the middle, and the green block on top.\",\n    \"targets\": [\"blue_block\", \"red_block\", \"block_3\"],\n    \"pass_all\": [\n      {\n        \"type\": \"ordered_stack\",\n        \"order\": [\"blue_block\", \"red_block\", \"block_3\"]\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "blue_block",
+     "result": {
+      "added": "blue_block",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "blue_block",
+     "result": {
+      "placed": "blue_block",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.1,
+       12.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 167,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 259,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    },
+    {
+     "call": "add_object",
+     "name": "red_block",
+     "result": {
+      "added": "red_block",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_block",
+     "result": {
+      "placed": "red_block",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       48.1,
+       16.8,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 138,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 249,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X07_v1_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Stack the blue block at the bottom, the red block in the middle, and the green block on top.",
+   "targets": [
+    "blue_block",
+    "red_block",
+    "block_3"
+   ],
+   "pass_all": [
+    {
+     "type": "ordered_stack",
+     "object": null,
+     "target": null,
+     "order": [
+      "blue_block",
+      "red_block",
+      "block_3"
+     ]
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

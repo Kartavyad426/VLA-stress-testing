@@ -1,0 +1,32 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p1",
+ "values": {
+  "colour": "red"
+ },
+ "run": 1,
+ "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 17.2,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"new_drawer\",\"source\":\"drawer\",\"noun\":null,\"colour\":null,\"size_cm\":null,\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_cube\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"new_drawer\"}],\"task\":{\"instruction\":\"Move the red cube from the drawer into the black bowl.\",\"targets\":[\"red_cube\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_cube\",\"target\":\"black_bowl\",\"order\":null}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

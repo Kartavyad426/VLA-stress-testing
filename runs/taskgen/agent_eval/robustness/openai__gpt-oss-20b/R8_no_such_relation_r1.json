@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R8_no_such_relation",
+ "case_id": "R8_no_such_relation",
+ "values": {},
+ "run": 1,
+ "prompt": "put the yellow block between the bowl and the orange block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 10.6,
+ "match": false,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "cannot move locked base object yellow_block",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"cannot move locked base object yellow_block\"}",
+   "errors": []
+  }
+ ]
+}

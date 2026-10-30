@@ -1,0 +1,249 @@
+{
+ "test": "variants",
+ "case": "X15",
+ "case_id": "X15_v1_p0",
+ "run": 0,
+ "prompt": "add a three-drawer cabinet with only the middle drawer open and a red block inside the bottom drawer; the robot puts it in the bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 62.9,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "scene",
+   "reason": "cannot place block in closed bottom drawer",
+   "alternative": "red_block_1 inside middle drawer"
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"middle\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"inside\",\"target\":\"cabinet_1/bottom\"}]},\"task\":{\"instruction\":\"Put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+   "errors": [
+    "red_block_1: the bottom drawer of cabinet_1 is closed; objects can only go into the open one (middle), or set open_level=bottom"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"middle\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"inside\",\"target\":\"cabinet_1/middle\"}]},\"task\":{\"instruction\":\"Put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot place block in closed bottom drawer\",\"alternative\":\"red_block_1 inside middle drawer\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "cabinet_1",
+      "source": "cabinet",
+      "noun": null,
+      "colour": null,
+      "size_cm": null,
+      "levels": 3,
+      "open_level": "middle",
+      "relation": "on_table",
+      "target": null
+     },
+     {
+      "name": "red_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "inside",
+      "target": "cabinet_1/middle"
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Put the red block in the bowl",
+    "targets": [
+     "red_block_1",
+     "bowl_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "red_block_1",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "cannot place block in closed bottom drawer",
+     "alternative": "red_block_1 inside middle drawer"
+    }
+   ]
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"middle\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"inside\",\"target\":\"cabinet_1/bottom\"}]},\"task\":{\"instruction\":\"Put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+    "errors": [
+     "red_block_1: the bottom drawer of cabinet_1 is closed; objects can only go into the open one (middle), or set open_level=bottom"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"cabinet_1\",\"source\":\"cabinet\",\"levels\":3,\"open_level\":\"middle\",\"relation\":\"on_table\",\"target\":null},{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"inside\",\"target\":\"cabinet_1/middle\"}]},\"task\":{\"instruction\":\"Put the red block in the bowl\",\"targets\":[\"red_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"red_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot place block in closed bottom drawer\",\"alternative\":\"red_block_1 inside middle drawer\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "cabinet_1",
+     "result": {
+      "added": "cabinet_1",
+      "kind": "cabinet",
+      "size_cm": [
+       20.0,
+       24.0,
+       24.0
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "cabinet_1",
+     "result": {
+      "placed": "cabinet_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       72.3,
+       -51.3,
+       -9.4
+      ],
+      "size_cm": [
+       20.0,
+       24.0,
+       24.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 1378,
+        "frac": 0.86,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 24828,
+        "frac": 0.99,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    },
+    {
+     "call": "add_object",
+     "name": "red_block_1",
+     "result": {
+      "added": "red_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_block_1",
+     "result": {
+      "placed": "red_block_1",
+      "relation": "inside",
+      "target": "cabinet_1/middle",
+      "at_cm": [
+       52.1,
+       -52.9,
+       0.2
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 9,
+        "frac": 0.39,
+        "min_px": 28,
+        "ok": false
+       },
+       "wrist_above": {
+        "px": 262,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X15_v1_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Put the red block in the bowl",
+   "targets": [
+    "red_block_1",
+    "bowl_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "red_block_1",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

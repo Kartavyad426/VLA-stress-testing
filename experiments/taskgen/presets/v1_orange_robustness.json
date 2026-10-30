@@ -1,0 +1,24 @@
+{
+ "note": "T4 robustness cases for agent v3 on res31's v1/orange (base: block_1 yellow, block_2 orange, block_3 green, bowl_1 black bowl). Same prompts as presets/orange_robustness.json; expectations mapped to the v3 two-part answer: 'refused' = at least one infeasible entry. Changes after seeing results are flagged in 'changed'.",
+ "cases": [
+  {"id": "R1_vague", "prompt": "put a block somewhere on the table",
+   "expect": {"refused": false, "n_add": 1, "sources": ["box"], "relations": ["on_table"]}},
+  {"id": "R2_out_of_bounds", "prompt": "add a 9 cm red block next to the bowl",
+   "expect": {"either": [{"refused": false, "size_cm_max": 6}, {"refused": true}]}, "why": "blocks are 2-6 cm: shrink it or refuse"},
+  {"id": "R3_unknown_noun", "prompt": "add a teapot next to the bowl",
+   "expect": {"either": [{"refused": false, "sources": ["pack"]}, {"refused": true}]}},
+  {"id": "R4_base_start", "prompt": "the orange block should start inside a drawer",
+   "expect": {"refused": true}, "why": "block_2 is a locked base object; an alternative (an added orange block in a drawer) may come with the refusal"},
+  {"id": "R5_two_step", "prompt": "add a drawer with two blocks inside, a red one and a blue one; the task is to put the red one in the bowl",
+   "expect": {"either": [{"refused": false, "n_add": 3, "sources": ["drawer", "box", "box"], "relations": ["on_table", "inside", "inside"], "pass_type": "inside", "pass_target": "bowl_1"},
+                         {"refused": false, "n_add": 3, "sources": ["cabinet", "box", "box"], "relations": ["on_table", "inside", "inside"], "pass_type": "inside", "pass_target": "bowl_1"}]},
+   "changed": "10-29: a cabinet (new in v3) accepted as the drawer"},
+  {"id": "R6_bad_target", "prompt": "add a red block next to the blue bowl",
+   "expect": {"either": [{"refused": false, "targets": ["bowl_1"]}, {"refused": true}, {"refused": false, "adds_noun": "bowl"}]},
+   "changed": "10-29, after the v1 run: also accept adding a blue bowl and placing the block next to it (gpt-oss-20b did that 3/3 on v1; judged a sensible reading, not a failure)"},
+  {"id": "R7_base_only_task", "prompt": "stack the green block on the yellow block",
+   "expect": {"refused": false, "n_add": 0, "pass_type_in": ["on", "stacked"], "pass_object": "block_3", "pass_target": "block_1"}},
+  {"id": "R8_no_such_relation", "prompt": "put the yellow block between the bowl and the orange block",
+   "expect": {"refused": false, "n_add": 0}, "why": "no 'between' rule: any valid task on base objects, nothing added"}
+ ]
+}

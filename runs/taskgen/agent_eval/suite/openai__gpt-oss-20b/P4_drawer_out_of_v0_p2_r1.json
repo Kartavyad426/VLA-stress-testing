@@ -1,0 +1,85 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 1,
+ "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 33.9,
+ "match": false,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": false,
+  "task_match": true,
+  "objects_diff": {
+   "missing": [
+    [
+     "drawer",
+     "",
+     "on_table",
+     null
+    ],
+    [
+     "box",
+     "red",
+     "inside",
+     [
+      "drawer",
+      ""
+     ]
+    ]
+   ],
+   "extra": [
+    [
+     "pack",
+     "cabinet",
+     "on_table",
+     null
+    ],
+    [
+     "pack",
+     "drawer",
+     "inside",
+     [
+      "pack",
+      "cabinet"
+     ]
+    ],
+    [
+     "box",
+     "red",
+     "inside",
+     [
+      "pack",
+      "drawer"
+     ]
+    ]
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": false,
+ "exec_reason": "no pack model 'cabinet'",
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"red_block\",\n      \"source\": \"box\",\n      \"noun\": null,\n      \"colour\": \"red\",\n      \"size_cm\": 3,\n      \"relation\": \"inside\",\n      \"target\": \"drawer\"\n    },\n    {\n      \"name\": \"drawer\",\n      \"source\": \"pack\",\n      \"noun\": \"drawer\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"inside\",\n      \"target\": \"cabinet\"\n    },\n    {\n      \"name\": \"cabinet\",\n      \"source\": \"pack\",\n      \"noun\": \"cabinet\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"on_table\",\n      \"target\": null\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"Take the red block out of the drawer and drop it in the bowl.\",\n    \"targets\": [\"red_block\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block\",\n      \"target\": \"black_bowl\",\n      \"order\": null\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": [
+    "red_block: target 'drawer' doesn't exist (base objects: ['black_bowl', 'green_block', 'orange_block', 'yellow_block']; add targets earlier in the list)",
+    "drawer: target 'cabinet' doesn't exist (base objects: ['black_bowl', 'green_block', 'orange_block', 'yellow_block']; add targets earlier in the list)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"cabinet\",\n      \"source\": \"pack\",\n      \"noun\": \"cabinet\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"on_table\",\n      \"target\": null\n    },\n    {\n      \"name\": \"drawer\",\n      \"source\": \"pack\",\n      \"noun\": \"drawer\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"inside\",\n      \"target\": \"cabinet\"\n    },\n    {\n      \"name\": \"red_block\",\n      \"source\": \"box\",\n      \"noun\": null,\n      \"colour\": \"red\",\n      \"size_cm\": 3,\n      \"relation\": \"inside\",\n      \"target\": \"drawer\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"Take the red block out of the drawer and drop it in the bowl.\",\n    \"targets\": [\"red_block\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block\",\n      \"target\": \"black_bowl\",\n      \"order\": null\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

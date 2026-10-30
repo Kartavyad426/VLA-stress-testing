@@ -1,0 +1,164 @@
+{
+ "test": "variants",
+ "case": "X03",
+ "case_id": "X03_v1_p0",
+ "run": 0,
+ "prompt": "add a blue block next to the bowl and have the robot put it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 11.0,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"blue_block_1\",\"source\":\"box\",\"colour\":\"blue\",\"relation\":\"next_to\",\"target\":\"bowl_1\"}]},\"task\":{\"instruction\":\"put the blue block in the bowl\",\"targets\":[\"blue_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"blue_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "blue_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "blue",
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "next_to",
+      "target": "bowl_1"
+     }
+    ]
+   },
+   "task": {
+    "instruction": "put the blue block in the bowl",
+    "targets": [
+     "blue_block_1",
+     "bowl_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "blue_block_1",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"blue_block_1\",\"source\":\"box\",\"colour\":\"blue\",\"relation\":\"next_to\",\"target\":\"bowl_1\"}]},\"task\":{\"instruction\":\"put the blue block in the bowl\",\"targets\":[\"blue_block_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"blue_block_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "blue_block_1",
+     "result": {
+      "added": "blue_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "blue_block_1",
+     "result": {
+      "placed": "blue_block_1",
+      "relation": "next_to",
+      "target": "bowl_1",
+      "at_cm": [
+       78.6,
+       -16.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 39,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 258,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X03_v1_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "put the blue block in the bowl",
+   "targets": [
+    "blue_block_1",
+    "bowl_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "blue_block_1",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

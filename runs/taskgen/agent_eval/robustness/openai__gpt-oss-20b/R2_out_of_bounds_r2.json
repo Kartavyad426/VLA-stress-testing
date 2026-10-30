@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R2_out_of_bounds",
+ "case_id": "R2_out_of_bounds",
+ "values": {},
+ "run": 2,
+ "prompt": "add a 9 cm red block next to the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 3.1,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "Requested block size 9 cm exceeds allowed size range (2-6 cm) for source=box.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"Requested block size 9 cm exceeds allowed size range (2-6 cm) for source=box.\"}",
+   "errors": []
+  }
+ ]
+}

@@ -1,0 +1,67 @@
+{
+ "test": "suite",
+ "case": "X12",
+ "case_id": "X12_v0_p0",
+ "run": 1,
+ "prompt": "the robot should put the black bowl inside the orange block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 11.3,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "The orange block (block_2) is a solid cube of size 3.2 cm; it has no cavity and cannot contain the black bowl (bowl_1) which is 19.2 cm in diameter. A bowl cannot be placed inside a solid block.",
+   "alternative": "put the black bowl on the orange block"
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"task\",\n      \"reason\": \"The orange block (block_2) is a solid cube of size 3.2 cm; it has no cavity and cannot contain the black bowl (bowl_1) which is 19.2 cm in diameter. A bowl cannot be placed inside a solid block.\",\n      \"alternative\": \"put the black bowl on the orange block\"\n    }\n  ]\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "The orange block (block_2) is a solid cube of size 3.2 cm; it has no cavity and cannot contain the black bowl (bowl_1) which is 19.2 cm in diameter. A bowl cannot be placed inside a solid block.",
+     "alternative": "put the black bowl on the orange block"
+    }
+   ]
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"task\",\n      \"reason\": \"The orange block (block_2) is a solid cube of size 3.2 cm; it has no cavity and cannot contain the black bowl (bowl_1) which is 19.2 cm in diameter. A bowl cannot be placed inside a solid block.\",\n      \"alternative\": \"put the black bowl on the orange block\"\n    }\n  ]\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

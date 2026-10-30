@@ -1,0 +1,30 @@
+{
+ "test": "suite",
+ "case": "P5_infeasible_bowl_in_drawer",
+ "case_id": "P5_infeasible_bowl_in_drawer_v0_p2",
+ "values": {},
+ "run": 0,
+ "prompt": "the bowl should start inside a cabinet drawer",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 16.0,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "The bowl is a locked base object and cannot be moved or placed inside a drawer during scene setup. No cabinet drawer object is provided in the locked base objects.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"infeasible\": \"The bowl is a locked base object and cannot be moved or placed inside a drawer during scene setup. No cabinet drawer object is provided in the locked base objects.\",\n  \"add\": []\n}",
+   "errors": []
+  }
+ ]
+}

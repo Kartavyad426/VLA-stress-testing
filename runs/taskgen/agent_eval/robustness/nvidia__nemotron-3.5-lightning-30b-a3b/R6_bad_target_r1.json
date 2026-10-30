@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R6_bad_target",
+ "case_id": "R6_bad_target",
+ "values": {},
+ "run": 1,
+ "prompt": "add a red block next to the blue bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 34.4,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "feasible=False, expected True"
+ ],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "The scene does not contain a blue bowl; the only bowl is black_bowl.",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"infeasible\": \"The scene does not contain a blue bowl; the only bowl is black_bowl.\",\n  \"add\": [],\n  \"task\": null\n}",
+   "errors": []
+  }
+ ]
+}

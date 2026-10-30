@@ -1,0 +1,126 @@
+{
+ "id": "T-cabinet_middle_red",
+ "source": "preset",
+ "template": "T-cabinet",
+ "slot_values": {
+  "level": "middle",
+  "colour": "red"
+ },
+ "scene_config": "/home/imerit/Documents/Code/VLA-exp-taskgen/runs/taskgen/t_cabinet/T-cabinet_middle_red_scene_config.json",
+ "base_version": "bf2cf8512a318882",
+ "instruction": "take the red block out of the middle drawer and put it in the black bowl",
+ "targets": [
+  "red_block_1"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "bowl_1",
+   "order": null
+  }
+ ],
+ "start": {
+  "arm": "episode frame 0",
+  "articulation": "cabinet_1 middle drawer open 12 cm"
+ },
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  },
+  "do_nothing": {
+   "passed": true,
+   "detail": {
+    "solved_by_doing_nothing": false,
+    "seconds": 30.0,
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": false,
+      "detail": {
+       "reason": "not inside the target"
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  },
+  "expert": {
+   "passed": true,
+   "detail": {
+    "steps": [
+     {
+      "step": "pick",
+      "object": "red_block_1",
+      "width_cm": 3.0,
+      "attempts": [
+       {
+        "ik_above_m": 0.00003671774930474999,
+        "ik_descend_m": 0.00007604068295054941,
+        "aim_err_cm": 1.48,
+        "reaim": "xy",
+        "lifted_cm": 12.2,
+        "held": true
+       }
+      ],
+      "yaw_deg": 180,
+      "yaw_tried": [
+       [
+        90,
+        0.4867
+       ],
+       [
+        270,
+        0.1317
+       ],
+       [
+        180,
+        0.0001
+       ]
+      ],
+      "lifted_cm": 12.2,
+      "held": true,
+      "aim_err_cm": 1.48,
+      "n_attempts": 1
+     },
+     {
+      "step": "into bowl_1",
+      "at_cm": [
+       63.9,
+       -27.6,
+       -3.8
+      ],
+      "ik_above_m": 0.00008151258782073878,
+      "ik_lower_m": 0.00003567044924546585
+     }
+    ],
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": true,
+      "detail": {
+       "reason": null
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  }
+ },
+ "status": "checked"
+}

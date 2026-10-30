@@ -1,0 +1,32 @@
+{
+ "test": "variants",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v2_p0",
+ "values": {
+  "colour": "purple"
+ },
+ "run": 0,
+ "prompt": "add a purple block next to the bowl; the task is to put it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 43.5,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"purple_block\",\n      \"source\": \"box\",\n      \"colour\": \"purple\",\n      \"size_cm\": 3.0,\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"put the purple block in the bowl\",\n    \"targets\": [\"purple_block\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"purple_block\",\n      \"target\": \"black_bowl\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

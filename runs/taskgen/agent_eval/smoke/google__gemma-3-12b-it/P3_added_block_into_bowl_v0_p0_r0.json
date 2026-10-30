@@ -1,0 +1,21 @@
+{
+ "test": "smoke",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p0",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "add a red block next to the bowl; the task is to put it in the bowl",
+ "valid": false,
+ "attempts": 0,
+ "seconds": 0.4,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "exec_ok": null,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": "HTTPStatusError: Client error '404 Not Found' for url 'https://integrate.api.nvidia.com/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404",
+ "log": []
+}

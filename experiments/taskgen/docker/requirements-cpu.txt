@@ -1,0 +1,22 @@
+# TaskGen chat, CPU only: exactly the packages the chat path loads (probed 2026-10-30 on the real2sim venv: agent,
+# scene edits, Check + expert, Composite, asset builder), pinned to the versions it runs with here.
+fastapi==0.143.0
+starlette==1.8.0
+uvicorn==0.54.0
+websockets==17.2
+python-multipart==0.0.32
+httpx==0.28.1
+requests==2.34.2
+pydantic==2.14.1
+orjson==3.13.0
+numpy==2.5.2
+scipy==1.18.1
+h5py==3.16.0
+mujoco==3.15.0
+pyopengl==3.1.10
+opencv-python-headless==5.0.0.93
+pillow==12.3.0
+imageio==2.38.1
+imageio-ffmpeg==0.6.0
+tqdm==4.70.1
+triton==3.8.0

@@ -1,0 +1,158 @@
+{
+ "test": "variants",
+ "case": "X10",
+ "case_id": "X10_v1_p0",
+ "run": 0,
+ "prompt": "add a spoon on the table and have the robot put it in the bowl",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 89.4,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": false,
+  "refusal_match": false,
+  "task_diff": {
+   "missing": [
+    "('inside', ('pack', 'spoon'), 'bowl_1', ())"
+   ],
+   "extra": []
+  },
+  "refusal_diff": {
+   "got": [
+    "task"
+   ],
+   "want": []
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": false,
+ "scene_reason": "no pose found for spoon_1 on_table table",
+ "second_call": true,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "cannot refer to non\u2011base object spoon_1 in the task",
+   "alternative": null
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"spoon_1\",\"source\":\"pack\",\"noun\":\"spoon\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"put the spoon in the bowl\",\"targets\":[\"spoon_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"spoon_1\",\"target\":\"bowl_1\",\"order\":null}]},\"infeasible\":[]}",
+   "errors": []
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":null,\"task\":{\"instruction\":\"Put the spoon in the bowl\",\"targets\":[\"spoon_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"spoon_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[{\"part\":\"task\",\"reason\":\"spoon_1 is not on the table and cannot be moved into the bowl due to placement constraints\",\"alternative\":null}]}",
+   "errors": [
+    "the task refers to 'spoon_1', which is neither a base object nor one you add"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot refer to non\u2011base object spoon_1 in the task\",\"alternative\":null}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "spoon_1",
+      "source": "pack",
+      "noun": "spoon",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "cannot refer to non\u2011base object spoon_1 in the task",
+     "alternative": null
+    }
+   ]
+  },
+  "attempts": 3,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"spoon_1\",\"source\":\"pack\",\"noun\":\"spoon\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"put the spoon in the bowl\",\"targets\":[\"spoon_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"spoon_1\",\"target\":\"bowl_1\",\"order\":null}]},\"infeasible\":[]}",
+    "errors": []
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":null,\"task\":{\"instruction\":\"Put the spoon in the bowl\",\"targets\":[\"spoon_1\",\"bowl_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"spoon_1\",\"target\":\"bowl_1\"}]},\"infeasible\":[{\"part\":\"task\",\"reason\":\"spoon_1 is not on the table and cannot be moved into the bowl due to placement constraints\",\"alternative\":null}]}",
+    "errors": [
+     "the task refers to 'spoon_1', which is neither a base object nor one you add"
+    ]
+   },
+   {
+    "attempt": 2,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot refer to non\u2011base object spoon_1 in the task\",\"alternative\":null}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "spoon_1",
+     "result": {
+      "added": "spoon_1",
+      "kind": "item",
+      "size_cm": [
+       9.9,
+       33.6,
+       4.1
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "spoon_1",
+     "result": {
+      "infeasible": "no pose found for spoon_1 on_table table",
+      "tried": 192,
+      "reasons": {
+       "too close to block_1 (pre-filter)": 106,
+       "too close to bowl_1 (pre-filter)": 57,
+       "too close to block_3 (pre-filter)": 28
+      }
+     }
+    }
+   ],
+   "ok": false,
+   "changed": [],
+   "failed": "spoon_1",
+   "reason": "no pose found for spoon_1 on_table table"
+  },
+  "second_call": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "cannot refer to non\u2011base object spoon_1 in the task",
+     "alternative": null
+    }
+   ]
+  },
+  "task": null,
+  "task_missing_names": []
+ }
+}

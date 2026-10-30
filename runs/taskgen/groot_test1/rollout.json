@@ -1,0 +1,120 @@
+{
+ "task_id": "chat_5",
+ "instruction": "Stack the blocks in order: red, green, red, yellow from bottom to top.",
+ "pass_all": [
+  {
+   "type": "ordered_stack",
+   "object": null,
+   "target": null,
+   "order": [
+    "red_block_1",
+    "green_block",
+    "red_block_2",
+    "yellow_block"
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "rule": {
+    "type": "ordered_stack",
+    "object": null,
+    "target": null,
+    "order": [
+     "red_block_1",
+     "green_block",
+     "red_block_2",
+     "yellow_block"
+    ]
+   },
+   "ok": false,
+   "detail": {
+    "steps": [
+     {
+      "object": "red_block_1",
+      "on_table": true
+     },
+     {
+      "object": "green_block",
+      "on": "red_block_1",
+      "ok": false,
+      "centre_over_target": false,
+      "bottom_cm": -9.4,
+      "target_top_cm": -6.4
+     },
+     {
+      "object": "red_block_2",
+      "on": "green_block",
+      "ok": false,
+      "centre_over_target": false,
+      "bottom_cm": -9.4,
+      "target_top_cm": -6.7
+     },
+     {
+      "object": "yellow_block",
+      "on": "red_block_2",
+      "ok": false,
+      "centre_over_target": false,
+      "bottom_cm": -9.4,
+      "target_top_cm": -6.4
+     }
+    ]
+   }
+  }
+ ],
+ "success": false,
+ "stage_target": "green_block",
+ "scene_config": "(in memory)",
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "policy": "groot",
+ "checkpoint": "/home/imerit/.cache/huggingface/hub/models--nvidia--GR00T-N1.7-DROID/snapshots/05e7cc97e40dbd33b0890c35cc0214fcb0547ab5",
+ "embodiment_tag": "oxe_droid_relative_eef_relative_joint",
+ "steps": 450,
+ "seconds": 30.0,
+ "open_loop": 15,
+ "policy_calls": 30,
+ "load_s": 7.6350579261779785,
+ "infer_s_median": 0.2513437271118164,
+ "wall_s": 92.49401950836182,
+ "vram": {
+  "vram_alloc_gib": 5.996849536895752,
+  "vram_reserved_gib": 6.103515625
+ },
+ "gpu_used_max_gib": 6.818359375,
+ "gripper_closed_frac": 0.2866666666666667,
+ "wrist_render": "v2",
+ "wrist_blur": "gripper",
+ "shadows": true,
+ "exterior_view": "composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
+ "status": "exploratory, UNVERIFIED",
+ "stages": {
+  "reached": true,
+  "closed_at_target": true,
+  "closed_near_target": true,
+  "closed_rule": "both finger pads on the target for >= 8 steps",
+  "lifted": true,
+  "placed": false,
+  "first_step": {
+   "reached": 109,
+   "closed_at_target": 191,
+   "lifted": 198
+  },
+  "min_dist_to_target_m": 0.004308738461440934,
+  "thresholds": {
+   "reach_m": 0.03,
+   "lift_m": 0.02
+  }
+ },
+ "tracking": {
+  "max_err_m": 0.044226292182806964,
+  "median_err_m": 0.01180765546310878,
+  "blocked": false,
+  "blocked_segments": [],
+  "thresholds": {
+   "err_m": 0.01,
+   "sustain_steps": 15,
+   "still_mps": 0.01
+  }
+ }
+}

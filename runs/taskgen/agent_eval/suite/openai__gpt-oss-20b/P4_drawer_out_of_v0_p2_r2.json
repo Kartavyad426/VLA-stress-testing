@@ -1,0 +1,77 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 2,
+ "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 30.5,
+ "match": false,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": false,
+  "task_match": true,
+  "objects_diff": {
+   "missing": [
+    [
+     "drawer",
+     "",
+     "on_table",
+     null
+    ],
+    [
+     "box",
+     "red",
+     "inside",
+     [
+      "drawer",
+      ""
+     ]
+    ]
+   ],
+   "extra": [
+    [
+     "pack",
+     "cabinet",
+     "on_table",
+     null
+    ],
+    [
+     "pack",
+     "drawer",
+     "inside",
+     [
+      "pack",
+      "cabinet"
+     ]
+    ],
+    [
+     "box",
+     "red",
+     "inside",
+     [
+      "pack",
+      "drawer"
+     ]
+    ]
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": false,
+ "exec_reason": "no pack model 'cabinet'",
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"small_cabinet\",\n      \"source\": \"pack\",\n      \"noun\": \"cabinet\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"on_table\",\n      \"target\": null\n    },\n    {\n      \"name\": \"cabinet_drawer\",\n      \"source\": \"pack\",\n      \"noun\": \"drawer\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"inside\",\n      \"target\": \"small_cabinet\"\n    },\n    {\n      \"name\": \"red_block\",\n      \"source\": \"box\",\n      \"colour\": \"red\",\n      \"size_cm\": null,\n      \"relation\": \"inside\",\n      \"target\": \"cabinet_drawer\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"Take the red block out of the cabinet drawer and drop it into the bowl.\",\n    \"targets\": [\n      \"red_block\",\n      \"black_bowl\"\n    ],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block\",\n      \"target\": \"black_bowl\",\n      \"order\": null\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

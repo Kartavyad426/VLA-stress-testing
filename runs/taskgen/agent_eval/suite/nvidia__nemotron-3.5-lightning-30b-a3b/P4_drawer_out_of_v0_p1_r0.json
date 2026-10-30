@@ -1,0 +1,39 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p1",
+ "values": {
+  "colour": "red"
+ },
+ "run": 0,
+ "prompt": "put a red cube inside a new drawer, task: move it from the drawer into the black bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 118.3,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"new_drawer\",\n      \"source\": \"drawer\",\n      \"relation\": \"on_table\"\n    },\n    {\n      \"name\": \"red_cube\",\n      \"source\": \"box\",\n      \"colour\": \"red\",\n      \"size_cm\": 3.0,\n      \"relation\": \"inside\",\n      \"target\": \"new_drawer\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"move the red cube from the drawer into the black bowl\",\n    \"targets\": [\"red_cube\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_cube\",\n      \"target\": \"black_bowl\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

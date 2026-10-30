@@ -1,0 +1,164 @@
+{
+ "test": "variants",
+ "case": "X11",
+ "case_id": "X11_v0_p0",
+ "run": 0,
+ "prompt": "add a mug on the table; the robot puts the yellow block next to the mug",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 17.0,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"put the yellow block next to the mug\",\n    \"targets\": [\"block_1\", \"mug_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "mug_1",
+      "source": "pack",
+      "noun": "mug",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "put the yellow block next to the mug",
+    "targets": [
+     "block_1",
+     "mug_1"
+    ],
+    "pass_all": [
+     {
+      "type": "next_to",
+      "object": "block_1",
+      "target": "mug_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"put the yellow block next to the mug\",\n    \"targets\": [\"block_1\", \"mug_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "mug_1",
+     "result": {
+      "added": "mug_1",
+      "kind": "cup",
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "mug_1",
+     "result": {
+      "placed": "mug_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       74.0,
+       18.6,
+       -9.4
+      ],
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "visible": {
+       "ext": {
+        "px": 1185,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 3151,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X11_v0_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "put the yellow block next to the mug",
+   "targets": [
+    "block_1",
+    "mug_1"
+   ],
+   "pass_all": [
+    {
+     "type": "next_to",
+     "object": "block_1",
+     "target": "mug_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

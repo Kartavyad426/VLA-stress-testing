@@ -1,0 +1,27 @@
+{
+ "test": "robustness",
+ "case": "R3_unknown_noun",
+ "case_id": "R3_unknown_noun",
+ "values": {},
+ "run": 1,
+ "prompt": "add a teapot next to the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 35.3,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "feasible=True, expected False"
+ ],
+ "exec_ok": false,
+ "exec_reason": "no pose found for teapot_1 next_to black_bowl",
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"teapot_1\",\n      \"source\": \"pack\",\n      \"noun\": \"teapot\",\n      \"colour\": null,\n      \"size_cm\": null,\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"add a teapot next to the bowl\",\n    \"targets\": [\"teapot_1\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  },\n  \"infeasible\": null\n}",
+   "errors": []
+  }
+ ]
+}

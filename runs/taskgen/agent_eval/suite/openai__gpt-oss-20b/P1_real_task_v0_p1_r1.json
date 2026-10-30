@@ -1,0 +1,32 @@
+{
+ "test": "suite",
+ "case": "P1_real_task",
+ "case_id": "P1_real_task_v0_p1",
+ "values": {
+  "block": "orange"
+ },
+ "run": 1,
+ "prompt": "place the orange cube into the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 3.2,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":{\"instruction\":\"place the orange cube into the bowl\",\"targets\":[\"orange_block\",\"black_bowl\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"orange_block\",\"target\":\"black_bowl\"}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

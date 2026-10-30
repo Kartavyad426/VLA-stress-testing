@@ -1,0 +1,32 @@
+{
+ "test": "suite",
+ "case": "P1_real_task",
+ "case_id": "P1_real_task_v0_p2",
+ "values": {
+  "block": "orange"
+ },
+ "run": 0,
+ "prompt": "move the orange block so it ends up inside the black bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 2.6,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":{\"instruction\":\"move the orange block so it ends up inside the black bowl\",\"targets\":[\"orange_block\",\"black_bowl\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"orange_block\",\"target\":\"black_bowl\"}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}

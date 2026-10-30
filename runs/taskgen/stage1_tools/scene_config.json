@@ -1,0 +1,612 @@
+{
+ "base_scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "base_version": "f32f1578ff483a55",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "simulator": "mujoco",
+ "base_objects": {
+  "black_bowl": {
+   "kind": "bowl",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "green_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "orange_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  },
+  "yellow_block": {
+   "kind": "block",
+   "locked": true,
+   "source": "reconstructed",
+   "overrides": {}
+  }
+ },
+ "added_objects": {
+  "drawer_1": {
+   "name": "drawer_1",
+   "source": "primitive:drawer",
+   "kind": "drawer",
+   "colour": null,
+   "rgba": null,
+   "size_m": [
+    0.2,
+    0.24,
+    0.1
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "on_table",
+    "target": null
+   },
+   "pose": [
+    0.7114331617740438,
+    -0.5233748766773634,
+    -0.09404036537922156,
+    1.7131054551536122
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  },
+  "red_block_1": {
+   "name": "red_block_1",
+   "source": "primitive:box",
+   "kind": "block",
+   "colour": "red",
+   "rgba": [
+    0.8,
+    0.1,
+    0.1,
+    1.0
+   ],
+   "size_m": [
+    0.03,
+    0.03,
+    0.03
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "inside",
+    "target": "drawer_1"
+   },
+   "pose": [
+    0.5786954202576158,
+    -0.5355902960560782,
+    -0.07514951607440576,
+    0.0
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  },
+  "cup_1": {
+   "name": "cup_1",
+   "source": "pack:gso/Ecoforms_Cup_B4_SAN",
+   "kind": "cup",
+   "colour": null,
+   "rgba": null,
+   "size_m": [
+    0.09984699864578245,
+    0.09998599859917758,
+    0.07161100234491671
+   ],
+   "scale": 1.0,
+   "licence": "CC BY 4.0 meshes + MIT XML (Google Scanned Objects)",
+   "relation": {
+    "type": "next_to",
+    "target": "black_bowl"
+   },
+   "pose": [
+    0.7788833587409231,
+    -0.09791422928838289,
+    -0.09415740884910852,
+    0.0
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  },
+  "cup_2": {
+   "name": "cup_2",
+   "source": "pack:gso/Ecoforms_Cup_B4_SAN",
+   "kind": "cup",
+   "colour": null,
+   "rgba": null,
+   "size_m": [
+    0.09984699864578245,
+    0.09998599859917758,
+    0.07161100234491671
+   ],
+   "scale": 1.0,
+   "licence": "CC BY 4.0 meshes + MIT XML (Google Scanned Objects)",
+   "relation": {
+    "type": "next_to",
+    "target": "black_bowl"
+   },
+   "pose": [
+    0.48165283445328644,
+    -0.14879260526146282,
+    -0.0941574088491086,
+    0.0
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  },
+  "blue_block_2": {
+   "name": "blue_block_2",
+   "source": "primitive:box",
+   "kind": "block",
+   "colour": "blue",
+   "rgba": [
+    0.1,
+    0.25,
+    0.8,
+    1.0
+   ],
+   "size_m": [
+    0.025,
+    0.025,
+    0.025
+   ],
+   "scale": 1.0,
+   "licence": null,
+   "relation": {
+    "type": "on",
+    "target": "green_block"
+   },
+   "pose": [
+    0.5023327492390227,
+    -0.046238088963100346,
+    -0.06682809858777797,
+    -0.4590264760638053
+   ],
+   "resized_from_m": null,
+   "resize_reason": null
+  }
+ },
+ "articulation": {},
+ "checks": {
+  "overlaps": [],
+  "max_moved_m": 0.001305831004096599
+ },
+ "log": [
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "magenta",
+    "size_cm": null,
+    "name": null
+   },
+   "result": {
+    "error": "unknown colour 'magenta'",
+    "colours": [
+     "red",
+     "blue",
+     "green",
+     "yellow",
+     "orange",
+     "purple",
+     "white",
+     "black"
+    ]
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "red",
+    "size_cm": 9,
+    "name": null
+   },
+   "result": {
+    "error": "block size 9.0 cm outside bounds 2-6 cm",
+    "hint": "pass size_cm within the bounds"
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:drawer",
+    "colour": null,
+    "size_cm": null,
+    "name": "drawer_1"
+   },
+   "result": {
+    "added": "drawer_1",
+    "kind": "drawer",
+    "size_cm": [
+     20.0,
+     24.0,
+     10.0
+    ],
+    "graspable": false,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "drawer_1",
+    "relation": "on_table",
+    "target": null,
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "drawer_1",
+    "relation": "on_table",
+    "target": null,
+    "at_cm": [
+     71.1,
+     -52.3,
+     -9.4
+    ],
+    "size_cm": [
+     20.0,
+     24.0,
+     10.0
+    ],
+    "visible": {
+     "ext": {
+      "px": 616,
+      "frac": 0.69,
+      "min_px": 29,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 18931,
+      "frac": 0.99,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "red",
+    "size_cm": 3,
+    "name": null
+   },
+   "result": {
+    "added": "red_block_1",
+    "kind": "block",
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "graspable": true,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "red_block_1",
+    "relation": "inside",
+    "target": "drawer_1",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "red_block_1",
+    "relation": "inside",
+    "target": "drawer_1",
+    "at_cm": [
+     57.9,
+     -53.6,
+     -7.5
+    ],
+    "size_cm": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "visible": {
+     "ext": {
+      "px": 4,
+      "frac": 0.2,
+      "min_px": 29,
+      "ok": false
+     },
+     "wrist_above": {
+      "px": 262,
+      "frac": 1.0,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "yellow",
+    "size_cm": 6,
+    "name": "big_block"
+   },
+   "result": {
+    "added": "big_block",
+    "kind": "block",
+    "size_cm": [
+     6.0,
+     6.0,
+     6.0
+    ],
+    "graspable": true,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "big_block",
+    "relation": "inside",
+    "target": "drawer_1",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "big_block",
+    "relation": "inside",
+    "target": "drawer_1",
+    "at_cm": [
+     60.3,
+     -47.2,
+     -7.5
+    ],
+    "size_cm": [
+     5.5,
+     5.5,
+     5.5
+    ],
+    "visible": {
+     "ext": {
+      "px": 12,
+      "frac": 0.15,
+      "min_px": 29,
+      "ok": false
+     },
+     "wrist_above": {
+      "px": 480,
+      "frac": 0.58,
+      "min_px": 86,
+      "ok": true
+     }
+    },
+    "resized": "[10.0, 10.0, 10.0] -> [5.5, 5.5, 5.5] cm (did not fit inside drawer_1: height 5.7 cm < 10.0 cm needed)"
+   }
+  },
+  {
+   "by": "tool",
+   "call": "remove_object",
+   "args": {
+    "name": "big_block"
+   },
+   "result": {
+    "removed": "big_block"
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "pack:cup",
+    "colour": null,
+    "size_cm": null,
+    "name": null
+   },
+   "result": {
+    "added": "cup_1",
+    "kind": "cup",
+    "size_cm": [
+     10.0,
+     10.0,
+     7.2
+    ],
+    "graspable": false,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "pack:cup",
+    "colour": null,
+    "size_cm": null,
+    "name": null
+   },
+   "result": {
+    "added": "cup_2",
+    "kind": "cup",
+    "size_cm": [
+     10.0,
+     10.0,
+     7.2
+    ],
+    "graspable": false,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "cup_1",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "cup_1",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "at_cm": [
+     77.9,
+     -9.8,
+     -9.4
+    ],
+    "size_cm": [
+     10.0,
+     10.0,
+     7.2
+    ],
+    "visible": {
+     "ext": {
+      "px": 230,
+      "frac": 1.0,
+      "min_px": 29,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 1849,
+      "frac": 1.0,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "cup_2",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "cup_2",
+    "relation": "next_to",
+    "target": "black_bowl",
+    "at_cm": [
+     48.2,
+     -14.9,
+     -9.4
+    ],
+    "size_cm": [
+     10.0,
+     10.0,
+     7.2
+    ],
+    "visible": {
+     "ext": {
+      "px": 320,
+      "frac": 1.0,
+      "min_px": 29,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 1849,
+      "frac": 1.0,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "add_object",
+   "args": {
+    "source": "primitive:box",
+    "colour": "blue",
+    "size_cm": 2.5,
+    "name": null
+   },
+   "result": {
+    "added": "blue_block_2",
+    "kind": "block",
+    "size_cm": [
+     2.5,
+     2.5,
+     2.5
+    ],
+    "graspable": true,
+    "placed": false
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "blue_block_2",
+    "relation": "on",
+    "target": "green_block",
+    "allow_resize": true
+   },
+   "result": {
+    "placed": "blue_block_2",
+    "relation": "on",
+    "target": "green_block",
+    "at_cm": [
+     50.2,
+     -4.6,
+     -6.7
+    ],
+    "size_cm": [
+     2.5,
+     2.5,
+     2.5
+    ],
+    "visible": {
+     "ext": {
+      "px": 58,
+      "frac": 1.0,
+      "min_px": 29,
+      "ok": true
+     },
+     "wrist_above": {
+      "px": 185,
+      "frac": 1.0,
+      "min_px": 86,
+      "ok": true
+     }
+    }
+   }
+  },
+  {
+   "by": "tool",
+   "call": "place",
+   "args": {
+    "name": "black_bowl",
+    "relation": "inside",
+    "target": "drawer_1",
+    "allow_resize": true
+   },
+   "result": {
+    "infeasible": "'black_bowl' is a locked base object; only added objects can be placed or resized"
+   }
+  },
+  {
+   "by": "tool",
+   "call": "remove_object",
+   "args": {
+    "name": "orange_block"
+   },
+   "result": {
+    "error": "'orange_block' is a locked base object"
+   }
+  }
+ ]
+}

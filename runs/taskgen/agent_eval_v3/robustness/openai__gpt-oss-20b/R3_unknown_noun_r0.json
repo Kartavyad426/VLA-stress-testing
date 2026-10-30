@@ -1,0 +1,96 @@
+{
+ "test": "robustness",
+ "case": "R3_unknown_noun",
+ "case_id": "R3_unknown_noun",
+ "run": 0,
+ "prompt": "add a teapot next to the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 65.2,
+ "match": true,
+ "compare": null,
+ "expect_notes": [
+  "refused=False, expected True"
+ ],
+ "scene_ok": false,
+ "scene_reason": "no pose found for teapot_1 next_to bowl_1",
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"teapot_1\",\"source\":\"pack\",\"noun\":\"teapot\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"next_to\",\"target\":\"bowl_1\"}]},\"task\":null,\"infeasible\":[]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "teapot_1",
+      "source": "pack",
+      "noun": "teapot",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "next_to",
+      "target": "bowl_1"
+     }
+    ]
+   },
+   "task": null,
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"teapot_1\",\"source\":\"pack\",\"noun\":\"teapot\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"next_to\",\"target\":\"bowl_1\"}]},\"task\":null,\"infeasible\":[]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "teapot_1",
+     "result": {
+      "added": "teapot_1",
+      "kind": "item",
+      "size_cm": [
+       18.7,
+       18.4,
+       13.6
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "teapot_1",
+     "result": {
+      "infeasible": "no pose found for teapot_1 next_to bowl_1",
+      "tried": 192,
+      "reasons": {
+       "off the usable table (pre-filter)": 170,
+       "too close to block_1 (pre-filter)": 22
+      }
+     }
+    }
+   ],
+   "ok": false,
+   "changed": [],
+   "failed": "teapot_1",
+   "reason": "no pose found for teapot_1 next_to bowl_1"
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

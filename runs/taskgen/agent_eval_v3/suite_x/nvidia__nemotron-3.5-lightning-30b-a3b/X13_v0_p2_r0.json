@@ -1,0 +1,69 @@
+{
+ "test": "suite",
+ "case": "X13",
+ "case_id": "X13_v0_p2",
+ "run": 0,
+ "prompt": "task: spin the green block 90 degrees without moving it",
+ "valid": false,
+ "attempts": 3,
+ "seconds": 263.8,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "scene_ok": null,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": null,
+ "reason": "no valid answer after retries",
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  }
+ ],
+ "result": {
+  "ok": false,
+  "attempts": 3,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 2,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   }
+  ],
+  "reason": "no valid answer after retries"
+ }
+}

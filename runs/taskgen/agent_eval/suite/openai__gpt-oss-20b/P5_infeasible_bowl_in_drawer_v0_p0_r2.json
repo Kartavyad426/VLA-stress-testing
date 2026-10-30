@@ -1,0 +1,30 @@
+{
+ "test": "suite",
+ "case": "P5_infeasible_bowl_in_drawer",
+ "case_id": "P5_infeasible_bowl_in_drawer_v0_p0",
+ "values": {},
+ "run": 2,
+ "prompt": "put the black bowl inside a drawer",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 11.1,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": "gripper opening too small to grasp black bowl",
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[],\"task\":null,\"infeasible\":\"gripper opening too small to grasp black bowl\"}",
+   "errors": []
+  }
+ ]
+}

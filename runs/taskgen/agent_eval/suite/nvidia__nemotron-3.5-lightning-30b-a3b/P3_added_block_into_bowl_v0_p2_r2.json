@@ -1,0 +1,39 @@
+{
+ "test": "suite",
+ "case": "P3_added_block_into_bowl",
+ "case_id": "P3_added_block_into_bowl_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 2,
+ "prompt": "place an extra red block near the bowl, task: block into bowl",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 118.3,
+ "match": true,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": true,
+  "task_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "exec_ok": true,
+ "exec_reason": null,
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"red_block_1\",\n",
+   "errors": [
+    "Expecting property name enclosed in double quotes: line 4 column 29 (char 47)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"add\": [\n    {\n      \"name\": \"red_block_1\",\n      \"source\": \"box\",\n      \"colour\": \"red\",\n      \"size_cm\": 3.0,\n      \"relation\": \"next_to\",\n      \"target\": \"black_bowl\"\n    }\n  ],\n  \"task\": {\n    \"instruction\": \"place an extra red block near the bowl\",\n    \"targets\": [\"red_block_1\", \"black_bowl\"],\n    \"pass_condition\": {\n      \"type\": \"inside\",\n      \"object\": \"red_block_1\",\n      \"target\": \"black_bowl\"\n    }\n  }\n}",
+   "errors": []
+  }
+ ]
+}

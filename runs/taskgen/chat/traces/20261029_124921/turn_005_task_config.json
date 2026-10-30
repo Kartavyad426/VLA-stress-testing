@@ -1,0 +1,40 @@
+{
+ "id": "chat_5",
+ "source": "agent",
+ "template": null,
+ "slot_values": {},
+ "scene_config": "(in memory)",
+ "base_version": "f32f1578ff483a55",
+ "instruction": "Stack the blocks in order: red, green, red, yellow from bottom to top.",
+ "targets": [
+  "red_block_1",
+  "green_block",
+  "red_block_2",
+  "yellow_block"
+ ],
+ "pass_all": [
+  {
+   "type": "ordered_stack",
+   "object": null,
+   "target": null,
+   "order": [
+    "red_block_1",
+    "green_block",
+    "red_block_2",
+    "yellow_block"
+   ]
+  }
+ ],
+ "start": {},
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  }
+ },
+ "status": "draft"
+}

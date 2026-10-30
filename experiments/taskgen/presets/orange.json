@@ -1,0 +1,60 @@
+{
+ "scene": "runs/real2sim/ep_orange_block_stereo",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "real_task": "Put the orange block inside the black bowl",
+ "note": "Presets around the real episode (user 10-28): templates with placeholders; each slot is a domain, variants are its permutations / combinations. Copy one, change slots or the request, run it. Base objects: black_bowl, green_block, orange_block, yellow_block (locked).",
+ "presets": [
+  {
+   "id": "P1_real_task",
+   "prompts": ["put the {block} block in the black bowl", "place the {block} cube into the bowl", "move the {block} block so it ends up inside the black bowl"],
+   "template": {
+    "name": "into_bowl", "slots": {"block": {"kind": "choice", "values": ["orange", "green", "yellow"]}},
+    "request": {"add": [], "task": {"instruction": "put the {block} block in the black bowl", "targets": ["{block}_block"],
+                "pass_condition": {"type": "inside", "object": "{block}_block", "target": "black_bowl"}}}
+   }
+  },
+  {
+   "id": "P2_stack_order",
+   "prompts": ["stack the blocks with the {order[0]} one at the bottom, then {order[1]}, then {order[2]} on top",
+               "make a tower: {order[0]} block first, {order[1]} on it, {order[2]} on top",
+               "build a stack of the three blocks in the order {order[0]}, {order[1]}, {order[2]} from bottom to top"],
+   "template": {
+    "name": "ordered_stack", "slots": {"order": {"kind": "permute", "values": ["green", "orange", "yellow"], "k": 3}},
+    "request": {"add": [], "task": {"instruction": "stack the blocks: {order[0]} at the bottom, then {order[1]}, then {order[2]} on top",
+                "targets": ["{order[0]}_block", "{order[1]}_block", "{order[2]}_block"],
+                "pass_condition": {"type": "ordered_stack", "order": ["{order[0]}_block", "{order[1]}_block", "{order[2]}_block"]}}}
+   }
+  },
+  {
+   "id": "P3_added_block_into_bowl",
+   "prompts": ["add a {colour} block next to the bowl; the task is to put it in the bowl",
+               "put a new {colour} cube beside the black bowl and make the robot drop it into the bowl",
+               "place an extra {colour} block near the bowl, task: block into bowl"],
+   "template": {
+    "name": "added_into_bowl", "slots": {"colour": {"kind": "choice", "values": ["red", "blue", "purple"]}},
+    "request": {"add": [{"name": "{colour}_block_1", "source": "box", "colour": "{colour}", "size_cm": 3, "relation": "next_to", "target": "black_bowl"}],
+                "task": {"instruction": "put the {colour} block in the black bowl", "targets": ["{colour}_block_1"],
+                         "pass_condition": {"type": "inside", "object": "{colour}_block_1", "target": "black_bowl"}}}
+   }
+  },
+  {
+   "id": "P4_drawer_out_of",
+   "prompts": ["add a drawer with a {colour} block inside; the robot takes the block out and puts it in the bowl",
+               "put a {colour} cube inside a new drawer, task: move it from the drawer into the black bowl",
+               "a small cabinet with an open drawer holding a {colour} block; take it out and drop it in the bowl"],
+   "template": {
+    "name": "drawer_to_bowl", "slots": {"colour": {"kind": "choice", "values": ["red", "blue", "purple"]}},
+    "request": {"add": [{"name": "drawer_1", "source": "drawer", "relation": "on_table"},
+                        {"name": "{colour}_block_1", "source": "box", "colour": "{colour}", "size_cm": 3, "relation": "inside", "target": "drawer_1"}],
+                "task": {"instruction": "take the {colour} block out of the drawer and put it in the black bowl", "targets": ["{colour}_block_1"],
+                         "pass_condition": {"type": "inside", "object": "{colour}_block_1", "target": "black_bowl"}}}
+   }
+  },
+  {
+   "id": "P5_infeasible_bowl_in_drawer",
+   "prompts": ["put the black bowl inside a drawer", "add a drawer and move the bowl into it", "the bowl should start inside a cabinet drawer"],
+   "template": {"name": "bowl_in_drawer", "slots": {},
+                "request": {"add": [], "infeasible": "black_bowl is a locked base object; it can't be moved into a drawer"}}
+  }
+ ]
+}

@@ -1,0 +1,196 @@
+{
+ "test": "suite",
+ "case": "X10",
+ "case_id": "X10_v0_p0",
+ "run": 0,
+ "prompt": "add a lemon on the table and have the robot put it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 32.3,
+ "match": false,
+ "compare": {
+  "scene_match": false,
+  "task_match": false,
+  "refusal_match": false,
+  "scene_diff": {
+   "missing": [
+    "(('pack', 'lemon'), 'on_table', None)"
+   ],
+   "extra": [
+    "(('box', 'yellow'), 'on_table', None)"
+   ]
+  },
+  "task_diff": {
+   "missing": [
+    "('inside', ('pack', 'lemon'), 'bowl_1', ())"
+   ],
+   "extra": [
+    "('inside', ('box', 'yellow'), 'bowl_1', ())"
+   ]
+  },
+  "refusal_diff": {
+   "got": [
+    "scene"
+   ],
+   "want": []
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "scene",
+   "reason": "cannot add lemon because not a supported object type",
+   "alternative": "yellow_block_1"
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"yellow_block_1\",\"source\":\"box\",\"colour\":\"yellow\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the yellow block in the bowl\",\"targets\":[\"yellow_block_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"yellow_block_1\",\"target\":\"bowl_1\",\"order\":null}]},\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot add lemon because not a supported object type\",\"alternative\":\"yellow_block_1\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "yellow_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "yellow",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Put the yellow block in the bowl",
+    "targets": [
+     "yellow_block_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "yellow_block_1",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": [
+    {
+     "part": "scene",
+     "reason": "cannot add lemon because not a supported object type",
+     "alternative": "yellow_block_1"
+    }
+   ]
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"yellow_block_1\",\"source\":\"box\",\"colour\":\"yellow\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the yellow block in the bowl\",\"targets\":[\"yellow_block_1\"],\"pass_all\":[{\"type\":\"inside\",\"object\":\"yellow_block_1\",\"target\":\"bowl_1\",\"order\":null}]},\"infeasible\":[{\"part\":\"scene\",\"reason\":\"cannot add lemon because not a supported object type\",\"alternative\":\"yellow_block_1\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "yellow_block_1",
+     "result": {
+      "added": "yellow_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "yellow_block_1",
+     "result": {
+      "placed": "yellow_block_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.1,
+       12.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 167,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 259,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X10_v0_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Put the yellow block in the bowl",
+   "targets": [
+    "yellow_block_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "yellow_block_1",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

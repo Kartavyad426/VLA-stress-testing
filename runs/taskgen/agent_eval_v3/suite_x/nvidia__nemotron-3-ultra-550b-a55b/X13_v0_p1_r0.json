@@ -1,0 +1,81 @@
+{
+ "test": "suite",
+ "case": "X13",
+ "case_id": "X13_v0_p1",
+ "run": 0,
+ "prompt": "turn the green cube a quarter turn in place",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 67.6,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "Rotation/orientation changes (quarter turn in place) cannot be expressed with the available pass conditions (inside, on, stacked, ordered_stack, out_of, next_to). These only capture spatial relations, not object orientation.",
+   "alternative": null
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": null,\n  \"task\": {\n    \"instruction\": \"turn the green cube a quarter turn in place\",\n    \"targets\": [\"block_3\"],\n    \"pass_all\": []\n  },\n  \"infeasible\": []\n}",
+   "errors": [
+    "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"task\",\n      \"reason\": \"Rotation/orientation changes (quarter turn in place) cannot be expressed with the available pass conditions (inside, on, stacked, ordered_stack, out_of, next_to). These only capture spatial relations, not object orientation.\"\n    }\n  ]\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "Rotation/orientation changes (quarter turn in place) cannot be expressed with the available pass conditions (inside, on, stacked, ordered_stack, out_of, next_to). These only capture spatial relations, not object orientation.",
+     "alternative": null
+    }
+   ]
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": null,\n  \"task\": {\n    \"instruction\": \"turn the green cube a quarter turn in place\",\n    \"targets\": [\"block_3\"],\n    \"pass_all\": []\n  },\n  \"infeasible\": []\n}",
+    "errors": [
+     "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\n  \"scene\": null,\n  \"task\": null,\n  \"infeasible\": [\n    {\n      \"part\": \"task\",\n      \"reason\": \"Rotation/orientation changes (quarter turn in place) cannot be expressed with the available pass conditions (inside, on, stacked, ordered_stack, out_of, next_to). These only capture spatial relations, not object orientation.\"\n    }\n  ]\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

@@ -1,0 +1,2274 @@
+{
+ "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+ "test": "suite",
+ "presets": "../VLA-exp-taskgen/experiments/taskgen/presets/v1_orange_x.json",
+ "tag": "x",
+ "prompt_version": "v3",
+ "runs": 2,
+ "summary": {
+  "X01": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 386.5
+  },
+  "X02": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 321.5
+  },
+  "X03": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 277.7
+  },
+  "X04": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 367.69999999999993
+  },
+  "X05": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 140.1
+  },
+  "X06": {
+   "calls": 6,
+   "valid": 5,
+   "match": 5,
+   "scene_ok": 5,
+   "seconds": 334.3
+  },
+  "X07": {
+   "calls": 6,
+   "valid": 6,
+   "match": 5,
+   "scene_ok": 6,
+   "seconds": 674.7
+  },
+  "X08": {
+   "calls": 6,
+   "valid": 5,
+   "match": 3,
+   "scene_ok": 5,
+   "seconds": 715.9000000000001
+  },
+  "X09": {
+   "calls": 6,
+   "valid": 4,
+   "match": 4,
+   "scene_ok": 4,
+   "seconds": 879.0
+  },
+  "X10": {
+   "calls": 6,
+   "valid": 6,
+   "match": 5,
+   "scene_ok": 6,
+   "seconds": 217.5
+  },
+  "X11": {
+   "calls": 6,
+   "valid": 5,
+   "match": 4,
+   "scene_ok": 5,
+   "seconds": 758.6
+  },
+  "X12": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 380.7
+  },
+  "X13": {
+   "calls": 6,
+   "valid": 5,
+   "match": 4,
+   "scene_ok": 5,
+   "seconds": 919.0
+  },
+  "X14": {
+   "calls": 6,
+   "valid": 6,
+   "match": 6,
+   "scene_ok": 6,
+   "seconds": 407.0
+  },
+  "X15": {
+   "calls": 6,
+   "valid": 3,
+   "match": 2,
+   "scene_ok": 3,
+   "seconds": 1056.5
+  }
+ },
+ "rows": [
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p0",
+   "run": 0,
+   "prompt": "put the orange block next to the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 40.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p0",
+   "run": 1,
+   "prompt": "put the orange block next to the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 116.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p1",
+   "run": 0,
+   "prompt": "move the orange cube so it sits beside the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 44.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p1",
+   "run": 1,
+   "prompt": "move the orange cube so it sits beside the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 124.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p2",
+   "run": 0,
+   "prompt": "place the orange block right by the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 26.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X01",
+   "case_id": "X01_v0_p2",
+   "run": 1,
+   "prompt": "place the orange block right by the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 34.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p0",
+   "run": 0,
+   "prompt": "put the orange block on top of the yellow block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 28.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p0",
+   "run": 1,
+   "prompt": "put the orange block on top of the yellow block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 31.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p1",
+   "run": 0,
+   "prompt": "place the orange cube onto the yellow one",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 152.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p1",
+   "run": 1,
+   "prompt": "place the orange cube onto the yellow one",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 35.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p2",
+   "run": 0,
+   "prompt": "stack the orange block on the yellow block",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 54.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X02",
+   "case_id": "X02_v0_p2",
+   "run": 1,
+   "prompt": "stack the orange block on the yellow block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 18.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p0",
+   "run": 0,
+   "prompt": "add a red block next to the bowl and have the robot put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 30.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p0",
+   "run": 1,
+   "prompt": "add a red block next to the bowl and have the robot put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 29.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p1",
+   "run": 0,
+   "prompt": "place a new red cube beside the black bowl; the task is to drop it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 25.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p1",
+   "run": 1,
+   "prompt": "place a new red cube beside the black bowl; the task is to drop it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 105.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p2",
+   "run": 0,
+   "prompt": "put a red block near the bowl, then the robot moves it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 51.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X03",
+   "case_id": "X03_v0_p2",
+   "run": 1,
+   "prompt": "put a red block near the bowl, then the robot moves it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 36.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p0",
+   "run": 0,
+   "prompt": "add a red block on the table",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 22.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p0",
+   "run": 1,
+   "prompt": "add a red block on the table",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 18.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p1",
+   "run": 0,
+   "prompt": "put an extra red cube somewhere on the table",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 66.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p1",
+   "run": 1,
+   "prompt": "put an extra red cube somewhere on the table",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 126.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p2",
+   "run": 0,
+   "prompt": "I want one more block on the table, red",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 58.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X04",
+   "case_id": "X04_v0_p2",
+   "run": 1,
+   "prompt": "I want one more block on the table, red",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 75.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p0",
+   "run": 0,
+   "prompt": "put the orange and the yellow blocks in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 24.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p0",
+   "run": 1,
+   "prompt": "put the orange and the yellow blocks in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 24.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p1",
+   "run": 0,
+   "prompt": "move both the orange block and the yellow block into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 21.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p1",
+   "run": 1,
+   "prompt": "move both the orange block and the yellow block into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 23.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p2",
+   "run": 0,
+   "prompt": "the robot should place the orange and yellow cubes inside the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 26.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X05",
+   "case_id": "X05_v0_p2",
+   "run": 1,
+   "prompt": "the robot should place the orange and yellow cubes inside the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 20.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p0",
+   "run": 0,
+   "prompt": "add a red block next to the orange block as a distractor; the task stays: put the orange block in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 28.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p0",
+   "run": 1,
+   "prompt": "add a red block next to the orange block as a distractor; the task stays: put the orange block in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 33.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p1",
+   "run": 0,
+   "prompt": "place a red cube beside the orange one to confuse things, and the robot still puts the orange block in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 32.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p1",
+   "run": 1,
+   "prompt": "place a red cube beside the orange one to confuse things, and the robot still puts the orange block in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 28.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p2",
+   "run": 0,
+   "prompt": "put a red distractor block by the orange block; task: orange block into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 31.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X06",
+   "case_id": "X06_v0_p2",
+   "run": 1,
+   "prompt": "put a red distractor block by the orange block; task: orange block into the black bowl",
+   "valid": false,
+   "attempts": 0,
+   "seconds": 180.4,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p0",
+   "run": 0,
+   "prompt": "add a red and a blue block, then stack: red at the bottom, blue in the middle, the green block on top",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 113.8,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p0",
+   "run": 1,
+   "prompt": "add a red and a blue block, then stack: red at the bottom, blue in the middle, the green block on top",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 76.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p1",
+   "run": 0,
+   "prompt": "put new red and blue cubes on the table; the robot builds a tower red, blue, green from bottom to top",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 43.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p1",
+   "run": 1,
+   "prompt": "put new red and blue cubes on the table; the robot builds a tower red, blue, green from bottom to top",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 89.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p2",
+   "run": 0,
+   "prompt": "add red and blue blocks and have the robot stack them with the green block on top: red lowest, then blue",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 119.0,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": false,
+    "refusal_match": true,
+    "task_diff": {
+     "missing": [
+      "('ordered_stack', None, None, (('box', 'red'), ('box', 'blue'), 'block_3'))"
+     ],
+     "extra": [
+      "('ordered_stack', 'block_3', ('box', 'red'), (('box', 'red'), ('box', 'blue'), 'block_3'))"
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X07",
+   "case_id": "X07_v0_p2",
+   "run": 1,
+   "prompt": "add red and blue blocks and have the robot stack them with the green block on top: red lowest, then blue",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 232.8,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p0",
+   "run": 0,
+   "prompt": "add a drawer with a red block inside; the robot takes it out and leaves it next to the bowl",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 168.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p0",
+   "run": 1,
+   "prompt": "add a drawer with a red block inside; the robot takes it out and leaves it next to the bowl",
+   "valid": false,
+   "attempts": 0,
+   "seconds": 230.5,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p1",
+   "run": 0,
+   "prompt": "put a red cube in a new drawer on the table; task: take it out of the drawer and set it beside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 38.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p1",
+   "run": 1,
+   "prompt": "put a red cube in a new drawer on the table; task: take it out of the drawer and set it beside the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 76.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p2",
+   "run": 0,
+   "prompt": "a drawer holding a red block: the robot removes the block and puts it down next to the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 62.6,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": false,
+    "refusal_match": true,
+    "task_diff": {
+     "missing": [
+      "('out_of', ('box', 'red'), ('drawer', ''), ())"
+     ],
+     "extra": []
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X08",
+   "case_id": "X08_v0_p2",
+   "run": 1,
+   "prompt": "a drawer holding a red block: the robot removes the block and puts it down next to the bowl",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 139.8,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": false,
+    "refusal_match": true,
+    "task_diff": {
+     "missing": [
+      "('out_of', ('box', 'red'), ('drawer', ''), ())"
+     ],
+     "extra": []
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p0",
+   "run": 0,
+   "prompt": "add a three-drawer cabinet with the bottom drawer open and a red block inside; the robot puts the red block on the green block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 58.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p0",
+   "run": 1,
+   "prompt": "add a three-drawer cabinet with the bottom drawer open and a red block inside; the robot puts the red block on the green block",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 103.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p1",
+   "run": 0,
+   "prompt": "a 3-drawer cabinet, bottom drawer open, holding a red cube; task: take it out and put it on top of the green block",
+   "valid": false,
+   "attempts": 3,
+   "seconds": 265.5,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "no valid answer after retries"
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p1",
+   "run": 1,
+   "prompt": "a 3-drawer cabinet, bottom drawer open, holding a red cube; task: take it out and put it on top of the green block",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 89.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p2",
+   "run": 0,
+   "prompt": "put a red block in the open bottom drawer of a new three-drawer cabinet; the robot places it onto the green block",
+   "valid": false,
+   "attempts": 0,
+   "seconds": 216.6,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "test": "suite",
+   "case": "X09",
+   "case_id": "X09_v0_p2",
+   "run": 1,
+   "prompt": "put a red block in the open bottom drawer of a new three-drawer cabinet; the robot places it onto the green block",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 146.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p0",
+   "run": 0,
+   "prompt": "add a lemon on the table and have the robot put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 52.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p0",
+   "run": 1,
+   "prompt": "add a lemon on the table and have the robot put it in the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 35.8,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p1",
+   "run": 0,
+   "prompt": "place a lemon on the table; the task is to drop the lemon into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 28.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p1",
+   "run": 1,
+   "prompt": "place a lemon on the table; the task is to drop the lemon into the black bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 35.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p2",
+   "run": 0,
+   "prompt": "put a lemon somewhere on the table, then the robot moves it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 38.7,
+   "match": false,
+   "compare": {
+    "scene_match": false,
+    "task_match": false,
+    "refusal_match": true,
+    "scene_diff": {
+     "missing": [
+      "(('pack', 'lemon'), 'on_table', None)"
+     ],
+     "extra": [
+      "(('box', 'yellow'), 'on_table', None)"
+     ]
+    },
+    "task_diff": {
+     "missing": [
+      "('inside', ('pack', 'lemon'), 'bowl_1', ())"
+     ],
+     "extra": [
+      "('inside', ('box', 'yellow'), 'bowl_1', ())"
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X10",
+   "case_id": "X10_v0_p2",
+   "run": 1,
+   "prompt": "put a lemon somewhere on the table, then the robot moves it into the bowl",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 26.8,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p0",
+   "run": 0,
+   "prompt": "add a mug on the table; the robot puts the yellow block next to the mug",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 126.5,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p0",
+   "run": 1,
+   "prompt": "add a mug on the table; the robot puts the yellow block next to the mug",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 26.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p1",
+   "run": 0,
+   "prompt": "place a mug on the table and have the robot move the yellow cube beside it",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 107.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p1",
+   "run": 1,
+   "prompt": "place a mug on the table and have the robot move the yellow cube beside it",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 44.5,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p2",
+   "run": 0,
+   "prompt": "put a mug on the table, then the yellow block goes right next to the mug",
+   "valid": false,
+   "attempts": 0,
+   "seconds": 180.3,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "ReadTimeout: The read operation timed out"
+  },
+  {
+   "test": "suite",
+   "case": "X11",
+   "case_id": "X11_v0_p2",
+   "run": 1,
+   "prompt": "put a mug on the table, then the yellow block goes right next to the mug",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 273.6,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": false,
+    "refusal_match": true,
+    "task_diff": {
+     "missing": [],
+     "extra": [
+      "('on', ('pack', 'mug'), None, ())"
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p0",
+   "run": 0,
+   "prompt": "the robot should put the black bowl inside the orange block",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 111.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The black bowl (bowl_1, size 19.2 cm) cannot fit inside the orange block (block_2, size 3.2 cm) due to physical size constraints.",
+     "alternative": null
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p0",
+   "run": 1,
+   "prompt": "the robot should put the black bowl inside the orange block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 58.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The black bowl (19.2 cm opening) cannot fit inside the orange block (3.2 cm sides). The bowl is physically too large to be placed inside the block.",
+     "alternative": "place the bowl on top of the orange block, or add a larger container object as an added scene object to hold the bowl inside"
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p1",
+   "run": 0,
+   "prompt": "task: place the bowl into the orange cube",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 43.4,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The orange block (block_2) has dimensions 3.2\u00d73.2\u00d73.1 cm, which is too small to contain the bowl (19.2 cm diameter, opening 18.3 cm). Placing the bowl inside the orange cube is physically impossible with the given base objects.",
+     "alternative": "place the bowl next_to or on top of the orange block"
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p1",
+   "run": 1,
+   "prompt": "task: place the bowl into the orange cube",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 37.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The bowl (19.2 cm opening) cannot fit inside the orange cube (3.2 cm) due to size mismatch.",
+     "alternative": "Place the orange block inside the bowl, or add a larger container object."
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p2",
+   "run": 0,
+   "prompt": "make the robot fit the black bowl inside the orange block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 73.1,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The black bowl (size 19.2x19.2x9.0 cm, opening 18.3 cm) cannot fit inside the orange block (size 3.2x3.2x3.1 cm) due to extreme size mismatch; the bowl is far larger than the block.",
+     "alternative": "Fit the orange block inside the black bowl (block fits through 18.3 cm opening), or place the bowl next to/on the block."
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X12",
+   "case_id": "X12_v0_p2",
+   "run": 1,
+   "prompt": "make the robot fit the black bowl inside the orange block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 57.7,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The black bowl (bowl_1, opening 18.3 cm) cannot fit inside the orange block (block_2, size 3.2 cm) due to a size mismatch; the block is far too small to contain the bowl.",
+     "alternative": "Add a new box object large enough to contain the bowl and task the robot to fit the black bowl inside that box instead."
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p0",
+   "run": 0,
+   "prompt": "the robot should rotate the green block by 90 degrees",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 90.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The requested action 'rotate the green block by 90 degrees' cannot be expressed using the allowed pass conditions (inside, on, stacked, ordered_stack, out_of, next_to).",
+     "alternative": null
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p0",
+   "run": 1,
+   "prompt": "the robot should rotate the green block by 90 degrees",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 48.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The task schema only supports spatial relationship conditions (inside, on, stacked, ordered_stack, out_of, next_to) and cannot specify object rotation/orientation.",
+     "alternative": null
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p1",
+   "run": 0,
+   "prompt": "turn the green cube a quarter turn in place",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 260.2,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": false,
+    "refusal_match": false,
+    "task_diff": {
+     "missing": [],
+     "extra": [
+      "('on', 'block_3', None, ())"
+     ]
+    },
+    "refusal_diff": {
+     "got": [],
+     "want": [
+      "task"
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p1",
+   "run": 1,
+   "prompt": "turn the green cube a quarter turn in place",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 57.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "The request requires turning the green cube (block_3) a quarter turn in place, but the available pass conditions (inside, on, stacked, ordered_stack, out_of, next_to) only describe spatial relationships at the end of a task, not rotational actions. This cannot be represented within the given schema.",
+     "alternative": null
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p2",
+   "run": 0,
+   "prompt": "task: spin the green block 90 degrees without moving it",
+   "valid": false,
+   "attempts": 3,
+   "seconds": 263.8,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "no valid answer after retries"
+  },
+  {
+   "test": "suite",
+   "case": "X13",
+   "case_id": "X13_v0_p2",
+   "run": 1,
+   "prompt": "task: spin the green block 90 degrees without moving it",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 197.9,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "task",
+     "reason": "Spinning the green block 90 degrees is not supported by the available pass condition types (inside, on, stacked, ordered_stack, out_of, next_to).",
+     "alternative": null
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p0",
+   "run": 0,
+   "prompt": "add a red block on the table, and the robot puts the yellow block on top of the green block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 48.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p0",
+   "run": 1,
+   "prompt": "add a red block on the table, and the robot puts the yellow block on top of the green block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 52.6,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p1",
+   "run": 0,
+   "prompt": "put a red cube on the table; the task is the yellow block onto the green block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 44.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p1",
+   "run": 1,
+   "prompt": "put a red cube on the table; the task is the yellow block onto the green block",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 158.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p2",
+   "run": 0,
+   "prompt": "one more red block on the table please; the robot places the yellow block on the green one",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 56.3,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X14",
+   "case_id": "X14_v0_p2",
+   "run": 1,
+   "prompt": "one more red block on the table please; the robot places the yellow block on the green one",
+   "valid": true,
+   "attempts": 1,
+   "seconds": 47.2,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p0",
+   "run": 0,
+   "prompt": "add a three-drawer cabinet with only the top drawer open and a red block inside the bottom drawer; the robot puts it in the bowl",
+   "valid": true,
+   "attempts": 3,
+   "seconds": 243.5,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "scene",
+     "reason": "red block cannot be placed inside bottom drawer as only top drawer is open on the three-drawer cabinet",
+     "alternative": "red block placed inside top drawer instead"
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p0",
+   "run": 1,
+   "prompt": "add a three-drawer cabinet with only the top drawer open and a red block inside the bottom drawer; the robot puts it in the bowl",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 87.0,
+   "match": true,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": true,
+    "match": true
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [
+    {
+     "part": "scene",
+     "reason": "bottom drawer of cabinet_1 is closed; objects can only be placed in the open (top) drawer",
+     "alternative": "red_block_1 placed in cabinet_1/top instead"
+    }
+   ],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p1",
+   "run": 0,
+   "prompt": "a 3-drawer cabinet: the top drawer is open, the red block is in the closed bottom drawer; task: get it into the bowl",
+   "valid": true,
+   "attempts": 2,
+   "seconds": 99.4,
+   "match": false,
+   "compare": {
+    "scene_match": true,
+    "task_match": true,
+    "refusal_match": false,
+    "refusal_diff": {
+     "got": [],
+     "want": [
+      "scene"
+     ]
+    },
+    "match": false
+   },
+   "expect_notes": [],
+   "scene_ok": true,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": [],
+   "reason": null
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p1",
+   "run": 1,
+   "prompt": "a 3-drawer cabinet: the top drawer is open, the red block is in the closed bottom drawer; task: get it into the bowl",
+   "valid": false,
+   "attempts": 3,
+   "seconds": 163.6,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "no valid answer after retries"
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p2",
+   "run": 0,
+   "prompt": "put a red cube in the bottom drawer of a new cabinet whose top drawer is the open one; the robot moves it to the bowl",
+   "valid": false,
+   "attempts": 3,
+   "seconds": 188.9,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "no valid answer after retries"
+  },
+  {
+   "test": "suite",
+   "case": "X15",
+   "case_id": "X15_v0_p2",
+   "run": 1,
+   "prompt": "put a red cube in the bottom drawer of a new cabinet whose top drawer is the open one; the robot moves it to the bowl",
+   "valid": false,
+   "attempts": 0,
+   "seconds": 274.1,
+   "match": false,
+   "compare": null,
+   "expect_notes": [],
+   "scene_ok": null,
+   "scene_reason": null,
+   "second_call": false,
+   "refusals": null,
+   "reason": "ReadTimeout: The read operation timed out"
+  }
+ ]
+}

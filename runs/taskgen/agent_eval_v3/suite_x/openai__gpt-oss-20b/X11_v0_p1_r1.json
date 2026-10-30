@@ -1,0 +1,196 @@
+{
+ "test": "suite",
+ "case": "X11",
+ "case_id": "X11_v0_p1",
+ "run": 1,
+ "prompt": "place a mug on the table and have the robot move the yellow cube beside it",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 128.4,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": false,
+  "refusal_match": true,
+  "task_diff": {
+   "missing": [],
+   "extra": [
+    "('on', ('pack', 'mug'), None, ())"
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"mug_1\",\"source\":\"pack\",\"noun\":\"mug\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Place the mug on the table and move the yellow cube beside it.\",\"targets\":[\"mug_1\",\"block_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"mug_1\",\"target\":\"table\",\"order\":null},{\"type\":\"next_to\",\"object\":\"block_1\",\"target\":\"mug_1\",\"order\":null}]},\"infeasible\":[]}",
+   "errors": [
+    "the task refers to 'table', which is neither a base object nor one you add"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"mug_1\",\"source\":\"pack\",\"noun\":\"mug\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Place the mug on the table and move the yellow cube beside it.\",\"targets\":[\"mug_1\",\"block_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"mug_1\",\"target\":null},{\"type\":\"next_to\",\"object\":\"block_1\",\"target\":\"mug_1\",\"order\":null}]},\"infeasible\":[]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "mug_1",
+      "source": "pack",
+      "noun": "mug",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Place the mug on the table and move the yellow cube beside it.",
+    "targets": [
+     "mug_1",
+     "block_1"
+    ],
+    "pass_all": [
+     {
+      "type": "on",
+      "object": "mug_1",
+      "target": null,
+      "order": null
+     },
+     {
+      "type": "next_to",
+      "object": "block_1",
+      "target": "mug_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"mug_1\",\"source\":\"pack\",\"noun\":\"mug\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Place the mug on the table and move the yellow cube beside it.\",\"targets\":[\"mug_1\",\"block_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"mug_1\",\"target\":\"table\",\"order\":null},{\"type\":\"next_to\",\"object\":\"block_1\",\"target\":\"mug_1\",\"order\":null}]},\"infeasible\":[]}",
+    "errors": [
+     "the task refers to 'table', which is neither a base object nor one you add"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"mug_1\",\"source\":\"pack\",\"noun\":\"mug\",\"colour\":null,\"size_cm\":null,\"levels\":null,\"open_level\":null,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Place the mug on the table and move the yellow cube beside it.\",\"targets\":[\"mug_1\",\"block_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"mug_1\",\"target\":null},{\"type\":\"next_to\",\"object\":\"block_1\",\"target\":\"mug_1\",\"order\":null}]},\"infeasible\":[]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "mug_1",
+     "result": {
+      "added": "mug_1",
+      "kind": "cup",
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "mug_1",
+     "result": {
+      "placed": "mug_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       74.0,
+       18.6,
+       -9.4
+      ],
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "visible": {
+       "ext": {
+        "px": 1185,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 3151,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X11_v0_p1",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Place the mug on the table and move the yellow cube beside it.",
+   "targets": [
+    "mug_1",
+    "block_1"
+   ],
+   "pass_all": [
+    {
+     "type": "on",
+     "object": "mug_1",
+     "target": null,
+     "order": null
+    },
+    {
+     "type": "next_to",
+     "object": "block_1",
+     "target": "mug_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

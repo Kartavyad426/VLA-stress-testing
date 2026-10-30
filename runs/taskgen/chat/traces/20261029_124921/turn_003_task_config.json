@@ -1,0 +1,42 @@
+{
+ "id": "chat_2",
+ "source": "agent",
+ "template": null,
+ "slot_values": {},
+ "scene_config": "(in memory)",
+ "base_version": "bf2cf8512a318882",
+ "instruction": "Close the middle drawer of the cabinet.",
+ "targets": [
+  "cabinet_1/middle"
+ ],
+ "pass_all": [],
+ "start": {},
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": false,
+   "detail": {
+    "unknown": []
+   }
+  },
+  "do_nothing": {
+   "passed": false,
+   "detail": {
+    "solved_by_doing_nothing": true,
+    "seconds": 30.0,
+    "rules": [],
+    "warnings": {}
+   }
+  },
+  "expert": {
+   "passed": true,
+   "detail": {
+    "steps": [],
+    "rules": [],
+    "warnings": {}
+   }
+  }
+ },
+ "status": "failed"
+}

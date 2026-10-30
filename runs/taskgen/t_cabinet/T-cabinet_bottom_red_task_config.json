@@ -1,0 +1,118 @@
+{
+ "id": "T-cabinet_bottom_red",
+ "source": "preset",
+ "template": "T-cabinet",
+ "slot_values": {
+  "level": "bottom",
+  "colour": "red"
+ },
+ "scene_config": "/home/imerit/Documents/Code/VLA-exp-taskgen/runs/taskgen/t_cabinet/T-cabinet_bottom_red_scene_config.json",
+ "base_version": "bf2cf8512a318882",
+ "instruction": "take the red block out of the bottom drawer and put it in the black bowl",
+ "targets": [
+  "red_block_1"
+ ],
+ "pass_all": [
+  {
+   "type": "inside",
+   "object": "red_block_1",
+   "target": "bowl_1",
+   "order": null
+  }
+ ],
+ "start": {
+  "arm": "episode frame 0",
+  "articulation": "cabinet_1 bottom drawer open 12 cm"
+ },
+ "time_limit_s": 30.0,
+ "others_must_stay": [],
+ "checks": {
+  "rule_known": {
+   "passed": true,
+   "detail": {
+    "unknown": []
+   }
+  },
+  "do_nothing": {
+   "passed": true,
+   "detail": {
+    "solved_by_doing_nothing": false,
+    "seconds": 30.0,
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": false,
+      "detail": {
+       "reason": "not inside the target"
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  },
+  "expert": {
+   "passed": true,
+   "detail": {
+    "steps": [
+     {
+      "step": "pick",
+      "object": "red_block_1",
+      "width_cm": 3.0,
+      "attempts": [
+       {
+        "ik_above_m": 0.000767731411310922,
+        "ik_descend_m": 0.0008863835887598563,
+        "aim_err_cm": 0.93,
+        "reaim": "xy",
+        "lifted_cm": 13.2,
+        "held": true
+       }
+      ],
+      "yaw_deg": 0,
+      "yaw_tried": [
+       [
+        0,
+        0.0009
+       ]
+      ],
+      "lifted_cm": 13.2,
+      "held": true,
+      "aim_err_cm": 0.93,
+      "n_attempts": 1
+     },
+     {
+      "step": "into bowl_1",
+      "at_cm": [
+       63.9,
+       -27.6,
+       -3.9
+      ],
+      "ik_above_m": 0.00001472415987786033,
+      "ik_lower_m": 0.00001113719137091369
+     }
+    ],
+    "rules": [
+     {
+      "rule": {
+       "type": "inside",
+       "object": "red_block_1",
+       "target": "bowl_1",
+       "order": null
+      },
+      "ok": true,
+      "detail": {
+       "reason": null
+      }
+     }
+    ],
+    "warnings": {}
+   }
+  }
+ },
+ "status": "checked"
+}

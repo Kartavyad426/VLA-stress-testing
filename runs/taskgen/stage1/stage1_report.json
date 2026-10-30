@@ -1,0 +1,227 @@
+{
+ "scene": "/home/imerit/Documents/Code/VLA/runs/real2sim/ep_orange_block_stereo",
+ "episode": "/home/imerit/Documents/Code/VLA/data/real2sim/droid/ep_orange_block",
+ "simulator": "mujoco 3.15.0",
+ "base": {
+  "table_z": -0.09404036537922156,
+  "base_objects": {
+   "black bowl": "bowl",
+   "green block": "box",
+   "orange block": "box",
+   "yellow block": "box"
+  }
+ },
+ "base_equivalence": {
+  "unexplained": {},
+  "known": {
+   "body_inertia": {
+    "diff": 0.0123506026844241,
+    "why": "fr3_link0"
+   },
+   "body_invweight0": {
+    "diff": 6.7803851591888815,
+    "why": "~0.03% on free objects (float rounding of sizes)"
+   },
+   "body_ipos": {
+    "diff": 0.0005027971467289338,
+    "why": "fr3_link0"
+   },
+   "body_iquat": {
+    "diff": 0.6156595340757821,
+    "why": "fr3_link0"
+   },
+   "body_mass": {
+    "diff": 2.9964694374887095,
+    "why": "fr3_link0 (welded to the world: no dynamic effect)"
+   },
+   "body_subtreemass": {
+    "diff": 2.9964694374887095,
+    "why": "follows body_mass"
+   },
+   "bvh_aabb": {
+    "diff": 0.011242439465244433,
+    "why": "fr3_link0"
+   },
+   "cam_poscom0": {
+    "diff": 0.06772155202300673,
+    "why": "follows the subtree COM"
+   },
+   "dof_invweight0": {
+    "diff": 6.780385158956051,
+    "why": "same"
+   },
+   "light_poscom0": {
+    "diff": 0.06772117732673166,
+    "why": "follows the subtree COM"
+   },
+   "mesh_pathadr": {
+    "diff": 3272.0,
+    "why": "absolute mesh paths are longer strings"
+   }
+  },
+  "replay": {
+   "frames": 153,
+   "arm_max_abs": 2.418204525511669e-14,
+   "other_max_abs": 4.50902383726387e-05
+  }
+ },
+ "added": {
+  "red_box_1": {
+   "name": "red_box_1",
+   "size": [
+    0.03,
+    0.03,
+    0.03
+   ],
+   "rgba": [
+    0.8,
+    0.1,
+    0.1,
+    1
+   ],
+   "xy": [
+    0.45,
+    0.1
+   ],
+   "z_bottom": null,
+   "yaw": 0.0,
+   "source": "primitive:box",
+   "type": "Box"
+  },
+  "blue_box_1": {
+   "name": "blue_box_1",
+   "size": [
+    0.025,
+    0.025,
+    0.025
+   ],
+   "rgba": [
+    0.1,
+    0.25,
+    0.8,
+    1
+   ],
+   "xy": [
+    0.45,
+    0.1
+   ],
+   "z_bottom": -0.06404036537922156,
+   "yaw": 0.4,
+   "source": "primitive:box",
+   "type": "Box"
+  },
+  "cup_1": {
+   "name": "cup_1",
+   "key": "kitchen/GlassCup002",
+   "xy": [
+    0.45,
+    -0.25
+   ],
+   "scale": 1.0,
+   "pack": "kitchen",
+   "source": "pack",
+   "type": "PackAsset",
+   "mass_kg": 0.5094316331940835,
+   "hull_volume_m3": 0.001018863266388167,
+   "collision_volume_m3": 0.00048195859316642114,
+   "n_collision_parts": 16,
+   "licence": "CC BY 4.0 (NVIDIA Kitchen-MJCF)",
+   "size_m": [
+    0.09448176990479022,
+    0.09448517863024372,
+    0.1520060300327058
+   ]
+  },
+  "drawer_1": {
+   "name": "drawer_1",
+   "xy": [
+    0.72,
+    0.2
+   ],
+   "outer": [
+    0.2,
+    0.24,
+    0.1
+   ],
+   "wall": 0.01,
+   "open_m": 0.1,
+   "gap": 0.003,
+   "plate": 0.008,
+   "source": "primitive:drawer",
+   "type": "Drawer",
+   "closed_qpos": 0.1,
+   "cabinet": "drawer_1_cabinet",
+   "drawer": "drawer_1_drawer",
+   "joint": "drawer_1_slide"
+  },
+  "purple_box_1": {
+   "name": "purple_box_1",
+   "size": [
+    0.03,
+    0.03,
+    0.03
+   ],
+   "rgba": [
+    0.55,
+    0.15,
+    0.65,
+    1
+   ],
+   "xy": [
+    0.6135,
+    0.2
+   ],
+   "z_bottom": -0.07504036537922157,
+   "yaw": 0.0,
+   "source": "primitive:box",
+   "type": "Box"
+  }
+ },
+ "overlap_control": {
+  "expected": "control_box x red_box_1, 1.0 cm",
+  "found": [
+   {
+    "pair": [
+     "control_box",
+     "red_box_1"
+    ],
+    "depth_cm": 1.0
+   }
+  ]
+ },
+ "overlaps_at_start": {
+  "original": [],
+  "modified": []
+ },
+ "settle_1s_moved_m": {
+  "original": {
+   "black_bowl": 0.0010219952590122632,
+   "green_block": 0.00010775541830754243,
+   "orange_block": 0.00010775542210086919,
+   "yellow_block": 0.00010775541830751467
+  },
+  "modified": {
+   "black_bowl": 0.001021615259462918,
+   "green_block": 0.00010745542209505965,
+   "orange_block": 0.00010745542209517067,
+   "yellow_block": 0.00010735542209371063,
+   "red_box_1": 0.0011663629877548265,
+   "blue_box_1": 0.0012518715064256947,
+   "cup_1": 0.0010295325529686573,
+   "purple_box_1": 0.0011091506951455376
+  }
+ },
+ "warnings_after_settle": {
+  "original": {},
+  "modified": {}
+ },
+ "drawer_close_test": {
+  "qpos_start": 4.150421659826343e-19,
+  "qpos_end": 0.09996221980881498,
+  "closed_qpos": 0.1,
+  "box_shift_in_drawer_m": 0.002563592820251128,
+  "box_z_end": -0.06014951609125164,
+  "drawer_floor_z": -0.07504036537922157
+ },
+ "seconds": 5.0
+}

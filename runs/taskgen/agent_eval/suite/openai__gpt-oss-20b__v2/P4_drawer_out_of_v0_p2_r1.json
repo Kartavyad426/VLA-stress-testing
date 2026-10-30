@@ -1,0 +1,59 @@
+{
+ "test": "suite",
+ "case": "P4_drawer_out_of",
+ "case_id": "P4_drawer_out_of_v0_p2",
+ "values": {
+  "colour": "red"
+ },
+ "run": 1,
+ "prompt": "a small cabinet with an open drawer holding a red block; take it out and drop it in the bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 24.0,
+ "match": false,
+ "compare": {
+  "feasible_match": true,
+  "objects_match": false,
+  "task_match": true,
+  "objects_diff": {
+   "missing": [
+    [
+     "drawer",
+     "",
+     "on_table",
+     null
+    ]
+   ],
+   "extra": [
+    [
+     "pack",
+     "cabinet",
+     "on_table",
+     null
+    ],
+    [
+     "drawer",
+     "",
+     "inside",
+     [
+      "pack",
+      "cabinet"
+     ]
+    ]
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "exec_ok": false,
+ "exec_reason": "no pack model 'cabinet'",
+ "infeasible": null,
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"add\":[{\"name\":\"small_cabinet\",\"source\":\"pack\",\"noun\":\"cabinet\",\"colour\":null,\"size_cm\":null,\"relation\":\"on_table\",\"target\":null},{\"name\":\"small_cabinet_drawer\",\"source\":\"drawer\",\"noun\":null,\"colour\":null,\"size_cm\":null,\"relation\":\"inside\",\"target\":\"small_cabinet\"},{\"name\":\"red_block\",\"source\":\"box\",\"noun\":null,\"colour\":\"red\",\"size_cm\":null,\"relation\":\"inside\",\"target\":\"small_cabinet_drawer\"}],\"task\":{\"instruction\":\"take it out and drop it in the bowl\",\"targets\":[\"red_block\"],\"pass_condition\":{\"type\":\"inside\",\"object\":\"red_block\",\"target\":\"black_bowl\"}},\"infeasible\":null}",
+   "errors": []
+  }
+ ]
+}
