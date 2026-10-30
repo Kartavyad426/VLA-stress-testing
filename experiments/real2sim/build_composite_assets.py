@@ -50,6 +50,8 @@ def main():
                check_images=[], thresholds=dict(light_iou=LIGHT_IOU, wrist_light_iou=WRIST_LIGHT_IOU, gripper_iou=GRIP_IOU,
                                                 gripper_frames=GRIP_FRAMES, table_tex_observed=TEX_OBSERVED, provisional=True))
     out_json = os.path.join(S, "composite_assets.json")
+    # 10-30: a re-run skips built steps; keep how and when they were built (was: overwritten with 0 s)
+    prev = {r["step"]: r for r in (json.load(open(out_json)).get("steps", []) if os.path.exists(out_json) else [])}
     need = ["scene.mjb", "scene_fit.json", "perception.npz", "calib.json", "replay_states.npz"]
     missing = [f for f in need if not os.path.exists(os.path.join(S, f))]
     if missing or not os.path.exists(os.path.join(E, "trajectory.h5")):
@@ -67,7 +69,8 @@ def main():
         have = all(os.path.exists(p(f)) for f in outputs)
         r = dict(step=name, device="cpu", outputs=outputs)
         if have and not a.force:
-            r.update(status="skipped (outputs exist)", seconds=0.0)
+            r.update(status="skipped (outputs exist)", seconds=0.0,
+                     built=prev.get(name, {}).get("built") or {k: prev[name][k] for k in ("status", "seconds") if k in prev.get(name, {})} or None)
         else:
             t0 = time.time()
             try:
@@ -146,7 +149,8 @@ def main():
     rep["disk_mb"] = round(sum(os.path.getsize(p(f)) for f in files if os.path.exists(p(f))) / 1e6, 1)
     rep["peak_ram_gib"] = round(max(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                                     resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss) / 1048576, 2)
-    rep["seconds"] = round(sum(s["seconds"] for s in rep["steps"]), 1)
+    rep["seconds"] = round(sum(s["seconds"] for s in rep["steps"]), 1)  # this run only; skipped steps keep theirs under 'built'
+
     rep["ok"] = bool(ok and all(c["pass_"] for c in C.values()))
     rep["note"] = "ok = every step ran and every provisional check passed; a human still accepts the check images"
     json.dump(rep, open(out_json, "w"), indent=1)
