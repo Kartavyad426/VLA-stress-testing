@@ -1,0 +1,81 @@
+{
+ "test": "variants",
+ "case": "X13",
+ "case_id": "X13_v0_p0",
+ "run": 0,
+ "prompt": "the robot should rotate the green block by 90 degrees",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 42.6,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "cannot express rotation with pass_all conditions",
+   "alternative": null
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":null,\"task\":{\"instruction\":\"rotate the green block by 90 degrees\",\"targets\":[\"block_3\"],\"pass_all\":[]},\"infeasible\":[]}",
+   "errors": [
+    "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot express rotation with pass_all conditions\",\"alternative\":null}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "cannot express rotation with pass_all conditions",
+     "alternative": null
+    }
+   ]
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":null,\"task\":{\"instruction\":\"rotate the green block by 90 degrees\",\"targets\":[\"block_3\"],\"pass_all\":[]},\"infeasible\":[]}",
+    "errors": [
+     "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot express rotation with pass_all conditions\",\"alternative\":null}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

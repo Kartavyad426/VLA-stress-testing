@@ -1,0 +1,164 @@
+{
+ "test": "suite",
+ "case": "X04",
+ "case_id": "X04_v0_p1",
+ "run": 0,
+ "prompt": "put an extra red cube somewhere on the table",
+ "valid": true,
+ "attempts": 3,
+ "seconds": 60.3,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": false,
+  "refusal_diff": {
+   "got": [
+    "task"
+   ],
+   "want": []
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "cannot express required pass_all condition with allowed types",
+   "alternative": null
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the red cube on the table\",\"targets\":[\"red_cube_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"red_cube_1\",\"target\":\"table\"}]},\"infeasible\":[]}",
+   "errors": [
+    "the task refers to 'table', which is neither a base object nor one you add"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the red cube on the table\",\"targets\":[\"red_cube_1\"],\"pass_all\":[]},\"infeasible\":[]}",
+   "errors": [
+    "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot express required pass_all condition with allowed types\",\"alternative\":null}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "red_cube_1",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "cannot express required pass_all condition with allowed types",
+     "alternative": null
+    }
+   ]
+  },
+  "attempts": 3,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the red cube on the table\",\"targets\":[\"red_cube_1\"],\"pass_all\":[{\"type\":\"on\",\"object\":\"red_cube_1\",\"target\":\"table\"}]},\"infeasible\":[]}",
+    "errors": [
+     "the task refers to 'table', which is neither a base object nor one you add"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Put the red cube on the table\",\"targets\":[\"red_cube_1\"],\"pass_all\":[]},\"infeasible\":[]}",
+    "errors": [
+     "the task has no pass_all conditions: if what is asked can't be written with inside / on / stacked / ordered_stack / out_of / next_to (e.g. opening or closing a drawer), leave task null and add an infeasible entry for part 'task' saying so"
+    ]
+   },
+   {
+    "attempt": 2,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"red_cube_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3.0,\"relation\":\"on_table\",\"target\":null}]},\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"cannot express required pass_all condition with allowed types\",\"alternative\":null}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "red_cube_1",
+     "result": {
+      "added": "red_cube_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_cube_1",
+     "result": {
+      "placed": "red_cube_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.1,
+       12.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 167,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 259,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

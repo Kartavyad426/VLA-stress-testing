@@ -1,0 +1,67 @@
+{
+ "test": "variants",
+ "case": "X12",
+ "case_id": "X12_v0_p0",
+ "run": 0,
+ "prompt": "the robot should put the black bowl inside the orange block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 10.2,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "bowl too large to fit inside block",
+   "alternative": "place bowl on top of block"
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"bowl too large to fit inside block\",\"alternative\":\"place bowl on top of block\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "bowl too large to fit inside block",
+     "alternative": "place bowl on top of block"
+    }
+   ]
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"bowl too large to fit inside block\",\"alternative\":\"place bowl on top of block\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

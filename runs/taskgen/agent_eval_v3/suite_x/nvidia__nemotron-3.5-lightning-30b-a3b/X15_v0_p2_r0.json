@@ -1,0 +1,69 @@
+{
+ "test": "suite",
+ "case": "X15",
+ "case_id": "X15_v0_p2",
+ "run": 0,
+ "prompt": "put a red cube in the bottom drawer of a new cabinet whose top drawer is the open one; the robot moves it to the bowl",
+ "valid": false,
+ "attempts": 3,
+ "seconds": 188.9,
+ "match": false,
+ "compare": null,
+ "expect_notes": [],
+ "scene_ok": null,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": null,
+ "reason": "no valid answer after retries",
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 2,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  }
+ ],
+ "result": {
+  "ok": false,
+  "attempts": 3,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 2,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   }
+  ],
+  "reason": "no valid answer after retries"
+ }
+}

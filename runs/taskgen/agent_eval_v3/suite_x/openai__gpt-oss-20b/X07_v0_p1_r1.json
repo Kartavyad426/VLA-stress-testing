@@ -1,0 +1,233 @@
+{
+ "test": "suite",
+ "case": "X07",
+ "case_id": "X07_v0_p1",
+ "run": 1,
+ "prompt": "put new red and blue cubes on the table; the robot builds a tower red, blue, green from bottom to top",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 20.9,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null},{\"name\":\"blue_block_1\",\"source\":\"box\",\"colour\":\"blue\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Build a tower with the red, blue, and green blocks from bottom to top\",\"targets\":[\"red_block_1\",\"blue_block_1\",\"block_3\"],\"pass_all\":[{\"type\":\"ordered_stack\",\"order\":[\"red_block_1\",\"blue_block_1\",\"block_3\"]}]},\"infeasible\":[]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "red_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     },
+     {
+      "name": "blue_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "blue",
+      "size_cm": 3.0,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Build a tower with the red, blue, and green blocks from bottom to top",
+    "targets": [
+     "red_block_1",
+     "blue_block_1",
+     "block_3"
+    ],
+    "pass_all": [
+     {
+      "type": "ordered_stack",
+      "object": null,
+      "target": null,
+      "order": [
+       "red_block_1",
+       "blue_block_1",
+       "block_3"
+      ]
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":{\"add\":[{\"name\":\"red_block_1\",\"source\":\"box\",\"colour\":\"red\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null},{\"name\":\"blue_block_1\",\"source\":\"box\",\"colour\":\"blue\",\"size_cm\":3,\"relation\":\"on_table\",\"target\":null}]},\"task\":{\"instruction\":\"Build a tower with the red, blue, and green blocks from bottom to top\",\"targets\":[\"red_block_1\",\"blue_block_1\",\"block_3\"],\"pass_all\":[{\"type\":\"ordered_stack\",\"order\":[\"red_block_1\",\"blue_block_1\",\"block_3\"]}]},\"infeasible\":[]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "red_block_1",
+     "result": {
+      "added": "red_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_block_1",
+     "result": {
+      "placed": "red_block_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.1,
+       12.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 167,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 259,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    },
+    {
+     "call": "add_object",
+     "name": "blue_block_1",
+     "result": {
+      "added": "blue_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "blue_block_1",
+     "result": {
+      "placed": "blue_block_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       48.1,
+       16.8,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 138,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 249,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X07_v0_p1",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Build a tower with the red, blue, and green blocks from bottom to top",
+   "targets": [
+    "red_block_1",
+    "blue_block_1",
+    "block_3"
+   ],
+   "pass_all": [
+    {
+     "type": "ordered_stack",
+     "object": null,
+     "target": null,
+     "order": [
+      "red_block_1",
+      "blue_block_1",
+      "block_3"
+     ]
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

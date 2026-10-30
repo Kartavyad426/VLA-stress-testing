@@ -1,0 +1,194 @@
+{
+ "test": "suite",
+ "case": "X11",
+ "case_id": "X11_v0_p1",
+ "run": 0,
+ "prompt": "place a mug on the table and have the robot move the yellow cube beside it",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 77.7,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": false,
+  "refusal_match": true,
+  "task_diff": {
+   "missing": [],
+   "extra": [
+    "('on', ('pack', 'mug'), None, ())"
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"colour\": null,\n        \"size_cm\": null,\n        \"levels\": null,\n        \"open_level\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Move the yellow cube next to the mug\",\n    \"targets\": [\n      \"block_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\",\n        \"order\": null\n      },\n      {\n        \"type\": \"on\",\n        \"object\": \"mug_1\",\n        \"target\": null,\n        \"order\": null\n      }\n    ]\n  },\n  \"infeasible\": null\n}",
+   "errors": [
+    "infeasible: Input should be a valid list"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"colour\": null,\n        \"size_cm\": null,\n        \"levels\": null,\n        \"open_level\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Move the yellow cube next to the mug\",\n    \"targets\": [\n      \"block_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\",\n        \"order\": null\n      },\n      {\n        \"type\": \"on\",\n        \"object\": \"mug_1\",\n        \"target\": null,\n        \"order\": null\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "mug_1",
+      "source": "pack",
+      "noun": "mug",
+      "colour": null,
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Move the yellow cube next to the mug",
+    "targets": [
+     "block_1"
+    ],
+    "pass_all": [
+     {
+      "type": "next_to",
+      "object": "block_1",
+      "target": "mug_1",
+      "order": null
+     },
+     {
+      "type": "on",
+      "object": "mug_1",
+      "target": null,
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"colour\": null,\n        \"size_cm\": null,\n        \"levels\": null,\n        \"open_level\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Move the yellow cube next to the mug\",\n    \"targets\": [\n      \"block_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\",\n        \"order\": null\n      },\n      {\n        \"type\": \"on\",\n        \"object\": \"mug_1\",\n        \"target\": null,\n        \"order\": null\n      }\n    ]\n  },\n  \"infeasible\": null\n}",
+    "errors": [
+     "infeasible: Input should be a valid list"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"mug_1\",\n        \"source\": \"pack\",\n        \"noun\": \"mug\",\n        \"colour\": null,\n        \"size_cm\": null,\n        \"levels\": null,\n        \"open_level\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Move the yellow cube next to the mug\",\n    \"targets\": [\n      \"block_1\"\n    ],\n    \"pass_all\": [\n      {\n        \"type\": \"next_to\",\n        \"object\": \"block_1\",\n        \"target\": \"mug_1\",\n        \"order\": null\n      },\n      {\n        \"type\": \"on\",\n        \"object\": \"mug_1\",\n        \"target\": null,\n        \"order\": null\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "mug_1",
+     "result": {
+      "added": "mug_1",
+      "kind": "cup",
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "mug_1",
+     "result": {
+      "placed": "mug_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       74.0,
+       18.6,
+       -9.4
+      ],
+      "size_cm": [
+       16.6,
+       12.6,
+       9.5
+      ],
+      "visible": {
+       "ext": {
+        "px": 1185,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 3151,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X11_v0_p1",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Move the yellow cube next to the mug",
+   "targets": [
+    "block_1"
+   ],
+   "pass_all": [
+    {
+     "type": "next_to",
+     "object": "block_1",
+     "target": "mug_1",
+     "order": null
+    },
+    {
+     "type": "on",
+     "object": "mug_1",
+     "target": null,
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

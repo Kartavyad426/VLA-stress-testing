@@ -1,0 +1,113 @@
+{
+ "test": "suite",
+ "case": "X05",
+ "case_id": "X05_v0_p1",
+ "run": 0,
+ "prompt": "move both the orange block and the yellow block into the black bowl",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 11.0,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\": null, \"task\": {\"instruction\": \"Move the orange block and the yellow block into the black bowl.\", \"targets\": [\"block_2\", \"block_1\"], \"pass_all\": [{\"type\": \"inside\", \"object\": \"block_2\", \"target\": \"bowl_1\"}, {\"type\": \"inside\", \"object\": \"block_1\", \"target\": \"bowl_1\"}]}, \"infeasible\": []}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": {
+    "instruction": "Move the orange block and the yellow block into the black bowl.",
+    "targets": [
+     "block_2",
+     "block_1"
+    ],
+    "pass_all": [
+     {
+      "type": "inside",
+      "object": "block_2",
+      "target": "bowl_1",
+      "order": null
+     },
+     {
+      "type": "inside",
+      "object": "block_1",
+      "target": "bowl_1",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\": null, \"task\": {\"instruction\": \"Move the orange block and the yellow block into the black bowl.\", \"targets\": [\"block_2\", \"block_1\"], \"pass_all\": [{\"type\": \"inside\", \"object\": \"block_2\", \"target\": \"bowl_1\"}, {\"type\": \"inside\", \"object\": \"block_1\", \"target\": \"bowl_1\"}]}, \"infeasible\": []}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X05_v0_p1",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Move the orange block and the yellow block into the black bowl.",
+   "targets": [
+    "block_2",
+    "block_1"
+   ],
+   "pass_all": [
+    {
+     "type": "inside",
+     "object": "block_2",
+     "target": "bowl_1",
+     "order": null
+    },
+    {
+     "type": "inside",
+     "object": "block_1",
+     "target": "bowl_1",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

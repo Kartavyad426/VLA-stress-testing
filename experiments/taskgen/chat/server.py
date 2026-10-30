@@ -43,7 +43,7 @@ FAKE_ANSWER = json.dumps({"scene": {"add": [
              "pass_all": [{"type": "inside", "object": "red_block_1", "target": "bowl_1"}]}, "infeasible": []})
 
 
-POLICIES = ["expert", "groot"]  # expert: TaskGen's scripted expert in the policy's sim + cameras (CPU; proof the task can be solved);
+POLICIES = [p for p in os.environ.get("TASKGEN_POLICIES", "expert,groot").split(",") if p]  # the Docker CPU image sets "expert"  # expert: TaskGen's scripted expert in the policy's sim + cameras (CPU; proof the task can be solved);
 # groot: GPU via run_groot.sh, only if the server was started with --allow_groot. (hold stays in run_policy.py, CLI only)
 TASKGEN = HERE  # experiments/taskgen
 # res31's one-command builder for a base scene's composite assets (plate, light, wrist plate, wrist table texture, gripper
@@ -533,6 +533,7 @@ def main():
     global chat, ALLOW_GROOT
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--host", default="127.0.0.1", help="127.0.0.1 = this machine only; 0.0.0.0 inside a container (publish it with -p 127.0.0.1:8765:8765)")
     ap.add_argument("--scene", default="orange", choices=list(SCENES))
     ap.add_argument("--model", default="nvidia/nemotron-3-ultra-550b-a55b", choices=MODELS)
     ap.add_argument("--new", action="store_true", help="start a new session instead of resuming the latest one")
@@ -549,8 +550,8 @@ def main():
             print(f"resumed session {old[-1]} ({chat.turn} turns)", flush=True)
             if not os.listdir(fresh):
                 os.rmdir(fresh)  # the empty folder made at start-up
-    print(f"TaskGen chat on http://127.0.0.1:{a.port}  (scene {a.scene}, model {a.model})", flush=True)
-    uvicorn.run(app, host="127.0.0.1", port=a.port, log_level="warning")
+    print(f"TaskGen chat on http://{a.host}:{a.port}  (scene {a.scene}, model {a.model})", flush=True)
+    uvicorn.run(app, host=a.host, port=a.port, log_level="warning")
 
 
 if __name__ == "__main__":

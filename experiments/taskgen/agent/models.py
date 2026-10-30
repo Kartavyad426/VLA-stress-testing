@@ -39,10 +39,11 @@ def _nim_key(env="/home/imerit/Documents/Code/robotics_agentic/.env"):
     import os
     if os.environ.get("NVIDIA_NIM_API_KEY"):
         return os.environ["NVIDIA_NIM_API_KEY"]
-    for line in open(env):
-        if line.startswith("NVIDIA_NIM_API_KEY="):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise RuntimeError("NVIDIA_NIM_API_KEY not found")
+    if os.path.exists(env):
+        for line in open(env):
+            if line.startswith("NVIDIA_NIM_API_KEY="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    raise RuntimeError("NVIDIA_NIM_API_KEY not set: export it (docker: -e NVIDIA_NIM_API_KEY=...) or use the 'fake' model")
 
 
 class Nim:

@@ -1,0 +1,67 @@
+{
+ "test": "suite",
+ "case": "X12",
+ "case_id": "X12_v0_p1",
+ "run": 0,
+ "prompt": "task: place the bowl into the orange cube",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 29.4,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [
+  {
+   "part": "task",
+   "reason": "The bowl cannot physically fit inside the orange cube due to size mismatch; the bowl opening is 18.3\u202fcm while the cube is only ~3.2\u202fcm across.",
+   "alternative": "Place the bowl on top of the orange cube instead."
+  }
+ ],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"The bowl cannot physically fit inside the orange cube due to size mismatch; the bowl opening is 18.3\u202fcm while the cube is only ~3.2\u202fcm across.\",\"alternative\":\"Place the bowl on top of the orange cube instead.\"}]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": null,
+   "infeasible": [
+    {
+     "part": "task",
+     "reason": "The bowl cannot physically fit inside the orange cube due to size mismatch; the bowl opening is 18.3\u202fcm while the cube is only ~3.2\u202fcm across.",
+     "alternative": "Place the bowl on top of the orange cube instead."
+    }
+   ]
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":null,\"task\":null,\"infeasible\":[{\"part\":\"task\",\"reason\":\"The bowl cannot physically fit inside the orange cube due to size mismatch; the bowl opening is 18.3\u202fcm while the cube is only ~3.2\u202fcm across.\",\"alternative\":\"Place the bowl on top of the orange cube instead.\"}]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

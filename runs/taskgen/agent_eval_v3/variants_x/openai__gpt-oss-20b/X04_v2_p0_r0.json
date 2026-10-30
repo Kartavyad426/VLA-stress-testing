@@ -1,0 +1,118 @@
+{
+ "test": "variants",
+ "case": "X04",
+ "case_id": "X04_v2_p0",
+ "run": 0,
+ "prompt": "add a white block on the table",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 9.3,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"white_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"white\",\n        \"size_cm\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": null,\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "white_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "white",
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "on_table",
+      "target": null
+     }
+    ]
+   },
+   "task": null,
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"white_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"white\",\n        \"size_cm\": null,\n        \"relation\": \"on_table\",\n        \"target\": null\n      }\n    ]\n  },\n  \"task\": null,\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "white_block_1",
+     "result": {
+      "added": "white_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "white_block_1",
+     "result": {
+      "placed": "white_block_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       41.1,
+       12.3,
+       -9.4
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 167,
+        "frac": 1.0,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 259,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": null,
+  "task_missing_names": []
+ }
+}

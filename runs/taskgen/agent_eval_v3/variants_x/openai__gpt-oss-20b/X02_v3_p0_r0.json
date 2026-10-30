@@ -1,0 +1,109 @@
+{
+ "test": "variants",
+ "case": "X02",
+ "case_id": "X02_v3_p0",
+ "run": 0,
+ "prompt": "put the yellow block on top of the green block",
+ "valid": true,
+ "attempts": 1,
+ "seconds": 7.0,
+ "match": false,
+ "compare": {
+  "scene_match": true,
+  "task_match": false,
+  "refusal_match": true,
+  "task_diff": {
+   "missing": [
+    "('on', 'block_1', 'block_3', ())"
+   ],
+   "extra": [
+    "('stacked', 'block_1', 'block_3', ())"
+   ]
+  },
+  "match": false
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "{\"scene\":null,\"task\":{\"instruction\":\"Place block_1 on top of block_3\",\"targets\":[\"block_1\",\"block_3\"],\"pass_all\":[{\"type\":\"stacked\",\"object\":\"block_1\",\"target\":\"block_3\"}]},\"infeasible\":[]}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": null,
+   "task": {
+    "instruction": "Place block_1 on top of block_3",
+    "targets": [
+     "block_1",
+     "block_3"
+    ],
+    "pass_all": [
+     {
+      "type": "stacked",
+      "object": "block_1",
+      "target": "block_3",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 1,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "{\"scene\":null,\"task\":{\"instruction\":\"Place block_1 on top of block_3\",\"targets\":[\"block_1\",\"block_3\"],\"pass_all\":[{\"type\":\"stacked\",\"object\":\"block_1\",\"target\":\"block_3\"}]},\"infeasible\":[]}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X02_v3_p0",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Place block_1 on top of block_3",
+   "targets": [
+    "block_1",
+    "block_3"
+   ],
+   "pass_all": [
+    {
+     "type": "stacked",
+     "object": "block_1",
+     "target": "block_3",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}

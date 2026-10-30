@@ -1,0 +1,235 @@
+{
+ "test": "suite",
+ "case": "X09",
+ "case_id": "X09_v0_p2",
+ "run": 1,
+ "prompt": "put a red block in the open bottom drawer of a new three-drawer cabinet; the robot places it onto the green block",
+ "valid": true,
+ "attempts": 2,
+ "seconds": 146.0,
+ "match": true,
+ "compare": {
+  "scene_match": true,
+  "task_match": true,
+  "refusal_match": true,
+  "match": true
+ },
+ "expect_notes": [],
+ "scene_ok": true,
+ "scene_reason": null,
+ "second_call": false,
+ "refusals": [],
+ "reason": null,
+ "log": [
+  {
+   "attempt": 0,
+   "answer": "",
+   "errors": [
+    "Expecting value: line 1 column 1 (char 0)"
+   ]
+  },
+  {
+   "attempt": 1,
+   "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"cabinet_1\",\n        \"source\": \"cabinet\",\n        \"levels\": 3,\n        \"open_level\": \"bottom\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"relation\": \"inside\",\n        \"target\": \"cabinet_1/bottom\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Place the red block onto the green block\",\n    \"targets\": [\"red_block_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"on\",\n        \"object\": \"red_block_1\",\n        \"target\": \"block_3\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+   "errors": []
+  }
+ ],
+ "result": {
+  "ok": true,
+  "prompt_version": "v3",
+  "request": {
+   "scene": {
+    "add": [
+     {
+      "name": "cabinet_1",
+      "source": "cabinet",
+      "noun": null,
+      "colour": null,
+      "size_cm": null,
+      "levels": 3,
+      "open_level": "bottom",
+      "relation": "on_table",
+      "target": null
+     },
+     {
+      "name": "red_block_1",
+      "source": "box",
+      "noun": null,
+      "colour": "red",
+      "size_cm": null,
+      "levels": null,
+      "open_level": null,
+      "relation": "inside",
+      "target": "cabinet_1/bottom"
+     }
+    ]
+   },
+   "task": {
+    "instruction": "Place the red block onto the green block",
+    "targets": [
+     "red_block_1"
+    ],
+    "pass_all": [
+     {
+      "type": "on",
+      "object": "red_block_1",
+      "target": "block_3",
+      "order": null
+     }
+    ]
+   },
+   "infeasible": []
+  },
+  "attempts": 2,
+  "log": [
+   {
+    "attempt": 0,
+    "answer": "",
+    "errors": [
+     "Expecting value: line 1 column 1 (char 0)"
+    ]
+   },
+   {
+    "attempt": 1,
+    "answer": "{\n  \"scene\": {\n    \"add\": [\n      {\n        \"name\": \"cabinet_1\",\n        \"source\": \"cabinet\",\n        \"levels\": 3,\n        \"open_level\": \"bottom\",\n        \"relation\": \"on_table\",\n        \"target\": null\n      },\n      {\n        \"name\": \"red_block_1\",\n        \"source\": \"box\",\n        \"colour\": \"red\",\n        \"relation\": \"inside\",\n        \"target\": \"cabinet_1/bottom\"\n      }\n    ]\n  },\n  \"task\": {\n    \"instruction\": \"Place the red block onto the green block\",\n    \"targets\": [\"red_block_1\"],\n    \"pass_all\": [\n      {\n        \"type\": \"on\",\n        \"object\": \"red_block_1\",\n        \"target\": \"block_3\"\n      }\n    ]\n  },\n  \"infeasible\": []\n}",
+    "errors": []
+   }
+  ],
+  "scene": {
+   "steps": [
+    {
+     "call": "add_object",
+     "name": "cabinet_1",
+     "result": {
+      "added": "cabinet_1",
+      "kind": "cabinet",
+      "size_cm": [
+       20.0,
+       24.0,
+       24.0
+      ],
+      "graspable": false,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "cabinet_1",
+     "result": {
+      "placed": "cabinet_1",
+      "relation": "on_table",
+      "target": null,
+      "at_cm": [
+       72.3,
+       -51.3,
+       -9.4
+      ],
+      "size_cm": [
+       20.0,
+       24.0,
+       24.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 1369,
+        "frac": 0.83,
+        "min_px": 28,
+        "ok": true
+       },
+       "wrist_above": {
+        "px": 28000,
+        "frac": 0.97,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    },
+    {
+     "call": "add_object",
+     "name": "red_block_1",
+     "result": {
+      "added": "red_block_1",
+      "kind": "block",
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "graspable": true,
+      "placed": false
+     }
+    },
+    {
+     "call": "place",
+     "name": "red_block_1",
+     "result": {
+      "placed": "red_block_1",
+      "relation": "inside",
+      "target": "cabinet_1/bottom",
+      "at_cm": [
+       52.1,
+       -49.8,
+       -7.5
+      ],
+      "size_cm": [
+       3.0,
+       3.0,
+       3.0
+      ],
+      "visible": {
+       "ext": {
+        "px": 9,
+        "frac": 0.38,
+        "min_px": 28,
+        "ok": false
+       },
+       "wrist_above": {
+        "px": 262,
+        "frac": 1.0,
+        "min_px": 83,
+        "ok": true
+       }
+      }
+     }
+    }
+   ],
+   "ok": true,
+   "changed": []
+  },
+  "second_call": null,
+  "task": {
+   "id": "X09_v0_p2",
+   "source": "agent",
+   "template": null,
+   "slot_values": {},
+   "scene_config": "(in memory)",
+   "base_version": "c2e21a55d6d8bda7",
+   "instruction": "Place the red block onto the green block",
+   "targets": [
+    "red_block_1"
+   ],
+   "pass_all": [
+    {
+     "type": "on",
+     "object": "red_block_1",
+     "target": "block_3",
+     "order": null
+    }
+   ],
+   "start": {},
+   "time_limit_s": 30.0,
+   "others_must_stay": [],
+   "checks": {
+    "rule_known": {
+     "passed": true,
+     "detail": {
+      "unknown": []
+     }
+    }
+   },
+   "status": "draft"
+  },
+  "task_missing_names": []
+ }
+}
