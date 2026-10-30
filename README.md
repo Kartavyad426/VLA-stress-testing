@@ -307,6 +307,8 @@ Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md) an
 [`docs/PORTABILITY_LIBERO_MAX.html`](docs/PORTABILITY_LIBERO_MAX.html) ·
 [`docs/SUITES_AND_CHECKPOINTS.html`](docs/SUITES_AND_CHECKPOINTS.html)
 
+To share the TaskGen chat: [`experiments/taskgen/docker/README.md`](experiments/taskgen/docker/README.md) builds and runs it as a CPU Docker image (no GR00T; the NIM key is passed at run time), and [`experiments/taskgen/docker/AGENTS.md`](experiments/taskgen/docker/AGENTS.md) is the step-by-step setup for an AI agent on a teammate's machine. iMerit-internal only (the LIBERO-plus bowl and cup have no licence file).
+
 **Root signals and mining spec:** [`docs/ROOT_SIGNAL_EXPERIMENTS.html`](docs/ROOT_SIGNAL_EXPERIMENTS.html) ·
 [`docs/MINING_SPEC_V1_DESIGN.html`](docs/MINING_SPEC_V1_DESIGN.html) ·
 [`docs/FAILURE_MINING_RELEVANCE.html`](docs/FAILURE_MINING_RELEVANCE.html) ·
