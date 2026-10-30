@@ -46,6 +46,10 @@ FAKE_ANSWER = json.dumps({"scene": {"add": [
 POLICIES = ["expert", "groot"]  # expert: TaskGen's scripted expert in the policy's sim + cameras (CPU; proof the task can be solved);
 # groot: GPU via run_groot.sh, only if the server was started with --allow_groot. (hold stays in run_policy.py, CLI only)
 TASKGEN = HERE  # experiments/taskgen
+# res31's one-command builder for a base scene's composite assets (plate, light, gripper library, wrist texture): asked
+# 10-30 00:4x, not available yet. When it exists, set it here as an argv list with {scene} / {episode} placeholders;
+# until then the chat offers the build and says plainly that the builder is missing.
+BUILD_ASSETS_CMD = None
 
 
 def png_data_url(img):
@@ -211,7 +215,7 @@ class Chat:
         sdir = self.S.cfg.base_scene
         miss = need_assets(sdir, "v2")
         if miss:
-            return None, f"this scene's base ({os.path.relpath(sdir, MAIN)}) has no composite assets ({', '.join(miss)}); res31's composite / light / gripper-library steps haven't been run on it. Scene 'orange_stereo' has them."
+            return None, dict(scene=self.scene, base=os.path.relpath(sdir, MAIN), missing=miss)
         from sim_mujoco.policy_runner import compositors
         s = self.S.build()
         comp, wcomp = compositors(self.S, s.m, "v2")  # the runner's own setup: what GR00T gets (wrist v2)
@@ -225,6 +229,12 @@ class Chat:
         the server was started with --allow_groot (prim's GPU gate). The result is added to the turn's row and trace."""
         if POLICY.get("proc") is not None:
             return f"a policy run is already going: {POLICY['policy']} on turn {POLICY['turn']} (started {POLICY['started']})"
+        from sim_mujoco.policy_runner import need_assets
+        miss = need_assets(self.S.cfg.base_scene, "v2")
+        if miss:
+            emit(dict(type="assets_missing", scene=self.scene, base=os.path.relpath(self.S.cfg.base_scene, MAIN), missing=miss,
+                      builder=BUILD_ASSETS_CMD is not None))
+            return "this scene has no composite assets, so no policy can see it yet: see the missing-assets message"
         if self.task is None or not self.task.pass_all:
             return "no task with pass conditions on this turn, so a policy run can't be scored"
         if not getattr(self, "cur_turn", None):
@@ -279,6 +289,31 @@ class Chat:
         POLICY.clear()
         emit(dict(type="policy_end", turn=row["turn"], rc=rc, result=res, run=run, log_tail=None if res else tail))
         emit(dict(type="turns", turns=self.turns, current=getattr(self, "cur_turn", None)))
+
+    def build_assets(self, emit):
+        """Build the base scene's composite assets with res31's builder, in the background; then show the composite."""
+        sd, ep = self.S.cfg.base_scene, self.S.cfg.episode
+        if BUILD_ASSETS_CMD is None:
+            return ("Can't build yet: res31's one-command builder for composite assets doesn't exist yet (asked 10-30; "
+                    "it needs res31 to write it). Until then only orange_stereo has a composite.")
+        if POLICY.get("proc") is not None:
+            return "a background run is going; build after it ends"
+        out = os.path.join(OUT, "assets", f"{self.scene}_{time.strftime('%H%M%S')}")
+        os.makedirs(out, exist_ok=True)
+        cmd = [c.format(scene=sd, episode=ep) for c in BUILD_ASSETS_CMD]
+        log = open(os.path.join(out, "stdout.log"), "w")
+        proc = subprocess.Popen(cmd, cwd=MAIN, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+        POLICY.update(proc=proc, policy="build_assets", turn=getattr(self, "cur_turn", None), started=time.strftime("%H:%M:%S"), out=out)
+
+        def wait():
+            rc = proc.wait()
+            log.close()
+            POLICY.clear()
+            tail = open(os.path.join(out, "stdout.log")).read().splitlines()[-10:]
+            emit(dict(type="reply", text=f"Asset build for {self.scene} finished (rc {rc}). " +
+                      ("Press Composite to see it, and check res31's check images in " + sd if rc == 0 else "It failed; log: " + " | ".join(tail))))
+        threading.Thread(target=wait, daemon=True).start()
+        return f"Building composite assets for {self.scene} in the background (log: {out}/stdout.log); the chat stays usable."
 
     def new_session(self):
         """New chat: a fresh session (new trace folder, empty sidebar), the scene as reconstructed; old sessions stay on disk."""
@@ -401,12 +436,14 @@ async def ws(sock: WebSocket):
             elif kind == "render":
                 emit(dict(type="render", images=chat.renders()))
             elif kind == "composite":
-                imgs, why = chat.composite()
+                imgs, miss = chat.composite()
                 if imgs:
-                    emit(dict(type="reply", text="What the policy would see (exterior composite over the real plate; wrist view). Added objects are drawn with their model colours."))
+                    emit(dict(type="reply", text="What the policy would see (exterior composite over the real plate; wrist view v2). Added objects are drawn with their model colours."))
                     emit(dict(type="render", images=imgs))
                 else:
-                    emit(dict(type="reply", text=why))
+                    emit(dict(miss, type="assets_missing", builder=BUILD_ASSETS_CMD is not None))
+            elif kind == "build_assets":
+                emit(dict(type="reply", text=chat.build_assets(emit)))
             elif kind == "new":
                 chat.new_session()
                 emit(dict(type="hello", scenes=list(SCENES), models=MODELS, scene=chat.scene, model=chat.model_name, base=chat.S.list_scene()["base"],
