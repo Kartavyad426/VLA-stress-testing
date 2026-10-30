@@ -18,10 +18,11 @@ would cost, and whether more data would fix it at all.
 > scene from a real recording → task set → policy runs → failure root → mechanism →
 > corrected demo → retrain → held-out re-test
 > ([`docs/END_TO_END_PIPELINE.html`](docs/END_TO_END_PIPELINE.html), draft). Steps 1–3
-> and 6 have working proofs of concept; the rest are design only or open. Nothing here
-> is client-facing yet. New readers: start with [Reading order](#reading-order). For
-> what is running and open right now, see
-> [`docs/handoffs/HANDOFF_2026-10-15.html`](docs/handoffs/HANDOFF_2026-10-15.html).
+> and 6 have working proofs of concept; the rest are design only or open. Since 10-26
+> the main effort is **scene creation v1** (real recordings → MuJoCo scenes with checks)
+> and **TaskGen** (prompt-made tasks on those scenes). Nothing here is client-facing yet.
+> New readers: start with [Reading order](#reading-order). For what is running and open,
+> see the handoffs index, [`docs/handoffs/index.html`](docs/handoffs/index.html).
 
 ---
 
@@ -259,10 +260,11 @@ and what is happening now. About an hour, in this order:
 | 3 | [`docs/WHAT_OUR_CODE_DOES.md`](docs/WHAT_OUR_CODE_DOES.md) | What the harness does, and deliberately does not do |
 | 4 | [`RESULTS.md`](RESULTS.md): *Current state of knowledge* and *Index* only | Every experiment in one table; the current conclusions |
 | 5 | [`docs/END_TO_END_PIPELINE.html`](docs/END_TO_END_PIPELINE.html) (draft) | The whole loop on one page, with diagrams, the state of each step and the gaps |
-| 6 | [`docs/handoffs/HANDOFF_2026-10-15.html`](docs/handoffs/HANDOFF_2026-10-15.html) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
+| 6 | [`docs/handoffs/HANDOFF_2026-10-23.html`](docs/handoffs/HANDOFF_2026-10-23.html) (latest; all in [`docs/handoffs/index.html`](docs/handoffs/index.html)) and [`docs/Decision_28Sep.html`](docs/Decision_28Sep.html) | What each working session is doing, what is running now, and every decision still open |
 | 7 | [`docs/PERTURBATION_MAP.html`](docs/PERTURBATION_MAP.html) | Which input carries each perturbation to the action, and what corrects it |
 | 8 | [`docs/R056_POSTMORTEM.html`](docs/R056_POSTMORTEM.html) | The first retraining pilot and why it did not help |
 | 9 | [`docs/MINING_SPEC_DESIGN.html`](docs/MINING_SPEC_DESIGN.html) and [`docs/ROOT_IDENTIFICATION.html`](docs/ROOT_IDENTIFICATION.html) | The deliverable format, and how the root of a failure is found |
+| 10 | [`docs/SCENE_V1_MECHANISMS.html`](docs/SCENE_V1_MECHANISMS.html) and [`docs/TASKGEN_DESIGN.html`](docs/TASKGEN_DESIGN.html) | How a scene is built from a real recording, and how tasks are made on it |
 
 Earlier day summary: [`docs/EXPERIMENTS_2026-10-09.html`](docs/EXPERIMENTS_2026-10-09.html).
 All handoffs: [`docs/handoffs/index.html`](docs/handoffs/index.html).
@@ -270,7 +272,51 @@ All handoffs: [`docs/handoffs/index.html`](docs/handoffs/index.html).
 Older handoff notes and working conventions are in [`HANDOFF.md`](HANDOFF.md) and
 [`docs/HANDOFF_6Oct.html`](docs/HANDOFF_6Oct.html).
 
+### Paper methodology and working notes
+
+| Read | What it is |
+|---|---|
+| [`docs/PAPERS_WORKING_NOTES.html`](docs/PAPERS_WORKING_NOTES.html) | Notes on each paper we discussed, logged as we go |
+| [`docs/SENTINEL_METHODOLOGY.html`](docs/SENTINEL_METHODOLOGY.html) · [`docs/MIND_ROBOTICS_METHODOLOGY.html`](docs/MIND_ROBOTICS_METHODOLOGY.html) | Method write-ups of two related systems |
+| [`docs/ROBOTTT_METHOD.html`](docs/ROBOTTT_METHOD.html) | RoboTTT method notes |
+| [`docs/HUMAN_VIDEO_TO_POLICY.html`](docs/HUMAN_VIDEO_TO_POLICY.html) | Human video → policy: method and capability |
+| [`docs/FLARE_RECOVERY.html`](docs/FLARE_RECOVERY.html) · [`docs/GEN15_ONE_SHOT.html`](docs/GEN15_ONE_SHOT.html) · [`docs/JUNG_PARK_INITPOSE.html`](docs/JUNG_PARK_INITPOSE.html) · [`docs/MULLIGAN_TARGETED_INIT.html`](docs/MULLIGAN_TARGETED_INIT.html) | Single-paper reviews |
+| [`docs/SWEEP_DESIGN_LITERATURE.html`](docs/SWEEP_DESIGN_LITERATURE.html) | Literature on perturbation sweep design |
+| [`docs/FLOW_MATCHING_MATHS.html`](docs/FLOW_MATCHING_MATHS.html) · [`docs/FAIL_DETECT_MATHS.html`](docs/FAIL_DETECT_MATHS.html) · [`docs/SPATIAL_ADAPT_MATHS.html`](docs/SPATIAL_ADAPT_MATHS.html) · [`docs/VLA_CORRECTOR_MATHS.html`](docs/VLA_CORRECTOR_MATHS.html) | The maths behind the papers above |
+
 ### Extended reading
+
+**Real-to-sim scenes:** [`docs/REAL2SIM_CHECKLIST_V1.html`](docs/REAL2SIM_CHECKLIST_V1.html) ·
+[`docs/SceneGen_v1_gaps_1028.html`](docs/SceneGen_v1_gaps_1028.html) ·
+[`docs/SCENE_V1_MECHANISMS.html`](docs/SCENE_V1_MECHANISMS.html) ·
+[`docs/REAL_TO_SIM_METRICS.html`](docs/REAL_TO_SIM_METRICS.html) ·
+[`docs/REAL_TO_SIM_EVAL_VALIDITY.html`](docs/REAL_TO_SIM_EVAL_VALIDITY.html) ·
+[`docs/SIM_FIXES.html`](docs/SIM_FIXES.html) ·
+[`docs/REAL_TO_SIM_ASSETS.html`](docs/REAL_TO_SIM_ASSETS.html) ·
+[`docs/SIM_READY_ASSET_LIBRARIES.html`](docs/SIM_READY_ASSET_LIBRARIES.html) ·
+[`docs/ASSET_PACK_ADOPTION.html`](docs/ASSET_PACK_ADOPTION.html) ·
+[`docs/SIM_ALTERNATIVES_PIPELINE.html`](docs/SIM_ALTERNATIVES_PIPELINE.html)
+
+**Task generation:** [`docs/Agentic_task_creation.html`](docs/Agentic_task_creation.html) ·
+[`docs/TASKGEN_DESIGN.html`](docs/TASKGEN_DESIGN.html) ·
+[`docs/TASKGEN_TEMPLATES.html`](docs/TASKGEN_TEMPLATES.html) ·
+[`docs/TASKGEN_PRESETS.html`](docs/TASKGEN_PRESETS.html) ·
+[`docs/TASKGEN_RES31_PROGRESS.html`](docs/TASKGEN_RES31_PROGRESS.html) ·
+[`docs/TASK_DIVERSITY_LANDSCAPE.html`](docs/TASK_DIVERSITY_LANDSCAPE.html) ·
+[`docs/RL_GYM_LANDSCAPE.html`](docs/RL_GYM_LANDSCAPE.html) ·
+[`docs/PORTABILITY_LIBERO_MAX.html`](docs/PORTABILITY_LIBERO_MAX.html) ·
+[`docs/SUITES_AND_CHECKPOINTS.html`](docs/SUITES_AND_CHECKPOINTS.html)
+
+**Root signals and mining spec:** [`docs/ROOT_SIGNAL_EXPERIMENTS.html`](docs/ROOT_SIGNAL_EXPERIMENTS.html) ·
+[`docs/MINING_SPEC_V1_DESIGN.html`](docs/MINING_SPEC_V1_DESIGN.html) ·
+[`docs/FAILURE_MINING_RELEVANCE.html`](docs/FAILURE_MINING_RELEVANCE.html) ·
+[`docs/PERTURBATION_MAP_VALIDITY.html`](docs/PERTURBATION_MAP_VALIDITY.html) ·
+[`docs/robustness_of_exps.html`](docs/robustness_of_exps.html)
+
+**Directions and product:** [`docs/NEW_HORIZONS.html`](docs/NEW_HORIZONS.html) ·
+[`docs/AMBITIOUS_DIRECTIONS.html`](docs/AMBITIOUS_DIRECTIONS.html) (+ [review](docs/AMBITIOUS_DIRECTIONS_REVIEW.html)) ·
+[`docs/BRAINSTORM.html`](docs/BRAINSTORM.html) ·
+[`docs/ROUGH_ROBOTICS_PRODUCT_DESIGN.html`](docs/ROUGH_ROBOTICS_PRODUCT_DESIGN.html)
 
 **Project design:** [`VLA Scenario Testing.md`](VLA%20Scenario%20Testing.md) (the
 original proposal) · [`PLAN.md`](PLAN.md) ·
@@ -287,11 +333,15 @@ original proposal) · [`PLAN.md`](PLAN.md) ·
 [`docs/RETRAINING_PLAN.html`](docs/RETRAINING_PLAN.html) ·
 [`docs/DATA_MINER_SPEC.html`](docs/DATA_MINER_SPEC.html) ·
 [`docs/DATA_SOURCING_RESEARCH.html`](docs/DATA_SOURCING_RESEARCH.html) ·
-[`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html)
+[`docs/FAILURE_TO_DATA_PIPELINE.html`](docs/FAILURE_TO_DATA_PIPELINE.html) ·
+[`docs/RETRAINING_VIZ.html`](docs/RETRAINING_VIZ.html)
 
 **Decisions and history:** [`PENDING_DECISIONS.md`](PENDING_DECISIONS.md) ·
 [`FINDINGS.md`](FINDINGS.md) · [`NEXT_STEPS.md`](NEXT_STEPS.md) ·
-[`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) and [`docs/reviews/`](docs/reviews/)
+[`docs/REVIEW_SUMMARY.md`](docs/REVIEW_SUMMARY.md) and [`docs/reviews/`](docs/reviews/) ·
+[`docs/PRIORITIES_7Oct.html`](docs/PRIORITIES_7Oct.html) ·
+[`docs/HANDOFF_8Oct.html`](docs/HANDOFF_8Oct.html) ·
+[`docs/VLA_doc_pending.html`](docs/VLA_doc_pending.html)
 
 **Failure mining and taxonomy:** [`docs/OUR_MINING_APPROACH.md`](docs/OUR_MINING_APPROACH.md) ·
 [`docs/FAILURE_MINING_METHODS.md`](docs/FAILURE_MINING_METHODS.md) ·
@@ -303,6 +353,7 @@ original proposal) · [`PLAN.md`](PLAN.md) ·
 [`docs/IDM_VLA_HORIZONS.html`](docs/IDM_VLA_HORIZONS.html)
 
 **Inside the policy (advanced):** [`docs/R039_RESULTS.html`](docs/R039_RESULTS.html) ·
+[`docs/R041_RESULTS.html`](docs/R041_RESULTS.html) ·
 [`docs/FRAME_LABEL_METHODOLOGY.md`](docs/FRAME_LABEL_METHODOLOGY.md) ·
 [`docs/EXP_EMBEDDING_OOD.md`](docs/EXP_EMBEDDING_OOD.md) ·
 [`docs/R039_MATHS.html`](docs/R039_MATHS.html) ·
@@ -311,9 +362,7 @@ original proposal) · [`PLAN.md`](PLAN.md) ·
 [`docs/VLA_JOIN_TOPOLOGY.html`](docs/VLA_JOIN_TOPOLOGY.html)
 
 **Prior art and related work:** [`docs/LANDSCAPE.md`](docs/LANDSCAPE.md) (238-source
-survey) · [`docs/SENTINEL_METHODOLOGY.html`](docs/SENTINEL_METHODOLOGY.html) ·
-[`docs/MIND_ROBOTICS_METHODOLOGY.html`](docs/MIND_ROBOTICS_METHODOLOGY.html) ·
-[`docs/POLICY_SIM_COUPLING.md`](docs/POLICY_SIM_COUPLING.md) ·
+survey) · [`docs/POLICY_SIM_COUPLING.md`](docs/POLICY_SIM_COUPLING.md) ·
 [`docs/SIM_TO_REAL_TRANSFER.md`](docs/SIM_TO_REAL_TRANSFER.md) ·
 [`docs/REAL_SIM_PAIRED_DATA.md`](docs/REAL_SIM_PAIRED_DATA.md) ·
 [`docs/CONSUMER_ELICITATION_DESIGN.md`](docs/CONSUMER_ELICITATION_DESIGN.md)
