@@ -89,11 +89,12 @@ def main():
     ap.add_argument("--robustness", default=os.path.join(HERE, "presets/v1_orange_robustness.json"))
     ap.add_argument("--model", default="openai/gpt-oss-20b")
     ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--tag", default="", help="suffix for the output folder (e.g. x for presets/v1_orange_x.json), so runs on other preset files don't overwrite each other")
     a = ap.parse_args()
     if a.test == "variants":
         a.runs = 1
     P = json.load(open(a.presets))
-    out = os.path.join(WT, "runs/taskgen/agent_eval_v3", a.test, a.model.replace("/", "__"))
+    out = os.path.join(WT, "runs/taskgen/agent_eval_v3", a.test + (f"_{a.tag}" if a.tag else ""), a.model.replace("/", "__"))
     os.makedirs(out, exist_ok=True)
     q0 = h5py.File(os.path.join(MAIN, P["episode"], "trajectory.h5"))["observation/robot_state/joint_positions"][0]
     model = Nim(a.model)
@@ -121,7 +122,7 @@ def main():
     for r in rows:
         s = summ.setdefault(r["case"], dict(calls=0, valid=0, match=0, scene_ok=0, seconds=0.0))
         s["calls"] += 1; s["valid"] += r["valid"]; s["match"] += r["match"]; s["scene_ok"] += bool(r["scene_ok"]); s["seconds"] += r["seconds"]
-    json.dump(dict(model=a.model, test=a.test, prompt_version=mode_a3.PROMPT_VERSION, runs=a.runs, summary=summ, rows=rows),
+    json.dump(dict(model=a.model, test=a.test, presets=a.presets, tag=a.tag, prompt_version=mode_a3.PROMPT_VERSION, runs=a.runs, summary=summ, rows=rows),
               open(os.path.join(out, "report.json"), "w"), indent=1, default=str)
     print(json.dumps(summ, indent=1))
 

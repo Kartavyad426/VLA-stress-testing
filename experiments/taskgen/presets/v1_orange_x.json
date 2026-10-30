@@ -1,0 +1,777 @@
+{
+ "scene": "runs/real2sim/v1/orange",
+ "episode": "data/real2sim/droid/ep_orange_block",
+ "format": "v3 (two-part answer: scene = job A, task = job B; core/request.py)",
+ "real_task": "Put the orange block inside the black bowl",
+ "base_objects": {
+  "block_1": "yellow block",
+  "block_2": "orange block",
+  "block_3": "green block",
+  "bowl_1": "black bowl"
+ },
+ "note": "15 extra presets X01-X15 written by TaskGen 2026-10-30 at the user's request (\"make like 15 more, on your discretion ... not verified by user\"). NOT verified by the user; expected answers are TaskGen's judgement.",
+ "verified_by_user": false,
+ "presets": [
+  {
+   "id": "X01",
+   "template": "T-next-to",
+   "level": "L1",
+   "verified_by_user": false,
+   "note": "task only, base objects, the next_to rule",
+   "prompts": [
+    "put the {block.colour} block next to the black bowl",
+    "move the {block.colour} cube so it sits beside the bowl",
+    "place the {block.colour} block right by the black bowl"
+   ],
+   "template_def": {
+    "name": "T-next-to",
+    "slots": {
+     "block": {
+      "kind": "choice",
+      "values": [
+       {
+        "name": "block_2",
+        "colour": "orange"
+       },
+       {
+        "name": "block_1",
+        "colour": "yellow"
+       },
+       {
+        "name": "block_3",
+        "colour": "green"
+       }
+      ]
+     }
+    },
+    "request": {
+     "task": {
+      "instruction": "put the {block.colour} block next to the black bowl",
+      "targets": [
+       "{block.name}"
+      ],
+      "pass_all": [
+       {
+        "type": "next_to",
+        "object": "{block.name}",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X02",
+   "template": "T-on",
+   "level": "L2",
+   "verified_by_user": false,
+   "note": "task only, two base blocks; 'stack ... on' may come back as 'stacked' instead of 'on' (a wording ambiguity worth seeing)",
+   "prompts": [
+    "put the {pair[0].colour} block on top of the {pair[1].colour} block",
+    "place the {pair[0].colour} cube onto the {pair[1].colour} one",
+    "stack the {pair[0].colour} block on the {pair[1].colour} block"
+   ],
+   "template_def": {
+    "name": "T-on",
+    "slots": {
+     "pair": {
+      "kind": "permute",
+      "k": 2,
+      "values": [
+       {
+        "name": "block_2",
+        "colour": "orange"
+       },
+       {
+        "name": "block_1",
+        "colour": "yellow"
+       },
+       {
+        "name": "block_3",
+        "colour": "green"
+       }
+      ]
+     }
+    },
+    "request": {
+     "task": {
+      "instruction": "put the {pair[0].colour} block on the {pair[1].colour} block",
+      "targets": [
+       "{pair[0].name}"
+      ],
+      "pass_all": [
+       {
+        "type": "on",
+        "object": "{pair[0].name}",
+        "target": "{pair[1].name}"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X03",
+   "template": "T-added-into",
+   "level": "L2",
+   "verified_by_user": false,
+   "note": "scene + task; the added block next to a base object",
+   "prompts": [
+    "add a {colour} block next to the bowl and have the robot put it in the bowl",
+    "place a new {colour} cube beside the black bowl; the task is to drop it into the bowl",
+    "put a {colour} block near the bowl, then the robot moves it into the bowl"
+   ],
+   "template_def": {
+    "name": "T-added-into",
+    "slots": {
+     "colour": {
+      "kind": "choice",
+      "values": [
+       "red",
+       "blue",
+       "purple"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{colour}_block_1",
+        "source": "box",
+        "colour": "{colour}",
+        "size_cm": 3,
+        "relation": "next_to",
+        "target": "bowl_1"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "put the {colour} block in the black bowl",
+      "targets": [
+       "{colour}_block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "inside",
+        "object": "{colour}_block_1",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X04",
+   "template": "T-scene-only",
+   "level": "L1",
+   "verified_by_user": false,
+   "note": "scene only: the answer must NOT invent a task",
+   "prompts": [
+    "add a {colour} block on the table",
+    "put an extra {colour} cube somewhere on the table",
+    "I want one more block on the table, {colour}"
+   ],
+   "template_def": {
+    "name": "T-scene-only",
+    "slots": {
+     "colour": {
+      "kind": "choice",
+      "values": [
+       "red",
+       "blue",
+       "white"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{colour}_block_1",
+        "source": "box",
+        "colour": "{colour}",
+        "size_cm": 3,
+        "relation": "on_table"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X05",
+   "template": "T-two-into",
+   "level": "L3",
+   "verified_by_user": false,
+   "note": "task only, two pass conditions (both must hold)",
+   "prompts": [
+    "put the {two[0].colour} and the {two[1].colour} blocks in the bowl",
+    "move both the {two[0].colour} block and the {two[1].colour} block into the black bowl",
+    "the robot should place the {two[0].colour} and {two[1].colour} cubes inside the bowl"
+   ],
+   "template_def": {
+    "name": "T-two-into",
+    "slots": {
+     "two": {
+      "kind": "choose",
+      "k": 2,
+      "values": [
+       {
+        "name": "block_2",
+        "colour": "orange"
+       },
+       {
+        "name": "block_1",
+        "colour": "yellow"
+       },
+       {
+        "name": "block_3",
+        "colour": "green"
+       }
+      ]
+     }
+    },
+    "request": {
+     "task": {
+      "instruction": "put the {two[0].colour} and {two[1].colour} blocks in the black bowl",
+      "targets": [
+       "{two[0].name}",
+       "{two[1].name}"
+      ],
+      "pass_all": [
+       {
+        "type": "inside",
+        "object": "{two[0].name}",
+        "target": "bowl_1"
+       },
+       {
+        "type": "inside",
+        "object": "{two[1].name}",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X06",
+   "template": "T-distractor",
+   "level": "L2",
+   "verified_by_user": false,
+   "note": "scene + task on a base object; 'red' sits close to orange and 'yellow' duplicates a base colour",
+   "prompts": [
+    "add a {colour} block next to the orange block as a distractor; the task stays: put the orange block in the bowl",
+    "place a {colour} cube beside the orange one to confuse things, and the robot still puts the orange block in the bowl",
+    "put a {colour} distractor block by the orange block; task: orange block into the black bowl"
+   ],
+   "template_def": {
+    "name": "T-distractor",
+    "slots": {
+     "colour": {
+      "kind": "choice",
+      "values": [
+       "red",
+       "yellow",
+       "white"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{colour}_block_1",
+        "source": "box",
+        "colour": "{colour}",
+        "size_cm": 3,
+        "relation": "next_to",
+        "target": "block_2"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "put the orange block in the black bowl",
+      "targets": [
+       "block_2"
+      ],
+      "pass_all": [
+       {
+        "type": "inside",
+        "object": "block_2",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X07",
+   "template": "T-stack-added",
+   "level": "L5",
+   "verified_by_user": false,
+   "note": "scene + task, an ordered stack mixing added and base blocks",
+   "prompts": [
+    "add a {pair[0]} and a {pair[1]} block, then stack: {pair[0]} at the bottom, {pair[1]} in the middle, the green block on top",
+    "put new {pair[0]} and {pair[1]} cubes on the table; the robot builds a tower {pair[0]}, {pair[1]}, green from bottom to top",
+    "add {pair[0]} and {pair[1]} blocks and have the robot stack them with the green block on top: {pair[0]} lowest, then {pair[1]}"
+   ],
+   "template_def": {
+    "name": "T-stack-added",
+    "slots": {
+     "pair": {
+      "kind": "permute",
+      "k": 2,
+      "values": [
+       "red",
+       "blue"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{pair[0]}_block_1",
+        "source": "box",
+        "colour": "{pair[0]}",
+        "size_cm": 3,
+        "relation": "on_table"
+       },
+       {
+        "name": "{pair[1]}_block_1",
+        "source": "box",
+        "colour": "{pair[1]}",
+        "size_cm": 3,
+        "relation": "on_table"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "stack the blocks: {pair[0]} at the bottom, then {pair[1]}, then green on top",
+      "targets": [
+       "{pair[0]}_block_1",
+       "{pair[1]}_block_1",
+       "block_3"
+      ],
+      "pass_all": [
+       {
+        "type": "ordered_stack",
+        "order": [
+         "{pair[0]}_block_1",
+         "{pair[1]}_block_1",
+         "block_3"
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X08",
+   "template": "T-drawer-out",
+   "level": "L4",
+   "verified_by_user": false,
+   "note": "scene + task, a single drawer, two pass conditions (out_of + next_to)",
+   "prompts": [
+    "add a drawer with a {colour} block inside; the robot takes it out and leaves it next to the bowl",
+    "put a {colour} cube in a new drawer on the table; task: take it out of the drawer and set it beside the black bowl",
+    "a drawer holding a {colour} block: the robot removes the block and puts it down next to the bowl"
+   ],
+   "template_def": {
+    "name": "T-drawer-out",
+    "slots": {
+     "colour": {
+      "kind": "choice",
+      "values": [
+       "red",
+       "blue",
+       "purple"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "drawer_1",
+        "source": "drawer",
+        "relation": "on_table"
+       },
+       {
+        "name": "{colour}_block_1",
+        "source": "box",
+        "colour": "{colour}",
+        "size_cm": 3,
+        "relation": "inside",
+        "target": "drawer_1"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "take the {colour} block out of the drawer and put it next to the black bowl",
+      "targets": [
+       "{colour}_block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "out_of",
+        "object": "{colour}_block_1",
+        "target": "drawer_1"
+       },
+       {
+        "type": "next_to",
+        "object": "{colour}_block_1",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X09",
+   "template": "T-cabinet-to-block",
+   "level": "L6+",
+   "verified_by_user": false,
+   "note": "T-cabinet variant whose goal is another block, not the bowl",
+   "prompts": [
+    "add a three-drawer cabinet with the {level} drawer open and a red block inside; the robot puts the red block on the green block",
+    "a 3-drawer cabinet, {level} drawer open, holding a red cube; task: take it out and put it on top of the green block",
+    "put a red block in the open {level} drawer of a new three-drawer cabinet; the robot places it onto the green block"
+   ],
+   "template_def": {
+    "name": "T-cabinet-to-block",
+    "slots": {
+     "level": {
+      "kind": "choice",
+      "values": [
+       "bottom",
+       "middle",
+       "top"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "cabinet_1",
+        "source": "cabinet",
+        "levels": 3,
+        "open_level": "{level}",
+        "relation": "on_table"
+       },
+       {
+        "name": "red_block_1",
+        "source": "box",
+        "colour": "red",
+        "size_cm": 3,
+        "relation": "inside",
+        "target": "cabinet_1/{level}"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "take the red block out of the {level} drawer and put it on the green block",
+      "targets": [
+       "red_block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "on",
+        "object": "red_block_1",
+        "target": "block_3"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X10",
+   "template": "T-pack-into",
+   "level": "L3",
+   "verified_by_user": false,
+   "note": "scene + task with an asset-pack object (kitchen pack: LemonWedge, WoodenSpoon)",
+   "prompts": [
+    "add a {noun} on the table and have the robot put it in the bowl",
+    "place a {noun} on the table; the task is to drop the {noun} into the black bowl",
+    "put a {noun} somewhere on the table, then the robot moves it into the bowl"
+   ],
+   "template_def": {
+    "name": "T-pack-into",
+    "slots": {
+     "noun": {
+      "kind": "choice",
+      "values": [
+       "lemon",
+       "spoon"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{noun}_1",
+        "source": "pack",
+        "noun": "{noun}",
+        "relation": "on_table"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "put the {noun} in the black bowl",
+      "targets": [
+       "{noun}_1"
+      ],
+      "pass_all": [
+       {
+        "type": "inside",
+        "object": "{noun}_1",
+        "target": "bowl_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X11",
+   "template": "T-pack-next-to",
+   "level": "L3",
+   "verified_by_user": false,
+   "note": "scene + task: an added pack object as the goal, a base block moved",
+   "prompts": [
+    "add a {noun} on the table; the robot puts the yellow block next to the {noun}",
+    "place a {noun} on the table and have the robot move the yellow cube beside it",
+    "put a {noun} on the table, then the yellow block goes right next to the {noun}"
+   ],
+   "template_def": {
+    "name": "T-pack-next-to",
+    "slots": {
+     "noun": {
+      "kind": "choice",
+      "values": [
+       "mug",
+       "bottle",
+       "can"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{noun}_1",
+        "source": "pack",
+        "noun": "{noun}",
+        "relation": "on_table"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "put the yellow block next to the {noun}",
+      "targets": [
+       "block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "next_to",
+        "object": "block_1",
+        "target": "{noun}_1"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X12",
+   "template": "T-infeasible-task",
+   "level": "L0",
+   "verified_by_user": false,
+   "note": "task refusal: physically impossible goal",
+   "prompts": [
+    "the robot should put the black bowl inside the orange block",
+    "task: place the bowl into the orange cube",
+    "make the robot fit the black bowl inside the orange block"
+   ],
+   "template_def": {
+    "name": "T-infeasible-task",
+    "slots": {},
+    "request": {
+     "infeasible": [
+      {
+       "part": "task",
+       "reason": "the bowl (about 19 cm) can't go inside a 3 cm block"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "X13",
+   "template": "T-no-rule",
+   "level": "L0",
+   "verified_by_user": false,
+   "note": "task refusal: the goal needs a rule that doesn't exist (orientation)",
+   "prompts": [
+    "the robot should rotate the green block by 90 degrees",
+    "turn the green cube a quarter turn in place",
+    "task: spin the green block 90 degrees without moving it"
+   ],
+   "template_def": {
+    "name": "T-no-rule",
+    "slots": {},
+    "request": {
+     "infeasible": [
+      {
+       "part": "task",
+       "reason": "no pass rule for an object's orientation (rules: inside, on, stacked, ordered_stack, out_of, next_to)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "X14",
+   "template": "T-scene-plus-base-task",
+   "level": "L2",
+   "verified_by_user": false,
+   "note": "scene and task independent of each other: the added block is a bystander",
+   "prompts": [
+    "add a {colour} block on the table, and the robot puts the yellow block on top of the green block",
+    "put a {colour} cube on the table; the task is the yellow block onto the green block",
+    "one more {colour} block on the table please; the robot places the yellow block on the green one"
+   ],
+   "template_def": {
+    "name": "T-scene-plus-base-task",
+    "slots": {
+     "colour": {
+      "kind": "choice",
+      "values": [
+       "red",
+       "blue",
+       "purple"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "{colour}_block_1",
+        "source": "box",
+        "colour": "{colour}",
+        "size_cm": 3,
+        "relation": "on_table"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "put the yellow block on the green block",
+      "targets": [
+       "block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "on",
+        "object": "block_1",
+        "target": "block_3"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "X15",
+   "template": "T-closed-drawer",
+   "level": "L6+",
+   "verified_by_user": false,
+   "note": "the 'mind-boggling' one: object in a closed drawer; expected = partial scene refusal with the open drawer as the alternative",
+   "prompts": [
+    "add a three-drawer cabinet with only the {open} drawer open and a red block inside the {closed} drawer; the robot puts it in the bowl",
+    "a 3-drawer cabinet: the {open} drawer is open, the red block is in the closed {closed} drawer; task: get it into the bowl",
+    "put a red cube in the {closed} drawer of a new cabinet whose {open} drawer is the open one; the robot moves it to the bowl"
+   ],
+   "template_def": {
+    "name": "T-closed-drawer",
+    "slots": {
+     "open": {
+      "kind": "choice",
+      "values": [
+       "top",
+       "middle"
+      ],
+      "scope": "scene"
+     },
+     "closed": {
+      "kind": "choice",
+      "values": [
+       "bottom"
+      ],
+      "scope": "scene"
+     }
+    },
+    "request": {
+     "scene": {
+      "add": [
+       {
+        "name": "cabinet_1",
+        "source": "cabinet",
+        "levels": 3,
+        "open_level": "{open}",
+        "relation": "on_table"
+       },
+       {
+        "name": "red_block_1",
+        "source": "box",
+        "colour": "red",
+        "size_cm": 3,
+        "relation": "inside",
+        "target": "cabinet_1/{open}"
+       }
+      ]
+     },
+     "task": {
+      "instruction": "take the red block out of the {open} drawer and put it in the black bowl",
+      "targets": [
+       "red_block_1"
+      ],
+      "pass_all": [
+       {
+        "type": "inside",
+        "object": "red_block_1",
+        "target": "bowl_1"
+       }
+      ]
+     },
+     "infeasible": [
+      {
+       "part": "scene",
+       "reason": "a block in a closed drawer can't be reached or seen",
+       "alternative": "the red block in the open {open} drawer"
+      }
+     ]
+    }
+   }
+  }
+ ]
+}
