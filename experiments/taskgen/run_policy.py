@@ -37,8 +37,13 @@ def main():
     ap.add_argument("--replay_npz", default=None)
     ap.add_argument("--seconds", type=float, default=30.0)
     ap.add_argument("--wrist_render", choices=["v1", "v2"], default="v2")
+    ap.add_argument("--wrist_gripper_photo", choices=["default", "on", "off"], default="default",
+                    help="v2 wrist real-gripper photo: default = policy_runner.WRIST_GRIPPER_PHOTO (off from 10-30 13:4x)")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
+    if a.wrist_gripper_photo != "default":
+        import sim_mujoco.policy_runner as PRN
+        PRN.WRIST_GRIPPER_PHOTO = a.wrist_gripper_photo == "on"
     S = session_from(a.scene_config)
     task = TaskConfig(**json.load(open(a.task_config)))
     res = run_episode(S, task, a.out, policy=a.policy, seconds=a.seconds, wrist_render=a.wrist_render, replay_npz=a.replay_npz,

@@ -5,9 +5,13 @@
 # Run from the main checkout. EGL rendering (not the CPU wrapper: that hides CUDA). Exploratory, UNVERIFIED.
 set -uo pipefail
 cd /home/imerit/Documents/Code/VLA
-SC=$1; TC=$2; OUT=$3; SECS=${4:-30}
+SC=$1; TC=$2; OUT=$3; SECS=${4:-30}; EXTRA=("${@:5}")  # extra args go to run_policy.py (e.g. --wrist_gripper_photo on)
 if [ "${TASKGEN_LOCKED:-0}" != "1" ]; then
-    exec env TASKGEN_LOCKED=1 flock -n /tmp/vla_gpu.lock "$0" "$@" || { echo "GPU lock held by another job; not started" >&2; exit 1; }
+    # -E 75: a busy lock exits 75, so it can't be confused with the episode's own rc (10-30: under exec the old
+    # "lock held" message could never print, and a busy lock looked like a silent rc 1)
+    env TASKGEN_LOCKED=1 flock -n -E 75 /tmp/vla_gpu.lock "$0" "$@"; rc=$?
+    [ $rc -eq 75 ] && echo "GPU lock held by another job; not started" >&2
+    exit $rc
 fi
 # started from the chat server, which runs under the CPU wrapper: drop its CUDA_VISIBLE_DEVICES="" / MUJOCO_GL=osmesa
 # (10-29 16:29: inherited, they hid the GPU, so EGL failed: "module 'mujoco' has no attribute 'Renderer'")
@@ -28,7 +32,7 @@ echo "$(date '+%F %T') start: scene $SC task $TC seconds $SECS; disk free $(df -
 MON=$!
 MUJOCO_GL=egl .venvs/real2sim/bin/python -c 'import triton' 2>/dev/null
 MUJOCO_GL=egl .venvs/real2sim/bin/python ../VLA-exp-taskgen/experiments/taskgen/run_policy.py \
-    --scene_config "$SC" --task_config "$TC" --policy groot --seconds "$SECS" --out "$OUT" 2>&1 | grep -v -i "warning" | tee -a "$OUT/run.log"
+    --scene_config "$SC" --task_config "$TC" --policy groot --seconds "$SECS" --out "$OUT" "${EXTRA[@]}" 2>&1 | grep -v -i "warning" | tee -a "$OUT/run.log"
 rc=${PIPESTATUS[0]}
 kill $MON 2>/dev/null
 echo "$(date '+%F %T') end rc $rc; peak GPU $(awk -F, '$2>m{m=$2}END{print m}' "$OUT/gpu_monitor.csv") MiB; min MemAvailable $(awk -F, 'NR==1||$3<m{m=$3}END{print m}' "$OUT/gpu_monitor.csv") MiB" | tee -a "$OUT/run.log"

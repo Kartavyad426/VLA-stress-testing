@@ -22,6 +22,10 @@ REPO = "/home/imerit/Documents/Code/VLA"
 # wrist v2 photo/sim gripper blend: TRIAL from 2026-10-30 ~01:25 until the user's review on 10-31 morning (user via res31:
 # "use this for any future rollouts till tom morning, revertible change ofc"). Revert: WRIST_BLEND = {} (the hard switch).
 WRIST_BLEND = dict(open_ramp=0.05, w_smooth=0.3)
+# wrist v2 real-gripper photo: OFF from 2026-10-30 ~13:4x (user: "can you disable the wrist render for a while?", after
+# "too much flicker due to wrist render, robot cant pick things up"). Off = the sim gripper always (no photo/sim swap);
+# the rest of v2 (real wrist table texture, wrist light, gripper-only blur) stays. Revert: WRIST_GRIPPER_PHOTO = True.
+WRIST_GRIPPER_PHOTO = False
 EXPERT_MAX_S = 120  # --policy expert: runs to the end of its steps (not --seconds), capped here
 
 
@@ -54,7 +58,8 @@ def compositors(session, m, wrist_render="v2", shadows=True, wrist_blur="gripper
         g_rec = h5py.File(os.path.join(edir, "trajectory.h5"))["observation/robot_state/gripper_position"][:]
         k_close = int(np.argmax(g_rec > 0.5))
         tt = wrist_table_texture(mb, sdir, edir, fit["wrist_camera"]["serial"], list(range(0, k_close - 2, 2)))
-        wcomp = WristRenderV2(m, plate, comp, (PR.H, PR.W), wp, tt, load_gripper_library(os.path.join(sdir, "gripper_lib", "gripper_library.npz")),
+        lib = load_gripper_library(os.path.join(sdir, "gripper_lib", "gripper_library.npz")) if WRIST_GRIPPER_PHOTO else None
+        wcomp = WristRenderV2(m, plate, comp, (PR.H, PR.W), wp, tt, lib,
                               light=json.load(open(os.path.join(sdir, "light_wrist.json"))), near=wrist_blur,
                               **WRIST_BLEND)  # a fresh WristRenderV2 per run: no reset() needed
     else:
@@ -225,6 +230,7 @@ def run_episode(session, task, out, policy="hold", seconds=30.0, open_loop=15, w
                gripper_closed_frac=float((acts[:, 9] > 0.5).mean()) if len(acts) else None,
                wrist_render=wrist_render, wrist_blur=wrist_blur if wrist_render == "v2" else None, shadows=shadows,
                wrist_blend=dict(WRIST_BLEND) if wrist_render == "v2" else None,
+               wrist_gripper_photo=WRIST_GRIPPER_PHOTO if wrist_render == "v2" else None,
                exterior_view="composite (cleaned real plate of the base scene + sim; added objects drawn with their model colours)",
                expert_steps=expert_log, status="exploratory, UNVERIFIED", **diag)
     np.savez_compressed(os.path.join(out, "rollout.npz"), state=np.array(states), action=acts, cartesian=np.array(carts), infer_s=np.array(infer_s),
